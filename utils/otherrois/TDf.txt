@@ -1,0 +1,70 @@
+Angular Gyrus.Left Cerebrum
+Angular Gyrus.Right Cerebrum
+Anterior Cingulate.Left Cerebrum
+Anterior Cingulate.Right Cerebrum
+Caudate.Left Cerebrum
+Caudate.Right Cerebrum
+Cingulate Gyrus.Left Cerebrum
+Cingulate Gyrus.Right Cerebrum
+Claustrum.Left Cerebrum
+Claustrum.Right Cerebrum
+Cuneus.Left Cerebrum
+Cuneus.Right Cerebrum
+Fusiform Gyrus.Left Cerebrum
+Fusiform Gyrus.Right Cerebrum
+Inferior Frontal Gyrus.Left Cerebrum
+Inferior Frontal Gyrus.Right Cerebrum
+Inferior Occipital Gyrus.Left Cerebrum
+Inferior Occipital Gyrus.Right Cerebrum
+Inferior Parietal Lobule.Left Cerebrum
+Inferior Parietal Lobule.Right Cerebrum
+Inferior Temporal Gyrus.Left Cerebrum
+Inferior Temporal Gyrus.Right Cerebrum
+Insula.Left Cerebrum
+Insula.Right Cerebrum
+Lentiform Nucleus.Left Cerebrum
+Lentiform Nucleus.Right Cerebrum
+Lingual Gyrus.Left Cerebrum
+Lingual Gyrus.Right Cerebrum
+Medial Frontal Gyrus.Left Cerebrum
+Medial Frontal Gyrus.Right Cerebrum
+Middle Frontal Gyrus.Left Cerebrum
+Middle Frontal Gyrus.Right Cerebrum
+Middle Occipital Gyrus.Left Cerebrum
+Middle Occipital Gyrus.Right Cerebrum
+Middle Temporal Gyrus.Left Cerebrum
+Middle Temporal Gyrus.Right Cerebrum
+Orbital Gyrus.Left Cerebrum
+Orbital Gyrus.Right Cerebrum
+Paracentral Lobule.Left Cerebrum
+Paracentral Lobule.Right Cerebrum
+Parahippocampal Gyrus.Left Cerebrum
+Parahippocampal Gyrus.Right Cerebrum
+Postcentral Gyrus.Left Cerebrum
+Postcentral Gyrus.Right Cerebrum
+Posterior Cingulate.Left Cerebrum
+Posterior Cingulate.Right Cerebrum
+Precentral Gyrus.Left Cerebrum
+Precentral Gyrus.Right Cerebrum
+Precuneus.Left Cerebrum
+Precuneus.Right Cerebrum
+Rectal Gyrus.Left Cerebrum
+Rectal Gyrus.Right Cerebrum
+Subcallosal Gyrus.Left Cerebrum
+Subcallosal Gyrus.Right Cerebrum
+Superior Frontal Gyrus.Left Cerebrum
+Superior Frontal Gyrus.Right Cerebrum
+Superior Occipital Gyrus.Left Cerebrum
+Superior Occipital Gyrus.Right Cerebrum
+Superior Parietal Lobule.Left Cerebrum
+Superior Parietal Lobule.Right Cerebrum
+Superior Temporal Gyrus.Left Cerebrum
+Superior Temporal Gyrus.Right Cerebrum
+Supramarginal Gyrus.Left Cerebrum
+Supramarginal Gyrus.Right Cerebrum
+Thalamus.Left Cerebrum
+Thalamus.Right Cerebrum
+Transverse Temporal Gyrus.Left Cerebrum
+Transverse Temporal Gyrus.Right Cerebrum
+Uncus.Left Cerebrum
+Uncus.Right Cerebrum

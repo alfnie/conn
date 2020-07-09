@@ -1,0 +1,8 @@
+DefaultMode
+SensoriMotor
+Visual
+Salience
+DorsalAttention
+FrontoParietal
+Language
+Cerebellar

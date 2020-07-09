@@ -1,0 +1,2 @@
+Default Subject-Space pipeline (for Surface-based analyses) but changing the order of structural-segmentation vs. functional-coregistration
+Suggested for anonymized structurals (functional-anatomical coregistration will use skull-stripped structurals in this case)

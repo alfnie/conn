@@ -1,0 +1,35 @@
+Angular Gyrus
+Anterior Cingulate
+Caudate
+Cingulate Gyrus
+Claustrum
+Cuneus
+Fusiform Gyrus
+Inferior Frontal Gyrus
+Inferior Occipital Gyrus
+Inferior Parietal Lobule
+Inferior Temporal Gyrus
+Insula
+Lentiform Nucleus
+Lingual Gyrus
+Medial Frontal Gyrus
+Middle Frontal Gyrus
+Middle Occipital Gyrus
+Middle Temporal Gyrus
+Orbital Gyrus
+Paracentral Lobule
+Parahippocampal Gyrus
+Postcentral Gyrus
+Posterior Cingulate
+Precentral Gyrus
+Precuneus
+Rectal Gyrus
+Subcallosal Gyrus
+Superior Frontal Gyrus
+Superior Occipital Gyrus
+Superior Parietal Lobule
+Superior Temporal Gyrus
+Supramarginal Gyrus
+Thalamus
+Transverse Temporal Gyrus
+Uncus

@@ -1,0 +1,24 @@
+ROIS defined from:
+
+1) Cortical ROIs from FSL Harvard-Oxford Atlas maximum likelihood cortical atlas (HarvardOxford-cort-maxprob-thr25-1mm.nii); divided bilateral areas into left/right hemisphere; (91 ROIs)
+
+2) Subcortical ROIs from FSL Harvard-Oxford Atlas maximum likelihood subcortical atlas (HarvardOxford-sub-maxprob-thr25-1mm.nii); disregarded Cerebral White Matter, Cerebral Cortex, and Lateral Ventrical areas; (15 ROIs)
+
+3) Cerebellar parcelation from AAL Atlas (26 ROIs)
+
+ note: a small percentage of voxels received labels from several of the atlases above, in those cases atlas precedence Cortical>Cerebellar>Subcortical was used to resolve a unique label 
+
+HARVARD-OXFORD ATLAS:
+The CMA provided data for an atlas distributed with FSL. We ask that publications using that atlas acknowledge the data as follows:
+
+We are very grateful for the training data for FIRST, particularly to David Kennedy at the CMA, and also to: Christian Haselgrove, Centre for Morphometric Analysis, Harvard; Bruce Fischl, Martinos Center for Biomedical Imaging, MGH; Janis Breeze and Jean Frazier, Child and Adolescent Neuropsychiatric Research Program, Cambridge Health Alliance; Larry Seidman and Jill Goldstein, Department of Psychiatry of Harvard Medical School; Barry Kosofsky, Weill Cornell Medical Center.
+In addition, the following citations document the original material:
+
+Makris N, Goldstein JM, Kennedy D, Hodge SM, Caviness VS, Faraone SV, Tsuang MT, Seidman LJ. Decreased volume of left and total anterior insular lobule in schizophrenia. Schizophr Res. 2006 Apr;83(2-3):155-71
+Frazier JA, Chiu S, Breeze JL, Makris N, Lange N, Kennedy DN, Herbert MR, Bent EK, Koneru VK, Dieterich ME, Hodge SM, Rauch SL, Grant PE, Cohen BM, Seidman LJ, Caviness VS, Biederman J. Structural brain magnetic resonance imaging of limbic and thalamic volumes in pediatric bipolar disorder. Am J Psychiatry. 2005 Jul;162(7):1256-65.
+Desikan RS, Ségonne F, Fischl B, Quinn BT, Dickerson BC, Blacker D, Buckner RL, Dale AM, Maguire RP, Hyman BT, Albert MS, Killiany RJ. An automated labeling system for subdividing the human cerebral cortex on MRI scans into gyral based regions of interest. Neuroimage. 2006 Jul 1;31(3):968-80.
+Goldstein JM, Seidman LJ, Makris N, Ahern T, O'Brien LM, Caviness VS Jr, Kennedy DN, Faraone SV, Tsuang MT. Hypothalamic abnormalities in schizophrenia: sex effects and genetic vulnerability. Biol Psychiatry. 2007 Apr 15;61(8):935-45.
+
+AAL ATLAS:
+Automated Anatomical Labeling of Activations in SPM Using a Macroscopic Anatomical Parcellation of the MNI MRI Single-Subject Brain. 
+N. Tzourio-Mazoyer, B. Landeau, D. Papathanassiou, F. Crivello, O. Étard, N. Delcroix, B. Mazoyer, and M. Joliot. NeuroImage 2002. 15 :273-289

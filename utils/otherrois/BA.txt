@@ -1,0 +1,84 @@
+1 (L). Primary Somatosensory Cortex
+1 (R). Primary Somatosensory Cortex
+10 (L). Anterior Prefrontal Cortex
+10 (R). Anterior Prefrontal Cortex
+11 (L). Orbitofrontal Cortex
+11 (R). Orbitofrontal Cortex
+13 (L). Insular Cortex
+13 (R). Insular Cortex
+17 (L). Primary Visual Cortex
+17 (R). Primary Visual Cortex
+18 (L). Secondary Visual Cortex
+18 (R). Secondary Visual Cortex
+19 (L). Associative Visual Cortex
+19 (R). Associative Visual Cortex
+2 (L). Primary Somatosensory Cortex
+2 (R). Primary Somatosensory Cortex
+20 (L). Inferior Temporal Gyrus
+20 (R). Inferior Temporal Gyrus
+21 (L). Middle Temporal Gyrus
+21 (R). Middle Temporal Gyrus
+22 (L). Superior Temporal Gyrus
+22 (R). Superior Temporal Gyrus
+23 (L). Ventral Posterior Cingulate Cortex
+23 (R). Ventral Posterior Cingulate Cortex
+24 (L). Ventral Anterior Cingulate Cortex
+24 (R). Ventral Anterior Cingulate Cortex
+25 (L). Subgenual cortex
+25 (R). Subgenual cortex
+27 (L). Piriform Cortex
+27 (R). Piriform Cortex
+28 (L). Posterior Entorhinal Cortex
+28 (R). Posterior Entorhinal Cortex
+29 (L). Retrosplenial Cingulate Cortex
+29 (R). Retrosplenial Cingulate Cortex
+3 (L). Primary Somatosensory Cortex
+3 (R). Primary Somatosensory Cortex
+30 (L). Cingulate Cortex
+30 (R). Cingulate Cortex
+31 (L). Dorsal Posterior Cingulate Cortex
+31 (R). Dorsal Posterior Cingulate Cortex
+32 (L). Dorsal anterior Cingulate Cortex
+32 (R). Dorsal anterior Cingulate Cortex
+33 (L). Anterior Cingulate Cortex
+33 (R). Anterior Cingulate Cortex
+34 (L). Anterior Entorhinal Cortex
+34 (R). Anterior Entorhinal Cortex
+35 (L). Perirhinal cortex
+35 (R). Perirhinal cortex
+36 (L). Parahippocampal cortex
+36 (R). Parahippocampal cortex
+37 (L). Fusiform gyrus
+37 (R). Fusiform gyrus
+38 (L). Temporopolar Area
+38 (R). Temporopolar Area
+39 (L). Angular gyrus
+39 (R). Angular gyrus
+4 (L). Primary Motor Cortex
+4 (R). Primary Motor Cortex
+40 (L). Supramarginal Gyrus
+40 (R). Supramarginal Gyrus
+41 (L). Primary Auditory Cortex
+41 (R). Primary Auditory Cortex
+42 (L). Primary Auditory Cortex
+42 (R). Primary Auditory Cortex
+43 (L). Subcentral Area
+43 (R). Subcentral Area
+44 (L). IFC pars opercularis
+44 (R). IFC pars opercularis
+45 (L). IFC pars triangularis
+45 (R). IFC pars triangularis
+46 (L). Dorsolateral Prefrontal Cortex
+46 (R). Dorsolateral Prefrontal Cortex
+47 (L). Inferior Prefrontal Gyrus
+47 (R). Inferior Prefrontal Gyrus
+5 (L). Somatosensory Association Cortex
+5 (R). Somatosensory Association Cortex
+6 (L). Premotor Cortex
+6 (R). Premotor Cortex
+7 (L). Somatosensory Association Cortex
+7 (R). Somatosensory Association Cortex
+8 (L). Dorsal Frontal Cortex
+8 (R). Dorsal Frontal Cortex
+9 (L). Dorsolateral Prefrontal Cortex
+9 (R). Dorsolateral Prefrontal Cortex

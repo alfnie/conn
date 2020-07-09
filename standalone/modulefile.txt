@@ -1,0 +1,43 @@
+#%Module1.0
+## 
+## conn_standalone.
+## R2018b
+
+proc ModulesHelp { } {
+     puts stderr {
+conn functional connectivity toolbox standalone 2018b release
+
+CONN is a Matlab-based cross-platform software for the computation, display, and analysis of functional 
+connectivity in fMRI (fcMRI).
+
+For more information on CONN, please see
+* CONN website: http://www.conn-toolbox.org
+* NITRC website: http://www.nitrc.org/projects/conn
+
+Note: this CONN standalone release requires/includes MATLAB Compiler Runtime (MCR) version 9.5
+}
+}
+
+# NOTES: categories and keywords should be all lowercase. 
+module-whatis { CONN functional connectivity toolbox
+Categories: analysis
+Keywords: fmri, connectivity, bioinformatics, statistics, imaging, visualization
+}
+
+conflict mcr
+
+#<PACKAGE-SPECIFIC-MODULE-CMDS>
+
+# NOTES: change "foo" below to the proper installation folders for CONN and MCR
+# NOTES: REMOVE THE LINE "prepend-path LD_LIBRARY_PATH {mcr_root/sys/opengl/lib/glnxa64}" if you prefer to use your own OpenGL drivers (e.g. VirtualGL)
+
+set conn_root /foo/software/conn_standalone/R2018b
+set mcr_root  /foo/software/MCR/v95
+
+prepend-path PATH ${conn_root}
+setenv MCRROOT ${mcr_root}
+setenv XAPPLRESDIR ${mcr_root}/X11/app-defaults
+prepend-path LD_LIBRARY_PATH ${mcr_root}/sys/opengl/lib/glnxa64
+prepend-path LD_LIBRARY_PATH ${mcr_root}/sys/os/glnxa64
+prepend-path LD_LIBRARY_PATH ${mcr_root}/bin/glnxa64
+prepend-path LD_LIBRARY_PATH ${mcr_root}/runtime/glnxa64

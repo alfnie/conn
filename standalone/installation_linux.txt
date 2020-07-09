@@ -1,0 +1,80 @@
+INSTALLATION OF CONN STANDALONE:
+
+see http://www.conn-toolbox.org/resources/installation for detailed instructions
+
+
+
+
+------------------------------------------------------------------------------------------
+
+To install CONN standalone version (linux installation instructions):
+
+  1) Download CONN standalone release for your target machine from www.nitrc.org/projects/conn (e.g. download *glnxa64.zip file to folder /software)
+     Unzip the downloaded .zip file (this will create a new folder /software/conn_standalone/R2018b/ containing the conn software)
+     
+     note: make sure the file conn and run_conn.sh have executable permissions on your target machine
+     note: alternatively, if you have Matlab and Matlab compiler you may compile your own CONN standalone for your target machine (see conn_makestandalone)
+
+  2) Download Matlab Compiler Runtime (MCR, freely available) from http://www.mathworks.com/products/compiler/mcr/index.html, select and download the 
+        Linux 64-bit version of MCR R2018b (9.5) (e.g. download .zip file to folder /downloads/MCR/ )
+     Unzip the downloaded .zip file (this will unzip the MCR installation package to the same folder /downloads/MCR/ )
+     Run the MCR installer (e.g. type /downloads/MCR/install) and, when prompted, choose folder where MCR will be installed (e.g. choose target folder /software/MCR )
+     Note the final installation folder name as reported by the installer (e.g. /software/MCR/v95)
+
+  3) Modify the PATH, MCRROOT, and LD_LIBRARY_PATH environment variables (e.g. by editing .bashrc or creating an appropriate Environment Module)
+
+     Method 1) using bash commands
+              note: change all references to <conn_root> below to your CONN installation folder, e.g. /software/conn_standalone/R2018b
+              note: change all references to <mcr_root> below to your MCR installation folder, e.g. /software/MCR/v95
+              note: to use your own system OpenGL drivers (e.g. VirtualGL) delete any line below referencing "/sys/opengl/lib/glnxa64"
+            
+            add the lines below to your ~/.bashrc file
+
+              export PATH=<conn_root>:$PATH
+              export MCRROOT=<mcr_root>
+              LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/runtime/glnxa64 ;
+              LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/bin/glnxa64 ;
+              LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/sys/os/glnxa64;
+              LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${MCRROOT}/sys/opengl/lib/glnxa64
+              export XAPPLRESDIR=${MCRROOT}/X11/app-defaults ;
+              export LD_LIBRARY_PATH;
+
+     Method 2) using Environment Modules
+              note: edit the contents of the template <conn_root>/modulefile.txt file to point to the correct <conn_root> and <mcr_root> folders
+              note: change all references to <module_root> below to an existing Environment Modules folder, or create your own (e.g. ~/module )
+
+            execute the following command (soft-link the template modulefile.txt to the Modules path)
+
+              ln -s <conn_root>/modulefile.txt <module_root>/conn_standalone/R2018b 
+
+            then add the following commands to your ~/.bashrc file
+
+              module use <module_root>
+              module add conn_standalone/R2018b
+
+note: If you want to install CONN standalone but you already have MCR 9.5 (2018b) installed in your system, you may simply
+      perform step (1) above (i.e. skip steps 2&3), and, assuming that LD_LIBRARY_PATH and XAPPLRESDIR are already correctly
+      initialized, then simply modify the following environment variables (either directly in .bashrc or through modules):
+            export PATH=<conn_root>:$PATH
+            export MCRROOT=<mcr_root>
+
+
+------------------------------------------------------------------------------------------
+USE OF CONN STANDALONE:
+
+To run CONN interactive GUI type:
+   conn
+
+To run CONN batch scripts (.m or .mat files) type:
+   conn batch <filename>
+
+To run arbitrary Matlab commands type:
+   conn batch "<matlabcommands>"
+
+In general, any functionality accessible in Matlab-release using "conn_<fcn>('<arg1>',...,'<argn>')" from the Matlab 
+command-line will also be accessible in the standalone-release using "conn <fcn> <arg1> ... <argn>" from the system prompt. 
+For example, you may use "conn jobmanager report" (instead of conn_jobmanager('report')) to report the state of parallel 
+jobs running on cluster.
+
+   
+   

@@ -1,0 +1,15 @@
+------------------------------------------------------------------------------------------
+INSTALLATION OF CONN STANDALONE:
+
+To install CONN standalone version (PC Windows 10 installation instructions):
+
+  1) Download CONN standalone release for your target machine from www.nitrc.org/projects/conn (e.g. download *windows.zip file to folder /software)
+     Unzip the downloaded .zip file
+
+  2) Download Matlab Compiler Runtime (MCR, freely available) from http://www.mathworks.com/products/compiler/mcr/index.html, select and download the 
+        Windows 64-bit version of MCR R2018b (9.5) (e.g. download .zip file to folder /downloads/MCR/ )
+     Unzip the downloaded .zip file and run the MCR installer
+
+  3) Click on the conn.exe icon to start CONN
+
+note: to use PC parallelization options, add the folder containing the conn.exe application to your system path (e.g. go to 'Edit system environment variables', select 'Environment variables', select 'Path' and add a new line there listing the directory where conn.exe is stored)

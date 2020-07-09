@@ -1,0 +1,15 @@
+------------------------------------------------------------------------------------------
+INSTALLATION OF CONN STANDALONE:
+
+To install CONN standalone version (mac installation instructions):
+
+  1) Download CONN standalone release for your target machine from www.nitrc.org/projects/conn (e.g. download *mac.zip file to folder /software)
+     Unzip the downloaded .zip file
+
+  2) Download Matlab Compiler Runtime (MCR, freely available) from http://www.mathworks.com/products/compiler/mcr/index.html, select and download the 
+        Mac 64-bit version of MCR R2018b (9.5) (e.g. download .zip file to folder /downloads/MCR/ )
+     Unzip the downloaded .zip file and run the MCR installer
+
+  3) Click on the conn.app icon to start CONN
+
+note: to use Mac parallelization options, add the folder containing the conn.app application to your system path (e.g. edit the file /etc/paths and add a line there listing the directory where conn.app is stored)

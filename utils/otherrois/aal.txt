@@ -1,0 +1,116 @@
+Precentral L
+Precentral R
+Frontal Sup L
+Frontal Sup R
+Frontal Sup Orb L
+Frontal Sup Orb R
+Frontal Mid L
+Frontal Mid R
+Frontal Mid Orb L
+Frontal Mid Orb R
+Frontal Inf Oper L
+Frontal Inf Oper R
+Frontal Inf Tri L
+Frontal Inf Tri R
+Frontal Inf Orb L
+Frontal Inf Orb R
+Rolandic Oper L
+Rolandic Oper R
+Supp Motor Area L
+Supp Motor Area R
+Olfactory L
+Olfactory R
+Frontal Sup Med L
+Frontal Sup Med R
+Frontal Med Orb L
+Frontal Med Orb R
+Rectus L
+Rectus R
+Insula L
+Insula R
+Cingulum Ant L
+Cingulum Ant R
+Cingulum Mid L
+Cingulum Mid R
+Cingulum Post L
+Cingulum Post R
+Hippocampus L
+Hippocampus R
+ParaHippocampal L
+ParaHippocampal R
+Amygdala L
+Amygdala R
+Calcarine L
+Calcarine R
+Cuneus L
+Cuneus R
+Lingual L
+Lingual R
+Occipital Sup L
+Occipital Sup R
+Occipital Mid L
+Occipital Mid R
+Occipital Inf L
+Occipital Inf R
+Fusiform L
+Fusiform R
+Postcentral L
+Postcentral R
+Parietal Sup L
+Parietal Sup R
+Parietal Inf L
+Parietal Inf R
+SupraMarginal L
+SupraMarginal R
+Angular L
+Angular R
+Precuneus L
+Precuneus R
+Paracentral Lob L
+Paracentral Lob R
+Caudate L
+Caudate R
+Putamen L
+Putamen R
+Pallidum L
+Pallidum R
+Thalamus L
+Thalamus R
+Heschl L
+Heschl R
+Temporal Sup L
+Temporal Sup R
+Temporal Pole Sup L
+Temporal Pole Sup R
+Temporal Mid L
+Temporal Mid R
+Temporal Pol Mid L
+Temporal Pol Mid R
+Temporal Inf L
+Temporal Inf R
+Cerebelum Crus1 L
+Cerebelum Crus1 R
+Cerebelum Crus2 L
+Cerebelum Crus2 R
+Cerebelum 3 L
+Cerebelum 3 R
+Cerebelum 4 5 L
+Cerebelum 4 5 R
+Cerebelum 6 L
+Cerebelum 6 R
+Cerebelum 7b L
+Cerebelum 7b R
+Cerebelum 8 L
+Cerebelum 8 R
+Cerebelum 9 L
+Cerebelum 9 R
+Cerebelum 10 L
+Cerebelum 10 R
+Vermis 1 2
+Vermis 3
+Vermis 4 5
+Vermis 6
+Vermis 7
+Vermis 8
+Vermis 9
+Vermis 10

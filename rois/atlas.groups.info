@@ -1,0 +1,208 @@
+ROI order/clusters for Harvard-Oxford ROIs (conn/rois/atlas.nii)
+
+These clusters have been derived using CONN's default ROI clustering and ordering procedures (complete-linkage 
+hierarchical clustering, Sorensen 1948; optimal leaf ordering for hierarchical clustering, Bar-Joseph 
+et al. 2001) applied to Cambridge 1000-connectomes resting state datadataset (n=198; http://www.nitrc.org/projects/fcon_1000;
+dataset preprocessed and denoised using CONN19b default options for volume-based analyses, direct MNI normalization) 
+
+
+22 networks / 132 ROIs
+
+pDMN (posterior Default Mode Network)
+-----------------------------------------------------------
+atlas.PC (Cingulate Gyrus, posterior division)
+atlas.Precuneous (Precuneous Cortex)          
+ 
+aDMN (anterior Default Mode Network)
+-----------------------------------------------------------
+atlas.aMTG r (Middle Temporal Gyrus, anterior division Right)
+atlas.aMTG l (Middle Temporal Gyrus, anterior division Left) 
+atlas.MedFC (Frontal Medial Cortex)                          
+atlas.SubCalC (Subcallosal Cortex)                           
+ 
+PaCiG (paracingulate Gyrus)
+-----------------------------------------------------------
+atlas.PaCiG r (Paracingulate Gyrus Right)
+atlas.PaCiG l (Paracingulate Gyrus Left) 
+ 
+Thalamus
+-----------------------------------------------------------
+atlas.Thalamus r 
+atlas.Thalamus l 
+atlas.Caudate r  
+atlas.Caudate l  
+atlas.Accumbens r
+atlas.Accumbens l
+ 
+FPN (R) (Fronto Parietal Network, right hemisphere)
+-----------------------------------------------------------
+atlas.FP r (Frontal Pole Right)           
+atlas.SFG r (Superior Frontal Gyrus Right)
+atlas.MidFG r (Middle Frontal Gyrus Right)
+ 
+Lang (R) (Language Network, right Hemisphere)
+-----------------------------------------------------------
+atlas.IFG oper r (Inferior Frontal Gyrus, pars opercularis Right) 
+atlas.toMTG r (Middle Temporal Gyrus, temporooccipital part Right)
+atlas.pSMG r (Supramarginal Gyrus, posterior division Right)      
+ 
+Limbic / aPaHC (Limbic & anterior Parahippocampal Cortex)
+-----------------------------------------------------------
+atlas.aPaHC r (Parahippocampal Gyrus, anterior division Right)     
+atlas.aPaHC l (Parahippocampal Gyrus, anterior division Left)      
+atlas.aTFusC r (Temporal Fusiform Cortex, anterior division Right) 
+atlas.aTFusC l (Temporal Fusiform Cortex, anterior division Left)  
+atlas.pTFusC r (Temporal Fusiform Cortex, posterior division Right)
+atlas.pTFusC l (Temporal Fusiform Cortex, posterior division Left) 
+atlas.Hippocampus r                                                
+atlas.Hippocampus l                                                
+atlas.Amygdala r                                                   
+atlas.Amygdala l                                                   
+ 
+Cerebellum / pPaHC (Cerebellum & posterior Parahippocampal Cortex)
+-----------------------------------------------------------
+atlas.pPaHC r (Parahippocampal Gyrus, posterior division Right)
+atlas.pPaHC l (Parahippocampal Gyrus, posterior division Left) 
+atlas.Brain-Stem                                               
+atlas.Cereb3 l (Cerebelum 3 Left)                              
+atlas.Cereb3 r (Cerebelum 3 Right)                             
+atlas.Cereb9 l (Cerebelum 9 Left)                              
+atlas.Cereb9 r (Cerebelum 9 Right)                             
+atlas.Ver12 (Vermis 1 2)                                       
+atlas.Ver3 (Vermis 3)                                          
+atlas.Ver10 (Vermis 10)                                        
+ 
+ITG (Inferior Temporal Gyrus)
+-----------------------------------------------------------
+atlas.IFG tri r (Inferior Frontal Gyrus, pars triangularis Right)
+atlas.aITG r (Inferior Temporal Gyrus, anterior division Right)  
+atlas.aITG l (Inferior Temporal Gyrus, anterior division Left)   
+atlas.pITG r (Inferior Temporal Gyrus, posterior division Right) 
+atlas.pITG l (Inferior Temporal Gyrus, posterior division Left)  
+atlas.FOrb r (Frontal Orbital Cortex Right)                      
+atlas.FOrb l (Frontal Orbital Cortex Left)                       
+ 
+FPN / Lang (L) (Fronto Parietal & Language Network, left hemisphere)
+-----------------------------------------------------------
+atlas.FP l (Frontal Pole Left)                                   
+atlas.SFG l (Superior Frontal Gyrus Left)                        
+atlas.MidFG l (Middle Frontal Gyrus Left)                        
+atlas.IFG tri l (Inferior Frontal Gyrus, pars triangularis Left) 
+atlas.IFG oper l (Inferior Frontal Gyrus, pars opercularis Left) 
+atlas.toMTG l (Middle Temporal Gyrus, temporooccipital part Left)
+atlas.pSMG l (Supramarginal Gyrus, posterior division Left)      
+ 
+Motor (Motor areas)
+-----------------------------------------------------------
+atlas.PreCG r (Precentral Gyrus Right)  
+atlas.PreCG l (Precentral Gyrus Left)   
+atlas.PostCG r (Postcentral Gyrus Right)
+atlas.PostCG l (Postcentral Gyrus Left) 
+ 
+Auditory (Auditory areas)
+-----------------------------------------------------------
+atlas.IC r (Insular Cortex Right)                                                      
+atlas.IC l (Insular Cortex Left)                                                       
+atlas.SMA r (Juxtapositional Lobule Cortex -formerly Supplementary Motor Cortex- Right)
+atlas.SMA L(Juxtapositional Lobule Cortex -formerly Supplementary Motor Cortex- Left)  
+atlas.CO r (Central Opercular Cortex Right)                                            
+atlas.CO l (Central Opercular Cortex Left)                                             
+atlas.PO r (Parietal Operculum Cortex Right)                                           
+atlas.PO l (Parietal Operculum Cortex Left)                                            
+atlas.PP r (Planum Polare Right)                                                       
+atlas.PP l (Planum Polare Left)                                                        
+atlas.HG r (Heschl's Gyrus Right)                                                      
+atlas.HG l (Heschl's Gyrus Left)                                                       
+atlas.PT r (Planum Temporale Right)                                                    
+atlas.PT l (Planum Temporale Left)                                                     
+ 
+sLOC (superior Latereal Occipital Cortex)
+-----------------------------------------------------------
+atlas.sLOC r (Lateral Occipital Cortex, superior division Right)
+atlas.sLOC l (Lateral Occipital Cortex, superior division Left) 
+ 
+Cereb Crus (Cerebellar Crus)
+-----------------------------------------------------------
+atlas.Cereb1 l (Cerebelum Crus1 Left) 
+atlas.Cereb1 r (Cerebelum Crus1 Right)
+atlas.Cereb2 l (Cerebelum Crus2 Left) 
+atlas.Cereb2 r (Cerebelum Crus2 Right)
+atlas.Cereb7 l (Cerebelum 7b Left)    
+atlas.Cereb7 r (Cerebelum 7b Right)   
+ 
+lDMN (lateral Default Mode Network areas)
+-----------------------------------------------------------
+atlas.pMTG r (Middle Temporal Gyrus, posterior division Right)
+atlas.pMTG l (Middle Temporal Gyrus, posterior division Left) 
+atlas.AG r (Angular Gyrus Right)                              
+atlas.AG l (Angular Gyrus Left)                               
+ 
+STG (Superior Temporal Gyrus)
+-----------------------------------------------------------
+atlas.TP r (Temporal Pole Right)                                
+atlas.TP l (Temporal Pole Left)                                 
+atlas.aSTG r (Superior Temporal Gyrus, anterior division Right) 
+atlas.aSTG l (Superior Temporal Gyrus, anterior division Left)  
+atlas.pSTG r (Superior Temporal Gyrus, posterior division Right)
+atlas.pSTG l (Superior Temporal Gyrus, posterior division Left) 
+ 
+aSMG (anterior Supramarginal Gyrus)
+-----------------------------------------------------------
+atlas.aSMG r (Supramarginal Gyrus, anterior division Right)
+atlas.aSMG l (Supramarginal Gyrus, anterior division Left) 
+ 
+Salience (Salience network)
+-----------------------------------------------------------
+atlas.AC (Cingulate Gyrus, anterior division)
+atlas.FO r (Frontal Operculum Cortex Right)  
+atlas.FO l (Frontal Operculum Cortex Left)   
+atlas.Putamen r                              
+atlas.Putamen l                              
+atlas.Pallidum r                             
+atlas.Pallidum l                             
+ 
+Visual. Primary (primary Visual areas)
+-----------------------------------------------------------
+atlas.ICC r (Intracalcarine Cortex Right)
+atlas.ICC l (Intracalcarine Cortex Left) 
+atlas.Cuneal r (Cuneal Cortex Right)     
+atlas.Cuneal l (Cuneal Cortex Left)      
+atlas.LG r (Lingual Gyrus Right)         
+atlas.LG l (Lingual Gyrus Left)          
+atlas.SCC r (Supracalcarine Cortex Right)
+atlas.SCC l (Supracalcarine Cortex Left) 
+ 
+Visual. Secondary (secondary Visual areas)
+-----------------------------------------------------------
+atlas.iLOC r (Lateral Occipital Cortex, inferior division Right)
+atlas.iLOC l (Lateral Occipital Cortex, inferior division Left) 
+atlas.TOFusC r (Temporal Occipital Fusiform Cortex Right)       
+atlas.TOFusC l (Temporal Occipital Fusiform Cortex Left)        
+atlas.OFusG r (Occipital Fusiform Gyrus Right)                  
+atlas.OFusG l (Occipital Fusiform Gyrus Left)                   
+atlas.OP r (Occipital Pole Right)                               
+atlas.OP l (Occipital Pole Left)                                
+ 
+DAN (Dorsal Attention Network)
+-----------------------------------------------------------
+atlas.toITG r (Inferior Temporal Gyrus, temporooccipital part Right)
+atlas.toITG l (Inferior Temporal Gyrus, temporooccipital part Left) 
+atlas.SPL r (Superior Parietal Lobule Right)                        
+atlas.SPL l (Superior Parietal Lobule Left)                         
+ 
+Cerebellum
+-----------------------------------------------------------
+atlas.Cereb45 l (Cerebelum 4 5 Left) 
+atlas.Cereb45 r (Cerebelum 4 5 Right)
+atlas.Cereb6 l (Cerebelum 6 Left)    
+atlas.Cereb6 r (Cerebelum 6 Right)   
+atlas.Cereb8 l (Cerebelum 8 Left)    
+atlas.Cereb8 r (Cerebelum 8 Right)   
+atlas.Cereb10 l (Cerebelum 10 Left)  
+atlas.Cereb10 r (Cerebelum 10 Right) 
+atlas.Ver45 (Vermis 4 5)             
+atlas.Ver6 (Vermis 6)                
+atlas.Ver7 (Vermis 7)                
+atlas.Ver8 (Vermis 8)                
+atlas.Ver9 (Vermis 9)                
+ 

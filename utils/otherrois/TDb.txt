@@ -1,0 +1,127 @@
+Angular Gyrus.Left Cerebrum
+Angular Gyrus.Right Cerebrum
+Anterior Cingulate.Inter-Hemispheric
+Anterior Cingulate.Left Cerebrum
+Anterior Cingulate.Right Cerebrum
+Caudate.Left Cerebrum
+Caudate.Right Cerebrum
+Cerebellar Lingual.Left Cerebellum
+Cerebellar Lingual.Right Cerebellum
+Cerebellar Tonsil.Left Cerebellum
+Cerebellar Tonsil.Right Cerebellum
+Cingulate Gyrus.Inter-Hemispheric
+Cingulate Gyrus.Left Cerebrum
+Cingulate Gyrus.Right Cerebrum
+Claustrum.Left Cerebrum
+Claustrum.Right Cerebrum
+Culmen.Left Cerebellum
+Culmen.Right Cerebellum
+Culmen of Vermis.Left Cerebellum
+Culmen of Vermis.Right Cerebellum
+Cuneus.Inter-Hemispheric
+Cuneus.Left Cerebrum
+Cuneus.Right Cerebrum
+Declive.Left Cerebellum
+Declive.Right Cerebellum
+Declive of Vermis.Left Cerebellum
+Declive of Vermis.Right Cerebellum
+Extra-Nuclear.Inter-Hemispheric
+Extra-Nuclear.Left Brainstem
+Extra-Nuclear.Left Cerebrum
+Extra-Nuclear.Right Brainstem
+Extra-Nuclear.Right Cerebrum
+Fastigium.Left Cerebellum
+Fastigium.Right Cerebellum
+Fourth Ventricle.Left Cerebellum
+Fourth Ventricle.Right Cerebellum
+Fusiform Gyrus.Left Cerebrum
+Fusiform Gyrus.Right Cerebrum
+Inferior Frontal Gyrus.Left Cerebrum
+Inferior Frontal Gyrus.Right Cerebrum
+Inferior Occipital Gyrus.Left Cerebrum
+Inferior Occipital Gyrus.Right Cerebrum
+Inferior Parietal Lobule.Left Cerebrum
+Inferior Parietal Lobule.Right Cerebrum
+Inferior Semi-Lunar Lobule.Left Cerebellum
+Inferior Semi-Lunar Lobule.Right Cerebellum
+Inferior Temporal Gyrus.Left Cerebrum
+Inferior Temporal Gyrus.Right Cerebrum
+Insula.Left Cerebrum
+Insula.Right Cerebrum
+Lateral Ventricle.Inter-Hemispheric
+Lateral Ventricle.Left Cerebrum
+Lateral Ventricle.Right Cerebrum
+Lentiform Nucleus.Left Cerebrum
+Lentiform Nucleus.Right Cerebrum
+Lingual Gyrus.Inter-Hemispheric
+Lingual Gyrus.Left Cerebrum
+Lingual Gyrus.Right Cerebrum
+Medial Frontal Gyrus.Inter-Hemispheric
+Medial Frontal Gyrus.Left Cerebrum
+Medial Frontal Gyrus.Right Cerebrum
+Middle Frontal Gyrus.Left Cerebrum
+Middle Frontal Gyrus.Right Cerebrum
+Middle Occipital Gyrus.Left Cerebrum
+Middle Occipital Gyrus.Right Cerebrum
+Middle Temporal Gyrus.Left Cerebrum
+Middle Temporal Gyrus.Right Cerebrum
+Nodule.Left Cerebellum
+Nodule.Right Cerebellum
+Orbital Gyrus.Left Cerebrum
+Orbital Gyrus.Right Cerebrum
+Paracentral Lobule.Inter-Hemispheric
+Paracentral Lobule.Left Cerebrum
+Paracentral Lobule.Right Cerebrum
+Parahippocampal Gyrus.Left Cerebrum
+Parahippocampal Gyrus.Right Cerebrum
+Postcentral Gyrus.Inter-Hemispheric
+Postcentral Gyrus.Left Cerebrum
+Postcentral Gyrus.Right Cerebrum
+Posterior Cingulate.Inter-Hemispheric
+Posterior Cingulate.Left Cerebrum
+Posterior Cingulate.Right Cerebrum
+Precentral Gyrus.Left Cerebrum
+Precentral Gyrus.Right Cerebrum
+Precuneus.Inter-Hemispheric
+Precuneus.Left Cerebrum
+Precuneus.Right Cerebrum
+Pyramis.Left Cerebellum
+Pyramis.Right Cerebellum
+Pyramis of Vermis.Left Cerebellum
+Pyramis of Vermis.Right Cerebellum
+Rectal Gyrus.Inter-Hemispheric
+Rectal Gyrus.Left Cerebrum
+Rectal Gyrus.Right Cerebrum
+Sub-Gyral.Left Cerebrum
+Sub-Gyral.Right Cerebrum
+Subcallosal Gyrus.Left Cerebrum
+Subcallosal Gyrus.Right Cerebrum
+Superior Frontal Gyrus.Inter-Hemispheric
+Superior Frontal Gyrus.Left Cerebrum
+Superior Frontal Gyrus.Right Cerebrum
+Superior Occipital Gyrus.Left Cerebrum
+Superior Occipital Gyrus.Right Cerebrum
+Superior Parietal Lobule.Left Cerebrum
+Superior Parietal Lobule.Right Cerebrum
+Superior Temporal Gyrus.Left Cerebrum
+Superior Temporal Gyrus.Right Cerebrum
+Supramarginal Gyrus.Left Cerebrum
+Supramarginal Gyrus.Right Cerebrum
+Thalamus.Left Brainstem
+Thalamus.Left Cerebrum
+Thalamus.Right Brainstem
+Thalamus.Right Cerebrum
+Third Ventricle.Left Cerebrum
+Third Ventricle.Right Cerebrum
+Transverse Temporal Gyrus.Left Cerebrum
+Transverse Temporal Gyrus.Right Cerebrum
+Tuber.Left Cerebellum
+Tuber.Right Cerebellum
+Tuber of Vermis.Left Cerebellum
+Tuber of Vermis.Right Cerebellum
+Uncus.Left Cerebrum
+Uncus.Right Cerebrum
+Uvula.Left Cerebellum
+Uvula.Right Cerebellum
+Uvula of Vermis.Left Cerebellum
+Uvula of Vermis.Right Cerebellum

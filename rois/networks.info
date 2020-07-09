@@ -1,0 +1,13 @@
+Atlas of commonly used networks: 
+  Default Mode Network (4 ROIs)
+  SensoriMotor (3 ROIs)
+  Visual (4 ROIs)
+  Salience / Cingulo-Opercular (7 ROIs)
+  DorsalAttention (4 ROIs)
+  FrontoParietal / Central Executive (4 ROIs)
+  Language (4 ROIs)
+  Cerebellar (2 ROIs)
+
+ROIs defined from CONN's ICA analyses of HCP dataset (497 subjects)
+
+

@@ -1,0 +1,55 @@
+Angular Gyrus
+Anterior Cingulate
+Caudate
+Cerebellar Lingual
+Cerebellar Tonsil
+Cingulate Gyrus
+Claustrum
+Culmen
+Culmen of Vermis
+Cuneus
+Declive
+Declive of Vermis
+Extra-Nuclear
+Fastigium
+Fourth Ventricle
+Fusiform Gyrus
+Inferior Frontal Gyrus
+Inferior Occipital Gyrus
+Inferior Parietal Lobule
+Inferior Semi-Lunar Lobule
+Inferior Temporal Gyrus
+Insula
+Lateral Ventricle
+Lentiform Nucleus
+Lingual Gyrus
+Medial Frontal Gyrus
+Middle Frontal Gyrus
+Middle Occipital Gyrus
+Middle Temporal Gyrus
+Nodule
+Orbital Gyrus
+Paracentral Lobule
+Parahippocampal Gyrus
+Postcentral Gyrus
+Posterior Cingulate
+Precentral Gyrus
+Precuneus
+Pyramis
+Pyramis of Vermis
+Rectal Gyrus
+Sub-Gyral
+Subcallosal Gyrus
+Superior Frontal Gyrus
+Superior Occipital Gyrus
+Superior Parietal Lobule
+Superior Temporal Gyrus
+Supramarginal Gyrus
+Thalamus
+Third Ventricle
+Transverse Temporal Gyrus
+Tuber
+Tuber of Vermis
+Uncus
+Uvula
+Uvula of Vermis

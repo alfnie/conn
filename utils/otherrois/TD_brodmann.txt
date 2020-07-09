@@ -1,0 +1,76 @@
+[ brodmann areas+]
+1	brodmann area 1			        191 191 191
+2	brodmann area 2			        191 191 191
+3	brodmann area 3			        191 191 191
+4	brodmann area 4			        191 191 191
+5	brodmann area 5			        191 191 191
+6	brodmann area 6			        191 191 191
+7	brodmann area 7			        191 191 191
+8	brodmann area 8			        191 191 191
+9	brodmann area 9			        191 191 191
+10	brodmann area 10				191 191 191
+11	brodmann area 11				191 191 191
+12	brodmann area 12				191 191 191
+13	brodmann area 13				191 191 191
+14	brodmann area 14				191 191 191
+15	brodmann area 15				191 191 191
+16	brodmann area 16				191 191 191
+17	brodmann area 17				191 191 191
+18	brodmann area 18				191 191 191
+19	brodmann area 19				191 191 191
+20	brodmann area 20				191 191 191
+21	brodmann area 21				191 191 191
+22	brodmann area 22				191 191 191
+23	brodmann area 23				191 191 191
+24	brodmann area 24				191 191 191
+25	brodmann area 25				191 191 191
+26	brodmann area 26				191 191 191
+27	brodmann area 27				191 191 191
+28	brodmann area 28				191 191 191
+29	brodmann area 29				191 191 191
+30	brodmann area 30				191 191 191
+31	brodmann area 31				191 191 191
+32	brodmann area 32				191 191 191
+33	brodmann area 33				191 191 191
+34	brodmann area 34				191 191 191
+35	brodmann area 35				191 191 191
+36	brodmann area 36				191 191 191
+37	brodmann area 37				191 191 191
+38	brodmann area 38				191 191 191
+39	brodmann area 39				191 191 191
+40	brodmann area 40				191 191 191
+41	brodmann area 41				191 191 191
+42	brodmann area 42				191 191 191
+43	brodmann area 43				191 191 191
+44	brodmann area 44				191 191 191
+45	brodmann area 45				191 191 191
+46	brodmann area 46				191 191 191
+47	brodmann area 47				191 191 191
+103	Amygdala					    191 191 191
+117	Anterior Commissure				191 191 191
+125	Caudate Body					191 191 191
+115	Caudate Head					191 191 191
+108	Caudate Tail					191 191 191
+118	Corpus Callosum					191 191 191
+101	Dentate						    191 191 191
+102	Hippocampus					    191 191 191
+105	Hypothalamus					191 191 191
+127	Lateral Dorsal Nucleus			191 191 191
+116	Lateral Geniculum Body			191 191 191
+112	Lateral Globus Pallidus			191 191 191
+126	Lateral Posterior Nucleus		191 191 191
+109	Mammillary Body					191 191 191
+122	Medial Dorsal Nucleus			191 191 191
+111	Medial Geniculum Body			191 191 191
+114	Medial Globus Pallidus			191 191 191
+128	Midline Nucleus					191 191 191
+104	Optic Tract					    191 191 191
+119	Pulvinar				    	191 191 191
+110	Putamen						    191 191 191
+107	Red Nucleus					    191 191 191
+106	Substania Nigra					191 191 191
+113	Subthalamic Nucleus				191 191 191
+124	Ventral Anterior Nucleus		191 191 191
+123	Ventral Lateral Nucleus			191 191 191
+120	Ventral Posterior Lateral Nucleus		191 191 191
+121	Ventral Posterior Medial Nucleus		191 191 191

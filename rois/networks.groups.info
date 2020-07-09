@@ -1,0 +1,67 @@
+ROI order/clusters for CONN's network ROIs (conn/rois/networks.nii)
+
+This ordering has been derived using CONN's default ROI clustering and ordering procedures (complete-linkage 
+hierarchical clustering, Sorensen 1948; optimal leaf ordering for hierarchical clustering, Bar-Joseph 
+et al. 2001) applied to Cambridge 1000-connectomes resting state datadataset (n=198; http://www.nitrc.org/projects/fcon_1000;
+dataset preprocessed and denoised using CONN19b default options for volume-based analyses, direct MNI normalization) 
+
+
+8 networks / 32 ROIs
+
+
+Cerebellar
+-----------------------------------------------------------
+networks.Cerebellar.Anterior (0,-63,-30) 
+networks.Cerebellar.Posterior (0,-79,-32)
+ 
+Fronto Parietal
+-----------------------------------------------------------
+networks.FrontoParietal.LPFC (L)  (-43,33,28)
+networks.FrontoParietal.PPC (L)  (-46,-58,49)
+networks.FrontoParietal.LPFC (R)  (41,38,30) 
+networks.FrontoParietal.PPC (R)  (52,-52,45) 
+ 
+Default Mode
+-----------------------------------------------------------
+networks.DefaultMode.MPFC (1,55,-3)     
+networks.DefaultMode.LP (L) (-39,-77,33)
+networks.DefaultMode.LP (R) (47,-67,29) 
+networks.DefaultMode.PCC (1,-61,38)     
+ 
+SensoriMotor
+-----------------------------------------------------------
+networks.SensoriMotor.Lateral (L) (-55,-12,29)
+networks.SensoriMotor.Lateral (R) (56,-10,29) 
+networks.SensoriMotor.Superior  (0,-31,67)    
+ 
+Dorsal Attention
+-----------------------------------------------------------
+networks.DorsalAttention.FEF (L)  (-27,-9,64) 
+networks.DorsalAttention.FEF (R)  (30,-6,64)  
+networks.DorsalAttention.IPS (L)  (-39,-43,52)
+networks.DorsalAttention.IPS (R)  (39,-42,54) 
+ 
+Language
+-----------------------------------------------------------
+networks.Language.IFG (L) (-51,26,2)   
+networks.Language.IFG (R) (54,28,1)    
+networks.Language.pSTG (L) (-57,-47,15)
+networks.Language.pSTG (R) (59,-42,13) 
+ 
+Salience
+-----------------------------------------------------------
+networks.Salience.ACC (0,22,35)         
+networks.Salience.AInsula (L) (-44,13,1)
+networks.Salience.AInsula (R) (47,14,0) 
+networks.Salience.RPFC (L) (-32,45,27)  
+networks.Salience.RPFC (R) (32,46,27)   
+networks.Salience.SMG (L) (-60,-39,31)  
+networks.Salience.SMG (R) (62,-35,32)   
+ 
+Visual
+-----------------------------------------------------------
+networks.Visual.Medial (2,-79,12)       
+networks.Visual.Occipital (0,-93,-4)    
+networks.Visual.Lateral (L) (-37,-79,10)
+networks.Visual.Lateral (R) (38,-72,13) 
+ 
