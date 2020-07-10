@@ -9207,7 +9207,7 @@ else
                         CONN_h.menus.m_results_00{36}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.05,pos(2)-.28,.06,.045],'','plot values','<HTML>displays connectivity values between selected seed/source and target voxel for each subject<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target voxel in results display - also exports values for each subject to Matlab workspace</HTML>','conn(''gui_results'',36);');
                         CONN_h.menus.m_results_00{34}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.11,pos(2)-.28,.06,.045],'','import values','<HTML>import connectivity values between selected seed/source and target voxel for each subject as 2nd-level covariates<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target voxel in results display</HTML>','conn(''gui_results'',34);');
                         CONN_h.menus.m_results_00{43}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.23,pos(2)-.28,.06,.045],'','bookmark','<HTML>Bookmarks this second-level analysis results<br/> - bookmarked results can be quickly accessed from all <i>Second-level Results</i> tabs</HTML>','conn(''gui_results'',43);');
-                        CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.06,pos(2)-.095,.165,.045],'','cluster-level inferences','<HTML>Computes (or displays, if already computed) whole-brain analyses, including voxel-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
+                        CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.06,pos(2)-.095,.165,.045],'','display results','<HTML>Computes (or displays, if already computed) whole-brain analyses, including voxel-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
                         set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],'visible','off');%,'fontweight','bold');
                         %conn_callbackdisplay_secondlevelclick([]); % init clicks
                         conn_menu('nullstr',{'Results not','computed yet'});
@@ -9274,8 +9274,8 @@ else
                         set(CONN_h.menus.m_results_00{47},'value',1);
                         %CONN_h.menus.m_results_00{31}=conn_menu('popup2',boffset+[.63,pos(2)+pos(4),.26,.04],'',strstr3,'choose target ROIs','conn(''gui_results'',31);');
                         %set(CONN_h.menus.m_results_00{31},'value',CONN_x.Results.xX.displayrois);
-                        CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.095,.165,.045],'','cluster-level inferences','<HTML>Computes (or displays, if already computed) analyses of the entire ROI-to-ROI connectivity matrix, including connection-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
-                        CONN_h.menus.m_results_00{52}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.140,.165,.045],'','graph-theory inferences','<HTML>Computes graph-theoretical analyses of the entire ROI-to-ROI connectivity matrix, including network- and ROI-level statistics</HTML>','conn(''gui_results_graphtheory'');');
+                        CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.095,.165,.045],'','display results','<HTML>Computes (or displays, if already computed) analyses of the entire ROI-to-ROI connectivity matrix, including connection-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
+                        CONN_h.menus.m_results_00{52}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.140,.165,.045],'','graph-theory results','<HTML>Computes graph-theoretical analyses of the entire ROI-to-ROI connectivity matrix, including network- and ROI-level statistics</HTML>','conn(''gui_results_graphtheory'');');
                         
                         %CONN_h.menus.m_results_00{28}=uicontrol('style','popupmenu','units','norm','position',boffset+[.81,.08,.08,.045],'string',strstr1,'fontsize',8+CONN_gui.font_offset,'value',CONN_x.Results.xX.inferencetype,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','choose inference directionality','callback','conn(''gui_results'',28);');
                         %CONN_h.menus.m_results_00{27}=uicontrol('style','popupmenu','units','norm','position',boffset+[.71,.08,.10,.045],'string',strstr2,'fontsize',8+CONN_gui.font_offset,'value',CONN_x.Results.xX.inferenceleveltype,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','choose type of false-positive control','callback','conn(''gui_results'',29);');
@@ -10797,7 +10797,7 @@ else
                                     conn_menu('update',CONN_h.menus.m_results_00{14},{CONN_gui.refs.surf.default,t1,-t2},{CONN_h.menus.m_results.Y(1),CONN_h.menus.m_results.y.slice});
                                     conn_menu('update',CONN_h.menus.m_results_00{29},[]);
                                 end
-                                set(CONN_h.menus.m_results_00{46},'string','cluster-level inferences');
+                                set(CONN_h.menus.m_results_00{46},'string','display results');
                                 set([CONN_h.menus.m_results_00{24}],'visible','on');
                                 conn_menu('updatecscale',[],[],CONN_h.menus.m_results_00{14}.h9);
                             else
@@ -10809,7 +10809,7 @@ else
                                 conn_menu('update',CONN_h.menus.m_results_00{14},{CONN_h.menus.m_results.Xs,t1,-t2},{CONN_h.menus.m_results.Y(1),CONN_h.menus.m_results.y.slice});
                                 %                         conn_menu('update',CONN_h.menus.m_results_00{14},{CONN_h.menus.m_results.Xs,t1,-t2},{CONN_h.menus.m_results.Y.matdim,CONN_h.menus.m_results.y.slice})
                                 set([CONN_h.menus.m_results_00{24}],'visible','on');
-                                set(CONN_h.menus.m_results_00{46},'string','cluster-level inferences');
+                                set(CONN_h.menus.m_results_00{46},'string','display results');
                                 conn_callbackdisplay_secondlevelclick;
                                 %set([CONN_h.menus.m_results_00{15}],'visible','on');
                                 hc1=uicontextmenu(CONN_h.screen.hfig);uimenu(hc1,'Label','Change background anatomical image','callback','conn(''background_image'');conn gui_results;');uimenu(hc1,'Label','Change background reference rois','callback','conn(''background_rois'');');set(CONN_h.menus.m_results_00{14}.h2,'uicontextmenu',hc1);
@@ -10926,7 +10926,7 @@ else
                     if CONN_h.menus.m_results.usetablewhite~=0, conn_menu('updatetable',CONN_h.menus.m_results_00{50},CONN_h.menus.m_results.design.designmatrix.',CONN_h.menus.m_results.design.designmatrix_name, CONN_h.menus.m_results.design.subjects'); end
                     set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within));
                     set([CONN_h.menus.m_results_00{23},CONN_h.menus.m_results_00{24}],'visible','on'); %design info, p-unc
-                    set(CONN_h.menus.m_results_00{46},'string','cluster-level inferences');
+                    set(CONN_h.menus.m_results_00{46},'string','display results');
                 else
                     CONN_h.menus.m_results.RRC_F=[];
                     CONN_h.menus.m_results.RRC_p=[];
@@ -11095,7 +11095,7 @@ else
                     if CONN_h.menus.m_results.usetablewhite~=0, conn_menu('updatetable',CONN_h.menus.m_results_00{50},[]); end
                     set(CONN_h.menus.m_results_00{51},'string','');
                 end
-                set(CONN_h.menus.m_results_00{46},'string','cluster-level inferences');
+                set(CONN_h.menus.m_results_00{46},'string','display results');
             end
             
             if state==1&&CONN_x.Results.xX.displayvoxels==1, % ROI-level plots (from disk)

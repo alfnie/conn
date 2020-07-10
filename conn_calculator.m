@@ -164,7 +164,7 @@ conn_calculator_update;
         else
             ncov2m=get(ht2,'value');
             str=get(ht4,'string');
-            ccov2m=str2num(srt);
+            ccov2m=str2num(str);
             if isempty(ccov2m), ccov2m=str2num([regexprep(str,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(str,' x ')))]); end
             if size(ccov2m,2)~=numel(ncov2m), ccov2m=eye(numel(ncov2m)); end
             set(ht4,'string',mat2str(ccov2m));
