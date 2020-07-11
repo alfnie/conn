@@ -426,7 +426,7 @@ switch(lower(option)),
         data.plotaxes=[];%axes('units','norm','position',[.01,.08,.58,.84],'visible','off','parent',data.hfig);
         data.legendaxes=axes('parent',data.hfig);set(data.legendaxes,'units','norm','position',[.90,.82,.09,.05],'xtick',[],'ytick',[],'box','on','xcolor',.5*[1,1,1],'ycolor',.5*[1,1,1]);axis(data.legendaxes,'equal');set(data.legendaxes,'xlim',[95-20,200]);axis(data.legendaxes,'off');
         cmap=jet(256);%cmap=cmap(32:224,:)*.8;
-        cmap=cmap.^repmat(.1+.9*abs(linspace(1,-1,size(cmap,1)))',1,size(cmap,2));
+        %cmap=cmap.^repmat(.1+.9*abs(linspace(1,-1,size(cmap,1)))',1,size(cmap,2));
         data.legend=[patch(100+rcircle(:,1),0+rcircle(:,2),'w','edgecolor','none','facecolor',[1,.5,.5],'parent',data.legendaxes),...
                      patch(150+rcircle(:,1),0+rcircle(:,2),'w','edgecolor','none','facecolor',[.5,.5,1],'parent',data.legendaxes),...
                      text(0,0,'','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'color',.5*[1,1,1],'parent',data.legendaxes),... % ROI-to-ROI effects:
@@ -436,6 +436,7 @@ switch(lower(option)),
                      text(150+5,0,'Positive','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'color',.5*[1,1,1],'horizontalalignment','left','parent',data.legendaxes)]; 
         for n=1:size(cmap,1), data.legend=[data.legend patch(100+(n+[0 0 1 1])*50/size(cmap,1),[-5,5,5,-5],'w','edgecolor','none','facecolor',cmap(n,:),'tag','conn_displayroi_plotlegendcont','parent',data.legendaxes)]; end        
         set(data.legend,'visible','off');
+        set(data.legend,'buttondownfcn',@(varargin)conn_displayroi(hfig,[],'display.colorbar.limit'));
         set(hfig,'userdata',data);
         conn_displayroi(hfig,[],'fwec.option',[],'immediatereturn');
         data=get(hfig,'userdata');
@@ -1173,6 +1174,7 @@ switch(lower(option)),
                 {'suprathreshold group-level results','raw (unthresholded) group-level results'},...
                 'matrix',...
                 [],[],toptions{:});
+            if ~isempty(data.maxz), fh('colorscale','rescale',data.maxz); end
             if ~isempty(regexp(lower(option),'print$')), fh('print',options{:}); fh('close'); end
         else
             z=nan(numel(idxkeep));
@@ -1289,7 +1291,7 @@ switch(lower(option)),
                     %set(cat(2,data.plotsadd3{nall(nall>0)}),props{3:4});
                     if 0 % stat-color
                         cmap=jet(256);%cmap=cmap(32:224,:)*.8;
-                        cmap=cmap.^repmat(.1+.9*abs(linspace(1,-1,size(cmap,1)))',1,size(cmap,2));
+                        %cmap=cmap.^repmat(.1+.9*abs(linspace(1,-1,size(cmap,1)))',1,size(cmap,2));
                         n1n2=data.list2(n2,1:2);
                         n1n2valid=find(all(n1n2>0,2));
                         j=data.F(n1n2(n1n2valid,1)+size(data.F,1)*(n1n2(n1n2valid,2)-1));
@@ -1434,9 +1436,15 @@ switch(lower(option)),
         data.ref=spm_vol(filename);
         data.proj=[];data.x=[];data.y=[];data.z=[];
         data.bgz=0;
-    case 'display.colorbar.limits'
+    case {'display.colorbar.limits','display.colorbar.limit'}
         data=get(hfig,'userdata');
-        data.maxz=varargin{1};
+        if numel(varargin)>=1, data.maxz=max(abs(varargin{1}));
+        else 
+            val=data.maxz;
+            val=inputdlg({'Enter new colorbar limit:'},'Rescale colorbar',1,{num2str(val)});
+            if isempty(val), return; end
+            data.maxz=str2num(val{1}); 
+        end
         data.x=[];data.y=[];data.z=[];
         data.bgz=0;        
     case 'refresh',
@@ -1746,7 +1754,7 @@ switch(data.display),
     case 'connectivity',
         %cmap=jet(64);cmap=cmap(8:56,:);
         cmap=jet(256);%cmap=cmap(32:224,:)*.8;
-        cmap=cmap.^repmat(.1+.9*abs(linspace(1,-1,size(cmap,1)))',1,size(cmap,2));
+        %cmap=cmap.^repmat(.1+.9*abs(linspace(1,-1,size(cmap,1)))',1,size(cmap,2));
         %maxdataclusters=max(data.clusters);
         %if ~data.displaygui||(numel(data.source)==1&&data.source>0), 
         %    set(data.handles([14 15 16 18]),'visible','off');
@@ -3139,7 +3147,7 @@ switch(data.display),
                                     tempc=(hsv2rgb([x(1),1,1])+hsv2rgb([x(2),1,1]))/2;
                                 else
                                     %tempc=cmap(max(1,min(size(cmap,1), round(size(cmap,1)/2+sign(data.h(n1,n2))*abs(data.h(n1,n2))^data.plotconnoptions.LCOLORSCALE*size(cmap,1)/2/Kscale))),:);
-                                    tempc=cmap(max(1,min(size(cmap,1), round(size(cmap,1)/2+sign(data.h(n1,n2))*abs(data.F(n1,n2))^data.plotconnoptions.LCOLORSCALE*size(cmap,1)/2/Kscale))),:);
+                                    tempc=cmap(max(1,min(size(cmap,1), round(size(cmap,1)/2+sign(data.h(n1,n2))*abs(data.CM_z0(n1,n2)/emaxz)^data.plotconnoptions.LCOLORSCALE*size(cmap,1)/2))),:);
                                 end
                                 tsemic1.facevertexcdata=repmat(tempc,size(tsemic1.vertices,1),1);
                                 tsemic1.facevertexalphadata=repmat(linetrans,size(tsemic1.vertices,1),1);
@@ -3190,9 +3198,8 @@ switch(data.display),
                                 elseif data.plotconnoptions.LCOLOR==2
                                     tempc=(hsv2rgb([(1+angle(x(1))/pi)/2,1,1])+hsv2rgb([(1+angle(x(2))/pi)/2,1,1]))/2;
                                 else
-                                    %tempc=cmap(max(1,min(size(cmap,1), round(size(cmap,1)/2+sign(data.h(n1,n2))*abs(data.h(n1,n2))^data.plotconnoptions.LCOLORSCALE*size(cmap,1)/2/Kscale))),:);
-                                    tempc=cmap(max(1,min(size(cmap,1), round(size(cmap,1)/2+sign(data.h(n1,n2))*abs(data.F(n1,n2))^data.plotconnoptions.LCOLORSCALE*size(cmap,1)/2/Kscale))),:);
-                                    
+                                    %tempc=cmap(max(1,min(size(cmap,1), round(size(cmap,1)/2+sign(data.h(n1,n2))*abs(data.F(n1,n2))^data.plotconnoptions.LCOLORSCALE*size(cmap,1)/2/Kscale))),:);
+                                    tempc=cmap(max(1,min(size(cmap,1), round(size(cmap,1)/2+sign(data.h(n1,n2))*abs(data.CM_z0(n1,n2)/emaxz)^data.plotconnoptions.LCOLORSCALE*size(cmap,1)/2))),:);
                                 end
                                 %dwidth=1i*(xt(end)-xt(1));dwidth=1*linewidth*dwidth/abs(dwidth);
                                 dwidth=1i*[xt(2)-xt(1) xt(3:end)-xt(1:end-2) xt(end)-xt(end-1)]; 

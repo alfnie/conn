@@ -55,7 +55,7 @@ else
     state.colormap_default=cmap2;
     cmap2=[flipud(cmap2(:,[2,3,1]));cmap2];
     state.colormap=cmap2;
-    if nargin>=3&&isequal(style,'matrix'), state.colormap=jet(2*96).^repmat(.1+.9*abs(linspace(1,-1,2*96))',1,3); end
+    if nargin>=3&&isequal(style,'matrix'), state.colormap=jet(2*96).^repmat(1+0*abs(linspace(1,-1,2*96))',1,3); end
     %state.colormap_default=[flipud(fliplr(hot))*diag([.5 .5 1]);gray];
     %state.cmap=state.colormap_default;
     state.bookmark_filename='';
@@ -136,8 +136,9 @@ if size(state.x,3)==1,
     end
 end
 hc2=uimenu(hc1,'Label','colorscale');
-uimenu(hc2,'Label','direct','callback',{@conn_montage_display_refresh,'colorscale','direct'});
-uimenu(hc2,'Label','equalized','callback',{@conn_montage_display_refresh,'colorscale','equalize'});
+uimenu(hc2,'Label','colorbar limits','callback',{@conn_montage_display_refresh,'colorscale','rescale'});
+uimenu(hc2,'Label','colorscale direct','callback',{@conn_montage_display_refresh,'colorscale','direct'});
+uimenu(hc2,'Label','colorscale equalized','callback',{@conn_montage_display_refresh,'colorscale','equalize'});
 if ~isempty(state.xrois_name)||~isempty(state.x_border_name)||~isempty(state.xcov_name)
     hc2=uimenu(hc1,'Label','fontsize');
     uimenu(hc2,'Label','increase labels fontsize','callback',{@conn_montage_display_refresh,'fontsize','+'});
@@ -166,6 +167,7 @@ drawnow;
 state.handles.hax=axes('units','norm','position',[0 0 1 1],'parent',state.handles.hfig);
 [state.y,state.nX]=conn_menu_montage(state.handles.hax,state.x(:,:,:,end));
 state.datalim=max([0;abs(state.x(:))]);
+state.datalim_orig=state.datalim;
 if strcmp(state.style,'matrix')
     tempy=state.y;
     tempy(isnan(state.y))=0;
@@ -340,6 +342,18 @@ end
             case 'colorscale',
                 opt=varargin{1};
                 switch(opt)
+                    case 'rescale'
+                        if ~isequalwithequalnans(state.x,state.x_orig), return; end
+                        if numel(varargin)>=2, val=varargin{2}; 
+                        else
+                            val=state.datalim;
+                            val=inputdlg({'Enter new colorbar limit:'},'Rescale colorbar',1,{num2str(val)});
+                            if ~isempty(val), val=str2num(val{1}); end
+                        end
+                        if isempty(val), return; end
+                        state.datalim=max(abs(val));
+                        set(state.handles.htxtcolorbar1,'string',num2str(-state.datalim));
+                        set(state.handles.htxtcolorbar2,'string',num2str(state.datalim));
                     case 'equalize'
                         if ~isfield(state,'x_equalized')||~isfield(state,'colormap_equalized')
                             temp=state.x_orig;
@@ -355,11 +369,16 @@ end
                         end
                         state.x=state.x_equalized;
                         state.colormap_plot=state.colormap_equalized;
+                        state.datalim=max(abs(state.x(:)));
+                        set(state.handles.htxtcolorbar1,'string',num2str(-state.datalim_orig));
+                        set(state.handles.htxtcolorbar2,'string',num2str(state.datalim_orig));
                     case 'direct'
                         state.x=state.x_orig;
                         state.colormap_plot=state.colormap;
+                        state.datalim=max(abs(state.x(:)));
+                        set(state.handles.htxtcolorbar1,'string',num2str(-state.datalim_orig));
+                        set(state.handles.htxtcolorbar2,'string',num2str(state.datalim_orig));
                 end
-                state.datalim=max(abs(state.x(:)));
             case {'start','stop','startstop'}
                 if strcmp(option,'start'), state.loop=1; set(state.handles.startstop,'value',state.loop); state.style='moviereplay'; 
                 elseif strcmp(option,'stop'), state.loop=0; set(state.handles.startstop,'value',state.loop);
@@ -388,7 +407,7 @@ end
                 cmap=varargin{1};
                 if ischar(cmap)
                     switch(cmap)
-                        case 'normal', if strcmp(state.style0,'matrix'), cmap=jet(2*96).^repmat(.1+.9*abs(linspace(1,-1,2*96))',1,3); else cmap=state.colormap_default; end
+                        case 'normal', if strcmp(state.style0,'matrix'), cmap=jet(2*96).^repmat(1+0*abs(linspace(1,-1,2*96))',1,3); else cmap=state.colormap_default; end
                         case 'red', cmap=[linspace(0,1,96)',zeros(96,2)];
                         case 'hot', cmap=hot(96);
                         case 'jet', cmap=fixedge(jet(256));
