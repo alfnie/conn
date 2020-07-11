@@ -6,10 +6,11 @@ global CONN_x;
 switch(option)
     case 'describe' % 'describe', names [, response, doextend]
         if numel(varargin)<1||isempty(varargin{1}), names={}; else names=varargin{1}; end
-        if numel(varargin)<2||isempty(varargin{2}), response='y'; else response=varargin{2}; end
+        if numel(varargin)<2||isempty(varargin{2}), response='?'; else response=varargin{2}; end
         if numel(varargin)<3||isempty(varargin{3}), cb=[]; else cb=varargin{3}; end
         if numel(varargin)<4||isempty(varargin{4}), cw=[]; else cw=varargin{4}; end
-        if numel(varargin)<5||isempty(varargin{5}), doextend=true; else doextend=varargin{5}; end
+        if numel(varargin)<5||isempty(varargin{5}), other={}; else other=varargin{5}; end
+        if numel(varargin)<6||isempty(varargin{6}), doextend=true; else doextend=varargin{6}; end
         
         descrip='';
         str = conn_strjoinstr(names,' + ');
@@ -23,6 +24,7 @@ switch(option)
             if isempty(cb)||isequal(cb,1), cb=''; else cb=sprintf('(%s)',regexprep(mat2str(rats(cb)),{'\s+','''','^\s+|\s+$'},{' ','',''})); end
             str={  sprintf('Between-subjects model specification : %s  %s',str, cb),...
                    sprintf('Within-subjects model specification: y ~ %s  %s',response, cw)}; 
+            if ~isempty(other), str{end+1}=sprintf('Results stored in %s',regexprep(other,'^.*results.secondlevel.','')); end
         end
         varargout={str};
         

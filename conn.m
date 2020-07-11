@@ -6410,6 +6410,7 @@ else
                 CONN_h.menus.m_analyses.analyses_listnames=[CONN_h.menus.m_analyses.analyses_listnames,temp(:)'];
                 CONN_h.menus.m_analyses.analyses_listtype=[CONN_h.menus.m_analyses.analyses_listtype, 3+zeros(1,numel(temp))];
                 CONN_h.menus.m_analyses.analyses_listidx=[CONN_h.menus.m_analyses.analyses_listidx, 1:numel(temp)];
+                %conn_menu('framehighlight',[.06 .23 .10 .57],'');
                 CONN_h.menus.m_analyses_00{101}=conn_menu('listbox',[.06 .27 .10 .49],'Analyses',[CONN_h.menus.m_analyses.analyses_listnames,{' '}],'<HTML>Select first-level analysis<br/> - click after the last item to add a new first-level analysis<br/> - after finishing defining/editing this analysis, click on ''Done'' to run the selected first-level analysis</HTML>','conn(''gui_analyses'',101);','conn(''gui_analyses'',102);');
                 idx=[];
                 if ~isempty(state)&&state(1)==1, idx=find(CONN_h.menus.m_analyses.analyses_listtype==1&CONN_h.menus.m_analyses.analyses_listidx==CONN_x.Analysis,1); end
@@ -8669,6 +8670,7 @@ else
                 end 
                 CONN_h.menus.m_results.analyses_selected=idx;
                 if DOLIST||isempty(state)
+                    %conn_menu('framehighlight',[.06 .23 .10 .57],'');
                     CONN_h.menus.m_results_00{101}=conn_menu('listbox',[.06 .27 .10 .49],'Analyses',[CONN_h.menus.m_results.analyses_listnames,{' '}],'<HTML>Select first-level analysis</HTML>','conn(''gui_results'',101);');
                     if ~isempty(idx), set(CONN_h.menus.m_results_00{101},'value',idx); end
                 end
@@ -8992,12 +8994,12 @@ else
                 if CONN_h.menus.m_results.usetablewhite==0, dp1=dp1+.10; end
                 if state==1,
                     conn_menu('frame',boffset+[-.030,.34-dp1,.585,.505+dp1],'Group-analysis settings');
-                    conn_menu('framewhite',boffset+[-.02,.710,.565,.07],' ');
+                    conn_menu('framewhitehighlight',boffset+[-.02,.710,.565,.07],' ');
                     %conn_menu('frame2noborder',boffset+[-.035,.325,.22,.515],'');%'Second-level design');
                     conn_menu('frame2noborder',boffset+[.565,.085,.375,.815],'');
                 elseif state==2||state==3
                     conn_menu('frame',boffset+[-.030,.34-dp1,.585,.505+dp1],'Group-analysis settings');
-                    conn_menu('framewhite',boffset+[-.020,.710,.565,.07],' ');
+                    conn_menu('framewhitehighlight',boffset+[-.020,.710,.565,.07],' ');
                     %conn_menu('frame2noborder',boffset+[-.035,.325,.22,.515],'');%'Second-level design');
                     conn_menu('frame2noborder',boffset+[.565,.085,.375,.815],'');
                 end
@@ -9043,8 +9045,6 @@ else
                         elseif ~ok1, CONN_x.vvAnalysis=1; conn_msgbox({'Not ready to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level voxel-to-voxel step first','(fill any required information and press "Done" in the voxel-to-voxel analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
                         end
                         if stateb==3, 
-                            CONN_h.menus.m_results_00{20}=conn_menu('popup2bigwhite',boffset+[.005,.83,.405,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
-                            set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                             %CONN_h.menus.m_results_00{20}=conn_menu('popup2bigblue',boffset+[.10,.865,.325,.04],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                             %set(CONN_h.menus.m_results_00{20},'value',tempanalyses);%,'fontsize',9+CONN_gui.font_offset);%,'fontweight','bold');
                         elseif stateb==1||stateb==0, 
@@ -9075,8 +9075,6 @@ else
                         elseif ~ok1, CONN_x.dynAnalysis=1; conn_msgbox({'Not ready to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level step first','(fill any required information and press "Done" in the dyn-ICA analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
                         end
                         if stateb==3, 
-                            CONN_h.menus.m_results_00{20}=conn_menu('popup2bigwhite',boffset+[.005,.83,.405,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
-                            set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                             %CONN_h.menus.m_results_00{20}=conn_menu('popup2big',boffset+[.10,.90,.425,.04],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                             %set(CONN_h.menus.m_results_00{20},'value',tempanalyses);%,'fontsize',9+CONN_gui.font_offset);%,'fontweight','bold');
                         elseif stateb==1, 
@@ -9096,6 +9094,9 @@ else
                 if state==4
                     if stateb==3
                         conn_icaexplore;
+                        conn_menu('framewhitehighlight',boffset+[.005,.835,.405,.03],'');
+                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[.005,.83,.405,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
+                        set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         return;
                     elseif stateb==2
                         icovariates=find(cellfun(@(x)~isempty(regexp(x,'^_\S+ (ICA|PCA)\d+ ')),CONN_x.Setup.l2covariates.names));
@@ -9105,7 +9106,8 @@ else
                         end
                         %icovariates=find(cellfun(@(x)~isempty(regexp(x,'^_\S* ICA')),CONN_x.Setup.l2covariates.names));
                         conn_calculator(icovariates);
-                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.02,.78,.54,.05],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
+                        conn_menu('framewhitehighlight',boffset+[-.02,.785,.56,.03],'');
+                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.02,.775,.56,.05],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         %CONN_h.menus.m_results_00{20}=conn_menu('popupbigblue',boffset+[.095,.84,.55,.05],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         %set(CONN_h.menus.m_results_00{20},'value',tempanalyses);%,'fontsize',9+CONN_gui.font_offset);%,'fontweight','bold');
@@ -9114,11 +9116,15 @@ else
                 elseif state==5
                     if stateb==3
                         conn_dynexplore;
+                        conn_menu('framewhitehighlight',boffset+[.005,.835,.405,.03],'');
+                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[.005,.83,.405,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
+                        set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         return;
                     elseif stateb==2
                         icovariates=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_\S* Dynamic'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names));
                         conn_calculator(icovariates);
-                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.025,.78,.57,.05],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
+                        conn_menu('framewhitehighlight',boffset+[-.02,.785,.56,.03],'');
+                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.025,.775,.56,.05],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         %CONN_h.menus.m_results_00{20}=conn_menu('popupbigblue',boffset+[.10,.84,.525,.05],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         %set(CONN_h.menus.m_results_00{20},'value',tempanalyses);%,'fontsize',9+CONN_gui.font_offset);%,'fontweight','bold');
@@ -9138,6 +9144,7 @@ else
                     CONN_h.menus.m_results_00{56}=conn_menu('popupwhite',boffset+[-.015,.76,.56,.035],'',{' '},'<HTML>choose analysis measure<br/> - these choices are automatically generated from your list of conditions. To select other combinations, manually select the condition(s) of<br/> interest in the <i>conditions</i> list, and define below the desired between-conditions contrast</HTML>','conn(''gui_results'',56);');
                     CONN_h.menus.m_results_00{57}=conn_menu('popupwhite',boffset+[-.015,.73,.56,.035],'',{' '},'<HTML>choose analysis description<br/> - these choices are automatically generated from your list of 2nd-level covariates. Create new 2nd-level covariates for additional <br/> analyses (e.g. add interaction terms between existing covariates). To select other combinations, manually select the subject-effecct(s) of<br/> interest in the <i>subject-effects</i> list below, and define below the desired between-subjects contrast</HTML>','conn(''gui_results'',57);');
                     CONN_h.menus.m_results_00{58}=conn_menu('popupwhite',boffset+[-.015,.70,.56,.035],'',{' '},['<HTML>choose control covariates<br/> - To select other arbitrary control covariates, choose first the desired analysis description above, and then use ',CONN_gui.keymodifier,'-click in the <br/> <i>subject-effects</i> list below to add any additional control covariates</HTML>'],'conn(''gui_results'',58);');
+                    %set([CONN_h.menus.m_results_00{56},CONN_h.menus.m_results_00{57},CONN_h.menus.m_results_00{58}],'fontweight','bold');
                     set(CONN_h.menus.m_results_00{58},'horizontalalignment','left');%,'fontsize',5+CONN_gui.font_offset);
                     CONN_h.menus.m_results_00{11}=conn_menu('listbox',boffset+[-.025,.51-dp1,.185,.17+dp1-dp3],'Subject effects','','<HTML>select subject effect(s) included in second-level analysis design<br/> - this selection defines the design matrix of your second-level analysis General Linear Model (GLM), which will contain one regressor for each selected subject effect<br/> - note: new subject effects (second-level covariates) may be added at any time in the <i>Setup Covariates 2nd-level</i> tab</HTML>','conn(''gui_results'',11);');
                     CONN_h.menus.m_results_00{16}=conn_menu('edit',boffset+[-.025,.42-dp1,.58,.04],'Between-subjects contrast',num2str(1),['<HTML>Define desired contrast across selected subject-effects<br/> - enter contrast vector/matrix with as many elements/columns as subject-effects selected <br/> - use the list below to see a list of standard contrasts for the selected subject-effects <br/> - enter multiple contrasts separated by <b>;</b> (semicolon) for OR conjunction of several contrasts (F-test) <br/> - enter multiple segments separated by <b>x</b> for kronecker product of several contrasts (e.g. factorial ANOVAs) <br/> - shortcuts: <b>d#</b> = any differences, for factor with # levels (e.g. d2 = [-1 1]) <br/> - shortcuts: <b>a#</b> = average, for factor with # levels (e.g. a2 = [0.5 0.5]) <br/> - shortcuts: <b>e#</b> = any effect, for factor with # levels (e.g. e2 = [1 0; 0 1])</HTML>'],'conn(''gui_results'',16);');
@@ -9157,7 +9164,7 @@ else
                         conn_contrasthelp(CONN_h.menus.m_results_00{17},'seeds/sources',{' '},[],[]);
                     end
                     
-                    CONN_h.menus.m_results_00{48}=uicontrol('style','frame','units','norm','position',boffset+[.375-.005,.39-dp1,.175+.01,.36+dp1-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','off','parent',CONN_h.screen.hfig);                    
+                    CONN_h.menus.m_results_00{48}=uicontrol('style','frame','units','norm','position',boffset+[.375-.005,.39-dp1,.175+.01,.35+dp1-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','off','parent',CONN_h.screen.hfig);                    
                     CONN_h.menus.m_results_00{53}=uicontrol('style','frame','units','norm','position',boffset+[.375,.39-dp1,.175,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
                     CONN_h.menus.m_results_00{54}=uicontrol('style','frame','units','norm','position',boffset+[-.025,.39-dp1,.205,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
                     CONN_h.menus.m_results_00{55}=uicontrol('style','frame','units','norm','position',boffset+[.185,.39-dp1,.185,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
@@ -9187,7 +9194,7 @@ else
                     %conn_menumanager('onregion',[CONN_h.menus.m_results_00{21}],1,boffset+[.09,.286,.46,.595]);
                     if ~isfield(CONN_x.Results.xX,'displayvoxels')||CONN_x.Results.xX.displayvoxels==0, CONN_x.Results.xX.displayvoxels=1; end
                     if state==2||state==3, % SBC
-                        pos=[.61,.40,.315,.41];
+                        pos=[.61,.45,.315,.36];
                         CONN_h.menus.m_results_00{24}=uicontrol('style','text','units','norm','position',boffset+[pos(1)+pos(3)/2-.195,pos(2)-1*.055,.175,.04],'string','p-uncorrected <','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','right','parent',CONN_h.screen.hfig);
                         CONN_h.menus.m_results_00{15}=conn_menu('slider',boffset+[pos(1)+pos(3)-0.05-0*.01,pos(2),.015,pos(4)],'','','z-slice','conn(''gui_results'',15);');
                         try, addlistener(CONN_h.menus.m_results_00{15}, 'ContinuousValueChange',@(varargin)conn('gui_results',15)); end
@@ -9227,7 +9234,7 @@ else
                     CONN_x.Results.xX.vvAnalysis=CONN_x.vvAnalysis;
                     CONN_x.Results.xX.dynAnalysis=CONN_x.dynAnalysis;
                     if state==1 % ROI-to-ROI
-                        pos=[.58,.40,.34,.44];
+                        pos=[.58,.45,.34,.39];
                         CONN_h.menus.m_results_00{37}=conn_menu('slider',boffset+[pos(1)+pos(3)-0*.01,pos(2),.015,pos(4)],'','','<HTML>number of slices<br/> - ROIs are represented by a sphere and projected <br/>to the slice closest to the ROI centroid','conn(''gui_results'',37);');
                         try, addlistener(CONN_h.menus.m_results_00{37}, 'ContinuousValueChange',@(varargin)conn('gui_results',37)); end
                         set(CONN_h.menus.m_results_00{37},'visible','off');
@@ -10676,6 +10683,7 @@ else
                             CONN_h.menus.m_results.design.designmatrix_name=CONN_x.Setup.l2covariates.names(idx);
                             CONN_h.menus.m_results.design.conditions=CONN_x.Setup.conditions.names(nconditions);
                             CONN_h.menus.m_results.design.subjects=nsubjects;
+                            CONN_h.menus.m_results.design.pwd='';
                         end
                         %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])&&CONN_x.Results.xX.displayvoxels==3, CONN_x.Results.xX.displayvoxels=2; set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels); end % note: temporarily disable indiv-contrast functionality for surface-based results
                         if ~isempty(CONN_h.menus.m_results.y.data)||CONN_x.Results.xX.displayvoxels==1,%&&size(CONN_x.Results.xX.csubjecteffects,1)==1
@@ -10703,6 +10711,7 @@ else
                                 resultsfolder=fullfile(resultsfolder,foldername);
                                 %disp(resultsfolder);
                                 p=[];h=[];F=[];statsname=[];dof=[];
+                                CONN_h.menus.m_results.design.pwd=resultsfolder;
                                 if conn_existfile(fullfile(resultsfolder,'SPM.mat'))
                                     load(fullfile(resultsfolder,'SPM.mat'),'SPM');
                                     dof=SPM.xX_multivariate.dof;
@@ -10842,7 +10851,7 @@ else
                             else if xor(strcmp(strwarn,'design'),isequal(get(CONN_h.menus.m_results_00{23},'backgroundcolor'),CONN_gui.backgroundcolorA)), set(CONN_h.menus.m_results_00{23},'backgroundcolor',CONN_gui.backgroundcolorA+(~strcmp(strwarn,'design'))*(-.25*CONN_gui.backgroundcolorA+.25*[1 0 0])); end
                             end
                             if CONN_h.menus.m_results.usetablewhite~=0, conn_menu('updatetable',CONN_h.menus.m_results_00{50},CONN_h.menus.m_results.design.designmatrix.',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.subjects'); end
-                            set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within_orig));
+                            set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within_orig,CONN_h.menus.m_results.design.pwd));
                         else
                             if CONN_x.Results.xX.displayvoxels>1
                                 set(CONN_h.menus.m_results_00{32},'string',{'preview not available - select results explorer'},'value',1);
@@ -10863,7 +10872,7 @@ else
                             else if xor(strcmp(strwarn,'design'),isequal(get(CONN_h.menus.m_results_00{23},'backgroundcolor'),CONN_gui.backgroundcolorA)), set(CONN_h.menus.m_results_00{23},'backgroundcolor',CONN_gui.backgroundcolorA+(~strcmp(strwarn,'design'))*(-.25*CONN_gui.backgroundcolorA+.25*[1 0 0])); end
                             end
                             if CONN_h.menus.m_results.usetablewhite~=0, conn_menu('updatetable',CONN_h.menus.m_results_00{50},CONN_h.menus.m_results.design.designmatrix.',CONN_h.menus.m_results.design.designmatrix_name, CONN_h.menus.m_results.design.subjects'); end
-                            set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within_orig));
+                            set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within_orig,CONN_h.menus.m_results.design.pwd));
                             conn_menu('update',CONN_h.menus.m_results_00{29},[]);
                         end
                     end
@@ -10877,6 +10886,7 @@ else
                     if isdir(fullfile(CONN_x.folders.secondlevel,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
                 end
                 resultsfolder=fullfile(CONN_x.folders.secondlevel,foldername);
+                CONN_h.menus.m_results.design.pwd=resultsfolder;
                 if conn_existfile(fullfile(resultsfolder,'ROI.mat'))
                     load(fullfile(resultsfolder,'ROI.mat'),'ROI');
                     F=cat(1,ROI.F);
@@ -10904,6 +10914,7 @@ else
                     catch, CONN_h.menus.m_results.design.conditions={};
                     end
                     CONN_h.menus.m_results.design.subjects=find(ROI.xX.SelectedSubjects);
+                    CONN_h.menus.m_results.design.pwd=resultsfolder;
                     if isfield(ROI,'ynames'), 
                         CONN_h.menus.m_results.design.data=arrayfun(@(a,b)sprintf('subject%03d: %s',a,ROI.ynames{b}),repmat(reshape(find(ROI.xX.SelectedSubjects),[],1),[1,numel(ROI.ynames)]),repmat(1:numel(ROI.ynames),[nnz(ROI.xX.SelectedSubjects),1]),'uni',0);
                         CONN_h.menus.m_results.design.dataTitle=ROI.ynames;
@@ -10924,7 +10935,7 @@ else
                     else if xor(strcmp(strwarn,'design'),isequal(get(CONN_h.menus.m_results_00{23},'backgroundcolor'),CONN_gui.backgroundcolorA)), set(CONN_h.menus.m_results_00{23},'backgroundcolor',CONN_gui.backgroundcolorA+(~strcmp(strwarn,'design'))*(-.25*CONN_gui.backgroundcolorA+.25*[1 0 0])); end
                     end
                     if CONN_h.menus.m_results.usetablewhite~=0, conn_menu('updatetable',CONN_h.menus.m_results_00{50},CONN_h.menus.m_results.design.designmatrix.',CONN_h.menus.m_results.design.designmatrix_name, CONN_h.menus.m_results.design.subjects'); end
-                    set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within));
+                    set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within,CONN_h.menus.m_results.design.pwd));
                     set([CONN_h.menus.m_results_00{23},CONN_h.menus.m_results_00{24}],'visible','on'); %design info, p-unc
                     set(CONN_h.menus.m_results_00{46},'string','display results');
                 else
@@ -10952,6 +10963,7 @@ else
                     CONN_h.menus.m_results.design.designmatrix_name=CONN_x.Setup.l2covariates.names(nsubjecteffects);
                     CONN_h.menus.m_results.design.conditions=CONN_x.Setup.conditions.names(CONN_x.Results.xX.nconditions);
                     CONN_h.menus.m_results.design.subjects=nsubjects;
+                    CONN_h.menus.m_results.design.pwd=resultsfolder;
                     CONN_h.menus.m_results.design.data=repmat(arrayfun(@(n)sprintf('subject%03d: ',n),reshape(nsubjects,[],1),'uni',0),[1,numel(CONN_x.Results.xX.nconditions)]);
                     CONN_h.menus.m_results.design.dataTitle=cell([1,numel(CONN_x.Results.xX.nconditions)]);
                     
@@ -10967,7 +10979,7 @@ else
                     else if xor(strcmp(strwarn,'design'),isequal(get(CONN_h.menus.m_results_00{23},'backgroundcolor'),CONN_gui.backgroundcolorA)), set(CONN_h.menus.m_results_00{23},'backgroundcolor',CONN_gui.backgroundcolorA+(~strcmp(strwarn,'design'))*(-.25*CONN_gui.backgroundcolorA+.25*[1 0 0])); end
                     end
                     if CONN_h.menus.m_results.usetablewhite~=0, conn_menu('updatetable',CONN_h.menus.m_results_00{50},CONN_h.menus.m_results.design.designmatrix.',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.subjects'); end
-                    set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within));
+                    set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within,CONN_h.menus.m_results.design.pwd));
                     set(CONN_h.menus.m_results_00{23},'visible','on'); %design info
                     set(CONN_h.menus.m_results_00{24},'visible','off'); % p-unc
                     set(CONN_h.menus.m_results_00{46},'string','compute results');
@@ -10987,6 +10999,7 @@ else
                 end
                 CONN_h.menus.m_results.design.conditions=CONN_x.Setup.conditions.names(CONN_x.Results.xX.nconditions);
                 CONN_h.menus.m_results.design.subjects=find(CONN_h.menus.m_results.roiresults.xX.SelectedSubjects);
+                CONN_h.menus.m_results.design.pwd='';
                 CONN_h.menus.m_results.design.data=repmat(arrayfun(@(n)sprintf('subject%03d: ',n),reshape(find(CONN_h.menus.m_results.roiresults.xX.SelectedSubjects),[],1),'uni',0),[1,numel(CONN_h.menus.m_results.roiresults.orig_sources),numel(CONN_h.menus.m_results.roiresults.orig_conditions)]);
                 CONN_h.menus.m_results.design.dataTitle=cell([1,numel(CONN_h.menus.m_results.roiresults.orig_sources),numel(CONN_h.menus.m_results.roiresults.orig_conditions)]);
                 for n2=1:numel(CONN_h.menus.m_results.roiresults.orig_conditions)
@@ -11085,7 +11098,7 @@ else
                     else if xor(strcmp(strwarn,'design'),isequal(get(CONN_h.menus.m_results_00{23},'backgroundcolor'),CONN_gui.backgroundcolorA)), set(CONN_h.menus.m_results_00{23},'backgroundcolor',CONN_gui.backgroundcolorA+(~strcmp(strwarn,'design'))*(-.25*CONN_gui.backgroundcolorA+.25*[1 0 0])); end
                     end
                     if CONN_h.menus.m_results.usetablewhite~=0, conn_menu('updatetable',CONN_h.menus.m_results_00{50},CONN_h.menus.m_results.roiresults.xX.X.',CONN_h.menus.m_results.roiresults.xX.name,CONN_h.menus.m_results.design.subjects'); end
-                    set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.roiresults.xX.name,CONN_h.menus.m_results.roiresults.ynames,CONN_h.menus.m_results.roiresults.c,CONN_h.menus.m_results.roiresults.c2));
+                    set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.roiresults.xX.name,CONN_h.menus.m_results.roiresults.ynames,CONN_h.menus.m_results.roiresults.c,CONN_h.menus.m_results.roiresults.c2,CONN_h.menus.m_results.design.pwd));
                     %conn_menu('updatetable',CONN_h.menus.m_results_00{50},[]);
                     set([CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22},CONN_h.menus.m_results_00{23},CONN_h.menus.m_results_00{27},CONN_h.menus.m_results_00{30},CONN_h.menus.m_results_00{47}],'visible','on');
                     %set(CONN_h.menus.m_results_00{48},'visible','off'); % seeds/sources
