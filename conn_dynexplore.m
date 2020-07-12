@@ -6,7 +6,7 @@ filepathresults=fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x
 load(fullfile(filepathresults,'dyn_Base.mat'),'B','H','B0','H0','IDX_subject','IDX_session','ROInames','names');
 if ~exist('ROInames','var'), conn_msgbox('Sorry, this option is not available until the first-level dynamic FC analyses have been re-run','',2); return; end
 %names=regexprep(names,'Dynamic factor','Circuit');
-names=arrayfun(@(n)sprintf('Factor_%d',n),1:size(B,3),'uni',0);
+names=arrayfun(@(n)sprintf('Circuit_%d',n),1:size(B,3),'uni',0);
 B0=permute(B0,[3 1 2]);
 B=permute(B,[3 1 2]);
 IDX_scan=ones(size(IDX_session));
@@ -364,7 +364,7 @@ conn_dynexplore_update([1 1 1 1 1]);
         idx1=idx1(idx2);
         if nill2<.25^2,
             pos=max(1,min(numel(ROInames), [idx2 idx1]));
-            hf=arrayfun(@(a,b)sprintf(' Factor %d (%.3f)',a,b),Bhf_order(1:min(size(B,1),3),pos(1),pos(2)),Bhf_values(1:min(size(B,1),3),pos(1),pos(2)),'uni',0)';
+            hf=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhf_order(1:min(size(B,1),3),pos(1),pos(2)),Bhf_values(1:min(size(B,1),3),pos(1),pos(2)),'uni',0)';
             hf1=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhfc_order(1:min(size(B,1),3),pos(1)),Bhfc_values(1:min(size(B,1),3),pos(1)),'uni',0)';
             hf2=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhfc_order(1:min(size(B,1),3),pos(2)),Bhfc_values(1:min(size(B,1),3),pos(2)),'uni',0)';
             set(handleplot(end),'units','pixels','string',[{'Connectivity between:' ROInamesDisplay{pos(2)} ['and ',ROInamesDisplay{pos(1)}] ' ' 'Highest component scores for this connection:'} hf {' ' ['Highest component score for ' ROInamesDisplay{pos(2)}]} hf2 {' ' ['Highest component score for ' ROInamesDisplay{pos(1)}]} hf1]);

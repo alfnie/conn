@@ -66,12 +66,12 @@ else
 %     end
     icovariates1=icovariates1all(cellfun(@(x)isempty(regexp(x,'^Dynamic |^_|^QA_|^QC_')),CONN_x.Setup.l2covariates.names(icovariates1all)));
     cnames=regexp(CONN_x.Setup.l2covariates.names(icovariates2), '@.*$','match','once');
-    cnames=regexprep(cnames,'^@\s*','');
-    cnames2=regexp(CONN_x.Setup.l2covariates.names(icovariates2),'^_(\S+) (ICA|PCA)(\d+) ','match','once');
-    cnames2=regexprep(cnames2,{'^_(\S+) (ICA|PCA)(\d+) ','^ x (Variability|Frequency)'},{' x $1',' x Temporal $1'});
+    cnames=regexprep(cnames,'^@\s*|^_(\S+) Dynamic Total.*','');
+    cnames2=regexp(CONN_x.Setup.l2covariates.names(icovariates2),'^_(\S+) (ICA|PCA|Dynamic factor\s*)(\d+) ','match','once');
+    cnames2=regexprep(cnames2,{'^_(\S+) (ICA|PCA|Dynamic factor\s*)(\d+) ','^ x (Variability|Frequency|Average)'},{' x $1',' x Temporal $1'});
     cnames=cellfun(@(a,b)[a b],cnames,cnames2,'uni',0);
     mnames=regexprep(CONN_x.Setup.l2covariates.names(icovariates2), '@.*$','');
-    mnames=regexprep(mnames,{'^_(\S+) (ICA|PCA)0*(\d+) .*','^Dynamic\s*|^_|^QA_|^QC_'},{'_$2_$3 ',''});
+    mnames=regexprep(mnames,{'^_(\S+) (ICA|PCA|Dynamic factor\s*)0*(\d+) .*','^Dynamic\s*|^_|^QA_|^QC_','Dynamic factor'},{'_$2_$3 ','','Circuit'});
     [ucnames,nill,icnames]=uniquestable(cnames);
     [umnames,nill,imnames]=unique(mnames);
     [ucnames,nill,idx]=conn_sortfilenames(ucnames); icnames=idx(icnames);
@@ -150,28 +150,24 @@ conn_calculator_update;
         if nargin>=5&&~isempty(newchangedvars), changedvars=newchangedvars; end
         ncov1=get(ht1,'value');
         str=get(ht3,'string');
-        ccov1=str2num(str);
-        if isempty(ccov1), ccov1=str2num([regexprep(str,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(str,' x ')))]); end
+        ccov1=conn_contraststr2num(str);
         if size(ccov1,2)~=numel(ncov1), ccov1=eye(numel(ncov1)); end
         set(ht3,'string',mat2str(ccov1));
         if fulltype
             ncov2=get(ht2,'value');
             str=get(ht4,'string');
-            ccov2=str2num(str);
-            if isempty(ccov2), ccov2=str2num([regexprep(str,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(str,' x ')))]); end
+            ccov2=conn_contraststr2num(str);
             if size(ccov2,2)~=numel(ncov2), ccov2=eye(numel(ncov2)); end
             set(ht4,'string',mat2str(ccov2));
         else
             ncov2m=get(ht2,'value');
             str=get(ht4,'string');
-            ccov2m=str2num(str);
-            if isempty(ccov2m), ccov2m=str2num([regexprep(str,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(str,' x ')))]); end
+            ccov2m=conn_contraststr2num(str);
             if size(ccov2m,2)~=numel(ncov2m), ccov2m=eye(numel(ncov2m)); end
             set(ht4,'string',mat2str(ccov2m));
             ncov2c=get(ht2c,'value');
             str=get(ht4c,'string');
-            ccov2c=str2num(str);
-            if isempty(ccov2c), ccov2c=str2num([regexprep(str,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(str,' x ')))]); end
+            ccov2c=conn_contraststr2num(str);
             if size(ccov2c,2)~=numel(ncov2c), ccov2c=eye(numel(ncov2c)); end
             set(ht4c,'string',mat2str(ccov2c));
             ncov2=matchnames(ncov2m,ncov2c);

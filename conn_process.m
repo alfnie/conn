@@ -2545,6 +2545,7 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
     validconditions=validconditions(cellfun('length',CONN_x.Setup.conditions.model(validconditions))==0); 
     if any(isnewcondition(validconditions)), error(['Some conditions have not been processed yet. Re-run previous step']); end
     N=numel(validsubjects)*(numel(validconditions)+numel(secondaryconditions))*100*length(analyses); nrois2bak=100;
+    DOREDUCED=true; % (compute RRC square matrices only) set to false for back-compatibility
     for nanalyses=1:length(analyses),
         ianalysis=analyses(nanalyses);
         CONN_x.Analysis=ianalysis;
@@ -2591,7 +2592,11 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                 end
                 if redo,
                     touched(ncondition,1)=true;
-                    [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analyses(ianalysis).variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
+                    if DOREDUCED&CONN_x.Analyses(ianalysis).type==1
+                        X2=X; names2=names; xyz2=xyz;
+                    else
+                        [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analyses(ianalysis).variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
+                    end
                     nrois2=size(X2,2)-1;
                     [nill,idxroi1roi2]=ismember(names,names2);
                     %idxroi1roi2=zeros(1,nrois);
@@ -4211,6 +4216,7 @@ if any(options==15) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
     analyses=analyses(doanalyses);
     validsubjects=1:CONN_x.Setup.nsubjects; %if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; if ~isempty(analyses), conn_projectmanager('addstep',15,analyses); end; end
+    DOREDUCED=true; % (compute RRC square matrices only) set to false for back-compatibility
     if isequal(validsubjects,1:CONN_x.Setup.nsubjects), 
         h=conn_waitbar(0,['Step ',num2str(sum(options<=15)),'/',num2str(length(options)),': Preparing second-level ROI analyses']);
         analysisbak=CONN_x.Analysis;
@@ -4241,7 +4247,11 @@ if any(options==15) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
             X1=load(filename);
             [X,nill,names]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,X1,[]);
             nrois=size(X,2)-1;
-            [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analyses(ianalysis).variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
+            if DOREDUCED&CONN_x.Analyses(ianalysis).type==1
+                X2=X; names2=names; xyz2=xyz;
+            else
+                [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analyses(ianalysis).variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
+            end
             nrois2=size(X2,2)-1;
             [nill,idxroi1roi2]=ismember(names,names2);
             %idxroi1roi2=zeros(1,nrois);

@@ -26,7 +26,7 @@ doemphasis2=CONN_gui.doemphasis2;
 if any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2'})), bgcolor=CONN_gui.backgroundcolor; mapcolor=CONN_h.screen.colormap;
 else bgcolor=CONN_gui.backgroundcolorA; mapcolor=CONN_h.screen.colormapA;
 end
-bgwhite=.5*bgcolor+.5*round(bgcolor); %.9*bgcolor+.1*round(1-bgcolor); %[.95 .95 .9]
+bgwhite=CONN_gui.backgroundcolorE; %.5*bgcolor+.5*round(bgcolor); %.9*bgcolor+.1*round(1-bgcolor); %[.95 .95 .9]
 
 switch(lower(type)),
     case 'nullstr',
@@ -205,7 +205,7 @@ switch(lower(type)),
         xtraborder=0;
         opts=contropts;
         if ~isempty(regexp(type,'blue')), bgcolor=0*bgcolor+1*CONN_gui.backgroundcolorE; fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5);
-        elseif ~isempty(regexp(type,'white')), bgcolor=bgwhite; fgcolor=[.5 .5 .5];
+        elseif ~isempty(regexp(type,'white')), bgcolor=bgwhite; fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5);
         else fgcolor=[];
         end %opts=titleopts; end %.75*bgcolor+.25*(2/6*.5+.5*[1/6,2/6,4/6]); end
         if isempty(string), string=' '; end
@@ -454,7 +454,7 @@ switch(lower(type)),
         else fgcolor=[]; 
         end
         
-        bordercolor=[]; if ~isempty(regexp(type,'highlight')), bordercolor=0*bgcolor+1*round(bgcolor); type=regexprep(type,'highlight',''); end
+        bordercolor=[]; if ~isempty(regexp(type,'highlight')), bordercolor=0*bgcolor+1*round(1-bgcolor); type=regexprep(type,'highlight',''); end
         
 		if ~isempty(title), 
             if 0

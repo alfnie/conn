@@ -87,15 +87,17 @@ function varargout=conn_module(option,varargin)
 %       See also CONN_DISPLAY for displaying GLM results
 %       See Nieto-Castanon, 2020 for details about General Linear Model analyses (www.conn-toolbox.org/fmri-methods)
 %
-%    Additional functionality: conn_module('get',...) & conn_module('set',...)
-%          conn_module('get','structurals');            outputs current structural files (e.g. output of structural preprocessing steps)
-%          conn_module('get','functionals');            outputs current functional files (e.g. output of functional preprocessing steps)
-%          conn_module('get','l1covariates');           outputs first-level covariate files (e.g. other potential outputs of functional preprocessing)
-%          conn_module('get','l1covariates',covname);   outputs covname first-level covariate files (e.g. other potential outputs of functional preprocessing)
-%          conn_module('get','l2covariates');           outputs second-level covariate files (e.g. other potential outputs of functional preprocessing)
-%          conn_module('get','l2covariates',covname);   outputs covname second-level covariate files (e.g. other potential outputs of functional preprocessing)
-%          conn_module('get','masks');                  outputs Grey Matter/White Matter/CSF files (e.g. other potential outputs of functional preprocessing)
-%          conn_module('get','masks',roiname);          outputs roiname files (e.g. other potential outputs of functional preprocessing)
+%    Additional functionality: conn_module('get',...)
+%          conn_module('get','structurals');             outputs current structural files (e.g. output of structural preprocessing steps)
+%          conn_module('get','functionals' [,setlabel]); outputs current functional files (e.g. output of functional preprocessing steps)
+%          conn_module('get','l1covariates' [,covname]); outputs first-level covariate files (e.g. other potential outputs of functional preprocessing)
+%          conn_module('get','l2covariates' [,covname]); outputs second-level covariate values (e.g. other potential outputs of functional preprocessing)
+%          conn_module('get','masks');                   outputs Grey Matter/White Matter/CSF files (e.g. other potential outputs of functional preprocessing)
+%          conn_module('get','masks',roiname);           outputs roiname files (e.g. other potential outputs of functional preprocessing)
+%    Additional functionality: conn_module('set',...)
+%          conn_module('set','l1covariates',files,covname [,add]);
+%          conn_module('set','l2covariates',values,covname [,covdescrip ,add]);
+%          conn_module('set','masks',files [,roiname]);
 %
 %    Note: before using conn_module functionality with externally defined data it is recommended to close CONN's gui in order to avoid potentially loosing any unsaved changes
 %    

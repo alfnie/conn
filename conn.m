@@ -8709,35 +8709,6 @@ else
 %                 return; 
                 
                 if nargin<2
-%                     conn_menumanager clf;
-%                     conn_menuframe;
-%                     tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;tstate(4)=1; conn_menumanager(CONN_h.menus.m0,'state',tstate);
-%                     conn_menu('frame2border',[.0,.955,1,.045],'');
-%                     conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-%                     conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);%conn_menumanager([CONN_h.menus.m_results_03,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
-%                     %conn_menu('title2big',[.005,.85,.110,.04],'Connectivity measures');
-%                     %[nill,temp]=conn_menu('frame2border',[.00 .54 .12 .31],{'Connectivity measures'});set(temp,'fontsize',8+CONN_gui.font_offset);
-%                     if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
-%                     elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
-%                     end
-%                     conn_menu('nullstr',' ');
-                    
-%                     tl=.12;
-%                     [nill,temp]=conn_menu('frame',[.185 .85-5*tl-.01 .235 5*tl+.01],'All analyses (1st-level)'); %set(temp,'horizontalalignment','left','fontweight','normal');
-%                     txt={CONN_x.Analyses(:).name};
-%                     if 1, CONN_h.menus.m_results.shownanalyses=find(cellfun(@(x)isempty(regexp(x,'^(.*\/|.*\\)?Dynamic factor .*\d+$')),txt)); 
-%                     else CONN_h.menus.m_results.shownanalyses=1:numel(txt); 
-%                     end
-%                     CONN_h.menus.m_results_00{1}=conn_menu('listbox',[.195 .85-5*tl*1/3 .22 5*tl*1/3],'',{CONN_x.Analyses(CONN_h.menus.m_results.shownanalyses).name},'List of available ROI-to-ROI or Seed-to-Voxel analyses','conn(''gui_results'',1);');
-%                     set(CONN_h.menus.m_results_00{1},'max',2,'value',[]);
-%                     CONN_h.menus.m_results_00{2}=conn_menu('listbox',[.195 .85-5*tl*2/3 .22 5*tl*1/3],'',{CONN_x.vvAnalyses(:).name},'List of available Voxel-to-Voxel or ICA analyses','conn(''gui_results'',2);');
-%                     set(CONN_h.menus.m_results_00{2},'max',2,'value',[]);
-%                     CONN_h.menus.m_results_00{3}=conn_menu('listbox',[.195 .85-5*tl*3/3 .22 5*tl*1/3],'',{CONN_x.dynAnalyses(:).name},'List of available dyn-ICA analyses','conn(''gui_results'',3);');
-%                     set(CONN_h.menus.m_results_00{3},'max',2,'value',[]);
-%                     hax=conn_menu('axes',[.120 .85-5*tl .055 5*tl]);
-%                     plot([0 1 nan 0 1 nan 0 1 nan 1 1 nan 1 1 nan 1 1],[max(0,tl-.06)/tl+(tl-max(0,tl-.06))/tl*0.5/5 0.5/3 nan max(0,tl-.06)/tl+(tl-max(0,tl-.06))/tl*2/5 1.5/3 nan max(0,tl-.06)/tl+(tl-max(0,tl-.06))/tl*4/5 2.5/3 nan .02/3 .98/3 nan 1.02/3 1.98/3 nan 2.02/3 2.98/3],'-','color',CONN_gui.fontcolorB,'linewidth',2,'parent',hax);
-%                     set(hax,'xlim',[0 1],'ylim',[0 1],'visible','off');
-                    
                     if ~isfield(CONN_h.menus.m_results,'bookmark_page'), CONN_h.menus.m_results.bookmark_page=1; end
                     if ~isfield(CONN_h.menus.m_results,'bookmark_folder'), CONN_h.menus.m_results.bookmark_folder=[]; end
                     if ~isfield(CONN_h.menus.m_results,'bookmark_style'), CONN_h.menus.m_results.bookmark_style=1; end
@@ -8925,7 +8896,9 @@ else
                 %if ~isfield(CONN_x.dynAnalyses(CONN_x.dynAnalysis),'sources')||isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).sources), conn_msgbox('No dyn-ICA analyses computed. Select Dynamic FC in ''Setup->Options'' and run ''first-level Analyses->dyn-ICA'' step','',2); return; end
                 if tstate==1, 
                     txt={CONN_x.Analyses(:).name};
-                    dynanalyses=cellfun(@(x)~isempty(regexp(x,'^(.*\/|.*\\)?Dynamic factor .*\d+$')),txt);
+                    if ~isfield(CONN_x.Analyses,'sources'), dynanalyses=false(size(txt)); 
+                    else dynanalyses=arrayfun(@(n)~isempty(CONN_x.Analyses(n).sources)&~isempty(regexp(CONN_x.Analyses(n).name,'^(.*\/|.*\\)?Dynamic factor .*\d+$')),1:numel(CONN_x.Analyses));
+                    end
                     if ~any(dynanalyses),  conn_msgbox({'Not ready to display second-level Analyses',' ','No Dynamic spatial components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2);  conn('gui_resultsgo',[]); return; end
                     state=1; 
                     if ianalysis>numel(dynanalyses)||~dynanalyses(ianalysis), ianalysis=find(dynanalyses,1); CONN_x.Analysis=ianalysis; end
@@ -8975,19 +8948,19 @@ else
                     conn_msgbox({'Single-subject second-level analyses not supported (only population-level inferences via random-effect analyses available)','Please add more subjects before proceeding to the Results tab'},'',2); 
                     ok=false;
                 end
-                dp1=0;dp2=0;dp3=.05;
+                dp1=-.07;dp2=0;dp3=.05;
                 CONN_h.menus.m_results.usetablewhite=false;
                 CONN_h.menus.m_results.tablewhitecolor=[.95 .95 .9];
                 switch(state)
                     case 1, %if ok, conn_menumanager([CONN_h.menus.m_results_04,CONN_h.menus.m_results_04b],'on',1); end
                         %if ok, conn_menumanager([CONN_h.menus.m_results_04b],'on',1); end
                         if stateb, conn_menumanager(CONN_h.menus.m_results_03a,'on',1); end
-                        dp1=0*.075;dp2=.27;dp3=.05;
+                        dp2=.27;dp3=.05;
                     case 2, %if ok, conn_menumanager([CONN_h.menus.m_results_05],'on',1); end
-                        dp1=0*.075;dp2=0;dp3=.05;
+                        dp2=0;dp3=.05;
                     case 3, %if ok, conn_menumanager([CONN_h.menus.m_results_06],'on',1); end
                         if stateb, conn_menumanager(CONN_h.menus.m_results_03b,'on',1); end
-                        dp1=0*.075;dp2=0;
+                        dp2=0;
                     case 4, conn_menumanager(CONN_h.menus.m_results_03b,'on',1);
                     case 5, conn_menumanager(CONN_h.menus.m_results_03a,'on',1);
                 end
@@ -9006,7 +8979,10 @@ else
                 if state==1||state==2
                     txt={CONN_x.Analyses(:).name};
                     txt_ext={' (R2R)',' (S2V)',' (S2V & R2R)'};
-                    if stateb, CONN_h.menus.m_results.shownanalyses=find(cellfun(@(x)~isempty(regexp(x,'^(.*\/|.*\\)?Dynamic factor .*\d+$'))&~isempty(strmatch(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,x)),txt)); 
+                    if stateb, 
+                        try, CONN_h.menus.m_results.shownanalyses=find(arrayfun(@(n)~isempty(regexp(CONN_x.Analyses(n).name,'^(.*\/|.*\\)?Dynamic factor .*\d+$'))&~isempty(strmatch(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,CONN_x.Analyses(n).name))&~isempty(CONN_x.Analyses(n).sources),1:numel(CONN_x.Analyses))); 
+                        catch, CONN_h.menus.m_results.shownanalyses=[];
+                        end
                     else       CONN_h.menus.m_results.shownanalyses=find(cellfun(@(x)isempty(regexp(x,'^(.*\/|.*\\)?Dynamic factor .*\d+$')),txt)); 
                     end
                     if state==1,    CONN_h.menus.m_results.shownanalyses=CONN_h.menus.m_results.shownanalyses(ismember([CONN_x.Analyses(CONN_h.menus.m_results.shownanalyses).type],[1,3])); 
@@ -9121,7 +9097,7 @@ else
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         return;
                     elseif stateb==2
-                        icovariates=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_\S* Dynamic'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names));
+                        icovariates=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_(Frequency|Variability) Dynamic factor'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names));
                         conn_calculator(icovariates);
                         conn_menu('framewhitehighlight',boffset+[-.02,.785,.56,.03],'');
                         CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.025,.775,.56,.05],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
@@ -9141,34 +9117,39 @@ else
                         CONN_h.menus.m_results_00{21}=[];
                     end 
                     
-                    CONN_h.menus.m_results_00{56}=conn_menu('popupwhite',boffset+[-.015,.76,.56,.035],'',{' '},'<HTML>choose analysis measure<br/> - these choices are automatically generated from your list of conditions. To select other combinations, manually select the condition(s) of<br/> interest in the <i>conditions</i> list, and define below the desired between-conditions contrast</HTML>','conn(''gui_results'',56);');
-                    CONN_h.menus.m_results_00{57}=conn_menu('popupwhite',boffset+[-.015,.73,.56,.035],'',{' '},'<HTML>choose analysis description<br/> - these choices are automatically generated from your list of 2nd-level covariates. Create new 2nd-level covariates for additional <br/> analyses (e.g. add interaction terms between existing covariates). To select other combinations, manually select the subject-effecct(s) of<br/> interest in the <i>subject-effects</i> list below, and define below the desired between-subjects contrast</HTML>','conn(''gui_results'',57);');
+                    CONN_h.menus.m_results_00{56}=conn_menu('popupwhite',boffset+[-.015,.76,.56,.035],'',{' '},'<HTML>choose analysis measure<br/> - these choices are automatically generated from your list of conditions. <br/> - to select other combinations, manually select the condition(s) of interest in the <i>conditions</i> list, <br/> and define below the desired between-conditions contrast</HTML>','conn(''gui_results'',56);');
+                    CONN_h.menus.m_results_00{57}=conn_menu('popupwhite',boffset+[-.015,.73,.56,.035],'',{' '},'<HTML>choose analysis description<br/> - these choices are automatically generated from your list of 2nd-level covariates.<br/> - create new 2nd-level covariates for additional analyses (e.g. add interaction terms between existing covariates)<br/> - to select other combinations, manually select the subject-effecct(s) of interest in the <i>subject-effects</i> list below, <br/> and define below the desired between-subjects contrast</HTML>','conn(''gui_results'',57);');
                     CONN_h.menus.m_results_00{58}=conn_menu('popupwhite',boffset+[-.015,.70,.56,.035],'',{' '},['<HTML>choose control covariates<br/> - To select other arbitrary control covariates, choose first the desired analysis description above, and then use ',CONN_gui.keymodifier,'-click in the <br/> <i>subject-effects</i> list below to add any additional control covariates</HTML>'],'conn(''gui_results'',58);');
                     %set([CONN_h.menus.m_results_00{56},CONN_h.menus.m_results_00{57},CONN_h.menus.m_results_00{58}],'fontweight','bold');
                     set(CONN_h.menus.m_results_00{58},'horizontalalignment','left');%,'fontsize',5+CONN_gui.font_offset);
                     CONN_h.menus.m_results_00{11}=conn_menu('listbox',boffset+[-.025,.51-dp1,.185,.17+dp1-dp3],'Subject effects','','<HTML>select subject effect(s) included in second-level analysis design<br/> - this selection defines the design matrix of your second-level analysis General Linear Model (GLM), which will contain one regressor for each selected subject effect<br/> - note: new subject effects (second-level covariates) may be added at any time in the <i>Setup Covariates 2nd-level</i> tab</HTML>','conn(''gui_results'',11);');
-                    CONN_h.menus.m_results_00{16}=conn_menu('edit',boffset+[-.025,.42-dp1,.58,.04],'Between-subjects contrast',num2str(1),['<HTML>Define desired contrast across selected subject-effects<br/> - enter contrast vector/matrix with as many elements/columns as subject-effects selected <br/> - use the list below to see a list of standard contrasts for the selected subject-effects <br/> - enter multiple contrasts separated by <b>;</b> (semicolon) for OR conjunction of several contrasts (F-test) <br/> - enter multiple segments separated by <b>x</b> for kronecker product of several contrasts (e.g. factorial ANOVAs) <br/> - shortcuts: <b>d#</b> = any differences, for factor with # levels (e.g. d2 = [-1 1]) <br/> - shortcuts: <b>a#</b> = average, for factor with # levels (e.g. a2 = [0.5 0.5]) <br/> - shortcuts: <b>e#</b> = any effect, for factor with # levels (e.g. e2 = [1 0; 0 1])</HTML>'],'conn(''gui_results'',16);');
+                    CONN_h.menus.m_results_00{16}=conn_menu('edit',boffset+[-.025,.42-dp1,.58,.04],'Between-subjects contrast',num2str(1),['<HTML>Define desired contrast across selected subject-effects<br/> - enter contrast vector/matrix with as many elements/columns as subject-effects selected <br/> - use the list below to see a list of standard contrasts for the selected subject-effects <br/> - enter multiple contrasts separated by <b>;</b> (semicolon) for OR conjunction of several contrasts (F-test) <br/> - enter multiple segments separated by <b>x</b> for kronecker product of several contrasts (e.g. factorial ANOVAs) <br/> - shortcuts: <b>d#</b> = any differences, for a factor with # levels (e.g. d2 = [-1 1], d3 = [-1 1 0;0 -1 1], ... )<br/> - shortcuts: <b>a#</b> = average, for a factor with # levels (e.g. a2 = [0.5 0.5], a3 = [1/3 1/3 1/3], ... ) <br/> - shortcuts: <b>e#</b> = any effect, for a factor with # levels (e.g. e2 = [1 0; 0 1], e3 = [1 0 0;0 1 0;0 0 1], ... )</HTML>'],'conn(''gui_results'',16);');
                     CONN_h.menus.m_results_00{12}=conn_menu('listbox',boffset+[.185,.51-dp1,.17,.17+dp1-dp3],'Conditions','','<HTML>select condition(s) of interest','conn(''gui_results'',12);');
-                    CONN_h.menus.m_results_00{19}=conn_menu('edit',boffset+[.185,.42-dp1,.37,.04],'Between-conditions contrast',num2str(1),['<HTML>Define desired contrast across selected conditions <br/> - enter contrast vector/matrix (as many elements/columns as conditions selected) <br/> - use the list below to see a list of standard contrasts for the selected conditions<br/> - enter multiple contrasts separated by <b>;</b> (semicolon) for OR conjunction of several contrasts (F-test) <br/> - enter multiple segments separated by <b>x</b> for kronecker product of several contrasts (e.g. factorial ANOVAs) <br/> - shortcuts: <b>d#</b> = any differences, for factor with # levels (e.g. d2 = [-1 1]) <br/> - shortcuts: <b>a#</b> = average, for factor with # levels (e.g. a2 = [0.5 0.5]) <br/> - shortcuts: <b>e#</b> = any effect, for factor with # levels (e.g. e2 = [1 0; 0 1]) </HTML>'],'conn(''gui_results'',19);');
+                    CONN_h.menus.m_results_00{19}=conn_menu('edit',boffset+[.185,.42-dp1,.37,.04],'Between-conditions contrast',num2str(1),['<HTML>Define desired contrast across selected conditions <br/> - enter contrast vector/matrix (as many elements/columns as conditions selected) <br/> - use the list below to see a list of standard contrasts for the selected conditions<br/> - enter multiple contrasts separated by <b>;</b> (semicolon) for OR conjunction of several contrasts (F-test) <br/> - enter multiple segments separated by <b>x</b> for kronecker product of several contrasts (e.g. factorial ANOVAs) <br/> - shortcuts: <b>d#</b> = any differences, for a factor with # levels (e.g. d2 = [-1 1], d3 = [-1 1 0;0 -1 1], ... ) <br/> - shortcuts: <b>a#</b> = average, for a factor with # levels (e.g. a2 = [0.5 0.5], a3 = [1/3 1/3 1/3], ... ) <br/> - shortcuts: <b>e#</b> = any effect, for a factor with # levels (e.g. e2 = [1 0; 0 1], e3 = [1 0 0;0 1 0;0 0 1], ... ) </HTML>'],'conn(''gui_results'',19);');
                     conn_contrasthelp(CONN_h.menus.m_results_00{16},'subject effects',{' '},[],[]);
                     conn_contrasthelp(CONN_h.menus.m_results_00{19},'conditions',{' '},[],[]);
                     if state==3, 
                         if stateb, CONN_h.menus.m_results_00{13}=conn_menu('listbox',boffset+[.375,.51-dp1,.18,.17+dp1-dp3],'ICA networks','',['<HTML>select ICA network(s) of interest<br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_results'',13);');
                         else       CONN_h.menus.m_results_00{13}=conn_menu('listbox',boffset+[.375,.51-dp1,.18,.17+dp1-dp3],'Measures','',['<HTML>select voxel-to-voxel measure(s) of interest<br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_results'',13);');
                         end
-                        CONN_h.menus.m_results_00{17}=conn_menu('edit',boffset+[.375,.42-dp1,.18,.04],'Between-measures contrast',num2str(1),['<HTML>Define desired contrast across selected measures <br/> - enter contrast vector/matrix (as many elements/columns as measures selected) <br/> - use the list below to see a list of standard contrasts for the selected measures<br/> - enter multiple contrasts separated by <b>;</b> (semicolon) for OR conjunction of several contrasts (F-test) <br/> - enter multiple segments separated by <b>x</b> for kronecker product of several contrasts (e.g. factorial ANOVAs) <br/> - shortcuts: <b>d#</b> = any differences, for factor with # levels (e.g. d2 = [-1 1]) <br/> - shortcuts: <b>a#</b> = average, for factor with # levels (e.g. a2 = [0.5 0.5]) <br/> - shortcuts: <b>e#</b> = any effect, for factor with # levels (e.g. e2 = [1 0; 0 1]) </HTML>'],'conn(''gui_results'',17);');
+                        CONN_h.menus.m_results_00{17}=conn_menu('edit',boffset+[.375,.42-dp1,.18,.04],'Between-measures contrast',num2str(1),['<HTML>Define desired contrast across selected measures <br/> - enter contrast vector/matrix (as many elements/columns as measures selected) <br/> - use the list below to see a list of standard contrasts for the selected measures<br/> - enter multiple contrasts separated by <b>;</b> (semicolon) for OR conjunction of several contrasts (F-test) <br/> - enter multiple segments separated by <b>x</b> for kronecker product of several contrasts (e.g. factorial ANOVAs) <br/> - shortcuts: <b>d#</b> = any differences, for a factor with # levels (e.g. d2 = [-1 1], d3 = [-1 1 0;0 -1 1], ... ) <br/> - shortcuts: <b>a#</b> = average, for a factor with # levels (e.g. a2 = [0.5 0.5], a3 = [1/3 1/3 1/3], ... ) <br/> - shortcuts: <b>e#</b> = any effect, for a factor with # levels (e.g. e2 = [1 0; 0 1], e3 = [1 0 0;0 1 0;0 0 1], ... ) </HTML>'],'conn(''gui_results'',17);');
                         conn_contrasthelp(CONN_h.menus.m_results_00{17},'measures',{' '},[],[]);
                     else
                         CONN_h.menus.m_results_00{13}=conn_menu('listbox',boffset+[.375,.51-dp1,.18,.17+dp1-dp3],'Seeds/Sources','',['<HTML>select seed/source ROI(s) of interest<br/> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_results'',13);');
-                        CONN_h.menus.m_results_00{17}=conn_menu('edit',boffset+[.375,.42-dp1,.18,.04],'Between-sources contrast',num2str(1),['<HTML>Define desired contrast across selected sources <br/> - enter contrast vector/matrix (as many elements/columns as sources selected) <br/> - use the list below to see a list of standard contrasts for the selected sources<br/> - enter multiple contrasts separated by <b>;</b> (semicolon) for OR conjunction of several contrasts (F-test) <br/> - enter multiple segments separated by <b>x</b> for kronecker product of several contrasts (e.g. factorial ANOVAs) <br/> - shortcuts: <b>d#</b> = any differences, for factor with # levels (e.g. d2 = [-1 1]) <br/> - shortcuts: <b>a#</b> = average, for factor with # levels (e.g. a2 = [0.5 0.5]) <br/> - shortcuts: <b>e#</b> = any effect, for factor with # levels (e.g. e2 = [1 0; 0 1]) </HTML>'],'conn(''gui_results'',17);');
+                        CONN_h.menus.m_results_00{17}=conn_menu('edit',boffset+[.375,.42-dp1,.18,.04],'Between-sources contrast',num2str(1),['<HTML>Define desired contrast across selected sources <br/> - enter contrast vector/matrix (as many elements/columns as sources selected) <br/> - use the list below to see a list of standard contrasts for the selected sources<br/> - enter multiple contrasts separated by <b>;</b> (semicolon) for OR conjunction of several contrasts (F-test) <br/> - enter multiple segments separated by <b>x</b> for kronecker product of several contrasts (e.g. factorial ANOVAs) <br/> - shortcuts: <b>d#</b> = any differences, for a factor with # levels (e.g. d2 = [-1 1], d3 = [-1 1 0;0 -1 1], ... ) <br/> - shortcuts: <b>a#</b> = average, for a factor with # levels (e.g. a2 = [0.5 0.5], a3 = [1/3 1/3 1/3], ... ) <br/> - shortcuts: <b>e#</b> = any effect, for a factor with # levels (e.g. e2 = [1 0; 0 1], e3 = [1 0 0;0 1 0;0 0 1], ... ) </HTML>'],'conn(''gui_results'',17);');
                         conn_contrasthelp(CONN_h.menus.m_results_00{17},'seeds/sources',{' '},[],[]);
+                    end
+                    if state==1&&stateb==1
+                        set([CONN_h.menus.m_results_00{13},CONN_h.menus.m_results_00{17}],'visible','off'); %%%
+                        CONN_h.menus.m_results_00{61}=conn_menu('listbox',boffset+[.375,.51-dp1,.18,.17+dp1-dp3],'dynICA circuits','',['<HTML>select dynICA circuit of interest<br/> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_results'',61);');
+                        set(CONN_h.menus.m_results_00{61},'max',1,'string',regexprep({CONN_x.Analyses(CONN_h.menus.m_results.shownanalyses).name},{'^.*(\\|\/)','Dynamic factor 0*(\d+)'},{'','Circuit_$1'}),'value',find(CONN_h.menus.m_results.shownanalyses==ianalysis,1));
                     end
                     
                     CONN_h.menus.m_results_00{48}=uicontrol('style','frame','units','norm','position',boffset+[.375-.005,.39-dp1,.175+.01,.35+dp1-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','off','parent',CONN_h.screen.hfig);                    
                     CONN_h.menus.m_results_00{53}=uicontrol('style','frame','units','norm','position',boffset+[.375,.39-dp1,.175,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
                     CONN_h.menus.m_results_00{54}=uicontrol('style','frame','units','norm','position',boffset+[-.025,.39-dp1,.205,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
                     CONN_h.menus.m_results_00{55}=uicontrol('style','frame','units','norm','position',boffset+[.185,.39-dp1,.185,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
-                    CONN_h.menus.m_results_00{23}=conn_menu('pushbutton',boffset+[.435,.43-dp1-.10,.11,.045],'','','<HTML>Second-level model design information<br/> - click to display design matrix and additional details</HTML>',@(varargin)conn_displaydesign);
+                    CONN_h.menus.m_results_00{23}=conn_menu('pushbutton',boffset+[.435,.435-dp1-.10,.11,.04],'','','<HTML>Second-level model design information<br/> - click to display design matrix and additional details</HTML>',@(varargin)conn_displaydesign);
                     %connmeasures={'correlation (bivariate)','correlation (semipartial)','regression (bivariate)','regression (multivariate)'};
                     if state==1, tpos=boffset+[-.03,.18,.585,.125]; %RRC
                     else tpos=boffset+[-.03,.10,.585,.135]; %SBC,V2V
@@ -9180,7 +9161,7 @@ else
                         CONN_h.menus.m_results_00{50}=conn_menu('tablewhite',tpos,'Subjects',[],'<HTML>Group-level analysis design matrix: rows are selected subject-effects, colums are subjects<br/> - click on ''Subject-effects'' list to select a different set of subject-effects<br/> - note: subject-effects (second-level covariates) may be edited/added at any time in the <i>Setup Covariates 2nd-level</i> tab</HTML>');
                     else
                         %conn_menu('frame',tpos,' ');
-                        CONN_h.menus.m_results_00{51}=conn_menu('text2',[tpos(1)+.005 .265-dp1 .560 .06],'',' ');
+                        CONN_h.menus.m_results_00{51}=conn_menu('text2',[tpos(1)+.005 .245-dp1 .560 .08],'',' ');
                         %CONN_h.menus.m_results_00{23}=conn_menu('pushbutton2',boffset+[.465,.275-dp1+.01,.08,.035],'','','<HTML>Second-level model design information<br/> - click to display design matrix and additional details</HTML>',@(varargin)conn_displaydesign);
                         if CONN_h.menus.m_results.usetablewhite<0
                             CONN_h.menus.m_results_00{50}=conn_menu('table2',tpos,'Subjects',[],'<HTML>Group-level analysis design matrix: rows are selected subject-effects, colums are subjects<br/> - click on ''Subject-effects'' list to select a different set of subject-effects<br/> - note: subject-effects (second-level covariates) may be edited/added at any time in the <i>Setup Covariates 2nd-level</i> tab</HTML>');
@@ -9220,7 +9201,7 @@ else
                         conn_menu('nullstr',{'Results not','computed yet'});
                         [CONN_h.menus.m_results_00{14}]=conn_menu('imagep2',boffset+pos+[.03 0 -.10 0],'','','',@conn_callbackdisplay_dataname,@conn_callbackdisplay_secondlevelclick);
                         conn_menu('nullstr',' ');
-                        set(CONN_h.menus.m_results_00{14}.h10,'tooltipstring','voxel-level false positive threshold')
+                        set(CONN_h.menus.m_results_00{14}.h10,'tooltipstring','<HTML>voxel-level false positive threshold<br/> - note: displaying uncorrected results; click on ''display results'' below for multiple-comparison corrections</HTML>')
                         conn_menu('nullstr',' ');
                         CONN_h.menus.m_results_00{29}=conn_menu('image2',boffset+pos+[.08 -.20 -pos(3)+.125 -pos(4)+.05],'connectivity values'); %,'','',@conn_callbackdisplay_dataname,@conn_callbackdisplay_secondlevelclick);
                         %[CONN_h.menus.m_results_00{34}]=conn_menu('image',boffset+[.1 .1 .4 .1],'','','',@conn_callbackdisplay_dataname);
@@ -9256,6 +9237,7 @@ else
                         if ~isfield(CONN_x.Results.xX,'inferenceleveltype'), CONN_x.Results.xX.inferenceleveltype=1; end
                         if ~isfield(CONN_x.Results.xX,'displayrois'), CONN_x.Results.xX.displayrois=2; end
                         strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Seed/Source parameters <small>(preview of current settings)</small></HTML>'};
+                        if stateb, strstr3=strstr3(1); end
                         CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Seed/Source parameters (preview of current settings)''</i> to display a preview of the results of this group-level analysis for the selected seed/source ROI only, and adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
                         CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3), CONN_x.Results.xX.displayvoxels));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
@@ -9289,6 +9271,7 @@ else
                         %CONN_h.menus.m_results_00{30}=uicontrol('style','edit','units','norm','position',boffset+[.66,.08,.05,.045],'string',num2str(CONN_x.Results.xX.inferencelevel),'fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','enter false-positive threshold value','callback','conn(''gui_results'',30);');
                         %CONN_h.menus.m_results_00{31}=uicontrol('style','popupmenu','units','norm','position',boffset+[.66,.77,.23,.045],'string',strstr3,'fontsize',8+CONN_gui.font_offset,'value',CONN_x.Results.xX.displayrois,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','choose target ROIs','callback','conn(''gui_results'',31);');
                         CONN_h.menus.m_results_00{49}=conn_menu('imagep2',boffset+pos+[.05 .01 -.10 -.04]);
+                        set(CONN_h.menus.m_results_00{49}.h10,'tooltipstring','<HTML>connection-level false positive threshold<br/> - note: displaying uncorrected results; click on ''display results'' below for multiple-comparison corrections</HTML>')
                         CONN_h.menus.m_results_00{24}=uicontrol('style','text','units','norm','position',boffset+[pos(1)+pos(3)/2-.15,pos(2)-1*.045,.15,.04],'string','p-uncorrected <','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','right','parent',CONN_h.screen.hfig);
                         CONN_h.menus.m_results_00{25}=conn_menu('axes',boffset+pos);
                         %h0=CONN_gui.backgroundcolorA;
@@ -9339,7 +9322,10 @@ else
                             idxplotroi=ishandle(CONN_h.menus.m_results_00{26}); % plots in axis
                             delete(CONN_h.menus.m_results_00{26}(idxplotroi));
                             set([CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22},CONN_h.menus.m_results_00{27},CONN_h.menus.m_results_00{30},CONN_h.menus.m_results_00{47}],'visible','off'); % table, table title, p-fdr, threshold, show-connections
-                            set([CONN_h.menus.m_results_00{24},CONN_h.menus.m_results_00{48}],'visible','on'); % p-unc, seeds/sources
+                            set([CONN_h.menus.m_results_00{24}],'visible','on'); % p-unc, seeds/sources
+                            if stateb, set(CONN_h.menus.m_results_00{48},'visible','off'); % p-unc, seeds/sources
+                            else set(CONN_h.menus.m_results_00{48},'visible','on'); % p-unc, seeds/sources
+                            end
                             conn_menu('update',CONN_h.menus.m_results_00{29},[]); % data plot
                         end
                     end
@@ -9352,7 +9338,7 @@ else
                     end
                     ncovariates=length(CONN_x.Setup.l2covariates.names)-1;
                     nconditions=length(CONN_x.Setup.conditions.names)-1; %%%
-                    icondition=[];isnewcondition=[];for ncondition=1:nconditions,[icondition(ncondition),isnewcondition(ncondition)]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition}); end                    
+                    icondition=[];isnewcondition=[];for ncondition=1:nconditions,[icondition(ncondition),isnewcondition(ncondition)]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition}); end
                     
                     if state==1||state==2
                         CONN_h.menus.m_results.outcomenames=CONN_x.Analyses(ianalysis).sources;
@@ -9440,7 +9426,9 @@ else
                         end
                     end
                     if isempty(CONN_h.menus.m_results.shownsources), nsources=[]; else nsources=CONN_h.menus.m_results.shownsources(1); end
-                    if state==1||state==2
+                    if state==1&&stateb==1
+                        set(CONN_h.menus.m_results_00{13},'value',1);
+                    elseif state==1||state==2
                         if isfield(CONN_x.Results.xX,'nsources')&&isfield(CONN_x.Results.xX,'csources')&&size(CONN_x.Results.xX.csources,2)==numel(CONN_x.Results.xX.nsources),
                             try
                                 [ok,isources]=ismember(CONN_x.Results.xX.nsourcesbyname,CONN_h.menus.m_results.outcomenames(CONN_h.menus.m_results.shownsources));
@@ -9546,11 +9534,11 @@ else
                     CONN_h.menus.m_results.y.data=[];
                     CONN_h.menus.m_results.y.dataname={};
                     CONN_h.menus.m_results.y.MDok=[];
-                    txt=get(CONN_h.menus.m_results_00{16},'string'); value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{16},'string',mat2str(value)); catch, value=[]; end; end;
+                    txt=get(CONN_h.menus.m_results_00{16},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(value));
                     b=value;
-                    txt=get(CONN_h.menus.m_results_00{17},'string'); value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{17},'string',mat2str(value)); catch, value=[]; end; end;
+                    txt=get(CONN_h.menus.m_results_00{17},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(value));
                     c=value;
-                    txt=get(CONN_h.menus.m_results_00{19},'string'); value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{19},'string',mat2str(value)); catch, value=[]; end; end;
+                    txt=get(CONN_h.menus.m_results_00{19},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{19},'string',conn_contrastnum2str(value));
                     d=value;
                     if FORCEORTH&&size(c,1)>1&&~isequal(c,eye(size(c,1))), c=spm_orth(c','norm')'; end
                     if FORCEORTH&&size(d,1)>1&&~isequal(d,eye(size(d,1))), d=spm_orth(d','norm')'; end
@@ -9814,9 +9802,9 @@ else
                          end
 						 %c=str2num(get(CONN_h.menus.m_results_00{17},'string'));
 						 %d=str2num(get(CONN_h.menus.m_results_00{19},'string'));
-                         txt=get(CONN_h.menus.m_results_00{16},'string'); value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{16},'string',mat2str(value)); catch, value=[]; end; end;
+                         txt=get(CONN_h.menus.m_results_00{16},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(value));
                          b=value;
-                         txt=get(CONN_h.menus.m_results_00{17},'string'); value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{17},'string',mat2str(value)); catch, value=[]; end; end;
+                         txt=get(CONN_h.menus.m_results_00{17},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(value));
                          if state==1||state==2, if isempty(value)||size(value,2)~=numel(nsources), if isempty(CONN_x.Results.xX.csources)||size(CONN_x.Results.xX.csources,2)~=numel(nsources), value=eye(numel(nsources)); else value=CONN_x.Results.xX.csources; end; set(CONN_h.menus.m_results_00{17},'string',mat2str(value)); end
                          else                   if isempty(value)||size(value,2)~=numel(nsources), if isempty(CONN_x.Results.xX.cmeasures)||size(CONN_x.Results.xX.cmeasures,2)~=numel(nsources), value=eye(numel(nsources)); else value=CONN_x.Results.xX.cmeasures; end; set(CONN_h.menus.m_results_00{17},'string',mat2str(value)); end 
                          end
@@ -9826,7 +9814,7 @@ else
                              d=eye(numel(nconditions)); 
                              dvar=true;
                          else
-                             value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{19},'string',mat2str(value)); catch, value=[]; end; end;
+                             value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{19},'string',conn_contrastnum2str(value));
                              if isempty(value)||size(value,2)~=numel(nconditions), if isempty(CONN_x.Results.xX.cconditions)||size(CONN_x.Results.xX.cconditions,2)~=numel(nconditions), value=eye(numel(nconditions)); else value=CONN_x.Results.xX.cconditions; end; set(CONN_h.menus.m_results_00{19},'string',mat2str(value)); end
                              d=value;
                              dvar=false;
@@ -10039,7 +10027,7 @@ else
 					case 16,
 						ncovariates=get(CONN_h.menus.m_results_00{11},'value');
                         ncovariates=CONN_h.menus.m_results.showneffects(ncovariates);
-                        txt=get(CONN_h.menus.m_results_00{16},'string'); value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{16},'string',mat2str(value)); catch, value=[]; end; end;
+                        txt=get(CONN_h.menus.m_results_00{16},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(value));
                         if isempty(value)||size(value,2)~=numel(ncovariates), value=CONN_x.Results.xX.csubjecteffects; set(CONN_h.menus.m_results_00{16},'string',mat2str(value)); end
                         model=2;modelroi=1;
                     case 20, % change analysis
@@ -10520,6 +10508,11 @@ else
                             modelroi=1;
                         end
                     case 47,
+                    case 61,
+                        val=get(CONN_h.menus.m_results_00{61},'value');
+                        CONN_x.Analysis=CONN_h.menus.m_results.shownanalyses(val);
+                        conn gui_results;
+                        return;
 				end
 			end
 			ncovariates=get(CONN_h.menus.m_results_00{11},'value');
@@ -10566,9 +10559,9 @@ else
                     CONN_x.Results.xX.nsubjecteffectsbyname=CONN_x.Setup.l2covariates.names(ncovariates);
                     CONN_x.Results.xX.nconditions=nconditions;
                     CONN_x.Results.xX.nconditionsbyname=CONN_x.Setup.conditions.names(nconditions);
-                    txt=get(CONN_h.menus.m_results_00{16},'string'); value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{16},'string',mat2str(value)); catch, value=[]; end; end;
+                    txt=get(CONN_h.menus.m_results_00{16},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(value));
                     CONN_x.Results.xX.csubjecteffects=value;
-                    txt=get(CONN_h.menus.m_results_00{17},'string'); value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{17},'string',mat2str(value)); catch, value=[]; end; end;
+                    txt=get(CONN_h.menus.m_results_00{17},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(value));
                     if state==1||state==2
                         CONN_x.Results.xX.nsources=nsources;
                         CONN_x.Results.xX.csources=value;
@@ -10580,7 +10573,7 @@ else
                     end
                     txt=get(CONN_h.menus.m_results_00{19},'string'); 
                     if isequal(txt,'var'), value=txt; 
-                    else value=str2num(txt); if isempty(value), value=str2num([regexprep(txt,{'e(\d+)','d(\d+)','a(\d+)','(.*?) x '},{'eye($1)','diff(eye($1))','ones(1,$1)/$1','kron([$1],['},'ignorecase'),repmat('])',1,numel(regexp(txt,' x ')))]); end; if isempty(value), try value=evalin('base',txt); set(CONN_h.menus.m_results_00{19},'string',mat2str(value)); catch, value=[]; end; end;
+                    else value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{19},'string',conn_contrastnum2str(value));
                     end
                     CONN_x.Results.xX.cconditions=value;
                     CONN_x.Results.xX.modeltype=modeltype;
