@@ -660,7 +660,7 @@ switch(lower(option)),
         data=get(hfig,'userdata');
         if margin>1, tfilename=varargin{1};
         else
-            [tfilename,tpathname]=uiputfile({'*.nii','NIFI files (*.nii)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*.mat','MAT-files (*.mat)'; '*',  'All Files (*)'},'Output mask to file:',data.defaultfilepath);
+            [tfilename,tpathname]=uiputfile({'*.nii','NIFI files (*.nii)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*.mat','MAT-files (*.mat)'; '*',  'All Files (*)'},'Output mask to file:',fullfile(data.defaultfilepath,'results.nii'));
             if ischar(tfilename)&&~isempty(tfilename),
                 tfilename=fullfile(tpathname,tfilename);
             end
@@ -3691,9 +3691,9 @@ elseif strcmp(TYPE,'hc')
     idx=conn_statsoptimalleaforder(Z,Y0); %reference: Bar-Joseph, Z., Gifford, D.K., and Jaakkola, T.S. (2001). Fast optimal leaf ordering for hierarchical clustering. Bioinformatics 17, Suppl 1:S22?9. PMID: 11472989
     %[H,t,idx]=conn_statsdendrogram(Z,0,'labels',data.names2(i2),'orientation','left');
     if isnan(NCLUSTERS) % automatic cutoff number of clusters
-        [nill,idxmax]=max((1:size(Z,1))'/size(Z,1)-Z(:,3)/max(Z(:,3)));
+        [nill,idxmax]=max((1:size(Z,1))'/size(Z,1)-Z(:,3)/max(Z(:,3))); %disp(size(Z,1)-idxmax+1);
+        %[nill,idxmax]=max(log((1:size(Z,1))'/size(Z,1))-(Z(:,3)/max(Z(:,3))).^2); %disp(size(Z,1)-idxmax+1);
         nclusters=size(Z,1)-idxmax+1;
-        %disp(nclusters);
     else nclusters=NCLUSTERS;
     end
     T = conn_statscluster(Z, 'maxclust', nclusters);

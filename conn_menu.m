@@ -1383,7 +1383,9 @@ tb=double(ta(ceil((1:xfact*size(ta,1))/xfact),ceil((1:xfact*size(ta,2))/xfact)))
 if xfact>1, tb=double(convn(tb,ones(3),'same')>=4); end % include diagonal neighb
 x1=((1:size(tb,2))-.5)/xfact+.5+tj(1)-1;
 x2=((1:size(tb,1))-.5)/xfact+.5+ti(1)-1;
-tc=contourc(x1,x2,tb,[.5 .5]);
+if nnz(tb)>1e5, tc=zeros(2,0); % give-up contour display if it takes too long
+else tc=contourc(x1,x2,tb,[.5 .5]);
+end
 end
 
 % function conn_menubuttondownfcn(varargin)

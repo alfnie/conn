@@ -5170,6 +5170,43 @@ if (any(options==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&
                 save(fullfile(filepathresults2,'ROI.mat'),'ROI','-v7.3');
                 conn_disp(['ROI results saved in ',fullfile(filepathresults2,'ROI.mat')]);
             end
+            try % adds summary info
+                F=cat(1,ROI.F);
+                p=cat(1,ROI.p);
+                dof=cat(1,ROI.dof);
+                statsname=ROI(1).statsname;
+                if isequal(statsname,'T'), p=2*min(p,1-p); end
+                names=ROI(1).names;
+                F=F(:,1:size(F,1));
+                p=p(:,1:size(F,1));
+                P=nan(size(p));P(~isnan(p))=conn_fdr(p(~isnan(p)));
+                ROI=ROI(1);
+                
+                summary.rois.names=ROI.names;
+                summary.rois.xyz=ROI.xyz;
+                summary.results.RRC_F=F;
+                summary.results.RRC_p=p;
+                summary.results.RRC_P=P;
+                summary.results.RRC_names=names;               
+                summary.design.contrast_within=ROI.c2;
+                summary.design.contrast_between=ROI.c;
+                summary.design.designmultivariateonly=1;
+                summary.design.designmatrix=ROI.xX.X;
+                summary.design.designmatrix_name=ROI.xX.name;
+                try, summary.design.conditions=ROI.ynames;
+                catch, summary.design.conditions={};
+                end
+                summary.design.subjects=find(ROI.xX.SelectedSubjects);
+                summary.design.pwd=filepathresults2;
+                if isfield(ROI,'ynames'),
+                    summary.design.data=arrayfun(@(a,b)sprintf('subject%03d: %s',a,ROI.ynames{b}),repmat(reshape(find(ROI.xX.SelectedSubjects),[],1),[1,numel(ROI.ynames)]),repmat(1:numel(ROI.ynames),[nnz(ROI.xX.SelectedSubjects),1]),'uni',0);
+                    summary.design.dataTitle=ROI.ynames;
+                else
+                    summary.design.data=arrayfun(@(a,b)sprintf('subject%03d: measure #%d',a,b),repmat(reshape(find(ROI.xX.SelectedSubjects),[],1),[1,size(ROI.c2,2)]),repmat(1:size(ROI.c2,2),[nnz(ROI.xX.SelectedSubjects),1]),'uni',0);
+                    summary.design.dataTitle=arrayfun(@(a)sprintf('measure #%d',a),1:size(ROI.c2,2),'uni',0);
+                end
+                save(fullfile(filepathresults2,'ROI.mat'),'summary','-append');
+            end
         end
         if ~isempty(hcw), conn_waitbar('close',hcw); end
     end

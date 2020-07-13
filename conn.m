@@ -6398,6 +6398,7 @@ else
                 if 1, CONN_h.menus.m_analyses.shownanalyses=find(cellfun(@(x)isempty(regexp(x,'^(.*\/|.*\\)?Dynamic factor .*\d+$')),txt));
                 else CONN_h.menus.m_analyses.shownanalyses=1:numel(txt);
                 end
+                if ~ismember(CONN_x.Analysis,CONN_h.menus.m_analyses.shownanalyses)&&~isempty(CONN_h.menus.m_analyses.shownanalyses), CONN_x.Analysis=CONN_h.menus.m_analyses.shownanalyses(1); end
                 temp={CONN_x.Analyses(CONN_h.menus.m_analyses.shownanalyses).name};
                 CONN_h.menus.m_analyses.analyses_listnames=[CONN_h.menus.m_analyses.analyses_listnames,temp(:)'];
                 CONN_h.menus.m_analyses.analyses_listtype=[CONN_h.menus.m_analyses.analyses_listtype, 1+zeros(1,numel(temp))];
@@ -8417,7 +8418,7 @@ else
                             if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=load(char(CONN_h.menus.m_analyses.XR)); end
                             idx=strmatch(CONN_x.Setup.conditions.names{nconditions},CONN_h.menus.m_analyses.XR.COND_names,'exact');
                             if numel(idx)==1
-                                CONN_h.menus.m_analyses.Xr=CONN_h.menus.m_analyses.XR.H(CONN_h.menus.m_analyses.XR.IDX_subject==nsubs,:)
+                                CONN_h.menus.m_analyses.Xr=CONN_h.menus.m_analyses.XR.H(CONN_h.menus.m_analyses.XR.IDX_subject==nsubs,:);
                                 CONN_h.menus.m_analyses.Xr(~(CONN_h.menus.m_analyses.XR.COND_weights{idx}(CONN_h.menus.m_analyses.XR.IDX_subject==nsubs)>0),:)=nan;
                             else CONN_h.menus.m_analyses.Xr=[];
                             end
@@ -10881,39 +10882,46 @@ else
                 resultsfolder=fullfile(CONN_x.folders.secondlevel,foldername);
                 CONN_h.menus.m_results.design.pwd=resultsfolder;
                 if conn_existfile(fullfile(resultsfolder,'ROI.mat'))
-                    load(fullfile(resultsfolder,'ROI.mat'),'ROI');
-                    F=cat(1,ROI.F);
-                    p=cat(1,ROI.p);
-                    dof=cat(1,ROI.dof);
-                    statsname=ROI(1).statsname;
-                    if isequal(statsname,'T'), p=2*min(p,1-p); end
-                    names=ROI(1).names;
-                    F=F(:,1:size(F,1));
-                    p=p(:,1:size(F,1));
-                    P=nan(size(p));P(~isnan(p))=conn_fdr(p(~isnan(p)));
-                    ROI=ROI(1);
-                    
-                    CONN_h.menus.m_results.RRC_F=F;
-                    CONN_h.menus.m_results.RRC_p=p;
-                    CONN_h.menus.m_results.RRC_P=P;
-                    CONN_h.menus.m_results.RRC_names=names;
-                    
-                    CONN_h.menus.m_results.design.contrast_within=ROI.c2;
-                    CONN_h.menus.m_results.design.contrast_between=ROI.c;
-                    CONN_h.menus.m_results.design.designmultivariateonly=1;
-                    CONN_h.menus.m_results.design.designmatrix=ROI.xX.X;
-                    CONN_h.menus.m_results.design.designmatrix_name=ROI.xX.name;
-                    try, CONN_h.menus.m_results.design.conditions=ROI.ynames;
-                    catch, CONN_h.menus.m_results.design.conditions={};
-                    end
-                    CONN_h.menus.m_results.design.subjects=find(ROI.xX.SelectedSubjects);
-                    CONN_h.menus.m_results.design.pwd=resultsfolder;
-                    if isfield(ROI,'ynames'), 
-                        CONN_h.menus.m_results.design.data=arrayfun(@(a,b)sprintf('subject%03d: %s',a,ROI.ynames{b}),repmat(reshape(find(ROI.xX.SelectedSubjects),[],1),[1,numel(ROI.ynames)]),repmat(1:numel(ROI.ynames),[nnz(ROI.xX.SelectedSubjects),1]),'uni',0);
-                        CONN_h.menus.m_results.design.dataTitle=ROI.ynames;
-                    else
-                        CONN_h.menus.m_results.design.data=arrayfun(@(a,b)sprintf('subject%03d: measure #%d',a,b),repmat(reshape(find(ROI.xX.SelectedSubjects),[],1),[1,size(ROI.c2,2)]),repmat(1:size(ROI.c2,2),[nnz(ROI.xX.SelectedSubjects),1]),'uni',0);
-                        CONN_h.menus.m_results.design.dataTitle=arrayfun(@(a)sprintf('measure #%d',a),1:size(ROI.c2,2),'uni',0);
+                    try
+                        load(fullfile(resultsfolder,'ROI.mat'),'summary');
+                        tfields=fieldnames(summary.results); for n1=1:numel(tfields), CONN_h.menus.m_results.(tfields{n1})=summary.results.(tfields{n1}); end
+                        tfields=fieldnames(summary.design); for n1=1:numel(tfields), CONN_h.menus.m_results.design.(tfields{n1})=summary.design.(tfields{n1}); end
+                        CONN_h.menus.m_results.design.pwd=resultsfolder;
+                    catch
+                        load(fullfile(resultsfolder,'ROI.mat'),'ROI');
+                        F=cat(1,ROI.F);
+                        p=cat(1,ROI.p);
+                        dof=cat(1,ROI.dof);
+                        statsname=ROI(1).statsname;
+                        if isequal(statsname,'T'), p=2*min(p,1-p); end
+                        names=ROI(1).names;
+                        F=F(:,1:size(F,1));
+                        p=p(:,1:size(F,1));
+                        P=nan(size(p));P(~isnan(p))=conn_fdr(p(~isnan(p)));
+                        ROI=ROI(1);
+                        
+                        CONN_h.menus.m_results.RRC_F=F;
+                        CONN_h.menus.m_results.RRC_p=p;
+                        CONN_h.menus.m_results.RRC_P=P;
+                        CONN_h.menus.m_results.RRC_names=names;
+                        
+                        CONN_h.menus.m_results.design.contrast_within=ROI.c2;
+                        CONN_h.menus.m_results.design.contrast_between=ROI.c;
+                        CONN_h.menus.m_results.design.designmultivariateonly=1;
+                        CONN_h.menus.m_results.design.designmatrix=ROI.xX.X;
+                        CONN_h.menus.m_results.design.designmatrix_name=ROI.xX.name;
+                        try, CONN_h.menus.m_results.design.conditions=ROI.ynames;
+                        catch, CONN_h.menus.m_results.design.conditions={};
+                        end
+                        CONN_h.menus.m_results.design.subjects=find(ROI.xX.SelectedSubjects);
+                        CONN_h.menus.m_results.design.pwd=resultsfolder;
+                        if isfield(ROI,'ynames'),
+                            CONN_h.menus.m_results.design.data=arrayfun(@(a,b)sprintf('subject%03d: %s',a,ROI.ynames{b}),repmat(reshape(find(ROI.xX.SelectedSubjects),[],1),[1,numel(ROI.ynames)]),repmat(1:numel(ROI.ynames),[nnz(ROI.xX.SelectedSubjects),1]),'uni',0);
+                            CONN_h.menus.m_results.design.dataTitle=ROI.ynames;
+                        else
+                            CONN_h.menus.m_results.design.data=arrayfun(@(a,b)sprintf('subject%03d: measure #%d',a,b),repmat(reshape(find(ROI.xX.SelectedSubjects),[],1),[1,size(ROI.c2,2)]),repmat(1:size(ROI.c2,2),[nnz(ROI.xX.SelectedSubjects),1]),'uni',0);
+                            CONN_h.menus.m_results.design.dataTitle=arrayfun(@(a)sprintf('measure #%d',a),1:size(ROI.c2,2),'uni',0);
+                        end
                     end
 
                     [nill,nill,nill,full_dof,full_statsname]=conn_glm(CONN_h.menus.m_results.design.designmatrix,zeros(size(CONN_h.menus.m_results.design.designmatrix,1),size(CONN_h.menus.m_results.design.contrast_within,2)),CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within);

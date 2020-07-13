@@ -121,7 +121,8 @@ switch(option)
                 if numel(idx)>1
                     descrip{end+1}=sprintf('linear temporal trends in functional connectivity strength during %s',ucond{n1});
                     neffects{end+1}=Tmatch(icond==n1,3)';
-                    ceffects{end+1}=reshape(-1/2+(idx-1)/(numel(idx)-1),1,[]);
+                    temp=reshape(-1/2+(idx-1)/(numel(idx)-1),1,[]);
+                    ceffects{end+1}=temp/sum(temp.^2);
                     str{end+1}='trend-slope';
                     priority(end+1)=2;
                     
