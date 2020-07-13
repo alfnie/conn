@@ -3690,7 +3690,7 @@ elseif strcmp(TYPE,'hc')
     semic0=1-1/size(X,2);
     idx=conn_statsoptimalleaforder(Z,Y0); %reference: Bar-Joseph, Z., Gifford, D.K., and Jaakkola, T.S. (2001). Fast optimal leaf ordering for hierarchical clustering. Bioinformatics 17, Suppl 1:S22?9. PMID: 11472989
     %[H,t,idx]=conn_statsdendrogram(Z,0,'labels',data.names2(i2),'orientation','left');
-    if isnan(NCLUSTERS)
+    if isnan(NCLUSTERS) % automatic cutoff number of clusters
         [nill,idxmax]=max((1:size(Z,1))'/size(Z,1)-Z(:,3)/max(Z(:,3)));
         nclusters=size(Z,1)-idxmax+1;
         %disp(nclusters);

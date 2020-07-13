@@ -9420,7 +9420,7 @@ else
                         if all(ok)
                             ncovariates=icovariates;
                             set(CONN_h.menus.m_results_00{11},'value',tempcovariates); %min(CONN_x.Results.xX.nsubjecteffects,numel(get(CONN_h.menus.m_results_00{11},'string'))));
-                            set(CONN_h.menus.m_results_00{16},'string',mat2str(CONN_x.Results.xX.csubjecteffects));
+                            set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(CONN_x.Results.xX.csubjecteffects));
                         else
                             CONN_gui.warnloadbookmark{end+1}='warning: unable to select previous-design subject effects';
                         end
@@ -9439,7 +9439,7 @@ else
                             if all(ok) 
                                 nsources=CONN_h.menus.m_results.shownsources(isources); %CONN_x.Results.xX.nsources;
                                 set(CONN_h.menus.m_results_00{13},'value',isources);
-                                set(CONN_h.menus.m_results_00{17},'string',mat2str(CONN_x.Results.xX.csources));
+                                set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(CONN_x.Results.xX.csources));
                             else
                                 CONN_gui.warnloadbookmark{end+1}='warning: unable to select previous-design sources';
                             end
@@ -9455,7 +9455,7 @@ else
                             if all(ok)
                                 nsources=CONN_h.menus.m_results.shownsources(isources); %CONN_x.Results.xX.nmeasures;
                                 set(CONN_h.menus.m_results_00{13},'value',isources);
-                                set(CONN_h.menus.m_results_00{17},'string',mat2str(CONN_x.Results.xX.cmeasures));
+                                set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(CONN_x.Results.xX.cmeasures));
                             else
                                 CONN_gui.warnloadbookmark{end+1}='warning: unable to select previous-design measures';
                             end
@@ -9507,7 +9507,7 @@ else
                         if all(ok)
                             nconditions=iconditions;
                             set(CONN_h.menus.m_results_00{12},'value',tempconditions);%min(CONN_x.Results.xX.nconditions,numel(get(CONN_h.menus.m_results_00{12},'string'))));
-                            set(CONN_h.menus.m_results_00{19},'string',mat2str(CONN_x.Results.xX.cconditions));
+                            set(CONN_h.menus.m_results_00{19},'string',conn_contrastnum2str(CONN_x.Results.xX.cconditions));
                         else
                             CONN_gui.warnloadbookmark{end+1}='warning: unable to select previous-design conditions';
                         end
@@ -9757,7 +9757,7 @@ else
                             newC=zeros(size(oldC,1),numel(ncovariates));
                             newC(:,i1(ok1))=oldC;
                             if isempty(newC)||~nnz(newC), set(CONN_h.menus.m_results_00{16},'string',['eye(',num2str(length(ncovariates)),')']);
-                            else set(CONN_h.menus.m_results_00{16},'string',mat2str(newC));
+                            else set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(newC));
                             end
                         else
                             set(CONN_h.menus.m_results_00{16},'string',['eye(',num2str(length(ncovariates)),')']);
@@ -9805,8 +9805,8 @@ else
                          txt=get(CONN_h.menus.m_results_00{16},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(value));
                          b=value;
                          txt=get(CONN_h.menus.m_results_00{17},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(value));
-                         if state==1||state==2, if isempty(value)||size(value,2)~=numel(nsources), if isempty(CONN_x.Results.xX.csources)||size(CONN_x.Results.xX.csources,2)~=numel(nsources), value=eye(numel(nsources)); else value=CONN_x.Results.xX.csources; end; set(CONN_h.menus.m_results_00{17},'string',mat2str(value)); end
-                         else                   if isempty(value)||size(value,2)~=numel(nsources), if isempty(CONN_x.Results.xX.cmeasures)||size(CONN_x.Results.xX.cmeasures,2)~=numel(nsources), value=eye(numel(nsources)); else value=CONN_x.Results.xX.cmeasures; end; set(CONN_h.menus.m_results_00{17},'string',mat2str(value)); end 
+                         if state==1||state==2, if isempty(value)||size(value,2)~=numel(nsources), if isempty(CONN_x.Results.xX.csources)||size(CONN_x.Results.xX.csources,2)~=numel(nsources), value=eye(numel(nsources)); else value=CONN_x.Results.xX.csources; end; set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(value)); end
+                         else                   if isempty(value)||size(value,2)~=numel(nsources), if isempty(CONN_x.Results.xX.cmeasures)||size(CONN_x.Results.xX.cmeasures,2)~=numel(nsources), value=eye(numel(nsources)); else value=CONN_x.Results.xX.cmeasures; end; set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(value)); end 
                          end
                          c=value;
                          txt=get(CONN_h.menus.m_results_00{19},'string'); 
@@ -9815,7 +9815,7 @@ else
                              dvar=true;
                          else
                              value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{19},'string',conn_contrastnum2str(value));
-                             if isempty(value)||size(value,2)~=numel(nconditions), if isempty(CONN_x.Results.xX.cconditions)||size(CONN_x.Results.xX.cconditions,2)~=numel(nconditions), value=eye(numel(nconditions)); else value=CONN_x.Results.xX.cconditions; end; set(CONN_h.menus.m_results_00{19},'string',mat2str(value)); end
+                             if isempty(value)||size(value,2)~=numel(nconditions), if isempty(CONN_x.Results.xX.cconditions)||size(CONN_x.Results.xX.cconditions,2)~=numel(nconditions), value=eye(numel(nconditions)); else value=CONN_x.Results.xX.cconditions; end; set(CONN_h.menus.m_results_00{19},'string',conn_contrastnum2str(value)); end
                              d=value;
                              dvar=false;
                          end 
@@ -10028,7 +10028,7 @@ else
 						ncovariates=get(CONN_h.menus.m_results_00{11},'value');
                         ncovariates=CONN_h.menus.m_results.showneffects(ncovariates);
                         txt=get(CONN_h.menus.m_results_00{16},'string'); value=conn_contraststr2num(txt); set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(value));
-                        if isempty(value)||size(value,2)~=numel(ncovariates), value=CONN_x.Results.xX.csubjecteffects; set(CONN_h.menus.m_results_00{16},'string',mat2str(value)); end
+                        if isempty(value)||size(value,2)~=numel(ncovariates), value=CONN_x.Results.xX.csubjecteffects; set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(value)); end
                         model=2;modelroi=1;
                     case 20, % change analysis
                         value=get(CONN_h.menus.m_results_00{20},'value');
@@ -10158,7 +10158,7 @@ else
                                         ncovariates=CONN_x.Results.xX.nsubjecteffects;
                                         [nill,tempcovariates]=ismember(ncovariates,CONN_h.menus.m_results.showneffects);
                                         set(CONN_h.menus.m_results_00{11},'value',tempcovariates); %min(CONN_x.Results.xX.nsubjecteffects,numel(get(CONN_h.menus.m_results_00{11},'string'))));
-                                        set(CONN_h.menus.m_results_00{16},'string',mat2str(CONN_x.Results.xX.csubjecteffects));
+                                        set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(CONN_x.Results.xX.csubjecteffects));
                                     else
                                         try, conn_disp('fprintf','Warning. Unable to match subject effects %s from saved contrast to current analysis\n',sprintf('%s ',CONN_x.Setup.l2covariates.names{CONN_x.Results.xX.nsubjecteffects(~ismember(CONN_x.Results.xX.nsubjecteffects,CONN_h.menus.m_results.showneffects))}));
                                         catch, conn_disp('Warning. Unable to match subject effects from saved contrast to current analysis'); 
@@ -10168,7 +10168,7 @@ else
                                         nconditions=CONN_x.Results.xX.nconditions;
                                         [nill,tempconditions]=ismember(nconditions,CONN_h.menus.m_results.shownconditions);
                                         set(CONN_h.menus.m_results_00{12},'value',tempconditions);%min(CONN_x.Results.xX.nconditions,numel(get(CONN_h.menus.m_results_00{12},'string'))));
-                                        set(CONN_h.menus.m_results_00{19},'string',mat2str(CONN_x.Results.xX.cconditions));
+                                        set(CONN_h.menus.m_results_00{19},'string',conn_contrastnum2str(CONN_x.Results.xX.cconditions));
                                     else
                                         try, conn_disp('fprintf','Warning. Unable to match condition names %s from saved contrast to current analysis\n',sprintf('%s ',CONN_x.Setup.conditions.names{CONN_x.Results.xX.nconditions(~ismember(CONN_x.Results.xX.nconditions,CONN_h.menus.m_results.shownconditions))}));
                                         catch, conn_disp('Warning. Unable to match condition names from saved contrast to current analysis'); 

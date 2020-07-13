@@ -4245,7 +4245,7 @@ if any(options==15) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
             if any(missingdata), conn_disp(['Not ready to process step conn_process_15']); return; end
             filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(icondition(referenceconditions(1)),'%03d'),'.mat']);
             X1=load(filename);
-            [X,nill,names]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,X1,[]);
+            [X,nill,names,xyz]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,X1,[]);
             nrois=size(X,2)-1;
             if DOREDUCED&CONN_x.Analyses(ianalysis).type==1
                 X2=X; names2=names; xyz2=xyz;
