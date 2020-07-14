@@ -9,7 +9,8 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %           rois.sph_xyz : (nx3) coordinates XYZ values
 %           rois.sph_c   : (nx3) color RGB values
 %           rois.sph_r   : (nx1) sphere radius
-%      connections: (nxn) matrix of ROI-to-ROI connections to be displayed
+%      connections: (nxn) matrix of ROI-to-ROI connections to be displayed (values represent connection
+%                         strength (with 0 or NaN for connections not to be displayed)
 %
 %  h=CONN_MESH_DISPLAY(...) returns function handle implementing GUI functionality
 %

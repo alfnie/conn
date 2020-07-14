@@ -64,14 +64,14 @@ ZCt=conn_bsxfun(@rdivide,ZCt,validc);
 
 boffset=[0 0 0 0];
 conn_menu('frame2',boffset+[.045,.35,.91,.53],'');%'Component loadings');
-poslist=boffset+[.07 .40 .40 .39];
+poslist=boffset+[.07 .40 .40 .38];
 ht3=conn_menu('listbox2',poslist,'',names,'<HTML>Select component(s) for display</HTML>',@(varargin)conn_icaexplore_update([0 1 1]));
 for n=6:20, set(ht3,'string',repmat(' ',1,6*n),'fontname','monospaced','fontsize',8+CONN_gui.font_offset); if get(ht3,'extent')*[0 0 1 0]'>poslist(3), break; end; end
 ht3fieldsize=sprintf('%d',n-1);ht3fieldsize2=sprintf('%d',2*(n-1));
 %htemp=uicontrol('style','pushbutton','unit','norm','position',[.17,.85,.3,.05],'string','test','fontsize',8+CONN_gui.font_offset,'fontname','monospaced');set(htemp,'units','characters'); temp=get(htemp,'position'); set(htemp,'position',[temp(1:2) 13 max(1,temp(4))],'units','norm'); temp=get(htemp,'position'); delete(htemp);
 %conn_menu('text2',boffset+[.17+.28/5 .85 2*.28/5 .04],'','spatial');
 %conn_menu('text2',boffset+[.17+3*.28/5 .85 2*.28/5 .04],'','temporal');
-temp=boffset+[.07 .79 .38/6 .04];
+temp=boffset+[.07 .78 .38/6 .04];
 ht3b(1)=conn_menu('pushbutton2',temp+[0*temp(3) 0 0 0],'','network','Select network(s) for display',@(varargin)conn_icaexplore_update([1 0 0]));
 ht3b(2)=conn_menu('pushbutton2',temp+[2*temp(3) 0 0 0],'','kurtosis','Spatial kurtosis (click to sort)',@(varargin)conn_icaexplore_update([2 0 0]));
 ht3b(3)=conn_menu('pushbutton2',temp+[3*temp(3) 0 0 0],'','skewness','Spatial skewness (click to sort)',@(varargin)conn_icaexplore_update([3 0 0]));

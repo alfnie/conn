@@ -1,2 +1,20 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+*.m diff=matlab
+*.mlx -crlf -diff -merge
+*.mat -crlf -diff -merge
+*.fig -crlf -diff -merge
+*.mdl -crlf -diff -merge
+*.slx -crlf -diff -merge
+*.p -crlf -diff -merge
+*.nii -crlf -diff -merge
+*.img -crlf -diff -merge
+*.hdr -crlf -diff -merge
+*.annot -crlf -diff -merge
+*.mgh -crlf -diff -merge
+*.mgz -crlf -diff -merge
+*.gii -crlf -diff -merge
+*.surf -crlf -diff -merge
+*.patch -crlf -diff -merge
+*.pdf -crlf -diff -merge
+*.jpg -crlf -diff -merge

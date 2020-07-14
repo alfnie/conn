@@ -286,12 +286,13 @@ ________________________________________________________________________________
      patch to add Yeo2011 7-networks template (in conn/utils/otherrois) as ROI or as template for ICA component identification (spatial match to template) (thanks to Yiquan for suggesting this addition https://www.nitrc.org/forum/message.php?msg_id=28707)
      patch to add 'merge (not-in-union)' option to "conditions tool" menu allowing to compute an exclusive conjunction of several conditions (those scans/timepoints not already covered by one or several other conditions; e.g. to explicitly define a reference/baseline effect from an event related design) (thanks to Alex for suggesting this addition https://www.nitrc.org/forum/forum.php?thread_id=11020&forum_id=1144)
 20.a Cumulative patch, bug fixes and improvements
+     patch to fix color scaling in R2R display (thanks to Paul Summers for bringing this issue up)
+     patch to distributed processing to fix memory problems when merging large number of HPC jobs
      Added new interface for new first-level analyses, including list with most common connectivity analyses/measures and their default options
      Added brain & connectivity-matrix displays of computed single-subject connectivity measures in first-level analysis GUI
      Changed normalization setting "interp" default value to Trilinear interpolation during interpolation of anatomical images (kept the same default Bspline interpolation method for interpolation of functional images) (this change is meant to avoid small negative values in resampled anatomical images, which may cause issues when exporting these images to other software packages)
      Modified slice-display default background reference image to ICBM (nlin_asym_09c) normalized using SPM12/CONN default options (in prior versions this background reference image was the same ICBM template but without SPM12 normalization correction)
      Modified 3d-display cortex and white surfaces to freesurfer tesellation of ICBM (nlin_asym_09c) normalized using SPM12/CONN default options (in prior versions these surfaces were the fsaverage6 pial&white surfaces)
-     patch to distributed processing to fix memory problems when merging large number of HPC jobs
      Added connectivity-matrix display to ROI-to-ROI results explorer window (see "matrix display" and "matrix print" options in the GUI)
      Added option to manually define&edit ROI order and clusters in ROI-to-ROI results explorer window (see 'manually define ROI order/clusters' GUI option, or 'roi.order' options in doc conn_display)
      Added option to display&edit 2nd-level covariate values in table format (see Setup Covariates (2nd-level) tab)
