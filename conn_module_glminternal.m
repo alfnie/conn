@@ -208,7 +208,7 @@ if nrepeated>1
     SPM.xVi=spm_non_sphericity(xVi);
 end
 
-save('SPM.mat','SPM');
+save('SPM.mat','SPM','-v7.3');
 spm_unlink('mask.img','mask.hdr','mask.nii');
 files=cat(1,dir('spmT_*.cluster.mat'),dir('nonparametric_p*.mat'));
 if ~isempty(files)
@@ -247,11 +247,11 @@ end
 if issurface||ismatrix % surface- or matrix- based analyses
     V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','mask.nii','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('uint8') spm_platform('bigend')]);
     spm_write_vol(V,double(mask));
-    save('SPM.mat','SPM');
+    save('SPM.mat','SPM','-v7.3');
     conn_disp('fprintf','\nSecond-level results saved in folder %s\n',pwd);
     if ~nargout, conn_display('SPM.mat'); end
 elseif ismember(secondlevelanalyses,[1 2]) % volume-based parametric stats
-    save('SPM.mat','SPM');
+    save('SPM.mat','SPM','-v7.3');
     spm('Defaults','fmri');
     spm_unlink('mask.img','mask.hdr','mask.nii');
     if ~isempty(maskfile), 
@@ -279,12 +279,12 @@ elseif ismember(secondlevelanalyses,[1 2]) % volume-based parametric stats
     SPM.xCon = spm_FcUtil('Set',cname,Statname,'c',c',SPM.xX.xKXs);
     if isfield(SPM,'altestsmooth')&&SPM.altestsmooth, % modified smoothness estimation
         SPM=conn_est_smoothness(SPM);
-        save('SPM.mat','SPM');
+        save('SPM.mat','SPM','-v7.3');
     end
     SPM=spm_contrasts(SPM,1:length(SPM.xCon));
     SPM.xY.VY=SPM.xY.VY(:);
     SPM.xsDes='';
-    save('SPM.mat','SPM');
+    save('SPM.mat','SPM','-v7.3');
     conn_disp('fprintf','Second-level results saved in folder %s\n',pwd);
     if ~nargout,
         conn_display('SPM.mat',1);
@@ -292,7 +292,7 @@ elseif ismember(secondlevelanalyses,[1 2]) % volume-based parametric stats
 elseif ismember(secondlevelanalyses,[1 3]) % volume-based nonparametric stats
     V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','mask.nii','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('uint8') spm_platform('bigend')]);
     spm_write_vol(V,double(mask));
-    save('SPM.mat','SPM');
+    save('SPM.mat','SPM','-v7.3');
     conn_disp('fprintf','Second-level results saved in folder %s\n',pwd);
     if ~nargout,
         conn_display('SPM.mat',1);

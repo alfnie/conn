@@ -3567,24 +3567,29 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     for ncomp=1:NdimsOut
                                         for ivalidcondition=1:numel(validconditions),
                                             VARt=nan(CONN_x.Setup.nsubjects,1);
+                                            AVGt=nan(CONN_x.Setup.nsubjects,1);
                                             ZCt=nan(CONN_x.Setup.nsubjects,1);
                                             for nsub=validsubjects
                                                 mask=weights{nsub,ivalidcondition}{1}>0;
                                                 b=data{nsub}{ivalidcondition}(mask,ncomp)*sqrt(nnz(mask));
                                                 remove=weights{nsub,ivalidcondition}{5}(mask)==1;
                                                 VARt(nsub)=std(b,0,1);
+                                                AVGt(nsub)=mean(b,1);
                                                 b=b-mean(b);
                                                 b(remove)=0;
                                                 ZCt(nsub)=mean((b(1:end-1,:)<=0&b(2:end,:)>0)|(b(1:end-1,:)>=0&b(2:end,:)<0))/max(conn_get_rt(nsub))/2;
                                             end
                                             if isempty(CONN_x.vvAnalyses(ianalysis).name)
                                                 new_names{end+1}=sprintf('_Variability %s%02d @ %s',ICAPCA,ncomp,conditions{ivalidcondition});
+                                                new_names{end+1}=sprintf('_Average %s%02d @ %s',ICAPCA,ncomp,conditions{ivalidcondition});
                                                 new_names{end+1}=sprintf('_Frequency %s%02d @ %s (%s)',ICAPCA,ncomp,conditions{ivalidcondition});
                                             else
                                                 new_names{end+1}=sprintf('_Variability %s%02d %s @ %s',ICAPCA,ncomp,CONN_x.vvAnalyses(ianalysis).name,conditions{ivalidcondition});
+                                                new_names{end+1}=sprintf('_Average %s%02d %s @ %s',ICAPCA,ncomp,CONN_x.vvAnalyses(ianalysis).name,conditions{ivalidcondition});
                                                 new_names{end+1}=sprintf('_Frequency %s%02d %s @ %s',ICAPCA,ncomp,CONN_x.vvAnalyses(ianalysis).name,conditions{ivalidcondition});
                                             end
                                             new_values{end+1}=VARt;
+                                            new_values{end+1}=AVGt;
                                             new_values{end+1}=ZCt;
                                         end
                                     end
@@ -3814,6 +3819,23 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         end
                         H_std_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
                         new_values{end+1}=H_std_weighted;
+                    end
+                end
+                for ncomp=1:Ncomponents
+                    for n=1:numel(COND_names)
+                        w=max(eps,accumarray(IDX_subject,max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1]));
+                        H_avg_weighted=accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w;
+                        if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
+                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d @ %s',ncomp,COND_names{n});
+                            else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names{n});
+                            end
+                        else
+                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
+                            else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
+                            end
+                        end
+                        H_avg_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
+                        new_values{end+1}=H_avg_weighted;
                     end
                 end
                 for n=1:numel(COND_names)
@@ -4749,7 +4771,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                     cd(filepathresults3{n1});
                     SPM=SPMall(n1);
                     issurface=isfield(SPM.xX,'isSurface')&&SPM.xX.isSurface;
-                    save('SPM.mat','SPM');
+                    save('SPM.mat','SPM','-v7.3');
                     spm_unlink('mask.img','mask.hdr','mask.nii');
                     files=cat(1,dir('spmT_*.cluster.mat'),dir('nonparametric_p*.mat'));
                     if ~isempty(files)
@@ -4807,13 +4829,13 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                     if issurface
                         V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','mask.img','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('uint8') spm_platform('bigend')]);
                         spm_write_vol(V,double(mask));
-                        save('SPM.mat','SPM');
+                        save('SPM.mat','SPM','-v7.3');
                         conn_disp('fprintf','\nSecond-level results saved in folder %s\n',pwd);
                         if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
                             conn_display('SPM.mat',1);
                         end
                     elseif ismember(CONN_x.Setup.secondlevelanalyses,[1 2]) % parametric stats
-                        save('SPM.mat','SPM');
+                        save('SPM.mat','SPM','-v7.3');
                         spm('Defaults','fmri');
                         if isfield(CONN_x.Setup,'stats_ufp')&&~isempty(CONN_x.Setup.stats_ufp), spm_get_defaults('stats.fmri.ufp',CONN_x.Setup.stats_ufp); end
                         spm_unlink('mask.img','mask.hdr','mask.nii');
@@ -4837,12 +4859,12 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                         end
                         if isfield(SPM,'altestsmooth')&&SPM.altestsmooth, % modified smoothness estimation
                             SPM=conn_est_smoothness(SPM);
-                            save('SPM.mat','SPM');
+                            save('SPM.mat','SPM','-v7.3');
                         end
                         SPM=spm_contrasts(SPM,1:length(SPM.xCon));
                         SPM.xY.VY=SPM.xY.VY(:);
                         SPM.xsDes='';
-                        save('SPM.mat','SPM');
+                        save('SPM.mat','SPM','-v7.3');
                         %conn_cumdisp; 
                         conn_disp('fprintf','Second-level results saved in folder %s\n',pwd);
                         if state==2&&(~isempty(dir('con_0001.img'))||~isempty(dir('con_0001.nii'))),
@@ -4862,7 +4884,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                     elseif ismember(CONN_x.Setup.secondlevelanalyses,[1 3]) % nonparametric stats
                         V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','mask.img','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('uint8') spm_platform('bigend')]);
                         spm_write_vol(V,double(mask));
-                        save('SPM.mat','SPM');
+                        save('SPM.mat','SPM','-v7.3');
                         if state==2&&(~isempty(dir('con_0001.img'))||~isempty(dir('con_0001.nii'))),
                             switch(CONN_x.Analyses(CONN_x.Analysis).measure),
                                 case {1,2}, %correlation
@@ -4929,7 +4951,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                     SPM.xX.erdf=Yout.DOF;
                     SPM.xVol.R=[];
                     SPM.xVol.S=[];
-                    save('SPM.mat','SPM');
+                    save('SPM.mat','SPM','-v7.3');
                     
                     if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),conn_display('SPM.mat',1); end
                     conn_waitbar(1/2+1/2*(n1/(length(SPMall))),h);

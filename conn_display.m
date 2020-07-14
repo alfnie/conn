@@ -273,7 +273,7 @@ else % voxel-based
                 SPM.xX_multivariate.F=permute(T,[4,5,1,2,3]);
                 SPM.xX_multivariate.h=permute(spm_read_vols(SPM.xCon(ncon).Vcon),[4,5,1,2,3]);
                 SPM.xX_multivariate.derivedfromspm=true;
-                save(SPMfilename,'SPM');
+                save(SPMfilename,'SPM','-v7.3');
             end
             R=[];S=[];v2r=[];stat_thresh_fwhm=[];
         end

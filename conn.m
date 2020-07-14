@@ -6398,7 +6398,7 @@ else
                 if 1, CONN_h.menus.m_analyses.shownanalyses=find(cellfun(@(x)isempty(regexp(x,'^(.*\/|.*\\)?Dynamic factor .*\d+$')),txt));
                 else CONN_h.menus.m_analyses.shownanalyses=1:numel(txt);
                 end
-                if ~ismember(CONN_x.Analysis,CONN_h.menus.m_analyses.shownanalyses)&&~isempty(CONN_h.menus.m_analyses.shownanalyses), CONN_x.Analysis=CONN_h.menus.m_analyses.shownanalyses(1); end
+                if ~ismember(CONN_x.Analysis,CONN_h.menus.m_analyses.shownanalyses)&&~isempty(CONN_h.menus.m_analyses.shownanalyses), CONN_x.Analysis=CONN_h.menus.m_analyses.shownanalyses(1); ianalysis=CONN_x.Analysis; end
                 temp={CONN_x.Analyses(CONN_h.menus.m_analyses.shownanalyses).name};
                 CONN_h.menus.m_analyses.analyses_listnames=[CONN_h.menus.m_analyses.analyses_listnames,temp(:)'];
                 CONN_h.menus.m_analyses.analyses_listtype=[CONN_h.menus.m_analyses.analyses_listtype, 1+zeros(1,numel(temp))];
@@ -10708,28 +10708,30 @@ else
                                 CONN_h.menus.m_results.design.pwd=resultsfolder;
                                 if conn_existfile(fullfile(resultsfolder,'SPM.mat'))
                                     load(fullfile(resultsfolder,'SPM.mat'),'SPM');
-                                    dof=SPM.xX_multivariate.dof;
-                                    statsname=SPM.xX_multivariate.statsname;
-                                    if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])
-                                        if CONN_h.menus.m_results_surfhires
-                                            h=reshape(SPM.xX_multivariate.h,1,[]);
-                                            F=reshape(SPM.xX_multivariate.F,1,[]);
+                                    try
+                                        dof=SPM.xX_multivariate.dof;
+                                        statsname=SPM.xX_multivariate.statsname;
+                                        if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])
+                                            if CONN_h.menus.m_results_surfhires
+                                                h=reshape(SPM.xX_multivariate.h,1,[]);
+                                                F=reshape(SPM.xX_multivariate.F,1,[]);
+                                            else
+                                                h=reshape(SPM.xX_multivariate.h(:,:,:,:,[1,conn_surf_dims(8)*[0;0;1]+1]),1,[]);
+                                                F=reshape(SPM.xX_multivariate.F(:,:,:,:,[1,conn_surf_dims(8)*[0;0;1]+1]),1,[]);
+                                            end
                                         else
-                                            h=reshape(SPM.xX_multivariate.h(:,:,:,:,[1,conn_surf_dims(8)*[0;0;1]+1]),1,[]);
-                                            F=reshape(SPM.xX_multivariate.F(:,:,:,:,[1,conn_surf_dims(8)*[0;0;1]+1]),1,[]);
+                                            if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
+                                            %set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
+                                            h=reshape(SPM.xX_multivariate.h(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
+                                            F=reshape(SPM.xX_multivariate.F(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
                                         end
-                                    else
-                                        if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
-                                        %set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
-                                        h=reshape(SPM.xX_multivariate.h(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
-                                        F=reshape(SPM.xX_multivariate.F(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
-                                    end
-                                    p=nan+zeros(size(F));idxvalid=find(~isnan(F));
-                                    if ~isempty(idxvalid)
-                                        switch(statsname),
-                                            case 'T', p(idxvalid)=1-spm_Tcdf(F(idxvalid),dof(end));
-                                            case 'F', p(idxvalid)=1-spm_Fcdf(F(idxvalid),dof(1),dof(2));
-                                            case 'X', p(idxvalid)=1-spm_Xcdf(F(idxvalid),dof);
+                                        p=nan+zeros(size(F));idxvalid=find(~isnan(F));
+                                        if ~isempty(idxvalid)
+                                            switch(statsname),
+                                                case 'T', p(idxvalid)=1-spm_Tcdf(F(idxvalid),dof(end));
+                                                case 'F', p(idxvalid)=1-spm_Fcdf(F(idxvalid),dof(1),dof(2));
+                                                case 'X', p(idxvalid)=1-spm_Xcdf(F(idxvalid),dof);
+                                            end
                                         end
                                     end
                                 end

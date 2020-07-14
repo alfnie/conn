@@ -290,18 +290,28 @@ switch(option)
                                     [nill,iidx]=sort(ieffects); neffects{end}=neffects{end}(iidx); ceffects{end}=ceffects{end}(:,iidx);
                                 end
                                 %%%%%%%%%%%%
-                                if numel(tidx)==2, descrip{end+1}=sprintf('Does the correlation between connectivity and %s differ between %s and %s subjects?',names{isnumer(nnumer)},names{iscateg(sidx(tidx(1)))},names{iscateg(sidx(tidx(2)))});
-                                else               descrip{end+1}=sprintf('Does the correlation between connectivity and %s differ among %s and %s subjects?',names{isnumer(nnumer)},conn_strjoinstr(names(iscateg(sidx(tidx(1:end-1)))),', '),names{iscateg(sidx(tidx(end)))});
+                                for ndouble=1:DODOUBLE
+                                    if ndouble==1
+                                        if numel(tidx)==2, descrip{end+1}=sprintf('Does the correlation between connectivity and %s differ between %s and %s subjects?',names{isnumer(nnumer)},names{iscateg(sidx(tidx(1)))},names{iscateg(sidx(tidx(2)))});
+                                        else               descrip{end+1}=sprintf('Does the correlation between connectivity and %s differ among %s and %s subjects?',names{isnumer(nnumer)},conn_strjoinstr(names(iscateg(sidx(tidx(1:end-1)))),', '),names{iscateg(sidx(tidx(end)))});
+                                        end
+                                    else
+                                        if numel(tidx)==2, descrip{end+1}=sprintf('Do the connectivity differences between %s and %s subjects depend on %s?',names{iscateg(sidx(tidx(1)))},names{iscateg(sidx(tidx(2)))},names{isnumer(nnumer)});
+                                        else               descrip{end+1}=sprintf('Do the connectivity differences among %s and %s subjects depend on %s?',conn_strjoinstr(names(iscateg(sidx(tidx(1:end-1)))),', '),names{iscateg(sidx(tidx(end)))},names{isnumer(nnumer)});
+                                        end
+                                    end
+                                    ieffects=[reshape(iscateg(sidx(tidx)),1,[]) reshape(i3(i4),1,[])];
+                                    neffects{end+1}=names(ieffects);
+                                    ceffects{end+1}=[zeros(numel(tidx)-1,numel(tidx)) diff(eye(numel(tidx)))];
+                                    str{end+1}=conn_wilkinson('describe',neffects{end});
+                                    isorth=mean(abs(Xnan(:,iscategornumer)-Xnan(:,ieffects)*(pinv(Xnan(:,ieffects))*Xnan(:,iscategornumer))).^2,1)>1e-10&all(Xnan(all(Xnan(:,ieffects)==0,2),iscategornumer)==0,1);
+                                    ctrl{end+1}=names(iscategornumer(isorth));
+                                    ctrl_label{end+1}='after controlling for the influence of %s';
+                                    if ndouble==1, priority(end+1)=10*nnumer+3;
+                                    else priority(end+1)=4;
+                                    end
+                                    [nill,iidx]=sort(ieffects); neffects{end}=neffects{end}(iidx); ceffects{end}=ceffects{end}(:,iidx);
                                 end
-                                ieffects=[reshape(iscateg(sidx(tidx)),1,[]) reshape(i3(i4),1,[])];
-                                neffects{end+1}=names(ieffects);
-                                ceffects{end+1}=[zeros(numel(tidx)-1,numel(tidx)) diff(eye(numel(tidx)))];
-                                str{end+1}=conn_wilkinson('describe',neffects{end});
-                                isorth=mean(abs(Xnan(:,iscategornumer)-Xnan(:,ieffects)*(pinv(Xnan(:,ieffects))*Xnan(:,iscategornumer))).^2,1)>1e-10&all(Xnan(all(Xnan(:,ieffects)==0,2),iscategornumer)==0,1);
-                                ctrl{end+1}=names(iscategornumer(isorth));
-                                ctrl_label{end+1}='after controlling for the influence of %s';
-                                priority(end+1)=10*nnumer+3;
-                                [nill,iidx]=sort(ieffects); neffects{end}=neffects{end}(iidx); ceffects{end}=ceffects{end}(:,iidx);
                             end
                         end
                         for nfact=1:numel(factors) % group x factor interactions

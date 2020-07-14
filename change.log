@@ -287,7 +287,7 @@ ________________________________________________________________________________
      patch to add 'merge (not-in-union)' option to "conditions tool" menu allowing to compute an exclusive conjunction of several conditions (those scans/timepoints not already covered by one or several other conditions; e.g. to explicitly define a reference/baseline effect from an event related design) (thanks to Alex for suggesting this addition https://www.nitrc.org/forum/forum.php?thread_id=11020&forum_id=1144)
 20.a Cumulative patch, bug fixes and improvements
      patch to fix color scaling in R2R display (thanks to Paul Summers for bringing this issue up)
-     patch to distributed processing to fix memory problems when merging large number of HPC jobs
+     patch to distributed processing to fix memory problems when merging large number of HPC jobs (thanks to Victoria Okuneye for bringing this issue up)
      Added new interface for new first-level analyses, including list with most common connectivity analyses/measures and their default options
      Added brain & connectivity-matrix displays of computed single-subject connectivity measures in first-level analysis GUI
      Changed normalization setting "interp" default value to Trilinear interpolation during interpolation of anatomical images (kept the same default Bspline interpolation method for interpolation of functional images) (this change is meant to avoid small negative values in resampled anatomical images, which may cause issues when exporting these images to other software packages)
