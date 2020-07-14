@@ -43,6 +43,9 @@ if dogui
         ht1=uicontrol(thfig,'style','listbox','units','norm','position',[.1,.25,.8,.6],'max',2,'string',name,'value',1:numel(name),'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left');
         uicontrol(thfig,'style','pushbutton','string','Import','units','norm','position',[.1,.01,.38,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset);
         uicontrol(thfig,'style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.10],'callback','delete(gcbf)','fontsize',8+CONN_gui.font_offset);
+        hc1=uicontextmenu(thfig);
+        uimenu(hc1,'label','edit taget variable names','callback',@conn_importl2covariate_changenames);
+        set(ht1,'uicontextmenu',hc1);        
     else
         thfig=dialog('units','norm','position',[.3,.4,.4,.4],'windowstyle','normal','name','Import 2nd-level covariate','color','w','resize','on');
         uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string',sprintf('New 2nd-level covariate names (%d)',numel(name)),'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
@@ -97,4 +100,27 @@ else
         conn_disp('fprintf','Updated 2nd-level covariate %s\n',name{n});
     end
 end
+
+    function conn_importl2covariate_changenames(varargin)
+        int_thfig=dialog('units','norm','position',[.7,.4,.3,.4],'windowstyle','normal','name','Import 2nd-level covariate','color','w','resize','on');
+        uicontrol(int_thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string',sprintf('New 2nd-level covariate names (%d)',numel(name)),'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
+        int_ht1=uicontrol(int_thfig,'style','edit','units','norm','position',[.1,.25,.8,.6],'max',2,'string',name,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left');
+        uicontrol(int_thfig,'style','pushbutton','string','Ok','units','norm','position',[.1,.01,.38,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset);
+        uicontrol(int_thfig,'style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.10],'callback','delete(gcbf)','fontsize',8+CONN_gui.font_offset);
+        int_ok=true;
+        while int_ok
+            uiwait(int_thfig);
+            int_ok=ishandle(int_thfig);
+            if int_ok,
+                int_name=get(int_ht1,'string');
+                int_name=int_name(cellfun('length',int_name)>0);
+                if numel(name)==numel(int_name),
+                    name=int_name;
+                    set(ht1,'string',name);
+                    delete(int_thfig)
+                    int_ok=false;
+                end
+            end
+        end
+    end
 end

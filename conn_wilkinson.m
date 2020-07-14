@@ -418,6 +418,8 @@ switch(option)
                 end
             end
         end
+        %[nill,alphrank]=sort(descrip); alphrank(alphrank)=(0:numel(alphrank)-1)/numel(alphrank);
+        %[nill,idx]=sort(priority+alphrank);
         [nill,idx]=sort(priority);
         varargout={struct('str',{str(idx)}, 'descrip',{descrip(idx)}, 'neffects',{neffects(idx)}, 'ceffects',{ceffects(idx)}, 'ctrl', {ctrl(idx)}, 'ctrl_label', {ctrl_label(idx)})};
 end     
