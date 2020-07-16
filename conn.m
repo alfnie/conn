@@ -11496,7 +11496,7 @@ if numel(steps)>3,
     ht2d=uicontrol(thfig,'style','checkbox','units','norm','position',[.1,.4,.3,.10],'string','Dynamic FC','value',steps(4),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w');
 else ht2d=[]; 
 end
-ht4b=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.4,.3,.2],'string',CONN_x.Setup.conditions.names(1:end-1),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+ht4b=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.4,.35,.2],'string',CONN_x.Setup.conditions.names(1:end-1),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
 ht4a=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.5,.19,.10],'string','All conditions','value',all(islogical(condsoption)),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4b,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
 vars={'Setup','Denoising'; 1,2; {},{}; {},{}}; 
 for n1=1:numel(CONN_x.Analyses), vars(:,end+1)={['First-level S2V/R2R ',CONN_x.Analyses(n1).name]; 3; {CONN_x.Analyses(n1).name}; {}}; end
@@ -11516,16 +11516,17 @@ if dosecondlevel
     ht4d=uicontrol(thfig,'style','popupmenu','units','norm','position',[.4,.4,.5,.10],'string',vars(1,:),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
     ht4c=[];
 else
-    ht4d=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.4,.3,.2],'string',vars(1,:),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+    ht4d=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.4,.35,.2],'string',vars(1,:),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
     ht4c=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.5,.19,.10],'string','All Steps','value',0,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4d,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
 end
-ht4f=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.6,.3,.2],'string',arrayfun(@(x)sprintf('Subject %d',x),1:CONN_x.Setup.nsubjects,'uni',0),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+ht4f=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.6,.35,.2],'string',arrayfun(@(x)sprintf('Subject %d',x),1:CONN_x.Setup.nsubjects,'uni',0),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
 ht4e=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.7,.19,.10],'string','All Subjects','value',all(islogical(subjectsoption)),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4f,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
-ht4h=uicontrol(thfig,'style','listbox','units','norm','position',[.7,.5,.2,.2],'string',CONN_x.Results.saved.names,'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
-ht4g=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.6,.29,.10],'string','Current contrasts','value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4h,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
-ht4j=uicontrol(thfig,'style','listbox','units','norm','position',[.7,.6,.2,.2],'string',{''},'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
-ht4i=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.7,.29,.10],'string','Current sources/measures','value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',{ht4j,ht4d,vars(4,:)},'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h{1},''visible'',''off''); else h{3}=h{3}{get(h{2},''value'')}; if isempty(h{3}), set(h{1},''visible'',''off''); else, set(h{1},''visible'',''on'',''string'',h{3}); end; end');
-if dosecondlevel, set(ht4d,'userdata',{ht4i,ht4j,vars(4,:)},'callback','h=get(gcbo,''userdata'');if isempty(h{3}{get(gcbo,''value'')}), set([h{1},h{2}],''visible'',''off''); else set(h{1},''visible'',''on''); if get(h{1},''value''), set(h{2},''visible'',''off''); else set(h{2},''visible'',''on''); end; end'); end
+ht4h=uicontrol(thfig,'style','listbox','units','norm','position',[.65,.5,.3,.2],'string',CONN_x.Results.saved.names,'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+ht4g=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.6,.24,.10],'string','Current contrasts','value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4h,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
+ht4j=uicontrol(thfig,'style','listbox','units','norm','position',[.65,.7,.3,.2],'string',{''},'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+ht4i=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.7,.24,.10],'string','Current sources','value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',{ht4j,ht4d,vars(4,:)},'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h{1},''visible'',''off''); else h{3}=h{3}{get(h{2},''value'')}; if isempty(h{3}), set(h{1},''visible'',''off''); else, set(h{1},''visible'',''on'',''string'',h{3}); end; end');
+if dosecondlevel, set(ht4d,'userdata',{ht4j,ht4i,vars(4,:)},'callback','h=get(gcbo,''userdata''); h{3}=h{3}{get(gcbo,''value'')}; if isempty(h{3}), set([h{1},h{2}],''visible'',''off''); else set(h{2},''visible'',''on''); set(h{1},''string'',h{3}); if get(h{2},''value''), set(h{1},''visible'',''off''); else , set(h{1},''visible'',''on''); end; end'); end
+
 hc1=uicontextmenu(thfig);uimenu(hc1,'Label','select group (2nd-level covariate)','callback',@(varargin)conn_menu_selectsubjects(ht4f)); set(ht4f,'uicontextmenu',hc1);
 if multipleoption, condsoption=false; end
 if ~stepsoption, set([ht2a,ht2b,ht2c,ht2d],'enable','off'); end
