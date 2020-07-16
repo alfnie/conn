@@ -10149,11 +10149,13 @@ else
                                         [i1,idx1]=sort(i1);
                                         CONN_x.Results.xX.nsubjecteffects=i1;
                                         CONN_x.Results.xX.csubjecteffects=newceffects(:,idx1);
+                                        CONN_x.Results.xX.nsubjecteffectsbyname=CONN_x.Setup.l2covariates.names(i1);
                                     end
                                     if ~isempty(newnconditions)
                                         [i2,idx2]=sort(i2);
                                         CONN_x.Results.xX.nconditions=i2;
                                         CONN_x.Results.xX.cconditions=newcconditions(:,idx2);
+                                        CONN_x.Results.xX.nconditionsbyname=CONN_x.Setup.conditions.names(i2);
                                     end
                                     if isfield(CONN_x.Results.xX,'nsubjecteffects')&&isfield(CONN_x.Results.xX,'csubjecteffects')&&size(CONN_x.Results.xX.csubjecteffects,2)==numel(CONN_x.Results.xX.nsubjecteffects)&&all(ismember(CONN_x.Results.xX.nsubjecteffects,CONN_h.menus.m_results.showneffects)),
                                         ncovariates=CONN_x.Results.xX.nsubjecteffects;
@@ -10462,6 +10464,7 @@ else
                         if CONN_h.menus.m_results.showneffects_showall, set(get(hc1,'children'),'label','Hide secondary variables');
                         else set(get(hc1,'children'),'Label','Show secondary variables');
                         end
+                        CONN_h.menus.m_results.suggest_between=conn_wilkinson('suggest_between',CONN_h.menus.m_results.showneffects);                    
 						model=2;modelroi=1;
                     case 44
                         str={'QA Montage (display single slice for all subjects)','Individual subject plots (volume/surface/slice displays)'};
@@ -10505,7 +10508,7 @@ else
                             CONN_x.gui=1;
                             model=1;
                         else
-                            conn_displayroi('init','results_roi',-1);
+                            conn_displayroi('init','results_roi');
                             modelroi=1;
                         end
                     case 47,
@@ -10958,7 +10961,7 @@ else
                     nsubjects=find(any(xf~=0,2)&~any(isnan(xf),2));
                     xf=xf(nsubjects,:);
 
-                    %CONN_h.menus.m_results.roiresults=conn_process('results_ROI',1,1);
+                    %CONN_h.menus.m_results.roiresults=conn_process('results_ROI_seed',1,1);
                     CONN_h.menus.m_results.design.contrast_within=CONN_x.Results.xX.cconditions;
                     CONN_h.menus.m_results.design.contrast_between=CONN_x.Results.xX.csubjecteffects;
                     CONN_h.menus.m_results.design.designmultivariateonly=1;
@@ -10992,7 +10995,7 @@ else
                 
             elseif modelroi&&state==1, % ROI-level (seed-based)
                 if isfield(CONN_h.menus.m_results,'roiresults')&&isfield(CONN_h.menus.m_results.roiresults,'lastselected'), bakroiresultsidx=CONN_h.menus.m_results.roiresults.lastselected; else bakroiresultsidx=[]; end
-                CONN_h.menus.m_results.roiresults=conn_process('results_ROI',CONN_x.Results.xX.nsources,CONN_x.Results.xX.csources);
+                CONN_h.menus.m_results.roiresults=conn_process('results_ROI_seed',CONN_x.Results.xX.nsources,CONN_x.Results.xX.csources);
                 CONN_h.menus.m_results.design.contrast_within=CONN_h.menus.m_results.roiresults.c2;
                 CONN_h.menus.m_results.design.contrast_between=CONN_h.menus.m_results.roiresults.c;
                 CONN_h.menus.m_results.design.designmultivariateonly=1;
@@ -11019,7 +11022,7 @@ else
 %                         CONN_h.menus.m_results.design.data(:,n1)=strcat(CONN_h.menus.m_results.design.data(:,n1),regexprep(sprintf(' %+g * %s@%s ',CONN_h.menus.m_results.roiresults.c2(n1,n2),CONN_h.menus.m_results.roiresults.orig_sources{n2i(n2)},CONN_h.menus.m_results.roiresults.orig_conditions{n2j(n2)}),{' \+1 \*',' \-1 \*'},{' +',' -'}));
 %                     end
 %                 end
-%                 try, CONN_h.menus.m_results.roiresults=conn_process('results_ROI',CONN_x.Results.xX.nsources,CONN_x.Results.xX.csources);
+%                 try, CONN_h.menus.m_results.roiresults=conn_process('results_ROI_seed',CONN_x.Results.xX.nsources,CONN_x.Results.xX.csources);
 %                 catch, 
 %                     roierr=true;
 %                     uiwait(errordlg('Some conditions have not been processed yet. Re-run previous step (First-level analyses)','Data not prepared for analyses'));
@@ -11302,7 +11305,7 @@ else
             end
 		
         case 'gui_results_roiview',
-            conn_displayroi('init','results_roi',-1); %CONN_x.Results.xX.nsources,-1);
+            conn_displayroi('init','results_roi'); %CONN_x.Results.xX.nsources,-1);
             return
 
         case 'gui_results_roi3d'
@@ -11333,7 +11336,8 @@ else
             
 		case 'gui_results_done',
 			%if isempty(CONN_x.filename), conn gui_setup_save; end
-            if conn_questdlgrun('Ready to Compute results for all sources',false,[1 1 1],false,true,[],6:7); 
+            
+            if conn_questdlgrun('Ready to compute 2nd-level results',false,[1 1 1],false,true,[],6:7); 
                 conn_menumanager clf;
                 conn_menuframe;
                 conn_menu('frame2border',[.0,.955,1,.045],'');
@@ -11343,10 +11347,10 @@ else
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 CONN_x.Results.foldername='';
-                psteps={'setup','denoising_gui','analyses_gui_seedandroi','analyses_gui_vv','analyses_gui_dyn','seed-to-voxel','voxel-to-voxel'};
+                psteps={'setup','denoising_gui','analyses_gui_seedandroi','analyses_gui_vv','analyses_gui_dyn','results_voxel','results_roi'};
                 for n=1:numel(CONN_x.gui.processes{1})
                     drawnow;
-                    conn_process('results_voxel','doall',psteps{CONN_x.gui.processes{1}(n)},CONN_x.gui.processes{2}{n}{:});
+                    conn_process(psteps{CONN_x.gui.processes{1}(n)},CONN_x.gui.processes{2}{n}{:});
                 end
                 CONN_x.gui=1;
                 conn gui_results;
@@ -11473,7 +11477,6 @@ end
 
 end
 
-
 function ok=conn_questdlgrun(str,stepsoption,steps,condsoption,dispoption,paroption,multipleoption,subjectsoption,groupsoption)
 global CONN_x CONN_gui;
 if nargin<9||isempty(groupsoption), groupsoption=[]; end
@@ -11495,17 +11498,34 @@ else ht2d=[];
 end
 ht4b=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.4,.3,.2],'string',CONN_x.Setup.conditions.names(1:end-1),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
 ht4a=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.5,.19,.10],'string','All conditions','value',all(islogical(condsoption)),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4b,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
-vars={'Setup','Denoising'; 1,2; {},{}}; 
-for n1=1:numel(CONN_x.Analyses), vars(:,end+1)={['First-level S2V/R2R ',CONN_x.Analyses(n1).name]; 3; {CONN_x.Analyses(n1).name}}; end
-for n1=1:numel(CONN_x.vvAnalyses), vars(:,end+1)={['First-level V2V ',CONN_x.vvAnalyses(n1).name]; 4; {CONN_x.vvAnalyses(n1).name}}; end
-for n1=1:numel(CONN_x.dynAnalyses), vars(:,end+1)={['First-level dyn-ICA ',CONN_x.dynAnalyses(n1).name]; 5; {CONN_x.dynAnalyses(n1).name}}; end
-for n1=1:numel(CONN_x.Analyses), if ismember(CONN_x.Analyses(n1).type,[2,3]), vars(:,end+1)={['Second-level S2V ',CONN_x.Analyses(n1).name]; 6; {CONN_x.Analyses(n1).name}}; end; end
-for n1=1:numel(CONN_x.vvAnalyses), vars(:,end+1)={['Second-level V2V ',CONN_x.vvAnalyses(n1).name]; 7; {CONN_x.vvAnalyses(n1).name}}; end
-if ~all(islogical(multipleoption))&&~isempty(multipleoption), vars=vars(:,ismember([vars{2,:}],multipleoption)); end
-ht4d=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.4,.3,.2],'string',vars(1,:),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
-ht4c=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.5,.19,.10],'string','All Steps','value',0,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4d,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
+vars={'Setup','Denoising'; 1,2; {},{}; {},{}}; 
+for n1=1:numel(CONN_x.Analyses), vars(:,end+1)={['First-level S2V/R2R ',CONN_x.Analyses(n1).name]; 3; {CONN_x.Analyses(n1).name}; {}}; end
+for n1=1:numel(CONN_x.vvAnalyses), vars(:,end+1)={['First-level V2V ',CONN_x.vvAnalyses(n1).name]; 4; {CONN_x.vvAnalyses(n1).name}; {}}; end
+for n1=1:numel(CONN_x.dynAnalyses), vars(:,end+1)={['First-level dyn-ICA ',CONN_x.dynAnalyses(n1).name]; 5; {CONN_x.dynAnalyses(n1).name}; {}}; end
+for n1=1:numel(CONN_x.Analyses), 
+    if ismember(CONN_x.Analyses(n1).type,[2,3]), vars(:,end+1)={[CONN_x.Analyses(n1).name,' (Seed-to-Voxel)']; 6; {'dosingle','seed-to-voxel',CONN_x.Analyses(n1).name}; CONN_x.Analyses(n1).sources}; end; 
+    if ismember(CONN_x.Analyses(n1).type,[1,3]), vars(:,end+1)={[CONN_x.Analyses(n1).name,' (ROI-to-ROI)']; 7; {CONN_x.Analyses(n1).name}; {}}; end;
+end
+for n1=1:numel(CONN_x.vvAnalyses), vars(:,end+1)={[CONN_x.vvAnalyses(n1).name]; 6; {'dosingle','voxel-to-voxel',CONN_x.vvAnalyses(n1).name}; conn_v2v('cleartext',CONN_x.vvAnalyses(n1).measures)}; end
+dosecondlevel=false;
+if ~all(islogical(multipleoption))&&~isempty(multipleoption), 
+    vars=vars(:,ismember([vars{2,:}],multipleoption)); 
+    if any(ismember(multipleoption,[6,7])), dosecondlevel=true; end
+end
+if dosecondlevel
+    ht4d=uicontrol(thfig,'style','popupmenu','units','norm','position',[.4,.4,.5,.10],'string',vars(1,:),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+    ht4c=[];
+else
+    ht4d=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.4,.3,.2],'string',vars(1,:),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+    ht4c=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.5,.19,.10],'string','All Steps','value',0,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4d,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
+end
 ht4f=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.6,.3,.2],'string',arrayfun(@(x)sprintf('Subject %d',x),1:CONN_x.Setup.nsubjects,'uni',0),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
 ht4e=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.7,.19,.10],'string','All Subjects','value',all(islogical(subjectsoption)),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4f,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
+ht4h=uicontrol(thfig,'style','listbox','units','norm','position',[.7,.5,.2,.2],'string',CONN_x.Results.saved.names,'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+ht4g=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.6,.29,.10],'string','Current contrasts','value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4h,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
+ht4j=uicontrol(thfig,'style','listbox','units','norm','position',[.7,.6,.2,.2],'string',{''},'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+ht4i=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.7,.29,.10],'string','Current sources/measures','value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',{ht4j,ht4d,vars(4,:)},'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h{1},''visible'',''off''); else h{3}=h{3}{get(h{2},''value'')}; if isempty(h{3}), set(h{1},''visible'',''off''); else, set(h{1},''visible'',''on'',''string'',h{3}); end; end');
+if dosecondlevel, set(ht4d,'userdata',{ht4i,ht4j,vars(4,:)},'callback','h=get(gcbo,''userdata'');if isempty(h{3}{get(gcbo,''value'')}), set([h{1},h{2}],''visible'',''off''); else set(h{1},''visible'',''on''); if get(h{1},''value''), set(h{2},''visible'',''off''); else set(h{2},''visible'',''on''); end; end'); end
 hc1=uicontextmenu(thfig);uimenu(hc1,'Label','select group (2nd-level covariate)','callback',@(varargin)conn_menu_selectsubjects(ht4f)); set(ht4f,'uicontextmenu',hc1);
 if multipleoption, condsoption=false; end
 if ~stepsoption, set([ht2a,ht2b,ht2c,ht2d],'enable','off'); end
@@ -11517,6 +11537,8 @@ if all(islogical(multipleoption)),set([ht4d],'visible','off');
 elseif ~isempty(multipleoption), %set(ht4d,'value',multipleoption); 
 else set([ht4c,ht4d],'visible','off'); 
 end
+set([ht4g, ht4h,ht4i,ht4j],'visible','off');
+if dosecondlevel, set([ht4g,ht4i],'visible','on'); end
 if ~all(islogical(subjectsoption)), set(ht4f,'value',subjectsoption); 
 elseif subjectsoption, set([ht4f],'visible','off'); 
 else set([ht4e,ht4f],'visible','off'); 
@@ -11573,9 +11595,30 @@ if ok
         CONN_x.gui.conditions=get(ht4b,'value');
         conn_disp('fprintf','      conditions : %s\n',sprintf('%s ; ',CONN_x.Setup.conditions.names{CONN_x.gui.conditions}));
     end
-    if multipleoption
+    if multipleoption        
         if get(ht4c,'value'), CONN_x.gui.processes={[vars{2,:}], vars(3,:)};
         else CONN_x.gui.processes={[vars{2,get(ht4d,'value')}], vars(3,get(ht4d,'value'))}; 
+        end
+        if dosecondlevel % second-level results contrasts
+            if get(ht4i,'value') % current source/measure
+            else
+                dosources=get(ht4j,'value');
+                for n1=1:numel(CONN_x.gui.processes{2}), 
+                    if CONN_x.gui.processes{1}(n1)==6 % S2V or V2V
+                        CONN_x.gui.processes{2}{n1}{1}=dosources;
+                    end
+                end
+            end
+            if get(ht4g,'value'), % current contrast 
+            else
+                savedcontrasts=get(ht4h,'value');
+                allcontrasts=repmat(savedcontrasts(:)',numel(CONN_x.gui.processes{1}),1);
+                CONN_x.gui.processes{1}=repmat(CONN_x.gui.processes{1},1,numel(savedcontrasts));
+                CONN_x.gui.processes{2}=repmat(CONN_x.gui.processes{2},1,numel(savedcontrasts));
+                for n1=1:numel(CONN_x.gui.processes{2}), 
+                    CONN_x.gui.processes{2}{n1}=[CONN_x.gui.processes{2}{n1}, {allcontrasts(n1)}];
+                end
+            end
         end
         %validprocesses=cellfun('length',CONN_x.gui.processes{2})>0;
         %CONN_x.gui.processes{1}=CONN_x.gui.processes{1}(validprocesses); 

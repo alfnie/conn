@@ -9,7 +9,7 @@ switch(lower(option)),
             data.source=varargin{1}; 
             data.side=3;
             h=conn_msgbox('computing adjacency matrices, please wait...','conn_displaynetwork');
-            results=conn_process('results_roi',[]);
+            results=conn_process('results_roi');
             %data.cconditions=results(1).c2;%CONN_x.Results.xX.cconditions;
             close(h);
 %             if 0,%numel(CONN_x.Results.xX.nconditions)>1

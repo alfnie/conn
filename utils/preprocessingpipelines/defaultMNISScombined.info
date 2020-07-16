@@ -1,0 +1,3 @@
+Default MNI Direct-normalization pipeline but with added intermediate Subject-Space coregistration step
+(in addition to running CONN's default MNI-space pipeline this will also produce a "subject-space" secondary functional dataset that is
+aligned with your original structural image -e.g. this is helpful when you have both subject-space ROIs as well as MNI-space ROIs)

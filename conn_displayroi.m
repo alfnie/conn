@@ -1026,7 +1026,7 @@ switch(lower(option)),
             data.tfceZ=[];
             data.cMVPAF=[];
             data.source=data.source(data.source==0 | data.source<=length(data.displaytheserois));if isempty(data.source),data.source=1;end
-            %results=conn_process('results_roi',data.displaytheserois);
+            %results=conn_process('results_roi_seed',data.displaytheserois);
             h=conn_msgbox('updating ROI-level results, please wait...','conn_displayroi');
             %f=conn_dir(conn_displayroi_simfilename(data.roifile,'all'),'-R','-cell');
             %if ~isempty(f), spm_unlink(f{:}); end

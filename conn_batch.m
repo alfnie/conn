@@ -1694,7 +1694,8 @@ if isfield(batch,'Results'),
         assert(size(batch.Results.between_subjects.contrast,2)==length(batch.Results.between_subjects.effect_names),'number of columns in between_subjects.contrast (%d) must match number of elements in between_subjects.effect_names (%d)',size(batch.Results.between_subjects.contrast,2),length(batch.Results.between_subjects.effect_names));
         [CONN_x.Results.xX.nsubjecteffects,idx]=sort(CONN_x.Results.xX.nsubjecteffects); % note: resorts list of subject effects (bug fix Gregor Lichtner)
         CONN_x.Results.xX.csubjecteffects=batch.Results.between_subjects.contrast(:,idx);
-        
+        CONN_x.Results.xX.nsubjecteffectsbyname=CONN_x.Setup.l2covariates.names(CONN_x.Results.xX.nsubjecteffects);
+       
         if ~isfield(batch.Results,'between_conditions')||isempty(batch.Results.between_conditions),
             if 1, %isfield(batch.Results,'done')&&batch.Results.done
                 clear batchtemp;
@@ -1723,6 +1724,7 @@ if isfield(batch,'Results'),
                 else, CONN_x.Results.xX.nconditions(neffect)=idx(1); end
             end
             CONN_x.Results.xX.cconditions=batch.Results.between_conditions.contrast;
+            CONN_x.Results.xX.nconditionsbyname=CONN_x.Setup.conditions.names(CONN_x.Results.xX.nconditions);
 
             if isfield(batch.Results,'saveas')&&~isempty(batch.Results.saveas)
                 conn_contrastmanager('add',0,batch.Results.saveas);
@@ -1750,7 +1752,7 @@ if isfield(batch,'Results'),
                     end
                 elseif isfield(batch.Results,'between_sources'),
                     CONN_x.Results.xX.nmeasures=zeros(1,length(batch.Results.between_measures.effect_names));
-                    CONN_x.Results.xX.nsourcesbyname=cell(1,length(batch.Results.between_measures.effect_names));
+                    CONN_x.Results.xX.nmeasuresbyname=cell(1,length(batch.Results.between_measures.effect_names));
                     for neffect=1:length(batch.Results.between_measures.effect_names),
                         idx=strmatch(batch.Results.between_measures.effect_names{neffect},conn_v2v('cleartext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures),'exact');
                         if isempty(idx), error(['unknown measure ',batch.Results.between_measures.effect_names{neffect}]); return;

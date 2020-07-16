@@ -253,6 +253,7 @@ if issurface||ismatrix % surface- or matrix- based analyses
 elseif ismember(secondlevelanalyses,[1 2]) % volume-based parametric stats
     save('SPM.mat','SPM','-v7.3');
     spm('Defaults','fmri');
+    try, spm_get_defaults('mat.format','-v7.3'); end
     spm_unlink('mask.img','mask.hdr','mask.nii');
     if ~isempty(maskfile), 
         if isempty(mask)
