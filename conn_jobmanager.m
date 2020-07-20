@@ -1300,18 +1300,19 @@ ok=1+handles.finished;
                     set(handles.axes,'xlim',[.5 numel(st)+.5001],'ylim',[.5 1.5]);
                     [nill,tpathname]=fileparts(info.pathname);
                     set(handles.jobname,'string',sprintf('job id %s',tpathname));
-                    
                     validlabels={'error','failed','crashed'};
                     if all(ismember(info.tagmsg,validlabels))
                         if isfield(handles,'hdrmsg')&&ishandle(handles.hdrmsg), set(handles.hdrmsg,'visible','off'); end
                     end
+%                 catch
+%                     fprintf('.');
+                end
+                try
                     validlabels={'finished','canceled'}; %{'finished','stopped'};
                     if all(ismember(info.tagmsg,validlabels))
                         set(handles.continue,'enable','on'); 
                         if ~numel(files)&&~handles.finished, conn_jobmanager_update('finish'); end
                     end
-%                 catch
-%                     fprintf('.');
                 end
                 
             case 'details'

@@ -170,6 +170,7 @@ switch(lower(option))
                                 conn_disp('__tbspace',tbspace+6);
                                 try
                                     str=regexp(fileread(flog),'[\r\n]+','split');
+                                    str=sprintf('%s\n',str{:});
                                     conn_disp(char(str));
                                 end
                                 conn_disp('__tbspace',tbspace);

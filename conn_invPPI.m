@@ -169,6 +169,13 @@ idx1=Nk0+1:Nk;
 H1=H(:,idx1);
 B1=permute(B(:,idx1,:),[1 3 2]);
 
+% makes H1 orth to H0
+if ~isempty(H0)
+    K=H0\H1;
+    H1=H1-H0*K;
+    for nk0=1:Nk0, for nk1=1:size(K,2), B0(:,:,nk0)=B0(:,:,nk0)+B1(:,:,nk1)*K(nk0,nk1); end; end
+end
+
 if DOICA&&Nk1>1
     if DOICA==1, % spatial-ICA
         [S,W]=conn_ica(reshape(B1,[Nr*Nr Nk1])',[],'dodisp',DOPLOT,'rndseed',RNDSEED);

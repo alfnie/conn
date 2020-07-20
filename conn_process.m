@@ -3563,6 +3563,21 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 conn_waitbar('close',h2);%close(h2);
                                 
                                 if 1, % saves new second-level covariates
+                                    
+                                    iremove=reshape(find(cellfun('length',regexp(CONN_x.Setup.l2covariates.names(1:end-1),['^_(Variability|Average|Frequency) ',ICAPCA,'\d+ ',CONN_x.vvAnalyses(ianalysis).name,' @ .*?$']))),1,[]);
+                                    %iremove=[];
+                                    %for ivalidcondition=1:numel(validconditions),
+                                    %    iremove=[iremove,reshape(find(cellfun('length',regexp(CONN_x.Setup.l2covariates.names(1:end-1),['^_(Variability|Average|Frequency) ',ICAPCA,'\d+ ',CONN_x.vvAnalyses(ianalysis).name,' @ ',conditions{ivalidcondition},'$']))),1,[])];
+                                    %end
+                                    if ~isempty(iremove)
+                                        ikeep=setdiff(1:numel(CONN_x.Setup.l2covariates.names),iremove);
+                                        ikeep0=setdiff(ikeep,numel(CONN_x.Setup.l2covariates.names));
+                                        CONN_x.Setup.l2covariates.names=CONN_x.Setup.l2covariates.names(ikeep);
+                                        CONN_x.Setup.l2covariates.descrip=CONN_x.Setup.l2covariates.descrip(ikeep0);
+                                        for nsub=1:CONN_x.Setup.nsubjects,
+                                            CONN_x.Setup.l2covariates.values{nsub}=CONN_x.Setup.l2covariates.values{nsub}(ikeep0);
+                                        end
+                                    end
                                     new_names={};
                                     new_values={};
                                     for ncomp=1:NdimsOut
@@ -3714,6 +3729,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
             end
             if do
                 REDO='Yes';
+                DEMEAN=false; % true=disregard between-subject variability in average connectivity; set to true for back-compatibility
                 X=[];
                 Y=[];
                 Xfilter=[];
@@ -3772,7 +3788,8 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     COND_weights=COND_weights(ok2);
                 end
                 drawnow;
-                [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,X,Xfilter,1);
+                if DEMEAN, tX=X; else tX=[]; end
+                [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,1);
                 Ncomponents=size(H,2);
                 CONN_x.dynAnalyses(CONN_x.dynAnalysis).sources=roinames;
                 filename=fullfile(filepathresults,'dyn_Base.mat');
@@ -3790,6 +3807,16 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     save(filename,'data','names','data_sessions');
                 end
 
+                iremove=reshape(find(cellfun('length',regexp(CONN_x.Setup.l2covariates.names(1:end-1),['^_(Variability|Average|Frequency) Dynamic factor (.*_)?\d+ ',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,' @ .*$']))),1,[]);
+                if ~isempty(iremove)
+                    ikeep=setdiff(1:numel(CONN_x.Setup.l2covariates.names),iremove);
+                    ikeep0=setdiff(ikeep,numel(CONN_x.Setup.l2covariates.names));
+                    CONN_x.Setup.l2covariates.names=CONN_x.Setup.l2covariates.names(ikeep);
+                    CONN_x.Setup.l2covariates.descrip=CONN_x.Setup.l2covariates.descrip(ikeep0);
+                    for nsub=1:CONN_x.Setup.nsubjects,
+                        CONN_x.Setup.l2covariates.values{nsub}=CONN_x.Setup.l2covariates.values{nsub}(ikeep0);
+                    end
+                end
                 new_names={};
                 new_values={};
                 %                 for ncomp=1:Ncomponents
@@ -5299,7 +5326,7 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
                     summary.design.dataTitle=arrayfun(@(a)sprintf('measure #%d',a),1:size(ROI.c2,2),'uni',0);
                 end
                 save(fullfile(filepathresults2,'ROI.mat'),'summary','-append');
-                if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
+                if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
                     conn_display(fullfile(filepathresults2,'ROI.mat'));
                 end
             end

@@ -188,7 +188,8 @@ if nargin>=1
         end
     end
     if ~mirrorscreen||CWCOPY
-        if ~ischar(varargin{1}), disp(varargin{:});
+        if iscell(varargin{1})&&all(cellfun(@ischar,varargin{1})), newstr=varargin{1}; newstr=newstr(cellfun('length',newstr)>0); disp(sprintf('%s\n',newstr{:})); 
+        elseif ~ischar(varargin{1}), disp(varargin{:});
         elseif strcmp(varargin{1},'fprintf'), fprintf(varargin{2:end});
         elseif strcmp(varargin{1},'struct'), disp(varargin{2});
         else disp(varargin{:});

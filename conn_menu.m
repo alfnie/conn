@@ -588,8 +588,12 @@ switch(lower(type)),
 	case 'updatehist',
 		if isempty(title), 
 			set([position.h1,position.h2,position.h3,position.h4,position.h5,position.h6,position.h7],'visible','off'); 
-		else 
+        else 
+            skiptitles=false;
             set(position.h3,'xdata',title{1},'ydata',title{2},'facecolor',1/2*[1,1,0],'facealpha',1,'edgecolor','none');
+            if numel(title)<3, title{3}=title{2}; skiptitles=true; subtitle=''; 
+            elseif ischar(title{3}), skiptitles=true; subtitle=title{3}; title{3}=title{2}; 
+            end
             set(position.h4,'xdata',title{1},'ydata',title{3},'facecolor',.75/2*[1,1,1],'facealpha',1,'edgecolor','none');
             set(position.h5,'xdata',title{1},'ydata',min(title{2},title{3}),'facecolor',[.2,.2,.4],'facealpha',1,'edgecolor','none');
             set(position.h2,'xdata',[0,0],'ydata',[0,max(max(title{2}),max(title{3}))*1.35],'color','w');
@@ -603,7 +607,12 @@ switch(lower(type)),
             end
             set(position.h6,'position',[xbak1,ybak1,1],'color',.75/2*[1,1,1],'horizontalalignment','center','verticalalignment','bottom');
             set(position.h7,'position',[xbak2,ybak2,1],'color',1/2*[1,1,0],'horizontalalignment','center','verticalalignment','bottom');
-            set([position.h1,position.h2,position.h3,position.h4,position.h5,position.h6,position.h7],'visible','on');
+            if skiptitles, 
+                if ~isempty(subtitle), set(position.h6,'string',subtitle); set([position.h1,position.h2,position.h3,position.h4,position.h5,position.h6],'visible','on');
+                else set([position.h1,position.h2,position.h3,position.h4,position.h5],'visible','on');
+                end
+            else set([position.h1,position.h2,position.h3,position.h4,position.h5,position.h6,position.h7],'visible','on');
+            end
         end
     case 'updatetable'
         if isempty(title)

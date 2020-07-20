@@ -288,18 +288,20 @@ ________________________________________________________________________________
 20.a Cumulative patch, bug fixes and improvements
      patch to fix color scaling in R2R display (thanks to Paul Summers for bringing this issue up)
      patch to distributed processing to fix memory problems when merging large number of HPC jobs (thanks to Victoria Okuneye for bringing this issue up)
-     Added new interface for new first-level analyses, including list with most common connectivity analyses/measures and their default options
+     Added new interface for defining first-level analyses, including list with most common connectivity analyses/measures and their default options
+     Added new interface for defining second-level anayses, including QDEC-style "layman's terms" interactive descriptions of second-level model, as well as list of suggested analyses automatically-populated based on each CONN project 2nd-level covariates (see 'Results (2nd-level)' tab)
      Added brain & connectivity-matrix displays of computed single-subject connectivity measures in first-level analysis GUI
      Changed normalization setting "interp" default value to Trilinear interpolation during interpolation of anatomical images (kept the same default Bspline interpolation method for interpolation of functional images) (this change is meant to avoid small negative values in resampled anatomical images, which may cause issues when exporting these images to other software packages)
      Modified slice-display default background reference image to ICBM (nlin_asym_09c) normalized using SPM12/CONN default options (in prior versions this background reference image was the same ICBM template but without SPM12 normalization correction)
      Modified 3d-display cortex and white surfaces to freesurfer tesellation of ICBM (nlin_asym_09c) normalized using SPM12/CONN default options (in prior versions these surfaces were the fsaverage6 pial&white surfaces)
      Added connectivity-matrix display to ROI-to-ROI results explorer window (see "matrix display" and "matrix print" options in the GUI)
      Added option to manually define&edit ROI order and clusters in ROI-to-ROI results explorer window (see 'manually define ROI order/clusters' GUI option, or 'roi.order' options in doc conn_display)
-     Added option to display&edit 2nd-level covariate values in table format (see Setup Covariates (2nd-level) tab)
+     Added option to display&edit 2nd-level covariate values in table format (to make it simpler to change the values of one individual subject; see Setup Covariates (2nd-level) tab)
      Added option to automatically create interaction terms among 2nd-level covariates, and option to discretize/dummy-code categorical covariates (see 'covariate tools' in Setup Covariates (2nd-level) tab)
-     Added QDEC-style "layman's terms" interactive descriptions of second-level analyses, as well as list of suggested analyses automatically-populated based on each CONN project 2nd-level covariates (see 'Results (2nd-level)' tab)
-     Modified voxel-level results-explorer TFCE display to report only local maxima (prev. version reported both local maxima&minima)
+     Modified voxel-level results-explorer TFCE display to report only number of local maxima (prev. version reported number of both local maxima&minima)
      Added backup copy of conn_*.mat project file stored as conn_*/bakfile.mat (backup contains copy of last successfully-loaded version of the conn project file)
+     Added more flexible options to Tools.Run.SecondLevelResults menu (single-click run multiple second-level analyses, including different models and different sources/measures)
+     Added group-MVPA 'summary' display showing cumulative percent variance in multivoxel patterns explained by group-MVPA components (see second-level results tab)
      
 note: the symbol (*) in any of the lists above indicates changes that users need to pay special attention to when upgrading mid-analysis, as they may produce different results compared to previous versions (users may want to hold update until analyses are finished or take special precautions to ensure continuity; instructions for exact replicability with previous-version analyses are described in each case)
 

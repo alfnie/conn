@@ -360,7 +360,7 @@ end
 if state.isvol
     uicontrol('style','text','units','norm','position',[.69 .775 .15 .05],'string','Overlay threshold','horizontalalignment','right');
     state.handles.actthr=uicontrol('style','slider','units','norm','position',[.85 .775 .10 .05],'callback',{@conn_slice_display_refresh,'actthr'},'tooltipstring','Select overlay threshold');
-    set(state.handles.actthr,'value',max(0,min(1, (state.actthr-state.Vrange(1))/max(eps,state.Vrange(2)-state.Vrange(1)))));
+    set(state.handles.actthr,'value',max(0,min(1, abs(state.actthr)/max(eps,max(abs(state.Vrange))))));
     state.handles.actthr_txt=uicontrol('style','text','units','norm','position',[.95 .775 .05 .05],'string',mat2str(state.actthr,2));
     try, addlistener(state.handles.actthr, 'ContinuousValueChange',@(varargin)conn_slice_display_refresh(state.handles.actthr,[],'actthr')); end
     state.handles.viewoverlay=uicontrol('style','checkbox','units','norm','position',[.55 .75 .15 .05],'string','View overlay','value',state.viewoverlay,'callback',{@conn_slice_display_refresh,'viewoverlay'});    
@@ -716,9 +716,9 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 redrawnow=true;
             case 'actthr'
                 if numel(varargin)>0, state.actthr=varargin{1};
-                else state.actthr=state.Vrange(1)+max(eps,state.Vrange(2)-state.Vrange(1))*get(state.handles.actthr,'value');
+                else state.actthr=max(eps,max(abs(state.Vrange)))*get(state.handles.actthr,'value');
                 end
-                set(state.handles.actthr,'value',max(0,min(1, (state.actthr-state.Vrange(1))/max(eps,state.Vrange(2)-state.Vrange(1)))));
+                set(state.handles.actthr,'value',max(0,min(1, abs(state.actthr)/max(eps,max(abs(state.Vrange))))));
                 set(state.handles.actthr_txt,'string',mat2str(state.actthr,2));
                 redrawnow=true;
             case 'volthr'
@@ -739,7 +739,7 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                         state.Vrange([1 end])=answ;
                         redrawnow=true;
                     end
-                    set(state.handles.actthr,'value',max(0,min(1, (state.actthr-state.Vrange(1))/max(eps,state.Vrange(2)-state.Vrange(1)))));
+                    set(state.handles.actthr,'value',max(0,min(1, abs(state.actthr)/max(eps,max(abs(state.Vrange))))));
                     redrawnow=true;
                 else
                     set(state.handles.colorbar(2:end),'visible',varargin{1});
@@ -914,17 +914,21 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                     end
                     z1(z1<state.volthr)=nan;
                     if state.viewoverlay, tactthr=max(-eps,state.actthr);
-                    else tactthr=state.Vrange(2)+1;
+                    else tactthr=max(abs(state.Vrange))+1;
+                    end
+                    if state.Vrange(1)==0,      tactthr_pos=tactthr; tactthr_neg=inf;
+                    elseif state.Vrange(2)==0,  tactthr_pos=inf; tactthr_neg=tactthr;
+                    else                        tactthr_pos=tactthr; tactthr_neg=tactthr; 
                     end
                     if state.isvol, 
-                        z0=convn(convn(z2>tactthr|z2<-tactthr,conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same');
-                        %if state.isstat, z0=convn(convn(z2>tactthr|z2<-tactthr,conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same');
-                        %else z0=convn(convn((z2>tactthr|z2<-tactthr),conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same')&~convn(z2,[-1;0;1],'same')&~convn(z2,[-1 0 1],'same');
+                        z0=convn(convn(z2>tactthr_pos|z2<-tactthr_neg,conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same');
+                        %if state.isstat, z0=convn(convn(z2>tactthr_pos|z2<-tactthr_neg,conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same');
+                        %else z0=convn(convn((z2>tactthr_pos|z2<-tactthr_neg),conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same')&~convn(z2,[-1;0;1],'same')&~convn(z2,[-1 0 1],'same');
                         %end
                         if isempty(state.surf),
-                            [f1,f2,x0,x1,x2,f3]=conn_slice_display_surf2patch(x,y,z,state.expandmultiview,state.blackistransparent,state.handles.axes,nview,find(tslices==0),[1 1 2 2 2 1],z1,z2,~isnan(z1),{(z2>tactthr).*z2,tactthr},{-z2.*(z2<-tactthr),tactthr},z0);
+                            [f1,f2,x0,x1,x2,f3]=conn_slice_display_surf2patch(x,y,z,state.expandmultiview,state.blackistransparent,state.handles.axes,nview,find(tslices==0),[1 1 2 2 2 1],z1,z2,~isnan(z1),{(z2>tactthr_pos).*z2,tactthr},{-z2.*(z2<-tactthr_neg),tactthr},z0);
                         else
-                            [f1,f2,x0,x1,x2,x3,x4,f3]=conn_slice_display_surf2patch(x,y,z,state.expandmultiview,state.blackistransparent,state.handles.axes,nview,find(tslices==0),[1 1 2 2 2 3 3 1],z1,z2,~isnan(z1),{(z2>tactthr).*z2,tactthr},{-z2.*(z2<-tactthr),tactthr},state.surf(:,1),state.surf(:,end),z0);
+                            [f1,f2,x0,x1,x2,x3,x4,f3]=conn_slice_display_surf2patch(x,y,z,state.expandmultiview,state.blackistransparent,state.handles.axes,nview,find(tslices==0),[1 1 2 2 2 3 3 1],z1,z2,~isnan(z1),{(z2>tactthr_pos).*z2,tactthr},{-z2.*(z2<-tactthr_neg),tactthr},state.surf(:,1),state.surf(:,end),z0);
                         end
                     else
                         if isempty(state.surf),
@@ -951,8 +955,8 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                         %c0=c;
                         s2=f2.facevertexcdata;
                         maxs2=max(1e-4,max(abs(s2)));
-                        mask1=s2>tactthr;
-                        mask2=s2<-tactthr;
+                        mask1=s2>tactthr_pos;
+                        mask2=s2<-tactthr_neg;
                         c2a=max(0,min(1,(s2-max(0,state.Vrange(1)))/max(eps,state.Vrange(2)-max(0,state.Vrange(1)))));
                         c2b=max(0,min(1,(-s2+min(0,state.Vrange(2)))/max(eps,min(0,state.Vrange(2))-state.Vrange(1))));
                         %c2=.1+.9*abs(s2)/maxs2;

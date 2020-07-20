@@ -142,7 +142,7 @@ for isub=1:numel(nsubs),
                 f=reshape({regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-GM_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-GM_probseg.nii.gz'),...
                     regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-WM_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-WM_probseg.nii.gz'),...
                     regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-CSF_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-CSF_probseg.nii.gz')},2,[]);
-                ef=reshape(conn_existfile(f),size(f));§
+                ef=reshape(conn_existfile(f),size(f));
                 for nmask=1:3,
                     if any(ef(:,nmask)), 
                         localcopy_reduce=false;

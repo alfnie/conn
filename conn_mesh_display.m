@@ -254,12 +254,12 @@ if ~isempty(state.mask_color), set(state.handles.maskpatch,'facecolor',state.mas
 set(state.handles.maskpatch,'tag','mask_surface');
 
 state.handles.patchblob1=[]; state.handles.patchblob2=[];
-if ~isempty(state.pVOL1)
+if ~isempty(state.pVOL1) % positive blob
     for npvol=1:2:numel(state.pVOL1), state.handles.patchblob1=[state.handles.patchblob1 patch(state.pVOL1(npvol),'facecolor','r','edgecolor','none','alphadatamapping','none','FaceLighting', 'phong','facealpha',state.facealphablob,'backfacelighting','reverselit','parent',state.handles.hax)]; end
     for npvol=2:2:numel(state.pVOL1), state.handles.patchblob2=[state.handles.patchblob2 patch(state.pVOL1(npvol),'facecolor','r','edgecolor','none','alphadatamapping','none','FaceLighting', 'phong','facealpha',state.facealphablob,'backfacelighting','reverselit','parent',state.handles.hax)]; end
 end
 state.handles.patchblob3=[]; state.handles.patchblob4=[];
-if ~isempty(state.pVOL2)
+if ~isempty(state.pVOL2) % negative blob
     for npvol=1:2:numel(state.pVOL2), state.handles.patchblob3=[state.handles.patchblob3 patch(state.pVOL2(npvol),'facecolor','b','edgecolor','none','alphadatamapping','none','FaceLighting', 'phong','facealpha',state.facealphablob,'backfacelighting','reverselit','parent',state.handles.hax)]; end
     for npvol=2:2:numel(state.pVOL2), state.handles.patchblob4=[state.handles.patchblob4 patch(state.pVOL2(npvol),'facecolor','b','edgecolor','none','alphadatamapping','none','FaceLighting', 'phong','facealpha',state.facealphablob,'backfacelighting','reverselit','parent',state.handles.hax)]; end
 end
@@ -493,6 +493,9 @@ if ~isempty(state.pVOL1)||~isempty(state.pVOL2)
     thdl=[thdl,uimenu(hc1,'Label','Activation surface off','callback',{@conn_mesh_display_refresh,'act_transparency',0},'tag','act_transparency')];
     [nill,idx]=min(abs(state.facealphablob-[1 tvalues]));
     set(thdl,'checked','off');set(thdl(max(1,min(numel(thdl),idx))),'checked','on');
+    uimenu(hc1,'Label','Positive activation surface only','callback',{@conn_mesh_display_refresh,'act_pos'});
+    uimenu(hc1,'Label','Negative activation surface only','callback',{@conn_mesh_display_refresh,'act_neg'});
+    uimenu(hc1,'Label','Positive & Negative activation surfaces','callback',{@conn_mesh_display_refresh,'act_posneg'});
     uimenu(hc1,'Label','Activation surface color','callback',{@conn_mesh_display_refresh,'act_color'});
 end
 
@@ -1065,6 +1068,15 @@ if ishandle(hmsg), delete(hmsg); end
                 scale=varargin{1};
                 state.facealphablob=max(eps,scale);
                 set([state.handles.patchblob1 state.handles.patchblob2 state.handles.patchblob3 state.handles.patchblob4],'facealpha',state.facealphablob);
+            case 'act_pos'
+                set([state.handles.patchblob1 state.handles.patchblob2],'visible','on');
+                set([state.handles.patchblob3 state.handles.patchblob4],'visible','off');
+            case 'act_neg'
+                set([state.handles.patchblob1 state.handles.patchblob2],'visible','off');
+                set([state.handles.patchblob3 state.handles.patchblob4],'visible','on');
+            case 'act_posneg'
+                set([state.handles.patchblob1 state.handles.patchblob2],'visible','on');
+                set([state.handles.patchblob3 state.handles.patchblob4],'visible','on');
             case 'act_color'
                 if numel(varargin)>0, color=varargin{1};
                 else color=uisetcolor([],'Select color'); if isempty(color)||isequal(color,0), return; end; 
