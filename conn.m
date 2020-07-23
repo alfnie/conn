@@ -734,6 +734,7 @@ else
             
             if strcmpi(varargin{1},'initfromgui'), CONN_x.Setup.RT=2; end % backward compatibility (might be removed at some point to new NaN value default)
             CONN_x.Setup.functional{1}{1}={[],[],[]};
+            CONN_x.Setup.structural{1}{1}={[],[],[]};
             CONN_x.Setup.nscans{1}{1}=0;
             CONN_x.Setup.spm{1}={[],[],[]};
             CONN_x.Setup.dicom{1}={[],[],[]};;
@@ -760,10 +761,8 @@ else
             CONN_x.Setup.rois.regresscovariates=[0,1,1];
             CONN_x.Setup.rois.unsmoothedvolumes=[1,1,1];
             CONN_x.Setup.rois.weighted=[0,0,0];
-            filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
-            CONN_x.Setup.structural{1}{1}=conn_file(filename);
-            %filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
-            filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_trans.nii');
+            %if strcmpi(varargin{1},'initfromgui'), CONN_x.Setup.structural{1}{1}=conn_file(fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii')); end
+            filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_trans.nii'); %filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
             V=spm_vol(filename);
             CONN_gui.refs.canonical=struct('filename',filename,'V',V,'data',spm_read_vols(V));
             [x,y,z]=ndgrid(1:CONN_gui.refs.canonical.V.dim(1),1:CONN_gui.refs.canonical.V.dim(2),1:CONN_gui.refs.canonical.V.dim(3));
@@ -9189,8 +9188,8 @@ else
                         CONN_h.menus.m_results_00{21}=[];
                     end 
                     
-                    CONN_h.menus.m_results_00{56}=conn_menu('popupwhite',boffset+[-.015,.76,.56,.035],'',{' '},'<HTML>choose analysis measure<br/> - these choices are automatically generated from your list of conditions. <br/> - to select other combinations, manually select the condition(s) of interest in the <i>conditions</i> list, <br/> and define below the desired between-conditions contrast</HTML>','conn(''gui_results'',56);');
-                    CONN_h.menus.m_results_00{57}=conn_menu('popupwhite',boffset+[-.015,.73,.56,.035],'',{' '},'<HTML>choose analysis description<br/> - these choices are automatically generated from your list of 2nd-level covariates.<br/> - create new 2nd-level covariates for additional analyses (e.g. add interaction terms between existing covariates)<br/> - to select other combinations, manually select the subject-effecct(s) of interest in the <i>subject-effects</i> list below, <br/> and define below the desired between-subjects contrast</HTML>','conn(''gui_results'',57);');
+                    CONN_h.menus.m_results_00{56}=conn_menu('popupwhite',boffset+[-.015,.76,.56,.035],'',{' '},'<HTML>choose analysis measure<br/> - these choices are automatically generated from your list of conditions. <br/> - to select other combinations not present in this list, manually select the condition(s) of interest <br/>in the <i>conditions</i> list below, and define there the desired between-conditions contrast</HTML>','conn(''gui_results'',56);');
+                    CONN_h.menus.m_results_00{57}=conn_menu('popupwhite',boffset+[-.015,.73,.56,.035],'',{' '},'<HTML>choose analysis description<br/> - these choices are automatically generated from your list of 2nd-level covariates. Please create new 2nd-level covariates <br/> for additional analyses (e.g. by adding new covariates or adding interaction terms between existing covariates)<br/> - to select other combinations not present in this list, manually select the subject-effecct(s) of interest in <br/>the <i>subject-effects</i> list below, and define there the desired between-subjects contrast</HTML>','conn(''gui_results'',57);');
                     CONN_h.menus.m_results_00{58}=conn_menu('popupwhite',boffset+[-.015,.70,.56,.035],'',{' '},['<HTML>choose control covariates<br/> - To select other arbitrary control covariates, choose first the desired analysis description above, and then use ',CONN_gui.keymodifier,'-click in the <br/> <i>subject-effects</i> list below to add any additional control covariates</HTML>'],'conn(''gui_results'',58);');
                     %set([CONN_h.menus.m_results_00{56},CONN_h.menus.m_results_00{57},CONN_h.menus.m_results_00{58}],'fontweight','bold');
                     set(CONN_h.menus.m_results_00{58},'horizontalalignment','left');%,'fontsize',5+CONN_gui.font_offset);

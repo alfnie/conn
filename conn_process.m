@@ -3197,7 +3197,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                         if 1,%~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjectlevelonly')&&CONN_x.gui.subjectlevelonly),
                             filename=fullfile(filepathresults,['TEMPORAL1_Measure',num2str(imeasure(nmeasures1+1),'%03d'),'.mat']);
                             load(filename,'C');
-                            if NdimsIn>thisNdimsIn,
+                            if NdimsIn>thisNdimsIn, % placeholder (to do: break down MVPA into separable group- and subject- level processes)
                                 if ismtxC,
                                     C=conn_mtx('zerocolumns',C,thisNdimsIn+1:NdimsIn);
                                     C=conn_mtx('zerorows',C,conn_bsxfun(@plus,NdimsIn*(0:numel(validsubjects)*numel(validconditions)-1)',thisNdimsIn+1:NdimsIn));
@@ -3243,6 +3243,12 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     try, delete(filename); end
                                     filesoutCov(ndim)=spm_create_vol(struct('fname',filename,'mat',Y1.matdim.mat,'dim',Y1.matdim.dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip',mfilename));
                                 end
+                                maxvoxels=max(1,floor(MAXMEM/(8*(numel(validsubjects)*numel(validconditions))^2)));
+                                if maxvoxels>=NdimsOut, Qglobal=zeros([numel(validsubjects)*numel(validconditions)*[1 1], NdimsOut]); 
+                                else
+                                    filenameglobal=fullfile(filepathresults,'TEMPORAL2.mtx');
+                                    Qglobal=conn_mtx('init',[numel(validsubjects)*numel(validconditions)*[1 1], NdimsOut],filenameglobal);
+                                end
                                 for slice=1:Y1.size.Ns,
                                     for isub=1:numel(validsubjects)
                                         nsub=validsubjects(isub);
@@ -3259,7 +3265,6 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     end
                                     xEig=zeros([numel(validsubjects)*numel(validconditions),NdimsOut,Y1.size.Nv(slice)]);
                                     dCov=zeros([NdimsOut,Y1.size.Nv(slice)]);
-                                    maxvoxels=max(1,floor(MAXMEM/(8*(numel(validsubjects)*numel(validconditions))^2)));
                                     for nvoxelbase=1:maxvoxels:Y1.size.Nv(slice), % blocks of voxels (when single-slice c data does not fit in memory)
                                         ivox=nvoxelbase:min(Y1.size.Nv(slice),nvoxelbase+maxvoxels-1);
                                         c=zeros([numel(ivox),repmat([numel(validsubjects),numel(validconditions)],[1,2])]);
@@ -3299,6 +3304,9 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                             Q=conn_bsxfun(@times,Q,dr');
                                             xEig(:,:,ivox(nvox))=Q;
                                             dCov(:,ivox(nvox))=cumsum(d(1:NdimsOut).^2)./max(eps,sum(d.^2));
+                                            if maxvoxels>=NdimsOut, for ndim=1:NdimsOut, Qglobal(:,:,ndim)=Qglobal(:,:,ndim)+Q(:,ndim)*Q(:,ndim)'; end; 
+                                            else for ndim=1:NdimsOut, conn_mtx('addtoblock',Qglobal,ndim,Q(:,ndim)*Q(:,ndim)'); end; 
+                                            end
                                             %conn_write_voxel(Yout,Q,nvox0+nvox);
                                         end
                                     end
@@ -3314,7 +3322,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                                 filesout(nsub,ncondition,ndim)=spm_write_plane(filesout(nsub,ncondition,ndim),t,slice);
                                             end
                                         end
-                                        conn_waitbar((slice+nsub/CONN_x.Setup.nsubjects-1)/Y1.size.Ns,h2,sprintf('Slice %d Subject %d',slice,nsub));
+                                        conn_waitbar(.75*(slice+nsub/CONN_x.Setup.nsubjects-1)/Y1.size.Ns,h2,sprintf('Slice %d Subject %d',slice,nsub));
                                     end
                                     for ndim=1:NdimsOut
                                         t=zeros(Y1.matdim.dim(1:2));
@@ -3323,6 +3331,18 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     end
                                     %                         conn_write_slice(Yout,reshape(xEig,[CONN_x.Setup.nsubjects*nconditions*NdimsOut,Y1.size.Nv(slice)]),slice);
                                     %                         conn_write_slice(Dout,reshape(dCov,[NdimsOut,Y1.size.Nv(slice)]),slice);
+                                end
+                                for ndim=1:NdimsOut, % flip orthogonal basis signs for global consistency
+                                    if maxvoxels>=NdimsOut, c1=Qglobal(:,:,ndim);
+                                    else c1=conn_mtx('getblock',Qglobal,ndim);
+                                    end
+                                    try, [Q,D]=svd(c1);
+                                    catch, [Q,D]=svds(c1,1);
+                                    end
+                                    Q=Q(:,1);
+                                    if mean(Q)<0, Q=-Q; end
+                                    conn_signflip(filesout(:,:,ndim),Q);
+                                    conn_waitbar(.75+.25*ndim/NdimsOut,h2,sprintf('Component %d',ndim));
                                 end
                                 for nsub=1:CONN_x.Setup.nsubjects
                                     for ncondition=validconditions,
