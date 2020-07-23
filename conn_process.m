@@ -4897,6 +4897,11 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                                 conn_waitbar(1/2+1/2*((n1-1+(.5+.5*~doboth)*(n2/SPM.xY.VY(1).dim(1)))/(length(SPMall))),h,sprintf('Analysis %d',n1));
                             end
                         end
+                        if size(SPM.xX_multivariate.F,1)==1&&size(SPM.xX_multivariate.F,2)==1
+                            V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','spmF_mv.nii','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')]);
+                            V=spm_write_vol(V,shiftdim(SPM.xX_multivariate.F,2));
+                            try, spm_jsonwrite('spmF_mv.json',struct('dof',SPM.xX_multivariate.dof(:)','statsname',SPM.xX_multivariate.statsname)); end
+                        end
                     end
                     if issurface
                         V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','mask.img','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('uint8') spm_platform('bigend')]);

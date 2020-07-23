@@ -51,9 +51,11 @@ switch(ftype)
         if mtype==1, b=zeros(size(x));
         else         b=zeros([size(x,1) size(x,2) size(x,3) Nrois]);
         end
+        mind2=inf(size(x));
         for n=1:Nrois, 
-            mask=((x-xyz(n,1)).^2+(y-xyz(n,2)).^2+(z-xyz(n,3)).^2<rad(min(numel(rad),n))^2);
-            if mtype==1, b(b==0 & mask)=n;
+            td2=(x-xyz(n,1)).^2+(y-xyz(n,2)).^2+(z-xyz(n,3)).^2;
+            mask=(td2<rad(min(numel(rad),n))^2);
+            if mtype==1, tmask=td2<mind2 & mask; b(tmask)=n; mind2(tmask)=td2(tmask); % note: if overlapping, voxel assigned to closest ROI centroid
             else         b(find(mask)+size(b,1)*size(b,2)*size(b,3)*(n-1))=1;
             end
         end

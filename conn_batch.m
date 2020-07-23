@@ -1739,18 +1739,18 @@ if isfield(batch,'Results'),
             end
             
             if isvv
-                if ~isfield(batch.Results,'between_sources')||isempty(batch.Results.between_sources),
+                if ~isfield(batch.Results,'between_measures')||isempty(batch.Results.between_measures),
                     if 1,%isfield(batch.Results,'done')&&batch.Results.done
                         clear batchtemp;
                         if isfield(batch,'filename'), batchtemp.filename=batch.filename; else, batchtemp.filename=CONN_x.filename; end
-                        batchtemp.vvResults=batch.Results;
+                        batchtemp.Results=batch.Results;
                         for nmeasure=1:length(CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures),
-                            batchtemp.vvResults.between_measures.effect_names=conn_v2v('cleartext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures(nmeasure));
-                            batchtemp.vvResults.between_measures.contrast=[1];
+                            batchtemp.Results.between_measures.effect_names=conn_v2v('cleartext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures(nmeasure));
+                            batchtemp.Results.between_measures.contrast=[1];
                             conn_batch(batchtemp);
                         end
                     end
-                elseif isfield(batch.Results,'between_sources'),
+                elseif isfield(batch.Results,'between_measures'),
                     CONN_x.Results.xX.nmeasures=zeros(1,length(batch.Results.between_measures.effect_names));
                     CONN_x.Results.xX.nmeasuresbyname=cell(1,length(batch.Results.between_measures.effect_names));
                     for neffect=1:length(batch.Results.between_measures.effect_names),

@@ -480,10 +480,10 @@ if nargin<1,
                                     'bordertype','round',...
 									'callback',{{@conn,'gui_analyses_done_dyn'}} );
 	CONN_h.menus.m_results_03a=conn_menumanager([], 'n',3,...
-									'string',{'Spatial analyses','Temporal analyses','Summary'},...
+									'string',{'Spatial components','Temporal components','Summary'},...
 									'help',{'Define/explore second-level analyses of dyn-ICA spatial components (circuits)','Define/explore second-level analyses of dyn_ICA temporal components (connectivity-modulation timeseries)','Summary display of dyn-ICA analyses'},...
                                     'order','horizontal',...
-									'position',[.65,.91,3*.09,.04],...
+									'position',[.0,.0,3*.10,.045],...
 									'state',[1,0,0],...
 									'value',1,...
                                     'toggle',1,...
@@ -492,10 +492,10 @@ if nargin<1,
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_results_dyn'},{@conn,'gui_results_dyn'},{@conn,'gui_results_dyn'}} );
 	CONN_h.menus.m_results_03b=conn_menumanager([], 'n',3,...
-									'string',{'Spatial analyses','Temporal analyses','Summary'},...
+									'string',{'Spatial components','Temporal components','Summary'},...
 									'help',{'Define/explore second-level analyses of ICA spatial components (networks)','Define/explore second-level analyses of ICA temporal components (network timeseries)','Summary display of Independent Component analyses'},...
                                     'order','horizontal',...
-									'position',[.65,.91,3*.09,.04],...
+									'position',[.0,.0,3*.10,.045],...
 									'state',[1,0,0],...
 									'value',1,...
                                     'toggle',1,...
@@ -504,10 +504,10 @@ if nargin<1,
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_results_ica'},{@conn,'gui_results_ica'},{@conn,'gui_results_ica'}} );
 	CONN_h.menus.m_results_03c=conn_menumanager([], 'n',2,...
-									'string',{'Analyses','Summary'},...
-									'help',{'Define/explore second-level analyses of multivariate correlation (MCOR) maps','Summary display of MCOR components'},...
+									'string',{'Group-analyses','Summary'},...
+									'help',{'Define/explore second-level analyses of multivoxel connectivity patterns','Summary display of multivoxel components'},...
                                     'order','horizontal',...
-									'position',[.70,.91,2*.09,.04],...
+									'position',[.0,.0,2*.15,.045],...
 									'state',[1,0],...
 									'value',1,...
                                     'toggle',1,...
@@ -8994,17 +8994,17 @@ else
                 switch(state)
                     case 1, %if ok, conn_menumanager([CONN_h.menus.m_results_04,CONN_h.menus.m_results_04b],'on',1); end
                         %if ok, conn_menumanager([CONN_h.menus.m_results_04b],'on',1); end
-                        if stateb, conn_menumanager(CONN_h.menus.m_results_03a,'on',1); end
+                        if stateb, conn_menumanager(CONN_h.menus.m_results_03a,'on',1); conn_menu('frame2border',[.0,0,.3,.045],''); end
                         dp2=.27;dp3=.05;
                     case 2, %if ok, conn_menumanager([CONN_h.menus.m_results_05],'on',1); end
                         dp2=0;dp3=.05;
                     case 3, %if ok, conn_menumanager([CONN_h.menus.m_results_06],'on',1); end
-                        if stateb, conn_menumanager(CONN_h.menus.m_results_03b,'on',1); end
-                        if statec, conn_menumanager(CONN_h.menus.m_results_03c,'on',1); end
+                        if stateb, conn_menumanager(CONN_h.menus.m_results_03b,'on',1); conn_menu('frame2border',[.0,0,.3,.045],''); end
+                        if statec, conn_menumanager(CONN_h.menus.m_results_03c,'on',1); conn_menu('frame2border',[.0,0,.3,.045],''); end
                         dp2=0;
-                    case 4, conn_menumanager(CONN_h.menus.m_results_03b,'on',1);
-                    case 5, conn_menumanager(CONN_h.menus.m_results_03a,'on',1);
-                    case 6, conn_menumanager(CONN_h.menus.m_results_03c,'on',1);
+                    case 4, conn_menumanager(CONN_h.menus.m_results_03b,'on',1); conn_menu('frame2border',[.0,0,.3,.045],''); 
+                    case 5, conn_menumanager(CONN_h.menus.m_results_03a,'on',1); conn_menu('frame2border',[.0,0,.3,.045],''); 
+                    case 6, conn_menumanager(CONN_h.menus.m_results_03c,'on',1); conn_menu('frame2border',[.0,0,.3,.045],''); 
                 end
                 if CONN_h.menus.m_results.usetablewhite==0, dp1=dp1+.10; end
                 if state==1,
@@ -9298,8 +9298,8 @@ else
                             conn_menumanager('onregion',CONN_h.menus.m_results_00{37},1,boffset+pos+[0 0 .015 0]);
                         end
                         %conn_menu('frame2noborder',boffset+[-.005,.085,.565,.135],'');
-                        if CONN_h.menus.m_results.usetablewhite, [CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22}]=conn_menu('listbox0',boffset+[.005,.05,.550,.06],sprintf('%-60s%10s%10s%12s%12s','Targets','beta','T','p-unc','p-FDR'),'   ','browse target ROIs -or right click for more options-','conn(''gui_results'',18);');
-                        else [CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22}]=conn_menu('listbox0',boffset+[.005,.05,.550,.10],sprintf('%-60s%10s%10s%12s%12s','Targets','beta','T','p-unc','p-FDR'),'   ','browse target ROIs -or right click for more options-','conn(''gui_results'',18);');
+                        if CONN_h.menus.m_results.usetablewhite, [CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22}]=conn_menu('listbox0',boffset+[.005,.06,.550,.05],sprintf('%-60s%10s%10s%12s%12s','Targets','beta','T','p-unc','p-FDR'),'   ','browse target ROIs -or right click for more options-','conn(''gui_results'',18);');
+                        else [CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22}]=conn_menu('listbox0',boffset+[.005,.06,.550,.09],sprintf('%-60s%10s%10s%12s%12s','Targets','beta','T','p-unc','p-FDR'),'   ','browse target ROIs -or right click for more options-','conn(''gui_results'',18);');
                         end
                         set(CONN_h.menus.m_results_00{18},'max',2,'fontname','monospaced','fontsize',8+CONN_gui.font_offset);
                         set(CONN_h.menus.m_results_00{22},'fontsize',8+CONN_gui.font_offset);
@@ -10785,32 +10785,40 @@ else
                                 %disp(resultsfolder);
                                 p=[];h=[];F=[];statsname=[];dof=[];
                                 CONN_h.menus.m_results.design.pwd=resultsfolder;
-                                if conn_existfile(fullfile(resultsfolder,'SPM.mat'))
+                                if conn_existfile(fullfile(resultsfolder,'spmF_mv.nii')), 
+                                    tvol=spm_vol(fullfile(resultsfolder,'spmF_mv.nii'));
+                                    [tx,ty,tz]=ndgrid(1:CONN_h.menus.m_results.Y(1).dim(1),1:CONN_h.menus.m_results.Y(1).dim(2),1:CONN_h.menus.m_results.Y(1).dim(3)); txyz=[tx(:) ty(:) tz(:) ones(numel(tx),1)]';
+                                    SPM.xX_multivariate.F=reshape(spm_get_data(tvol,pinv(tvol(1).mat)*CONN_h.menus.m_results.Y(1).mat*txyz),[1,1,CONN_h.menus.m_results.Y(1).dim]);
+                                    SPM.xX_multivariate.h=SPM.xX_multivariate.F;
+                                    info=conn_jsonread(fullfile(resultsfolder,'spmF_mv.json'));
+                                    SPM.xX_multivariate.statsname=info.statsname;
+                                    SPM.xX_multivariate.dof=info.dof;
+                                elseif conn_existfile(fullfile(resultsfolder,'SPM.mat'))
                                     load(fullfile(resultsfolder,'SPM.mat'),'SPM');
-                                    try
-                                        dof=SPM.xX_multivariate.dof;
-                                        statsname=SPM.xX_multivariate.statsname;
-                                        if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])
-                                            if CONN_h.menus.m_results_surfhires
-                                                h=reshape(SPM.xX_multivariate.h,1,[]);
-                                                F=reshape(SPM.xX_multivariate.F,1,[]);
-                                            else
-                                                h=reshape(SPM.xX_multivariate.h(:,:,:,:,[1,conn_surf_dims(8)*[0;0;1]+1]),1,[]);
-                                                F=reshape(SPM.xX_multivariate.F(:,:,:,:,[1,conn_surf_dims(8)*[0;0;1]+1]),1,[]);
-                                            end
+                                end
+                                try
+                                    dof=SPM.xX_multivariate.dof;
+                                    statsname=SPM.xX_multivariate.statsname;
+                                    if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])
+                                        if CONN_h.menus.m_results_surfhires
+                                            h=reshape(SPM.xX_multivariate.h,1,[]);
+                                            F=reshape(SPM.xX_multivariate.F,1,[]);
                                         else
-                                            if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
-                                            %set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
-                                            h=reshape(SPM.xX_multivariate.h(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
-                                            F=reshape(SPM.xX_multivariate.F(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
+                                            h=reshape(SPM.xX_multivariate.h(:,:,:,:,[1,conn_surf_dims(8)*[0;0;1]+1]),1,[]);
+                                            F=reshape(SPM.xX_multivariate.F(:,:,:,:,[1,conn_surf_dims(8)*[0;0;1]+1]),1,[]);
                                         end
-                                        p=nan+zeros(size(F));idxvalid=find(~isnan(F));
-                                        if ~isempty(idxvalid)
-                                            switch(statsname),
-                                                case 'T', p(idxvalid)=1-spm_Tcdf(F(idxvalid),dof(end));
-                                                case 'F', p(idxvalid)=1-spm_Fcdf(F(idxvalid),dof(1),dof(2));
-                                                case 'X', p(idxvalid)=1-spm_Xcdf(F(idxvalid),dof);
-                                            end
+                                    else
+                                        if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
+                                        %set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
+                                        h=reshape(SPM.xX_multivariate.h(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
+                                        F=reshape(SPM.xX_multivariate.F(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
+                                    end
+                                    p=nan+zeros(size(F));idxvalid=find(~isnan(F));
+                                    if ~isempty(idxvalid)
+                                        switch(statsname),
+                                            case 'T', p(idxvalid)=1-spm_Tcdf(F(idxvalid),dof(end));
+                                            case 'F', p(idxvalid)=1-spm_Fcdf(F(idxvalid),dof(1),dof(2));
+                                            case 'X', p(idxvalid)=1-spm_Xcdf(F(idxvalid),dof);
                                         end
                                     end
                                 end

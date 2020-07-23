@@ -473,8 +473,25 @@ else
             for n1=changed(:)',%1:CONN_MM.MENU{thishandle}.n,
                 x=1+(CONN_MM.MENU{thishandle}.value==n1 & ~CONN_MM.MENU{thishandle}.state(n1))+2*CONN_MM.MENU{thishandle}.state(n1);
                 ximage=CONN_MM.CDATA{thishandle}{n1}{x};
-                if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, ximage=max(0,min(1,ximage*1.5)); ximage=ximage.*repmat(.6+.3*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[size(ximage,1),1,size(ximage,3)]); end %ximage=.5*ximage+.5*mean(CONN_MM.CDATA{thishandle}{n1}{min(3,1+x)});end
-
+                if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, 
+                    ximage0=round(ximage);
+                    ximage=max(0,min(1,ximage*1.5)); ximage=ximage.*repmat(.6+.3*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[size(ximage,1),1,size(ximage,3)]); 
+                    if 0,%CONN_MM.MENU{thishandle}.order(1)~='h'
+                        ximagei=1;
+                        ximage(:,ximagei,:)=ximage0(:,ximagei,:); % left
+                        ximagei=size(ximage,2);
+                        ximage(:,ximagei,:)=ximage0(:,ximagei,:); % right
+                        if t4(n1)==0, % top
+                            ximagei=1; 
+                            ximage(ximagei,:,:)=ximage0(ximagei,:,:);
+                        end
+                        if t4(n1+1)==1 % bottom
+                            ximagei=size(ximage,1); 
+                            ximage(ximagei,:,:)=ximage0(ximagei,:,:);
+                        end
+                    end
+                end
+                
                 %CONN_MM.MENU{thishandle}.BINDEX(t3(n1)+1:t3(n1+1))=n1;
                 if CONN_MM.MENU{thishandle}.order(1)=='h', pos=[CONN_MM.MENU{thishandle}.position(1)+t4(n1)*CONN_MM.MENU{thishandle}.position(3), CONN_MM.MENU{thishandle}.position(2), CONN_MM.MENU{thishandle}.position(3)*(t4(n1+1)-t4(n1)), CONN_MM.MENU{thishandle}.position(4)];
                 else pos=[CONN_MM.MENU{thishandle}.position(1), CONN_MM.MENU{thishandle}.position(2)+CONN_MM.MENU{thishandle}.position(4)-t4(n1+1)*CONN_MM.MENU{thishandle}.position(4), CONN_MM.MENU{thishandle}.position(3), CONN_MM.MENU{thishandle}.position(4)*(t4(n1+1)-t4(n1))]; end
@@ -588,7 +605,7 @@ else
                     else set(CONN_MM.HELP.handle,'string',CONN_MM.HELP.string,'visible','on');
                     end
                 else
-                    ha=axes('units','norm','position',[.15,.02,.7,.03],'visible','off','parent',CONN_MM.gcf);
+                    ha=axes('units','norm','position',[.3,.02,.4,.03],'visible','off','parent',CONN_MM.gcf);
                     CONN_MM.HELP.handle=text(0,1,CONN_MM.HELP.string,'color',1-bg,'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
                     set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
                     %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string',CONN_MM.HELP.string,'fontsize',8+CONN_gui.font_offset); 
@@ -599,7 +616,7 @@ else
                     else set(CONN_MM.HELP.handle,'string',['Project: ',CONN_x.filename],'visible','on');
                     end
                 else
-                    ha=axes('units','norm','position',[.15,.02,.7,.03],'visible','off','parent',CONN_MM.gcf);
+                    ha=axes('units','norm','position',[.3,.02,.4,.03],'visible','off','parent',CONN_MM.gcf);
                     CONN_MM.HELP.handle=text(0,1,'','color',1-bg,'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
                     set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
                     %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string','','fontsize',8+CONN_gui.font_offset); 

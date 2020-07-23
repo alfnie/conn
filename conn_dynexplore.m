@@ -84,7 +84,7 @@ Hscale=max(abs(H(:)));
 idxlock=[1,2,0]; 
 
 boffset=[0 0 0 0];
-conn_menu('frame2',boffset+[.05,.39,.92,.49],'');%'Component loadings');
+conn_menu('frame2',boffset+[.03,.08,.94,.80],'');%'Component loadings');
 %conn_menu('frame',boffset+[.44 .46 .16 .46],'');
 poslist=boffset+[.07 .42 .40 .36];
 ht2=conn_menu('listbox2',poslist,'',names,'<HTML>Select dynamic circuits for display</HTML>',@(varargin)conn_dynexplore_update([0 0 1 0]));
@@ -96,15 +96,15 @@ ht2a(2)=conn_menu('pushbutton2',temp+[1*temp(3) 0 0 0],'','kurtosis','Spatial ku
 ht2a(3)=conn_menu('pushbutton2',temp+[2*temp(3) 0 0 0],'','skewness','Spatial skewness (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 3]));
 ht2a(4)=conn_menu('pushbutton2',temp+[3*temp(3) 0 0 0],'','variability','Temporal component timeseries standard deviation averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 4]));
 ht2a(5)=conn_menu('pushbutton2',temp+[4*temp(3) 0 0 0],'','frequency','Temporal component timeseries frequency (Hz) averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 5]));
-ht1=conn_menu('listbox2',boffset+[.80 .21 .10 .08],'Subjects',arrayfun(@(n)sprintf('Subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'Select subject(s) for display',@(varargin)conn_dynexplore_update);
+ht1=conn_menu('listbox2',boffset+[.80 .26 .10 .08],'Subjects',arrayfun(@(n)sprintf('Subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'Select subject(s) for display',@(varargin)conn_dynexplore_update);
 ht7=conn_menu('edit2',boffset+[.78 .38 .05 .04],'','2','display threshold',@(varargin)conn_dynexplore_update([0 0 1 0 0]));
 ht7b=conn_menu('text2',boffset+[.73 .38 .05 .035],'','threshold');
-[ht6a(1) ht6a(2)]=conn_menu('popup2',boffset+[.80 .13 .16 .04],'Seed ROI',ROInamesDisplay,'<HTML>Select seed ROI for dynamic connectivity timeseries display</HTML>',@(varargin)conn_dynexplore_selectroi);
-[ht6b(1) ht6b(2)]=conn_menu('popup2',boffset+[.80 .06 .16 .04],'Target ROI',ROInamesDisplay,'<HTML>Select target ROI for dynamic connectivity timeseries display</HTML>',@(varargin)conn_dynexplore_selectroi);
-ht3=conn_menu('slider',boffset+[.20 .05 .55 .04],'Time',1,'<HTML>Select time point</HTML>',@(varargin)conn_dynexplore_update);
+[ht6a(1) ht6a(2)]=conn_menu('popup2',boffset+[.80 .18 .16 .04],'Seed ROI',ROInamesDisplay,'<HTML>Select seed ROI for dynamic connectivity timeseries display</HTML>',@(varargin)conn_dynexplore_selectroi);
+[ht6b(1) ht6b(2)]=conn_menu('popup2',boffset+[.80 .11 .16 .04],'Target ROI',ROInamesDisplay,'<HTML>Select target ROI for dynamic connectivity timeseries display</HTML>',@(varargin)conn_dynexplore_selectroi);
+ht3=conn_menu('slider',boffset+[.20 .10 .55 .04],'Time',1,'<HTML>Select time point</HTML>',@(varargin)conn_dynexplore_update);
 try, addlistener(ht3, 'ContinuousValueChange',@(varargin)conn_dynexplore_update); end
 set(ht3,'visible','off');
-conn_menumanager('onregion',ht3,1,boffset+[.18 .03 .59 .08]);
+conn_menumanager('onregion',ht3,1,boffset+[.18 .08 .59 .08]);
 ht4=conn_menu('popup2',boffset+[.60 .84 .18 .04],'',{'Spatial components','Estimated dynamic connectivity','Static vs. Dynamic connectivity plot'},'<HTML>Select connectivity display <br/> - <i>Spatial components</i> shows the spatial component scores for each selected circuit(s) (connections showing joint modulation of functional connectivity)<br/> - <i>Estimated dynamic connectivity</i> shows the estimated ROI-to-ROI connectivity at each timepoint/scan <br/> - <i>Static vs. Dynamic connectivity plot</i> shows a scatter plot comparing the static vs. dynamic connectivity (at each timepoint/scan) for each connection</HTML>',@(varargin)conn_dynexplore_update);
 ht4b=conn_menu('popup2',boffset+[.60 .34 .20 .04],'',{'Display full connectivity','Display selected circuit(s) contribution only'},'<HTML>Select full connectivity to display the full dynamic ROI-to-ROI connectivity values or <br/> only the portion explained by the selected circuit(s)</HTML>',@(varargin)conn_dynexplore_update);
 ht4c=conn_menu('pushbutton2',boffset+[.78 .84 .05 .04],'','Play','<HTML>Display dynamic connectivity over time</HTML>',@(varargin)conn_dynexplore_play);
@@ -246,7 +246,7 @@ conn_dynexplore_update([1 1 1 1 1]);
         end
         if doreset(4)||isempty(handlescor)||any(~ishandle(handlescor))
             delete(handlescor(ishandle(handlescor)));
-            h1=axes('units','norm','position',[.20 .07 .55 .24]);
+            h1=axes('units','norm','position',[.20 .12 .55 .24]);
             if isempty(itime), h2=plot(nan(2,Nf),nan(2,Nf),'-',nan,nan,'w-',[0 size(H,1)+1 nan 0 size(H,1)+1],[0 0 nan -2 -2],'k-',[0 0],[-4 2],'w:');
             else h2=plot(repmat((1:Nt)',1,Nf),H(itime,:),'-',1:Nt,zeros(1,Nt),'w-',[0 size(H,1)+1 nan 0 size(H,1)+1],[0 0 nan -2 -2],'k-',[0 0],[-4 2],'w:');
             end

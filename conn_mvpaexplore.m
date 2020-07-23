@@ -22,23 +22,34 @@ volref=CONN_gui.refs.canonical.V;
 Bref=reshape(spm_get_data(volref,pinv(volref.mat)*xyz),vol(1).dim(1:3)).^2;
 names=arrayfun(@(n)sprintf('%s_%d',ICAPCA,n),1:size(B,4),'uni',0);
 labels=repmat({''},1,numel(names));
+% GMmask=spm_vol(char({fullfile(fileparts(which('conn')),'utils','surf','referenceGM.nii'),fullfile(fileparts(which('conn')),'utils','surf','referenceWM.nii'),fullfile(fileparts(which('conn')),'utils','surf','referenceCSF.nii')}));
+% Bgm=reshape(spm_get_data(GMmask(1),pinv(GMmask(1).mat)*xyz),vol(1).dim(1:3));
+% Bwm=reshape(spm_get_data(GMmask(2),pinv(GMmask(2).mat)*xyz)+spm_get_data(GMmask(3),pinv(GMmask(3).mat)*xyz),vol(1).dim(1:3));
+% Bgm=double(Bgm>.5);
+% Bwm=double(Bwm>.5);
+
 TR=conn_get_rt;
 Ncomponents=size(B,4);
 VARx=reshape(sum(sum(sum(B,1),2),3)./sum(sum(sum(mask,1),2),3),1,[]);
+% VARx=reshape(sum(sum(sum(B.*Bgm,1),2),3)./sum(sum(sum(mask.*Bgm,1),2),3),1,[]);
+% VARx0=reshape(sum(sum(sum(B.*Bwm,1),2),3)./sum(sum(sum(mask.*Bwm,1),2),3),1,[]);
 
 boffset=[0 0 0 0];
 conn_menu('frame2',boffset+[.045,.08,.91,.80],'');
-poslist=boffset+[.17 .40 .30 .38];
+poslist=boffset+[.07 .40 .40 .38];
 ht3=conn_menu('listbox2',poslist,'',names,'<HTML>Select component(s) for display</HTML>',@(varargin)conn_mvpaexplore_update([0 1 1]));
-for n=6:20, set(ht3,'string',repmat(' ',1,4*n),'fontname','monospaced','fontsize',8+CONN_gui.font_offset); if get(ht3,'extent')*[0 0 1 0]'>poslist(3), break; end; end
+ncol=3;
+for n=6:20, set(ht3,'string',repmat(' ',1,(ncol+1)*n),'fontname','monospaced','fontsize',8+CONN_gui.font_offset); if get(ht3,'extent')*[0 0 1 0]'>poslist(3), break; end; end
 ht3fieldsize=sprintf('%d',n-1);ht3fieldsize2=sprintf('%d',2*(n-1));
-temp=boffset+[.17 .78 .28/4 .04];
+temp=boffset+[.07 .78 .38/(ncol+1) .04];
 ht3b(1)=conn_menu('pushbutton2',temp+[0*temp(3) 0 0 0],'','component','Select component(s) for display',@(varargin)conn_mvpaexplore_update([1 0 0]));
-ht3b(2)=conn_menu('pushbutton2',temp+[2*temp(3) 0 0 0],'','variance (%)','Percent variance in connectivity profiles at each voxel explained by each component (click to sort)',@(varargin)conn_mvpaexplore_update([2 0 0]));
-ht3b(3)=conn_menu('pushbutton2',temp+[3*temp(3) 0 0 0],'','cumulative (%)','Cumulative percent variance in connectivity profiles at each voxel explained by the first N components (click to sort)',@(varargin)conn_mvpaexplore_update([2 0 0]));
+ht3b(2)=conn_menu('pushbutton2',temp+[2*temp(3) 0 0 0],'','variance (%)','Percent variance in multivoxel connectivity patterns at each voxel explained by each component (click to sort)',@(varargin)conn_mvpaexplore_update([2 0 0]));
+ht3b(3)=conn_menu('pushbutton2',temp+[3*temp(3) 0 0 0],'','cumulative (%)','Cumulative percent variance in multivoxel connectivity patterns at each voxel explained by the first N components (click to sort)',@(varargin)conn_mvpaexplore_update([2 0 0]));
+%ht3b(4)=conn_menu('pushbutton2',temp+[4*temp(3) 0 0 0],'','variance_0 (%)','Percent variance in connectivity profiles at WM/CSF voxels explained by each component (click to sort)',@(varargin)conn_mvpaexplore_update([2 0 0]));
+%ht3b(5)=conn_menu('pushbutton2',temp+[5*temp(3) 0 0 0],'','cumulative_0 (%)','Cumulative percent variance in connectivity profiles at WM/CSF voxels explained by the first N components (click to sort)',@(varargin)conn_mvpaexplore_update([2 0 0]));
 
 posimage=[.52,.40,.41,.44];
-ht4=conn_menu('image2',boffset+posimage,'Percent variance explained by first N components (cumulative)','');%,'',@conn_mvpaexplore_mtncallback);
+ht4=conn_menu('image2',boffset+posimage,'Percent variance explained by first N components (cumulative)','','',@conn_mvpaexplore_mtncallback);
 uicontrol('style','text','units','norm','position',boffset+[posimage(1)+posimage(3)/2-.070,posimage(2)-1*.059,.070,.045],'string','threshold','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA); 
 %ht6=conn_menu('popup2',boffset+[.07,.36,.30,.04],'',{'<HTML><i> - MVPA tools:</i></HTML>','Compute spatial match to template','Flip sign of individual networks/components', 'Label individual networks/components', 'Create ICA parcellation ROI file'},'<HTML> - <i>Spatial correlation</i> computes the spatial correlation and dice coefficients between spatial component scores of each ICA network and a user-defined reference file/mask<br/> - <i>Flip sign</i> flips the spatial component positive/negative loadings for selected components<br/> - <i>Label</i> adds user-defined labels to identify each network/component<br/> - <i>ICA parcellation</i> creates an ROI file identifying the ICA network with the highest spatial component score for each voxel</HTML>',@(varargin)conn_mvpaexplore_tools);
 nfacshown=1:numel(names);
@@ -79,6 +90,9 @@ fh=@conn_mvpaexplore_update;
             switch(abs(sortby))
                 case 1, m=1:numel(names);
                 case 2, m=VARx;
+                case 3, m=VARx;
+%                 case 4, m=VARx0;
+%                 case 5, m=VARx0;
             end
             if sortby>0, [nill,idx]=sort(m);
             else         [nill,idx]=sort(m,'descend');
@@ -90,7 +104,8 @@ fh=@conn_mvpaexplore_update;
             doreset(2)=1;
         end
         
-        str=cellfun(@(a,b,c,d)sprintf(regexprep('%-Xs%-Ys%-Ys',{'Y','X'},{ht3fieldsize,ht3fieldsize2}),[a ' ' d],num2str(b),num2str(c)),names,num2cell(diff([0 VARx])),num2cell(VARx),labels,'uni',0);
+        str=cellfun(@(a,b,c,d,e,f)sprintf(regexprep('%-Xs%+Ys%+Ys',{'Y','X'},{ht3fieldsize,ht3fieldsize2}),[a ' ' d],num2str(b,'%.2f'),num2str(c,'%.2f')),names,num2cell(diff([0 VARx])),num2cell(VARx),labels,'uni',0);
+        %str=cellfun(@(a,b,c,d,e,f)sprintf(regexprep('%-Xs%-Ys%-Ys%-Ys%-Ys',{'Y','X'},{ht3fieldsize,ht3fieldsize2}),[a ' ' f],num2str(b,'%.2f'),num2str(c,'%.2f'),num2str(d,'%.2f'),num2str(e,'%.2f')),names,num2cell(diff([0 VARx])),num2cell(VARx),num2cell(diff([0 VARx0])),num2cell(VARx0),labels,'uni',0);
         set(ht3,'string',str(nfacshown),'value',ifac,'fontname','monospaced','fontsize',8+CONN_gui.font_offset);
             
         if doreset(2)
@@ -171,20 +186,29 @@ fh=@conn_mvpaexplore_update;
         txyz=max(1,min(vol(1).dim(1:3),txyz(1:3)'));
         tb=reshape(B(txyz(1),txyz(2),txyz(3),:),1,[]);
         tb(isnan(tb))=0;
-        [maxb,idx]=sort(abs(tb),'descend');
+        [nill,idx]=max(tb>90);
+        if ~nill, idx=0; end
         str0={};
         str={};
         try
-            if any(maxb~=0)
+            if any(tb~=0)
                 if showdisp==1
-                    tf=sprintf('%s_%d (%.3f)',ICAPCA,nfacselected(ifac),tb(nfacselected(ifac)));
+                    tf=sprintf('%s_%d',ICAPCA,nfacselected(ifac));
                     str0=[str0 {tf}];
                 elseif showdisp==2
                     tf=sprintf('%s_%d (%.3f)',ICAPCA,nfacselected(imaxB(txyz(1),txyz(2),txyz(3))),tb(nfacselected(imaxB(txyz(1),txyz(2),txyz(3)))));
                     str0=[str0 {tf}];
                 end
-                hf=arrayfun(@(a,b)sprintf(' %s_%d (%.3f)',ICAPCA,a,b),idx(1:min(numel(idx),3)),tb(idx(1:min(numel(idx),3))),'uni',0);
-                str=[str {' ','Highest component scores for this voxel:'} hf];
+                if nfacselected(ifac)==1, hf1=sprintf(' First MVPA-component explains %.1f%% of the variance at this voxel',tb(nfacselected(ifac)));
+                else hf1=sprintf(' First %d MVPA-components explain %.1f%% of the variance at this voxel',nfacselected(ifac),tb(nfacselected(ifac)));
+                end
+                if idx, 
+                    if idx==1, hf2=sprintf(' First MVPA-component needed to explain 90%% of the variance at this voxel',idx);
+                    else hf2=sprintf(' First %d MVPA-components needed to explain 90%% of the variance at this voxel',idx);
+                    end
+                else hf2='';
+                end
+                str=[str {' ', 'Analysis of inter-subject variance:', hf1 hf2}];
             end
         end
     end
