@@ -1064,8 +1064,13 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                             text(0,-dlg.plothistinfo3*.175,tlabel,'horizontalalignment','center','fontsize',5+font_offset,'interpreter','none','parent',dlg.handles.hax); 
                             if ~isempty(dlg.results_info)&&isstruct(dlg.results_info{1}), 
                                 if isfield(dlg.results_info{1},'IntersectionBefore')
-                                    text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,100*dlg.results_info{1}.IntersectionAfter)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
-                                    text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,100*dlg.results_info{1}.IntersectionBefore)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                    if isfield(dlg.results_info{1},'PercentSignificantBefore')
+                                        text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,100*dlg.results_info{1}.IntersectionAfter),sprintf('%.1f%% edges with p<.05, %.1f%% edges with q<.05',100*dlg.results_info{1}.PercentSignificantAfter(1),100*dlg.results_info{1}.PercentSignificantAfter(2))},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                        text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,100*dlg.results_info{1}.IntersectionBefore),sprintf('%.1f%% edges with p<.05, %.1f%% edges with q<.05',100*dlg.results_info{1}.PercentSignificantBefore(1),100*dlg.results_info{1}.PercentSignificantBefore(2))},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                    else
+                                        text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,100*dlg.results_info{1}.IntersectionAfter)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                        text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,100*dlg.results_info{1}.IntersectionBefore)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                    end
                                 elseif isfield(dlg.results_info{1},'DofBefore')
                                     text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (df=%.1f)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,dlg.results_info{1}.DofAfter)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
                                     text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (df=%.1f)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,dlg.results_info{1}.DofBefore)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
@@ -1078,6 +1083,9 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 end
                             end
                             if ~isempty(ttitle), text(0,dlg.plothistinfo3*1.05,ttitle,'horizontalalignment','center','fontsize',10+font_offset,'fontweight','bold','interpreter','none','parent',dlg.handles.hax); end
+                        elseif ~isempty(dlg.results_info)&&isfield(dlg.results_info{1},'DofBefore')
+                            text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean r=%.2f%c%.2f',mean(cellfun(@(x)x.MeanAfter,dlg.results_info)),177,std(cellfun(@(x)x.MeanAfter,dlg.results_info)))},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                            text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean r=%.2f%c%.2f',mean(cellfun(@(x)x.MeanBefore,dlg.results_info)),177,std(cellfun(@(x)x.MeanBefore,dlg.results_info)))},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
                         end
                         if dlg.uanalysestype(dlg.ianalysis)==4, 
                             plot([.99 1 1 .99 nan .99 1 1 .99],[dlg.plotminmax([1 1 2 2],1)' nan dlg.plothistinfo2+dlg.plotminmax([1 1 2 2],1)'],'k-','linewidth',1,'parent',dlg.handles.hax);
@@ -1203,6 +1211,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
             p3=get(0,'screensize');
             p4=p2(1:2)+p3(1:2)-1; % note: fix issue when connecting to external monitor/projector
             pos0=(p1-p4);
+            if pos0(1)/p2(3)<0.25, return; end
             set(dlg.handles.hfig,'currentpoint',pos0);
             pos=(get(dlg.handles.hax,'currentpoint')); 
             pos=pos(1,1:3);

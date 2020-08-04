@@ -444,7 +444,7 @@ switch(lower(option))
                 if ~iscell(options.structurals{nsub}), options.structurals{nsub}={options.structurals{nsub}}; end
             end
         end
-        Fields={'functionals','structurals','nsubjects','RT','unwarp_functionals','vdm_functionals','fmap_functionals','coregsource_functionals','masks','rois','localcopy','localcopy_reduce','isnew'}; % send these to Setup
+        Fields={'functionals','structurals','secondarydatasets','nsubjects','RT','covariates','unwarp_functionals','vdm_functionals','fmap_functionals','coregsource_functionals','masks','rois','localcopy','localcopy_reduce','isnew'}; % send these to Setup
         for n=1:numel(Fields)
             if isfield(options,Fields{n}),
                 Batch.Setup.(Fields{n})=options.(Fields{n});

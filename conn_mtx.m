@@ -54,7 +54,7 @@ switch(lower(option))
         varargout={C};
         
     case 'getblockcolumns'
-        C=deal(varargin{:});
+        C=varargin{1};
         blockcolumns=mat2cell(1:C.blocksize_in(2)*C.numberofblocks,1,C.blocksize_in(2)+zeros(1,C.numberofblocks));
         varargout={blockcolumns};
 
@@ -73,8 +73,8 @@ switch(lower(option))
         varargout={M};
         
     case 'multiplicationhandle'
-        C=deal(varargin{:});
-        fh=@(x)conn_mtx_mult(x,C);
+        C=varargin{1};
+        fh=@(x,varargin)conn_mtx_mult(x,C,varargin{:});
         varargout={fh};
         
     case 'eig'

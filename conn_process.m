@@ -666,7 +666,7 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
     refpial=[];
     %Vmask_ref_vol=fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii');
     if ~USEEXPLICITMASK, Vmask_ref_vol=fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii');
-    elseif CONN_x.Setup.analysismask==1&&strcmp(fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii'),CONN_x.Setup.explicitmask{1}), Vmask_ref_vol=fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii');
+    elseif CONN_x.Setup.analysismask==1&&~isempty(regexp(CONN_x.Setup.explicitmask{1},'utils[\\\/]surf[\\\/]mask.volume.brainmask.nii$')), Vmask_ref_vol=fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii');
     else Vmask_ref_vol='';
     end
     Vmask_ref_surf=fullfile(fileparts(which(mfilename)),'utils','surf','mask.surface.brainmask.nii');

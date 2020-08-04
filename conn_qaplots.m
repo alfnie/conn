@@ -667,7 +667,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
         measures={FC_X0,FC_X1};
         temp=reshape(FC_X0,[],size(FC_X0,3))';[nill,idx]=sort(rand(size(temp)),1); temp=temp(idx+repmat(size(temp,1)*(0:size(temp,2)-1),size(temp,1),1)); measures{3}=reshape(temp',size(FC_X0));
         temp=reshape(FC_X1,[],size(FC_X1,3))';[nill,idx]=sort(rand(size(temp)),1); temp=temp(idx+repmat(size(temp,1)*(0:size(temp,2)-1),size(temp,1),1)); measures{4}=reshape(temp',size(FC_X1));
-        R={};D={};
+        R={};D={};P={};
         for nmeasure=1:numel(measures)
             y=measures{nmeasure};
             y=reshape(y,[],size(y,3));
@@ -680,6 +680,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
             Y=Y-repmat(mean(Y,1),size(Y,1),1);
             Y=Y./repmat(sqrt(max(eps,sum(abs(Y).^2,1))),size(Y,1),1);
             R{nmeasure}=X'*Y;
+            P{nmeasure}=2*spm_Tcdf(-abs(R{nmeasure}.*sqrt((size(Y,1)-2)./max(eps,1-R{nmeasure}.^2))),size(Y,1)-2);
             if any(procedures==15), D{nmeasure}=valid; end
             %[h,F,p,dof]=conn_glm([ones(size(X,1),1) X],Y,[],[],'collapse_none');
         end
@@ -687,6 +688,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
         %if ~isempty(f), f=cellstr(f);spm_unlink(f{:}); end
         for nm=1:numel(nl2covariates)
             z0=R{1}(nm,:);z1=R{2}(nm,:);z2=R{3}(nm,:);z3=R{4}(nm,:);
+            p0=P{1}(nm,:);p1=P{2}(nm,:);p2=P{3}(nm,:);p3=P{4}(nm,:);
             [a0,b0]=hist(z0(:),linspace(-1,1,NptsHist));[a1,b1]=hist(z1(:),linspace(-1,1,NptsHist));[a2,b2]=hist(z2(:),linspace(-1,1,NptsHist));[a3,b3]=hist(z3(:),linspace(-1,1,NptsHist));
             maxa=max(maxa,max(max(a0),max(a1)));
             if isempty(z0)||isempty(z1),
@@ -694,7 +696,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                 results_patch={};results_info={};results_str={};results_label={};
             else
                 results_patch={[b1(1),b1,b1(end)],[0,a1,0],[0,a0,0],[0,a3,0],[0,a2,0]};
-                results_info=struct('units','FC-QC association level (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'IntersectionBefore',sum(min(a0/sum(a0),a2/sum(a2))),'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'IntersectionAfter',sum(min(a1/sum(a1),a3/sum(a3))),'dof',size(x,1)-2);
+                results_info=struct('units','FC-QC association level (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'IntersectionBefore',sum(min(a0/sum(a0),a2/sum(a2))),'PercentSignificantBefore',[mean(p0<.05), mean(conn_fdr(p0)<.05)],'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'IntersectionAfter',sum(min(a1/sum(a1),a3/sum(a3))),'PercentSignificantAfter',[mean(p1<.05),mean(conn_fdr(p1)<.05)],'dof',size(x,1)-2);
                 tstr={sprintf('Association between FC and %s',Xnames{nm}),sprintf('FC-QC association (r) = across-subjects correlation between FC and QC measures; FC = edge connectivity (r) in %d-node network',numel(x0valid))};
                 if numel(xdescr)>=nl2covariates(nm)&&~isempty(xdescr{nl2covariates(nm)}), tstr{end+1}=sprintf('%s = %s',Xnames{nm},xdescr{nl2covariates(nm)}); end
                 results_str=[tstr{1} sprintf(' before denoising: mean %f std %f; after denoising: mean %f std %f ',mean(z0(z0~=1)),std(z0(z0~=1)),mean(z1(z1~=1)),std(z1(z1~=1)))];
