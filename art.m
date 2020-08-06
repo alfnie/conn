@@ -398,11 +398,11 @@ for sess=1:num_sess
             if numel(maskscan)>=100, % stop maskcan from growing too much
                 maskscan_files=maskscan_files+1;
                 try
-                    save(fullfile(output_dir,[art_mask_temporalfile(1:end-4),num2str(maskscan_files),'.mat']),'maskscan');
+                    save(fullfile(output_dir,[art_mask_temporalfile(1:end-4),num2str(maskscan_files),'.mat']),'maskscan','-v7.3');
                 catch
                     art_disp('warning: unable to write to ',output_dir,' folder. Writing output files to ',pwd,' instead.');
                     output_dir=pwd;
-                    save(fullfile(output_dir,[art_mask_temporalfile(1:end-4),num2str(maskscan_files),'.mat']),'maskscan');
+                    save(fullfile(output_dir,[art_mask_temporalfile(1:end-4),num2str(maskscan_files),'.mat']),'maskscan','-v7.3');
                 end
                 maskscan={};
             end
@@ -452,11 +452,11 @@ end
 
 VY=cat(1,VY{:}); VY1=VY(1); %#ok<NASGU>
 try
-    save(fullfile(output_dir,art_mask_temporalfile),'maskscan','maskscan_files','VY1','VY','notcoregistered','xyz','xyz_voxel','Data_Sum','Data_SumSquared'); 
+    save(fullfile(output_dir,art_mask_temporalfile),'maskscan','maskscan_files','VY1','VY','notcoregistered','xyz','xyz_voxel','Data_Sum','Data_SumSquared','-v7.3'); 
 catch
     art_disp(['warning: unable to write to ',output_dir,' folder. Writing output files to ',pwd,' instead.']);
     output_dir=pwd;
-    save(fullfile(output_dir,art_mask_temporalfile),'maskscan','maskscan_files','VY1','VY','notcoregistered','xyz','xyz_voxel','Data_Sum','Data_SumSquared'); 
+    save(fullfile(output_dir,art_mask_temporalfile),'maskscan','maskscan_files','VY1','VY','notcoregistered','xyz','xyz_voxel','Data_Sum','Data_SumSquared','-v7.3'); 
 end
 set(handles.figure1,'closerequestfcn',['try,if ispc,[nill,ok]=system(''del "',fullfile(output_dir,[art_mask_temporalfile(1:end-4),'"*.mat']),''');else [nill,ok]=system(''rm ''''',fullfile(output_dir,[art_mask_temporalfile(1:end-4),'''''*.mat']),'''); end; end; delete(gcbf);']);
 

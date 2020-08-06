@@ -17,7 +17,7 @@ function [ok,matlabbatch,outputfiles,job_id]=conn_setup_preproc(STEPS,varargin)
 %     structural_center                     : centers structural data to origin (0,0,0) coordinates
 %     structural_manualorient               : applies user-defined affine transformation to structural data
 %     structural_manualspatialdef           : applies user-defined spatial deformation to structural data
-%     structural_segment&normalize          : structural unified normalization and segmentation 
+%     structural_segment&normalize          : structural unified normalization and segmentation
 %     structural_normalize                  : structural normalization to MNI space (without segmentation)
 %     structural_normalize_preservemasks    : structural normalization to MNI space with user-defined Grey/White/CSF masks (normalizes structural data and applies same transformation to user-defined Grey/White/CSF mask ROIs)
 %     structural_segment                    : structural segmentation (Grey/White/CSF tissue classes)
@@ -51,7 +51,7 @@ function [ok,matlabbatch,outputfiles,job_id]=conn_setup_preproc(STEPS,varargin)
 %     functional_label                      : labels current functional files as part of list of Secondary Datasets
 %     functional_surface_coreg&resample     : coregister&resample functional data at the location of FreeSurfer subject-specific structural cortical surface
 %     functional_surface_resample           : resample functional data at the location of FreeSurfer subject-specific structural cortical surface
-%     functional_surface_smooth             : functional spatial diffusion of surface data 
+%     functional_surface_smooth             : functional spatial diffusion of surface data
 %     functional_vdm_create                 : creation of voxel-displacement-map from fieldmap dataset (reads 'fmap' secondary functional dataset containing magnitdue and phasediff images and creates 'vdm' secondary functional dataset containing voxel-displacement map)
 %
 %
@@ -99,6 +99,7 @@ function [ok,matlabbatch,outputfiles,job_id]=conn_setup_preproc(STEPS,varargin)
 %      template_anat   : (structural_normalize SPM8 only) anatomical template file for approximate coregistration [spm/template/T1.nii]
 %      template_func   : (functional_normalize SPM8 only) functional template file for normalization [spm/template/EPI.nii]
 %      tpm_template    : (structural_segment, structural_segment&normalize in SPM8, and any segment/normalize option in SPM12) tissue probability map [spm/tpm/TPM.nii]
+%                       alternatively location of subject-specific tpm files (secondary functional dataset number containing tpm files; default 'tpm' if exists)
 %      tpm_ngaus       : (structural_segment, structural_segment&normalize in SPM8&SPM12) number of gaussians for each tissue probability map
 %      vdm_et1         : (functional_vdm_create only) ET1 (Echo Time first echo in fieldmap sequence, in ms) (default [] : attempt to obtain this value from sidecar .json file / BIDS)
 %      vdm_et2         : (functional_vdm_create only) ET2 (Echo Time second echo in fieldmap sequence, in ms) (default [] : attempt to obtain this value from sidecar .json file / BIDS)
@@ -317,9 +318,9 @@ elseif ~isempty(STEPS)
     if ischar(STEPS), STEPS=cellstr(STEPS); end
     STEPS=regexprep(STEPS,{'^default_mniphase$','^default_mnidirectphase$','^default_ssphase$'},{'default_mnifield','default_mnidirectfield','default_ssfield'});
     [ok,idx]=ismember(lower(STEPS),steps(steps_pipelines));
-    nSTEPS={}; 
+    nSTEPS={};
     for n1=1:numel(STEPS)
-        if ok(n1), nSTEPS=[nSTEPS steps(steps_index{idx(n1)})]; selectedstep=idx(n1); 
+        if ok(n1), nSTEPS=[nSTEPS steps(steps_index{idx(n1)})]; selectedstep=idx(n1);
         else nSTEPS=[nSTEPS STEPS(n1)];
         end
     end
@@ -475,10 +476,10 @@ if ~nargin||isempty(STEPS)||dogui,
     end
     htm0=uicontrol('style','text','units','norm','position',[.05,.9,.85,.05],'backgroundcolor',1*[1 1 1],'foregroundcolor','k','horizontalalignment','left','string','Select individual preprocessing step:','fontweight','bold','fontsize',9+font_offset);
     dlg.m0=uicontrol('style','popupmenu','units','norm','position',[.05,.85,.85,.05],'string',steps_names(steps_order),'value',find(ismember(steps_order,selectedstep)),'backgroundcolor',1*[1 1 1],'foregroundcolor','k','tooltipstring','Select a data preprocessing step','callback',@(varargin)conn_setup_preproc_update,'fontsize',9+font_offset);
-    if multiplesteps, 
-        set(htm0,'string','List of all available preprocessing steps:'); 
-        set(dlg.m0,'tooltipstring','Select a data preprocessing step or pipeline and click ''Add'' to add it to your data preprocessing pipeline'); 
-    end 
+    if multiplesteps,
+        set(htm0,'string','List of all available preprocessing steps:');
+        set(dlg.m0,'tooltipstring','Select a data preprocessing step or pipeline and click ''Add'' to add it to your data preprocessing pipeline');
+    end
     dlg.m6=uicontrol('style','text','units','norm','position',[.05,.725,.85,.1],'max',2,'string','','backgroundcolor',1*[1 1 1],'enable','inactive','horizontalalignment','left','fontsize',9+font_offset);
     dlg.m4=uicontrol('style','checkbox','units','norm','position',[.05,.65,.85,.05],'value',~coregtomean,'string','First functional volume as reference','backgroundcolor',1*[1 1 1],'tooltipstring','<HTML>Uses firts functional volume as reference in coregistration/normalization step <br/> - if unchecked coregistration/normalization uses mean-volume as reference instead<br/> - note: mean volume is created during realignment</HTML>','visible','off','fontsize',9+font_offset);
     %dlg.m3=uicontrol('style','checkbox','units','norm','position',[.1,.5,.8/scalefig,.05],'value',applytofunctional,'string','Apply structural deformation field to functional data as well','backgroundcolor',1*[1 1 1],'tooltipstring','Apply structural deformation field computed during structural normalization/segmentation step to coregistered functional data as well','visible','off','fontsize',9+font_offset);
@@ -534,8 +535,8 @@ if ~nargin||isempty(STEPS)||dogui,
         end
     end
     conn_setup_preproc_update(dlg.m0);
-    if multiplesteps, 
-        conn_setup_preproc_load(dlg.m8f); 
+    if multiplesteps,
+        conn_setup_preproc_load(dlg.m8f);
         if isempty(get(dlg.m7,'string')), conn_setup_preproc_update_add(dlg.m8a); end
     end
     uiwait(dlg.fig);
@@ -569,17 +570,17 @@ if ~nargin||isempty(STEPS)||dogui,
         case 3, STEPS=cellfun(@(x)['interactive_',x],STEPS,'uni',0); doimport=false;
         case 4, STEPS=cellfun(@(x)['update_',x],STEPS,'uni',0); doimport=true;
     end
-
+    
     if doparallel>1
         if doparallel==2, parallel_profile=find(strcmp('Null profile',conn_jobmanager('profiles')));
         else parallel_profile=tvalid(doparallel-2);
             if conn_jobmanager('ispending')
                 answ=conn_questdlg({'There are previous pending jobs associated with this project','This job cannot be submitted until all pending jobs finish',' ','Would you like to queue this job for later?','(pending jobs can be seen at Tools.Cluster/HPC.View pending jobs'},'Warning','Queue','Cancel','Queue');
                 if isempty(answ)||strcmp(answ,'Cancel'), ok=false; end
-                parallel_profile=find(strcmp('Null profile',conn_jobmanager('profiles'))); 
+                parallel_profile=find(strcmp('Null profile',conn_jobmanager('profiles')));
             end
         end
-        if numel(subjects)>1, 
+        if numel(subjects)>1,
             answer=inputdlg(sprintf('Number of parallel jobs? (1-%d)',numel(subjects)),'',1,{num2str(numel(subjects))});
             if isempty(answer)||isempty(str2num(answer{1})), return; end
             parallel_N=str2num(answer{1});
@@ -635,7 +636,7 @@ if any(ismember('functional_regression',lSTEPS))
         if isempty(reg_names), answ=~cellfun('length',regexp(temp_reg_names,'^QC_'));
         else answ=reshape(ismember(temp_reg_names,reg_names),1,[]);
         end
-        if isempty(reg_deriv), tansw=~cellfun('length',regexpi(temp_reg_names,'^effect of|realign|movement|motion')); 
+        if isempty(reg_deriv), tansw=~cellfun('length',regexpi(temp_reg_names,'^effect of|realign|movement|motion'));
         else tansw=reshape(reg_deriv==0,1,[]);
         end
         answ=reshape([answ&tansw;answ&~tansw],1,[]);
@@ -645,7 +646,7 @@ if any(ismember('functional_regression',lSTEPS))
         else answ=[reg_detrend, answ];
         end
         answ=listdlg('Promptstring','Select model regressors','selectionmode','multiple','liststring',temp_reg_names,'initialvalue',find(answ),'ListSize',[320 300]);
-        if numel(answ)>=1, 
+        if numel(answ)>=1,
             reg_detrend=any(answ==1);
             answ=answ(answ>1);
             uansw=unique(2*floor(answ/2));
@@ -661,7 +662,7 @@ if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     ht1=uicontrol('style','popupmenu','units','norm','position',[.1,.85,.8,.1],'string',arrayfun(@(n)sprintf('Fieldmap location: secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines location of available fieldmap-sequence files');
     ht2=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',{'Fieldmap type: automatically determine','Fieldmap type: Magnitude,Phasediff files','Fieldmap type: Real1,Imag1,Real2,Imag2 files','Fieldmap type: Pre-computed fieldmap file (Hz)'},'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines type of available fieldmap-sequence files');
     ht3=uicontrol('style','checkbox','units','norm','position',[.1,.64,.8,.1],'string','Read double-echo timing from BIDS / .json files','value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','use information in .json sidecar files to estimate EchoTime and EPI Total Readout Time values');
-    ht4=[];ht5=[];ht6=[]; 
+    ht4=[];ht5=[];ht6=[];
     ht4a=uicontrol('style','text','units','norm','position',[.1,.5,.6,.1],'string','Short Echo Time (in ms)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
     ht4=uicontrol('style','edit','units','norm','position',[.7,.5,.2,.1],'string',num2str(vdm_et1),'tooltipstring','defines Echo Time (in ms units) of first fieldmap acquisition (leave empty to import from .json / BIDS file)','enable','off');
     ht5a=uicontrol('style','text','units','norm','position',[.1,.4,.6,.1],'string','Long Echo Time (in ms)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
@@ -678,10 +679,10 @@ if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     if ischar(vdm_fmap), vdm_fmap=conn_datasetlabel(vdm_fmap); end
     if isempty(vdm_fmap), vdm_fmap=1; end
     set(ht1,'value',vdm_fmap);
-    if isempty(vdm_type), set(ht2,'value',1); 
+    if isempty(vdm_type), set(ht2,'value',1);
     else set(ht2,'value',1+vdm_type); set([ht4 ht4a ht5 ht5a],'visible',onoff{1+(get(ht2,'value')==4)});
     end
-    if isempty(vdm_et1)&&isempty(vdm_et2)&&isempty(vdm_ert)&&isempty(vdm_blip), set(ht3,'value',1); 
+    if isempty(vdm_et1)&&isempty(vdm_et2)&&isempty(vdm_ert)&&isempty(vdm_blip), set(ht3,'value',1);
     else set(ht3,'value',0); set([ht4 ht4a ht5 ht5a ht6 ht6a ht6 ht6a ht7 ht7a],'enable','on');
     end
     set(ht2,'userdata',[],'callback',@(varargin)set([ht4 ht4a ht5 ht5a],'visible',onoff{1+(get(ht2,'value')==4)}));
@@ -815,14 +816,14 @@ if any(ismember({'structural_manualspatialdef','functional_manualspatialdef'},lS
     if isempty(respatialdef)||dogui
         DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
         ntimes=sum(ismember(lSTEPS,{'structural_manualspatialdef','functional_manualspatialdef'}));
-        if isempty(respatialdef), respatialdef={}; 
-        elseif ischar(respatialdef), respatialdef=cellstr(respatialdef); 
+        if isempty(respatialdef), respatialdef={};
+        elseif ischar(respatialdef), respatialdef=cellstr(respatialdef);
         end
         for ntime=1:ntimes
-            if numel(respatialdef)>=ntime, topt=respatialdef(ntime); 
+            if numel(respatialdef)>=ntime, topt=respatialdef(ntime);
             else topt={};
             end
-            if DOSPM12, 
+            if DOSPM12,
                 str='Select deformation field volume (e.g. y_*.nii)'; conn_disp(str);
                 [tfilename1,tfilename2]=uigetfile('*.nii',str,topt{:});
             else
@@ -894,7 +895,7 @@ end
 if any(ismember('functional_label',lSTEPS))
     if isempty(label)||dogui
         nl=sum(ismember(lSTEPS,'functional_label'));
-        if nl>1, 
+        if nl>1,
             if numel(label)~=nl, label=arrayfun(@(n)sprintf('Label%d',n),1:nl,'uni',0); end
             label=inputdlg(repmat({'Enter functional label'},1,nl),'conn_setup_preproc',1,label);
         else
@@ -912,7 +913,7 @@ if any(ismember('functional_continue',lSTEPS))
         for il=1:nl
             str=[{'Continue with primary dataset'}, arrayfun(@(n)sprintf('Continue with secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)];
             if isempty(labelcontinue{il}), labelcontinue{il}=0;
-            elseif ischar(labelcontinue{il}), labelcontinue{il}=conn_datasetlabel(labelcontinue{il},'error'); 
+            elseif ischar(labelcontinue{il}), labelcontinue{il}=conn_datasetlabel(labelcontinue{il},'error');
             end
             [jl,tok] = listdlg('PromptString',['Select secondary dataset ',num2str(il),'/',num2str(nl)],'SelectionMode','single','InitialValue',labelcontinue{il}+1,'ListSize',[400 200],'ListString',str);
             if isempty(jl), return; end
@@ -1057,7 +1058,7 @@ for iSTEP=1:numel(STEPS)
                 for nses=1:nsess,
                     if ismember(nses,sessions)
                         filename=conn_get_functional(nsubject,nses,sets);
-                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end                        
+                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
                         filein=cellstr(filename);
                         fileout=conn_prepend('b',filein);
                         if numel(fileout)>1, fileout=fileout(1); end
@@ -1072,7 +1073,7 @@ for iSTEP=1:numel(STEPS)
                         %    'dt',[spm_type('float32'),spm_platform('bigend')],...
                         %    'descrip','band-pass filtered');
                         %Vout=repmat(Vout,[numel(Vin),1]);for nt=1:numel(Vin),Vout(nt).n=[nt,1];end
-                        Vout=spm_create_vol(Vout);                        
+                        Vout=spm_create_vol(Vout);
                         tr=conn_get_rt(nsubject,nses,sets);
                         [gridx,gridy]=ndgrid(1:Vin(1).dim(1),1:Vin(1).dim(2));
                         xyz0=[gridx(:),gridy(:)]';
@@ -1086,9 +1087,9 @@ for iSTEP=1:numel(STEPS)
                             y=conn_filter(tr,bp_filter,y);
                             if bp_keep0, y=y+repmat(my,size(y,1),1); end
                             y=permute(reshape(y,[numel(Vin),Vin(1).dim(1:2)]),[2,3,1]);
-                            for nt=1:numel(Vin), 
+                            for nt=1:numel(Vin),
                                 t=y(:,:,nt);
-                                Vout(nt)=spm_write_plane(Vout(nt),t,slice); 
+                                Vout(nt)=spm_write_plane(Vout(nt),t,slice);
                             end
                         end
                         outputfiles{isubject}{nses}{1}=char(fileout);
@@ -1105,7 +1106,7 @@ for iSTEP=1:numel(STEPS)
                 for nses=1:nsess,
                     if ismember(nses,sessions)
                         filename=conn_get_functional(nsubject,nses,sets);
-                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end                        
+                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
                         filein=cellstr(filename);
                         fileout=conn_prepend('d',filein);
                         if numel(fileout)>1, fileout=fileout(1); end
@@ -1113,15 +1114,15 @@ for iSTEP=1:numel(STEPS)
                         Vout=Vin;
                         for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).descrip='linear regressed'; end
                         if any(reg_lag), Vlag=struct('fname',conn_prepend('lag_',filein{1}),'mat',Vin(1).mat,'dim',Vin(1).dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip','lag (samples)'); end % note: lag in target wrt regressors
-                        if ~reg_skip, 
-                            Vout=spm_create_vol(Vout); 
+                        if ~reg_skip,
+                            Vout=spm_create_vol(Vout);
                             if any(reg_lag), Vlag=spm_create_vol(Vlag); end
                         end
                         lagidx=[];
                         lagmax=[];
                         X=[ones(numel(Vin),1)];
                         if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; end
-                        entercovariates=X;                        
+                        entercovariates=X;
                         for nl1covariate=1:numel(reg_names)
                             icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),reg_names{nl1covariate}));
                             if ~isempty(icov) % first-level covariates
@@ -1179,7 +1180,7 @@ for iSTEP=1:numel(STEPS)
                                 else                                            % average
                                     data=conn_rex(Vsourcethis,Vmask,'summary_measure','mean','conjunction_mask',mask,'level',level,'scaling',scalinglevel,'select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
                                 end
-                                [data,ok]=conn_nan(data);                                
+                                [data,ok]=conn_nan(data);
                                 assert(size(data,1)==numel(Vin),'mismatched dimensions; functional data has %d timepoints, covariate %s has %d timepoints',numel(Vin),reg_names{nl1covariate},size(data,1));
                                 if numel(reg_dimensions)>=nl1covariate, data=data(:,1:min(size(data,2),reg_dimensions(nl1covariate))); end
                                 if numel(reg_deriv)>=nl1covariate&&reg_deriv(nl1covariate)>0, ddata=convn(cat(1,data(1,:),data,data(end,:)),[1;0;-1],'valid'); data=[data, ddata]; end
@@ -1232,7 +1233,7 @@ for iSTEP=1:numel(STEPS)
         case 'structural_center'
         case {'functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed'}
         case {'functional_continue','functional_continue_as_original', 'functional_continue_as_subjectspace', 'functional_continue_as_mnispace', 'functional_continue_as_surfacespace', 'functional_continue_as_smoothed'}
-
+            
         case 'functional_manualspatialdef'
             if iscell(respatialdef), trespatialdef=respatialdef{1}; respatialdef=respatialdef(2:end);
             else trespatialdef=respatialdef;
@@ -1250,7 +1251,7 @@ for iSTEP=1:numel(STEPS)
             jsubject=0;
             for isubject=1:numel(subjects), % normalize write
                 nsubject=subjects(isubject);
-                nsess=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject))); 
+                nsess=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
                 for nses=nsess(:)'
                     jsubject=jsubject+1;
                     if DOSPM12, matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).def={trespatialdef};
@@ -1272,7 +1273,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
-                        
+            
         case 'structural_manualspatialdef'
             if iscell(respatialdef), trespatialdef=respatialdef{1}; respatialdef=respatialdef(2:end);
             else trespatialdef=respatialdef;
@@ -1281,25 +1282,25 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12
                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.write.woptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1;
                 end
             else
                 matlabbatch{end+1}.spm.spatial.normalise.write.roptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.write.roptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1;
                 end
             end
             jsubject=0;
             for isubject=1:numel(subjects), % normalize write
                 nsubject=subjects(isubject);
-                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject))); 
-                else nsess_struct=1; 
+                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                else nsess_struct=1;
                 end
                 for nses=nsess_struct(:)'
-                    if isempty(CONN_x.Setup.structural{nsubject}{nses}{1}), error(sprintf('No structural file defined for Subject %d Session %d. Please select a structural file',nsubject,nses)); 
-                    elseif numel(CONN_x.Setup.structural{nsubject}{nses}{3})>1, error(sprintf('Multiple structural files found for Subject %d Session %d. Please select a single structural file',nsubject,nses)); 
+                    if isempty(CONN_x.Setup.structural{nsubject}{nses}{1}), error(sprintf('No structural file defined for Subject %d Session %d. Please select a structural file',nsubject,nses));
+                    elseif numel(CONN_x.Setup.structural{nsubject}{nses}{3})>1, error(sprintf('Multiple structural files found for Subject %d Session %d. Please select a single structural file',nsubject,nses));
                     end
                     outputfiles{isubject}{nses}{1}=CONN_x.Setup.structural{nsubject}{nses}{1};
                     if ismember(nses,sessions)
@@ -1313,7 +1314,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
-           
+            
         case 'structural_segment'
             if ~PREFERSPM8OVERSPM12&&spmver12 %SPM12
                 matlabbatch{end+1}.spm.spatial.preproc.channel.vols={};
@@ -1335,14 +1336,7 @@ for iSTEP=1:numel(STEPS)
                         end
                     end
                 end
-                if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
-                    if isempty(tpm_ngaus), tpm_ngaus=[1 1 2 3 4 2]; end % grey/white/CSF/bone/soft/air
-                    if numel(tpm_ngaus)<numel(temp), tpm_ngaus=[tpm_ngaus(:)' 4+zeros(1,numel(temp)-numel(tpm_ngaus))]; end
-                    for n=1:numel(temp)
-                        matlabbatch{end}.spm.spatial.preproc.tissue(n)=struct('tpm',{temp(n)},'ngaus',tpm_ngaus(min(n,numel(tpm_ngaus))),'native',[1 0],'warped',[0 0]);
-                    end
-                end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
@@ -1368,7 +1362,10 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
                 if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
+                    if ~isempty(subjects)&&~isempty(sessions)&&(isnumeric(tpm_template)||(ischar(tpm_template)&&size(tpm_template,1)==1&&~isempty(conn_datasetlabel(tpm_template))))
+                        error('unsupported subject-specific TPM in SPM8; please upgrade to SPM12 instead')
+                    else temp=cellstr(conn_expandframe(tpm_template));
+                    end
                     if isempty(tpm_ngaus), tpm_ngaus=[2 2 2 4]; end % grey/white/CSF (+other implicit)
                     matlabbatch{end}.spm.spatial.preproc.opts.tpm=temp;
                     matlabbatch{end}.spm.spatial.preproc.opts.ngaus=ngaus(1:numel(temp)+1);
@@ -1401,7 +1398,7 @@ for iSTEP=1:numel(STEPS)
             
         case {'structural_normalize','structural_normalize_preservemasks','functional_normalize_indirect','functional_normalize_indirect_preservemasks'}
             DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
-            if strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_normalize_indirect')||strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_normalize_indirect_preservemasks') 
+            if strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_normalize_indirect')||strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_normalize_indirect_preservemasks')
                 jsubject=0;
                 for isubject=1:numel(subjects), % coregister
                     nsubject=subjects(isubject);
@@ -1452,17 +1449,17 @@ for iSTEP=1:numel(STEPS)
                                 if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
                                 matlabbatch{end}.spm.spatial.coreg.estimate.other=cat(1,matlabbatch{end}.spm.spatial.coreg.estimate.other,ttemp);
                             end
-%                             if strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_normalize_indirect_preservemasks')
-%                                 fmask1=CONN_x.Setup.rois.files{nsubject}{1}{nses_struct}{1};
-%                                 if isempty(fmask1), error('Grey Matter ROI data not yet defined for subject %d session %d',nsubject,nses_struct); end
-%                                 fmask2=CONN_x.Setup.rois.files{nsubject}{2}{nses_struct}{1};
-%                                 if isempty(fmask2), error('White Matter ROI data not yet defined for subject %d session %d',nsubject,nses_struct); end
-%                                 fmask3=CONN_x.Setup.rois.files{nsubject}{3}{nses_struct}{1};
-%                                 if isempty(fmask3), error('CSF ROI data not yet defined for subject %d session %d',nsubject,nses_struct); end
-%                                 temp=[cellstr(fmask1);cellstr(fmask2);cellstr(fmask3)];
-%                                 outputfiles{isubject}{nses_struct}{3}=temp;
-%                                 matlabbatch{end}.spm.spatial.coreg.estimate.other=cat(1,matlabbatch{end}.spm.spatial.coreg.estimate.other,temp(:));
-%                             end
+                            %                             if strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_normalize_indirect_preservemasks')
+                            %                                 fmask1=CONN_x.Setup.rois.files{nsubject}{1}{nses_struct}{1};
+                            %                                 if isempty(fmask1), error('Grey Matter ROI data not yet defined for subject %d session %d',nsubject,nses_struct); end
+                            %                                 fmask2=CONN_x.Setup.rois.files{nsubject}{2}{nses_struct}{1};
+                            %                                 if isempty(fmask2), error('White Matter ROI data not yet defined for subject %d session %d',nsubject,nses_struct); end
+                            %                                 fmask3=CONN_x.Setup.rois.files{nsubject}{3}{nses_struct}{1};
+                            %                                 if isempty(fmask3), error('CSF ROI data not yet defined for subject %d session %d',nsubject,nses_struct); end
+                            %                                 temp=[cellstr(fmask1);cellstr(fmask2);cellstr(fmask3)];
+                            %                                 outputfiles{isubject}{nses_struct}{3}=temp;
+                            %                                 matlabbatch{end}.spm.spatial.coreg.estimate.other=cat(1,matlabbatch{end}.spm.spatial.coreg.estimate.other,temp(:));
+                            %                             end
                         end
                     end
                 end
@@ -1472,18 +1469,18 @@ for iSTEP=1:numel(STEPS)
                 %note: structural_template disregarded (using tissue probability maps instead)
                 matlabbatch{end+1}.spm.spatial.normalise.estwrite.woptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=1;
                 end
-                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm=reshape(cellstr(tpm_template),[],1); end
+                if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg; end
             else
                 %note: tissue probability maps disregarded (using structural template instead)
                 matlabbatch{end+1}.spm.spatial.normalise.estwrite.roptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.estwrite.roptions.vox=voxelsize_anat.*[1 1 1];
                 matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.template={structural_template};
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.interp=1;
                 end
             end
             jsubject=0;
@@ -1500,7 +1497,7 @@ for iSTEP=1:numel(STEPS)
                         else        matlabbatch{end}.spm.spatial.normalise.estwrite.subj(jsubject).source={CONN_x.Setup.structural{nsubject}{nses}{1}};
                         end
                         matlabbatch{end}.spm.spatial.normalise.estwrite.subj(jsubject).resample={CONN_x.Setup.structural{nsubject}{nses}{1}};
-                        if DOSPM12, 
+                        if DOSPM12,
                             outputfiles{isubject}{nses}{1}=CONN_x.Setup.structural{nsubject}{nses}{1};
                             outputfiles{isubject}{nses}{5}=conn_prepend('y_',CONN_x.Setup.structural{nsubject}{nses}{1},'.nii');
                         else
@@ -1569,21 +1566,21 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12
                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.write.woptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1;
                 end
             else
                 matlabbatch{end+1}.spm.spatial.normalise.write.roptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.write.roptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1;
                 end
             end
             jsubject=0;
             for isubject=1:numel(subjects), % normalize write
                 nsubject=subjects(isubject);
-                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject))); 
-                else nsess_struct=1; 
+                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                else nsess_struct=1;
                 end
                 for nses=nsess_struct(:)'
                     if CONN_x.Setup.structural_sessionspecific, nsess_func=nses;
@@ -1615,11 +1612,11 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
             end
-            if ~jsubject, matlabbatch=matlabbatch(1:end-1); end            
+            if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
             
         case {'structural_segment&normalize','functional_segment&normalize_indirect'}
             DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
-            if strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_segment&normalize_indirect') 
+            if strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_segment&normalize_indirect')
                 jsubject=0;
                 for isubject=1:numel(subjects), % coregister
                     nsubject=subjects(isubject);
@@ -1688,7 +1685,7 @@ for iSTEP=1:numel(STEPS)
                         if isempty(CONN_x.Setup.structural{nsubject}{nses}{1}), error(sprintf('No structural file defined for Subject %d Session %d. Please select a structural file',nsubject,nses));
                         elseif numel(CONN_x.Setup.structural{nsubject}{nses}{3})>1, error(sprintf('Multiple structural files found for Subject %d Session %d. Please select a single structural file',nsubject,nses));
                         end
-                        if DOSPM12, 
+                        if DOSPM12,
                             matlabbatch{end}.spm.spatial.preproc.channel.vols{jsubject}=CONN_x.Setup.structural{nsubject}{nses}{1};
                             outputfiles{isubject}{nses}{1}=CONN_x.Setup.structural{nsubject}{nses}{1};
                             outputfiles{isubject}{nses}{5}=conn_prepend('y_',CONN_x.Setup.structural{nsubject}{nses}{1},'.nii');  % note: fix SPM12 issue converting .img to .nii
@@ -1702,7 +1699,7 @@ for iSTEP=1:numel(STEPS)
                         else [outputfiles{isubject}{nses}{5},nill,outputfiles{isubject}{nses}{1}]=conn_setup_preproc_meanimage(CONN_x.Setup.structural{nsubject}{nses}{1},'norm_spm8');
                         end
                     end
-                    if DOSPM12, 
+                    if DOSPM12,
                         outputfiles{isubject}{nses}{2}=conn_prepend('c1',outputfiles{isubject}{nses}{1},'.nii'); % note: fix SPM12 issue converting .img to .nii
                         outputfiles{isubject}{nses}{3}=conn_prepend('c2',outputfiles{isubject}{nses}{1},'.nii');
                         outputfiles{isubject}{nses}{4}=conn_prepend('c3',outputfiles{isubject}{nses}{1},'.nii');
@@ -1714,21 +1711,17 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12
-                if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
-                    if isempty(tpm_ngaus), tpm_ngaus=[1 1 2 3 4 2]; end % grey/white/CSF/bone/soft/air
-                    if numel(tpm_ngaus)<numel(temp), tpm_ngaus=[tpm_ngaus(:)' 4+zeros(1,numel(temp)-numel(tpm_ngaus))]; end
-                    for n=1:numel(temp)
-                        matlabbatch{end}.spm.spatial.preproc.tissue(n)=struct('tpm',{temp(n)},'ngaus',tpm_ngaus(n),'native',[1 0],'warped',[0 0]);
-                    end
-                end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
             else
                 if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
+                    if ~isempty(subjects)&&~isempty(sessions)&&(isnumeric(tpm_template)||(ischar(tpm_template)&&size(tpm_template,1)==1&&~isempty(conn_datasetlabel(tpm_template))))
+                        error('unsupported subject-specific TPM in SPM8; please upgrade to SPM12 instead')
+                    else temp=cellstr(conn_expandframe(tpm_template));
+                    end
                     if isempty(tpm_ngaus), tpm_ngaus=[2 2 2 4]; end % grey/white/CSF (+other implicit)
                     matlabbatch{end}.spm.spatial.preproc.opts.tpm=temp;
                     matlabbatch{end}.spm.spatial.preproc.opts.ngaus=ngaus(1:numel(temp)+1);
@@ -1792,21 +1785,21 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12
                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.write.woptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1;
                 end
             else
                 matlabbatch{end+1}.spm.spatial.normalise.write.roptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.write.roptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1;
                 end
             end
             jsubject=0;
             for isubject=1:numel(subjects), % normalize write structural
                 nsubject=subjects(isubject);
-                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject))); 
-                else nsess_struct=1; 
+                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                else nsess_struct=1;
                 end
                 for nses=nsess_struct(:)' %note: any structural targets for in-sessions functionals
                     if CONN_x.Setup.structural_sessionspecific, nsess_func=nses;
@@ -1833,7 +1826,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
-                        
+            
             jsubject=0;
             for isubject=1:numel(subjects), % imcalc
                 nsubject=subjects(isubject);
@@ -1890,14 +1883,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12,
-                if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
-                    if isempty(tpm_ngaus), tpm_ngaus=[1 1 2 3 4 2]; end % grey/white/CSF/bone/soft/air
-                    if numel(tpm_ngaus)<numel(temp), tpm_ngaus=[tpm_ngaus(:)' 4+zeros(1,numel(temp)-numel(tpm_ngaus))]; end
-                    for n=1:numel(temp)
-                        matlabbatch{end}.spm.spatial.preproc.tissue(n)=struct('tpm',{temp(n)},'ngaus',tpm_ngaus(n),'native',[1 0],'warped',[1 0]);
-                    end
-                end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
@@ -1906,7 +1892,10 @@ for iSTEP=1:numel(STEPS)
                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp; end
             else
                 if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
+                    if ~isempty(subjects)&&~isempty(sessions)&&(isnumeric(tpm_template)||(ischar(tpm_template)&&size(tpm_template,1)==1&&~isempty(conn_datasetlabel(tpm_template))))
+                        error('unsupported subject-specific TPM in SPM8; please upgrade to SPM12 instead')
+                    else temp=cellstr(conn_expandframe(tpm_template));
+                    end
                     if isempty(tpm_ngaus), tpm_ngaus=[2 2 2 4]; end % grey/white/CSF (+other implicit)
                     matlabbatch{end}.spm.spatial.preproc.opts.tpm=temp;
                     matlabbatch{end}.spm.spatial.preproc.opts.ngaus=ngaus(1:numel(temp)+1);
@@ -1938,7 +1927,7 @@ for iSTEP=1:numel(STEPS)
                         outputfiles{isubject}{nses}{7}=char(conn_prepend('w',temp));
                     end
                 end
-            end            
+            end
             
             % structural segment/normalize
             if DOSPM12, matlabbatch{end+1}.spm.spatial.preproc.channel.vols={};
@@ -1976,26 +1965,22 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12
-                if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
-                    if isempty(tpm_ngaus), tpm_ngaus=[1 1 2 3 4 2]; end % grey/white/CSF/bone/soft/air
-                    if numel(tpm_ngaus)<numel(temp), tpm_ngaus=[tpm_ngaus(:)' 4+zeros(1,numel(temp)-numel(tpm_ngaus))]; end
-                    for n=1:numel(temp)
-                        matlabbatch{end}.spm.spatial.preproc.tissue(n)=struct('tpm',{temp(n)},'ngaus',tpm_ngaus(n),'native',[1 0],'warped',[0 0]);
-                    end
-                end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.write.woptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1;
                 end
             else
                 if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
+                    if ~isempty(subjects)&&~isempty(sessions)&&(isnumeric(tpm_template)||(ischar(tpm_template)&&size(tpm_template,1)==1&&~isempty(conn_datasetlabel(tpm_template))))
+                        error('unsupported subject-specific TPM in SPM8; please upgrade to SPM12 instead')
+                    else temp=cellstr(conn_expandframe(tpm_template));
+                    end
                     if isempty(tpm_ngaus), tpm_ngaus=[2 2 2 4]; end % grey/white/CSF (+other implicit)
                     matlabbatch{end}.spm.spatial.preproc.opts.tpm=temp;
                     matlabbatch{end}.spm.spatial.preproc.opts.ngaus=ngaus(1:numel(temp)+1);
@@ -2007,8 +1992,8 @@ for iSTEP=1:numel(STEPS)
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
                 matlabbatch{end+1}.spm.spatial.normalise.write.roptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.write.roptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp; 
-                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1; 
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1;
                 end
             end
             jsubject=0;
@@ -2020,12 +2005,12 @@ for iSTEP=1:numel(STEPS)
                     else nsesstrue=1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
                     end
                     if ismember(nses,sessions)||any(ismember(nsesstrue,sessions))
-                        if ismember(nses,sessions), 
+                        if ismember(nses,sessions),
                             jsubject=jsubject+1; % write struct normed (optional)
                             if DOSPM12, matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).def=outputfiles{isubject}{nses}(5);
                             else        matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).matname=outputfiles{isubject}{nses}(5);
                             end
-                            matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{nses}(1:4)'; 
+                            matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{nses}(1:4)';
                         end
                         if any(ismember(nsesstrue,sessions))
                             jsubject=jsubject+1; % write func inv normed
@@ -2144,7 +2129,7 @@ for iSTEP=1:numel(STEPS)
                             end
                             if (numel(unique(sliceorder))~=nslice||max(sliceorder)~=nslice||min(sliceorder)~=1) && (numel(sliceorder)~=nslice||any(sliceorder<0|sliceorder>conn_get_rt(nsubject,nses,sets)*1000)), sliceorder_select=[]; end
                         end
-                        if (numel(unique(sliceorder))~=nslice||max(sliceorder)~=nslice||min(sliceorder)~=1), 
+                        if (numel(unique(sliceorder))~=nslice||max(sliceorder)~=nslice||min(sliceorder)~=1),
                             matlabbatch{end}.spm.temporal.st.so=sliceorder;
                             matlabbatch{end}.spm.temporal.st.refslice=mean(sliceorder); % slice timing (ms)
                         elseif 1, % note: convert to slice-timing (ms) syntax for SPM
@@ -2250,20 +2235,20 @@ for iSTEP=1:numel(STEPS)
                             if ~conn_existfile(tmfile), tmfile=conn_prepend('vdm5_',ttemp{1}); end
                             if ~conn_existfile(tmfile)
                                 tmfile=dir(fullfile(fileparts(ttemp{1}),'vdm*.nii'));
-                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name); 
-                                else tmfile=''; 
+                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name);
+                                else tmfile='';
                                 end
                             end
                             if ~conn_existfile(tmfile)
                                 tmfile=dir(fullfile(fileparts(ttemp{1}),'vdm*.img'));
-                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name); 
-                                else tmfile=''; 
+                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name);
+                                else tmfile='';
                                 end
                             end
                         end
-                        if isempty(tmfile), 
+                        if isempty(tmfile),
                             conn_disp('fprintf','unable to find voxel-displacement file %s. Switching to manual selection\n',fullfile(fileparts(ttemp{1}),'vdm*'));
-                            tmfile=spm_select(1,'^vdm.*',['SUBJECT ',num2str(nsubject),'SESSION ',num2str(nses),' Voxel-Displacement Map (vdm*)'],{tmfile},fileparts(ttemp{1})); 
+                            tmfile=spm_select(1,'^vdm.*',['SUBJECT ',num2str(nsubject),'SESSION ',num2str(nses),' Voxel-Displacement Map (vdm*)'],{tmfile},fileparts(ttemp{1}));
                         end
                         if isempty(tmfile),return;end
                         if isequal(tmfile,conn_prepend('vdm_',regexprep(ttemp{1},',\d+$',''))), outtmfile=tmfile;
@@ -2308,7 +2293,7 @@ for iSTEP=1:numel(STEPS)
                                 elseif isequal(PED,'j+')||isequal(PED,'j-')||isequal(PED,'j'), PED=2;
                                 elseif isequal(PED,'k+')||isequal(PED,'k-')||isequal(PED,'k'), PED=3;
                                 else
-                                    if ~isempty(PED), conn_disp('fprintf','warning: unable to interpret PhaseEncodingDirection information in %s (%s). Assuming Posterior-Anterior (j)\n',ttemp{1},PED); 
+                                    if ~isempty(PED), conn_disp('fprintf','warning: unable to interpret PhaseEncodingDirection information in %s (%s). Assuming Posterior-Anterior (j)\n',ttemp{1},PED);
                                     else conn_disp('fprintf','warning: unable to find PhaseEncodingDirection information in %s. Assuming Posterior-Anterior (j)\n',ttemp{1});
                                     end
                                     PED=2;
@@ -2328,20 +2313,20 @@ for iSTEP=1:numel(STEPS)
                             if ~conn_existfile(tmfile), tmfile=conn_prepend('vdm5_',ttemp{1}); end
                             if ~conn_existfile(tmfile)
                                 tmfile=dir(fullfile(fileparts(ttemp{1}),'vdm*.nii'));
-                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name); 
-                                else tmfile=''; 
+                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name);
+                                else tmfile='';
                                 end
                             end
                             if ~conn_existfile(tmfile)
                                 tmfile=dir(fullfile(fileparts(ttemp{1}),'vdm*.img'));
-                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name); 
-                                else tmfile=''; 
+                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name);
+                                else tmfile='';
                                 end
                             end
                         end
-                        if isempty(tmfile), 
+                        if isempty(tmfile),
                             conn_disp('fprintf','unable to find voxel-displacement file %s. Switching to manual selection\n',fullfile(fileparts(ttemp{1}),'vdm*'));
-                            tmfile=spm_select(1,'^vdm.*',['SUBJECT ',num2str(nsubject),'SESSION ',num2str(nses),' Voxel-Displacement Map (vdm*)'],{tmfile},fileparts(ttemp{1})); 
+                            tmfile=spm_select(1,'^vdm.*',['SUBJECT ',num2str(nsubject),'SESSION ',num2str(nses),' Voxel-Displacement Map (vdm*)'],{tmfile},fileparts(ttemp{1}));
                         end
                         if isempty(tmfile),return;end
                         if isequal(tmfile,conn_prepend('vdm_',regexprep(ttemp{1},',\d+$',''))), outtmfile=tmfile;
@@ -2407,12 +2392,12 @@ for iSTEP=1:numel(STEPS)
             jsubject=0;
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject))); 
-                else nsess_struct=1; 
+                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                else nsess_struct=1;
                 end
                 for nses_struct=nsess_struct(:)'
                     if CONN_x.Setup.structural_sessionspecific, nsess_func=nses_struct;
-                    else nsess_func=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject))); 
+                    else nsess_func=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
                     end
                     if ~isempty(nsess_func)
                         jsubject=jsubject+1;
@@ -2457,12 +2442,12 @@ for iSTEP=1:numel(STEPS)
             jsubject=0;
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject))); 
-                else nsess_struct=1; 
+                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                else nsess_struct=1;
                 end
                 for nses_struct=nsess_struct(:)'
                     if CONN_x.Setup.structural_sessionspecific, nsess_func=nses_struct;
-                    else nsess_func=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject))); 
+                    else nsess_func=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
                     end
                     if ~isempty(nsess_func)
                         jsubject=jsubject+1;
@@ -2542,20 +2527,16 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12,
-                if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
-                    if isempty(tpm_ngaus), tpm_ngaus=[1 1 2 3 4 2]; end % grey/white/CSF/bone/soft/air
-                    if numel(tpm_ngaus)<numel(temp), tpm_ngaus=[tpm_ngaus(:)' 4+zeros(1,numel(temp)-numel(tpm_ngaus))]; end
-                    for n=1:numel(temp)
-                        matlabbatch{end}.spm.spatial.preproc.tissue(n)=struct('tpm',{temp(n)},'ngaus',tpm_ngaus(n),'native',[1 0],'warped',[0 0]);
-                    end
-                end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
             else
                 if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
+                    if ~isempty(subjects)&&~isempty(sessions)&&(isnumeric(tpm_template)||(ischar(tpm_template)&&size(tpm_template,1)==1&&~isempty(conn_datasetlabel(tpm_template))))
+                        error('unsupported subject-specific TPM in SPM8; please upgrade to SPM12 instead')
+                    else temp=cellstr(conn_expandframe(tpm_template));
+                    end
                     if isempty(tpm_ngaus), tpm_ngaus=[2 2 2 4]; end % grey/white/CSF (+other implicit)
                     matlabbatch{end}.spm.spatial.preproc.opts.tpm=temp;
                     matlabbatch{end}.spm.spatial.preproc.opts.ngaus=ngaus(1:numel(temp)+1);
@@ -2573,7 +2554,7 @@ for iSTEP=1:numel(STEPS)
                 matlabbatch{end+1}.spm.spatial.normalise.estwrite.woptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.vox=voxelsize_func.*[1 1 1];
                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=interp; end
-                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm=reshape(cellstr(tpm_template),[],1); end
+                if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,subjects,sessions(1)); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg; end
             else
                 %note: tissue probability maps disregarded (using functional_template instead)
@@ -2661,14 +2642,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12,
-                if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
-                    if isempty(tpm_ngaus), tpm_ngaus=[1 1 2 3 4 2]; end % grey/white/CSF/bone/soft/air
-                    if numel(tpm_ngaus)<numel(temp), tpm_ngaus=[tpm_ngaus(:)' 4+zeros(1,numel(temp)-numel(tpm_ngaus))]; end
-                    for n=1:numel(temp)
-                        matlabbatch{end}.spm.spatial.preproc.tissue(n)=struct('tpm',{temp(n)},'ngaus',tpm_ngaus(n),'native',[1 0],'warped',[1 0]);
-                    end
-                end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
@@ -2677,7 +2651,10 @@ for iSTEP=1:numel(STEPS)
                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp; end
             else
                 if ~isempty(tpm_template),
-                    temp=cellstr(conn_expandframe(tpm_template));
+                    if ~isempty(subjects)&&~isempty(sessions)&&(isnumeric(tpm_template)||(ischar(tpm_template)&&size(tpm_template,1)==1&&~isempty(conn_datasetlabel(tpm_template))))
+                        error('unsupported subject-specific TPM in SPM8; please upgrade to SPM12 instead')
+                    else temp=cellstr(conn_expandframe(tpm_template));
+                    end
                     if isempty(tpm_ngaus), tpm_ngaus=[2 2 2 4]; end % grey/white/CSF (+other implicit)
                     matlabbatch{end}.spm.spatial.preproc.opts.tpm=temp;
                     matlabbatch{end}.spm.spatial.preproc.opts.ngaus=ngaus(1:numel(temp)+1);
@@ -2716,8 +2693,8 @@ for iSTEP=1:numel(STEPS)
             
         case 'functional_smooth_masked'
             if size(fwhm,1)>1&&~iscell(fwhm), fwhm=num2cell(fwhm,2); end
-            if iscell(fwhm), this_fwhm=fwhm{1}; fwhm=fwhm(2:end); 
-            else this_fwhm=fwhm; 
+            if iscell(fwhm), this_fwhm=fwhm{1}; fwhm=fwhm(2:end);
+            else this_fwhm=fwhm;
             end
             if isempty(this_fwhm)
                 this_fwhm=inputdlg('Enter smoothing FWHM (in mm)','conn_setup_preproc',1,{num2str(8)});
@@ -2759,7 +2736,7 @@ for iSTEP=1:numel(STEPS)
                             switch(SVARIANT)
                                 case 1, volout(n)=spm_write_vol(volout(n),(1-mask).*data + mask.*sdata./max(eps,smask));
                                 case 2, volout(n)=spm_write_vol(volout(n),(sdata+data.*mask0)./max(eps,smask+mask0));
-                                %case 3, volout(n)=spm_write_vol(volout(n),(sdata.*smask+1/LAMBDA*data)./(smask+1/LAMBDA));
+                                    %case 3, volout(n)=spm_write_vol(volout(n),(sdata.*smask+1/LAMBDA*data)./(smask+1/LAMBDA));
                             end
                         end
                         %voloutmask=spm_write_vol(voloutmask,mask);
@@ -2771,8 +2748,8 @@ for iSTEP=1:numel(STEPS)
             
         case 'functional_smooth'
             if size(fwhm,1)>1&&~iscell(fwhm), fwhm=num2cell(fwhm,2); end
-            if iscell(fwhm), this_fwhm=fwhm{1}; fwhm=fwhm(2:end); 
-            else this_fwhm=fwhm; 
+            if iscell(fwhm), this_fwhm=fwhm{1}; fwhm=fwhm(2:end);
+            else this_fwhm=fwhm;
             end
             if isempty(this_fwhm)
                 this_fwhm=inputdlg('Enter smoothing FWHM (in mm)','conn_setup_preproc',1,{num2str(8)});
@@ -2830,8 +2807,8 @@ for iSTEP=1:numel(STEPS)
             
         case 'functional_surface_smooth'
             if size(diffusionsteps,1)>1&&~iscell(diffusionsteps), diffusionsteps=num2cell(diffusionsteps,2); end
-            if iscell(diffusionsteps), this_diffusionsteps=diffusionsteps{1}; diffusionsteps=diffusionsteps(2:end); 
-            else this_diffusionsteps=diffusionsteps; 
+            if iscell(diffusionsteps), this_diffusionsteps=diffusionsteps{1}; diffusionsteps=diffusionsteps(2:end);
+            else this_diffusionsteps=diffusionsteps;
             end
             if isempty(this_diffusionsteps)
                 this_diffusionsteps=inputdlg('Enter number of diffusion steps for smoothing','conn_setup_preproc',1,{num2str(10)});
@@ -2884,7 +2861,7 @@ for iSTEP=1:numel(STEPS)
                             fmap=cellstr(fmap);
                             if numel(fmap)==1,fmap=cellstr(conn_expandframe(fmap{1})); end
                             ET1=vdm_et1; ET2=vdm_et2; ERT=vdm_ert; BLIP=vdm_blip;
-                            if isequal(vdm_type,1)||(isempty(vdm_type)&&(numel(fmap)==2||numel(fmap)==3)), % Magnitude1+PhaseDiff or Magnitude1+Magnitude2+PhaseDiff 
+                            if isequal(vdm_type,1)||(isempty(vdm_type)&&(numel(fmap)==2||numel(fmap)==3)), % Magnitude1+PhaseDiff or Magnitude1+Magnitude2+PhaseDiff
                                 fmap=[fmap(end) fmap(1)]; % note: sorts as PhaseDiff+Magnitude for SPM FieldMap_create
                                 scphase=FieldMap('Scale',fmap{1});
                                 fmap{1}=scphase.fname; % scaled phase
@@ -2909,15 +2886,15 @@ for iSTEP=1:numel(STEPS)
                                 if isempty(ET2), ET2=ET1+1000*conn_jsonread(fmap{2},'EchoTimeDifference'); end
                                 if isempty(ET2), ET2=1000*conn_jsonread(fmap{1},'EchoTime'); end
                                 if nses==1&&isempty(ET2), conn_disp('fprintf','warning: unable to find EchoTime2 or EchoTimeDifference information in %s\n',fmap{1}); end
-                                if isempty(BLIP), 
-                                    BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false); 
+                                if isempty(BLIP),
+                                    BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false);
                                     if iscell(BLIP), BLIP=char(BLIP); end
                                     if isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=-1;
                                     elseif isequal(BLIP,'j-'), BLIP=1;
                                     elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
                                     end
                                 end
-                                if nses==1&&isempty(BLIP), conn_disp('fprintf','warning: unable to find PhaseEncodingDirection information in %s\n',filename); end                                
+                                if nses==1&&isempty(BLIP), conn_disp('fprintf','warning: unable to find PhaseEncodingDirection information in %s\n',filename); end
                                 if ~isempty(ET1)&&~isempty(ET2)&&~isempty(ERT)&&~isempty(BLIP)
                                     conn_disp('fprintf','Creating vdm file for subject %d session %d...\n',nsubject,nses);
                                     if ET1>ET2, [ET1,ET2]=deal(ET2,ET1); end
@@ -2970,13 +2947,13 @@ for iSTEP=1:numel(STEPS)
                                 if isempty(ET2), ET2=1000*conn_jsonread(fmap{3},'EchoTime'); end
                                 if isempty(ET2), ET2=1000*conn_jsonread(fmap{4},'EchoTime'); end
                                 if nses==1&&isempty(ET2), conn_disp('fprintf','warning: unable to find EchoTime information in %s or %s\n',fmap{3},fmap{4}); end %ET1=4.37;
-                                if isempty(BLIP), BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false); 
+                                if isempty(BLIP), BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false);
                                     if isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=-1;
                                     elseif isequal(BLIP,'j-'), BLIP=1;
                                     elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
                                     end
                                 end
-                                if nses==1&&isempty(BLIP), conn_disp('fprintf','warning: unable to find PhaseEncodingDirection information in %s\n',filename); end                                
+                                if nses==1&&isempty(BLIP), conn_disp('fprintf','warning: unable to find PhaseEncodingDirection information in %s\n',filename); end
                                 if ~isempty(ET1)&&~isempty(ET2)&&~isempty(ERT)&&~isempty(BLIP)
                                     conn_disp('fprintf','Creating vdm file for subject %d session %d...\n',nsubject,nses);
                                     pm_defaults;
@@ -2989,8 +2966,8 @@ for iSTEP=1:numel(STEPS)
                             else error('type of fieldmap sequence files could not be determined from number of available files (%d) in dataset %s for subject %d session %d',numel(fmap),mat2str(vdm_fmap),nsubject,nses);
                             end
                         end
-                        if isempty(VDM), outputfiles{isubject}{nses}=''; 
-                        else outputfiles{isubject}{nses}=char(VDM{1}.fname); 
+                        if isempty(VDM), outputfiles{isubject}{nses}='';
+                        else outputfiles{isubject}{nses}=char(VDM{1}.fname);
                         end
                     end
                 end
@@ -3000,8 +2977,36 @@ for iSTEP=1:numel(STEPS)
             error(['unrecognized option ',STEP]);
     end
     
+    
     if dogui&&ishandle(hmsg), delete(hmsg); end
     hmsg=[];
+    newmatlabbatch={}; newin=[];
+    for n=1:numel(matlabbatch) % fix to allow subject-specific TPMs
+        if isfield(matlabbatch{n},'spm')&&isfield(matlabbatch{n}.spm,'spatial')&&isfield(matlabbatch{n}.spm.spatial,'preproc')&&isfield(matlabbatch{n}.spm.spatial.preproc,'tissue')&&iscell(matlabbatch{n}.spm.spatial.preproc.tissue)
+            for n2=1:numel(matlabbatch{n}.spm.spatial.preproc.tissue)
+                newmatlabbatch{end+1}=matlabbatch{n};
+                newmatlabbatch{end}.spm.spatial.preproc.tissue=matlabbatch{end}.spm.spatial.preproc.tissue{n2};
+                newmatlabbatch{end}.spm.spatial.preproc.channel.vols=matlabbatch{end}.spm.spatial.preproc.channel.vols(n2);
+                newin(end+1)=n;
+            end
+        elseif isfield(matlabbatch{n},'spm')&&isfield(matlabbatch{n}.spm,'spatial')&&isfield(matlabbatch{n}.spm.spatial,'normalise')&&isfield(matlabbatch{n}.spm.spatial.normalise,'estwrite')&&isfield(matlabbatch{n}.spm.spatial.normalise.estwrite,'eoptions')&&isfield(matlabbatch{n}.spm.spatial.normalise.estwrite.eoptions,'tpm')&&size(matlabbatch{n}.spm.spatial.normalise.estwrite.eoptions.tpm,2)>1
+            for n2=1:size(matlabbatch{n}.spm.spatial.normalise.estwrite.eoptions.tpm,2)
+                newmatlabbatch{end+1}=matlabbatch{n};
+                newmatlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm=matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm(:,n2);
+                newmatlabbatch{end}.spm.spatial.normalise.estwrite.subj=matlabbatch{end}.spm.spatial.normalise.estwrite.subj(n2);
+                newin(end+1)=n;
+            end
+        end
+    end
+    if ~isempty(newmatlabbatch)
+        keepin=setdiff(1:numel(matlabbatch),newin);
+        newin=[keepin newin];
+        matlabbatch=[matlabbatch(keepin), newmatlabbatch];
+        [nill,idxin]=sort(newin);
+        matlabbatch=matlabbatch(idxin);
+    end
+    
+    
     if strncmp(lower(STEP),'interactive_',numel('interactive_'))
         doimport=false;
         if any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_art'}))
@@ -3523,7 +3528,7 @@ for iSTEP=1:numel(STEPS)
                         for nses=nsess(:)'
                             CONN_x.Setup.unwarp_functional{nsubject}{nses}=conn_file(outputfiles{isubject}{nses});
                             conn_set_functional(nsubject,nses,'vdm',outputfiles{isubject}{nses});
-                        end 
+                        end
                     end
                 end
                 
@@ -3628,7 +3633,7 @@ for iSTEP=1:numel(STEPS)
                 end
                 
                 
-            case {'functional_coregister','functional_coregister_affine','functional_coregister_affine_noreslice','functional_coregister_affine_reslice'} 
+            case {'functional_coregister','functional_coregister_affine','functional_coregister_affine_noreslice','functional_coregister_affine_reslice'}
                 filename={};
                 for isubject=1:numel(subjects),
                     nsubject=subjects(isubject);
@@ -3700,10 +3705,10 @@ if any(cellfun('length',regexp(str(val),'^functional Coregistration|^functional 
 else set(dlg.m4,'visible','off');
 end
 set(dlg.m6,'string',dlg.steps_descr{val2});
-if ~isempty(dlg.m0b), 
+if ~isempty(dlg.m0b),
     nm7=numel(get(dlg.m7,'string'));
     vm7=get(dlg.m7,'value');
-    if ~nm7, 
+    if ~nm7,
         set([dlg.m6 dlg.m0b dlg.m4],'visible','off');
         set([dlg.m8b dlg.m8c dlg.m8d dlg.m8g],'enable','off');
     else
@@ -3787,9 +3792,9 @@ else
     if ~all(tok), conn_disp('Warning: some preprocessing steps do not have valid names'); end
     steps=dlg.steps(idx(tok>0));
     set(dlg.m7,'string',dlg.steps_names(idx(tok>0)));
-    if exist('coregtomean','var'), 
+    if exist('coregtomean','var'),
         if isempty(coregtomean), coregtomean=1; end
-        set(dlg.m4,'value',~coregtomean); 
+        set(dlg.m4,'value',~coregtomean);
     end
     if isempty(steps), set(dlg.m7,'value',[]);
     else
@@ -3809,49 +3814,83 @@ end
 function conn_setup_preproc_disp(matlabbatch,str)
 if nargin<2, str=''; end
 try
-if isempty(matlabbatch),
-elseif iscell(matlabbatch)&&ischar(matlabbatch{1})
-    if numel(matlabbatch)>4
-        conn_disp('fprintf','%s(%d) = %s\n',str,1,matlabbatch{1});
-        conn_disp('fprintf','%s(%d) = %s\n',str,2,matlabbatch{2});
-        conn_disp('fprintf','%s(%d) = %s\n',str,numel(matlabbatch)-1,matlabbatch{end-1});
-        conn_disp('fprintf','%s(%d) = %s\n',str,numel(matlabbatch),matlabbatch{end});
+    if isempty(matlabbatch),
+    elseif iscell(matlabbatch)&&ischar(matlabbatch{1})
+        if numel(matlabbatch)>4
+            conn_disp('fprintf','%s(%d) = %s\n',str,1,matlabbatch{1});
+            conn_disp('fprintf','%s(%d) = %s\n',str,2,matlabbatch{2});
+            conn_disp('fprintf','%s(%d) = %s\n',str,numel(matlabbatch)-1,matlabbatch{end-1});
+            conn_disp('fprintf','%s(%d) = %s\n',str,numel(matlabbatch),matlabbatch{end});
+        elseif numel(matlabbatch)>1
+            for n=1:numel(matlabbatch)
+                conn_disp('fprintf','%s(%d) = %s\n',str,n,matlabbatch{n});
+            end
+        else
+            conn_disp('fprintf','%s = %s\n',str,matlabbatch{1});
+        end
+    elseif iscell(matlabbatch)
+        if numel(matlabbatch)==1
+            conn_setup_preproc_disp(matlabbatch{1},str);
+        else
+            for n=1:numel(matlabbatch)
+                conn_setup_preproc_disp(matlabbatch{n},sprintf('%s(%d)',str,n));
+            end
+        end
+    elseif ~isempty(matlabbatch)&&isnumeric(matlabbatch)
+        if numel(matlabbatch)>100
+            conn_disp('fprintf','%s = [%s %s %s %s %s ... %s %s %s %s %s]\n',str,mat2str(matlabbatch(1)),mat2str(matlabbatch(2)),mat2str(matlabbatch(3)),mat2str(matlabbatch(4)),mat2str(matlabbatch(5)),mat2str(matlabbatch(end-4)),mat2str(matlabbatch(end-3)),mat2str(matlabbatch(end-2)),mat2str(matlabbatch(end-1)),mat2str(matlabbatch(end)));
+        else
+            conn_disp('fprintf','%s = %s\n',str,mat2str(matlabbatch));
+        end
+    elseif ~isempty(matlabbatch)&&ischar(matlabbatch)
+        if numel(matlabbatch)>200, conn_disp('fprintf','%s = %s...%s\n',str,1,matlabbatch(1:50),matlabbatch(end-50+1:end));
+        else conn_disp('fprintf','%s = %s\n',str,matlabbatch);
+        end
     elseif numel(matlabbatch)>1
         for n=1:numel(matlabbatch)
-            conn_disp('fprintf','%s(%d) = %s\n',str,n,matlabbatch{n});
+            conn_setup_preproc_disp(matlabbatch(n),sprintf('%s(%d)',str,n));
         end
-    else
-        conn_disp('fprintf','%s = %s\n',str,matlabbatch{1});
-    end
-elseif iscell(matlabbatch)
-    if numel(matlabbatch)==1
-        conn_setup_preproc_disp(matlabbatch{1},str);
-    else
-        for n=1:numel(matlabbatch)
-            conn_setup_preproc_disp(matlabbatch{n},sprintf('%s(%d)',str,n));
+    elseif isstruct(matlabbatch)
+        names=fieldnames(matlabbatch);
+        for n=1:numel(names)
+            conn_setup_preproc_disp(matlabbatch.(names{n}),sprintf('%s.%s',str,names{n}));
         end
-    end
-elseif ~isempty(matlabbatch)&&isnumeric(matlabbatch)
-    if numel(matlabbatch)>100
-        conn_disp('fprintf','%s = [%s %s %s %s %s ... %s %s %s %s %s]\n',str,mat2str(matlabbatch(1)),mat2str(matlabbatch(2)),mat2str(matlabbatch(3)),mat2str(matlabbatch(4)),mat2str(matlabbatch(5)),mat2str(matlabbatch(end-4)),mat2str(matlabbatch(end-3)),mat2str(matlabbatch(end-2)),mat2str(matlabbatch(end-1)),mat2str(matlabbatch(end)));
-    else
-        conn_disp('fprintf','%s = %s\n',str,mat2str(matlabbatch));
-    end    
-elseif ~isempty(matlabbatch)&&ischar(matlabbatch)
-    if numel(matlabbatch)>200, conn_disp('fprintf','%s = %s...%s\n',str,1,matlabbatch(1:50),matlabbatch(end-50+1:end));
-    else conn_disp('fprintf','%s = %s\n',str,matlabbatch);
-    end
-elseif numel(matlabbatch)>1
-    for n=1:numel(matlabbatch)
-        conn_setup_preproc_disp(matlabbatch(n),sprintf('%s(%d)',str,n));
-    end
-elseif isstruct(matlabbatch)
-    names=fieldnames(matlabbatch);
-    for n=1:numel(names)
-        conn_setup_preproc_disp(matlabbatch.(names{n}),sprintf('%s.%s',str,names{n}));
     end
 end
 end
+
+function  [tissue,tpm]=conn_setup_preproc_tissue(tpm_template,subjects,sessions)
+global CONN_x;
+if isnumeric(tpm_template)||(ischar(tpm_template)&&size(tpm_template,1)==1&&~isempty(conn_datasetlabel(tpm_template)))
+    tpm_expanded={};
+    tpm={};
+    jsubject=0;
+    for isubject=1:numel(subjects),
+        nsubject=subjects(isubject);
+        if CONN_x.Setup.structural_sessionspecific, nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)); else nsess=1; end
+        for nses=1:nsess
+            if ismember(nses,sessions)
+                jsubject=jsubject+1;
+                tfile=conn_get_functional(nsubject,nses,tpm_template);
+                tpm_expanded{end+1}=cellstr(conn_expandframe(tfile));
+                tpm{end+1}=tfile;
+            end
+        end
+    end
+else
+    tpm_expanded={cellstr(conn_expandframe(tpm_template))};
+    tpm=reshape(cellstr(tpm_template),[],1);
+end
+tissue={};
+for ifile=1:numel(tpm_expanded),
+    file=tpm_expanded{ifile};
+    if isempty(tpm_ngaus), tpm_ngaus=[1 1 2 3 4 2]; end % grey/white/CSF/bone/soft/air
+    if numel(tpm_ngaus)<numel(file), tpm_ngaus=[tpm_ngaus(:)' 4+zeros(1,numel(file)-numel(tpm_ngaus))]; end
+    for n=1:numel(file)
+        tissue{ifile}(n)=struct('tpm',{file(n)},'ngaus',tpm_ngaus(min(n,numel(tpm_ngaus))),'native',[1 0],'warped',[0 0]);
+    end
+end
+if numel(tissue)==1, tissue=tissue{1}; end % regular case, single tpm file 
 end
 
 

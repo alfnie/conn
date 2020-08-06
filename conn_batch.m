@@ -398,6 +398,7 @@ function varargout=conn_batch(varargin)
 %                         [spm/template/EPI.nii]
 %      tpm_template    : (structural_segment, structural_segment&normalize in SPM8, and any segment/normalize option 
 %                         in SPM12) tissue probability map [spm/tpm/TPM.nii]
+%                         alternatively location of subject-specific TPM files (secondary functional dataset number or name ['tpm'])
 %      tpm_ngaus       : (structural_segment, structural_segment&normalize in SPM8&SPM12) number of gaussians for each 
 %                         tissue probability map
 %      vdm_et1         : (functional_vdm_create) ET1 (Echo Time first echo in fieldmap sequence) (default [] : read from .json file / BIDS)
