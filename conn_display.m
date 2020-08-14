@@ -82,7 +82,8 @@ function hfigure=conn_display(SPMfilename,varargin)
 %
 % ADVANCED OPTIONS FOR ROI-to-ROI RESULTS FIGURES (applied to an existing results figure)
 %
-% conn_display(hf, 'print', filename)               prints image with current results
+% conn_display(hf, 'ring_print', filename)          prints image with current results on ring/circle view
+% conn_display(hf, 'ring_view', filename)           display image with current results on ring/circle view 
 % conn_display(hf, 'glass_print', filename)         prints image with current results on 3d glass-brain
 % conn_display(hf, 'glass_view', filename)          displays image with current results on 3d glass-brain
 % conn_display(hf, 'matrix_print', filename)        prints image with current results on ROI-to-ROI matrix view

@@ -365,7 +365,7 @@ end
                             mat=max(abs(temp(:)));
                             state.x_equalized=temp/mat;
                             tidx=reshape(interp1(ut(:),nidx(:)/mat,linspace(0,max(abs(state.x_orig(:))),92)),[],1);
-                            state.colormap_equalized=state.colormap(max(1,min(size(state.colormap,1), round((size(state.colormap,1)+1)/2+(size(state.colormap,1)-1)/2*cat(1,-flipud(tidx),tidx)))),:)
+                            state.colormap_equalized=state.colormap(max(1,min(size(state.colormap,1), round((size(state.colormap,1)+1)/2+(size(state.colormap,1)-1)/2*cat(1,-flipud(tidx),tidx)))),:);
                         end
                         state.x=state.x_equalized;
                         state.colormap_plot=state.colormap_equalized;

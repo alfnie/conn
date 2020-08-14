@@ -4536,7 +4536,8 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
         [ok,nill]=mkdir(filepathresults2,foldername);
         if ok,filepathresults3{1}=fullfile(filepathresults2,foldername);
         else,filepathresults3{1}=uigetdir(filepathresults2,'Select a directory to write the results');dosinglecontrast=1;end
-        if dosinglecontrast==2,
+        if dosinglecontrast==1&&isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite')&&strcmpi(CONN_x.gui.overwrite,'no')&&~isempty(dir(fullfile(filepathresults3{1},'SPM.mat'))), dosinglecontrast=2;
+        elseif dosinglecontrast==2,
             if isempty(dir(fullfile(filepathresults3{1},'SPM.mat'))), dosinglecontrast=1;
             elseif ~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite')), REDO=conn_questdlg('','results explorer','Load existing analysis results', 'Recompute/overwrite results', 'Load existing analysis results'); if strcmp(lower(REDO),'recompute/overwrite results'),dosinglecontrast=1; end; end
             %elseif ~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite')), REDO=conn_questdlg('Re-estimate/Overwrite existing second-level results?','','Yes', 'No', 'No'); if strcmp(lower(REDO),'yes'),dosinglecontrast=1; end; end
@@ -4853,7 +4854,21 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
     if dosinglecontrast==2,
         cd(filepathresults3{1});
         if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
-            varargout{1}=conn_display('SPM.mat',1); 
+            if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
+            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+            fh=conn_display('SPM.mat',ncon,style);
+            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
+                if ~iscell(CONN_x.gui.display_options),
+                    conn_display(fh,CONN_x.gui.display_options);
+                elseif ~iscell(CONN_x.gui.display_options{1})
+                    conn_display(fh,CONN_x.gui.display_options{:});
+                else
+                    for nfields=1:numel(CONN_x.gui.display_options)
+                        conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                    end
+                end
+            end
+            varargout{1}=fh; 
         end
         cd(cwd);
     else,
@@ -4929,7 +4944,20 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                         save('SPM.mat','SPM','-v7.3');
                         conn_disp('fprintf','\nSecond-level results saved in folder %s\n',pwd);
                         if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
-                            conn_display('SPM.mat',1);
+                            if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
+                            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+                            fh=conn_display('SPM.mat',ncon,style);
+                            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
+                                if ~iscell(CONN_x.gui.display_options), 
+                                    conn_display(fh,CONN_x.gui.display_options);
+                                elseif ~iscell(CONN_x.gui.display_options{1})
+                                    conn_display(fh,CONN_x.gui.display_options{:});
+                                else
+                                    for nfields=1:numel(CONN_x.gui.display_options)
+                                        conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                                    end
+                                end
+                            end
                         end
                     elseif ismember(CONN_x.Setup.secondlevelanalyses,[1 2]) % parametric stats
                         save('SPM.mat','SPM','-v7.3');
@@ -4977,7 +5005,20 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                             end
                         end
                         if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
-                            conn_display('SPM.mat',1);
+                            if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
+                            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+                            fh=conn_display('SPM.mat',ncon,style);
+                            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
+                                if ~iscell(CONN_x.gui.display_options), 
+                                    conn_display(fh,CONN_x.gui.display_options);
+                                elseif ~iscell(CONN_x.gui.display_options{1})
+                                    conn_display(fh,CONN_x.gui.display_options{:});
+                                else
+                                    for nfields=1:numel(CONN_x.gui.display_options)
+                                        conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                                    end
+                                end
+                            end
                         end
                     elseif ismember(CONN_x.Setup.secondlevelanalyses,[1 3]) % nonparametric stats
                         V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','mask.img','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('uint8') spm_platform('bigend')]);
@@ -4995,7 +5036,20 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                             end
                         end
                         if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
-                            conn_display('SPM.mat',1);
+                            if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
+                            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+                            fh=conn_display('SPM.mat',ncon,style);
+                            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
+                                if ~iscell(CONN_x.gui.display_options), 
+                                    conn_display(fh,CONN_x.gui.display_options);
+                                elseif ~iscell(CONN_x.gui.display_options{1})
+                                    conn_display(fh,CONN_x.gui.display_options{:});
+                                else
+                                    for nfields=1:numel(CONN_x.gui.display_options)
+                                        conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                                    end
+                                end
+                            end
                         end
                     end
                     conn_waitbar(1/2+1/2*(n1/(length(SPMall))),h,sprintf('Analysis %d',n1));
@@ -5351,8 +5405,26 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
                     summary.design.dataTitle=arrayfun(@(a)sprintf('measure #%d',a),1:size(ROI.c2,2),'uni',0);
                 end
                 save(fullfile(filepathresults2,'ROI.mat'),'summary','-append');
+            end
+            try
                 if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
-                    conn_display(fullfile(filepathresults2,'ROI.mat'));
+                    cwd=pwd;
+                    cd(filepathresults2);
+                    if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
+                    if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+                    fh=conn_display(fullfile(filepathresults2,'ROI.mat'),ncon,style);
+                    if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
+                        if ~iscell(CONN_x.gui.display_options),
+                            conn_display(fh,CONN_x.gui.display_options);
+                        elseif ~iscell(CONN_x.gui.display_options{1})
+                            conn_display(fh,CONN_x.gui.display_options{:});
+                        else
+                            for nfields=1:numel(CONN_x.gui.display_options)
+                                conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                            end
+                        end
+                    end
+                    cd(cwd);
                 end
             end
         end

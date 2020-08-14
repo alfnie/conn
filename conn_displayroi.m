@@ -1079,18 +1079,18 @@ switch(lower(option)),
             end
         end
         
-    case {'ring_view','ring_print'}
+    case {'ring_view','ring_print','default_print'}
         data=get(hfig,'userdata');
         if margin>1, options={varargin{1},'-nogui'};
         else options={fullfile(data.defaultfilepath,'print01.jpg')};
         end
-        hc=[.95 .95 .9];
+        hc=data.plotconnoptions.BCOLOR; %[.95 .95 .9];
         hfig=figure('units','norm','position',[.4 .25 .6 .7],'color',hc,'menubar','none','name','matrix display','numbertitle','off');
         hax=copyobj(data.plotaxes,hfig);
         hax2=copyobj(data.legendaxes,hfig);
         set(hax,'units','norm','position',[.01,.05,.88,.9],'color',hc);
         %set(findobj(hax,'tag','plot_brainbackground'),'facecolor',hc);
-        if strcmp(lower(option),'ring_print')
+        if strcmp(lower(option),'ring_print')||strcmp(lower(option),'default_print')
             conn_print(options{:});
             close(hfig);
         else

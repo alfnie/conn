@@ -68,7 +68,7 @@ if ~nargin||isempty(filename),
     fileoptions={'CONN-legacy (single .txt or .csv file)','BIDS-compatible (single *_events.tsv file)','BIDS-compatible (one *_events.tsv file in each subject/session folder)'};
     tooltipstrings={'<HTML>Single .txt or .csv text file with subject/session/condition/onset/duration information<br/>see <i>help conn_importcondition</i> for additional file-format information</HTML>',...
         '<HTML>Single .tsv file with condition/onset/duration information (common across all subjects/sessions)<br/>see <i>help conn_importcondition</i> for additional file-format information</HTML>',...
-        '<HTML>Multiple .tsv files with condition/onset/duration information (one file for each subject&session; *_events.tsv files located in same folders as functional data)<br/>see <i>help conn_importcondition</i> for additional file-format information</HTML>'};
+        '<HTML>Multiple .tsv files with condition/onset/duration information (one file for each subject&session; *_events.tsv files located in same folders and matchd filenames as functional data)<br/>see <i>help conn_importcondition</i> for additional file-format information</HTML>'};
     answ=conn_questdlg('','Import task/condition information from:',fileoptions{[1:numel(fileoptions) 1]},'tooltipstring',tooltipstrings{:});
     if isempty(answ), return; end
     if isequal(answ,fileoptions{1})
@@ -83,7 +83,7 @@ if ~nargin||isempty(filename),
         filetype=2;
     else
         filename='*_events.tsv';
-        filetype=3;
+        filetype=6;
     end
     options.dogui=true;
 else
@@ -172,6 +172,14 @@ switch(filetype)
         if numel(durations)==1&&numel(conditions)>1, durations=durations+zeros(size(conditions)); end
         if numel(nsubs)==1&&numel(conditions)>1, nsubs=nsubs+zeros(size(conditions)); end
         if numel(nsess)==1&&numel(conditions)>1, nsess=nsess+zeros(size(conditions)); end
+    case 6, % BIDS multiple files per subject/session
+        [ok,err,wrn]=conn_importbids('all','type','conditions','subjects',options.subjects,'sessions',options.sessions);
+        if options.dogui&&isfield(CONN_x,'gui')&&isnumeric(CONN_x.gui)&&CONN_x.gui,
+            if isempty(wrn), conn_msgbox('conditions imported with no errors','Done',1); 
+            else conn_msgbox({['conditions imported with ',num2str(numel(wrn)),' warnings'],'see log for details'},'Done',1); 
+            end
+        end
+        return
 end
 [names,nill,nconds]=unique(conditions);
 

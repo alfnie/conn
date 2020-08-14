@@ -1,4 +1,4 @@
-function [ok,ERR]=conn_importbids(filenames,varargin);
+function [ok,ERR,WRN]=conn_importbids(filenames,varargin);
 global CONN_x;
 
 options=struct('type','functional',...
@@ -14,9 +14,11 @@ if ~isempty(options.bidsname), bidsname=options.bidsname;
 elseif ~options.nset,          bidsname='func';
 else                           bidsname=sprintf('dataset%dfunc',options.nset);
 end
+if isequal(filenames,'all')&&isequal(options.type,'conditions'), filenames=conn_module('get','functionals'); end % note: syntax "conn_importbids all type conditions"
 
 ok=false;
 ERR={};
+WRN={};
 file_name=[];
 for isub=1:numel(nsubs),
     if isempty(options.subjects_id), filename=filenames{isub};
@@ -127,7 +129,10 @@ for isub=1:numel(nsubs),
                     end
                 end
             else
-                if numel(filename)~=1, conn_disp('fprintf','warning: subject %d listed multiple strutural files (%d), importing first file only\n',nsub,numel(filename)); end
+                if numel(filename)~=1, 
+                    conn_disp('fprintf','warning: subject %d listed multiple strutural files (%d), importing first file only\n',nsub,numel(filename)); 
+                    WRN{end+1}=sprintf('warning: subject %d listed multiple strutural files (%d), importing first file only\n',nsub,numel(filename)); 
+                end
                 for n2=1:numel(nsesstemp)
                     nses=nsesstemp(n2);
                     if options.localcopy, conn_importvol2bids(filename{1},nsub,[1,nses],'anat');
@@ -185,7 +190,10 @@ for isub=1:numel(nsubs),
                         end
                         conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
                         conn_disp('fprintf','warning: condition %s not found. Imported as %s\n',fname,cname);
-                    else conn_disp('fprintf','warning: condition %s not found. Skipped\n',fname);
+                        WRN{end+1}=sprintf('warning: condition %s not found. Imported as %s\n',fname,cname);
+                    else
+                        conn_disp('fprintf','warning: condition %s not found. Skipped\n',fname);
+                        WRN{end+1}=sprintf('warning: condition %s not found. Skipped\n',fname);
                     end
                 end
             end

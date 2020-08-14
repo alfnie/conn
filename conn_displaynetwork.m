@@ -112,7 +112,7 @@ switch(lower(option)),
         data.dof=permute(reshape(data.dof,[],size(data.p,1),size(data.p,2)),[2,3,1]);
         data.displaymeasure=1;
         
-        if isfield(CONN_x,'Setup')&&isfield(CONN_x.Setup,'normalized')&&~CONN_x.Setup.normalized,
+        if 0,%isfield(CONN_x,'Setup')&&isfield(CONN_x.Setup,'normalized')&&~CONN_x.Setup.normalized,
             filename=spm_select(1,'\.img$|\.nii$',['Select background anatomical image'],{},fileparts(CONN_x.Setup.structural{1}{1}{1}));
         elseif isfield(CONN_gui,'refs')&&isfield(CONN_gui.refs,'canonical')&&isfield(CONN_gui.refs.canonical,'filename')&&~isempty(CONN_gui.refs.canonical.filename)
             filename=CONN_gui.refs.canonical.filename;

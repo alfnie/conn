@@ -665,7 +665,7 @@ else
                 'pobj',conn_projectmanager('null'),...
                 'folders',struct('rois',fullfile(fileparts(which(mfilename)),'rois'),'data',[],'bids',[],'preprocessing',[],'qa',[],'firstlevel',[],'firstlevel_vv',[],'firstlevel_dyn',[],'secondlevel',[]),...
                 'Setup',struct(...
-                 'RT',nan,'nsubjects',1,'nsessions',1,'fwhm',12,'reorient',eye(4),'normalized',1,...
+                 'RT',nan,'nsubjects',1,'nsessions',1,'reorient',eye(4),'normalized',1,...
                  'functional',{{}},...
                  'structural',{{}},...
                  'structural_sessionspecific',0,...
@@ -11627,7 +11627,7 @@ if ~all(islogical(subjectsoption)), set(ht4f,'value',subjectsoption);
 elseif subjectsoption, set([ht4f],'visible','off'); 
 else set([ht4e,ht4f],'visible','off'); 
 end
-if ~isempty(dispoption), ht5=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.32,.8,.08],'string',{'do not display GUI','display GUI'},'value',1+dispoption,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w'); else ht5=[]; end
+if ~isempty(dispoption), ht5=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.32,.8,.08],'string',{'default analysis options','user-defined analysis options'},'value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',[],'callback','if get(gcbo,''value'')==2, val=get(gcbo,''userdata''); set(gcbo,''userdata'',listdlg(''name'',''Analysis options'',''PromptString'',''Select analysis options'',''ListString'',{''Display GUI with group-level results'',''Apply standard settings for cluster-based inferences #1'',''Apply standard settings for cluster-based inferences #2'',''Apply standard settings for cluster-based inferences #3'',''Print results to JPG file'',''Export mask to NIFTI file''},''SelectionMode'',''multiple'',''InitialValue'',val,''ListSize'',[400 200])); end'); else ht5=[]; end
 if ~isempty(groupsoption), ht6=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.32,.8,.08],'string',{'all steps','group-level analyses only (step1)','subject-level backprojection only (step2)'},'value',1+groupsoption,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w'); else ht6=[]; end
 ht1=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.24,.8,.08],'string',{'overwrite existing results (re-compute for all subjects/ROIs)','do not overwrite (skip already-processed subjects/ROIs)','ask user on each individual analysis step'},'value',1,'fontsize',8+CONN_gui.font_offset);
 if paroption, 
@@ -11655,8 +11655,34 @@ if ok
     end
     tstr=cellstr(get(ht1,'string'));
     conn_disp('fprintf','      %s\n',tstr{get(ht1,'value')});
-    if ~isempty(ht5)&&isequal(get(ht5,'value'),1), 
-        CONN_x.gui.display=0; 
+    if ~isempty(ht5)
+        if isequal(get(ht5,'value'),1)||isempty(get(ht5,'userdata')), 
+            CONN_x.gui.display=0;
+        else
+            CONN_x.gui.display=1;
+            CONN_x.gui.display_options={};
+            val=get(ht5,'userdata');
+            if any(val==2),
+                CONN_x.gui.display_style=1; 
+                if any(val==5), CONN_x.gui.display_options{end+1}={'default_print','results_method1_print.jpg'}; end 
+                if any(val==6), CONN_x.gui.display_options{end+1}={'export_mask','results_method1_mask.nii'}; end 
+            end 
+            if any(val==3)
+                if ~any(val==2), CONN_x.gui.display_style=2; 
+                else CONN_x.gui.display_options{end+1}={'fwec.option',2}; 
+                end
+                if any(val==5), CONN_x.gui.display_options{end+1}={'default_print','results_method2_print.jpg'}; end 
+                if any(val==6), CONN_x.gui.display_options{end+1}={'export_mask','results_method2_mask.nii'}; end 
+            end
+            if any(val==4)
+                if ~any(val==2|val==3), CONN_x.gui.display_style=3; 
+                else CONN_x.gui.display_options{end+1}={'fwec.option',3}; 
+                end
+                if any(val==5), CONN_x.gui.display_options{end+1}={'default_print','results_method3_print.jpg'}; end 
+                if any(val==6), CONN_x.gui.display_options{end+1}={'export_mask','results_method3_mask.nii'}; end 
+            end
+            if ~any(val==1), CONN_x.gui.display_options{end+1}={'close'}; end 
+        end
         tstr=cellstr(get(ht5,'string'));
         conn_disp('fprintf','      %s\n',tstr{get(ht5,'value')});
     end
