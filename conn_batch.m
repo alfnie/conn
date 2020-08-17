@@ -615,6 +615,7 @@ function varargout=conn_batch(varargin)
 
 global CONN_x;
 varargout={};
+if ~nargin, help(mfilename); return; end
 
 if nargin==1&&~ischar(varargin{1}), batch=varargin{1}; %batch(BATCH) syntax
 elseif nargin==1&&ischar(varargin{1}), 

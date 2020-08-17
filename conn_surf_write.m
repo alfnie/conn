@@ -5,6 +5,8 @@ function a = conn_surf_write(filename,data)
 %  data     : [nvertices, nobservations]
 %             (note: full density fsaverage space, nvertices=163842*2 for both hemispheres data)
 
+if ~nargin, help(mfilename); return; end
+
 dims=conn_surf_dims(8);
 N=size(data,2);
 switch(size(data,1))

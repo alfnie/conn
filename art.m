@@ -850,7 +850,7 @@ for sess=1:num_sess
     cur_sess_start = cur_sess_start + length(g{sess}(:,1));
 end
 rng_mean=rng_mean/num_sess;
-set(handles.globalMean,'xlim',[0,cur_sess_start],'ylim',sort((rng_minmax.*[-1 1])*[1.1,-.1;-.1,1.1])+[0 eps]);
+set(handles.globalMean,'xlim',[0,cur_sess_start],'ylim',sort((rng_minmax.*[-1 1])*[1.1,-.1;-.1,1.1])+[0 1e-10]);
 ylabel(handles.globalMean,'mean image\newlineintensity');
 xlabel(handles.globalMean,'scans');
 % END ohinds 2008-04-23: plot global mean

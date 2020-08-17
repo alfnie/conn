@@ -11,6 +11,8 @@ function [data,names,coords,samples] = conn_mtx_read(filename)
 %  samples  : list of sample labels {1,nsamples} cell array (default Sample#1,Sample#2,...)
 %
 
+if ~nargin, help(mfilename); return; end
+
 vol = spm_vol(filename);
 data = permute(spm_read_vols(vol),[1,2,4,3]);
 info = conn_jsonread(filename);

@@ -9,15 +9,12 @@ function varargout=conn_module(option,varargin)
 %       basic syntax: conn_module preprocessing
 %       advanced syntax: conn_module('preprocessing', fieldname1, fieldvalue1, fieldname2, fieldvalue2, ...)
 %
-%                 Input data is specified with field name/value pairs as defined in batch.Setup documentation, limited to the following fields:
+%                 Input data is specified with field name/value pairs as defined in batch.Setup documentation
+%                 Preprocessing options are specified with field name/value pairs as defined in batch.Setup.preprocessing documentation
 %                    functionals       : list of functional data files { { Sub1Ses1, Sub1Ses2, ...}, {Sub2Ses1, Sub2Ses2, ...}, ...}
 %                    structurals       : list of structural data files { Sub1, Sub2, ...}
-%                    vdm_functionals   : list of vdm files (for realign&unwarp)
-%                    fmap_functionals  : list of fmap files (for vdm_create)
-%                    RT                : repetition time (s) (overwriting any info in functional files time header or .json sidecar)
-%                    masks             : gray/white/csf masks
-% 
-%                 Preprocessing options are specified with field name/value pairs as defined in batch.Setup.preprocessing documentation
+%                    steps             : list of preprocessing steps (tpye "conn_module preprocessing steps" for a list of valid preprocessing step names)
+%
 %                 See "doc conn_batch" for a complete list of these options
 %                 See Nieto-Castanon, 2020 for details about these preprocessing steps and pipelines (www.conn-toolbox.org/fmri-methods)
 %
@@ -105,6 +102,7 @@ function varargout=conn_module(option,varargin)
 persistent defaults;
 
 if isempty(defaults), defaults=struct('mat_format','-v7.3'); end
+if ~nargin, help(mfilename); return; end
 
 varargout={[]};
 switch(lower(option))

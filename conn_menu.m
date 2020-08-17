@@ -284,7 +284,7 @@ switch(lower(type)),
             set(ht,'xlim',[-1,1],'ylim',[-1,1]);
             h2=h.htitle;
         end
-        if any(strcmpi(type,{'imagep','imagep2'})), data=struct('n',[],'thr',.001,'cscale',1,'x0',[],'x1',[],'p',1,'view',[],'viewselect',false); 
+        if any(strcmpi(type,{'imagep','imagep2'})), data=struct('n',[],'thr',1,'cscale',1,'x0',[],'x1',[],'p',1,'view',[],'viewselect',false); 
         elseif strcmpi(type,'image20'), data=struct('n',[],'thr',.25,'cscale',1,'x0',[],'x1',[],'p',0,'view',[],'viewselect',false); 
         else data=struct('n',[],'thr',0,'cscale',1,'x0',[],'x1',[],'p',0,'view',[],'viewselect',false); 
         end

@@ -4855,7 +4855,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
         cd(filepathresults3{1});
         if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
-            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
             fh=conn_display('SPM.mat',ncon,style);
             if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
                 if ~iscell(CONN_x.gui.display_options),
@@ -4945,7 +4945,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                         conn_disp('fprintf','\nSecond-level results saved in folder %s\n',pwd);
                         if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
                             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
-                            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+                            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
                             fh=conn_display('SPM.mat',ncon,style);
                             if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
                                 if ~iscell(CONN_x.gui.display_options), 
@@ -5006,7 +5006,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                         end
                         if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
                             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
-                            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+                            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
                             fh=conn_display('SPM.mat',ncon,style);
                             if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
                                 if ~iscell(CONN_x.gui.display_options), 
@@ -5037,7 +5037,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                         end
                         if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
                             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
-                            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+                            if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
                             fh=conn_display('SPM.mat',ncon,style);
                             if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
                                 if ~iscell(CONN_x.gui.display_options), 
@@ -5411,7 +5411,7 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
                     cwd=pwd;
                     cd(filepathresults2);
                     if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
-                    if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else display_style=[]; end
+                    if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
                     fh=conn_display(fullfile(filepathresults2,'ROI.mat'),ncon,style);
                     if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
                         if ~iscell(CONN_x.gui.display_options),

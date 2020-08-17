@@ -26,7 +26,7 @@ switch(option)
         try,
             warning('off','MATLAB:load:variableNotFound');
             load(filename,'conn_args'); 
-            warning('on','MATLAB:load:variableNotFound');
+            %warning('on','MATLAB:load:variableNotFound');
         end
         if isempty(conn_args), %back-compatibility check
             state={};
@@ -37,7 +37,7 @@ switch(option)
         try, 
             warning('off','MATLAB:load:variableNotFound');
             load(filename,'opts'); 
-            warning('on','MATLAB:load:variableNotFound');
+            %warning('on','MATLAB:load:variableNotFound');
         end
         if numel(conn_args)>=2&&isstruct(conn_args{2})
             if isfield(conn_args{2},'bookmark_filename'), conn_args{2}.bookmark_filename=filename; end

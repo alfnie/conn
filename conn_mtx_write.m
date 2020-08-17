@@ -11,6 +11,8 @@ function a = conn_mtx_write(filename,data,names,coords,samples)
 % creates *.mtx.nii and *.mtx.json file with ROI-to-ROI matrix data
 %
 
+if ~nargin, help(mfilename); return; end
+
 M=size(data,1);
 N=size(data,3);
 assert(M==size(data,2),'input matrix must be square'); 

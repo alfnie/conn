@@ -1508,15 +1508,18 @@ else
             % e.g. 
             % conn('submit',@myfile); %conn submit run /data/myfile.m
             % conn jobmanager all
+            % note: h=conn('submit',...) returns without wait
+            %
             if nargout>0, [varargout{1:nargout}]=conn_jobmanager('submit','orphan_fcn',[],1,[],varargin{2:end}); % note: will call conn_process('fcn',varargin{2:end}) on remote node as orphan process (unrelated to any CONN project)
-            else h=conn_jobmanager('submit','orphan_fcn',[],1,[],varargin{2:end});
+            else conn_jobmanager('submit','orphan_fcn',[],1,[],varargin{2:end});
             end
-        case {'submit_spmbatch'} 
+        case {'submit_spmbatch','submit_spm'} 
             % e.g. 
             % conn('submit_spmbatch',spmbatch);
             % conn jobmanager all
+            % note: h=conn('submit_spmbatch',...) returns without wait
             if nargout>0, [varargout{1:nargout}]=conn_jobmanager('submit','orphan_spmbatch',[],1,[],varargin{2:end}); % note: will call conn_process('spmbatch',varargin{2:end}) on remote node as orphan process (unrelated to any CONN project)
-            else h=conn_jobmanager('submit','orphan_spmbatch',[],1,[],varargin{2:end});
+            else conn_jobmanager('submit','orphan_spmbatch',[],1,[],varargin{2:end});
             end
             
 
@@ -9308,9 +9311,9 @@ else
                         if ~isfield(CONN_x.Results.xX,'inferencelevel'), CONN_x.Results.xX.inferencelevel=.05; end
                         if ~isfield(CONN_x.Results.xX,'inferenceleveltype'), CONN_x.Results.xX.inferenceleveltype=1; end
                         if ~isfield(CONN_x.Results.xX,'displayrois'), CONN_x.Results.xX.displayrois=2; end
-                        strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Seed/Source parameters <small>(preview of current settings)</small></HTML>'};
+                        strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Seed-based parameters <small>(preview of current settings)</small></HTML>'};
                         if stateb, strstr3=strstr3(1); end
-                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Seed/Source parameters (preview of current settings)''</i> to display a preview of the results of this group-level analysis for the selected seed/source ROI only, and adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
+                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Seed-based parameters (preview of current settings)''</i> to display a preview of the results of this group-level analysis for the selected seed/source ROI only, and adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
                         CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3), CONN_x.Results.xX.displayvoxels));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
                         
@@ -9344,7 +9347,8 @@ else
                         %CONN_h.menus.m_results_00{31}=uicontrol('style','popupmenu','units','norm','position',boffset+[.66,.77,.23,.045],'string',strstr3,'fontsize',8+CONN_gui.font_offset,'value',CONN_x.Results.xX.displayrois,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','choose target ROIs','callback','conn(''gui_results'',31);');
                         CONN_h.menus.m_results_00{49}=conn_menu('imagep2',boffset+pos+[.05 .01 -.10 -.04]);
                         set(CONN_h.menus.m_results_00{49}.h10,'tooltipstring','<HTML>connection-level false positive threshold<br/> - note: displaying uncorrected results; click on ''display results'' below for multiple-comparison corrections</HTML>')
-                        CONN_h.menus.m_results_00{24}=uicontrol('style','text','units','norm','position',boffset+[pos(1)+pos(3)/2-.15,pos(2)-1*.045,.15,.04],'string','p-uncorrected <','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','right','parent',CONN_h.screen.hfig);
+                        CONN_h.menus.m_results_00{24}=[];%uicontrol('style','text','units','norm','position',boffset+[pos(1)+pos(3)/2-.15,pos(2)-1*.045,.15,.04],'string','p-uncorrected <','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','right','parent',CONN_h.screen.hfig);
+                        conn_menumanager('onregionremove',CONN_h.menus.m_results_00{49}.h10);set([CONN_h.menus.m_results_00{49}.h10],'visible','off');
                         CONN_h.menus.m_results_00{25}=conn_menu('axes',boffset+pos);
                         %h0=CONN_gui.backgroundcolorA;
                         if 0
@@ -10812,7 +10816,7 @@ else
                                         h=reshape(SPM.xX_multivariate.h(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
                                         F=reshape(SPM.xX_multivariate.F(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
                                     end
-                                    p=nan+zeros(size(F));idxvalid=find(~isnan(F));
+                                    p=nan+zeros(size(F));idxvalid=find(~isnan(F)&F~=0);
                                     if ~isempty(idxvalid)
                                         switch(statsname),
                                             case 'T', p(idxvalid)=1-spm_Tcdf(F(idxvalid),dof(end));
@@ -10889,8 +10893,15 @@ else
                                     conn_menu('update',CONN_h.menus.m_results_00{29},[]);
                                 end
                                 set(CONN_h.menus.m_results_00{46},'string','display results');
-                                set([CONN_h.menus.m_results_00{24}],'visible','on');
+                                if CONN_x.Results.xX.displayvoxels==1, set([CONN_h.menus.m_results_00{24},CONN_h.menus.m_results_00{14}.h10],'visible','off'); 
+                                else set([CONN_h.menus.m_results_00{24}],'visible','on');
+                                end
+                                if CONN_x.Results.xX.displayvoxels==1, set(CONN_h.menus.m_results_00{14}.h10,'visible','off'); end
                                 conn_menu('updatecscale',[],[],CONN_h.menus.m_results_00{14}.h9);
+                                if CONN_x.Results.xX.displayvoxels==1, 
+                                    set(CONN_h.menus.m_results_00{14}.h10,'string','1'); 
+                                    conn_menu('updatethr',[],[],CONN_h.menus.m_results_00{14}.h10);
+                                end
                             else
                                 t1=reshape(S1,CONN_h.menus.m_results.Y(1).dim(1),CONN_h.menus.m_results.Y(1).dim(2),1,[]); %size(CONN_h.menus.m_results.y.data,4)*size(S1,2));
                                 t2=reshape(S2,CONN_h.menus.m_results.Y(1).dim(1),CONN_h.menus.m_results.Y(1).dim(2),1,[]); %size(CONN_h.menus.m_results.y.data,4)*size(S2,2));
@@ -10899,12 +10910,18 @@ else
                                 set(CONN_h.menus.m_results_00{14}.h9,'string',mat2str(max(t1(:)),2));
                                 conn_menu('update',CONN_h.menus.m_results_00{14},{CONN_h.menus.m_results.Xs,t1,-t2},{CONN_h.menus.m_results.Y(1),CONN_h.menus.m_results.y.slice});
                                 %                         conn_menu('update',CONN_h.menus.m_results_00{14},{CONN_h.menus.m_results.Xs,t1,-t2},{CONN_h.menus.m_results.Y.matdim,CONN_h.menus.m_results.y.slice})
-                                set([CONN_h.menus.m_results_00{24}],'visible','on');
+                                if CONN_x.Results.xX.displayvoxels==1, set([CONN_h.menus.m_results_00{24},CONN_h.menus.m_results_00{14}.h10],'visible','off'); 
+                                else set([CONN_h.menus.m_results_00{24}],'visible','on');
+                                end
                                 set(CONN_h.menus.m_results_00{46},'string','display results');
                                 conn_callbackdisplay_secondlevelclick;
                                 %set([CONN_h.menus.m_results_00{15}],'visible','on');
                                 hc1=uicontextmenu(CONN_h.screen.hfig);uimenu(hc1,'Label','Change background anatomical image','callback','conn(''background_image'');conn gui_results;');uimenu(hc1,'Label','Change background reference rois','callback','conn(''background_rois'');');set(CONN_h.menus.m_results_00{14}.h2,'uicontextmenu',hc1);
                                 conn_menu('updatecscale',[],[],CONN_h.menus.m_results_00{14}.h9);
+                                if CONN_x.Results.xX.displayvoxels==1, 
+                                    set(CONN_h.menus.m_results_00{14}.h10,'string','1'); 
+                                    conn_menu('updatethr',[],[],CONN_h.menus.m_results_00{14}.h10);
+                                end
                             end
                             
                             if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim)&&~CONN_h.menus.m_results_surfhires, %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])&&~CONN_h.menus.m_results_surfhires, 
@@ -11211,6 +11228,7 @@ else
                     t0=1+abs(t1)/max(abs(t1(:))); t0(isnan(t0))=0;
                     conn_menu('update',CONN_h.menus.m_results_00{49},{t0,t1,-t2},{struct('names',{CONN_h.menus.m_results.RRC_names},'mat',eye(4),'dim',[size(t0) 1 1]),[]});
                     set(CONN_h.menus.m_results_00{49}.h9,'string',mat2str(max(.01,max(abs(t1(~isnan(t1))))),2));
+                    set(CONN_h.menus.m_results_00{49}.h10,'visible','off');
                     conn_menu('updatecscale',[],[],CONN_h.menus.m_results_00{49}.h9);
                 end
             elseif state==1&&CONN_x.Results.xX.displayvoxels>1, % ROI-level plots
@@ -11627,7 +11645,7 @@ if ~all(islogical(subjectsoption)), set(ht4f,'value',subjectsoption);
 elseif subjectsoption, set([ht4f],'visible','off'); 
 else set([ht4e,ht4f],'visible','off'); 
 end
-if ~isempty(dispoption), ht5=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.32,.8,.08],'string',{'default analysis options','user-defined analysis options'},'value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',[],'callback','if get(gcbo,''value'')==2, val=get(gcbo,''userdata''); set(gcbo,''userdata'',listdlg(''name'',''Analysis options'',''PromptString'',''Select analysis options'',''ListString'',{''Display GUI with group-level results'',''Apply standard settings for cluster-based inferences #1'',''Apply standard settings for cluster-based inferences #2'',''Apply standard settings for cluster-based inferences #3'',''Print results to JPG file'',''Export mask to NIFTI file''},''SelectionMode'',''multiple'',''InitialValue'',val,''ListSize'',[400 200])); end'); else ht5=[]; end
+if ~isempty(dispoption), ht5=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.32,.8,.08],'string',{'compute group-level analyses','compute group-level analyses + additional analysis steps'},'value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',[],'callback','if get(gcbo,''value'')==2, val=get(gcbo,''userdata''); set(gcbo,''userdata'',listdlg(''name'',''Group-level analyses'',''PromptString'',''Select additional analysis steps:'',''ListString'',{''Display GUI with group-level results'',''Apply standard settings for cluster-based inferences #1'',''Apply standard settings for cluster-based inferences #2'',''Apply standard settings for cluster-based inferences #3'',''Print results to JPG file'',''Export mask to NIFTI file''},''SelectionMode'',''multiple'',''InitialValue'',val,''ListSize'',[400 200])); end'); else ht5=[]; end
 if ~isempty(groupsoption), ht6=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.32,.8,.08],'string',{'all steps','group-level analyses only (step1)','subject-level backprojection only (step2)'},'value',1+groupsoption,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w'); else ht6=[]; end
 ht1=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.24,.8,.08],'string',{'overwrite existing results (re-compute for all subjects/ROIs)','do not overwrite (skip already-processed subjects/ROIs)','ask user on each individual analysis step'},'value',1,'fontsize',8+CONN_gui.font_offset);
 if paroption, 

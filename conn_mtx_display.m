@@ -9,6 +9,7 @@ function fh = conn_mtx_display(filename, varargin)
 % SEE ALSO: conn_mtx_read, conn_mtx_write
 % 
 
+if ~nargin, help(mfilename); return; end
 
 if ischar(filename)
     [data,names,coords,samples] = conn_mtx_read(filename);
