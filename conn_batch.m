@@ -1633,16 +1633,28 @@ if isfield(batch,'QA'),
 end
 
 % parallel submission
-if isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0,
+if isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0
     conn save;
-    if isfield(batch.parallel,'profile'), conn_jobmanager('setprofile',batch.parallel.profile); 
+    if isfield(batch.parallel,'profile'), conn_jobmanager('setprofile',batch.parallel.profile);
     else conn_jobmanager('setprofile'); % if not specified, use default
     end
-    pnames=fieldnames(batch.parallel);
-    pnames=pnames(~ismember(pnames,{'N','profile','immediatereturn'}));
-    for n=1:numel(pnames), conn_jobmanager('options',pnames{n},batch.parallel.(pnames{n})); end
-    info=conn_jobmanager('submit',PAR_CMD,SUBJECTS,batch.parallel.N,PAR_ARG);
-    if ~isfield(batch.parallel,'immediatereturn')||~batch.parallel.immediatereturn, conn_jobmanager('waitfor',info); end
+    if ~isempty(PAR_CMD),
+        pnames=fieldnames(batch.parallel);
+        pnames=pnames(~ismember(pnames,{'N','profile','immediatereturn'}));
+        for n=1:numel(pnames), conn_jobmanager('options',pnames{n},batch.parallel.(pnames{n})); end
+        info=conn_jobmanager('submit',PAR_CMD,SUBJECTS,batch.parallel.N,PAR_ARG);
+        if ~isfield(batch.parallel,'immediatereturn')||~batch.parallel.immediatereturn, conn_jobmanager('waitfor',info); end
+    end
+    if isfield(batch,'Results')||isfield(batch,'vvResults'), 
+        clear batchtemp;
+        if isfield(batch,'Results'), batchtemp.Results=batch.Results;
+        else batchtemp.vvResults=batch.vvResults;
+        end
+        if isfield(batch,'filename'), batchtemp.filename=batch.filename; else, batchtemp.filename=CONN_x.filename; end
+        info=conn_jobmanager('submit',{'batch'},[],1,{{[],batchtemp}});
+        if ~isfield(batch.parallel,'immediatereturn')||~batch.parallel.immediatereturn, conn_jobmanager('waitfor',info); end
+        return
+    end
 end
 
 %% RESULTS step

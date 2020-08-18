@@ -72,7 +72,7 @@ else state.dobookmarks=CONN_x.folders.bookmarks;
 end
 
 hmsg=conn_msgbox('Initializing. Please wait...','',-1);
-if ~isfield(CONN_gui,'refs'), conn init; end
+if ~isfield(CONN_gui,'refs'), conn initrefs; end
 if isempty(data), 
     files={'white','cortex','pial.smoothed','inflated','subcortical'};
     for nfiles=1:numel(files)

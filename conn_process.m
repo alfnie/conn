@@ -65,6 +65,7 @@ if ischar(options),
             case 'qaplots',         conn_process(32,varargin{:});
             case 'update',          conn gui_setup_saveas; conn_process all; conn save;
             case 'conn',            conn(varargin{:});
+            case 'batch',           conn_batch(varargin{:});
             case 'fcn',             if ischar(varargin{1}), fh=eval(sprintf('@%s',varargin{1})); else fh=varargin{1}; end
                                     feval(fh,varargin{2:end});
             case 'spmbatch',
@@ -4853,18 +4854,19 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
     end
     if dosinglecontrast==2,
         cd(filepathresults3{1});
-        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
+        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
             if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
+            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end
             fh=conn_display('SPM.mat',ncon,style);
-            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
-                if ~iscell(CONN_x.gui.display_options),
-                    conn_display(fh,CONN_x.gui.display_options);
-                elseif ~iscell(CONN_x.gui.display_options{1})
-                    conn_display(fh,CONN_x.gui.display_options{:});
+            if ~isempty(display_options)
+                if ~iscell(display_options),
+                    conn_display(fh,display_options);
+                elseif ~iscell(display_options{1})
+                    conn_display(fh,display_options{:});
                 else
-                    for nfields=1:numel(CONN_x.gui.display_options)
-                        conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                    for nfields=1:numel(display_options)
+                        conn_display(fh,display_options{nfields}{:});
                     end
                 end
             end
@@ -4943,18 +4945,19 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                         spm_write_vol(V,double(mask));
                         save('SPM.mat','SPM','-v7.3');
                         conn_disp('fprintf','\nSecond-level results saved in folder %s\n',pwd);
-                        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
+                        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
                             if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
+                            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end
                             fh=conn_display('SPM.mat',ncon,style);
-                            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
-                                if ~iscell(CONN_x.gui.display_options), 
-                                    conn_display(fh,CONN_x.gui.display_options);
-                                elseif ~iscell(CONN_x.gui.display_options{1})
-                                    conn_display(fh,CONN_x.gui.display_options{:});
+                            if ~isempty(display_options)
+                                if ~iscell(display_options), 
+                                    conn_display(fh,display_options);
+                                elseif ~iscell(display_options{1})
+                                    conn_display(fh,display_options{:});
                                 else
-                                    for nfields=1:numel(CONN_x.gui.display_options)
-                                        conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                                    for nfields=1:numel(display_options)
+                                        conn_display(fh,display_options{nfields}{:});
                                     end
                                 end
                             end
@@ -5004,18 +5007,19 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                                     spm_write_vol(V,tanh(t));
                             end
                         end
-                        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
+                        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
                             if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
+                            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end
                             fh=conn_display('SPM.mat',ncon,style);
-                            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
-                                if ~iscell(CONN_x.gui.display_options), 
-                                    conn_display(fh,CONN_x.gui.display_options);
-                                elseif ~iscell(CONN_x.gui.display_options{1})
-                                    conn_display(fh,CONN_x.gui.display_options{:});
+                            if ~isempty(display_options)
+                                if ~iscell(display_options), 
+                                    conn_display(fh,display_options);
+                                elseif ~iscell(display_options{1})
+                                    conn_display(fh,display_options{:});
                                 else
-                                    for nfields=1:numel(CONN_x.gui.display_options)
-                                        conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                                    for nfields=1:numel(display_options)
+                                        conn_display(fh,display_options{nfields}{:});
                                     end
                                 end
                             end
@@ -5035,18 +5039,19 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                                     spm_write_vol(V,tanh(t));
                             end
                         end
-                        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
+                        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
                             if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
+                            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end
                             fh=conn_display('SPM.mat',ncon,style);
-                            if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
-                                if ~iscell(CONN_x.gui.display_options), 
-                                    conn_display(fh,CONN_x.gui.display_options);
-                                elseif ~iscell(CONN_x.gui.display_options{1})
-                                    conn_display(fh,CONN_x.gui.display_options{:});
+                            if ~isempty(display_options)
+                                if ~iscell(display_options), 
+                                    conn_display(fh,display_options);
+                                elseif ~iscell(display_options{1})
+                                    conn_display(fh,display_options{:});
                                 else
-                                    for nfields=1:numel(CONN_x.gui.display_options)
-                                        conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                                    for nfields=1:numel(display_options)
+                                        conn_display(fh,display_options{nfields}{:});
                                     end
                                 end
                             end
@@ -5407,20 +5412,22 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
                 save(fullfile(filepathresults2,'ROI.mat'),'summary','-append');
             end
             try
-                if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
+                %if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
+                if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                     cwd=pwd;
                     cd(filepathresults2);
                     if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
                     if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
+                    if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end
                     fh=conn_display(fullfile(filepathresults2,'ROI.mat'),ncon,style);
-                    if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)
-                        if ~iscell(CONN_x.gui.display_options),
-                            conn_display(fh,CONN_x.gui.display_options);
-                        elseif ~iscell(CONN_x.gui.display_options{1})
-                            conn_display(fh,CONN_x.gui.display_options{:});
+                    if ~isempty(display_options)
+                        if ~iscell(display_options),
+                            conn_display(fh,display_options);
+                        elseif ~iscell(display_options{1})
+                            conn_display(fh,display_options{:});
                         else
-                            for nfields=1:numel(CONN_x.gui.display_options)
-                                conn_display(fh,CONN_x.gui.display_options{nfields}{:});
+                            for nfields=1:numel(display_options)
+                                conn_display(fh,display_options{nfields}{:});
                             end
                         end
                     end
