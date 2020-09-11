@@ -5,114 +5,13 @@ function [ok,matlabbatch,outputfiles,job_id]=conn_setup_preproc(STEPS,varargin)
 % conn_setup_preproc(steps)
 % runs preprocessing pipeline (default_*) or one/multiple individual preprocessing steps (structural_* and functional_*). Valid step names are (enter as cell array to run multiple sequential steps):
 %
-%   PIPELINES:
-%     default_mni                           : default MNI-space preprocessing pipeline (direct normalization)
-%     default_mnifield                      : same as default_mni but with vdm/fieldmap information and indirect normalization
-%     default_mnidirectfield                : same as default_mni but with vdm/fieldmap information (still direct normalization)
-%     default_ss                            : default subject-space preprocessing pipeline
-%     default_ssfield                       : same as default_ss but with vdm/fieldmap information
-%     default_ssnl                          : same as default_ss but with non-linear coregistration
-%
-%   INDIVIDUAL STRUCTURAL STEPS:
-%     structural_center                     : centers structural data to origin (0,0,0) coordinates
-%     structural_manualorient               : applies user-defined affine transformation to structural data
-%     structural_manualspatialdef           : applies user-defined spatial deformation to structural data
-%     structural_segment&normalize          : structural unified normalization and segmentation
-%     structural_normalize                  : structural normalization to MNI space (without segmentation)
-%     structural_normalize_preservemasks    : structural normalization to MNI space with user-defined Grey/White/CSF masks (normalizes structural data and applies same transformation to user-defined Grey/White/CSF mask ROIs)
-%     structural_segment                    : structural segmentation (Grey/White/CSF tissue classes)
-%
-%   INDIVIDUAL FUNCTIONAL (or combined functional/structural) STEPS:
-%     functional_art                        : functional identification of outlier scans (from motion displacement and global signal changes)
-%     functional_bandpass                   : functional band-pass filtering
-%     functional_center                     : centers functional data to origin (0,0,0) coordinates
-%     functional_centertostruct             : centers functional data to approximate structural-volume coordinates
-%     functional_coregister_affine_reslice  : functional affine coregistration to structural volumes
-%     functional_coregister_affine_noreslice: functional affine coregistration to structural volumes without reslicing (applies transformation to source header files)
-%     functional_coregister_nonlinear       : functional non-linear coregistration to structural volumes
-%     functional_manualorient               : applies user-defined affine transformation to functional data
-%     functional_manualspatialdef           : applies user-defined spatial deformation to functional data
-%     functional_motionmask                 : creates functional motion masks (mean BOLD signal spatial derivatives wrt motion parameters)
-%     functional_normalize_direct           : functional direct normalization
-%     functional_normalize_indirect         : functional indirect normalization (coregister to structural; normalize structural; apply same transformation to functionals)
-%     functional_normalize_indirect_preservemasks: functional indirect normalization with user-defined Grey/White/CSF masks (coregister to structural; normalize structural; apply same transformation to functionals as well as to Grey/White/CSF masks)
-%     functional_realign                    : functional realignment
-%     functional_realign_noreslice          : functional realignment without reslicing (applies transformation to source header files)
-%     functional_realign&unwarp             : functional realignment & unwarp (functional_realign + removes motion-by-inhomogeneity interactions)
-%     functional_realign&unwarp&fieldmap    : functional realignemnt & unwarp & susceptibility distortion correction (functional_realign&unwarp + corrects static inhomogeneity distortions)
-%     functional_regression                 : removal of user-defined temporal components from BOLD timeseries (keeps residuals of linear regression model)
-%     functional_removescans                : removes user-defined number of initial scans from functional data
-%     functional_segment                    : functional segmentation (Grey/White/CSF tissue classes)
-%     functional_segment&normalize_direct   : functional direct unified normalization and segmentation
-%     functional_segment&normalize_indirect : functional indirect unified normalization and segmentation (coregister to structural; normalize and segment structural; apply same transformation to functionals)
-%     functional_slicetime                  : functional slice-timing correction
-%     functional_smooth                     : functional spatial smoothing (spatial convolution with Gaussian kernel)
-%     functional_smooth_masked              : functional spatial masked-smoothing (spatial convolution with Gaussian kernel restricted to voxels within Grey Matter mask)
-%     functional_label                      : labels current functional files as part of list of Secondary Datasets
-%     functional_surface_coreg&resample     : coregister&resample functional data at the location of FreeSurfer subject-specific structural cortical surface
-%     functional_surface_resample           : resample functional data at the location of FreeSurfer subject-specific structural cortical surface
-%     functional_surface_smooth             : functional spatial diffusion of surface data
-%     functional_vdm_create                 : creation of voxel-displacement-map from fieldmap dataset (reads 'fmap' secondary functional dataset containing magnitdue and phasediff images and creates 'vdm' secondary functional dataset containing voxel-displacement map)
-%
-%
 % conn_setup_preproc(steps,'param1_name',param1_value,'param2_name',param2_value,...)
 % defines additional non-default values for parameters specific to individual steps
 %
-%      affreg          : (normalization) affine registration before normalization ['mni']
-%      art_thresholds  : (functional_art) ART thresholds for identifying outlier scans
-%                                            art_thresholds(1): threshold value for global-signal (z-value; default 5)
-%                                            art_thresholds(2): threshold value for subject-motion (mm; default .9)
-%                        additional options: art_thresholds(3): 1/0 global-signal threshold based on scan-to-scan changes in global-BOLD measure (default 1)
-%                                            art_thresholds(4): 1/0 subject-motion threshold based on scan-to-scan changes in subject-motion measure (default 1)
-%                                            art_thresholds(5): 1/0 subject-motion threshold based on composite-movement measure (default 1)
-%                                            art_thresholds(6): 1/0 force interactive mode (ART gui) (default 0)
-%                                            art_thresholds(7): [only when art_threshold(5)=0] subject-motion threshold based on rotation measure
-%                                            art_thresholds(8): N number of initial scans to be flagged for removal (default 0)
-%                            note: when art_threshold(5)=0, art_threshold(2) defines the threshold based on the translation measure, and art_threhsold(7) defines the threshold based on the rotation measure; otherwise art_threshold(2) defines the (single) threshold based on the composite-motion measure
-%                            note: the default art_thresholds(1:2) [5 .9] values correspond to the "intermediate" (97th percentile) settings, to use the "conservative" (95th percentile) settings use [3 .5], to use the "liberal" (99th percentile) settings use [9 2] values instead
-%                            note: art needs subject-motion files to estimate possible outliers. If a 'realignment' first-level covariate exists it will load the subject-motion parameters from that first-level covariate; otherwise it will look for a rp_*.txt file (SPM format) in the same folder as the functional data
-%                                  subject-motion files can be in any of the following formats: a) *.txt file (SPM format; three translation parameters in mm followed by pitch/roll/yaw in radians); b) *.par (FSL format; three Euler angles in radians followed by translation parameters in mm); c) *.siemens.txt (Siemens MotionDetectionParameter.txt format); d) *.deg.txt (same as SPM format but rotations in degrees instead of radians)
-%      boundingbox     : (normalization) target bounding box for resliced volumes (mm) [-90,-126,-72;90,90,108]
-%      bp_filter       : (functional_bandpass) Low- and High- frequency thresholds (in Hz)
-%      bp_keep0        : (functional_bandpass) 0: removes average BOLD signal (freq=0Hz component); 1: keeps average BOLD signal in output independent of band-pass filter values; [1]
-%      continue        : (functional_continue) label of secondary dataset (note: the following functional step names do not require an explicit label field: 'functional_continue_as_original', 'functional_continue_as_subjectspace', 'functional_continue_as_mnispace', 'functional_continue_as_surfacespace', 'functional_continue_as_smoothed')
-%      coregtomean     : (functional_coregister/segment/normalize) 0: use first volume; 1: use mean volume (computed during realignment); 2: use user-defined source volume (see Setup.coregsource_functionals field) [1]
-%      diffusionsteps  : (functional_surface_smooth) number of diffusion steps
-%      fwhm            : (functional_smooth) Smoothing factor (mm) [8]
-%      interp          : (normalization) target voxel interpolation method (0:nearest neighbor; 1:trilinear; 2 or higher:n-order spline) [4]
-%      label           : (functional_label) label of secondary dataset (note: the following functional step names do not require an explicit label field: 'functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed')
-%      reg_names       : (functional_regression) list of first-level covariates to use as model regressors / design matrix (valid entries are first-level covariate names or ROI names)
-%      reg_dimensions  : (functional_regression) list of maximum number of dimensions; one value per model regressor (inf to use all dimensions) [inf]
-%      reg_deriv       : (functional_regression) list of 0/1/2 values; one value per model regressor: 0: none; 1: adds first-order derivatves; 2: adds second-order derivatives to each model regressor [0]
-%      reg_lag         : (functional_regression) list of 0/1 values; one value per model regressor: 0: standard regression; 1: lagged regression [0]
-%      reg_detrend     : (functional_regression) 1: adds a linear/detrending term to model regressors [1]
-%      reg_lagmax      : (functional_regression) 1: maximum lag value (in seconds) for lagged-regression [8]
-%      reg_skip        : (functional_regression) 1: does not create output functional files, only creates session-specific dp_*.txt files with covariate timeseries to be included later in an arbitrary first-level model [0]
-%      removescans     : (functional_removescans) number of initial scans to remove
-%      reorient        : (functional/structural_manualorient) 3x3 or 4x4 transformation matrix or filename containing corresponding matrix
-%      respatialdef    : (functional/structural_manualspatialdef) nifti deformation file (e.g. y_*.nii or *seg_sn.mat files)
-%      rtm             : (functional_realign) 0: use first volume; 1: use mean volume [0]
-%      sliceorder      : (functional_slicetime) acquisition order (vector of indexes; 1=first slice in image; note: use cell array for subject-specific vectors)
-%                       alternatively sliceorder may also be defined as one of the following strings: 'ascending','descending','interleaved (middle-top)','interleaved (bottom-up)','interleaved (top-down)','interleaved (Siemens)','interleaved (Philips)','BIDS'
-%                       alternatively sliceorder may also be defined as a vector containing the acquisition time in milliseconds for each slice (e.g. for multi-band sequences)
-%      ta              : (functional_slicetime) acquisition time (TA) in seconds (used to determine slice times when sliceorder is defined by a vector of slice indexes; note: use vector for subject-specific values). Defaults to (1-1/nslices)*TR where nslices is the number of slices
-%      template_anat   : (structural_normalize SPM8 only) anatomical template file for approximate coregistration [spm/template/T1.nii]
-%      template_func   : (functional_normalize SPM8 only) functional template file for normalization [spm/template/EPI.nii]
-%      tpm_template    : (structural_segment, structural_segment&normalize in SPM8, and any segment/normalize option in SPM12) tissue probability map [spm/tpm/TPM.nii]
-%                       alternatively location of subject-specific tpm files (secondary functional dataset number containing tpm files; default 'tpm' if exists)
-%      tpm_ngaus       : (structural_segment, structural_segment&normalize in SPM8&SPM12) number of gaussians for each tissue probability map
-%      vdm_et1         : (functional_vdm_create only) ET1 (Echo Time first echo in fieldmap sequence, in ms) (default [] : attempt to obtain this value from sidecar .json file / BIDS)
-%      vdm_et2         : (functional_vdm_create only) ET2 (Echo Time second echo in fieldmap sequence, in ms) (default [] : attempt to obtain this value from sidecar .json file / BIDS)
-%      vdm_ert         : (functional_vdm_create only) ERT (EPI Total Readout Time in funcional data, in ms) (default [] : attempt to obtain this value from sidecar .json file / BIDS)
-%      vdm_blip        : (functional_vdm_create only) k-space traversal blip direction (+1 or -1; default [] : attempt to obtain this value from sidecar .json file / BIDS)
-%      vdm_type        : (functional_vdm_create only) type of fieldmap sequence files ([]: automatically detect; 1: magnitude+phasediff (or magnitude1+magnitude2+phasediff); 2: real1+imag1+real2+imag2; 3: fieldmapHz)
-%      vdm_fmap        : (functional_vdm_create only) location of fieldmap sequence files (secondary functional dataset number containing fieldmap sequence files; defaults to the one labeled 'fmap')
-%      voxelsize_anat  : (normalization) target voxel size for resliced anatomical volumes (mm) [1]
-%      voxelsize_func  : (normalization) target voxel size for resliced functional volumes (mm) [2]
-%      sets            : defines functional dataset to preprocess (0 for Primary Dataset; 1-N or labels for Secondary Datasets)
-%
 % conn_setup_preproc('steps')
-% returns the full list of valid preprocessing step names
+% returns the full list of valid preprocessing-step names
+%
+% see "help conn_batch" for details about available preprocessing steps as well as a full list of additional preprocessing parameters
 %
 
 
@@ -147,7 +46,7 @@ steps={'default_mni','default_mnifield','default_mnidirectfield','default_ss','d
     'functional_label_as_mnispace', ...
     'functional_label_as_surfacespace', ...
     'functional_label_as_smoothed', ...
-    'functional_continue', ...
+    'functional_load', ...
     'functional_smooth_masked',...
     'functional_surface_resample', ...
     'functional_surface_smooth', ...
@@ -180,7 +79,7 @@ steps_names={'<HTML><b>default preprocessing pipeline</b> for volume-based analy
     'functional Label current functional files as "mni-space data"', ...
     'functional Label current functional files as "surface-space data"', ...
     'functional Label current functional files as "smoothed data"', ...
-    'functional Continue processing functional data from previously labeled dataset', ...
+    'functional Load functional data from previously labeled dataset', ...
     'functional Masked Smoothing (spatial convolution with Gaussian kernel restricted to voxels within Grey Matter mask)', ...
     'functional Resampling of functional data at the location of FreeSurfer subject-specific structural cortical surface (converts volume- to surface- level data)', ...
     'functional Smoothing of surface-level functional data (spatial diffusion on surface tessellation)', ...
@@ -213,7 +112,7 @@ steps_descr={{'INPUT: structural&functional volumes','OUTPUT (all in MNI-space):
     {'INPUT: functional volumes','OUTPUT: none (one of the secondary datasets will point to current version of functional volumes)'}, ...
     {'INPUT: functional volumes','OUTPUT: none (one of the secondary datasets will point to current version of functional volumes)'}, ...
     {'INPUT: functional volumes','OUTPUT: none (one of the secondary datasets will point to current version of functional volumes)'}, ...
-    {'INPUT: none','OUTPUT: none (subsequent preprocessing steps will be applied to the functional data in the selected secondary dataset)'}, ...
+    {'INPUT: functional volumes (in secondary dataset)','OUTPUT: same functional volumes are assigned to the current dataset (typicially the primary dataset)'}, ...
     {'INPUT: functional volumes; Grey Matter ROI','OUTPUT: smoothed functional volumes'}, ...
     {'INPUT: functional data (volume files coregistered to structural); FreeSurfer-processed structural volume','OUTPUT: functional data (surface files)'}, ...
     {'INPUT: functional data (surface files)','OUTPUT: smoothed functional data (surface files)'}, ...
@@ -256,7 +155,7 @@ diffusionsteps=[];
 sliceorder=[];
 sliceorder_select=[];
 label={};
-labelcontinue={};
+load_label={};
 ta=[];
 unwarp=[];
 removescans=[];
@@ -309,7 +208,7 @@ if ~isempty(STEPS)&&(ischar(STEPS)||(iscell(STEPS)&&numel(STEPS)==1))
     if ok, STEPS=steps(steps_index{idx}); selectedstep=idx;
     else
         lSTEPS=regexprep(lower(STEPS),'^run_|^update_|^interactive_','');
-        if ~isempty(regexp(char(lSTEPS),'^functional_label_as_'))||ismember(lSTEPS,steps), STEPS=cellstr(STEPS);
+        if ~isempty(regexp(char(lSTEPS),'^functional_label_as_'))||~isempty(regexp(char(lSTEPS),'^functional_load_from_'))||ismember(lSTEPS,steps), STEPS=cellstr(STEPS);
         elseif conn_existfile(STEPS), load(STEPS,'STEPS','coregtomean'); if isempty(coregtomean), coregtomean=1; end
         else error('STEP name %s is not a valid preprocessing step or an existing preprocessing-pipeline file',STEPS);
         end
@@ -345,9 +244,9 @@ for n1=1:2:numel(options)-1,
         case 'label',
             label=options{n1+1};
             if ~iscell(label), label={label}; end
-        case 'labelcontinue',
-            labelcontinue=options{n1+1};
-            if ~iscell(labelcontinue), labelcontinue={labelcontinue}; end
+        case 'load_label',
+            load_label=options{n1+1};
+            if ~iscell(load_label), load_label={load_label}; end
         case 'ta',
             ta=options{n1+1};
         case 'unwarp',  % note: deprecated over CONN_x.Setup.unwarp_functional field
@@ -906,18 +805,18 @@ if any(ismember('functional_label',lSTEPS))
     end
 end
 
-if any(ismember('functional_continue',lSTEPS))
-    if isempty(labelcontinue)||dogui
-        nl=sum(ismember(lSTEPS,'functional_continue'));
-        if isempty(labelcontinue), labelcontinue=cell(1,nl); end
+if any(ismember('functional_load',lSTEPS))
+    if isempty(load_label)||dogui
+        nl=sum(ismember(lSTEPS,'functional_load'));
+        if isempty(load_label), load_label=cell(1,nl); end
         for il=1:nl
-            str=[{'Continue with primary dataset'}, arrayfun(@(n)sprintf('Continue with secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)];
-            if isempty(labelcontinue{il}), labelcontinue{il}=0;
-            elseif ischar(labelcontinue{il}), labelcontinue{il}=conn_datasetlabel(labelcontinue{il},'error');
+            str=[{'Load from primary dataset'}, arrayfun(@(n)sprintf('Load from secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)];
+            if isempty(load_label{il}), load_label{il}=0;
+            elseif ischar(load_label{il}), load_label{il}=conn_datasetlabel(load_label{il},'error');
             end
-            [jl,tok] = listdlg('PromptString',['Select secondary dataset ',num2str(il),'/',num2str(nl)],'SelectionMode','single','InitialValue',labelcontinue{il}+1,'ListSize',[400 200],'ListString',str);
+            [jl,tok] = listdlg('PromptString',['Select secondary dataset ',num2str(il),'/',num2str(nl)],'SelectionMode','single','InitialValue',load_label{il}+1,'ListSize',[400 200],'ListString',str);
             if isempty(jl), return; end
-            labelcontinue{il}=jl-1;
+            load_label{il}=jl-1;
         end
     end
 end
@@ -937,18 +836,18 @@ if any(cellfun('length',regexp(lSTEPS,'^functional_label_as_'))&~ismember(lSTEPS
     end
 end
 
-if any(cellfun('length',regexp(lSTEPS,'^functional_continue_as_'))&~ismember(lSTEPS,{'functional_continue_as_original', 'functional_continue_as_subjectspace', 'functional_continue_as_mnispace', 'functional_continue_as_surfacespace', 'functional_continue_as_smoothed'}))
-    labelsnewidx=find(cellfun('length',regexp(lSTEPS,'^functional_continue_as_'))>0&~ismember(lSTEPS,{'functional_continue_as_original', 'functional_continue_as_subjectspace', 'functional_continue_as_mnispace', 'functional_continue_as_surfacespace', 'functional_continue_as_smoothed'}));
-    labelsoldidx=find(ismember(lSTEPS,'functional_continue'));
-    labelsnew=regexprep(lSTEPS(labelsnewidx),'^functional_continue_as_','');
-    lSTEPS(labelsnewidx)=regexprep(lSTEPS(labelsnewidx),'functional_continue_as_.*','functional_continue');
-    STEPS(labelsnewidx)=regexprep(STEPS(labelsnewidx),'functional_continue_as_.*','functional_continue');
-    if isempty(labelcontinue)
-        labelcontinue=labelsnew;
+if any(cellfun('length',regexp(lSTEPS,'^functional_load_from_'))&~ismember(lSTEPS,{'functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}))
+    labelsnewidx=find(cellfun('length',regexp(lSTEPS,'^functional_load_from_'))>0&~ismember(lSTEPS,{'functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}));
+    labelsoldidx=find(ismember(lSTEPS,'functional_load'));
+    labelsnew=regexprep(lSTEPS(labelsnewidx),'^functional_load_from_','');
+    lSTEPS(labelsnewidx)=regexprep(lSTEPS(labelsnewidx),'functional_load_from_.*','functional_load');
+    STEPS(labelsnewidx)=regexprep(STEPS(labelsnewidx),'functional_load_from_.*','functional_load');
+    if isempty(load_label)
+        load_label=labelsnew;
     else
-        labelcontinue=[labelcontinue(:)', labelsnew(:)'];
+        load_label=[load_label(:)', labelsnew(:)'];
         [nill,idx]=sort([labelsoldidx(:)', labelsnewidx(:)']);
-        labelcontinue=labelcontinue(idx);
+        load_label=load_label(idx);
     end
 end
 
@@ -964,7 +863,7 @@ if parallel_N>0,
     if isempty(sliceorder)&&~isempty(sliceorder_select), sliceorder=sliceorder_select_options{sliceorder_select}; end
     info=conn_jobmanager('submit','setup_preprocessing',subjects,parallel_N,[],...
         STEPS,...
-        'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'labelcontinue',labelcontinue,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
+        'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
         'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip);
@@ -985,7 +884,7 @@ else
     try, spmver=spm('version'); catch, spmver=spm('ver'); end
     CONN_x.SetupPreproc.log{end+1}={'timestamp',datestr(now),'ver_CONN',conn('ver'),'ver_SPM',spmver,'steps',...
         STEPS,...
-        'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'labelcontinue',labelcontinue,'sliceorder',sliceorder,'sliceorder_select',sliceorder_select,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
+        'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'sliceorder_select',sliceorder_select,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
         'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip};
@@ -1232,7 +1131,7 @@ for iSTEP=1:numel(STEPS)
         case 'functional_centertostruct'
         case 'structural_center'
         case {'functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed'}
-        case {'functional_continue','functional_continue_as_original', 'functional_continue_as_subjectspace', 'functional_continue_as_mnispace', 'functional_continue_as_surfacespace', 'functional_continue_as_smoothed'}
+        case {'functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}
             
         case 'functional_manualspatialdef'
             if iscell(respatialdef), trespatialdef=respatialdef{1}; respatialdef=respatialdef(2:end);
@@ -1336,7 +1235,7 @@ for iSTEP=1:numel(STEPS)
                         end
                     end
                 end
-                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
@@ -1472,7 +1371,7 @@ for iSTEP=1:numel(STEPS)
                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=interp;
                 else matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=1;
                 end
-                if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
+                if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg; end
             else
                 %note: tissue probability maps disregarded (using structural template instead)
@@ -1711,7 +1610,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12
-                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
@@ -1883,7 +1782,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12,
-                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
@@ -1965,7 +1864,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12
-                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
@@ -2527,7 +2426,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12,
-                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
@@ -2554,7 +2453,7 @@ for iSTEP=1:numel(STEPS)
                 matlabbatch{end+1}.spm.spatial.normalise.estwrite.woptions.bb=boundingbox;
                 matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.vox=voxelsize_func.*[1 1 1];
                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=interp; end
-                if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,subjects,sessions(1)); end
+                if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions(1)); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg; end
             else
                 %note: tissue probability maps disregarded (using functional_template instead)
@@ -2642,7 +2541,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12,
-                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,subjects,sessions); end
+                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
@@ -3013,7 +2912,7 @@ for iSTEP=1:numel(STEPS)
             for n=1:numel(matlabbatch)
                 conn_art('sess_file',matlabbatch{n}.art);
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_continue','functional_continue_as_original', 'functional_continue_as_subjectspace', 'functional_continue_as_mnispace', 'functional_continue_as_surfacespace', 'functional_continue_as_smoothed','functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');
             try, spm_get_defaults('mat.format','-v7.3'); end
@@ -3062,7 +2961,7 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_continue','functional_continue_as_original', 'functional_continue_as_subjectspace', 'functional_continue_as_mnispace', 'functional_continue_as_surfacespace', 'functional_continue_as_smoothed'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}))
         elseif strncmp(lower(STEP),'update_',numel('update_'))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');
@@ -3258,22 +3157,21 @@ for iSTEP=1:numel(STEPS)
                 else this_label=label;
                 end
                 conn_datasetcopy(sets,this_label,subjects);
-            case 'functional_continue_as_original'
-                sets=conn_datasetlabel('original data','error');
-            case 'functional_continue_as_subjectspace'
-                sets=conn_datasetlabel('subject-space data','error');
-            case 'functional_continue_as_mnispace'
-                sets=conn_datasetlabel('mni-space data','error');
-            case 'functional_continue_as_surfacespace'
-                sets=conn_datasetlabel('surface-space data','error');
-            case 'functional_continue_as_smoothed'
-                sets=conn_datasetlabel('smoothed data','error');
-            case 'functional_continue',
-                if iscell(labelcontinue), this_label=labelcontinue{1}; labelcontinue=labelcontinue(2:end);
-                else this_label=labelcontinue;
+            case 'functional_load_from_original'
+                conn_datasetcopy('original data',sets,subjects);
+            case 'functional_load_from_subjectspace'
+                conn_datasetcopy('subject-space data',sets,subjects);
+            case 'functional_load_from_mnispace'
+                conn_datasetcopy('mni-space data',sets,subjects);
+            case 'functional_load_from_surfacespace'
+                conn_datasetcopy('surface-space data',sets,subjects);
+            case 'functional_load_from_smoothed'
+                conn_datasetcopy('smoothed data',sets,subjects);
+            case 'functional_load',
+                if iscell(load_label), this_label=load_label{1}; load_label=load_label(2:end);
+                else this_label=load_label;
                 end
-                if ~isempty(this_label)&&ischar(this_label), this_label=conn_datasetlabel(this_label,'error'); end
-                sets=this_label;
+                conn_datasetcopy(this_label,sets,subjects);
                 
             case 'functional_center'
                 treorient=nan;
@@ -3859,7 +3757,7 @@ try
 end
 end
 
-function  [tissue,tpm]=conn_setup_preproc_tissue(tpm_template,subjects,sessions)
+function  [tissue,tpm]=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions)
 global CONN_x;
 if isnumeric(tpm_template)||(ischar(tpm_template)&&size(tpm_template,1)==1&&~isempty(conn_datasetlabel(tpm_template)))
     tpm_expanded={};

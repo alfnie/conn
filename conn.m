@@ -1453,6 +1453,21 @@ else
             str=fileparts(which('spm'))
             [ok,msg]=system(sprintf('find "%s" -name "*.mexmaci64" -exec xattr -d com.apple.quarantine {} \;',str));
 
+        case 'plog'
+            if nargin>1&&~isempty(varargin{2}), n=varargin{2};
+            else n=1;
+            end
+            if ischar(n), n=str2num(n); end
+            if nargin>2&&~isempty(varargin{3}), str=varargin{3};
+            else str=[];
+            end
+            if isempty(str), cellfun(@disp,CONN_x.SetupPreproc.log{n});
+            else 
+                idx=find(cellfun(@ischar,CONN_x.SetupPreproc.log{n}));
+                idx=idx(strcmp(CONN_x.SetupPreproc.log{n}(idx),str));
+                if ~isempty(idx), disp(CONN_x.SetupPreproc.log{n}{idx}); disp(CONN_x.SetupPreproc.log{n}{idx+1}); end
+            end
+            
         case 'run_cmd',
             if nargin>1&&~isempty(varargin{2}), str=varargin{2};
             else
@@ -7410,7 +7425,7 @@ else
                     if nshow==1,
                         if isempty(CONN_h.menus.m_analyses.XR)
                             if CONN_x.Analyses(ianalysis).type==1, CONN_h.menus.m_analyses.XR=fullfile(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name),['resultsROI_Subject',num2str(nsubs,CONN_x.opt.fmt1),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
-                            elseif isnan(CONN_h.menus.m_analyses.iroi(nregressors))||isnan(CONN_h.menus.m_analyses.icondition(nconditions)), CONN_h.menus.m_analyses.XR=[];
+                            elseif isempty(nregressors)||isempty(nconditions)||isnan(CONN_h.menus.m_analyses.iroi(nregressors))||isnan(CONN_h.menus.m_analyses.icondition(nconditions)), CONN_h.menus.m_analyses.XR=[];
                             else, CONN_h.menus.m_analyses.XR=fullfile(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name),['BETA_Subject',num2str(nsubs,CONN_x.opt.fmt1),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'_Source',num2str(CONN_h.menus.m_analyses.iroi(nregressors),'%03d'),'.nii']);
                             end
                             if ~isempty(CONN_h.menus.m_analyses.XR)&&~conn_existfile(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=[]; end

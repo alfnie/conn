@@ -302,6 +302,7 @@ ________________________________________________________________________________
      Added backup copy of conn_*.mat project file stored as conn_*/bakfile.mat (backup contains copy of last successfully-loaded version of the conn project file)
      Added more flexible options to Tools.Run.SecondLevelResults menu (single-click run multiple second-level analyses, including different models and different sources/measures)
      Added group-MVPA 'summary' display showing cumulative percent variance in multivoxel patterns explained by group-MVPA components (see second-level results tab)
+     Added 'functional_load_from' preprocessing steps to load functional files from a previously-saved secondary dataset (e.g. saved using functional_label_as*, then loaded using functional_load_as*)
      
 note: the symbol (*) in any of the lists above indicates changes that users need to pay special attention to when upgrading mid-analysis, as they may produce different results compared to previous versions (users may want to hold update until analyses are finished or take special precautions to ensure continuity; instructions for exact replicability with previous-version analyses are described in each case)
 

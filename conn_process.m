@@ -831,6 +831,7 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
                 else sampledata=old.sampledata; if isfield(old,'samplexyz'), samplexyz=old.samplexyz; else samplexyz=[]; end; 
                 end
                 if isempty(sampledata), error('Empty grey-matter mask in subject %d',nsub); end
+            elseif isfield(old,'sampledata'), sampledata=old.sampledata; if isfield(old,'samplexyz'), samplexyz=old.samplexyz; else samplexyz=[]; end;
             else sampledata=zeros(CONN_x.Setup.nscans{nsub}{nses},0); samplexyz=[];
             end
             clear data names xyz;
