@@ -14,7 +14,7 @@ function a = conn_mtx_write(filename,data,names,coords,samples)
 if ~nargin, help(mfilename); return; end
 
 M=size(data,1);
-N=size(data,3);
+N=size(data(:,:,:),3);
 assert(M==size(data,2),'input matrix must be square'); 
 dims=[M,size(data,2),1];
 data=reshape(data,[dims,N]);

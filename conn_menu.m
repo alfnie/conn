@@ -454,7 +454,7 @@ switch(lower(type)),
         else fgcolor=[]; 
         end
         
-        bordercolor=[]; if ~isempty(regexp(type,'highlight')), bordercolor=0*bgcolor+1*round(1-bgcolor); type=regexprep(type,'highlight',''); end
+        bordercolor=[]; if ~isempty(regexp(type,'highlight')), bordercolor=0*(1-bgcolor)+0*round(bgcolor)+CONN_gui.backgroundcolorE; type=regexprep(type,'highlight',''); end
         
 		if ~isempty(title), 
             if 0
@@ -497,7 +497,7 @@ switch(lower(type)),
             if extendshade, position=position+[0 0 0 .05]; end
             ht2=axes('units','norm','position',position,'parent',CONN_h.screen.hfig);
             set(ht2,'unit','pixels');
-            bscale=.75;
+            bscale=1;%.75;
             tpos=get(ht2,'position')+14*[-1 -1 2 2]*bscale; 
             %if extendshade, tpos(4)=(tpos(4)-1*24)*(1+.04/position(4))+1*24; end
             %tpos=get(ht2,'position')+1*[-8 -12 20 20];
@@ -513,11 +513,11 @@ switch(lower(type)),
             if strcmpi(type,'frame'), 
                 bg2=0*max(0,min(1,CONN_gui.backgroundcolor)); lw2=3; % border emphasis
             elseif strcmpi(type,'frame2border')
-                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=2;
+                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=3;
             elseif strcmpi(type,'frame2borderl')
-                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=2;
+                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=3;
             else
-                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=2;
+                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=3;
             end
             if strcmpi(type,'frame2border'),%||strcmpi(type,'frame2borderl')
                 [i,j]=ndgrid([0:2:tpos(4) tpos(4):-2:0],[0:2:tpos(3) tpos(3):-2:0]);

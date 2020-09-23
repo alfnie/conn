@@ -36,8 +36,8 @@ if nargin<1,
          warning('off','MATLAB:load:variableNotFound');
          warning('off','MATLAB:DELETE:FileNotFound');
     end
-    conn_backgroundcolor=.12*[1 1.05 1.1];                 % backgroundcolor
-    conn_backgroundcolorA=.19*[1 1.05 1.1];                % highlight
+    conn_backgroundcolor=.10*[1 1.05 1.1];                 % backgroundcolor
+    conn_backgroundcolorA=.17*[1 1.05 1.1];                % highlight
     if ismac, CONN_gui.uicontrol_border=2;            % crops borders GUI elements
     else      CONN_gui.uicontrol_border=2;
     end
@@ -94,7 +94,7 @@ if nargin<1,
     jetmap=jet(192); jetmap=jetmap(32+(1:128),:); %[linspace(.1,1,64)',zeros(64,2)];jetmap=[flipud(fliplr(jetmap));jetmap];
     CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,1-CONN_gui.backgroundcolor) ));
     CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA) ));
-    h0=get(0,'screensize'); h0=h0(1,3:4)-h0(1,1:2)+1; h0=h0/max(1,max(abs(h0))/2000);
+    h0=get(0,'screensize'); h0=h0(1,3:4)-h0(1,1:2)+1; h0(1)=min(h0(1),2*h0(2)); %h0=h0/max(1,max(abs(h0))/2000);
     %if any(h0(3:4)<[1200 700]), fprintf('Increase resolution size for optimal viewing\n(screen resolution %dx%d; minimum recommended %dx%d\n)',h0(3),h0(4),1200,700); end
     minheight=500;
     tname=strcat(connversion{:});
@@ -122,7 +122,7 @@ if nargin<1,
             tsize=javaMethod('values','com.mathworks.widgets.BusyAffordance$AffordanceSize');
             CONN_h.menus.waiticonObj=com.mathworks.widgets.BusyAffordance(tsize(1), '');
             pos=get(CONN_h.screen.hfig,'position');
-            CONN_h.menus.waiticon=javacomponent(CONN_h.menus.waiticonObj.getComponent, [pos(3)-16-4,.95*pos(4)-16-1,16,16], CONN_h.screen.hfig);
+            CONN_h.menus.waiticon=javacomponent(CONN_h.menus.waiticonObj.getComponent, [pos(3)-16-1,.95*pos(4)-16+3,16,16], CONN_h.screen.hfig);
             set(CONN_h.menus.waiticon,'Background',java.awt.Color(CONN_gui.backgroundcolor(1),CONN_gui.backgroundcolor(2),CONN_gui.backgroundcolor(3)));
             CONN_h.menus.waiticonObj.useWhiteDots(mean(CONN_gui.backgroundcolor)<.5);
             CONN_h.menus.waiticonObj.start;
@@ -9029,12 +9029,12 @@ else
                 if CONN_h.menus.m_results.usetablewhite==0, dp1=dp1+.10; end
                 if state==1,
                     conn_menu('frame',boffset+[-.030,.34-dp1,.585,.505+dp1],'Group-analysis settings');
-                    conn_menu('framewhitehighlight',boffset+[-.02,.710,.565,.07],' ');
+                    conn_menu('framewhitehighlight',boffset+[-.02,.710,.565,.075],' ');
                     %conn_menu('frame2noborder',boffset+[-.035,.325,.22,.515],'');%'Second-level design');
                     conn_menu('frame2semiborder',boffset+[.570,.085,.37,.81],'');
                 elseif state==2||state==3
                     conn_menu('frame',boffset+[-.030,.34-dp1,.585,.505+dp1],'Group-analysis settings');
-                    conn_menu('framewhitehighlight',boffset+[-.020,.710,.565,.07],' ');
+                    conn_menu('framewhitehighlight',boffset+[-.020,.710,.565,.075],' ');
                     %conn_menu('frame2noborder',boffset+[-.035,.325,.22,.515],'');%'Second-level design');
                     conn_menu('frame2semiborder',boffset+[.570,.085,.37,.81],'');
                 end
@@ -9166,7 +9166,7 @@ else
                         end
                         %icovariates=find(cellfun(@(x)~isempty(regexp(x,'^_\S* ICA')),CONN_x.Setup.l2covariates.names));
                         conn_calculator(icovariates);
-                        conn_menu('framewhitehighlight',boffset+[-.02,.785,.56,.03],'');
+                        conn_menu('framewhitehighlight',boffset+[-.021,.78,.561,.04],'');
                         CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.02,.775,.56,.05],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         %CONN_h.menus.m_results_00{20}=conn_menu('popupbigblue',boffset+[.095,.84,.55,.05],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
@@ -9183,7 +9183,7 @@ else
                     elseif stateb==2
                         icovariates=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_(Average|Frequency|Variability) Dynamic factor'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names));
                         conn_calculator(icovariates);
-                        conn_menu('framewhitehighlight',boffset+[-.02,.785,.56,.03],'');
+                        conn_menu('framewhitehighlight',boffset+[-.021,.78,.561,.04],'');
                         CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.025,.775,.56,.05],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         %CONN_h.menus.m_results_00{20}=conn_menu('popupbigblue',boffset+[.10,.84,.525,.05],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');

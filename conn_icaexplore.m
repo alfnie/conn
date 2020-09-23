@@ -87,10 +87,10 @@ ht6=conn_menu('popup2',boffset+[.07,.36,.30,.04],'',{'<HTML><i> - ICA tools:</i>
 nfacshown=1:numel(names);
 nfacselected=nfacshown;
 
-conn_menu('frame2',boffset+[.15,.07,.80,.24],'');%'Component timeseries');
+conn_menu('frame2',boffset+[.045,.07,.91,.24],'');%'Component timeseries');
 ht1=conn_menu('listbox2',boffset+[.79,.08,.075,.15],'Subjects',arrayfun(@(n)sprintf('Subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'Select subject(s) for display',@(varargin)conn_icaexplore_update([0 0 1]));
 ht2=conn_menu('listbox2',boffset+[.87,.08,.075,.15],'Conditions',conditions,'<HTML>Select condition(s) for display</HTML>',@(varargin)conn_icaexplore_update([0 0 1]));
-ht5=conn_menu('image2',boffset+[.16,.09,.61,.17],'Temporal components');
+ht5=conn_menu('image2',boffset+[.06,.09,.71,.17],'Temporal components');
 conn_menu('update',ht4,{permute(Bref,[2,1,3]),permute(B(:,:,:,1),[2,1,3,4]),permute(abs(B(:,:,:,1)),[2,1,3,4])},{struct('mat',vol(1).mat,'dim',vol(1).dim),[]});
 set(ht4.h10,'string',num2str(2));
 conn_menu('updatethr',[],[],ht4.h10);

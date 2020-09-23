@@ -329,7 +329,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 filename=fullfile(fileparts(spmfile),'results.nii');
                 conn_vproject(GCF,[],'export_mask_selected',filename);
                 fh=conn_mesh_display(filename,'');
-                if ~isempty(regexp(OPTION,'print$')), fh('print',4,options{:}); fh('close'); end
+                if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',4,options{:}); fh('close'); end
                 %fh('zoomin');
                 return;
 
@@ -342,12 +342,14 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 if DATA.issurface, vfilename=conn_surf_surf2vol(filename); 
                 else vfilename=filename;
                 end
-                fh=conn_mesh_display(filename,vfilename);
+                fh=conn_mesh_display('',vfilename); % without surface projection
+                %fh=conn_mesh_display(filename,vfilename); % with surface projection as well
                 if DATA.issurface, fh('brain',1); fh('sub_transparency',0); 
                 else fh('sub_transparency',.5);
                 end
+                fh('brain_color',[1 1 1]);
                 fh('act_color',[1 0 0]); fh('colormap',[1 0 0]); 
-                if ~isempty(regexp(OPTION,'print$')), fh('print',7,options{:}); fh('close'); end
+                if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',7,options{:}); fh('close'); end
                 return;
 
             case {'glass_view','glass_print'}
@@ -369,6 +371,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     fh('brain_transparency',0);
                     fh('sub_transparency',0);
                     fh('mask_transparency',.05);
+                    fh('mask_color',[1 1 1]);
                     %fh('material',[.1 1 1 .25 0]);
                     fh('axis','on');
                 else
@@ -378,7 +381,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     fh('brain_color',.8*[1 1 1]);
                     fh('sub_color',.8*[1 1 1]);
                 end
-                if ~isempty(regexp(OPTION,'print$')), fh('print',3,options{:}); fh('close'); end
+                if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',3,options{:}); fh('close'); end
                 return;
                 
             case 'spm_view'
@@ -412,6 +415,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 fh('multisliceset',1,16,8);
                 fh('pointer_mm',[0 0 10]);
                 if ~isempty(regexp(OPTION,'print$')), 
+                    fh('background',[1 1 1]); 
                     fh('togglegui',1);
                     fh('print',options{:});
                     fh('close'); 
@@ -917,9 +921,7 @@ else, %initialization
     end
 end
 
-%backgroundcolor=[.975 .975 .975];
-%backgroundcolor=[0.12 0.126 0.132];
-if 0, backgroundcolor=[.975 .975 .975];
+if 1, backgroundcolor=[.975 .975 .975];
 elseif isfield(CONN_gui,'backgroundcolor'), backgroundcolor=CONN_gui.backgroundcolor;
 else backgroundcolor=[0.12 0.126 0.132];
 end
@@ -944,6 +946,9 @@ if init>0, % initialize
                 uicontrol('style','frame','units','norm','position',[.0,.87,1,.13],'backgroundcolor',color3,'foregroundcolor',color3);
                 %uicontrol('style','frame','units','norm','position',[.54,.42,.41,.42],'backgroundcolor',backgroundcolor2,'foregroundcolor',.85*[1,1,1]);
                 %uicontrol('style','frame','units','norm','position',[.49,.39,.11,.41],'backgroundcolor',.9*[1,1,1],'foregroundcolor',.5*[1 1 1]);
+                %dp=@(a,b)[.615+(a-1)*.065,.465+(b-1)*.055,.06,.05];
+                dp1=@(a,b)[.68+(a-1)*.06,.55+(b-1)*.04,.05,.035];
+                dp2=@(a,b)[.80+(a-1)*.15,.55+(b-1)*.04,.15,.04];
                 set(GCF,'color',backgroundcolor);
                 DATA.handles=[...
                     uicontrol('style','text','units','norm','position',[.05,.925,.15,.03],'string','voxel threshold: p <','fontname','arial','fontsize',8+CONN_gui.font_offset,'fontweight','bold','foregroundcolor',1-color3,'backgroundcolor',color3),...
@@ -953,42 +958,42 @@ if init>0, % initialize
                     uicontrol('style','edit','units','norm','position',[.20,.885,.10,.03],'string',num2str(thres{3}),'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'fwec.clusterlevel'},'tooltipstring','Cluster-level threshold value: False-positive threshold value for individual clusters (based on cluster size/mass/peak)','foregroundcolor',1-color3,'backgroundcolor',color3),...
                     uicontrol('style','popupmenu','units','norm','position',[.325,.885,.25,.03],'string',{'cluster-size','cluster-size p-FWE corrected','cluster-size p-FDR corrected','cluster-size p-uncorrected','peak-voxel p-FWE corrected','peak-voxel p-FDR corrected','peak-voxel p-uncorrected','cluster-mass','cluster-mass p-FWE corrected','cluster-mass p-FDR corrected','cluster-mass p-uncorrected'},'fontname','arial','fontsize',7+CONN_gui.font_offset,'callback',{@conn_vproject,'fwec.clusterlevel'},'value',thres{4},'tooltipstring','False-positive control type for individual clusters','foregroundcolor',1-color3,'backgroundcolor',color3),...
                     uicontrol('style','text','units','norm','position',[.05,.30,.9,.03],'string',sprintf('%15s%13s%13s%13s%13s%13s%13s%15s','Cluster (x,y,z)','size','size p-FWE','size p-FDR','size p-unc','peak p-FWE','peak p-FDR','peak p-unc'),'fontname','arial','fontsize',8+CONN_gui.font_offset,'backgroundcolor',backgroundcolor,'foregroundcolor',foregroundcolor,'horizontalalignment','left','fontname','monospaced','fontsize',7+CONN_gui.font_offset),...
-                    uicontrol('style','listbox','units','norm','position',[.05,.15,.9,.15],'string','','max',2,'value',[],'backgroundcolor',backgroundcolor,'foregroundcolor',round(foregroundcolor),'horizontalalignment','left','fontname','monospaced','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'selectroi'}),...
-                    uicontrol('style','pushbutton','units','norm','position',[.615,.74,.06,.05],'string','Surface display','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'surface_view'},'tooltipstring','<HTML><b>Surface display</b><br/>Displays selected results projected to cortical surface</HTML>'),...
+                    uicontrol('style','listbox','units','norm','position',[.05,.15,.9,.15],'string','','tag','highlight','max',2,'value',[],'backgroundcolor',backgroundcolor,'foregroundcolor',foregroundcolor,'horizontalalignment','left','fontname','monospaced','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'selectroi'}),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(1,6),'string','Surface display','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'surface_view'},'tooltipstring','<HTML><b>Surface display</b><br/>Displays selected results projected to cortical surface</HTML>'),...
                     uicontrol('style','text','units','norm','position',[.03,.80,.27,.04],'string','Voxels in selected-cluster','fontname','arial','fontsize',9+CONN_gui.font_offset,'backgroundcolor',backgroundcolor,'foregroundcolor',.75*[1 1 1],'horizontalalignment','left','max',2,'visible','off','value',[]),...
                     uicontrol('style','popupmenu','units','norm','position',[.605,.925,.2,.03],'string',{'positive contrast (one-sided)','negative contrast (one-sided)','two-sided'},'value',side,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'fwec.voxellevel.side'},'tooltipstring','Analysis results directionality','foregroundcolor',1-color3,'backgroundcolor',color3),...
                     uicontrol('style','edit','units','norm','position',[.05,.07,.9,.08],'string','','fontname','arial','fontsize',9+CONN_gui.font_offset,'visible','off','backgroundcolor',backgroundcolor,'foregroundcolor',foregroundcolor,'horizontalalignment','left','max',2,'value',[]),...
                     uicontrol('style','text','units','norm','position',[.855,.910,.1,.04],'string','','fontname','arial','fontsize',8+CONN_gui.font_offset,'horizontalalignment','right','foregroundcolor',.5*[1 1 1],'backgroundcolor',color3),...
                     uicontrol('style','text','units','norm','position',[.855,.870,.1,.04],'string','','fontname','arial','fontsize',8+CONN_gui.font_offset,'horizontalalignment','right','foregroundcolor',.5*[1 1 1],'backgroundcolor',color3),...
                     uicontrol('style','popupmenu','units','norm','position',[.605,.885,.2,.03],'string',{'parametric stats','non-parametric stats'},'value',parametric,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'fwec.clusterlevel.parametric'},'tooltipstring','Cluster-level statistics based on parametric analyses (Random Field Theory) or non-parametric analyses (permutation/randomization tests)','foregroundcolor',1-color3,'backgroundcolor',color3),...
-                    uicontrol('style','pushbutton','units','norm','position',[.68,.52,.06,.05],'string','Plot effects','fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'cluster_view'},'tooltipstring','<HTML><b>Plot effects</b><br/>Explores/displays average effect sizes within each significant cluster</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.79,.71,.15,.04],'string','Export mask','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'export_mask'},'tooltipstring','Exports mask of supra-threshold voxels'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.79,.75,.15,.04],'string','Import values','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'cluster_import'},'tooltipstring','Imports average connectivity measure values within each significant cluster and for each subject into CONN toolbox as second-level covariates'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.79,.55,.15,.04],'string','Bookmark','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'bookmark'},'tooltipstring','Bookmark this second-level results explorer view'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.615,.685,.06,.05],'string','Volume display','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'volume_view'},'tooltipstring','<HTML><b>Volume display</b><br/>Displays selected results on 3d brain</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.615,.52,.06,.05],'string','SPM display','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'spm_view'},'tooltipstring','<HTML><b>SPM display</b><br/>Displays results in SPM</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.615,.575,.06,.05],'string','Glass display','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'glass_view'},'tooltipstring','<HTML><b>Glass display</b><br/>Displays selected results on 3d glass-brain</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.615,.63,.06,.05],'string','Slice display','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'slice_view'},'tooltipstring','<HTML><b>Slice display</b><br/>Displays selected results on individual slices</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.79,.67,.15,.04],'string','non-parametric stats','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'computeparametric'},'tooltipstring','<HTML>Compute additional permutation/randomization simulations<br/>(only applicable when ''non-parametric stats'' is selected in the cluster-level threshold options above)</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.615,.465,.06,.05],'string','Plot subjects','fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'subjects_view'},'tooltipstring','<HTML><b>Plot subjects</b><br/>Explores/displays individual-subject maps</HTML>'),...
-                    uicontrol('style','text','units','norm','position',[.58,.80,.2,.025],'string','Display&Print','backgroundcolor',backgroundcolor2,'foregroundcolor',foregroundcolor,'horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset),...
-                    uicontrol('style','text','units','norm','position',[.79,.80,.15,.025],'string','Tools','backgroundcolor',backgroundcolor2,'foregroundcolor',foregroundcolor,'horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(2,2),'string','Plot effects','tag','highlight','fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'cluster_view'},'tooltipstring','<HTML><b>Plot effects</b><br/>Explores/displays average effect sizes within each significant cluster</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp2(1,5),'string','Export mask','tag','highlight','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'export_mask'},'tooltipstring','Exports mask of supra-threshold voxels'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp2(1,6),'string','Import values','tag','highlight','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'cluster_import'},'tooltipstring','Imports average connectivity measure values within each significant cluster and for each subject into CONN toolbox as second-level covariates'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp2(1,2),'string','Bookmark','tag','highlight','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'bookmark'},'tooltipstring','Bookmark this second-level results explorer view'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(1,5),'string','Volume display','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'volume_view'},'tooltipstring','<HTML><b>Volume display</b><br/>Displays selected results on 3d brain</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(1,2),'string','SPM display','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'spm_view'},'tooltipstring','<HTML><b>SPM display</b><br/>Displays results in SPM</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(1,3),'string','Glass display','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'glass_view'},'tooltipstring','<HTML><b>Glass display</b><br/>Displays selected results on 3d glass-brain</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(1,4),'string','Slice display','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'slice_view'},'tooltipstring','<HTML><b>Slice display</b><br/>Displays selected results on individual slices</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp2(1,4),'string','non-parametric stats','tag','highlight','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'computeparametric'},'tooltipstring','<HTML>Compute additional permutation/randomization simulations<br/>(only applicable when ''non-parametric stats'' is selected in the cluster-level threshold options above)</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(1,1),'string','Plot subjects','tag','highlight','fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'subjects_view'},'tooltipstring','<HTML><b>Plot subjects</b><br/>Explores/displays individual-subject maps</HTML>'),...
+                    uicontrol('style','text','units','norm','position',[.68,.80,.12,.025],'string','Display&Print','backgroundcolor',backgroundcolor2,'foregroundcolor',foregroundcolor,'horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset),...
+                    uicontrol('style','text','units','norm','position',[.80,.80,.15,.025],'string','Tools','backgroundcolor',backgroundcolor2,'foregroundcolor',foregroundcolor,'horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset),...
                     uicontrol('style','text','units','norm','position',[.075,.80,.4,.025],'string','Results','backgroundcolor',backgroundcolor,'foregroundcolor',foregroundcolor,'horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset),...
-                    uicontrol('style','text','units','norm','position',[.79,.59,.15,.04],'string','','backgroundcolor',backgroundcolor2,'foregroundcolor',.5*[1 1 1],'horizontalalignment','center','fontname','arial','fontsize',7+CONN_gui.font_offset), ... 
-                    uicontrol('style','pushbutton','units','norm','position',[.68,.465,.06,.05],'string','Plot design','foregroundcolor',foregroundcolor,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'plot_design'},'tooltipstring','<HTML><b>Plot design</b><br/>Displays General Linear Model design matrix and additional details</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.79,.51,.15,.04],'string','Open folder','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'openfolder'},'tooltipstring','Open folder containing current second-level results files'), ...
-                    uicontrol('style','popupmenu','units','norm','position',[.20,.965,.605,.03],'string',{'standard settings for cluster-based inferences #1: Random Field Theory parametric statistics','standard settings for cluster-based inferences #2: Permutation/randomization analysis','standard settings for cluster-based inferences #3: Threshold Free Cluster Enhancement','<HTML><i>show details (advanced Family-Wise Error control settings)</i></HTML>'},'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'fwec.option'},'value',1,'tooltipstring','Select false-positive control method','backgroundcolor',.9*[1,1,1]),...
+                    uicontrol('style','text','units','norm','position',dp2(1,3),'string','','backgroundcolor',backgroundcolor2,'foregroundcolor',.5*[1 1 1],'horizontalalignment','center','fontname','arial','fontsize',7+CONN_gui.font_offset), ... 
+                    uicontrol('style','pushbutton','units','norm','position',dp1(2,1),'string','Plot design','tag','highlight','foregroundcolor',foregroundcolor,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'plot_design'},'tooltipstring','<HTML><b>Plot design</b><br/>Displays General Linear Model design matrix and additional details</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp2(1,1),'string','Open folder','tag','highlight','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'openfolder'},'tooltipstring','Open folder containing current second-level results files'), ...
+                    uicontrol('style','popupmenu','units','norm','position',[.20,.965,.605,.03],'string',{'standard settings for cluster-based inferences #1: Random Field Theory parametric statistics','standard settings for cluster-based inferences #2: Permutation/randomization analysis','standard settings for cluster-based inferences #3: Threshold Free Cluster Enhancement','<HTML><i>show details (advanced Family-Wise Error control settings)</i></HTML>'},'tag','highlight','foregroundcolor',foregroundcolor,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'fwec.option'},'value',1,'tooltipstring','Select false-positive control method','backgroundcolor',.9*[1,1,1]),...
                     uicontrol('style','text','units','norm','position',[.20,.88,.605,.07],'string','','horizontalalignment','center','backgroundcolor',color3,'foregroundcolor',.5*[1 1 1],'horizontalalignment','center','fontname','arial','fontsize',7+CONN_gui.font_offset), ... 
-                    uicontrol('style','pushbutton','units','norm','position',[.68,.74,.06,.05],'string','Surface print','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'surface_print'},'tooltipstring','<HTML><b>Surface print</b><br/>Prints current results projected to cortical surface</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.68,.685,.06,.05],'string','Volume print','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'volume_print'},'tooltipstring','<HTML><b>Volume print</b><br/>Prints current results on 3d brain</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.68,.63,.06,.05],'string','Slice print','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'slice_print'},'tooltipstring','<HTML><b>Slice print</b><br/>Prints current results on individual slices</HTML>'),...
-                    uicontrol('style','pushbutton','units','norm','position',[.68,.575,.06,.05],'string','Glass print','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'glass_print'},'tooltipstring','<HTML><b>Glass print</b><br/>Prints current results on 3d glass-brain</HTML>') ];
+                    uicontrol('style','pushbutton','units','norm','position',dp1(2,6),'string','Surface print','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'surface_print'},'tooltipstring','<HTML><b>Surface print</b><br/>Prints current results projected to cortical surface</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(2,5),'string','Volume print','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'volume_print'},'tooltipstring','<HTML><b>Volume print</b><br/>Prints current results on 3d brain</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(2,4),'string','Slice print','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'slice_print'},'tooltipstring','<HTML><b>Slice print</b><br/>Prints current results on individual slices</HTML>'),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(2,3),'string','Glass print','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'glass_print'},'tooltipstring','<HTML><b>Glass print</b><br/>Prints current results on 3d glass-brain</HTML>') ];
                     %uicontrol('style','checkbox','units','norm','position',[.9,.965,.1,.03],'string','Advanced','value',0,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','backgroundcolor',.9*[1,1,1],'callback',{@conn_vproject,'advancedthr'},'tooltipstring','Displays advanced thresholding options')]; 
                     %uicontrol('style','text','units','norm','position',[.4,.30,.1,.025],'string','voxel p-cor','backgroundcolor','k','foregroundcolor','y','horizontalalignment','left'),...
                     %uicontrol('style','listbox','units','norm','position',[.2,.05,.1,.25],'string','','backgroundcolor','k','foregroundcolor','w','horizontalalignment','left'),...
                     %uicontrol('style','listbox','units','norm','position',[.3,.05,.1,.25],'string','','backgroundcolor','k','foregroundcolor','w','horizontalalignment','left'),...
                     %uicontrol('style','listbox','units','norm','position',[.4,.05,.1,.25],'string','','backgroundcolor','k','foregroundcolor','w','horizontalalignment','left')];
-                uiwrap(DATA.handles([8,12,   17,18,19,24,31]));
+                uiwrap(DATA.handles([8,12,17,18,19,24,31]));
                 if DATA.mat{6}~='T', set(DATA.handles(11),'value',3,'enable','off'); end; 
                 bp=[9 20 22 23 21 16 25 30 34 35 37 36]; 
                 bp_isprint=[0 0 0 0 0 0 0 0 1 1 1 1]; 
@@ -1057,9 +1062,9 @@ if init>0, % initialize
                 %    delete(DATA.handles(6)); DATA.handles(6)=uicontrol('style','popupmenu','units','norm','position',[.625,.895,.1,.03],'string',{'peak p-FDR corrected','extent k-value'},'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'fwec.clusterlevel'},'value',min(2,thres{4}));
                 %end
                 %if isempty(DATA.mat{2}), set(DATA.handles(6),'visible','off','value',4); DATA.thres{4}=4; DATA.thres{3}=10; thres=DATA.thres; set(DATA.handles(5),'string',num2str(thres{3})); set(DATA.handles(4),'string','extent threshold: cluster k ='); end
-                DATA.axes=subplot(222);set(DATA.axes,'units','norm','position',[.40,.45,.2,.38],'visible','off');%[.55,.35,.4,.6],'visible','off');
+                DATA.axes=axes('units','norm','position',[.10,.46,.35,.33],'visible','off','tag','highlight_pointer');%[.55,.35,.4,.6],'visible','off');
                 h0=get(0,'screensize');
-                set(GCF,'name',['results explorer ',DATA.spmfile],'numbertitle','off','color',backgroundcolor,'units','pixels','position',[h0(3)-.75*h0(3)+2,h0(4)-.9*h0(4)-48,.75*h0(3)-2,.9*h0(4)],'interruptible','off','busyaction','cancel','colormap',map,'tag','conn_vproject','userdata',DATA); %,'windowbuttondownfcn',{@conn_vproject,'buttondown'},'windowbuttonupfcn',{@conn_vproject,'buttonup'},'windowbuttonmotionfcn',[],'keypressfcn',{@conn_vproject,'keypress'},'colormap',map,'userdata',DATA); 
+                set(GCF,'name',['results explorer ',DATA.spmfile],'numbertitle','off','color',backgroundcolor,'units','pixels','position',[h0(3)-.75*h0(3)+2,h0(4)-.9*h0(4)-48,.75*h0(3)-2,.9*h0(4)],'interruptible','off','busyaction','cancel','colormap',map,'tag','conn_vproject','userdata',DATA,'windowbuttonmotionfcn',@uimotionfcn); %,'windowbuttondownfcn',{@conn_vproject,'buttondown'},'windowbuttonupfcn',{@conn_vproject,'buttonup'},'windowbuttonmotionfcn',[],'keypressfcn',{@conn_vproject,'keypress'},'colormap',map,'userdata',DATA); 
                 figure(GCF);
             end
         case '3d',
@@ -1146,7 +1151,7 @@ if strcmp(views,'full'),
         tplot=cat(1,cat(2,tplot{1},tplot{2}),cat(2,tplot{3},tplot{1}(1)*ones([size(tplot{3},1),size(tplot{2},2),size(tplot{2},3)])));
         cplot=cat(1,cat(2,cplot{1},cplot{2}),cat(2,cplot{3},cplot{1}(1)*ones([size(cplot{3},1),size(cplot{2},2),size(cplot{2},3)])));
         
-        if ~isempty(b), h=subplot(3,4,1,'parent',GCF); set(h,'units','norm','position',[.10,.46,.35,.33]); % DATA.axes
+        if ~isempty(b), h=DATA.axes; cla(h); %h=subplot(3,4,1,'parent',GCF); set(h,'units','norm','position',[.10,.46,.35,.33] ); % DATA.axes
         else, h=subplot(3,4,1,'parent',GCF); set(h,'units','norm','position',[.05,.1,.4,.8]);
         end
         %pres=.5;image(1:pres:size(tplot,2),1:pres:size(tplot,1),round(max((ceil(tplot(1:pres:end,1:pres:end)/64)-1)*64+1,convn(convn(tplot(1:pres:end,1:pres:end),conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same'))));axis equal; axis off;
@@ -1216,7 +1221,7 @@ if strcmp(views,'full'),
         set(hcontrols(ishandle(hcontrols)),'enable','on');
         set(GCF,'pointer','arrow');%,'userdata',DATA);
     end
-    set(DATA.axes,'visible','off');
+    set(DATA.axes,'visible','off','tag','highlight_pointer');
     %subplot(122);conn_vproject(a,'none',projection,threshold,res,box); 
     %if ~isempty(b), DATA.axes=subplot(222); else, DATA.axes=subplot(122); end
 end
@@ -1394,7 +1399,7 @@ else,
         %dataplot2=convn(convn(dataplot2,conf2,'same'),conf2','same');
         k=.75;%.2;
         dataplotA=(dataplot2==0).*(k+(1-k)*dataplot1.^4) + (dataplot2>0).*(k+(1-k)*dataplot1.^4);
-        dataplotA(dataplot1==0)=.126; % 1 % background color
+        dataplotA(dataplot1==0)=1; %.126; % 1 % background color
         dataplotB=(dataplot2==0).*dataplotA + (dataplot2>0).*(dataplotA.*max(0,min(.8,.4+.4*tanh(5*(dataplot1-dataplot2)))));
         %dataplotB=(dataplot2==0).*dataplotA + (dataplot2>0).*(dataplotA.*max(0,min(.75,tanh(1.5*(1*dataplot1-dataplot2)))));
         %dataplotB=(dataplot2==0).*dataplotA + (dataplot2>0).*(.25*dataplotA.*(dataplot2<=.9*dataplot1));
@@ -2648,6 +2653,41 @@ for nh=1:numel(h)
 end
 end
 
+function uimotionfcn(option,varargin)
+h1=findobj(gcbf,'tag','highlight');
+h2=findobj(gcbf,'tag','highlight_pointer');
+if ~isempty(h1)||~isempty(h2)
+    p1=get(0,'pointerlocation');
+    p2=get(gcbf,'position');
+    p3=get(0,'screensize');
+    p2(1:2)=p2(1:2)+p3(1:2)-1; % note: fix issue when connecting to external monitor/projector
+    pos=(p1-p2(1:2))./p2(3:4);
+    c0=mean(get(gcbf,'color')<.5);
+    if ~isempty(h1)
+        active=get(h1,'position');
+        if iscell(active), active=cell2mat(active(:)); end
+        xpos=repmat(pos,[size(active,1),1]); 
+        %xpos1=active; xpos1=round(xpos1*500)/500;
+        %if size(xpos,1)>1, xpos1=num2cell(xpos1,2); end
+        md=find(min(min(xpos-active(:,1:2),active(:,1:2)+active(:,3:4)-xpos),[],2)>-.001)';
+        set(h1,'foregroundcolor',[.4 .4 .4]+.2*c0);%,{'position'},xpos1);
+        if ~isempty(md), 
+            %xpos1=active(md,:); xpos1=round(xpos1*500)/500+repmat([-.0002,-.0002,.0004,.0004],size(xpos1,1),1);
+            %if size(xpos,1)>1, xpos1=num2cell(xpos1,2); end
+            set(h1(md),'foregroundcolor',[.0 .0 .0]+1*c0);%,{'position'},xpos1); 
+        end
+    end
+    if ~isempty(h2)
+        active=get(h2,'position');
+        if iscell(active), active=cell2mat(active(:)); end
+        xpos=repmat(pos,[size(active,1),1]);
+        md=find(min(min(xpos-active(:,1:2),active(:,1:2)+active(:,3:4)-xpos),[],2)>-.001)';
+        if ~isempty(md), set(gcf,'Pointer','crosshair'); else set(gcf,'Pointer','arrow'); end
+    end
+end
+end
+
+
 function [filename_rois,filename_sources,viewrex]=conn_vproject_selectfiles(filename_rois,filename_sources,viewrex)
 global CONN_gui;
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
@@ -2854,4 +2894,6 @@ end
         if v3==1, set([h4,h5],'visible','off'); else set([h4,h5],'visible','on'); end
     end
 end
+
+
 
