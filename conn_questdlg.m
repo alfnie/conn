@@ -17,7 +17,7 @@ bg=.925*[1 1 1]; fg=[.25 0 0];
 Nc=max(1,numel(varargin)-1);
 checkdesktop=true; try, checkdesktop=checkdesktop&usejava('awt'); end
 if ~checkdesktop, fprintf(2,'ERROR: CONN requires user interaction to continue. Please re-run locally and with a display available\n'); end
-h=figure('units','norm','position',[.5 .7 .2 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','off');
+h=figure('units','norm','position',[.5 .7 .4 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','off');
 set(h,'units','pixels');
 % sh=get(h,'position');
 % ht=axes('units','pixels','position',[0 2 max(1,sh(3)-0) max(1,sh(4)-4)]);
@@ -29,7 +29,8 @@ if isempty(ttxt)
 else
     dovert=false;
     if ~iscell(ttxt),ttxt={ttxt}; end
-    ttxt2=repmat([varargin{1:Nc}],1,2);
+    [nill,iv]=max(cellfun('length',varargin(1:Nc))); ttxt2=repmat(varargin{iv},1,2*Nc);
+    %ttxt2=repmat([varargin{1:Nc}],1,2);
     if numel(ttxt2)>numel(ttxt{end}), ttxt{end}=ttxt2; end
 end
 selected=false(1,Nc);

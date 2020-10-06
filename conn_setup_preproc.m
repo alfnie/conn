@@ -2271,12 +2271,18 @@ for iSTEP=1:numel(STEPS)
                             matlabbatch{end}.art.M{end+1}=conn_prepend('rp_',conn_prepend(-remov,temp1),'.txt');
                             matlabbatch{end}.art.motion_file_type=0;
                         else
-                            matlabbatch{end}.art.M{end+1}=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
-                            [nill,fname,fext]=fileparts(matlabbatch{end}.art.M{end});
                             matlabbatch{end}.art.motion_file_type=0;
-                            if isequal(lower(fext),'.par'), matlabbatch{end}.art.motion_file_type=1;
-                            elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.siemens$')), matlabbatch{end}.art.motion_file_type=2;
-                            elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.deg$')), matlabbatch{end}.art.motion_file_type=3;
+                            cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
+                            switch(cfilename),
+                                case '[raw values]',
+                                    matlabbatch{end}.art.M{end+1}=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{3};
+                                otherwise,
+                                    matlabbatch{end}.art.M{end+1}=cfilename;
+                                    [nill,fname,fext]=fileparts(matlabbatch{end}.art.M{end});
+                                    if isequal(lower(fext),'.par'), matlabbatch{end}.art.motion_file_type=1;
+                                    elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.siemens$')), matlabbatch{end}.art.motion_file_type=2;
+                                    elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.deg$')), matlabbatch{end}.art.motion_file_type=3;
+                                    end
                             end
                         end
                         outputfiles{isubject}{nses}{1}=conn_prepend('art_regression_outliers_',temp1,'.mat');
@@ -2806,7 +2812,7 @@ for iSTEP=1:numel(STEPS)
                                 else error('insufficient information for vdm creation. Skipping subject %d session %d...\n',nsubject,nses);
                                 end
                             elseif isequal(vdm_type,3)||(isempty(vdm_type)&&numel(fmap)==1), % FieldMap [note: work in progress; needs further testing]
-                                units=conn_jsonread(fmap{1},'Units',false);
+                                units=conn_jsonread(fmap{1},'Units',false); 
                                 if ~isempty(units)&&ischar(units),
                                     switch(lower(units))
                                         case 'hz', ct=1;
@@ -2884,15 +2890,15 @@ for iSTEP=1:numel(STEPS)
         if isfield(matlabbatch{n},'spm')&&isfield(matlabbatch{n}.spm,'spatial')&&isfield(matlabbatch{n}.spm.spatial,'preproc')&&isfield(matlabbatch{n}.spm.spatial.preproc,'tissue')&&iscell(matlabbatch{n}.spm.spatial.preproc.tissue)
             for n2=1:numel(matlabbatch{n}.spm.spatial.preproc.tissue)
                 newmatlabbatch{end+1}=matlabbatch{n};
-                newmatlabbatch{end}.spm.spatial.preproc.tissue=matlabbatch{end}.spm.spatial.preproc.tissue{n2};
-                newmatlabbatch{end}.spm.spatial.preproc.channel.vols=matlabbatch{end}.spm.spatial.preproc.channel.vols(n2);
+                newmatlabbatch{end}.spm.spatial.preproc.tissue=matlabbatch{n}.spm.spatial.preproc.tissue{n2};
+                newmatlabbatch{end}.spm.spatial.preproc.channel.vols=matlabbatch{n}.spm.spatial.preproc.channel.vols(n2);
                 newin(end+1)=n;
             end
         elseif isfield(matlabbatch{n},'spm')&&isfield(matlabbatch{n}.spm,'spatial')&&isfield(matlabbatch{n}.spm.spatial,'normalise')&&isfield(matlabbatch{n}.spm.spatial.normalise,'estwrite')&&isfield(matlabbatch{n}.spm.spatial.normalise.estwrite,'eoptions')&&isfield(matlabbatch{n}.spm.spatial.normalise.estwrite.eoptions,'tpm')&&size(matlabbatch{n}.spm.spatial.normalise.estwrite.eoptions.tpm,2)>1
             for n2=1:size(matlabbatch{n}.spm.spatial.normalise.estwrite.eoptions.tpm,2)
                 newmatlabbatch{end+1}=matlabbatch{n};
-                newmatlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm=matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm(:,n2);
-                newmatlabbatch{end}.spm.spatial.normalise.estwrite.subj=matlabbatch{end}.spm.spatial.normalise.estwrite.subj(n2);
+                newmatlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm=matlabbatch{n}.spm.spatial.normalise.estwrite.eoptions.tpm(:,n2);
+                newmatlabbatch{end}.spm.spatial.normalise.estwrite.subj=matlabbatch{n}.spm.spatial.normalise.estwrite.subj(n2);
                 newin(end+1)=n;
             end
         end

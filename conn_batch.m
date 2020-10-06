@@ -80,23 +80,23 @@ function varargout=conn_batch(varargin)
 %                       see secondarydatasets below) 
 %    structurals     : structurals{nsub} char array of structural volume files 
 %                      OR structurals{nsub}{nses} char array of anatomical session-specific volume files 
-%    secondarydatasets  : (for Setup.rois.dataset>0) structure array identifying one or several additional functional 
+%    secondarydatasets  : (for Setup.rois.dataset>0) cell array identifying one or several additional functional 
 %                       datasets (e.g. vdm files for susceptibility distorition, alternative functional files for
 %                       ROI-level timeseries extraction, etc.) (secondary dataset-1 and above); default secondarydatasets
 %                       equal to struct('functionals_type',2)
 %       functionals_label      : (optional) label of secondary functional dataset
-%       functionals_explicit   : (only for functionals_type==4 only) functionals_explicit{nsub}{nses} char array of volume files
+%       functionals_type       : Files in secondary functional dataset (1-4) [2]: 
+%                                 1: same files as Primary dataset
+%                                 2: same files as Primary dataset field after removing leading 's' from filename
+%                                 3: other (same as Primary dataset field but using alternative filename-change rule; 
+%                                       see functionals_rule above and help conn_rulebasedfilename); 
+%                                 4: other (explicitly specify the functional volume files; see functionals_explicit below)
 %       functionals_rule       : (only for functionals_type==3 only) regexprep(filename,functionals_rule{2},functionals_rule{3}) converts 
 %                               filenames in 'Setup.functionals' field to filenames that will be used when extracting BOLD 
 %                               signal ROI timeseries (if functionals_rule{1}==2 filename is interpreted as a full path; if 
 %                               functionals_rule{1}==1 filename is interpreted as only the file *name* -no file path, no 
 %                               file extension-)    
-%       functionals_type       : Location of secondary functional dataset: 
-%                                 1: same files as Primary dataset
-%                                 2: same files as Primary dataset field after removing leading 's' from filename
-%                                 3: other (same as Primary dataset field but using alternative filename-change rule; 
-%                                       see functionals_rule above and help conn_rulebasedfilename); 
-%                                 4: other (explicitly specify the functional volume files; see functionals_explicit above) [2] 
+%       functionals_explicit   : (only for functionals_type==4 only) functionals_explicit{nsub}{nses} char array of volume files
 %    add             : 1/0; use 0 (default) to define the full set of subjects in your experiment; use 1 to define an 
 %                       additional set of subjects (to be added to any already-existing subjects in your project) [0]
 %                      When using Setup.add=1, the following fields are expected to contain the information for the new
@@ -775,22 +775,26 @@ if isfield(batch,'Setup'),
         localcopy=false; if isfield(batch.Setup,'localcopy')&&batch.Setup.localcopy, localcopy=true; end
         localcopy_reduce=false; if isfield(batch.Setup,'localcopy_reduce')&&batch.Setup.localcopy_reduce, localcopy_reduce=true; end
         for nalt=1:numel(batch.Setup.secondarydatasets)
-            if isfield(batch.Setup.secondarydatasets(nalt),'functionals_type')
-                CONN_x.Setup.secondarydataset(nalt).functionals_type=batch.Setup.secondarydatasets(nalt).functionals_type;
-            elseif isfield(batch.Setup.secondarydatasets(nalt),'roiextract')
-                CONN_x.Setup.secondarydataset(nalt).functionals_type=batch.Setup.secondarydatasets(nalt).roiextract;
+            if iscell(batch.Setup.secondarydatasets), tsecondarydataset=batch.Setup.secondarydatasets{nalt};
+            else tsecondarydataset=batch.Setup.secondarydatasets(nalt);
             end
-            if isfield(batch.Setup.secondarydatasets(nalt),'functionals_rule')
-                CONN_x.Setup.secondarydataset(nalt).functionals_rule=batch.Setup.secondarydatasets(nalt).functionals_rule;
-            elseif isfield(batch.Setup.secondarydatasets(nalt),'roiextract_rule')
-                CONN_x.Setup.secondarydataset(nalt).functionals_rule=batch.Setup.secondarydatasets(nalt).roiextract_rule;
+            ialt=nalt;
+            if isfield(tsecondarydataset,'functionals_type')
+                CONN_x.Setup.secondarydataset(ialt).functionals_type=tsecondarydataset.functionals_type;
+            elseif isfield(tsecondarydataset,'roiextract')
+                CONN_x.Setup.secondarydataset(ialt).functionals_type=tsecondarydataset.roiextract;
             end
-            if isfield(batch.Setup.secondarydatasets(nalt),'functionals_label')
-                CONN_x.Setup.secondarydataset(nalt).label=batch.Setup.secondarydatasets(nalt).functionals_label;
+            if isfield(tsecondarydataset,'functionals_rule')
+                CONN_x.Setup.secondarydataset(ialt).functionals_rule=tsecondarydataset.functionals_rule;
+            elseif isfield(tsecondarydataset,'roiextract_rule')
+                CONN_x.Setup.secondarydataset(ialt).functionals_rule=tsecondarydataset.roiextract_rule;
             end
-            if isfield(batch.Setup.secondarydatasets(nalt),'functionals_explicit')||isfield(batch.Setup.secondarydatasets(nalt),'roiextract_functionals')
-                if isfield(batch.Setup.secondarydatasets(nalt),'functionals_explicit'), temp=batch.Setup.secondarydatasets(nalt).functionals_explicit;
-                else temp=batch.Setup.secondarydatasets(nalt).roiextract_functionals;
+            if isfield(tsecondarydataset,'functionals_label')
+                CONN_x.Setup.secondarydataset(ialt).label=tsecondarydataset.functionals_label;
+            end
+            if isfield(tsecondarydataset,'functionals_explicit')||isfield(tsecondarydataset,'roiextract_functionals')
+                if isfield(tsecondarydataset,'functionals_explicit'), temp=tsecondarydataset.functionals_explicit;
+                else temp=tsecondarydataset.roiextract_functionals;
                 end
                 if ~iscell(temp), temp={temp}; end
                 for isub=1:numel(SUBJECTS),
@@ -799,15 +803,15 @@ if isfield(batch,'Setup'),
                     if ~iscell(temp{isub}), temp{isub}={temp}; end
                     for nses=1:CONN_x.Setup.nsessions(nsub),
                         if localcopy, 
-                            switch(char(CONN_x.Setup.secondarydataset(nalt).label))
+                            switch(char(CONN_x.Setup.secondarydataset(ialt).label))
                                 case 'fmap', args={'fmap','fmap'}; % copies dataset 'fmap' as .../fmap/*fmap.nii file
                                 case 'vdm',  args={'fmap','vdm'};  % copies dataset 'vdm' as .../fmap/*vdm.nii file
-                                otherwise, args={CONN_x.Setup.secondarydataset(nalt).label,[]}; % copies other datasets as ../dataset<label>/*unknown.nii file
+                                otherwise, args={CONN_x.Setup.secondarydataset(ialt).label,[]}; % copies other datasets as ../dataset<label>/*unknown.nii file
                             end
                             [nill,nill,nV]=conn_importvol2bids(temp{isub}{nses},nsub,nses,args{:},[],[],localcopy_reduce);
-                        else conn_set_functional(nsub,nses,nalt,temp{isub}{nses});
+                        else conn_set_functional(nsub,nses,ialt,temp{isub}{nses});
                         end
-                        %[CONN_x.Setup.secondarydataset(nalt).functionals_explicit{nsub}{nses},nV]=conn_file(temp{isub}{nses});
+                        %[CONN_x.Setup.secondarydataset(ialt).functionals_explicit{nsub}{nses},nV]=conn_file(temp{isub}{nses});
                     end
                 end
             end

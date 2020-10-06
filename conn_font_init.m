@@ -1,6 +1,6 @@
 function font_offset=conn_font_init(varargin)
 global CONN_gui;
-h0=get(0,'screensize'); h0=h0(1,3:4)-h0(1,1:2)+1; h0=h0/max(1,max(abs(h0))/2000);
+h0=get(0,'screensize'); h0=h0(1,3:4)-h0(1,1:2)+1; h0(1)=min(h0(1),2*h0(2)); %h0=h0/max(1,max(abs(h0))/2000);
 minheight=500;
 hfig=figure('units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-48,h0(1)-0*72-1,max(minheight,.5*h0(1))],'visible','off');
 hax=axes('units','norm','position',[0 0 1 1],'parent',hfig);

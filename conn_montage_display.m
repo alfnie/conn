@@ -437,6 +437,11 @@ end
                     state.datalim=max(abs(state.x(:)));
                     set(state.handles.hfig,'colormap',cmap);
                 end
+            case 'background'
+                value=varargin{1};
+                set([state.handles.slider state.handles.singleloop state.handles.movietitle],'backgroundcolor',value); 
+                set(state.handles.hfig,'color',value);
+                return;
             case 'style',
                 state.loop=0; 
                 state.style=varargin{1};

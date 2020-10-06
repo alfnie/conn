@@ -1,13 +1,16 @@
-function fileout=conn_surf_surf2vol(filein,fileout,FSfolder)
+function fileout=conn_surf_surf2vol(filein,fileout,FSfolder,interp)
 % conn_surf_surf2vol converts surface nifti file to volume nifti file
 %
-% conn_surf_surf2vol(filename, fileout)
-%     filename : input surface nifti file (containing fsaverage 2*nvertices voxels; see help conn_surf_write)
-%     fileout  : output volume nifti file (in MNI space)
+% conn_surf_surf2vol(filename [, fileout, folderREF, interp])
+%     filename  : input surface nifti file (containing fsaverage 2*nvertices voxels; see help conn_surf_write)
+%     fileout   : output volume nifti file (in MNI space)
+%     folderREF : folder with reference surfaces (default conn/utils/surf)
+%     interp    : interpolation sample(s) along cortical surface perpendicular (0:white 1:pial; default .05:.10:.95 taking the average across 10 samples along the normal between the white and pial surfaces)
 %
 % e.g. conn_surf_curv2nii('curv.surf.nii')
 %      creates curv.vol.nii volume nifti file
 %
+
 
 if size(filein,1)>1, 
     fileout=char(cellfun(@conn_surf_surf2vol,cellstr(filein),'uni',0));
@@ -26,6 +29,7 @@ if nargin<2||isempty(fileout),
     end
 end        
 if nargin<3||isempty(FSfolder), FSfolder=fullfile(fileparts(which(mfilename)),'utils','surf'); end
+if nargin<4||isempty(interp), interp=.05:.10:.95; end % interpolation samples (0=white 1=pial)
     
 a1=spm_vol(filein);
 b1=spm_read_vols(a1);
@@ -49,13 +53,16 @@ end
 
 M=0;
 N=0;
-for alpha=.05:.10:.95
+for alpha=interp(:)'
     surfcoords=[alpha*surfparams{1}.vertices+(1-alpha)*surfparams{2}.vertices;alpha*surfparams{3}.vertices+(1-alpha)*surfparams{4}.vertices];
     recoords=round([surfcoords,ones(size(surfcoords,1),1)]*imat(1:3,:)');
     M=M+accumarray(recoords,b1(:),dim);
     N=N+accumarray(recoords,1,dim);
 end
 M=M./max(eps,N);
-a2=struct('mat',mat,'dim',dim,'fname',fileout,'pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')]);
+if numel(alpha)==1, dt=a1.dt;
+else dt=[spm_type('float32') spm_platform('bigend')];
+end
+a2=struct('mat',mat,'dim',dim,'fname',fileout,'pinfo',[1;0;0],'n',[1,1],'dt',dt);
 spm_write_vol(a2,M);
 fprintf('created file %s\n',fileout);

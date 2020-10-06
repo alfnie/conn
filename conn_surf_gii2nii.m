@@ -1,4 +1,4 @@
-function fileout=conn_surf_gii2nii(filein,filein2,fileout)
+ls /function fileout=conn_surf_gii2nii(filein,filein2,fileout)
 % conn_surf_gii2nii converts freesurfer gifti files to surface nifti file
 %
 % conn_surf_gii2nii(filename)

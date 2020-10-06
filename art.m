@@ -1725,8 +1725,8 @@ else
 %         end
 %     end
     switch(motionFileType)
-        case 2, for n=1:numel(M),M{n}=read_siemens_motion_parm_file(M{n}); end
-        otherwise, for n=1:numel(M),M{n}=load(M{n}); end
+        case 2, for n=1:numel(M), if ischar(M{n}), M{n}=read_siemens_motion_parm_file(M{n}); end; end
+        otherwise, for n=1:numel(M), if ischar(M{n}), M{n}=load(M{n}); end; end
     end
     num_sess=numel(M);
 end

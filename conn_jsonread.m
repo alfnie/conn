@@ -7,7 +7,8 @@ if ~isempty(regexp(filename,'\.nii(\.gz)?(\,\d+)?$'))
     filename=tfilename;
 end
 if nargin<2,
-    out=spm_jsonread(filename);
+    try, out=spm_jsonread(filename);
+    end
 else % note: faster but only for single-value numeric fields
     str=fileread(filename);
     if isnumericfield
@@ -26,8 +27,10 @@ else % note: faster but only for single-value numeric fields
         end
     end
     if isempty(out)
-        data=spm_jsonread(filename);
-        try, out=data.(fieldname); end
+        try, 
+            data=spm_jsonread(filename);
+            out=data.(fieldname);
+        end
     end
 end
 end

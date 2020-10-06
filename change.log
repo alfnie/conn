@@ -310,11 +310,11 @@ note: the symbol (*) in any of the lists above indicates changes that users need
 
 changes in progress or projected: 
       add simpler options to use alternative reference brain surfaces in 3d displays (e.g. for pediatric or non-human analyses)
+      add integration with CAT12 
       add interoperability with BCT measures
       add interoperability with Matlab NN/ML toolbox
       add voxel-level regressors to second-level analysis options
       add import graph-theory measures as second-level covariates
-      add across-experiments/projects second-level analyses
       add batch.mat second-level analysis file to second-level results folder
       add support for flexible ROIs
       add possibility to share/download neuromarker definitions
