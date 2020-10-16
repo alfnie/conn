@@ -1637,7 +1637,7 @@ else
 						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.30,.075,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
 						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Select functional data files','*.img; *.nii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton',boffset+[.36,.60,.26,.09],'','','','conn(''gui_setup'',4);');
-						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.36,.35,.26,.25],'','','',[],@conn_callbackdisplay_functionalclick);
+						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.40,.35,.22,.25],'','','',[],@conn_callbackdisplay_functionalclick);
                         conn_menu('nullstr',' ');
 						CONN_h.menus.m_setup_00{8}=conn_menu('image',boffset+[.43,.24,.16,.05],'voxel BOLD timeseries');
                         %set([CONN_h.menus.m_setup_00{4}],'visible','off'); conn_menumanager('onregion',[CONN_h.menus.m_setup_00{4}],1,boffset+[.35,.25,.34,.55]);
@@ -5346,8 +5346,8 @@ else
                             h=conn_menu('checkbox',boffset+[.45,.10,.02,.035],'study conditions','','When checked, BIDS tasks (in _events.tsv files) will be imported in CONN Setup.conditions for the selected subjects');set(h,'value',1);CONN_h.menus.m_setup_00{13}=h;
                             CONN_h.menus.m_setup_00{9}=conn_menu('pushbuttonblue',boffset+[.3,.18,.10,.04],'','Import','Imports selected BIDS information into CONN Setup','conn(''gui_setup_import'',9)');
                         end
-                        CONN_h.menus.m_setup_00{10}=conn_menu('popup',boffset+[.3,.14,.15,.04],'',{'import selected files','copy to local BIDS folder and import'},'<HTML>Controls behavior of ''Import'' button:<br/> - <i>import selected files</i> : (default) selected structural/functional files will be imported into your CONN project directly from their original locations/folders<br/> - <i>copy first to local BIDS folder</i> : selected structural/functional files will be first copied to your local conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified, uncompressed, or processed)</HTML>');
-                        CONN_h.menus.m_setup_00{2}=conn_menu('popup',boffset+[.3,.10,.15,.04],'',{'import to all subjects','import to selected subjects'},'<HTML>Select <i>import to all subjects</i> to match the number of subjects in your current CONN study to the number of selected BIDS dataset subjects<br/>Select <i>import to selected subjects</i> to manually define the target subjects in your current CONN study where the selected BIDS dataset subjects will be imported to</HTML>','conn(''gui_setup_import'',2);');
+                        CONN_h.menus.m_setup_00{10}=conn_menu('popup',boffset+[.3,.14,.185,.04],'',{'import selected files','copy to BIDS folder and import','copy to DERIVATIVES folder and import'},'<HTML>Controls behavior of ''Import'' button:<br/> - <i>import selected files</i> : (default) selected structural/functional files will be imported into your CONN project directly from their original locations/folders<br/> - <i>copy first to BIDS folder</i> : selected structural/functional files will be first copied to your local conn project conn_*/data/BIDS/dataset/sub-* folders and then imported into your CONN project <br/> - <i>copy first to DERIVATIVES folder</i> : selected structural/functional files will be first copied to [BIDSROOT]/derivatives/conn/sub-* folder and then imported into your CONN project <br/>(e.g. use any of these last two options when importing data from read-only folders if the files need to be further modified, uncompressed, or processed)</HTML>');
+                        CONN_h.menus.m_setup_00{2}=conn_menu('popup',boffset+[.3,.10,.185,.04],'',{'import to all subjects','import to selected subjects'},'<HTML>Select <i>import to all subjects</i> to match the number of subjects in your current CONN study to the number of selected BIDS dataset subjects<br/>Select <i>import to selected subjects</i> to manually define the target subjects in your current CONN study where the selected BIDS dataset subjects will be imported to</HTML>','conn(''gui_setup_import'',2);');
                         %'breakconditionsbysession',false,...
                         %h=conn_menu('checkbox',boffset+[.56,.18,.02,.04],'BIDS covariates','','When checked, BIDS covariates (in SPM.Sess.C) will be imported in CONN as a first-level covariate named "BIDS covariates" for the selected subjects');set(h,'value',1);CONN_h.menus.m_setup_00{13}=h;
                         %h=conn_menu('checkbox',boffset+[.56,.14,.02,.04],'realignment covariates','','When checked, rp_[functional].txt files, if available, will be imported in CONN as a first-level covariate named "realignment" for the selected subjects');set(h,'value',0);CONN_h.menus.m_setup_00{14}=h;
@@ -5384,7 +5384,22 @@ else
                                     else
                                         if CONN_h.menus.m_setup_import_isfmriprep, 
                                             if 0, space='#EMPTY'; 
-                                            else space=''; for n={'MNI152NLin2009cAsym','T1w'}, if any(ismember(dataset.dict.space,n{1})), space=n{1}; break; end; end; if isempty(space)&&~isempty(dataset.dict.space), space=dataset.dict.space{1}; end; 
+                                            elseif 0, space=''; for n={'MNI152NLin2009cAsym','T1w'}, if any(ismember(dataset.dict.space,n{1})), space=n{1}; break; end; end; if isempty(space)&&~isempty(dataset.dict.space), space=dataset.dict.space{1}; end; 
+                                            else
+                                                space='';
+                                                desc=''; for n={'preproc'}, if any(ismember(dataset.dict.desc,n{1})), desc=n{1}; break; end; end; if isempty(desc)&&~isempty(dataset.dict.desc), desc=dataset.dict.desc{1}; end
+                                                Nsubs=zeros(1,numel(dataset.dict.space));
+                                                for n=1:numel(dataset.dict.space)
+                                                    space=dataset.dict.space{n};
+                                                    dataset_anat=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'anat'},'format',{'nii','nii.gz'},'desc',desc,'space',space);
+                                                    dataset_func=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'func'},'format',{'nii','nii.gz'},'contents','bold','desc',desc,'space',space);
+                                                    Nsubs(n)=numel(intersect(dataset_anat.dict.sub,dataset_func.dict.sub));
+                                                end
+                                                Nvalid=find(Nsubs>0); % keeps only space entries with >0 subjects
+                                                if numel(Nvalid)>1&&any(strcmp(dataset.dict.space(Nvalid),'MNI152NLin2009cAsym')), Nvalid=Nvalid(strcmp(dataset.dict.space(Nvalid),'MNI152NLin2009cAsym')); end % prefers MNI152NLin2009cAsym space
+                                                if numel(Nvalid)>1, Nvalid=Nvalid(Nsubs==max(Nsubs)); end % alternatively, select space with maximum number of subjects
+                                                if numel(Nvalid)>1&&any(strcmp(dataset.dict.space(Nvalid),'T1w')), Nvalid=Nvalid(strcmp(dataset.dict.space(Nvalid),'T1w')); end % alternatively, T1w space
+                                                if numel(Nvalid)==1, space=dataset.dict.space{Nvalid}; end
                                             end
                                             desc=''; for n={'preproc'}, if any(ismember(dataset.dict.desc,n{1})), desc=n{1}; break; end; end; if isempty(desc)&&~isempty(dataset.dict.desc), desc=dataset.dict.desc{1}; end
                                             dataset_anat=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'anat'},'format',{'nii','nii.gz'},'desc',desc,'space',space);
@@ -5508,6 +5523,7 @@ else
                                 if bids_docond, txt{end+1}=sprintf('import study conditions'); end
                                 nset=0; 
                                 localcopy=isequal(get(CONN_h.menus.m_setup_00{10},'value'),2);
+                                copytoderiv=isequal(get(CONN_h.menus.m_setup_00{10},'value'),3);
                                 if ~isempty(txt)
                                     answ=conn_questdlg([txt,{'','Proceed with importing?'}],'','Ok','Cancel','Ok');
                                     if ~strcmp(answ,'Ok'), return; end
@@ -5525,9 +5541,9 @@ else
                                     CONN_x.Setup.l1covariates.names={' '};
                                     CONN_x.Setup.l1covariates.files={};
                                 end
-                                if bids_dofunc, [ok,err]=conn_importbids(info.dataset_select.func.data.file,'type','functional','subjects',nsubs,'subjects_id',bids_subj_id,'nset',nset,'localcopy',localcopy); ERR=[ERR err]; end
-                                if bids_doanat, [ok,err]=conn_importbids(info.dataset_select.anat.data.file,'type','structural','subjects',nsubs,'subjects_id',bids_subj_id,'localcopy',localcopy);  ERR=[ERR err]; end
-                                if bids_docond, [ok,err]=conn_importbids(info.dataset_select.func.data.file,'type','conditions','subjects',nsubs,'subjects_id',bids_subj_id);  ERR=[ERR err]; end
+                                if bids_dofunc, [ok,err]=conn_importbids(info.dataset_select.func.data.file,'type','functional','subjects',nsubs,'subjects_id',bids_subj_id,'nset',nset,'localcopy',localcopy,'copytoderiv',copytoderiv); ERR=[ERR err]; end
+                                if bids_doanat, [ok,err]=conn_importbids(info.dataset_select.anat.data.file,'type','structural','subjects',nsubs,'subjects_id',bids_subj_id,'localcopy',localcopy,'copytoderiv',copytoderiv);  ERR=[ERR err]; end
+                                if bids_docond, [ok,err]=conn_importbids(info.dataset_select.func.data.file,'type','conditions','subjects',nsubs,'subjects_id',bids_subj_id,'copytoderiv',copytoderiv);  ERR=[ERR err]; end
                                 if CONN_h.menus.m_setup_import_isfmriprep, 
                                     for nl1covariates=1:numel(CONN_x.Setup.l1covariates.names)-1, % fill empty values
                                         for nsub=nsubs(:)',

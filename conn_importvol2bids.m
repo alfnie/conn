@@ -1,4 +1,4 @@
-function [out,changed,nV]=conn_importvol2bids(filename,nsub,nses,fmod,ftype,docopy,dodisp,dosinglesubjectreduce,roinumber)
+function [out,changed,nV]=conn_importvol2bids(filename,nsub,nses,fmod,ftype,docopy,dodisp,dosinglesubjectreduce,roinumber,keepnames)
 % CONN_IMPORTVOL2BIDS imports functional/anatomical file into CONN/BIDS directory
 % conn_importvol2bids(filename,nsub,nses,fmod,[froot])
 %   fmod   : file modality (anat, func, dwi, fmap, roi)
@@ -91,49 +91,74 @@ end
 SESSASRUNS=true; % change to false for replicating older-versions structure
 changed=false;
 nV=[];
+if nargin<10||isempty(keepnames), keepnames=false; end
 if nargin<9||isempty(roinumber), roinumber=[]; end
 if nargin<8||isempty(dosinglesubjectreduce), dosinglesubjectreduce=false; end
 if nargin<7||isempty(dodisp), dodisp=false; end
 if nargin<6||isempty(docopy), docopy=true; end
 if nargin<5||isempty(ftype), ftype=[]; end
 nset=0; 
-if dosinglesubjectreduce, BIDSfolder=fileparts(fileparts(CONN_x.folders.bids));
-elseif ismember(fmod,{'func','anat','dwi','fmap','roi','rois'}), BIDSfolder=fullfile(CONN_x.folders.bids,'dataset');  % root directory
-elseif ~isempty(regexp(fmod,'^dataset\d*')), nset=regexp(fmod,'^dataset(\d*)','tokens','once'); nset=str2double([nset{:}]); if isnan(nset), nset=0; end; BIDSfolder=fullfile(CONN_x.folders.bids,regexp(fmod,'^dataset\d*','match','once')); fmod=regexprep(fmod,'^dataset\d*','');
-else BIDSfolder=fullfile(CONN_x.folders.bids,'derivatives'); % derivatives
-end
-if SESSASRUNS&&~isempty(nses), frun=sprintf('run-%02d_',nses(1)); 
-else frun=''; 
-end
-if isequal(fmod,'rois'), fmod='roi'; end % backcompat fix
-if isempty(ftype)
-    switch(fmod)
-        case 'func', ftype='bold'; if isempty(frun), newfilename='task-rest_bold.nii'; else newfilename=sprintf('%sbold.nii',frun); end
-        case 'anat', ftype='T1w'; newfilename=sprintf('%sT1w.nii',frun); 
-        case 'dwi',  ftype='dwi'; newfilename=sprintf('%sdwi.nii',frun); 
-        case 'fmap', ftype='vdm'; newfilename=sprintf('%svdm.nii',frun); 
-        case 'roi', ftype='roi'; 
-            if ~isempty(roinumber)&& numel(CONN_x.Setup.rois.names)>=roinumber, newfilename=sprintf('%sroi-%s.nii',frun,regexprep(CONN_x.Setup.rois.names{roinumber},'[^\w\d_]','')); 
-            else newfilename=sprintf('%sroi.nii',frun); 
-            end
-        otherwise,   ftype='unknown'; newfilename=sprintf('%sunknown.nii',frun);
+if keepnames
+    if ~iscell(filename), filename=cellstr(filename); end
+    idx=regexp(filename{1},'[\\\/]derivatives[\\\/]([^\\\/]+[\\\/])?sub-');
+    if ~isempty(idx), % derivatives/*/sub-   to derivatives/conn/sub-
+        newfilepath=fullfile(filename{1}(1:idx(end)-1),'derivatives','conn');
+        idx=regexp(filename{1},'[\\\/]derivatives[\\\/]([^\\\/]+[\\\/])?sub-','end');
+        newfilename=filename{1}(idx(end)-3:end);
+    else % sub- to derivatives/conn/sub-
+        idx=regexp(filename{1},'[\\\/]sub-[^\\\/]+[\\\/]');
+        if ~isempty(idx),
+            newfilepath=fullfile(filename{1}(1:idx(end)-1),'derivatives','conn');
+            newfilename=filename{1}(idx(end)+1:end);
+        else
+            [fpath,fname,fext]=fileparts(filename{1});
+            if isempty(fpath), fpath=pwd; end
+            newfilepath=fpath;
+            newfilename=[fname,fext];
+        end
     end
-else newfilename=sprintf('%s%s.nii',frun,ftype);
+    out=fullfile(newfilepath,newfilename);
+    [fpath,nill,nill]=fileparts(out);
+    [ok,nill]=mkdir(fpath);
+else
+    if dosinglesubjectreduce, BIDSfolder=fileparts(fileparts(CONN_x.folders.bids));
+    elseif ismember(fmod,{'func','anat','dwi','fmap','roi','rois'}), BIDSfolder=fullfile(CONN_x.folders.bids,'dataset');  % root directory
+    elseif ~isempty(regexp(fmod,'^dataset\d*')), nset=regexp(fmod,'^dataset(\d*)','tokens','once'); nset=str2double([nset{:}]); if isnan(nset), nset=0; end; BIDSfolder=fullfile(CONN_x.folders.bids,regexp(fmod,'^dataset\d*','match','once')); fmod=regexprep(fmod,'^dataset\d*','');
+    else BIDSfolder=fullfile(CONN_x.folders.bids,'derivatives'); % derivatives
+    end
+    if SESSASRUNS&&~isempty(nses), frun=sprintf('run-%02d_',nses(1));
+    else frun='';
+    end
+    if isequal(fmod,'rois'), fmod='roi'; end % backcompat fix
+    if isempty(ftype)
+        switch(fmod)
+            case 'func', ftype='bold'; if isempty(frun), newfilename='task-rest_bold.nii'; else newfilename=sprintf('%sbold.nii',frun); end
+            case 'anat', ftype='T1w'; newfilename=sprintf('%sT1w.nii',frun);
+            case 'dwi',  ftype='dwi'; newfilename=sprintf('%sdwi.nii',frun);
+            case 'fmap', ftype='vdm'; newfilename=sprintf('%svdm.nii',frun);
+            case 'roi', ftype='roi';
+                if ~isempty(roinumber)&& numel(CONN_x.Setup.rois.names)>=roinumber, newfilename=sprintf('%sroi-%s.nii',frun,regexprep(CONN_x.Setup.rois.names{roinumber},'[^\w\d_]',''));
+                else newfilename=sprintf('%sroi.nii',frun);
+                end
+            otherwise,   ftype='unknown'; newfilename=sprintf('%sunknown.nii',frun);
+        end
+    else newfilename=sprintf('%s%s.nii',frun,ftype);
+    end
+    if dosinglesubjectreduce, [nill,subjectid,nill]=fileparts(CONN_x.filename); fsub=subjectid;
+    elseif ~isempty(nsub),    fsub=sprintf('sub-%04d',nsub(1));
+    else fsub='';
+    end
+    if ~SESSASRUNS&&~isempty(nses), fses=sprintf('ses-%02d',nses(1)); else fses=''; end
+    newfilepath=BIDSfolder; [ok,nill]=mkdir(newfilepath);
+    if ~dosinglesubjectreduce
+        if ~isempty(fsub),      [ok,nill]=mkdir(newfilepath,fsub); newfilepath=fullfile(newfilepath,fsub); end
+        if ~isempty(fses),      [ok,nill]=mkdir(newfilepath,fses); newfilepath=fullfile(newfilepath,fses);  end
+    end
+    if ~isempty(fmod),      [ok,nill]=mkdir(newfilepath,fmod); newfilepath=fullfile(newfilepath,fmod); end
+    if ~isempty(fses),      newfilename=sprintf('%s_%s',fses,newfilename); end
+    if ~isempty(fsub),      newfilename=sprintf('%s_%s',fsub,newfilename); end
+    out=fullfile(newfilepath,newfilename);
 end
-if dosinglesubjectreduce, [nill,subjectid,nill]=fileparts(CONN_x.filename); fsub=subjectid;
-elseif ~isempty(nsub),    fsub=sprintf('sub-%04d',nsub(1)); 
-else fsub=''; 
-end
-if ~SESSASRUNS&&~isempty(nses), fses=sprintf('ses-%02d',nses(1)); else fses=''; end
-newfilepath=BIDSfolder; [ok,nill]=mkdir(newfilepath);
-if ~dosinglesubjectreduce
-    if ~isempty(fsub),      [ok,nill]=mkdir(newfilepath,fsub); newfilepath=fullfile(newfilepath,fsub); end
-    if ~isempty(fses),      [ok,nill]=mkdir(newfilepath,fses); newfilepath=fullfile(newfilepath,fses);  end
-end
-if ~isempty(fmod),      [ok,nill]=mkdir(newfilepath,fmod); newfilepath=fullfile(newfilepath,fmod); end
-if ~isempty(fses),      newfilename=sprintf('%s_%s',fses,newfilename); end
-if ~isempty(fsub),      newfilename=sprintf('%s_%s',fsub,newfilename); end
-out=fullfile(newfilepath,newfilename);
 
 if iscell(filename), filename=char(filename); end
 [nill,nill,fext]=fileparts(out);

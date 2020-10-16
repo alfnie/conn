@@ -73,11 +73,13 @@ else
                         V1=spm_vol([deblank(filename(1,:))]);
                         V2=spm_vol([deblank(filename(end,:))]);
                         V=[V1 V2];
+                        nfilename=nifti(cellstr(filename));
+                        nV=0; for n=1:numel(nfilename), tV=size(nfilename(n).dat,4); nV=nV+tV; end
                         ok=true;
                     end
                 end
             end
-            if ~ok, V=spm_vol(filename); end
+            if ~ok, V=spm_vol(filename); nV=numel(V); end
             %V=spm_vol(filename);
             if length(V)==1, icon=V;
             else icon=V([1,end]);

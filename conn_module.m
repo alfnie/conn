@@ -195,14 +195,15 @@ switch(lower(option))
             case {'masks','rois'}
                 data=conn('get','Setup.rois');
                 files={};
+                if strcmpi(varargin{1},'rois'), maxrois=inf; else maxrois=3; end
                 for nsub=1:numel(data.files),
-                    for nroi=1:min(3, numel(data.files{nsub})),
+                    for nroi=1:min(maxrois, numel(data.files{nsub})),
                         for nses=1:numel(data.files{nsub}{nroi}),
                             files{nroi}{nsub}{nses}=data.files{nsub}{nroi}{nses}{1};
                         end
                     end
                 end
-                for nroi=1:min(3, numel(data.names)-1),
+                for nroi=1:min(maxrois, numel(data.names)-1),
                     names{nroi}=data.names{nroi};
                 end
                 if numel(varargin)>1,

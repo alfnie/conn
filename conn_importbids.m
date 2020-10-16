@@ -3,6 +3,7 @@ global CONN_x;
 
 options=struct('type','functional',...
                'localcopy',false,...
+               'copytoderiv',false,...
                'nset',0,...
                'bidsname','',...
                'sessions',0,...
@@ -54,7 +55,9 @@ for isub=1:numel(nsubs),
                 end
                 for n2=1:numel(nsesstemp)
                     nses=nsesstemp(n2);
-                    if options.localcopy,
+                    if options.copytoderiv
+                        [nill,nill,nV]=conn_importvol2bids(filename{n2},nsub,nses,'func',[],[],[],[],[],true);
+                    elseif options.localcopy,
                         [nill,nill,nV]=conn_importvol2bids(filename{n2},nsub,nses,bidsname);
                         %if ~options.nset, CONN_x.Setup.nscans{nsub}{nses}=nV; end
                     else
@@ -106,7 +109,9 @@ for isub=1:numel(nsubs),
                         valid={[2,1],[3,4,1],[3,1],[5,6,7,8],9};
                         for nv=1:numel(valid), if all(v(valid{nv})), fnames=fnames(valid{nv}); break; end; end
                         if all(cellfun('length',fnames))&&~options.nset
-                            if options.localcopy,
+                            if options.copytoderiv
+                                [nill,nill,nV]=conn_importvol2bids(char(fnames),nsub,nses,'fmap','fmap',[],[],[],[],true);
+                            elseif options.localcopy,
                                 [nill,nill,nV]=conn_importvol2bids(char(fnames),nsub,nses,'fmap','fmap');
                             else
                                 nV=conn_set_functional(nsub,nses,'fmap',char(fnames));
@@ -124,7 +129,8 @@ for isub=1:numel(nsubs),
                 else
                     for n2=1:numel(nsesstemp)
                         nses=nsesstemp(n2);
-                        if options.localcopy, conn_importvol2bids(filename{n2},nsub,nses,'anat');
+                        if options.copytoderiv, conn_importvol2bids(filename{n2},nsub,nses,'anat',[],[],[],[],[],true);
+                        elseif options.localcopy, conn_importvol2bids(filename{n2},nsub,nses,'anat');
                         else CONN_x.Setup.structural{nsub}{nses}=conn_file(filename{n2});
                         end
                     end
@@ -136,7 +142,8 @@ for isub=1:numel(nsubs),
                 end
                 for n2=1:numel(nsesstemp)
                     nses=nsesstemp(n2);
-                    if options.localcopy, conn_importvol2bids(filename{1},nsub,[1,nses],'anat');
+                    if options.copytoderiv, conn_importvol2bids(filename{1},nsub,[1,nses],'anat',[],[],[],[],[],true);
+                    elseif options.localcopy, conn_importvol2bids(filename{1},nsub,[1,nses],'anat');
                     else CONN_x.Setup.structural{nsub}{nses}=conn_file(filename{1});
                     end
                     conn_disp('fprintf','structural %s imported to subject %d session %d\n',filename{1},nsub,nses);
@@ -148,12 +155,17 @@ for isub=1:numel(nsubs),
                 f=reshape({regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-GM_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-GM_probseg.nii.gz'),...
                     regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-WM_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-WM_probseg.nii.gz'),...
                     regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-CSF_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-CSF_probseg.nii.gz')},2,[]);
-                ef=reshape(conn_existfile(f),size(f));
+                ef=reshape(conn_existfile(f),size(f))&cellfun(@(x)~isequal(filename{n3},x),f);
                 for nmask=1:3,
                     if any(ef(:,nmask)), 
                         localcopy_reduce=false;
                         temp2=f{find(ef(:,nmask),1),nmask};  
-                        if options.localcopy,
+                        if options.copytoderiv,
+                            if CONN_x.Setup.structural_sessionspecific, conn_importvol2bids(temp2,nsub,nses,'roi',[],[],[],localcopy_reduce,nmask,true);
+                            elseif nses==1, conn_importvol2bids(temp2,nsub,[],'roi',[],[],[],localcopy_reduce,nmask,true);
+                            else CONN_x.Setup.rois.files{nsub}{nmask}{nses}=CONN_x.Setup.rois.files{nsub}{nmask}{1};
+                            end
+                        elseif options.localcopy,
                             if CONN_x.Setup.structural_sessionspecific, conn_importvol2bids(temp2,nsub,nses,'roi',[],[],[],localcopy_reduce,nmask);
                             elseif nses==1, conn_importvol2bids(temp2,nsub,[],'roi',[],[],[],localcopy_reduce,nmask);
                             else CONN_x.Setup.rois.files{nsub}{nmask}{nses}=CONN_x.Setup.rois.files{nsub}{nmask}{1};
@@ -171,9 +183,16 @@ for isub=1:numel(nsubs),
             else
                 for n2=1:numel(nsesstemp)
                     nses=nsesstemp(n2);
-                    fname=conn_prepend('',regexprep(filename{n2},'_bold\.nii(\.gz)?$','.nii'),'_events.tsv');
-                    if ~conn_existfile(fname), fname=conn_prepend('',regexprep(filename{n2},'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','$3.nii'),'_events.tsv'); end
-                    if ~conn_existfile(fname), fname=conn_prepend('',regexprep(filename{n2},'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','.nii'),'_events.tsv'); end
+                    tname=filename{n2};
+                    fname=conn_prepend('',regexprep(tname,'_bold\.nii(\.gz)?$','.nii'),'_events.tsv');
+                    if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','$3.nii'),'_events.tsv'); end
+                    if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','.nii'),'_events.tsv'); end
+                    if ~conn_existfile(fname)&&~isempty(regexp(filename{n2},'[\\\/]derivatives[\\\/]fmriprep([\\\/]sub-)')) % search condition info in raw-data directory (for fmriprep import)
+                        tname=regexprep(filename{n2},'[\\\/]derivatives[\\\/]fmriprep([\\\/]sub-)','$1'); 
+                        fname=conn_prepend('',regexprep(tname,'_bold\.nii(\.gz)?$','.nii'),'_events.tsv');
+                        if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','$3.nii'),'_events.tsv'); end
+                        if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','.nii'),'_events.tsv'); end
+                    end
                     if conn_existfile(fname), 
                         conn_importcondition({fname},'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
                         conn_disp('fprintf','conditions in %s imported\n',fname);
@@ -186,7 +205,8 @@ for isub=1:numel(nsubs),
                         conn_disp('fprintf','condition %s imported as %s\n',filename{n2},cname);
                     elseif ~isempty(regexp(filename{n2},'_task-([^_]+)_[^\\\/]*$'))
                         cname=regexp(fname,'(_ses-[^\._\\\/]*)?_task-([^_]+)_[^\\\/]*$','tokens','once')
-                        if numel(cname)==2, cname=[regexprep(cname{1},'^_ses-',''),'_',cname{2}];
+                        if numel(cname)==2&&~isempty(cname{1}), cname=[regexprep(cname{1},'^_ses-',''),'_',cname{2}];
+                        elseif numel(cname)==2&&isempty(cname{1}), cname=cname{2};
                         else cname=char(cname);
                         end
                         conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);

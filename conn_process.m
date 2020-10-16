@@ -191,8 +191,8 @@ if any(options==0),
         end
         CONN_x.Setup.functional{nsub}=CONN_x.Setup.functional{nsub}(1:min(numel(CONN_x.Setup.functional{nsub}),nsess)); 
         CONN_x.Setup.structural{nsub}=CONN_x.Setup.structural{nsub}(1:min(numel(CONN_x.Setup.structural{nsub}),nsess)); 
-        for nl1covariate=1:nl1covariates,CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}(1:min(numel(CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}),nsess));end
-        for nroi=1:nrois,CONN_x.Setup.rois.files{nsub}{nroi}=CONN_x.Setup.rois.files{nsub}{nroi}(1:min(numel(CONN_x.Setup.rois.files{nsub}{nroi}),nsess));end
+        try, for nl1covariate=1:nl1covariates,CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}(1:min(numel(CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}),nsess));end; end
+        try, for nroi=1:nrois,CONN_x.Setup.rois.files{nsub}{nroi}=CONN_x.Setup.rois.files{nsub}{nroi}(1:min(numel(CONN_x.Setup.rois.files{nsub}{nroi}),nsess));end; end
     end
     if CONN_x.Setup.spatialresolution==4
         for nsub=validsubjects,
@@ -1210,7 +1210,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
             clear Y X iX X1 X2 C Xnames;
             clear Youtnorm0 cachenorm0 Voutputfiles;
-            for nses=1:nsess, % loads all ROI COV COND data for this subject
+            for nses=1:nsess, % loads all ROI COV COND data for this subject 
                 filename=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
                 if isempty(dir(filename)), conn_disp(['Not ready to process step conn_process_6']); conn_waitbar('close',h); return; end
                 Y{nses}=conn_vol(filename);

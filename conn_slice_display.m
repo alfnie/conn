@@ -68,7 +68,7 @@ elseif ~isempty(data) % conn_slice_display(datafile [,structural_file])
         if ishandle(hmsg), delete(hmsg); end
         error('file not found %s',char(data)); 
     end
-    if conn_surf_dimscheck(V(1)), V=conn_surf_parent(V,'conn_slice_display',true); end % surface
+    if conn_surf_dimscheck(V(1)),  V=conn_surf_parent(V,'conn_slice_display',true); end % data is in surface space
     try
         [ok,nill,fsfiles]=conn_checkFSfiles(char(data),false);
         if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=spm_vol(fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
@@ -916,8 +916,8 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                     if state.viewoverlay, tactthr=max(-eps,state.actthr);
                     else tactthr=max(abs(state.Vrange))+1;
                     end
-                    if state.Vrange(1)==0,      tactthr_pos=tactthr; tactthr_neg=inf;
-                    elseif state.Vrange(2)==0,  tactthr_pos=inf; tactthr_neg=tactthr;
+                    if isfield(state,'Vrange')&&state.Vrange(1)==0,      tactthr_pos=tactthr; tactthr_neg=inf;
+                    elseif isfield(state,'Vrange')&&state.Vrange(2)==0,  tactthr_pos=inf; tactthr_neg=tactthr;
                     else                        tactthr_pos=tactthr; tactthr_neg=tactthr; 
                     end
                     if state.isvol, 
@@ -960,7 +960,7 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                         c2a=max(0,min(1,(s2-max(0,state.Vrange(1)))/max(eps,state.Vrange(2)-max(0,state.Vrange(1)))));
                         c2b=max(0,min(1,(-s2+min(0,state.Vrange(2)))/max(eps,min(0,state.Vrange(2))-state.Vrange(1))));
                         %c2=.1+.9*abs(s2)/maxs2;
-                        if state.blackistransparent, fb=f3.facevertexcdata.^4;
+                        if state.blackistransparent, fb=f3.facevertexcdata; %.^4;
                         else fb=ones(size(f3.facevertexcdata)); 
                         end
                         alphamix=1-state.transparency*fb;

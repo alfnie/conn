@@ -28,7 +28,8 @@ if nargin<2||isempty(fileout),
         fileout=fullfile(filepath,[filename,'.vol',fileext]);
     end
 end        
-if nargin<3||isempty(FSfolder), FSfolder=fullfile(fileparts(which(mfilename)),'utils','surf'); end
+isfsaverage=false;
+if nargin<3||isempty(FSfolder), FSfolder=fullfile(fileparts(which(mfilename)),'utils','surf'); isfsaverage=true; end
 if nargin<4||isempty(interp), interp=.05:.10:.95; end % interpolation samples (0=white 1=pial)
     
 a1=spm_vol(filein);
@@ -36,21 +37,44 @@ b1=spm_read_vols(a1);
 mat=[-2 0 0 92;0 2 0 -128;0 0 2 -74;0 0 0 1];
 imat=pinv(mat);
 dim=[91 109 91];
-if ~isdir(FSfolder) % entering alterenative mri/T1.nii file (for non-fsaverage surfaces)
-    vol=spm_vol(FSfolder);
-    a.vox2ras1=vol.mat;
-    a.volsize=vol.dim([2 1 3]);
-    a.volres = sqrt(sum(vol.mat(:,1:3).^2,1));
-    a.vox2ras0=conn_freesurfer_vox2ras_1to0(vol.mat);
-    a.tkrvox2ras=conn_freesurfer_vox2ras_tkreg(a.volsize,a.volres);
-    T=a.vox2ras0*pinv(a.tkrvox2ras); %*[xyz_data(:,:);ones(1,size(xyz_data,2)*size(xyz_data,3))];
-    imat=imat*T;
-    FSfolder=fullfile(fileparts(fileparts(FSfolder)),'surf');
+if ~isfsaverage
+    files2=cellfun(@(x)fullfile(fileparts(FSfolder),'mri',x),{'T1.nii','T1.mgh','T1.mgz','brain.nii','brain.mgh','brain.mgz'},'uni',0);
+    existfiles2=conn_existfile([files2]);
+    if any(existfiles2) % entering alternative mri/T1.nii file (for non-fsaverage surfaces)
+        out=conn_file(files2{find(existfiles2,1)});
+        vol=spm_vol(out{1});
+        a.vox2ras1=vol.mat;
+        a.volsize=vol.dim([2 1 3]);
+        a.volres = sqrt(sum(vol.mat(:,1:3).^2,1));
+        a.vox2ras0=conn_freesurfer_vox2ras_1to0(vol.mat);
+        a.tkrvox2ras=conn_freesurfer_vox2ras_tkreg(a.volsize,a.volres);
+        T=a.vox2ras0*pinv(a.tkrvox2ras); %*[xyz_data(:,:);ones(1,size(xyz_data,2)*size(xyz_data,3))];
+        %imat=imat*T;
+        % note: create volume in subject-specific space (same space as T1.nii file)
+        mat=vol.mat;
+        imat=pinv(mat)*T;
+        dim=vol.dim;
+        %FSfolder=fullfile(fileparts(fileparts(FSfolder)),'surf');
+    else isfsaverage=true;
+    end
 end
+    
 try, surfparams={conn_surf_readsurf(fullfile(FSfolder,'lh.white.surf')),conn_surf_readsurf(fullfile(FSfolder,'lh.pial.surf')),conn_surf_readsurf(fullfile(FSfolder,'rh.white.surf')),conn_surf_readsurf(fullfile(FSfolder,'rh.pial.surf'))};
 catch, surfparams={conn_surf_readsurf(fullfile(FSfolder,'lh.white')),conn_surf_readsurf(fullfile(FSfolder,'lh.pial')),conn_surf_readsurf(fullfile(FSfolder,'rh.white')),conn_surf_readsurf(fullfile(FSfolder,'rh.pial'))};
 end
 
+resolution=8;
+nvertices2=2+10*2^(2*resolution-2);
+matchdims=cellfun(@(a)size(a.vertices,1)==nvertices2,surfparams);
+if conn_surf_dimscheck(a1)&&~all(matchdims) % fsaverage input surface nifti file but non-fsaverage folderREF surfaces
+    if ~conn_existfile(fullfile(FSfolder,'lh.sphere.reg'))||~conn_existfile(fullfile(FSfolder,'rh.sphere.reg')), error('unable to find [lr]h.sphere.reg files to match fsaverage file to non-fsaverage surfaces'); end
+    xyz_ref1=conn_freesurfer_read_surf(fullfile(FSfolder,'lh.sphere.reg'));
+    xyz_ref2=conn_freesurfer_read_surf(fullfile(FSfolder,'rh.sphere.reg'));
+    [xyz_sphere1,sphere2ref1,ref2sphere1]=conn_surf_sphere(resolution,xyz_ref1);
+    [xyz_sphere2,sphere2ref2,ref2sphere2]=conn_surf_sphere(resolution,xyz_ref2);
+    b1=reshape(b1,[],2);
+    b1=[b1(sphere2ref1,1);b1(sphere2ref2,2)];
+end
 M=0;
 N=0;
 for alpha=interp(:)'

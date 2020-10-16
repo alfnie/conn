@@ -72,7 +72,7 @@ if isempty(FS_folder) % extracts from single surface file (assumes all files in 
                 data_ref=A*data_ref; 
                 mdata_ref=A*mdata_ref; 
             end
-            data_ref(mdata_ref<.5)=0;
+            data_ref=data_ref.*(mdata_ref>.10)./max(eps,mdata_ref);
         end
         data{i}=data_ref;
     end

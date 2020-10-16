@@ -10,7 +10,8 @@ end
 
 for n=1:numel(fnames),
     if ~isempty(regexp(fnames{n},'\.surf\.(nii|img)(,\d+)?$')),
-        fname=regexprep(fnames{n},'\.surf\.(nii|img)(,\d+)?$','.$1$2'); ok=conn_existfile(fname);
+        fname=regexprep(fnames{n},'\.surf\.(nii|img)(,\d+)?$','.vol.$1$2'); ok=conn_existfile(fname);
+        if ~ok, fname=regexprep(fnames{n},'\.surf\.(nii|img)(,\d+)?$','.$1$2'); ok=conn_existfile(fname); end
         if ~ok, [fname_path,fname_name,fname_ext]=fileparts(fname); fname_name=regexprep(fname_name,'^s+',''); fname=fullfile(fname_path,[fname_name,fname_ext]); ok=conn_existfile(fname); end
         %if ~ok, fname=conn_prepend(-1,fname); ok=conn_existfile(fname); end
         %if ~ok, fname=conn_prepend(-1,fname); ok=conn_existfile(fname); end

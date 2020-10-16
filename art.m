@@ -254,8 +254,8 @@ else
         'Regular | User Mask',...
         [1 2], 1);
     motionFileType = spm_input('Select type of motion params file.',1,'m',...
-        ' txt(SPM) | par(FSL) | txt(Siemens)', ...
-        [0 1 2], 0);
+        ' txt(SPM) | par(FSL) | txt(Siemens) | txt(HCP)', ...
+        [0 1 2 3], 0);
     
     P=cell(1,num_sess);
     M=cell(1,num_sess);
@@ -267,7 +267,7 @@ else
                 P{i} = spm_select(Inf,'image',['Select functional volumes for session'  num2str(i) ':']);
                 %P{i} = spm_select(Inf,'.*\.nii|.*\.img',['Select functional volumes for session'  num2str(i) ':']);
         end
-        if motionFileType == 0 %SPM format
+        if motionFileType == 0 || motionFileType == 3 %SPM format
             switch spm_ver
                 case {1,2}
                     mvmt_file = spm_get(1,'.txt',['Select movement params file for session' num2str(i) ':']);
