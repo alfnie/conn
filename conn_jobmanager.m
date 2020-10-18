@@ -294,7 +294,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
     else whichoption=[];
     end
     if ~nargin||~isempty(whichoption), 
-        if isempty(CONN_x)||~isfield(CONN_x,'filename'), 
+        if isempty(CONN_x)||~isfield(CONN_x,'filename')||isempty(CONN_x.filename), 
             ftemp=dir('*.qlog'); 
             if numel(ftemp)==1, CONN_x_filename=conn_fullfile(ftemp.name); 
             elseif ~isempty(regexp(pwd,'\.qlog$')), CONN_x_filename=pwd; 
@@ -1226,13 +1226,13 @@ if ~numel(files)
     handles.continue=[];%handles.continue=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.5,.025,.45,.05],'string','Continue (merge results now)','callback',@(varargin)conn_jobmanager_update('finish'));
     handles.cancel=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.400,.15,.075],'string','Background','callback','close(gcbf)','tooltipstring','<HTML>Close this jobmanager window and handle merging the results of this job later<br/> - processes will continue running in the background/cluster<br/> - visit Tools.Cluster/HPC.PendingJobs to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
     %set(handles.continue,'enable','off','visible','off');
-    handles.timer=timer('name','jobmanager','startdelay',.1,'period',2,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@(varargin)conn_jobmanager_update('refresh'));
+    handles.timer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@(varargin)conn_jobmanager_update('refresh'));
     set(handles.refresh,'value',1);
     set(handles.hfig,'closerequestfcn',@(varargin)conn_jobmanager_update('end'));
     set(handles.enable,'value',0); 
     conn_jobmanager_update('enable');
     handles.finished=false;
-    start(handles.timer);
+    try, start(handles.timer); end
     if nogui, 
         warning('off','MATLAB:hg:NoDisplayNoFigureSupportSeeReleaseNotes');
         fprintf('Waiting for grid/cluster jobs to finish...\n');
@@ -1267,7 +1267,7 @@ ok=1+handles.finished;
             case 'togglerefresh'
                 v=get(handles.refresh,'value');
                 if v
-                    if isempty(handles.timer), handles.timer=timer('name','jobmanager','startdelay',2,'period',2,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@(varargin)conn_jobmanager_update('refresh')); end
+                    if isempty(handles.timer), handles.timer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@(varargin)conn_jobmanager_update('refresh')); end
                     conn_jobmanager_update('refresh',true);
                     try, start(handles.timer); end
                 else
