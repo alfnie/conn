@@ -178,7 +178,7 @@ if mergeinfo
         CONN_x.Setup.spm{nsub}=other{copyfromproject}.CONN_x.Setup.spm{copyfromsubject};
         CONN_x.Setup.dicom{nsub}=other{copyfromproject}.CONN_x.Setup.dicom{copyfromsubject};
         CONN_x.Setup.rois.files{nsub}=other{copyfromproject}.CONN_x.Setup.rois.files{copyfromsubject};
-        CONN_x.Setup.conditions.values{nsub}=other{copyfromproject}.CONN_x.Setup.conditions.values{copyfromsubject};
+        try, CONN_x.Setup.conditions.values{nsub}=other{copyfromproject}.CONN_x.Setup.conditions.values{copyfromsubject}; end
         CONN_x.Setup.l1covariates.files{nsub}=other{copyfromproject}.CONN_x.Setup.l1covariates.files{copyfromsubject};
         CONN_x.Setup.l2covariates.values{nsub}=other{copyfromproject}.CONN_x.Setup.l2covariates.values{copyfromsubject};
         CONN_x.Setup.nscans{nsub}=other{copyfromproject}.CONN_x.Setup.nscans{copyfromsubject};
@@ -199,7 +199,7 @@ if mergeinfo
     CONN_x.Setup.spm={CONN_x.Setup.spm{tempidx1}};
     CONN_x.Setup.dicom={CONN_x.Setup.dicom{tempidx1}};
     CONN_x.Setup.rois.files={CONN_x.Setup.rois.files{tempidx1}};
-    CONN_x.Setup.conditions.values={CONN_x.Setup.conditions.values{tempidx1}};
+    try, CONN_x.Setup.conditions.values={CONN_x.Setup.conditions.values{tempidx1}}; end
     CONN_x.Setup.l1covariates.files={CONN_x.Setup.l1covariates.files{tempidx1}};
     CONN_x.Setup.l2covariates.values={CONN_x.Setup.l2covariates.values{tempidx1}};
     CONN_x.Setup.nscans={CONN_x.Setup.nscans{tempidx1}};

@@ -196,19 +196,24 @@ for isub=1:numel(nsubs),
                     if conn_existfile(fname), 
                         conn_importcondition({fname},'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
                         conn_disp('fprintf','conditions in %s imported\n',fname);
-                    elseif ~isempty(regexp(filename{n2},'_task-rest_[^\\\/]*$'))
-                        cname=char(regexp(fname,'(_ses-[^\._\\\/]*)?_task-rest_[^\\\/]*$','tokens','once'));
-                        if isempty(cname), cname='rest';
-                        else cname=[regexprep(cname,'^_ses-',''),'_','rest'];
-                        end
-                        conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
-                        conn_disp('fprintf','condition %s imported as %s\n',filename{n2},cname);
-                    elseif ~isempty(regexp(filename{n2},'_task-([^_]+)_[^\\\/]*$'))
-                        cname=regexp(fname,'(_ses-[^\._\\\/]*)?_task-([^_]+)_[^\\\/]*$','tokens','once');
+%                     elseif ~isempty(regexp(filename{n2},'_task-rest_[^\\\/]*$'))
+%                         cname=char(regexp(filename{n2},'(_ses-[^\._\\\/]*)?_task-rest_[^\\\/]*$','tokens','once'));
+%                         if isempty(cname), cname='rest';
+%                         else cname=[regexprep(cname,'^_ses-',''),'_','rest'];
+%                         end
+%                         conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
+%                         conn_disp('fprintf','condition %s imported as %s\n',filename{n2},cname);
+                    elseif ~isempty(regexp(filename{n2},'_task-([^_\\\/]+)_[^\\\/]*$'))
+                        cname=regexp(filename{n2},'(_ses-[^_\\\/]*)?_task-([^_\\\/]+)_[^\\\/]*$','tokens','once');
                         if numel(cname)==2&&~isempty(cname{1}), cname=[regexprep(cname{1},'^_ses-',''),'_',cname{2}];
                         elseif numel(cname)==2&&isempty(cname{1}), cname=cname{2};
                         else cname=char(cname);
                         end
+                        conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
+                        conn_disp('fprintf','warning: condition %s not found. Imported as %s\n',fname,cname);
+                        WRN{end+1}=sprintf('warning: condition %s not found. Imported as %s\n',fname,cname);
+                    elseif ~isempty(regexp(filename{n2},'_ses-([^_\\\/]+)_[^\\\/]*$'))
+                        cname=char(regexp(filename{n2},'_ses-([^_\\\/]+)_[^\\\/]*$','tokens','once'));
                         conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
                         conn_disp('fprintf','warning: condition %s not found. Imported as %s\n',fname,cname);
                         WRN{end+1}=sprintf('warning: condition %s not found. Imported as %s\n',fname,cname);

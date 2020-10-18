@@ -5533,14 +5533,14 @@ else
                                 ERR={};
                                 if allsubjects&&bids_docond
                                     CONN_x.Setup.conditions.names={' '};
-                                    CONN_x.Setup.conditions.values={};
-                                    CONN_x.Setup.conditions.model={};
-                                    CONN_x.Setup.conditions.param=[];
-                                    CONN_x.Setup.conditions.filter={};
+                                    CONN_x.Setup.conditions.values={{{{[],[]}}}}; 
+                                    CONN_x.Setup.conditions.model={[]};
+                                    CONN_x.Setup.conditions.param=0;
+                                    CONN_x.Setup.conditions.filter={[]};
                                 end
                                 if allsubjects&&CONN_h.menus.m_setup_import_isfmriprep
                                     CONN_x.Setup.l1covariates.names={' '};
-                                    CONN_x.Setup.l1covariates.files={};
+                                    CONN_x.Setup.l1covariates.files={{{{[],[],[]}}}};
                                 end
                                 if bids_dofunc, [ok,err]=conn_importbids(info.dataset_select.func.data.file,'type','functional','subjects',nsubs,'subjects_id',bids_subj_id,'nset',nset,'localcopy',localcopy,'copytoderiv',copytoderiv); ERR=[ERR err]; end
                                 if bids_doanat, [ok,err]=conn_importbids(info.dataset_select.anat.data.file,'type','structural','subjects',nsubs,'subjects_id',bids_subj_id,'localcopy',localcopy,'copytoderiv',copytoderiv);  ERR=[ERR err]; end
