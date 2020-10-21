@@ -210,16 +210,16 @@ for isub=1:numel(nsubs),
                         else cname=char(cname);
                         end
                         conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
-                        conn_disp('fprintf','warning: condition %s not found. Imported as %s\n',fname,cname);
-                        WRN{end+1}=sprintf('warning: condition %s not found. Imported as %s\n',fname,cname);
+                        conn_disp('fprintf','warning: condition file %s not found. Imported as %s\n',fname,cname);
+                        WRN{end+1}=sprintf('warning: condition file %s not found. Imported as %s\n',fname,cname);
                     elseif ~isempty(regexp(filename{n2},'_ses-([^_\\\/]+)_[^\\\/]*$'))
                         cname=char(regexp(filename{n2},'_ses-([^_\\\/]+)_[^\\\/]*$','tokens','once'));
                         conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
-                        conn_disp('fprintf','warning: condition %s not found. Imported as %s\n',fname,cname);
-                        WRN{end+1}=sprintf('warning: condition %s not found. Imported as %s\n',fname,cname);
+                        conn_disp('fprintf','warning: condition file %s not found. Imported as %s\n',fname,cname);
+                        WRN{end+1}=sprintf('warning: condition file %s not found. Imported as %s\n',fname,cname);
                     else
-                        conn_disp('fprintf','warning: condition %s not found. Skipped\n',fname);
-                        WRN{end+1}=sprintf('warning: condition %s not found. Skipped\n',fname);
+                        conn_disp('fprintf','warning: condition file %s not found. Skipped\n',fname);
+                        WRN{end+1}=sprintf('warning: condition file %s not found. Skipped\n',fname);
                     end
                 end
             end

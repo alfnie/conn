@@ -7447,10 +7447,14 @@ else
                             end
                             if ~isempty(CONN_h.menus.m_analyses.XR)&&~conn_existfile(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=[]; end
                         end
+                        if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface, issurface=true; else issurface=false; end
                         if isempty(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.Xr=[];
                         elseif CONN_x.Analyses(ianalysis).type==1
                             if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=load(char(CONN_h.menus.m_analyses.XR)); end
                             CONN_h.menus.m_analyses.Xr=CONN_h.menus.m_analyses.XR.Z(:,1:size(CONN_h.menus.m_analyses.XR.Z,1));
+                        elseif issurface
+                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=spm_vol(char(CONN_h.menus.m_analyses.XR)); end
+                            CONN_h.menus.m_analyses.Xr=spm_read_vols(CONN_h.menus.m_analyses.XR);
                         else
                             if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=spm_vol(char(CONN_h.menus.m_analyses.XR)); end
                             xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
@@ -7465,7 +7469,26 @@ else
                                     conn_menumanager('onregionremove',CONN_h.menus.m_analyses_00{15});
                                     set([CONN_h.menus.m_analyses_00{14}.h10 CONN_h.menus.m_analyses_00{15} CONN_h.menus.m_analyses_00{45}],'visible','off');
                                 end
-                            else
+                            elseif issurface % surface
+                                t1=CONN_h.menus.m_analyses.Xr;
+                                t2=abs(t1);
+                                if ~isequal(size(t1),conn_surf_dims(8).*[1 1 2])
+                                    conn_menu('update',CONN_h.menus.m_analyses_00{14},[]);
+                                    conn_menu('update',CONN_h.menus.m_analyses_00{29},[]);
+                                    set(CONN_h.menus.m_analyses_00{24},'visible','on');
+                                elseif ~CONN_h.menus.m_analyses_surfhires
+                                    t1=[t1(CONN_gui.refs.surf.default2reduced) t1(numel(t1)/2+CONN_gui.refs.surf.default2reduced)];
+                                    t2=[t2(CONN_gui.refs.surf.default2reduced) t2(numel(t2)/2+CONN_gui.refs.surf.default2reduced)];
+                                    conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_gui.refs.surf.defaultreduced,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
+                                    conn_menu('update',CONN_h.menus.m_analyses_00{29},[]);
+                                else
+                                    conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_gui.refs.surf.default,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
+                                    conn_menu('update',CONN_h.menus.m_analyses_00{29},[]);
+                                end
+%                                 conn_menu('update',CONN_h.menus.m_analyses_00{14},[]);
+%                                 conn_menu('update',CONN_h.menus.m_analyses_00{29},[]);
+%                                 set(CONN_h.menus.m_analyses_00{24},'visible','on');
+                            else % volume
                                 t1=permute(CONN_h.menus.m_analyses.Xr,[2,1,3]);
                                 t2=abs(t1);
                                 conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_h.menus.m_analyses.Xs,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
@@ -11650,7 +11673,8 @@ for n1=1:numel(CONN_x.Analyses), vars(:,end+1)={['First-level S2V/R2R ',CONN_x.A
 for n1=1:numel(CONN_x.vvAnalyses), vars(:,end+1)={['First-level V2V ',CONN_x.vvAnalyses(n1).name]; 4; {CONN_x.vvAnalyses(n1).name}; {}}; end
 for n1=1:numel(CONN_x.dynAnalyses), vars(:,end+1)={['First-level dyn-ICA ',CONN_x.dynAnalyses(n1).name]; 5; {CONN_x.dynAnalyses(n1).name}; {}}; end
 for n1=1:numel(CONN_x.Analyses), 
-    if ismember(CONN_x.Analyses(n1).type,[2,3]), vars(:,end+1)={[CONN_x.Analyses(n1).name,' (Seed-to-Voxel)']; 6; {'dosingle','seed-to-voxel',CONN_x.Analyses(n1).name}; CONN_x.Analyses(n1).sources}; end; 
+    if isfield(CONN_x.Analyses(n1),'sources')&&~isempty(CONN_x.Analyses(n1).sources),tsources=CONN_x.Analyses(n1).sources; else tsources={}; end
+    if ismember(CONN_x.Analyses(n1).type,[2,3]), vars(:,end+1)={[CONN_x.Analyses(n1).name,' (Seed-to-Voxel)']; 6; {'dosingle','seed-to-voxel',CONN_x.Analyses(n1).name}; tsources}; end; 
     if ismember(CONN_x.Analyses(n1).type,[1,3]), vars(:,end+1)={[CONN_x.Analyses(n1).name,' (ROI-to-ROI)']; 7; {CONN_x.Analyses(n1).name}; {}}; end;
 end
 for n1=1:numel(CONN_x.vvAnalyses), vars(:,end+1)={[CONN_x.vvAnalyses(n1).name]; 6; {'dosingle','voxel-to-voxel',CONN_x.vvAnalyses(n1).name}; conn_v2v('cleartext',CONN_x.vvAnalyses(n1).measures)}; end

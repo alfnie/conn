@@ -1134,8 +1134,8 @@ if strcmp(views,'full'),
             end
             if isfield(DATA,'selectcluster'), selectcluster=DATA.selectcluster;else, selectcluster=get(DATA.handles(8),'value'); end
             %if isempty(selectcluster), selectcluster=length(clusters)+1; end
-            if selectcluster<=length(clusters), select=clusters{selectcluster}; clusternames=clusternames{selectcluster}.txt; titleclusternames='Voxels in selected cluster:';
-            elseif (isempty(selectcluster)||selectcluster==length(clusters)+1)&&~isempty(clusternames), select=[]; clusternames=clusternames{length(clusters)+1}.txt; titleclusternames='All suprathreshold voxels:';
+            if selectcluster<=length(clusters), select=clusters{selectcluster}; clusternames=clusternames{selectcluster}.txt; titleclusternames=sprintf('Selected cluster %d/%d',selectcluster,length(clusters));
+            elseif (isempty(selectcluster)||selectcluster==length(clusters)+1)&&~isempty(clusternames), select=[]; clusternames=clusternames{length(clusters)+1}.txt; titleclusternames=''; %'All suprathreshold voxels:';
             else, select=[]; clusternames=[]; titleclusternames=''; end
         end
         %M={[-1,0,0;0,0,-1;0,-1,0],[0,-1,0;0,0,-1;-1,0,0],[-1,0,0;0,1,0;0,0,1]};
@@ -1172,7 +1172,8 @@ if strcmp(views,'full'),
         end
         %backmask=find(all(temp==1,3));for n=1:3,temp(backmask+(n-1)*size(temp,1)*size(temp,2))=backgroundcolor(n); end
         hi=image(1:pres:size(tplot,2),1:pres:size(tplot,1),temp,'parent',h);axis(h,'equal','off');
-        set(hi,'buttondownfcn',@conn_vproject_imcallback);
+        hold(h,'on'); hf=text(.95*size(tplot,2),.95*size(tplot,1),titleclusternames,'color','k','horizontalalignment','right','fontsize',4+CONN_gui.font_offset,'parent',h); hold(h,'off');
+        set([hi,hf],'buttondownfcn',@conn_vproject_imcallback);
         %image(round(convn(convn(tplot(round(1:.5:end),round(1:.5:end),:),conn_hanning(3)/2,'same'),conn_hanning(3)'/2,'same')));axis equal; axis off;
         %image(tplot);axis equal; axis off;
         data1plot=DATA.stdprojections{4};
