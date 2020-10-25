@@ -192,7 +192,7 @@ Nx=rank(X);
 Nc0=rank(x);
 Ns=rank(c2);
 dof=size(Y,1)-Nx;
-[nill,nill,nill,statsdof,statsname]=conn_glm(X,r(:,:,1),c1);
+[nill,nill,nill,statsdof,statsname]=conn_glm(X,r(:,:,find(~any(any(isnan(r),1),2),1)),c1);
 switch(statsname)
     case 'T'
         Xthr(thridx)=spm_invTcdf(max(0,min(1,1-Pthr(thridx))),statsdof);

@@ -1762,7 +1762,7 @@ if isfield(batch,'Results'),
                 if isfield(batch.Results,'display'), CONN_x.gui.display=batch.Results.display; end
                 CONN_x.gui=1;
                 CONN_x.Results.foldername=[];
-                conn save;
+                %conn save;
             end
             
             if isvv
@@ -1797,7 +1797,7 @@ if isfield(batch,'Results'),
                         conn_process('results_voxel','dosingle','voxel-to-voxel');
                         CONN_x.gui=1;
                         CONN_x.Results.foldername=[];
-                        conn save;
+                        %conn save;
                     end
                 end
             else
@@ -1834,7 +1834,7 @@ if isfield(batch,'Results'),
                         conn_process('results_voxel','dosingle','seed-to-voxel');
                         CONN_x.gui=1;
                         CONN_x.Results.foldername=[];
-                        conn save;
+                        %conn save;
                     end
                 end
             end

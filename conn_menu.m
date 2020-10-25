@@ -1192,7 +1192,7 @@ try
     if xyz_scale==.25, conn_disp('warning: Volume too big. Displaying only a portion of the original volume'); end
     xyz=xyz/xyz_scale; % scale/center to fit
     xyz_center=mean(xyz,2);
-    xyz_center=xyz_center(1:3)-(v1dim+1)/2;
+    xyz_center=xyz_center(1:3)-(v1dim+1)/2; % center-ref wrt center-vol
     %xyz(1:3,:)=conn_bsxfun(@minus,xyz(1:3,:),xyz_center);
     x=double(spm_sample_vol(v,xyz(1,:)-xyz_center(1),xyz(2,:)-xyz_center(2),xyz(3,:)-xyz_center(3),1));
 catch

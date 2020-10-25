@@ -19,6 +19,7 @@
   
   3) conn_batch(batchfilename)
      where batchfilename is a .mat file containing a batch structure
+     or a .json file containing a batch structure
      or a .m file containing a Matlab script
      e.g.
         conn_batch('mybatchfile.mat');
@@ -79,23 +80,23 @@
                         see secondarydatasets below) 
      structurals     : structurals{nsub} char array of structural volume files 
                        OR structurals{nsub}{nses} char array of anatomical session-specific volume files 
-     secondarydatasets  : (for Setup.rois.dataset>0) structure array identifying one or several additional functional 
+     secondarydatasets  : (for Setup.rois.dataset>0) cell array identifying one or several additional functional 
                         datasets (e.g. vdm files for susceptibility distorition, alternative functional files for
                         ROI-level timeseries extraction, etc.) (secondary dataset-1 and above); default secondarydatasets
                         equal to struct('functionals_type',2)
         functionals_label      : (optional) label of secondary functional dataset
-        functionals_explicit   : (only for functionals_type==4 only) functionals_explicit{nsub}{nses} char array of volume files
+        functionals_type       : Files in secondary functional dataset (1-4) [2]: 
+                                  1: same files as Primary dataset
+                                  2: same files as Primary dataset field after removing leading 's' from filename
+                                  3: other (same as Primary dataset field but using alternative filename-change rule; 
+                                        see functionals_rule above and help conn_rulebasedfilename); 
+                                  4: other (explicitly specify the functional volume files; see functionals_explicit below)
         functionals_rule       : (only for functionals_type==3 only) regexprep(filename,functionals_rule{2},functionals_rule{3}) converts 
                                 filenames in 'Setup.functionals' field to filenames that will be used when extracting BOLD 
                                 signal ROI timeseries (if functionals_rule{1}==2 filename is interpreted as a full path; if 
                                 functionals_rule{1}==1 filename is interpreted as only the file *name* -no file path, no 
                                 file extension-)    
-        functionals_type       : Location of secondary functional dataset: 
-                                  1: same files as Primary dataset
-                                  2: same files as Primary dataset field after removing leading 's' from filename
-                                  3: other (same as Primary dataset field but using alternative filename-change rule; 
-                                        see functionals_rule above and help conn_rulebasedfilename); 
-                                  4: other (explicitly specify the functional volume files; see functionals_explicit above) [2] 
+        functionals_explicit   : (only for functionals_type==4 only) functionals_explicit{nsub}{nses} char array of volume files
      add             : 1/0; use 0 (default) to define the full set of subjects in your experiment; use 1 to define an 
                         additional set of subjects (to be added to any already-existing subjects in your project) [0]
                        When using Setup.add=1, the following fields are expected to contain the information for the new
@@ -162,11 +163,14 @@
                             'lin',G : to compute regressor coefficients in linear model X=G*B fitting all selected conditions
                                  where G is a [conditions x regressors] design matrix (note: for subject-specific values define
                                  G as a char array using Matlab notation and enter second-level covariate names as values). When
-                                 G contains multiple columns
+                                 G contains multiple columns the first column defines the effect of interest (the rest are
+                                 estimated but simply disregarded; not taken into second-level analyses)
                             @fun    : (single argument function) to compute an arbitrary function fun(X) of condition 
-                                values X for each subject
+                                values X (conditions x datapoints matrix) for each subject
                             @fun    : (two or three arguments function for subject-specific functions) to compute an 
-                                arbitrary function fun(X,C,Cnames) of condition values X and second-level covariate values C
+                                arbitrary function fun(X,c,cnames) as a function of not only the condition values X but also
+                                of second-level covariate values C (1 x covariates vector) for all second-level covariates 
+                                in your project (covariate names will be listed as the third argument of fun for reference)
        importfile    : (optional) Alternatively, importfile is a char or cell array pointing to a '*.txt','*.csv', or 
                         BIDS- '*.tsv' file containing conditions names/onsets/durations information (see help 
                         conn_importcondition)
@@ -184,18 +188,18 @@
                         project) [0]
    
      subjects
-       effect_names  : subjects.effect_names{neffect} char array of second-level covariate name
        effects       : subjects.effects{neffect} vector of size [nsubjects,1] defining second-level effects
-       descrip       : (optional) subjects.descrip{neffect} char array of effect description (long name; for display 
-                        purposes only)
+       effect_names  : subjects.effect_names{neffect} char array of second-level covariate name
+       effect_descrip: (optional) subjects.effect_descrip{neffect} char array of effect description (long name; for  
+                        display purposes only)
        add           : 1/0; use 0 (default) to define the full set of covariates to be used in your analyses; use 1 to 
                         define an additional set of covariates (to be added to any already-existing covariates in your 
                         project) [0]
    
      subjects
-       group_names   : subjects.group_names{ngroup} char array of second-level group name
        groups        : subjects.group vector of size [nsubjects,1] (with values from 1 to ngroup) defining subject groups
-       descrip       : (optional) subjects.descrip{neffect} char array of group description (long name; for display 
+       group_names   : subjects.group_names{ngroup} char array of second-level group name
+       group_descrip : (optional) subjects.group_descrip{neffect} char array of group description (long name; for display 
                         purposes only)
        add           : 1/0; use 0 (default) to define the full set of covariates to be used in your analyses; use 1 to 
                         define an additional set of covariates (to be added to any already-existing covariates in your 
@@ -275,7 +279,8 @@
                          'functional_center'                     : centers functional data to origin (0,0,0) coordinates
                          'functional_coregister_affine'          : functional affine coregistration to structural volumes
                          'functional_coregister_nonlinear'       : functional non-linear coregistration to structural volumes
-                         'functional_label'                      : labels current functional files as part of list of Secondary Datasets
+                         'functional_label'                      : labels current functional files (to list of Secondary Datasets)
+                         'functional_load'                       : assigns current functional files (from list of Secondary Datasets)
                          'functional_manualorient'               : applies user-defined affine transformation to functional data
                          'functional_manualspatialdef'           : applies user-defined spatial deformation to functional data
                          'functional_motionmask'                 : creates functional motion masks (mean BOLD signal spatial 
@@ -357,7 +362,12 @@
        diffusionsteps  : (surface_smooth) number of diffusion steps
        fwhm            : (functional_smooth) Smoothing factor (mm) [8]
        interp          : (normalization) target voxel interpolation method (0:nearest neighbor; 1:trilinear; 2 or higher:n-order spline) [4]
-       label           : (functional_label) label of secondary dataset [datestr(now)]
+       label           : (functional_label) label of secondary dataset (note: the following functional step names do not require an 
+                            explicit label field: 'functional_label_as_original', 'functional_label_as_subjectspace', 
+                            'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed')
+       load_label      : (functional_load) label of secondary dataset (note: the following functional step names do not require an 
+                            explicit continue field: 'functional_load_from_original', 'functional_load_from_subjectspace', 
+                            'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed')
        reg_names       : (functional_regression) list of first-level covariates to use as model regressors / design matrix (valid entries are 
                             first-level covariate names or ROI names)
        reg_dimensions  : (functional_regression) list of maximum number of dimensions (one vlaue for each model regressor in reg_names)
@@ -384,8 +394,8 @@
                           [spm/template/T1.nii]
        template_functional: (functional_normalize SPM8 only) functional template file for normalization 
                           [spm/template/EPI.nii]
-       tpm_template    : (structural_segment, structural_segment&normalize in SPM8, and any segment/normalize option 
-                          in SPM12) tissue probability map [spm/tpm/TPM.nii]
+       tpm_template    : (any segment/normalize option in SPM12) tissue probability map [spm/tpm/TPM.nii]
+                          alternatively, location of subject-specific TPM files (secondary functional dataset number or name ['tpm'])
        tpm_ngaus       : (structural_segment, structural_segment&normalize in SPM8&SPM12) number of gaussians for each 
                           tissue probability map
        vdm_et1         : (functional_vdm_create) ET1 (Echo Time first echo in fieldmap sequence) (default [] : read from .json file / BIDS)
@@ -396,7 +406,7 @@
                             magnitude1+magnitude2+phasediff); 2: real1+imag1+real2+imag2; 3: fieldmapHz)
        vdm_fmap        : (functional_vdm_create only) location of fieldmap sequence files (secondary functional dataset number or label 
                             containing fieldmap sequence files) ['fmap']
-       voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [2]
+       voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [1]
        voxelsize_func  : (functional normalization) target voxel size for resliced volumes (mm) [2]
        sets            : defines functional dataset to preprocess (0 for Primary Dataset; [1-N] or labels for Secondary Datasets) [0]
    
@@ -419,6 +429,8 @@
        names         : confounds.names{nconfound} char array of confound name (confound names can be: 'Grey Matter',
                         'White Matter','CSF',any ROI name, any covariate name, or 'Effect of *' where * represents 
                         any condition name])
+                        note: use confounds.names={} to specify CONN's default set of confounds, or confounds.names={''}
+                        to indicate no confounds at all
        dimensions    : confounds.dimensions{nconfound} number of confound dimensions [defaults to using all dimensions 
                         available for each confound variable]
        deriv         : confounds.deriv{nconfound} include temporal derivatives up to n-th order of each effect (0 for 
@@ -512,8 +524,6 @@
   BATCH.Results PERFORMS SECOND-LEVEL ANALYSES (ROI-to-ROI and Seed-to-Voxel analyses) %!
    Results             
   
-     done            : 1/0: 0 defines fields only; 1 runs processing steps [0]
-     overwrite       : (for done=1) 1/0: overwrites target files if they exist [1]
      name            : analysis name (identifying each set of first-level independent analysis)
                         (alternatively sequential index identifying each set of first-level independent analyses [1])
      display         : 1/0 display results [1]
@@ -540,8 +550,6 @@
   BATCH.vvResults PERFORMS SECOND-LEVEL ANALYSES (Voxel-to-Voxel analyses) %!
    vvResults             
   
-     done            : 1/0: 0 defines fields only; 1 performs processing steps [0]
-     overwrite       : (for done=1) 1/0: overwrites target files if they exist [1]
      name            : analysis name (identifying each set of independent analysis)
                         (alternatively sequential index identifying each set of independent analyses [1])
      foldername      : folder to store the results

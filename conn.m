@@ -848,10 +848,16 @@ else
 				try 
                     if ~pobj.isextended||conn_existfile(localfilename), 
                         errstr=localfilename; 
-                        load(localfilename,'CONN_x','-mat'); 
+                        vars=load(localfilename,'CONN_x','-mat'); 
+                        CONN_x=vars.CONN_x;
+                        clear vars;
                         [nill,nill,fext]=fileparts(localfilename);
                         if isempty(fext), localfilename=conn_prepend('',localfilename,'.mat'); end
-                    else errstr=basefilename; load(basefilename,'CONN_x','-mat'); 
+                    else
+                        errstr=basefilename; 
+                        vars=load(basefilename,'CONN_x','-mat'); 
+                        CONN_x=vars.CONN_x;
+                        clear vars;
                     end
                     folderchanged{1}=fileparts(CONN_x.filename);
                     folderchanged{2}=fileparts(errstr);
@@ -2022,7 +2028,8 @@ else
                                                                 end
                                                                 txyz=files(1).mat*[tx(:) ty(:) zslice+zeros(numel(tx),1) ones(numel(tx),1)]';
                                                             end
-                                                            dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(nvol).mat)*txyz),dim(1:2))'));
+                                                            dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(1).mat)*txyz),dim(1:2))')); % resamples at same volume coordinates for all timepoints
+                                                            %dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(nvol).mat)*txyz),dim(1:2))'));
                                                             displabel{end+1}=sprintf('Subject %d session %d volume %d dataset %d',nsub,nses,nvol,nset);
                                                         end
                                                     end
@@ -3987,7 +3994,8 @@ else
                                                                 end
                                                                 txyz=files(1).mat*[tx(:) ty(:) zslice+zeros(numel(tx),1) ones(numel(tx),1)]';
                                                             end
-                                                            dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(nvol).mat)*txyz),dim(1:2))'));
+                                                            dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(1).mat)*txyz),dim(1:2))')); % resamples at same volume coordinates for all timepoints
+                                                            %dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(nvol).mat)*txyz),dim(1:2))'));
                                                             displabel{end+1}=sprintf('Subject %d session %d volume %d dataset %d',nsub,nses,nvol,nset);
                                                         end
                                                         tdata=CONN_x.Setup.l1covariates.files{nsub}{nl1covariates(1)}{nses}{3};

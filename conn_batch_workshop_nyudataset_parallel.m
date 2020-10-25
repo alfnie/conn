@@ -138,8 +138,8 @@ TR=2; % Repetition time = 2 seconds
 %% Prepares batch structure
 clear batch;
 batch.filename=fullfile(cwd,'conn_NYU.mat');            % New conn_*.mat experiment name
-batch.parallel.N=1;                                     % One single process for all subjects
-%batch.parallel.N=NSUBJECTS;                             % One process per subject
+batch.parallel.N=NSUBJECTS;                             % One process per subject
+%batch.parallel.N=1;                                     % One single process for all subjects
 %batch.parallel.profile='Slurm';                         % Grid Engine profile (change to your cluster settings and uncomment this line to use a non-default profile)
 
 %% SETUP & PREPROCESSING step (using default values for most parameters, see help conn_batch to define non-default values)

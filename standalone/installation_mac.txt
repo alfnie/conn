@@ -7,7 +7,8 @@ To install CONN standalone version (mac installation instructions):
      Unzip the downloaded .zip file
 
   2) Download Matlab Compiler Runtime (MCR, freely available) from http://www.mathworks.com/products/compiler/mcr/index.html, select and download the 
-        Mac 64-bit version of MCR R2018b (9.5) (e.g. download .zip file to folder /downloads/MCR/ )
+        Mac 64-bit version of MCR that matches your version of CONN (e.g. CONN18b expects MCR R2018b (9.5), CONN19b expects MCR R2019b (9.7), etc.)
+        (e.g. download .zip file to folder /downloads/MCR/ )
      Unzip the downloaded .zip file and run the MCR installer
 
   3) Click on the conn.app icon to start CONN
