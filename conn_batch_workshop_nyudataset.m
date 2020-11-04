@@ -141,8 +141,8 @@ for n=1:numel(data),
     STRUCTURAL_FILE=[STRUCTURAL_FILE;tSTRUCTURAL_FILE(:)];
 end
 if ~NSUBJECTS, NSUBJECTS=length(STRUCTURAL_FILE); end
-if rem(length(FUNCTIONAL_FILE),NSUBJECTS),error('mismatch number of functional files %n', length(FUNCTIONAL_FILE));end
-if rem(length(STRUCTURAL_FILE),NSUBJECTS),error('mismatch number of anatomical files %n', length(FUNCTIONAL_FILE));end
+if rem(length(FUNCTIONAL_FILE),NSUBJECTS),error('mismatch number of functional files %d', length(FUNCTIONAL_FILE));end
+if rem(length(STRUCTURAL_FILE),NSUBJECTS),error('mismatch number of anatomical files %d', length(FUNCTIONAL_FILE));end
 nsessions=length(FUNCTIONAL_FILE)/NSUBJECTS;
 FUNCTIONAL_FILE=reshape(FUNCTIONAL_FILE,[NSUBJECTS,nsessions]);
 STRUCTURAL_FILE={STRUCTURAL_FILE{1:NSUBJECTS}};

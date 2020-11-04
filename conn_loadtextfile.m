@@ -17,7 +17,12 @@ elseif ischar(tfilename)&&any(tfilename==',')
     v=tfields{2};
 else v='';
 end
-try, tdata=spm_load(tfilename,v);
+try, 
+    if ischar(tfilename)&&~isempty(tfilename)&&~isempty(regexp(tfilename,'\.mat$')) % bugfix older spm
+        tdata=load(tfilename,'-mat');
+    else
+        tdata=spm_load(tfilename,v);
+    end
 catch,
     tdata=regexp(fileread(tfilename),'[\r\n]+','split');
     tdata=tdata(cellfun('length',tdata)>0);

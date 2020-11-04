@@ -779,11 +779,6 @@ if isfield(batch,'Setup'),
             else tsecondarydataset=batch.Setup.secondarydatasets(nalt);
             end
             ialt=nalt;
-            if isfield(tsecondarydataset,'functionals_type')
-                CONN_x.Setup.secondarydataset(ialt).functionals_type=tsecondarydataset.functionals_type;
-            elseif isfield(tsecondarydataset,'roiextract')
-                CONN_x.Setup.secondarydataset(ialt).functionals_type=tsecondarydataset.roiextract;
-            end
             if isfield(tsecondarydataset,'functionals_rule')
                 CONN_x.Setup.secondarydataset(ialt).functionals_rule=tsecondarydataset.functionals_rule;
             elseif isfield(tsecondarydataset,'roiextract_rule')
@@ -796,24 +791,33 @@ if isfield(batch,'Setup'),
                 if isfield(tsecondarydataset,'functionals_explicit'), temp=tsecondarydataset.functionals_explicit;
                 else temp=tsecondarydataset.roiextract_functionals;
                 end
-                if ~iscell(temp), temp={temp}; end
-                for isub=1:numel(SUBJECTS),
-                    nsub=SUBJECTS(isub);
-                    %CONN_x.Setup.nsessions(nsub)=length(batch.Setup.functionals_explicit{nsub});
-                    if ~iscell(temp{isub}), temp{isub}={temp}; end
-                    for nses=1:CONN_x.Setup.nsessions(nsub),
-                        if localcopy, 
-                            switch(char(CONN_x.Setup.secondarydataset(ialt).label))
-                                case 'fmap', args={'fmap','fmap'}; % copies dataset 'fmap' as .../fmap/*fmap.nii file
-                                case 'vdm',  args={'fmap','vdm'};  % copies dataset 'vdm' as .../fmap/*vdm.nii file
-                                otherwise, args={CONN_x.Setup.secondarydataset(ialt).label,[]}; % copies other datasets as ../dataset<label>/*unknown.nii file
+                if ~isempty(temp)
+                    if ~iscell(temp), temp={temp}; end
+                    for isub=1:numel(SUBJECTS),
+                        nsub=SUBJECTS(isub);
+                        %CONN_x.Setup.nsessions(nsub)=length(batch.Setup.functionals_explicit{nsub});
+                        if ~isempty(temp{isub})
+                            if ~iscell(temp{isub}), temp{isub}={temp}; end
+                            for nses=1:CONN_x.Setup.nsessions(nsub),
+                                if localcopy,
+                                    switch(char(CONN_x.Setup.secondarydataset(ialt).label))
+                                        case 'fmap', args={'fmap','fmap'}; % copies dataset 'fmap' as .../fmap/*fmap.nii file
+                                        case 'vdm',  args={'fmap','vdm'};  % copies dataset 'vdm' as .../fmap/*vdm.nii file
+                                        otherwise, args={CONN_x.Setup.secondarydataset(ialt).label,[]}; % copies other datasets as ../dataset<label>/*unknown.nii file
+                                    end
+                                    [nill,nill,nV]=conn_importvol2bids(temp{isub}{nses},nsub,nses,args{:},[],[],localcopy_reduce);
+                                else conn_set_functional(nsub,nses,ialt,temp{isub}{nses});
+                                end
+                                %[CONN_x.Setup.secondarydataset(ialt).functionals_explicit{nsub}{nses},nV]=conn_file(temp{isub}{nses});
                             end
-                            [nill,nill,nV]=conn_importvol2bids(temp{isub}{nses},nsub,nses,args{:},[],[],localcopy_reduce);
-                        else conn_set_functional(nsub,nses,ialt,temp{isub}{nses});
                         end
-                        %[CONN_x.Setup.secondarydataset(ialt).functionals_explicit{nsub}{nses},nV]=conn_file(temp{isub}{nses});
                     end
                 end
+            end
+            if isfield(tsecondarydataset,'functionals_type')
+                CONN_x.Setup.secondarydataset(ialt).functionals_type=tsecondarydataset.functionals_type;
+            elseif isfield(tsecondarydataset,'roiextract')
+                CONN_x.Setup.secondarydataset(ialt).functionals_type=tsecondarydataset.roiextract;
             end
         end
     end

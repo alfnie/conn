@@ -310,6 +310,7 @@ if any(options==1.5),
     if length(CONN_x.Setup.conditions.model)<nconditions, CONN_x.Setup.conditions.model=[CONN_x.Setup.conditions.model, cell(1,nconditions-length(CONN_x.Setup.conditions.model))]; end
     if length(CONN_x.Setup.conditions.param)<nconditions, CONN_x.Setup.conditions.param=[CONN_x.Setup.conditions.param, zeros(1,nconditions-length(CONN_x.Setup.conditions.param))]; end
     if length(CONN_x.Setup.conditions.filter)<nconditions, CONN_x.Setup.conditions.filter=[CONN_x.Setup.conditions.filter, cell(1,nconditions-length(CONN_x.Setup.conditions.filter))]; end
+    maxrt=nan;
 	h=conn_waitbar(0,['Step ',num2str(sum(options<=1.5)),'/',num2str(length(options)),': Expanding conditions']);
     for ncondition=validconditions,
         % Frequency-band non-parametric modulation
@@ -329,7 +330,8 @@ if any(options==1.5),
                     model=[{'std'},CONN_x.Setup.conditions.names(newcond(1:nbands))];
                 else
                     ffilter=CONN_x.Preproc.filter;
-                    ffilter(isinf(ffilter))=1/max(conn_get_rt)/2;
+                    if any(isinf(ffilter))&&isnan(maxrt), maxrt=max(conn_get_rt); end
+                    ffilter(isinf(ffilter))=1/maxrt/2;
                     fband=ffilter(1)+(ffilter(2)-ffilter(1))/nbands*[nparam-1,nparam];
                     condname=[CONN_x.Setup.conditions.names{ncondition},' x FrequencyBand',num2str(nparam)];
                 end
@@ -488,6 +490,7 @@ if any(options==2),
                     conn_waitbar(n/N,h,sprintf('Subject %d Session %d',nsub,nses));
                 end
                 crop=CROPCONDITIONSAMPLES;
+                RT=[];
                 for ncondition=1:nconditions,
                     if ~isempty(CONN_x.Setup.conditions.model{ncondition})
                         data{nl1covariates+ncondition}=[];
@@ -497,12 +500,13 @@ if any(options==2),
                     else
                         onset=CONN_x.Setup.conditions.values{nsub}{ncondition}{nses}{1};
                         durat=CONN_x.Setup.conditions.values{nsub}{ncondition}{nses}{2};
-                        rt=conn_get_rt(nsub,nses)/10;
+                        if isempty(RT), RT=conn_get_rt(nsub,nses); end
+                        rt=RT/10;
                         offs=ceil(100/rt);
                         hrf=spm_hrf(rt);
-                        x=zeros(offs+ceil(CONN_x.Setup.nscans{nsub}{nses}*conn_get_rt(nsub,nses)/rt),1);
+                        x=zeros(offs+ceil(CONN_x.Setup.nscans{nsub}{nses}*RT/rt),1);
                         for n1=1:length(onset),
-                            tdurat=max(rt,min(offs*rt+conn_get_rt(nsub,nses)*CONN_x.Setup.nscans{nsub}{nses}-onset(n1),durat(min(length(durat),n1))));
+                            tdurat=max(rt,min(offs*rt+RT*CONN_x.Setup.nscans{nsub}{nses}-onset(n1),durat(min(length(durat),n1))));
                             in=offs+round(1+onset(n1)/rt+(0:tdurat/rt-1));
                             x(in(in>0))=1;
                         end
@@ -1152,7 +1156,10 @@ if any(options==5),
 		end
 	end
     conn_waitbar(1,h);
-	if ~isfield(CONN_x.Preproc,'filter')||isempty(CONN_x.Preproc.filter), CONN_x.Preproc.filter=[0,1/(2*max(conn_get_rt))]; end
+	if ~isfield(CONN_x.Preproc,'filter')||isempty(CONN_x.Preproc.filter), 
+        maxrt=max(conn_get_rt);
+        CONN_x.Preproc.filter=[0,1/(2*maxrt)]; 
+    end
 	conn_waitbar('close',h);
     CONN_x.isready(2)=1;
 end
@@ -1232,10 +1239,11 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                 [X{nses},ifilter,nill,nill,Xnames{nses}]=conn_designmatrix(confounds,X1{nses},X2{nses},{nfilter});
                 Xnames{nses}=regexprep(Xnames{nses},'^.*$',sprintf('Session %d: $0',nses));
                 Xconstant{nses}=cellfun('length',regexp(Xnames{nses},'constant term$'))>0;
+                RT=conn_get_rt(nsub,nses);
                 if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2,
-                    X{nses}(:,~Xconstant{nses})=conn_filter(conn_get_rt(nsub,nses),CONN_x.Preproc.filter,X{nses}(:,~Xconstant{nses}));
+                    X{nses}(:,~Xconstant{nses})=conn_filter(RT,CONN_x.Preproc.filter,X{nses}(:,~Xconstant{nses}));
                 elseif nnz(ifilter{1})
-                    X{nses}(:,find(ifilter{1}))=conn_filter(max(conn_get_rt(nsub,nses)),CONN_x.Preproc.filter,X{nses}(:,find(ifilter{1})));
+                    X{nses}(:,find(ifilter{1}))=conn_filter(max(RT),CONN_x.Preproc.filter,X{nses}(:,find(ifilter{1})));
                 end
                 if size(X{nses},1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
                 try, iX{nses}=pinv(X{nses});
@@ -1311,7 +1319,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                 redone_files=redone_files+1;
             end
             if any(softlinkoverwrite)
-                B=[];
+                B=[]; RT=[];
                 for slice=1:Y{1}.matdim.dim(3),
                     Bb=[];
                     if 1, % analyses per slice (all sessions together, faster but requires more memory)
@@ -1333,7 +1341,8 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                                 y{nses}=my+sy.*tanh((y{nses}-my)./max(eps,sy));
                             end
                             ypre{nses}=y{nses};
-                            y{nses}=conn_filter(conn_get_rt(nsub,nses),CONN_x.Preproc.filter,y{nses});
+                            if numel(RT)<nses, RT(nses)=conn_get_rt(nsub,nses); end
+                            y{nses}=conn_filter(RT(nses),CONN_x.Preproc.filter,y{nses});
                             if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=1&&CONN_x.Setup.outputfiles(1),
                                 Bb=cat(1,Bb,b);
                             end
@@ -1356,7 +1365,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                             norm_pre=sqrt(max(0,sum(repmat(Yout{ncondition}.conditionsweights{1},1,size(ytemp,2)).*ytemp.^2,1)/max(eps,sum(Yout{ncondition}.conditionsweights{1}))));
                             ytemp=[];
                             for nses=1:nsess,
-                                if numel(CONN_x.Setup.conditions.filter{ncondition})==2, ytemp0=conn_filter(conn_get_rt(nsub,nses),CONN_x.Setup.conditions.filter{ncondition},y{nses});
+                                if numel(CONN_x.Setup.conditions.filter{ncondition})==2, ytemp0=conn_filter(RT(nses),CONN_x.Setup.conditions.filter{ncondition},y{nses});
                                 else ytemp0=y{nses};
                                 end
                                 ytemp=cat(1,ytemp,ytemp0(C{nses}.samples{ncondition},:));
@@ -1509,6 +1518,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
     NUMBEROFFREQBANDS=8;
     reportedsettings=false;
     redone_files=0;
+    maxrt=nan;
 	N=numel(validsubjects); %sum(CONN_x.Setup.nsessions); if length(CONN_x.Setup.nsessions)==1, N=N*CONN_x.Setup.nsubjects; end
 	n=0;
 	for nsub=validsubjects,
@@ -1593,6 +1603,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                 end
             end
             
+            RT=[];
             for nroi=1:length(X1{1}.data),
                 for nses=1:nsess,
                     y=X1{nses}.data{nroi};
@@ -1609,13 +1620,15 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                         sy=repmat(4*median(abs(y-my)),[size(y,1),1]);
                         y=my+sy.*tanh((y-my)./max(eps,sy));
                     end
-                    y=conn_filter(conn_get_rt(nsub,nses),CONN_x.Preproc.filter,y);
+                    if numel(RT)<nses, RT(nses)=conn_get_rt(nsub,nses); end
+                    y=conn_filter(RT(nses),CONN_x.Preproc.filter,y);
                     ffilter=CONN_x.Preproc.filter;
-                    ffilter(isinf(ffilter))=1/max(conn_get_rt)/2;
+                    if any(isinf(ffilter))&&isnan(maxrt), maxrt=max(conn_get_rt); end
+                    ffilter(isinf(ffilter))=1/maxrt/2;
                     fby={};
                     for nfb=1:NUMBEROFFREQBANDS
                         for nfb2=1:nfb
-                            fby{nfb}(:,:,nfb2)=conn_filter(conn_get_rt(nsub,nses),ffilter(1)+(ffilter(2)-ffilter(1))/nfb*[nfb2-1,nfb2],y);
+                            fby{nfb}(:,:,nfb2)=conn_filter(RT(nses),ffilter(1)+(ffilter(2)-ffilter(1))/nfb*[nfb2-1,nfb2],y);
                         end
                     end
                     y0=y;
@@ -1624,7 +1637,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                     if nroi==1, dataroiall_sessions=cat(1,dataroiall_sessions,nses+zeros(size(y,1),1)); end
                     for ncondition=validconditions,
                         y=y0;
-                        if ~isempty(y)&&numel(CONN_x.Setup.conditions.filter{ncondition})==2, y=conn_filter(conn_get_rt(nsub,nses),CONN_x.Setup.conditions.filter{ncondition},y); end
+                        if ~isempty(y)&&numel(CONN_x.Setup.conditions.filter{ncondition})==2, y=conn_filter(RT(nses),CONN_x.Setup.conditions.filter{ncondition},y); end
                         if ~isempty(y), d1y=convn(cat(1,y(1,:),y,y(end,:)),[1;0;-1]/2,'valid');
                         else d1y=y; end
                         if ~isempty(d1y), d2y=convn(cat(1,d1y(1,:),d1y,d1y(end,:)),[1;0;-1]/2,'valid');
@@ -1643,17 +1656,19 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                 for nses=1:nsess,
                     y=X2{nses}.data{ncov};
                     if size(y,1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
+                    if numel(RT)<nses, RT(nses)=conn_get_rt(nsub,nses); end
                     if PREPROCESSCOVARIATES
                         b=iX{nses}*y;
                         y=y-X{nses}*b;
-                        y=conn_filter(conn_get_rt(nsub,nses),CONN_x.Preproc.filter,y);
+                        y=conn_filter(RT(nses),CONN_x.Preproc.filter,y);
                     end
                     ffilter=CONN_x.Preproc.filter;
-                    ffilter(isinf(ffilter))=1/max(conn_get_rt)/2;
+                    if any(isinf(ffilter))&&isnan(maxrt), maxrt=max(conn_get_rt); end
+                    ffilter(isinf(ffilter))=1/maxrt/2;
                     fby={};
                     for nfb=1:NUMBEROFFREQBANDS
                         for nfb2=1:nfb
-                            fby{nfb}(:,:,nfb2)=conn_filter(conn_get_rt(nsub,nses),ffilter(1)+(ffilter(2)-ffilter(1))/nfb*[nfb2-1,nfb2],y);
+                            fby{nfb}(:,:,nfb2)=conn_filter(RT(nses),ffilter(1)+(ffilter(2)-ffilter(1))/nfb*[nfb2-1,nfb2],y);
                         end
                     end
                     y0=y;
@@ -1661,7 +1676,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                     for ncondition=validconditions,
                         y=y0;
                         fby=fby0;
-                        if ~isempty(y)&&numel(CONN_x.Setup.conditions.filter{ncondition})==2, y=conn_filter(conn_get_rt(nsub,nses),CONN_x.Setup.conditions.filter{ncondition},y); end
+                        if ~isempty(y)&&numel(CONN_x.Setup.conditions.filter{ncondition})==2, y=conn_filter(RT(nses),CONN_x.Setup.conditions.filter{ncondition},y); end
                         if ~isempty(y), d1y=convn(cat(1,y(1,:),y,y(end,:)),[1;0;-1]/2,'valid');
                         else d1y=y; end
                         if ~isempty(d1y), d2y=convn(cat(1,d1y(1,:),d1y,d1y(end,:)),[1;0;-1]/2,'valid');
@@ -1757,6 +1772,7 @@ if any(options==8) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&i
     N=1.1*numel(validsubjects)*numel(validconditions)*Y.matdim.dim(3);n=0; 
         
     for nsub=validsubjects,
+        maxrt=[];
         for ncondition=validconditions,
             %filename=fullfile(filepath,['vvPCcov_SubjectA',num2str(nsub,'%03d'),'_SubjectB',num2str(nsub,'%03d'),'_ConditionA',num2str(ncondition,'%03d'),'_ConditionB',num2str(ncondition,'%03d'),'.mat']); 
             filename=fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
@@ -1779,7 +1795,8 @@ if any(options==8) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&i
                 wx=X1.conditionweights{1};
                 emptycondition=~nnz(~isnan(wx)&wx~=0);
 
-                DOF=max(0,Y.size.Nt*(min(1/(2*max(conn_get_rt(nsub))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub))))+1);
+                if isempty(maxrt), maxrt=max(conn_get_rt(nsub)); end
+                DOF=max(0,Y.size.Nt*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))+1);
                 Cy=0;
                 Cidx=Y.voxels; %Cidx=[];
                 for slice=1:Y.matdim.dim(3),
@@ -2244,6 +2261,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
         end
         for nsub=validsubjects,
             touched=false(length(CONN_x.Setup.conditions.names)-1,nrois);
+            maxrt=[];
             for ncondition=validconditions,
                 filename=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
                 Y=conn_vol(filename);
@@ -2325,6 +2343,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                         X=[X(:,1) detrend([X(:,2:end) reshape(repmat(permute(inter,[1 3 2]),[1,size(X,2),1]),size(X,1),[]) reshape(conn_bsxfun(@times,X,permute(inter,[1 3 2])),size(X,1),[])],'constant')];
                     end
                     nVars=size(X,2)/nX;
+                    if isempty(maxrt), maxrt=max(conn_get_rt(nsub)); end
                     if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0 % parametric modulation
                         switch(CONN_x.Analyses(ianalysis).measure),
                             case {1,3}, %bivariate
@@ -2332,10 +2351,10 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                                 iX=sparse(nVars*nX,nVars*nX);
                                 for nXtemp=1:size(Xtemp,3), iXtemp=pinv(Xtemp(:,:,nXtemp)'*Xtemp(:,:,nXtemp)); iX(nXtemp:nX:end,nXtemp:nX:end)=iXtemp; end
                                 %iX=pinv((X'*X).*kron(ones(nVars),eye(numel(idxredo)+1)));
-                                DOF=max(0,Y.size.Nt*(min(1/(2*max(conn_get_rt(nsub))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub))))-nVars);
+                                DOF=max(0,Y.size.Nt*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-nVars);
                             case {2,4}, %partial
                                 iX=pinv(X'*X);
-                                DOF=max(0,Y.size.Nt*(min(1/(2*max(conn_get_rt(nsub))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub))))-rank(X)+1);
+                                DOF=max(0,Y.size.Nt*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-rank(X)+1);
                         end
                         r=sqrt(diag(iX));
                         if 0&&isequal(CONN_x.Analyses(ianalysis).modulation,0)&&isequal(CONN_x.Analyses(ianalysis).measure,3) % gPPI absolute values (physiological+PPI)
@@ -2349,10 +2368,10 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                             case {1,3}, %bivariate
                                 iX=diag(1./max(eps,sum(X.^2,1)));
                                 %iX=pinv(diag(diag(X'*X)));
-                                DOF=max(0,Y.size.Nt*(min(1/(2*max(conn_get_rt(nsub))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub))))-1);
+                                DOF=max(0,Y.size.Nt*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-1);
                             case {2,4}, %partial
                                 iX=pinv(X'*X);
-                                DOF=max(0,Y.size.Nt*(min(1/(2*max(conn_get_rt(nsub))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub))))-rank(X)+1);
+                                DOF=max(0,Y.size.Nt*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-rank(X)+1);
                         end
                         r=sqrt(diag(iX));
                     end
@@ -2580,6 +2599,7 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
         end
         for nsub=validsubjects,
             touched=false(length(CONN_x.Setup.conditions.names)-1,1);
+            maxrt=[];
             for ncondition=validconditions,
                 filename=fullfile(filepathresults,['resultsROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
                 if isempty(REDO)&&~isempty(dir(filename)),
@@ -2670,13 +2690,14 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
 %                     X2=cat(2,X2(:,1),conn_wdemean(X2(:,2:end),wx));
 %                     X2=X2.*repmat(wx,[1,size(X2,2)]);                   
 
+                    if isempty(maxrt), maxrt=max(conn_get_rt(nsub)); end
                     switch(CONN_x.Analyses(ianalysis).measure),
                         case {1,3}, %bivariate
-                            if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0, DOF=max(0,size(X,1)*(min(1/(2*max(conn_get_rt(nsub))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub))))-2-size(inter,2));
-                            else DOF=max(0,size(X,1)*(min(1/(2*max(conn_get_rt(nsub))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub))))-1);
+                            if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0, DOF=max(0,size(X,1)*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-2-size(inter,2));
+                            else DOF=max(0,size(X,1)*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-1);
                             end
                         case {2,4}, %partial
-                            DOF=max(0,size(X,1)*(min(1/(2*max(conn_get_rt(nsub))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub))))-rank(X)+1);
+                            DOF=max(0,size(X,1)*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-rank(X)+1);
                     end
                     emptycondition=~nnz(~isnan(wx)&wx~=0);
                     if emptycondition, 
@@ -3602,6 +3623,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     end
                                     new_names={};
                                     new_values={};
+                                    maxrt=[]; for nsub=validsubjects, maxrt(nsub)=max(conn_get_rt(nsub)); end
                                     for ncomp=1:NdimsOut
                                         for ivalidcondition=1:numel(validconditions),
                                             VARt=nan(CONN_x.Setup.nsubjects,1);
@@ -3615,7 +3637,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                                 AVGt(nsub)=mean(b,1);
                                                 b=b-mean(b);
                                                 b(remove)=0;
-                                                ZCt(nsub)=mean((b(1:end-1,:)<=0&b(2:end,:)>0)|(b(1:end-1,:)>=0&b(2:end,:)<0))/max(conn_get_rt(nsub))/2;
+                                                ZCt(nsub)=mean((b(1:end-1,:)<=0&b(2:end,:)>0)|(b(1:end-1,:)>=0&b(2:end,:)<0))/maxrt(nsub)/2;
                                             end
                                             if isempty(CONN_x.vvAnalyses(ianalysis).name)
                                                 new_names{end+1}=sprintf('_Variability %s%02d @ %s',ICAPCA,ncomp,conditions{ivalidcondition});
@@ -3906,6 +3928,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     H_std_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
                     new_values{end+1}=sqrt(H_std_weighted);
                 end
+                allrt=[];
                 for ncomp=1:Ncomponents
                     for n=1:numel(COND_names)
                         tempW=max(0,COND_weights{n});
@@ -3917,7 +3940,8 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         tempH(maskout)=0;
                         w=max(eps,accumarray(IDX_subject,tempW,[CONN_x.Setup.nsubjects,1]));
                         H_freq_weighted=max(0,accumarray(IDX_subject,tempH.*tempW,[CONN_x.Setup.nsubjects,1],@sum,nan))./w;
-                        H_freq_weighted=H_freq_weighted./reshape(conn_get_rt,CONN_x.Setup.nsubjects,1)/2;
+                        if isempty(allrt), allrt=conn_get_rt; end
+                        H_freq_weighted=H_freq_weighted./reshape(allrt,CONN_x.Setup.nsubjects,1)/2;
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
                             if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,COND_names{n});
                             else new_names{end+1}=sprintf('_Frequency Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names{n});
