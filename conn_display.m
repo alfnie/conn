@@ -161,7 +161,12 @@ elseif ishandle(SPMfilename) % conn_display(hfig,opts)
     end
     return;
 else
-    if isdir(SPMfilename), SPMfilename=fullfile(SPMfilename,'SPM.mat'); end
+    if isdir(SPMfilename), 
+        if conn_existfile(fullfile(SPMfilename,'SPM.mat')), SPMfilename=fullfile(SPMfilename,'SPM.mat'); 
+        elseif conn_existfile(fullfile(SPMfilename,'ROI.mat')), SPMfilename=fullfile(SPMfilename,'ROI.mat'); 
+        else SPMfilename=fullfile(SPMfilename,'SPM.mat'); 
+        end
+    end
     [filepath,filename,fileext]=fileparts(SPMfilename);
     if isempty(filepath), filepath=pwd;end
     if isempty(filename), SPMfilename=conn_fullfile(filepath,'SPM.mat');

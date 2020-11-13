@@ -674,7 +674,10 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
             valid=find(all(~isnan(y),2));
             y=y(valid,:);
             X=x(:,nl2covariates);
-            X=X-repmat(mean(X,1),size(X,1),1);
+            validX=~isnan(X);
+            X(~validX)=0;
+            X=X-repmat(sum(X,1)./max(eps,sum(validX,1)),size(X,1),1);
+            X(~validX)=0;
             X=X./repmat(sqrt(max(eps,sum(abs(X).^2,1))),size(X,1),1);
             Y=y';
             Y=Y-repmat(mean(Y,1),size(Y,1),1);

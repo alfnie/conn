@@ -2357,7 +2357,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                                 DOF=max(0,Y.size.Nt*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-rank(X)+1);
                         end
                         r=sqrt(diag(iX));
-                        if 0&&isequal(CONN_x.Analyses(ianalysis).modulation,0)&&isequal(CONN_x.Analyses(ianalysis).measure,3) % gPPI absolute values (physiological+PPI)
+                        if 0&&~ischar(CONN_x.Analyses(ianalysis).modulation) % gPPI absolute values (physiological+PPI)
                             iX=iX(1:nX,:)+iX((nVars-1)*nX+1:end,:);
                         else
                             iX=iX((nVars-1)*nX+1:end,:);

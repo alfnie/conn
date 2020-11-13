@@ -139,6 +139,11 @@ hc2=uimenu(hc1,'Label','colorscale');
 uimenu(hc2,'Label','colorbar limits','callback',{@conn_montage_display_refresh,'colorscale','rescale'});
 uimenu(hc2,'Label','colorscale direct','callback',{@conn_montage_display_refresh,'colorscale','direct'});
 uimenu(hc2,'Label','colorscale equalized','callback',{@conn_montage_display_refresh,'colorscale','equalize'});
+hc2=uimenu(hc1,'Label','background');
+uimenu(hc2,'Label','white background','callback',{@conn_montage_display_refresh,'background',[1 1 1]});
+uimenu(hc2,'Label','light background','callback',{@conn_montage_display_refresh,'background',[.95 .95 .9]});
+uimenu(hc2,'Label','dark background','callback',{@conn_montage_display_refresh,'background',[.11 .11 .11]});
+uimenu(hc2,'Label','black background','callback',{@conn_montage_display_refresh,'background',[0 0 0]});
 if ~isempty(state.xrois_name)||~isempty(state.x_border_name)||~isempty(state.xcov_name)
     hc2=uimenu(hc1,'Label','fontsize');
     uimenu(hc2,'Label','increase labels fontsize','callback',{@conn_montage_display_refresh,'fontsize','+'});
@@ -285,9 +290,10 @@ end
     
     function out=conn_montage_display_refresh(hObject,eventdata,option,varargin)
         out=[];
+        doreset=false;
         if nargin<3||isempty(option), option='refresh'; end
         switch(option)
-            case 'refresh',
+            case 'refresh', doreset=true;
             case 'slider',
             case 'close', state.loop=0; close(state.handles.hfig); return;
             case 'figurehandle', out=state.handles.hfig; return;
@@ -445,6 +451,7 @@ end
             case 'style',
                 state.loop=0; 
                 state.style=varargin{1};
+                doreset=true;
             case 'getstate',
                 out=state;
                 out=rmfield(out,'handles');
@@ -481,14 +488,14 @@ end
         switch(state.style)
             case 'montage'
                 set(state.handles.hax,'position',[0 0 1 1]);
-                set(state.handles.hfig,'color',[0 0 0]);
+                if doreset, set(state.handles.hfig,'color',[0 0 0]); end
                 [state.y,state.nX]=conn_menu_montage(state.handles.hax,state.x);
                 set([state.handles.slider state.handles.startstop state.handles.singleloop state.handles.movietitle state.handles.haxcov state.handles.himcov(:)' state.handles.scalecov(:)' state.handles.refcov(:)'],'visible','off');
                 axis(state.handles.hax,'equal'); 
                 datalim=state.datalim;
             case 'matrix'
                 set(state.handles.hax,'position',[.3 .1 .6 .8]);
-                set(state.handles.hfig,'color',[.95 .95 .9]);
+                if doreset, set(state.handles.hfig,'color',[.95 .95 .9]); end
                 state.slide=round(max(1,min(size(state.x,4), get(state.handles.slider,'value'))));
                 [state.y,state.nX]=conn_menu_montage(state.handles.hax,state.x(:,:,state.slide));
                 if size(state.x,4)>1, set([state.handles.startstop state.handles.singleloop state.handles.haxcov state.handles.himcov(:)' state.handles.scalecov(:)' state.handles.refcov(:)'],'visible','off');
@@ -501,7 +508,7 @@ end
                 elseif ~isempty(state.xcov), set(state.handles.hax,'position',[.05 .3 .90 .65]); 
                 else set(state.handles.hax,'position',[.05 .05 .90 .90]); 
                 end
-                set(state.handles.hfig,'color',[.95 .95 .9]);
+                if doreset, set(state.handles.hfig,'color',[.95 .95 .9]); end
                 if ~isempty(state.xcov), set([state.handles.himcov(:)' state.handles.scalecov(:)' state.handles.refcov(:)'],'visible','on'); end                
                 state.slide=round(max(1,min(size(state.x,4), get(state.handles.slider,'value'))));
                 [state.y,state.nX]=conn_menu_montage(state.handles.hax,state.x(:,:,:,state.slide));
@@ -512,7 +519,7 @@ end
                 if ~isempty(state.xcov), set([state.handles.himcov(:)' state.handles.scalecov(:)' state.handles.refcov(:)'],'visible','on'); set(state.handles.hax,'position',[.2 .3 .6 .55]);
                 else set(state.handles.hax,'position',[.2 .05 .6 .80]);
                 end
-                set(state.handles.hfig,'color',[.95 .95 .9]);
+                if doreset, set(state.handles.hfig,'color',[.95 .95 .9]); end
                 state.slide=1;%round(max(1,min(size(state.x,4), get(state.handles.slider,'value'))));
                 temp=detrend(reshape(state.x(state.xnonzero),[],size(state.x,4))','constant');
                 %temp=temp(:,state.xnonzeroorder);

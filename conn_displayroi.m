@@ -569,8 +569,14 @@ switch(lower(option)),
         return
         
     case {'import_values','cluster_view'}
+        data=get(hfig,'userdata');        
+        filename={fullfile(data.defaultfilepath,'results.clusters.nii')};
+        tfilename=conn_displayroi_selectfiles(filename,data.initfile);
+        if isempty(tfilename), return; 
+        elseif iscell(tfilename), CLUSTERSFROMFILE='';
+        else CLUSTERSFROMFILE=tfilename; 
+        end
         hmsginit=conn_msgbox('Loading data. Please wait...','conn_displayroi',-1);
-        data=get(hfig,'userdata');
         selectedsubjects=data.results(1).xX.SelectedSubjects;
         if isfield(data.results(1),'ynames'), names_conditions=data.results(1).ynames;
         else names_conditions={};
@@ -581,38 +587,64 @@ switch(lower(option)),
         y3=[];name3={};
         txt1='';
         txt2='';
-        for value=1:size(data.list2,1)
-            isource=[];
-            itarget=[];
-            if data.list2(value,2)>0, % connection
-                txt2=sprintf('connectivity between %s and %s',data.names2{data.list2(value,1)},data.names2{data.list2(value,2)});
-                isource=data.list2(value,1);
-                itarget=data.list2(value,2);                
-            elseif data.list2(value,1)>0, % seed
-                txt1=data.list2txt{value};
+        if ~isempty(CLUSTERSFROMFILE)
+            [Cdata,Cnames,Ccoords,Csamples] = conn_mtx_read(CLUSTERSFROMFILE);
+            [ok,Cidx]=ismember(Cnames,data.results(1).names2);
+            if ~all(ok), fprintf('warning: unable to find ROI %s. Skipping\n',sprintf('%s ',Cnames{~ok})); Cdata(~ok,~ok)=0; end
+            for value=1:max(Cdata(:))
+                [isource,itarget]=find(Cdata==value);
                 if isempty(y3), y2(end+1)=0; else y2(end+1)=size(y3,3); end
-                name2{end+1}=regexp(txt1,'^(Cluster|Network|ROI) \d+\/\d+','match','once');
-            else % cluster
-                txt1=data.list2txt{value};
-                if isempty(y3), y2(end+1)=0; else y2(end+1)=size(y3,3); end
-                name2{end+1}=regexp(txt1,'^(Cluster|Network|ROI) \d+\/\d+','match','once');
+                if numel(Csamples)>=value, name2{end+1}=Csamples{value}; else name2{end+1}=sprintf('cluster %d',value); end
+                for ni=1:numel(isource)
+                    ty=permute(data.results(1).data(:,Cidx(itarget(ni)),:,Cidx(isource(ni))),[1,3,2]);   % (seed) [subjects x targets x conditions]
+                    if ~isempty(selectedsubjects)&&~rem(size(ty,1),nnz(selectedsubjects)) % fill-in with NaN for missing data
+                        tty=nan(size(ty,1)/nnz(selectedsubjects)*numel(selectedsubjects),size(ty,2));
+                        tty(repmat(logical(selectedsubjects),size(ty,1)/nnz(selectedsubjects),1),:)=ty;
+                        ty=tty;
+                        if isempty(names_conditions), names_conditions=arrayfun(@(n)sprintf('condition %d',n),1:size(ty,2),'uni',0); end
+                        y3=cat(3,y3,ty);
+                        name3{end+1}=sprintf('%s connection between %s and %s',name2{end},Cnames{isource(ni)},Cnames{itarget(ni)});
+                        for n=1:size(ty,2)
+                            y{end+1}=ty(:,n);
+                            name{end+1}=sprintf('%s at %s',name3{end},names_conditions{n});
+                        end
+                    end
+                end
             end
-            if ~isempty(isource)
-                ty=permute(data.results(1).data(:,itarget,:,isource),[1,3,2]);   % (seed) [subjects x targets x conditions]
-                if ~isempty(selectedsubjects)&&~rem(size(ty,1),nnz(selectedsubjects)) % fill-in with NaN for missing data
-                    tty=nan(size(ty,1)/nnz(selectedsubjects)*numel(selectedsubjects),size(ty,2));
-                    tty(repmat(logical(selectedsubjects),size(ty,1)/nnz(selectedsubjects),1),:)=ty;
-                    ty=tty;
-                    if isempty(names_conditions), names_conditions=arrayfun(@(n)sprintf('condition %d',n),1:size(ty,2),'uni',0); end
-                    y3=cat(3,y3,ty);
-                    name3{end+1}=sprintf('%s %s',regexp(txt1,'^(Cluster|Network|ROI) \d+\/\d+','match','once'),regexprep(txt2,'\s+',' '));
-                    for n=1:size(ty,2)
-                        y{end+1}=ty(:,n);
-                        name{end+1}=sprintf('%s %s at %s',regexp(txt1,'^(Cluster|Network|ROI) \d+\/\d+','match','once'),regexprep(txt2,'\s+',' '),names_conditions{n});
-%                         name{end+1}=regexprep(sprintf('conn between %s and %s at %s',...
-%                             data.names2reduced{isource},...
-%                             data.names2reduced{itarget},...
-%                             names_conditions{n}),'\s+',' ');
+        else
+            for value=1:size(data.list2,1)
+                isource=[];
+                itarget=[];
+                if data.list2(value,2)>0, % connection
+                    txt2=sprintf('connectivity between %s and %s',data.names2{data.list2(value,1)},data.names2{data.list2(value,2)});
+                    isource=data.list2(value,1);
+                    itarget=data.list2(value,2);
+                elseif data.list2(value,1)>0, % seed
+                    txt1=data.list2txt{value};
+                    if isempty(y3), y2(end+1)=0; else y2(end+1)=size(y3,3); end
+                    name2{end+1}=regexp(txt1,'^(Cluster|Network|ROI) \d+\/\d+','match','once');
+                else % cluster
+                    txt1=data.list2txt{value};
+                    if isempty(y3), y2(end+1)=0; else y2(end+1)=size(y3,3); end
+                    name2{end+1}=regexp(txt1,'^(Cluster|Network|ROI) \d+\/\d+','match','once');
+                end
+                if ~isempty(isource)
+                    ty=permute(data.results(1).data(:,itarget,:,isource),[1,3,2]);   % (seed) [subjects x targets x conditions]
+                    if ~isempty(selectedsubjects)&&~rem(size(ty,1),nnz(selectedsubjects)) % fill-in with NaN for missing data
+                        tty=nan(size(ty,1)/nnz(selectedsubjects)*numel(selectedsubjects),size(ty,2));
+                        tty(repmat(logical(selectedsubjects),size(ty,1)/nnz(selectedsubjects),1),:)=ty;
+                        ty=tty;
+                        if isempty(names_conditions), names_conditions=arrayfun(@(n)sprintf('condition %d',n),1:size(ty,2),'uni',0); end
+                        y3=cat(3,y3,ty);
+                        name3{end+1}=sprintf('%s %s',regexp(txt1,'^(Cluster|Network|ROI) \d+\/\d+','match','once'),regexprep(txt2,'\s+',' '));
+                        for n=1:size(ty,2)
+                            y{end+1}=ty(:,n);
+                            name{end+1}=sprintf('%s %s at %s',regexp(txt1,'^(Cluster|Network|ROI) \d+\/\d+','match','once'),regexprep(txt2,'\s+',' '),names_conditions{n});
+                            %                         name{end+1}=regexprep(sprintf('conn between %s and %s at %s',...
+                            %                             data.names2reduced{isource},...
+                            %                             data.names2reduced{itarget},...
+                            %                             names_conditions{n}),'\s+',' ');
+                        end
                     end
                 end
             end
@@ -680,12 +712,25 @@ switch(lower(option)),
             R_unthresholded(isnan(R))=0;
             ColumnNames=data.names2(data.displaytheserois);
             ColumnGroups=data.clusters(data.displaytheserois);
+            R_clusters=data.CLUSTER_labels(data.displaytheserois(data.displaytheserois<=size(z,1)),data.displaytheserois);
+            R_clusters(R==0)=0;
+            if ~isempty(data.CLUSTER_selected)
+                [ok,idx1]=ismember(R_clusters,data.CLUSTER_selected);
+                R_clusters(~ok)=0;
+                R_clusters(ok)=idx1(ok);
+                R_clusters_names=data.CLUSTER_selected_names;
+            else R_clusters_names={};
+            end
             switch(tfileext)
                 case '.nii'
                     conn_mtx_write(tfilename,R,ColumnNames, data.xyz2(data.displaytheserois));
                     conn_mtx_write(conn_prepend('',tfilename,'.orig.nii'),R_unthresholded,ColumnNames,data.xyz2(data.displaytheserois));
                     conn_mtx_write(conn_prepend('',tfilename,'.mask.nii'),double(R~=0),ColumnNames,data.xyz2(data.displaytheserois));
                     conn_disp('fprintf','Thresholded connectivity matrix saved in %s\n',tfilename);
+                    if ~isempty(R_clusters_names), 
+                        conn_mtx_write(conn_prepend('',tfilename,'.clusters.nii'),R_clusters,ColumnNames,data.xyz2(data.displaytheserois),R_clusters_names); 
+                        conn_disp('fprintf','Suprathreshold connectivity clusters saved in %s\n',conn_prepend('',tfilename,'.clusters.nii'));
+                    end
                 case '.txt'
                     fh=fopen(tfilename,'wt');
                     for nt=1:numel(ColumnNames), fprintf(fh,'%s\t',ColumnNames{nt}); end; fprintf(fh,'\n');
@@ -1455,7 +1500,8 @@ switch(lower(option)),
             val=data.maxz;
             val=inputdlg({'Enter new colorbar limit:'},'Rescale colorbar',1,{num2str(val)});
             if isempty(val), return; end
-            data.maxz=str2num(val{1}); 
+            val=str2num(val{1}); 
+            data.maxz=max(abs(val));
         end
         data.x=[];data.y=[];data.z=[];
         data.bgz=0;        
@@ -4264,6 +4310,57 @@ function conn_displayroi_keypress(hdl,event)
 %     if isequal(event.Key,'space')
 %         conn_displayroi('pausegui');
 %     end
+end
+
+function [filename_rois,filename_sources,viewrex]=conn_displayroi_selectfiles(filename_rois,filename_sources,viewrex)
+global CONN_gui;
+if nargin<2||isempty(filename_sources), filename_sources=''; end
+if nargin<3||isempty(viewrex), viewrex=0; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+
+filename_rois0=filename_rois;
+filename_sources0=filename_sources;
+thfig=dialog('units','norm','position',[.3,.4,.4,.25],'windowstyle','normal','name','REX interface','color','w','resize','on');
+uicontrol(thfig,'style','text','units','norm','position',[.1,.75,.8,.20],'string',{'Explore model effects and connectivity values','within individual connections/clusters'},'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
+ht1=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.50,.8,.20],'string',{'clusters of interest in current analysis','others clusters of interest (select exported mask/clusters file)'},'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','callback',@conn_displayroi_selectfiles_callback1,'tooltipstring','Define the clusters of interest');
+%ht2=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.30,.8,.20],'string',{'effect/activation/connectivity values in current analysis','other effect/activation/connectivity values (select second-level SPM.mat file)'},'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','callback',@conn_displayroi_selectfiles_callback2,'tooltipstring','Define the activation/connectivity values');
+%if ~isempty(viewrex), ht3=uicontrol(thfig,'style','checkbox','units','norm','position',[.1,.3,.8,.1],'string','enable REX gui','value',0,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','backgroundcolor','w','tooltipstring','Displays REX gui interface for additional options'); end
+uicontrol(thfig,'style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.2],'callback','uiresume','fontsize',8+CONN_gui.font_offset);
+uicontrol(thfig,'style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.2],'callback','delete(gcbf)','fontsize',8+CONN_gui.font_offset);
+uiwait(thfig);
+ok=ishandle(thfig);
+if ok, 
+    %if ~isempty(viewrex), viewrex=get(ht3,'value'); end
+    delete(thfig);
+else   filename_rois=[]; filename_sources=[]; 
+end
+
+    function conn_displayroi_selectfiles_callback1(varargin)
+        if get(ht1,'value')==1
+            filename_rois=filename_rois0;
+        else
+            tfilename=filename_rois;
+            if iscell(tfilename)&&~isempty(tfilename), tfilename=tfilename{1}; end
+            [tfilename,tpathname]=uigetfile('*.nii; *.img','Select mask/clusters file',tfilename);
+            if ischar(tfilename), filename_rois=fullfile(tpathname,tfilename);
+            else
+                filename_rois=filename_rois0;
+                set(ht1,'value',1);
+            end
+        end
+    end
+    function conn_displayroi_selectfiles_callback2(varargin)
+        if get(ht2,'value')==1
+            filename_sources=filename_sources0;
+        else
+            [tfilename,tpathname]=uigetfile('*.mat','Select SPM.mat file',filename_sources);
+            if ischar(tfilename), filename_sources=fullfile(tpathname,tfilename);
+            else
+                filename_sources=filename_sources0;
+                set(ht2,'value',1);
+            end
+        end
+    end
 end
 
 function simfilename=conn_displayroi_simfilename(spmfile,THR_TYPE,THR,listrois)

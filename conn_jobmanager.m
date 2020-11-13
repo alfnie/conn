@@ -633,7 +633,7 @@ else
             varargout={info};
             
         case 'statusjob' %('statusjob',info,inodes)
-            MAXFINISHINGCOUNTER=5;
+            MAXFINISHINGCOUNTER=2;
             info=varargin{1};
             if nargin>2&&~isempty(varargin{2}), ijobs=varargin{2}; else ijobs=1:numel(info.scripts); end
             if nargin>3&&~isempty(varargin{3}), force=varargin{3}; else force=false; end
@@ -1311,7 +1311,13 @@ ok=1+handles.finished;
                     validlabels={'finished','canceled'}; %{'finished','stopped'};
                     if all(ismember(info.tagmsg,validlabels))
                         set(handles.continue,'enable','on'); 
-                        if ~numel(files)&&~handles.finished, conn_jobmanager_update('finish'); end
+                        if ~numel(files)&&~handles.finished, 
+                            try
+                                stop(handles.timer);
+                                delete(handles.timer);
+                            end
+                            conn_jobmanager_update('finish'); 
+                        end
                     end
                 end
                 
