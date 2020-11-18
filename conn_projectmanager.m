@@ -26,7 +26,7 @@ switch(lower(option))
             if numel(jid)>=4&&~isempty(jid{4}), pobj.partition=str2double(regexp(regexprep(jid{4},'^,\s*partition\s*=\s*',''),'-','split')); end
             if ~isequal(pobj.ver,conn('ver')), error('Incorrect CONN version. Expected %s, found %s. Parallel processing only supported when all nodes are running the same version of CONN',pobj.ver,conn('ver')); end
             filename=filename(1:jidx-1);
-            if ~isfield(pobj,'subjects'), filename=conn_projectmanager('localfilename',pobj); end % treat as normal project file
+            %if ~isfield(pobj,'subjects'), filename=conn_projectmanager('projectfile',filename,pobj); pobj.isextended=0; end % treat as normal project file
         else
             pobj=conn_projectmanager('null');
         end

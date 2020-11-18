@@ -59,7 +59,7 @@ for nsub=SUBJECTS,
                     else, conn_disp(['ERROR subject ',num2str(nsub),': invalid SPM.xBF.UNITS value (assuming scans)',' in file ',files{ifile}]); err=err+1; end
                 else, conn_disp(['ERROR subject ',num2str(nsub),': SPM.xBF.UNITS not found (assuming scans)',' in file ',files{ifile}]); units=1; err=err+1; end
             end
-            if importfunctional
+            if importfunctional||(options.addconditions&&units~=2)
                 if isfield(spmfile.SPM,'xY')&&isfield(spmfile.SPM.xY,'RT'),
                     if session_count>0&&CONN_x.Setup.RT(nsub)~=spmfile.SPM.xY.RT,
                         conn_disp(['warning subject ',num2str(nsub),': SPM.xY.RT different from previous session(s) (leaving unchanged)',' in file ',files{ifile}]);

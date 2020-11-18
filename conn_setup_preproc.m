@@ -3001,7 +3001,7 @@ for iSTEP=1:numel(STEPS)
                             nV=conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{1});
                             if ~sets
                                 for nl1covariate=1:numel(outputfiles{isubject}{nses})-1
-                                    if ~isempty(outputfiles{isubject}{nses}{1+nl1covariate})
+                                    if size(outputfiles{isubject}{nses}{1+nl1covariate},1)>0
                                         CONN_x.Setup.l1covariates.files{nsubject}{nl1covariate}{nses}={'[raw values]',[],outputfiles{isubject}{nses}{1+nl1covariate}};
                                     end
                                 end

@@ -53,10 +53,21 @@ else
             str={'DICOM file'};
         case {'.img','.hdr','.nii'},
             %maxvolsdisplayed=2;
-            if size(filename,1)==1
+            issinglevolume=cellfun('length',regexp(cellstr(filename),',\d+$'))>0;
+            nV=sum(issinglevolume);
+            ok=false;
+            if all(issinglevolume)
+                try
+                    if nV>1
+                        V1=spm_vol([deblank(filename(1,:))]);
+                        V2=spm_vol([deblank(filename(end,:))]);
+                        V=[V1 V2];
+                        ok=true;
+                    end
+                end
+            elseif size(filename,1)==1
                 nfilename=nifti(filename);
                 nV=0; for n=1:numel(nfilename), tV=size(nfilename(n).dat,4); nV=nV+tV; end
-                ok=false;
                 try
                     if nV>10
                         V1=spm_vol([deblank(filename),',1']);
@@ -66,17 +77,13 @@ else
                     end
                 end
             else
-                nV=size(filename,1);
-                ok=false;
                 try
-                    if nV>10
-                        V1=spm_vol([deblank(filename(1,:))]);
-                        V2=spm_vol([deblank(filename(end,:))]);
-                        V=[V1 V2];
-                        nfilename=nifti(cellstr(filename));
-                        nV=0; for n=1:numel(nfilename), tV=size(nfilename(n).dat,4); nV=nV+tV; end
-                        ok=true;
-                    end
+                    V1=spm_vol([deblank(filename(1,:))]);
+                    V2=spm_vol([deblank(filename(end,:))]);
+                    V=[V1(1) V2(end)];
+                    nfilename=nifti(cellstr(filename(~issinglevolume,:)));
+                    for n=1:numel(nfilename), tV=size(nfilename(n).dat,4); nV=nV+tV; end
+                    ok=true;
                 end
             end
             if ~ok, V=spm_vol(filename); nV=numel(V); end
