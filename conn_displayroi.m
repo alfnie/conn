@@ -83,10 +83,10 @@ switch(lower(option)),
                 if ~iscell(info.coords), info.coords=num2cell(info.coords,2); end % [nroisx3]
                 vol=spm_vol(char(SPM.xX_multivariate.Zfiles));
                 z=spm_read_vols(vol);
-                z=permute(reshape(z,[nrois,nrois,size(vol)]),[3,2,4,1]); % subjects x rois (targets) x conditions x rois (seeds)
+                z=permute(reshape(z,[nrois,nrois,size(SPM.xX_multivariate.Zfiles)]),[3,2,4,1]); % subjects x rois (targets) x conditions x rois (seeds)
                 % subjects x rois x conditions
                 results=struct(...
-                    'xX', SPM.xX,...
+                    'xX', struct('isSurface',SPM.xX.isSurface,'isMtx',SPM.xX.isMtx,'SelectedSubjects',SPM.xX.SelectedSubjects,'name',SPM.xX_multivariate.Xnames,'X',SPM.xX_multivariate.X), ...
                     'data',z,...
                     'h', SPM_h,...
                     'F', SPM_F,...
@@ -649,7 +649,8 @@ switch(lower(option)),
                 end
             end
         end
-        if strcmpi(option,'import_values')
+        if isempty(y3)
+        elseif strcmpi(option,'import_values')
             conn_importl2covariate(name,y);
         else
             if get(data.handles(9),'value'), % one plot per connection
