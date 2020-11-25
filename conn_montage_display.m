@@ -148,6 +148,7 @@ if ~isempty(state.xrois_name)||~isempty(state.x_border_name)||~isempty(state.xco
     hc2=uimenu(hc1,'Label','fontsize');
     uimenu(hc2,'Label','increase labels fontsize','callback',{@conn_montage_display_refresh,'fontsize','+'});
     uimenu(hc2,'Label','decrease labels fontsize','callback',{@conn_montage_display_refresh,'fontsize','-'});
+    uimenu(hc2,'Label','set labels fontsize','callback',{@conn_montage_display_refresh,'fontsize','?'});
 end
 hc2=uimenu(hc1,'Label','style');
 if ~strcmp(style,'timeseries')
@@ -339,6 +340,7 @@ end
                 opt=varargin{1};
                 if isequal(opt,'+'), opt=state.fontsize+1;
                 elseif isequal(opt,'-'), opt=state.fontsize-1;
+                elseif isequal(opt,'?'), opt=inputdlg('Enter fontsize','conn_montage_display',1,{num2str(state.fontsize)}); if ~isempty(opt), opt=str2num(opt{1}); end; if isempty(opt), return; end
                 end
                 state.fontsize=opt;
                 if isfield(state.handles,'scalecov')&&all(ishandle(state.handles.scalecov)), set(state.handles.scalecov,'fontsize',max(1,state.fontsize-3)); end

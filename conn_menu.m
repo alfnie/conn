@@ -1,5 +1,5 @@
 
-function [h,h2,htb]=conn_menu(type,position,title,string,tooltipstring,callback,callback2)
+function [h,h2,htb]=conn_menu(type,position,title,string,tooltipstring,callback,callback2,callback3)
 
 global CONN_gui CONN_h;
 persistent nullstr;
@@ -13,6 +13,7 @@ if nargin<4, string=''; end
 if nargin<5, tooltipstring=''; end
 if nargin<6, callback=''; end
 if nargin<7, callback2=''; end
+if nargin<8, callback3=''; end
 if ~ischar(type), [type,position,title]=deal(title,get(type,'userdata'),get(type,'value')); end
 if ~CONN_gui.tooltips, tooltipstring=''; end
 titleopts={'fontname','Arial','fontangle','normal','fontweight','bold','foregroundcolor',CONN_gui.fontcolorA,'fontsize',8+CONN_gui.font_offset};
@@ -340,6 +341,7 @@ switch(lower(type)),
         conn_menumanager('onregion',h.h6c,1,position,h.h12,@(varargin)conn_menubuttonmtnfcn('patch',CONN_h.screen.hfig,h.h11,h.h12,h.h6c,[],varargin{:}));
         h.hcallback=callback;
         h.hcallback2=callback2;
+        h.hcallback3=callback3;
 		%h.h9=uicontrol('style','edit','units','norm','position',[position(1)-.015,position(2)+position(4),.02,.04],'callback',{@conn_menu,'updatecscale'},'backgroundcolor',bgcolor,'string',num2str(data.cscale),'fontsize',8+CONN_gui.font_offset); 
 		%h.h10=uicontrol('style','edit','units','norm','position',[position(1)+position(3)-.1,position(2)-1*.05,.1,.04],'callback',{@conn_menu,'updatethr'},'backgroundcolor',bgcolor,'foregroundcolor',.0+1.0*([0 0 0]+(mean(bgcolor)<.5)),'string',num2str(data.thr),'fontsize',8+CONN_gui.font_offset); 
 		set(h.h1,'color',bgcolor,'xtick',[],'ytick',[],'xcolor',bgcolor,'ycolor',bgcolor); 
@@ -590,12 +592,12 @@ switch(lower(type)),
 			set([position.h1,position.h2,position.h3,position.h4,position.h5,position.h6,position.h7],'visible','off'); 
         else 
             skiptitles=false;
-            set(position.h3,'xdata',title{1},'ydata',title{2},'facecolor',1/2*[1,1,0],'facealpha',1,'edgecolor','none');
+            set(position.h3,'xdata',title{1},'ydata',title{2},'facecolor',[.5,.5,0],'facealpha',1,'edgecolor','none');
             if numel(title)<3, title{3}=title{2}; skiptitles=true; subtitle=''; 
             elseif ischar(title{3}), skiptitles=true; subtitle=title{3}; title{3}=title{2}; 
             end
-            set(position.h4,'xdata',title{1},'ydata',title{3},'facecolor',.75/2*[1,1,1],'facealpha',1,'edgecolor','none');
-            set(position.h5,'xdata',title{1},'ydata',min(title{2},title{3}),'facecolor',[.2,.2,.4],'facealpha',1,'edgecolor','none');
+            set(position.h4,'xdata',title{1},'ydata',title{3},'facecolor',[.35,.35,.35],'facealpha',1,'edgecolor','none');
+            set(position.h5,'xdata',title{1},'ydata',min(title{2},title{3}),'facecolor',.75*[.35,.35,.35]+.25*[.5,.5,0],'facealpha',1,'edgecolor','none');
             set(position.h2,'xdata',[0,0],'ydata',[0,max(max(title{2}),max(title{3}))*1.35],'color','w');
             axis(position.h1,'tight');
             [nill,idxtemp]=max(title{3});
@@ -1135,6 +1137,12 @@ switch(lower(type)),
             if isfield(data,'buttondown')&&isfield(data.buttondown,'matdim')
                 data.buttondown.matdim=conn_menu_selectslice(data.buttondown.matdim,data.n,data.view);
                 data.buttondown.matdim.dim(4:5)=n1n2(1:2); 
+            end
+        end
+        if strcmpi(type,'updatethr')&&isfield(position,'hcallback3')&&~isempty(position.hcallback3), 
+            if isa(position.hcallback3,'function_handle'), feval(position.hcallback3);
+            elseif iscell(position.hcallback3), feval(position.hcallback3{:}); 
+            elseif ischar(position.hcallback3), eval(position.hcallback3);
             end
         end
 		set([position.h2 position.h6a position.h6b position.h6c],'userdata',data);

@@ -1,5 +1,5 @@
 function Z=conn_vv2rr(ROI,validconditions,filepath,folderout)
-% computes ROI-to-ROI matrix from Voxel-to-Voxel SVD representation for each subject
+% computes ROI-to-ROI matrix by averaging Voxel-to-Voxel correlations
 global CONN_x;
 
 nconditions=length(CONN_x.Setup.conditions.names)-1;
@@ -24,7 +24,7 @@ for ivalidcondition=1:numel(validconditions),
         else
             if isstruct(ROI),
                 xyz=conn_convertcoordinates('idx2tal',1:prod(Y1.matdim.dim),Y1.matdim.mat,Y1.matdim.dim)';
-                W=spm_get_data(ROI,pinv(ROI.mat)*xyz);
+                W=spm_get_data(ROI,pinv(ROI(1).mat)*xyz);
                 if size(W,1)==1&&isequal(reshape(unique(W),[],1),(0:max(W(:)))'), W=double(repmat(W,[max(W(:)),1])==repmat((1:max(W(:)))',[1,size(W,2)])); end
                 lastmatdim=Y1.matdim;
             else W=ROI;

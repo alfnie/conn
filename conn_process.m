@@ -3739,6 +3739,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
         selectedcondition=CONN_x.dynAnalyses(CONN_x.dynAnalysis).condition;    % selected condition (determines span of BOLD timeseries to use in these analyses)
         roinames=CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names;  % cell-array of ROI names (empty to use all ROIs)
         window=CONN_x.dynAnalyses(CONN_x.dynAnalysis).window;
+        roixyzs={};
         
 %         do=true;
 %         if ~isequal(validsubjects,1:CONN_x.Setup.nsubjects),
@@ -3789,6 +3790,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     [ok,idx]=ismember(roinames,X1.names);
                     if ~all(ok), error('Missing ROI data in subject %d',nsub); end
                     y=cat(2,X1.data{idx});
+                    if isempty(roixyzs), roixyzs=X1.xyz(idx); end
                     if nsub~=validsubjects(1)&&size(y,2)~=size(Y,2), error('Incorrect number of ROI timeseries in subject %d',nsub); end
                     if ~isempty(selectedcondition)
                         matchedcondition=find(strcmp(X1.conditionsnames,CONN_x.Setup.conditions.names{selectedcondition}),1);
@@ -3839,16 +3841,25 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 filename=fullfile(filepathresults,'dyn_Base.mat');
                 names=arrayfun(@(n)sprintf('Dynamic factor %02d',n),1:Ncomponents,'uni',0);
                 ROInames=roinames;
+                ROIxyzs=roixyzs;
                 if ~isempty(selectedcondition), selectedconditionname=CONN_x.Setup.conditions.names{selectedcondition};
                 else selectedconditionname='';
                 end
-                save(filename,'X','Y','Xfilter','B','H','B0','H0','names','ROInames','IDX_subject','IDX_session','COND_names','COND_weights','selectedconditionname');
+                save(filename,'X','Y','Xfilter','B','H','B0','H0','names','ROInames','ROIxyzs','IDX_subject','IDX_session','COND_names','COND_weights','selectedconditionname');
                 for nsub=1:CONN_x.Setup.nsubjects
                     filename=fullfile(filepathresults,['dyn_Subject',num2str(nsub,'%03d'),'.mat']);
-                    data=H(IDX_subject==nsub,:);
+                    thissub=IDX_subject==nsub;
+                    nthissub=nnz(thissub);
+                    data=H(thissub,:);
                     names=arrayfun(@(n)sprintf('Dynamic factor %02d',n),1:Ncomponents,'uni',0);
                     data_sessions=IDX_session(IDX_subject==nsub);
                     save(filename,'data','names','data_sessions');
+                    filename=fullfile(filepathresults,['dyn_Subject',num2str(nsub,'%03d'),'.mtx.nii']);
+                    C=0; 
+                    for ncomp=1:size(H0,2), C=C+repmat(B0(:,:,ncomp),[1,1,nthissub]).*repmat(shiftdim(H0(thissub,ncomp),-2),[size(B0,1),size(B0,2),1]); end
+                    for ncomp=1:size(H ,2), C=C+repmat( B(:,:,ncomp),[1,1,nthissub]).*repmat(shiftdim( H(thissub,ncomp),-2),[size(B ,1),size(B ,2),1]); end
+                    %C=sum(permute(B0,[1,2,4,3]).*permute(H0(thissub,:),[3,4,1,2]),4)+sum(permute(B,[1,2,4,3]).*permute(H(thissub,:),[3,4,1,2]),4);
+                    conn_mtx_write(filename,C,ROInames,ROIxyzs);
                 end
 
                 iremove=reshape(find(cellfun('length',regexp(CONN_x.Setup.l2covariates.names(1:end-1),['^_(Variability|Average|Frequency) Dynamic factor (.*_)?\d+ ',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,' @ .*$']))),1,[]);
@@ -3986,6 +3997,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         end
                     end
                 end
+                
                 %                 end
                 %                 if 1, %CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(1)
                 newanalyses=[];

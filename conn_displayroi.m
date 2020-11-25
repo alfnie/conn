@@ -1151,6 +1151,7 @@ switch(lower(option)),
             hc2=uimenu(hc1,'Label','fontsize');
             uimenu(hc2,'Label','increase labels fontsize','callback','h=findobj(gcbf,''type'',''text''); s=max(1,cell2mat(get(h,''fontsize''))+1); for ss=reshape(unique(s),1,[]), set(h(s==ss),''fontsize'',ss); end');
             uimenu(hc2,'Label','decrease labels fontsize','callback','h=findobj(gcbf,''type'',''text''); s=max(1,cell2mat(get(h,''fontsize''))-1); for ss=reshape(unique(s),1,[]), set(h(s==ss),''fontsize'',ss); end');
+            uimenu(hc2,'Label','set labels fontsize','callback','h=findobj(gcbf,''type'',''text''); s=inputdlg(''Enter fontsize'',''conn_displayroi'',1,{num2str(round(mean(cell2mat(get(h,''fontsize'')))))}); if ~isempty(s), s=str2num(s{1}); if ~isempty(s), set(h,''fontsize'',s); end; end');
             hc2=uimenu(hc1,'Label','background');
             uimenu(hc2,'Label','white background','callback','data=get(gcbf,''userdata''); h=findobj(gcbf,''type'',''text''); nc0=get(data.hfig,''color''); set([data.hfig data.hax],''color'',[1 1 1]); hc=cell2mat(get(h,''color'')); for nc=unique(hc,''rows'')'', idx=all(bsxfun(@eq,nc'',hc),2); set(h(idx),''color'',max(0,min(1,[1 1 1]-abs(nc''-nc0)))); end');
             uimenu(hc2,'Label','light background','callback','data=get(gcbf,''userdata''); h=findobj(gcbf,''type'',''text''); nc0=get(data.hfig,''color''); set([data.hfig data.hax],''color'',[.95 .95 .9]); hc=cell2mat(get(h,''color'')); for nc=unique(hc,''rows'')'', idx=all(bsxfun(@eq,nc'',hc),2); set(h(idx),''color'',max(0,min(1,[.95 .95 .9]-abs(nc''-nc0)))); end');
@@ -1643,10 +1644,11 @@ switch(lower(option)),
         end
         set(hfig,'userdata',data); 
         return
-    case {'labels1','labels2'}
+    case {'labels1','labels2','labels3'}
         data=get(hfig,'userdata');
         if strcmp(option,'labels1'), data.plotconnoptions.FONTSIZE=data.plotconnoptions.FONTSIZE+1;
         elseif strcmp(option,'labels2'), data.plotconnoptions.FONTSIZE=max(1,data.plotconnoptions.FONTSIZE-1);
+        elseif strcmp(option,'labels3'), s=inputdlg('Enter fontsize','conn_displayroi',1,{num2str(data.plotconnoptions.FONTSIZE(1))}); if ~isempty(s), s=str2num(s{1}); if ~isempty(s), data.plotconnoptions.FONTSIZE(1)=s(1); end; end;
         end
         h=findobj(hfig,'tag','textstring','-or','tag','textstringpartial');
         if ~isempty(h), set(h,'fontsize',data.plotconnoptions.FONTSIZE(1)); end
@@ -2810,6 +2812,7 @@ switch(data.display),
                     uimenu(ht,'Label','hide ROI labels','callback',{@conn_displayroi,'labelsoff'});
                     uimenu(ht,'Label','increase labels fontsize','callback',{@conn_displayroi,'labels1'});
                     uimenu(ht,'Label','decrease labels fontsize','callback',{@conn_displayroi,'labels2'});
+                    uimenu(ht,'Label','labels: set labels fontsize','callback',{@conn_displayroi,'labels3'});
                     uimenu(ht,'Label','edit ROI labels','callback',{@conn_displayroi,'labelsedit'});
                     ht=uimenu(hc1,'Label','Connections');
                     uimenu(ht,'Label','color: positive/negative = red/blue','callback',{@conn_displayroi,'edgecolors1'});
@@ -2863,6 +2866,7 @@ switch(data.display),
                     uimenu(ht,'Label','labels: hide ROI labels','callback',{@conn_displayroi,'labelsoff'});
                     uimenu(ht,'Label','labels: increase labels fontsize','callback',{@conn_displayroi,'labels1'});
                     uimenu(ht,'Label','labels: decrease labels fontsize','callback',{@conn_displayroi,'labels2'});
+                    uimenu(ht,'Label','labels: set labels fontsize','callback',{@conn_displayroi,'labels3'});
                     uimenu(ht,'Label','labels: edit ROI labels','callback',{@conn_displayroi,'labelsedit'});
                     uimenu(ht,'Label','labels: edit Group labels','callback',{@conn_displayroi,'groupsedit'});
                     ht=uimenu(hc1,'Label','Connections');
