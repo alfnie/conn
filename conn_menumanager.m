@@ -491,7 +491,9 @@ else
                         end
                     end
                 end
-                
+                if ~iscell(CONN_MM.MENU{thishandle}.callback{n1})&&CONN_MM.MENU{thishandle}.order(1)~='h'
+                    try, ximage(round(size(ximage,1)/2)+(1:5),end-16:end-8,:)=.5; end
+                end
                 %CONN_MM.MENU{thishandle}.BINDEX(t3(n1)+1:t3(n1+1))=n1;
                 if CONN_MM.MENU{thishandle}.order(1)=='h', pos=[CONN_MM.MENU{thishandle}.position(1)+t4(n1)*CONN_MM.MENU{thishandle}.position(3), CONN_MM.MENU{thishandle}.position(2), CONN_MM.MENU{thishandle}.position(3)*(t4(n1+1)-t4(n1)), CONN_MM.MENU{thishandle}.position(4)];
                 else pos=[CONN_MM.MENU{thishandle}.position(1), CONN_MM.MENU{thishandle}.position(2)+CONN_MM.MENU{thishandle}.position(4)-t4(n1+1)*CONN_MM.MENU{thishandle}.position(4), CONN_MM.MENU{thishandle}.position(3), CONN_MM.MENU{thishandle}.position(4)*(t4(n1+1)-t4(n1))]; end

@@ -25,6 +25,7 @@ try,
     end
 catch,
     tdata=regexp(fileread(tfilename),'[\r\n]+','split');
+    tdata=regexprep(tdata,'\<n/a\>','nan');
     tdata=tdata(cellfun('length',tdata)>0);
     vdata=cellfun(@str2num,tdata,'uni',0);
     if numel(tdata)>1&&isequal(find(cellfun('length',vdata)==0),1), tnames=tdata{1}; tdata=cat(1,vdata{2:end}); 
@@ -37,6 +38,11 @@ catch,
         idx=find(strcmp(tnames,v));
         assert(numel(idx)==1, 'unable to find field %s in %s',v,tfilename);
         vdata=vdata(:,idx);
+    elseif okstruct&&~isempty(tnames)
+        try
+            tnames=regexp(tnames,'[\s,\t]+','split');
+            tdata=cell2struct(num2cell(tdata,1),tnames,2);
+        end
     end        
 end
 if isstruct(tdata)&&~okstruct,

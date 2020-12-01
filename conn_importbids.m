@@ -86,6 +86,8 @@ for isub=1:numel(nsubs),
                                     CONN_x.Setup.l1covariates.names{idx}=tname;
                                     CONN_x.Setup.l1covariates.files{nsub}{idx}{nses}=conn_file(R);
                                 end
+                            else
+                                conn_disp('fprintf','warning: unexpected format of file %s (subject %d session %d). Skipping import\n',fname,nsub,nses);
 %                             else
 %                                 name='QC_fmriprep';
 %                                 idx=strmatch(name,CONN_x.Setup.l1covariates.names,'exact');
