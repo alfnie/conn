@@ -59,7 +59,7 @@ if ischar(filenames), filenames=cellstr(filenames); end
 if isstruct(filenames), Series=filenames;
 else Series=conn_dcmdir(filenames);
 end
-[filenameout,filetypeout,fileRTout,filedescripout,Series]=conn_dcm2nii(Series,opts{:},varargin{:});
+[filenameout,filetypeout,fileRTout,filedescripout,Series]=conn_dcm2nii(Series,opts{:},'renamefiles',true,varargin{:});
 valid=filetypeout>0;
 i=find(valid);
 try, 

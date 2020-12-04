@@ -79,6 +79,9 @@ end
                     if isempty(answ), return; end
                     name=regexprep(answ{1},'[^\w\d ]','');
                     descrip=answ{2};
+                else
+                    name=regexprep(char(name),'[^\w\d ]','');
+                    descrip='';
                 end
                 idx=1:numel(CONN_x.Results.saved.names);
                 if any(strcmp(CONN_x.Results.saved.names(idx),name))

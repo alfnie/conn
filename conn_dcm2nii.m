@@ -24,6 +24,7 @@ persistent saved;
 if isempty(saved), 
     saved.folderout='../nii';
     saved.overwrite=false;
+    saved.renamefiles=false;
     saved.spm_dicom_convert_opts='all';
     saved.spm_dicom_convert_root_dir='flat';
     saved.spm_dicom_convert_format=spm_get_defaults('images.format');
@@ -37,6 +38,7 @@ if nargin>1,
         switch(varargin{n})
             case 'folderout', this.folderout=varargin{n+1};
             case 'overwrite', this.overwrite=varargin{n+1};
+            case 'renamefiles', this.renamefiles=varargin{n+1};
             case 'opts', this.spm_dicom_convert_opts=varargin{n+1};
             case 'root_dir', this.spm_dicom_convert_root_dir=varargin{n+1};
             case 'format', this.spm_dicom_convert_format=varargin{n+1};
@@ -96,13 +98,14 @@ for n0=1:numel(filename)
             continue
         end
         tfilename=char(filename(n0).files);
-        [filesout_path,filesout_name,filesout_ext]=fileparts(deblank(tfilename(1,:)));
-        filesout_name=sprintf('run-%s.nii',uSN{n0}); %filename(n0).SeriesNumber);
     else
         tfilename=char(filename{n0});
-        [filesout_path,filesout_name,filesout_ext]=fileparts(deblank(tfilename(1,:)));
-        filesout_name=[filesout_name,filesout_ext];
-        filesout_name=regexprep(filesout_name,'-1\.dcm$','.nii');
+    end
+    [filesout_path,filesout_name,filesout_ext]=fileparts(deblank(tfilename(1,:)));
+    if this.renamefiles
+        filesout_name=sprintf('run-%s.nii',uSN{n0}); %filename(n0).SeriesNumber);
+    else
+        filesout_name=conn_prepend('',regexprep([filesout_name, filesout_ext],'-1\.dcm$',''),'.nii');
     end
     switch(lower(this.folderout))
         case './',

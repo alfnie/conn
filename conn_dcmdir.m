@@ -22,10 +22,10 @@ ImagePositionPatient=nan(3,numel(filenames));
 dict=load(fullfile(fileparts(which('spm')),'spm_dicom_dict.mat'));
 filesout_path='';
 count=[];
-if ~isempty(DOGUI), ht=conn_waitbar(0,sprintf('%s Reading DICOM directory information. Please wait',DOGUI)); end
+if ~isempty(DOGUI)&&DOGUI, ht=conn_waitbar(0,sprintf('%s Reading DICOM directory information. Please wait',DOGUI)); end
 for n=1:numel(filenames)
     [filesout_path,nill,nill]=fileparts(filenames{n});
-    fprintf('.');
+    if isempty(DOGUI)||DOGUI, fprintf('.'); end
     warning('off','spm:dicom');
     a=spm_dicom_header(filenames{n},dict);
     if ESSENTIALS&&~isempty(a), 
@@ -53,41 +53,48 @@ for n=1:numel(filenames)
             HDR{n}=areduced;
         end
         if ~ismember(i,count), 
-            if ~isempty(DOGUI), 
+            if ~isempty(DOGUI)&&DOGUI, 
                 if isfield(a,'SeriesDescription'), tstr=a.SeriesDescription; else tstr=''; end
                 conn_waitbar(n/numel(filenames),ht,sprintf('#%d: %s',i,tstr)); 
             end
-            count=[count,i]; fprintf('\n'); 
+            count=[count,i]; 
+            if isempty(DOGUI)||DOGUI, fprintf('\n'); end
         end
     else
-        fprintf('\nSkipping file %s (not a DICOM file)\n',filenames{n});
-        if ~isempty(DOGUI), conn_waitbar(n/numel(filenames),ht,sprintf('%s is not a DICOM file',filenames{n})); end
+        if isempty(DOGUI)||DOGUI, fprintf('\nSkipping file %s (not a DICOM file)\n',filenames{n}); end
+        if ~isempty(DOGUI)&&DOGUI, conn_waitbar(n/numel(filenames),ht,sprintf('%s is not a DICOM file',filenames{n})); end
     end
 end
-fprintf('\n');
-if ~isempty(DOGUI), conn_waitbar('close',ht); end
+if isempty(DOGUI)||DOGUI, fprintf('\n'); end
+if ~isempty(DOGUI)&&DOGUI, conn_waitbar('close',ht); end
 [useries,nill,iseries]=unique(SeriesNumber(~isnan(SeriesNumber)));
 if isempty(useries), Series=struct([]); return; end 
 Nseries=accumarray(iseries,1);
 SeriesNfiles=nan(size(SeriesInfo));
 SeriesNfiles(useries)=Nseries;
 idxNseries=1:numel(Nseries);%[nill,idxNseries]=sort(Nseries,'descend');
-fprintf('Found %d series and %d DICOM files\n',numel(useries),sum(~isnan(SeriesNumber)));
+if isempty(DOGUI)||DOGUI, fprintf('Found %d series and %d DICOM files\n',numel(useries),sum(~isnan(SeriesNumber))); end
 
-try, fhlog=fopen(fullfile(filesout_path,sprintf('conn_dcmdir_%s.log',datestr(now,'yyyy_mm_dd_HHMMSSFFF'))),'wt'); 
-catch, fhlog=[]; 
+fhlog=[]; 
+if isempty(DOGUI)||DOGUI, 
+    try, fhlog=fopen(fullfile(filesout_path,sprintf('conn_dcmdir_%s.log',datestr(now,'yyyy_mm_dd_HHMMSSFFF'))),'wt'); end
 end
 clear Series;
-fprintf('\n________________________________________________________\n')
-fprintf2('SeriesNumber, SeriesDescription, check, size, volumes, files, Repetition Time (ms)\n'); %, Echo Times (ms)\n');
+if isempty(DOGUI)||DOGUI, 
+    fprintf('\n________________________________________________________\n')
+    fprintf2('SeriesNumber, SeriesDescription, check, size, volumes, files, Repetition Time (ms)\n'); %, Echo Times (ms)\n');
+end
 for n=1:numel(useries),
     i=useries(idxNseries(n));
     idx=find(SeriesNumber==i);
     Series(i)=struct('SeriesNumber',i,'SeriesDescription','','SeriesInfo',SeriesInfo{i},'Size',[],'check',false,'files',{filenames(idx)},'headers',{HDR(idx)});
 
-    fprintf2('%3d',i);
-    if isfield(SeriesInfo{i},'SeriesDescription'), fprintf2(',%64s',regexprep(SeriesInfo{i}.SeriesDescription,',','')); Series(i).SeriesDescription=SeriesInfo{i}.SeriesDescription;
-    else fprintf2(',%64s','');
+    if isfield(SeriesInfo{i},'SeriesDescription'), Series(i).SeriesDescription=SeriesInfo{i}.SeriesDescription; end
+    if isempty(DOGUI)||DOGUI,
+        fprintf2('%3d',i);
+        if isfield(SeriesInfo{i},'SeriesDescription'), fprintf2(',%64s',regexprep(SeriesInfo{i}.SeriesDescription,',',''));
+        else fprintf2(',%64s','');
+        end
     end
     
     s=[];
@@ -104,16 +111,22 @@ for n=1:numel(useries),
         s(end+1)=tmp;
     end
     Series(i).Size=s;
-    if numel(s)==4&&prod(s(3:4))==numel(idx), 
-        fprintf2(',ok,%16s',sprintf('%dx%dx%d (%d)',s(1),s(2),s(3),s(4))); Series(i).check=true;
-    else
-        fprintf2(',err,%16s',mat2str(s)); Series(i).check=false;
+    
+    if numel(s)==4&&prod(s(3:4))==numel(idx), Series(i).check=true; 
+    else Series(i).check=false;
     end
-    fprintf2(',%4d',numel(idx));
-    if isfield(SeriesInfo{i},'RepetitionTime'), fprintf2(',%.2f',SeriesInfo{i}.RepetitionTime); %Series(i).SeriesInfo.dcmdir_RepetitionTime=SeriesInfo{i}.RepetitionTime/1000;
-    else fprintf2(',');
+    if isempty(DOGUI)||DOGUI,
+        if numel(s)==4&&prod(s(3:4))==numel(idx),
+            fprintf2(',ok,%16s',sprintf('%dx%dx%d (%d)',s(1),s(2),s(3),s(4))); 
+        else
+            fprintf2(',err,%16s',mat2str(s)); 
+        end
+        fprintf2(',%4d',numel(idx));
+        if isfield(SeriesInfo{i},'RepetitionTime'), fprintf2(',%.2f',SeriesInfo{i}.RepetitionTime); %Series(i).SeriesInfo.dcmdir_RepetitionTime=SeriesInfo{i}.RepetitionTime/1000;
+        else fprintf2(',');
+        end
+        fprintf2('\n');
     end
-    fprintf2('\n');
 %     try
 %         tmp=ContentTime(idx);
 %         Series(i).SeriesInfo.dcmdir_ContentTime=tmp;
@@ -127,12 +140,14 @@ for n=1:numel(useries),
 %         fprintf2(',');
 %     end
 end
-for n=1:numel(useries)
-    i=useries(idxNseries(n));
-    idx=find(SeriesNumber==i);
-    fprintf2('\n  DICOM series #%d (%d dcm files)\n',i,numel(idx));
-    str=evalc('disp(HDR{idx(1)});');
-    fprintf2('%s',str);
+if isempty(DOGUI)||DOGUI
+    for n=1:numel(useries)
+        i=useries(idxNseries(n));
+        idx=find(SeriesNumber==i);
+        fprintf2('\n  DICOM series #%d (%d dcm files)\n',i,numel(idx));
+        str=evalc('disp(HDR{idx(1)});');
+        fprintf2('%s',str);
+    end
 end
 try, fclose(fhlog); end
 
