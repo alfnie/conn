@@ -17,22 +17,44 @@ switch(tfileext)
         else                        names=regexprep(names,'\,','');
         end
         fh=fopen(tfilename,'wt');
-        for n1=1:numel(names),
-            if isempty(names{n1}), names{n1}='-'; end
-            fprintf(fh,'%s',names{n1});
-            if n1<numel(names)&&strcmp(tfileext,'.csv'), fprintf(fh,','); 
-            elseif n1<numel(names), fprintf(fh,' '); 
-            else fprintf(fh,'\n'); 
-            end
-        end
-        for n2=1:size(data,1),
-            for n1=1:size(data,2),
-                if iscell(data(n2,n1))&&ischar(data{n2,n1}), fprintf(fh,'%s',data{n2,n1});
-                else fprintf(fh,'%s',mat2str(data(n2,n1)));
+        if isstruct(data)
+            names=fieldnames(data);
+            for n1=1:numel(names),
+                fprintf(fh,'%s',names{n1});
+                if n1<numel(names)&&strcmp(tfileext,'.csv'), fprintf(fh,',');
+                elseif n1<numel(names), fprintf(fh,' ');
+                else fprintf(fh,'\n');
                 end
-                if n1<size(data,2)&&strcmp(tfileext,'.csv'), fprintf(fh,','); 
-                elseif n1<size(data,2), fprintf(fh,' '); 
-                else fprintf(fh,'\n'); 
+            end
+            for n2=1:size(data.(names{1}),1),
+                for n1=1:numel(names),
+                    if iscell(data.(names{n1})), fprintf(fh,'%s',data.(names{n1}){n2});
+                    else fprintf(fh,'%s',mat2str(data.(names{n1})(n2)));
+                    end
+                    if n1<numel(names)&&strcmp(tfileext,'.csv'), fprintf(fh,',');
+                    elseif n1<size(data,2), fprintf(fh,' ');
+                    else fprintf(fh,'\n');
+                    end
+                end
+            end
+        else
+            for n1=1:numel(names),
+                if isempty(names{n1}), names{n1}='-'; end
+                fprintf(fh,'%s',names{n1});
+                if n1<numel(names)&&strcmp(tfileext,'.csv'), fprintf(fh,',');
+                elseif n1<numel(names), fprintf(fh,' ');
+                else fprintf(fh,'\n');
+                end
+            end
+            for n2=1:size(data,1),
+                for n1=1:size(data,2),
+                    if iscell(data(n2,n1))&&ischar(data{n2,n1}), fprintf(fh,'%s',data{n2,n1});
+                    else fprintf(fh,'%s',mat2str(data(n2,n1)));
+                    end
+                    if n1<size(data,2)&&strcmp(tfileext,'.csv'), fprintf(fh,',');
+                    elseif n1<size(data,2), fprintf(fh,' ');
+                    else fprintf(fh,'\n');
+                    end
                 end
             end
         end

@@ -754,7 +754,7 @@ else
                 ID=regexp(msg,'\d+','match'); 
                 [nill,idx]=max(cellfun('length',ID)); 
                 if ~isempty(idx), info.jobid{i}=ID{idx}; else info.jobid{i}='?'; end
-                if numel(ijobs)>1&&CFG.cmd_submit_delay>0, pause(double(CFG.cmd_submit_delay)); end
+                if numel(ijobs)>1&&CFG.cmd_submit_delay>0, disp(msg); pause(double(CFG.cmd_submit_delay)); end
             end
             varargout={info};
             

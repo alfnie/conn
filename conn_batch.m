@@ -689,6 +689,7 @@ if isfield(batch,'Setup'),
         if (isfield(batch.Setup,'isnew')&&batch.Setup.isnew)||isempty(dir(batch.filename)),
             conn init;                   % initializes CONN_x structure
             %CONN_x.Setup.RT=nan;
+            if ~isempty(batch.filename)&&ischar(batch.filename), [nill,nill,extt]=fileparts(batch.filename); if isempty(extt), batch.filename=[batch.filename,'.mat']; end; end
             CONN_x.filename=batch.filename;
             if conn_existfile(CONN_x.filename), conn_jobmanager('cleardmat'); end
         else
@@ -1261,6 +1262,7 @@ if isfield(batch,'Setup'),
     end
 else
     if isfield(batch,'filename'),
+        if ~isempty(batch.filename)&&ischar(batch.filename), [nill,nill,extt]=fileparts(batch.filename); if isempty(extt), batch.filename=[batch.filename,'.mat']; end; end
         CONN_x.filename=batch.filename;
         CONN_x.gui=0;
         conn load;                      % loads existing conn_* project

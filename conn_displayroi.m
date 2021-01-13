@@ -713,8 +713,10 @@ switch(lower(option)),
             R_unthresholded(isnan(R))=0;
             ColumnNames=data.names2(data.displaytheserois);
             ColumnGroups=data.clusters(data.displaytheserois);
-            R_clusters=data.CLUSTER_labels(data.displaytheserois(data.displaytheserois<=size(z,1)),data.displaytheserois);
-            R_clusters(R==0)=0;
+            R_clusters_unthresholded=data.CLUSTER_labels(data.displaytheserois(data.displaytheserois<=size(z,1)),data.displaytheserois);
+            R_clusters=R_clusters_unthresholded;R_clusters(R==0)=0;
+            %R_clusters=R_clusters_unthresholded;R_clusters(~ismember(R_clusters,unique(R_clusters(R~=0))))=0;
+            
             if ~isempty(data.CLUSTER_selected)
                 [ok,idx1]=ismember(R_clusters,data.CLUSTER_selected);
                 R_clusters(~ok)=0;
@@ -729,6 +731,11 @@ switch(lower(option)),
                     conn_mtx_write(conn_prepend('',tfilename,'.mask.nii'),double(R~=0),ColumnNames,data.xyz2(data.displaytheserois));
                     conn_disp('fprintf','Thresholded connectivity matrix saved in %s\n',tfilename);
                     if ~isempty(R_clusters_names), 
+                        for n=1:numel(R_clusters_names)
+                            idx=find(strncmp(data.list2txt(data.list2visible),R_clusters_names{n},numel(R_clusters_names{n})),1);
+                            if ~isempty(idx),R_clusters_names{n}=data.list2txt{data.list2visible(idx)}; end
+                        end
+                        conn_mtx_write(conn_prepend('',tfilename,'.clusters.orig.nii'),R_clusters_unthresholded,ColumnNames,data.xyz2(data.displaytheserois),R_clusters_names); 
                         conn_mtx_write(conn_prepend('',tfilename,'.clusters.nii'),R_clusters,ColumnNames,data.xyz2(data.displaytheserois),R_clusters_names); 
                         conn_disp('fprintf','Suprathreshold connectivity clusters saved in %s\n',conn_prepend('',tfilename,'.clusters.nii'));
                     end

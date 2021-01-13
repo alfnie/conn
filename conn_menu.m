@@ -530,7 +530,7 @@ switch(lower(type)),
             else
                 b1=bgcolor;
                 %set(ht2,'visible','off','units','norm');
-                t=linspace(0,pi/2,32);tA=30*tpos(3:4)/min(tpos(3:4));
+                t=linspace(0,pi/2,32);tA=30*tpos(3:4)/max(300,min(tpos(3:4)));
                 %h3=patch([1 tA(1)-1 tA(1)-1+cos(3*pi/2+t) tA(1) tA(1) tA(1)-1+cos(t) tA(1)-1 1 1+cos(pi/2+t) 0 0 1+cos(pi+t)],[0 0 1+sin(3*pi/2+t) 1 tA(2)-1 tA(2)-1+sin(t) tA(2) tA(2) tA(2)-1+sin(pi/2+t) tA(2)-1 1 1+sin(pi+t)],'k','edgecolor',bg2,'facecolor',bgcolor,'linewidth',lw2,'parent',ht2);
                 h3a=patch([1 tA(1)-1 tA(1)-1+cos(3*pi/2+t) tA(1) tA(1) tA(1)-1+cos(t) tA(1)-1 1 1+cos(pi/2+t) 0 0 1+cos(pi+t)],[0 0 1+sin(3*pi/2+t) 1 tA(2)-1 tA(2)-1+sin(t) tA(2) tA(2) tA(2)-1+sin(pi/2+t) tA(2)-1 1 1+sin(pi+t)],'k','edgecolor','none','facecolor',bgcolor,'linewidth',lw2,'parent',ht2);
                 %if strcmpi(type,'frame'),hold(ht2,'on'); plot([1 tA(1)-1 tA(1)-1+cos(3*pi/2+t) tA(1) tA(1) tA(1)-1+cos(t) tA(1)-1 1 1+cos(pi/2+t) 0 0 1+cos(pi+t)],[0 0 1+sin(3*pi/2+t) 1 tA(2)-1 tA(2)-1+sin(t) tA(2) tA(2) tA(2)-1+sin(pi/2+t) tA(2)-1 1 1+sin(pi+t)],'k','color',0*bg2,'linewidth',lw2,'parent',ht2); hold(ht2,'off'); end
