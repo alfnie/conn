@@ -94,7 +94,7 @@ if nargin>=1&&ischar(varargin{1})&&size(varargin{1},1)==1&&~isempty(regexp(varar
     end
 end
 savelog=SAVELOG;
-if ~(isfield(CONN_x,'filename')&&~isempty(CONN_x.filename)&&ischar(CONN_x.filename)&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'holdsdata')&&CONN_x.pobj.holdsdata), savelog=false; end
+if ~(isfield(CONN_x,'filename')&&~isempty(CONN_x.filename)&&ischar(CONN_x.filename)&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'isextended')&&~CONN_x.pobj.isextended), savelog=false; end
 if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display)&&isfield(CONN_h,'screen')&&isfield(CONN_h.screen,'hfig')&&ishandle(CONN_h.screen.hfig)
     mirrorscreen=true;
     if ~isfield(CONN_h,'screen')||~isfield(CONN_h.screen,'hlog')||~ishandle(CONN_h.screen.hlog),
@@ -160,8 +160,13 @@ if nargin>=1
             end
             if savelog&&~isempty(str)
                 try
-                    filepath=conn_prepend('',conn_projectmanager('projectfile'),''); 
-                    filename=fullfile(filepath,'logfile.txt');
+                    if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'holdsdata')&&~CONN_x.pobj.holdsdata&&isfield(CONN_x.pobj,'isextended')&&~CONN_x.pobj.isextended
+                        filename=conn_prepend('',conn_projectmanager('projectfile'),'.log');
+                        filepath=fileparts(filename);
+                    else
+                        filepath=conn_prepend('',conn_projectmanager('projectfile'),'');
+                        filename=fullfile(filepath,'logfile.txt');
+                    end
                     try
                         fh=fopen(filename,'at');
                     catch

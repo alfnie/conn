@@ -43,7 +43,7 @@ if dogui
         ht1=uicontrol(thfig,'style','listbox','units','norm','position',[.1,.25,.8,.6],'max',2,'string',name,'value',1:numel(name),'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left');
         uicontrol(thfig,'style','pushbutton','string','Import','units','norm','position',[.1,.01,.38,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset);
         uicontrol(thfig,'style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.10],'callback','delete(gcbf)','fontsize',8+CONN_gui.font_offset);
-        hc1=uicontextmenu(thfig);
+        hc1=uicontextmenu('parent',thfig);
         uimenu(hc1,'label','edit taget variable names','callback',@conn_importl2covariate_changenames);
         set(ht1,'uicontextmenu',hc1);        
     else

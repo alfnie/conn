@@ -1681,11 +1681,14 @@ if isfield(batch,'Results'),
     if ~isfield(batch.Results,'analysis_number')||isempty(batch.Results.analysis_number), batch.Results.analysis_number=1; end
     if ischar(batch.Results.analysis_number)
         if isvv, ianalysis=strmatch(batch.Results.analysis_number,{CONN_x.vvAnalyses.name},'exact');
-        else ianalysis=strmatch(batch.Results.analysis_number,{CONN_x.Analyses.name},'exact');
+        else
+            ianalysis=strmatch(batch.Results.analysis_number,{CONN_x.Analyses.name},'exact');
+            if isempty(ianalysis), isvv=true; ianalysis=strmatch(batch.Results.analysis_number,{CONN_x.vvAnalyses.name},'exact'); end
         end
         if isempty(ianalysis), error('unrecognized analysis %s',batch.Results.analysis_number); end
         batch.Results.analysis_number=ianalysis;
     end
+    if isvv&&isfield(batch.Results,'between_sources')&&~isfield(batch.Results,'between_measures'), batch.Results.between_measures=batch.Results.between_sources; batch.Results=rmfield(batch.Results,'between_sources'); end
     if isvv, CONN_x.vvAnalysis=batch.Results.analysis_number;
     else CONN_x.Analysis=batch.Results.analysis_number;
     end

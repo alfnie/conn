@@ -7,7 +7,7 @@ function varargout = conn_projectmanager(option,varargin)
 global CONN_x;
 switch(lower(option))
     case 'null'
-        pobj.isextended=false;    % is this an extension of a different base project?
+        pobj.isextended=false;    % is this project an extension of a different base project?
         pobj.id='';
         pobj.holdsdata=true;      % has this project an independent data folder?
         pobj.importedfiles={};    % has this project just imported associated extended projects?

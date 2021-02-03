@@ -870,9 +870,25 @@ else
                             end
                         end
                     end
-                catch %#ok<*CTCH>
-                    error(['Failed to load file ',errstr,'.']); 
-                    return; 
+                catch me,%#ok<*CTCH>
+                    if ~isempty(me)&&fromgui&&pobj.holdsdata&&~isempty(regexp(char(getReport(me,'basic','hyperlinks','off')),'File might be corrupt'))&&~isempty(regexp(errstr,'\.mat$'))&&conn_existfile(regexprep(errstr,'\.mat$',[filesep,'bakfile.mat']))
+                        answ=conn_questdlg({'WARNING!!!',sprintf('This CONN project file (%s) appears to be corrupted',errstr),sprintf('Attempt to repair this file using latest backup?',connver)},'','Proceed','Cancel','Cancel');
+                        if isequal(answ,'Cancel')
+                            error(['Failed to load file ',errstr,'.']);
+                            return;
+                        end
+                        try
+                            vars=load(regexprep(errstr,'\.mat$',[filesep,'bakfile.mat']),'CONN_x','-mat');
+                            CONN_x=vars.CONN_x;
+                            clear vars;
+                        catch
+                            error(['Failed to load file ',errstr,'.']);
+                            return;
+                        end
+                    else
+                        error(['Failed to load file ',errstr,'.']);
+                        return;
+                    end
                 end
                 if fromgui, CONN_x.gui=1; end
                 if ~pobj.isextended&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'isextended')&&CONN_x.pobj.isextended, % note: fix when attempting to load an extended project directly (e.g. conn load conn_test.#.dmat) instead of indirectly (e.g. conn load conn_test.mat?id=#)
@@ -1692,7 +1708,7 @@ else
                                 nsessall=get(CONN_h.menus.m_setup_00{2},'value'); 
                                 nsessmax=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsubs));
                                 nfields=sum(sum(conn_bsxfun(@le,nsessall(:),nsessmax(:)')));
-								filename=fliplr(deblank(fliplr(deblank(varargin{3}))));
+								filename=fliplr(deblank(fliplr(deblank(char(varargin{3})))));
                                 txt=''; bak1=CONN_x.Setup.functional;bak2=CONN_x.Setup.nscans;
                                 localcopy=isequal(get(CONN_h.menus.m_setup_00{3}.localcopy,'value'),2);
                                 if ~nset, bidsname='func';
@@ -2222,7 +2238,7 @@ else
                                 nsessall=get(CONN_h.menus.m_setup_00{2},'value'); 
                                 nsessmax=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsubs));
                                 if ~CONN_x.Setup.structural_sessionspecific, nsessall=1:max(nsessmax); end
-								filename=fliplr(deblank(fliplr(deblank(varargin{3}))));
+                                filename=fliplr(deblank(fliplr(deblank(char(varargin{3})))));
                                 nfields=sum(sum(conn_bsxfun(@le,nsessall(:),nsessmax(:)')));
                                 txt=''; bak1=CONN_x.Setup.rois.files;bak2=CONN_x.Setup.structural;
                                 localcopy=isequal(get(CONN_h.menus.m_setup_00{3}.localcopy,'value'),2);
@@ -2579,7 +2595,7 @@ else
                         set(CONN_h.menus.m_setup_00{18},'value', 1);
                         %if ~isfield(CONN_x.Setup,'normalized'), CONN_x.Setup.normalized=1; end
                         %set([CONN_h.menus.m_setup_00{11}],'value',CONN_x.Setup.normalized);
-                        hc1=uicontextmenu(CONN_h.screen.hfig);uimenu(hc1,'Label','remove selected ROIs','callback','conn(''gui_setup'',8);');set(CONN_h.menus.m_setup_00{1},'uicontextmenu',hc1);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','remove selected ROIs','callback','conn(''gui_setup'',8);');set(CONN_h.menus.m_setup_00{1},'uicontextmenu',hc1);
                         CONN_h.menus.m_setup_00{23}=uicontrol('style','frame','units','norm','position',boffset+[.38,.005,.30,.145],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                         set(CONN_h.menus.m_setup_00{23},'visible','on'); conn_menumanager('onregion',CONN_h.menus.m_setup_00{23},-1,boffset+[.36,.02,.31,.69]);
                         %if all(CONN_x.Setup.nsessions==1), set([CONN_h.menus.m_setup_00{11},CONN_h.menus.m_setup_00{17}],'visible','off'); end
@@ -3403,7 +3419,7 @@ else
 						set(CONN_h.menus.m_setup_00{2},'string',[repmat('Subject ',[CONN_x.Setup.nsubjects,1]),num2str((1:CONN_x.Setup.nsubjects)')],'max',2,'value',1:CONN_x.Setup.nsubjects);
 						set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.conditions.names,'max',2);
                         nsess=CONN_x.Setup.nsessions(1); set(CONN_h.menus.m_setup_00{3},'string',[repmat('Session ',[nsess,1]),num2str((1:nsess)')],'value',min(nsess,get(CONN_h.menus.m_setup_00{3},'value')));
-                        hc1=uicontextmenu(CONN_h.screen.hfig);uimenu(hc1,'Label','remove selected condition(s)','callback','conn(''gui_setup'',8);');
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','remove selected condition(s)','callback','conn(''gui_setup'',8);');
                         uimenu(hc1,'Label','replicate selected condition(s) as a new condition','callback','conn(''gui_setup'',9,''replicate'');');
                         %uimenu(hc1,'Label','replicate baseline/opposite of selected condition(s) as a new condition','callback','conn(''gui_setup'',9,''replicateopposite'');');
                         %uimenu(hc1,'Label','move selected condition to covariates list (for Fair et al. resting state analyses of task-related data)','callback','conn(''gui_setup'',9,''move'');');
@@ -3853,7 +3869,7 @@ else
 						set(CONN_h.menus.m_setup_00{2},'string',[repmat('Subject ',[CONN_x.Setup.nsubjects,1]),num2str((1:CONN_x.Setup.nsubjects)')],'max',2);
 						set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.l1covariates.names,'max',2);
 						nsess=CONN_x.Setup.nsessions(1); set(CONN_h.menus.m_setup_00{3},'string',[repmat('Session ',[nsess,1]),num2str((1:nsess)')],'value',min(nsess,get(CONN_h.menus.m_setup_00{3},'value')));
-                        hc1=uicontextmenu(CONN_h.screen.hfig);uimenu(hc1,'Label','remove selected covariate','callback','conn(''gui_setup'',8);');set(CONN_h.menus.m_setup_00{1},'uicontextmenu',hc1);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','remove selected covariate','callback','conn(''gui_setup'',8);');set(CONN_h.menus.m_setup_00{1},'uicontextmenu',hc1);
                         %hc1=uicontextmenu;uimenu(hc1,'Label','go to source folder','callback','conn(''gui_setup'',5);');set(CONN_h.menus.m_setup_00{5},'uicontextmenu',hc1);
 					else
 						switch(varargin{2}),
@@ -3866,7 +3882,7 @@ else
                                 nsessall=get(CONN_h.menus.m_setup_00{3},'value'); 
                                 nsessmax=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsubs));
                                 nfields=sum(sum(conn_bsxfun(@le,nsessall(:),nsessmax(:)')));
-								filename=fliplr(deblank(fliplr(deblank(varargin{3}))));
+                                filename=fliplr(deblank(fliplr(deblank(char(varargin{3})))));
                                 txt=''; bak1=CONN_x.Setup.l1covariates.files;
 								if size(filename,1)==nfields,
                                     firstallsubjects=false;
@@ -4171,7 +4187,7 @@ else
                         else CONN_h.menus.m_setup.showneffects=find(cellfun(@(x)isempty(regexp(x,'^_')),CONN_x.Setup.l2covariates.names));
                         end
 						set(CONN_h.menus.m_setup_00{1},'string',conn_strexpandidx(CONN_h.menus.m_setup.showneffects,CONN_x.Setup.l2covariates.names,CONN_x.Setup.l2covariates.descrip),'max',2);
-                        hc1=uicontextmenu(CONN_h.screen.hfig);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);
                         uimenu(hc1,'Label','remove selected covariate(s)','callback','conn(''gui_setup'',8);');
                         uimenu(hc1,'Label','move selected covariate(s) up','callback','conn(''gui_setup'',9,''up'');');
                         uimenu(hc1,'Label','move selected covariate(s) down','callback','conn(''gui_setup'',9,''down'');');
@@ -4794,7 +4810,7 @@ else
 				CONN_h.menus.m_setup_00{5}=conn_menu('image2',boffset+[.25,.10,.50,.8]);
                 set(CONN_h.menus.m_setup_00{3}.files,'max',2);
                 if ~isfield(CONN_x.Setup,'display'), CONN_x.Setup.display={}; end
-                hc1=uicontextmenu(CONN_h.screen.hfig);
+                hc1=uicontextmenu('parent',CONN_h.screen.hfig);
                 uimenu(hc1,'Label','remove selected volume(s)','callback','conn(''gui_display'',8);');
                 uimenu(hc1,'Label','move selected volume(s) up','callback','conn(''gui_display'',9,''up'');');
                 uimenu(hc1,'Label','move selected volume(s) down','callback','conn(''gui_display'',9,''down'');');
@@ -5010,7 +5026,7 @@ else
                             case 2,
                             case 3,
                                 if nargin<4, nsubs=get(CONN_h.menus.m_setup_00{1},'value'); else  nsubs=varargin{4}; end
-                                filename=fliplr(deblank(fliplr(deblank(varargin{3}))));
+                                filename=fliplr(deblank(fliplr(deblank(char(varargin{3})))));
                                 txt=''; bak1=CONN_x.Setup.(CONN_h.menus.m_setup_import);
                                 strfiles='files';
                                 if size(filename,1)==length(nsubs)
@@ -5112,7 +5128,7 @@ else
                         CONN_h.menus.m_setup_00{9}=conn_menu('pushbuttonblue',boffset+[.36,.14,.10,.04],'','Import','<HTML>Imports selected DICOM series as structural/functional data <b>for selected subject(s)</b></HTML>','conn(''gui_setup_import'',9)');
                         CONN_h.menus.m_setup_00{10}=conn_menu('popup',boffset+[.36,.09,.15,.05],'',{'import selected files','copy to local BIDS folder and import'},'<HTML>Controls behavior of ''Import'' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>copy first to local BIDS folder</i> : selected files will be first copied to your local conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified, uncompressed, or processed)</HTML>');
                         CONN_h.menus.m_setup_00{21}=uicontrol('style','frame','units','norm','position',boffset+[.30,.095,.40,.35],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
-                        hc1=uicontextmenu(CONN_h.screen.hfig);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);
                         uimenu(hc1,'Label','select suggested anatomical series','callback','conn(''gui_setup_import'',12,''isanat'');');
                         uimenu(hc1,'Label','select suggested functional series','callback','conn(''gui_setup_import'',12,''isfunc'');');
                         uimenu(hc1,'Label','select suggested fieldmap series','callback','conn(''gui_setup_import'',12,''isfmap'');');
@@ -5133,7 +5149,7 @@ else
                             case 2,
                             case 3,
                                 if nargin<4, nsubs=get(CONN_h.menus.m_setup_00{1},'value'); else  nsubs=varargin{4}; end
-                                filename=fliplr(deblank(fliplr(deblank(varargin{3}))));
+                                filename=fliplr(deblank(fliplr(deblank(char(varargin{3})))));
                                 txt=''; bak1=CONN_x.Setup.(CONN_h.menus.m_setup_import);
                                 strfiles='folders';
                                 if size(filename,1)==length(nsubs)
@@ -5369,9 +5385,9 @@ else
                         if CONN_h.menus.m_setup_import_isfmriprep, CONN_h.menus.m_setup_00{21}=uicontrol('style','frame','units','norm','position',boffset+[.20,.09,.30,.69],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                         else CONN_h.menus.m_setup_00{21}=uicontrol('style','frame','units','norm','position',boffset+[.20,.09,.50,.69],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                         end
-                        hc1=uicontextmenu(CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',5,''manual'');');set(CONN_h.menus.m_setup_00{5},'uicontextmenu',hc1);
-                        hc1=uicontextmenu(CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',6,''manual'');');set(CONN_h.menus.m_setup_00{6},'uicontextmenu',hc1);
-                        hc1=uicontextmenu(CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',7,''manual'');');set(CONN_h.menus.m_setup_00{7},'uicontextmenu',hc1);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',5,''manual'');');set(CONN_h.menus.m_setup_00{5},'uicontextmenu',hc1);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',6,''manual'');');set(CONN_h.menus.m_setup_00{6},'uicontextmenu',hc1);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',7,''manual'');');set(CONN_h.menus.m_setup_00{7},'uicontextmenu',hc1);
                         set(CONN_h.menus.m_setup_00{1}(1),'string',[repmat('Subject ',[CONN_x.Setup.nsubjects,1]),num2str((1:CONN_x.Setup.nsubjects)')],'max',2);
                         set(CONN_h.menus.m_setup_00{3}.files,'max',2);
                         set([CONN_h.menus.m_setup_00{5},CONN_h.menus.m_setup_00{6},CONN_h.menus.m_setup_00{7}],'max',2);
@@ -6807,18 +6823,20 @@ else
                     %                             end
                     %                         end
                     %                     end
-                    if ~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
-                        try
-                            CONN_h.menus.m_analyses.XS=spm_vol(deblank(CONN_x.Setup.structural{1}{1}{1}));
-                        catch
-                            CONN_h.menus.m_analyses.XS=spm_vol(fullfile(fileparts(which('spm')),'canonical','single_subj_T1.nii'));
+                    if isfield(CONN_h.menus.m_analyses,'Y')
+                        if ~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
+                            try
+                                CONN_h.menus.m_analyses.XS=spm_vol(deblank(CONN_x.Setup.structural{1}{1}{1}));
+                            catch
+                                CONN_h.menus.m_analyses.XS=spm_vol(fullfile(fileparts(which('spm')),'canonical','single_subj_T1.nii'));
+                            end
+                            xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+                            CONN_h.menus.m_analyses.Xs=spm_get_data(CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+                            CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                            set(CONN_h.menus.m_analyses_00{15},'min',1,'max',CONN_h.menus.m_analyses.Y.matdim.dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_analyses.Y.matdim.dim(3)-1)),'value',CONN_h.menus.m_analyses.y.slice);
+                        else
+                            CONN_h.menus.m_analyses.y.slice=max(1,min(4,CONN_h.menus.m_analyses.y.slice));
                         end
-                        xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-                        CONN_h.menus.m_analyses.Xs=spm_get_data(CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
-                        CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
-                        set(CONN_h.menus.m_analyses_00{15},'min',1,'max',CONN_h.menus.m_analyses.Y.matdim.dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_analyses.Y.matdim.dim(3)-1)),'value',CONN_h.menus.m_analyses.y.slice);
-                    else
-                        CONN_h.menus.m_analyses.y.slice=max(1,min(4,CONN_h.menus.m_analyses.y.slice));
                     end
                 end
             end
@@ -9388,7 +9406,7 @@ else
                         CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3), CONN_x.Results.xX.displayvoxels));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
                         
-                        hc1=uicontextmenu(CONN_h.screen.hfig);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);
                         %uimenu(hc1,'Label','Select target-ROIs set','callback','conn(''gui_results'',27)');
                         strstr3={'Targets = all ROIs','Targets = source ROIs only','Targets = selected ROIs only'};
                         hc2=[uimenu(hc1,'Label',strstr3{1},'callback','conn(''gui_results'',31,1);');...
@@ -9447,7 +9465,7 @@ else
                         hold(CONN_h.menus.m_results_00{25},'on');
                         %try, [nill,hc]=contourf(xs,0:.01:.25); set(hc,'edgecolor','none'); set(gca,'clim',[0 2]); end
                         CONN_h.menus.m_results_00{26}=patch(nan,nan,'k','parent',CONN_h.menus.m_results_00{25});
-                        hc1=uicontextmenu(CONN_h.screen.hfig);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);
                         uimenu(hc1,'Label','3d view','callback','conn(''gui_results_roi3d'');');
                         uimenu(hc1,'Label','Change background anatomical image','callback','conn(''background_image'');conn gui_results;');
                         set(hi,'uicontextmenu',hc1);
@@ -9521,7 +9539,7 @@ else
                     else CONN_h.menus.m_results.showneffects=find(cellfun(@(x)isempty(regexp(x,'^Dynamic |^_|^QA_|^QC_')),tnames)); 
                     end
                     if any(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_|^QA_|^QC_')),tnames))
-                        hc1=uicontextmenu(CONN_h.screen.hfig);
+                        hc1=uicontextmenu('parent',CONN_h.screen.hfig);
                         if CONN_h.menus.m_results.showneffects_showall, uimenu(hc1,'Label','Hide secondary variables','callback','conn(''gui_results'',39);');
                         else uimenu(hc1,'Label','Show secondary variables','callback','conn(''gui_results'',39);');
                         end
@@ -10987,7 +11005,7 @@ else
                                 set(CONN_h.menus.m_results_00{46},'string','display results');
                                 conn_callbackdisplay_secondlevelclick;
                                 %set([CONN_h.menus.m_results_00{15}],'visible','on');
-                                hc1=uicontextmenu(CONN_h.screen.hfig);uimenu(hc1,'Label','Change background anatomical image','callback','conn(''background_image'');conn gui_results;');uimenu(hc1,'Label','Change background reference rois','callback','conn(''background_rois'');');set(CONN_h.menus.m_results_00{14}.h2,'uicontextmenu',hc1);
+                                hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','Change background anatomical image','callback','conn(''background_image'');conn gui_results;');uimenu(hc1,'Label','Change background reference rois','callback','conn(''background_rois'');');set(CONN_h.menus.m_results_00{14}.h2,'uicontextmenu',hc1);
                                 conn_menu('updatecscale',[],[],CONN_h.menus.m_results_00{14}.h9);
                                 if CONN_x.Results.xX.displayvoxels==1, 
                                     set(CONN_h.menus.m_results_00{14}.h10,'string','1'); 
@@ -11711,7 +11729,7 @@ ht4j=uicontrol(thfig,'style','listbox','units','norm','position',[.65,.7,.3,.2],
 ht4i=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.7,.24,.10],'string','Current sources','value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',{ht4j,ht4d,vars(4,:)},'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h{1},''visible'',''off''); else h{3}=h{3}{get(h{2},''value'')}; if isempty(h{3}), set(h{1},''visible'',''off''); else, set(h{1},''visible'',''on'',''string'',h{3}); end; end');
 if dosecondlevel, set(ht4d,'userdata',{ht4j,ht4i,vars(4,:)},'callback','h=get(gcbo,''userdata''); h{3}=h{3}{get(gcbo,''value'')}; if isempty(h{3}), set([h{1},h{2}],''visible'',''off''); else set(h{2},''visible'',''on''); set(h{1},''string'',h{3}); if get(h{2},''value''), set(h{1},''visible'',''off''); else , set(h{1},''visible'',''on''); end; end'); end
 
-hc1=uicontextmenu(thfig);uimenu(hc1,'Label','select group (2nd-level covariate)','callback',@(varargin)conn_menu_selectsubjects(ht4f)); set(ht4f,'uicontextmenu',hc1);
+hc1=uicontextmenu('parent',thfig);uimenu(hc1,'Label','select group (2nd-level covariate)','callback',@(varargin)conn_menu_selectsubjects(ht4f)); set(ht4f,'uicontextmenu',hc1);
 if multipleoption, condsoption=false; end
 if ~stepsoption, set([ht2a,ht2b,ht2c,ht2d],'enable','off'); end
 if ~all(islogical(condsoption)), set(ht4b,'value',condsoption); 
@@ -12243,7 +12261,7 @@ if ~ok, CONN_gui.background_handle=[]; end;
 if ~ok, CONN_gui.background_handle=image(shiftdim(CONN_gui.backgroundcolor,-1),'parent',ha); end % fig print bug?
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,(.85-mean(CONN_gui.backgroundcolor))*.2*[zeros(1,128) sin(linspace(0,pi,128)).^2 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor,-1))))); end
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,conn_bsxfun(@times,max(.05,(1-mean(CONN_gui.backgroundcolor))*.1)*[zeros(1,128) sin(linspace(0,pi,128)).^4 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor/max(.01,mean(CONN_gui.backgroundcolor)),-1)),shiftdim(CONN_gui.backgroundcolor,-1))))); end
-hc1=uicontextmenu(CONN_h.screen.hfig); uimenu(hc1,'label','<HTML>Change GUI font size (<i>Tools.GUI settings</i>)</HTML>','callback','conn(''gui_settings'');'); set(CONN_gui.background_handle,'uicontextmenu',hc1);
+hc1=uicontextmenu('parent',CONN_h.screen.hfig); uimenu(hc1,'label','<HTML>Change GUI font size (<i>Tools.GUI settings</i>)</HTML>','callback','conn(''gui_settings'');'); set(CONN_gui.background_handle,'uicontextmenu',hc1);
 axis(ha,'tight','off');
 if isfield(CONN_x,'filename')
 %     try

@@ -1037,9 +1037,11 @@ for iSTEP=1:numel(STEPS)
                         X=[ones(numel(Vin),1)];
                         if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; end
                         entercovariates=X;
+                        reg_done=false(size(reg_names));
                         for nl1covariate=1:numel(reg_names)
                             icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),reg_names{nl1covariate}));
                             if ~isempty(icov) % first-level covariates
+                                reg_done(nl1covariate)=true;
                                 cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
                                 switch(cfilename),
                                     case '[raw values]',
@@ -1062,6 +1064,7 @@ for iSTEP=1:numel(STEPS)
                         for nl1covariate=1:numel(reg_names)
                             icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),reg_names{nl1covariate}));
                             if isempty(icov) % ROIs
+                                reg_done(nl1covariate)=true;
                                 nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),reg_names{nl1covariate}));
                                 assert(~isempty(nroi),'unable to find first-level covariate or ROI named %s',reg_names{nl1covariate});
                                 if isempty(Vsource)
@@ -1136,6 +1139,7 @@ for iSTEP=1:numel(STEPS)
                         if ~reg_skip, outputfiles{isubject}{nses}{1}=char(fileout);
                         else outputfiles{isubject}{nses}{1}=char(filein);
                         end
+                        outputfiles{isubject}{nses}{2}=X;
                     end
                 end
             end
@@ -3026,12 +3030,21 @@ for iSTEP=1:numel(STEPS)
                 end
                 
             case {'functional_bandpass','functional_regression'}
+                if ~sets||ALLSETSPERMISSIONS,
+                    icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),'QC_regressors'));
+                    if isempty(icov),
+                        icov=numel(CONN_x.Setup.l1covariates.names);
+                        CONN_x.Setup.l1covariates.names{icov}='QC_regressors';
+                        CONN_x.Setup.l1covariates.names{icov+1}=' ';
+                    end
+                else icov=[];
+                end
                 for isubject=1:numel(subjects),
                     nsubject=subjects(isubject);
                     for nses=1:numel(outputfiles{isubject})
                         if ismember(nses,sessions)
-                            
                             nV=conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{1});
+                            if ~sets||ALLSETSPERMISSIONS, CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}=conn_file(outputfiles{isubject}{nses}{2}); end
                         end
                     end
                 end

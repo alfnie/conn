@@ -142,8 +142,10 @@ switch(lower(type)),
         conn_menumanager('onregion',ht,-1,get(h,'position'));
         if ~isempty(callback2), 
             if ~iscell(callback2), callback2={['h=get(gcbo,''userdata''); set(h,''value'',numel(cellstr(get(h,''string'')))); ',callback],callback2}; end
-            ht=[conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[0 -.04 .02-position(3) .04-position(4)],'','+',['Adds new ',lower(title)],callback2{1}),...
-                conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[.02 -.04 .02-position(3) .04-position(4)],'','-',['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
+            ht=[conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[0 -.03 max(.02,position(3)-.02)-position(3) .03-position(4)],'','new',['Adds new ',lower(title)],callback2{1}),...
+                conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[max(.02,position(3)-.02) -.03 .02-position(3) .03-position(4)],'','-',['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
+            %ht=[conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[0 -.04 .02-position(3) .04-position(4)],'','+',['Adds new ',lower(title)],callback2{1}),...
+            %    conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[.02 -.04 .02-position(3) .04-position(4)],'','-',['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
             set(ht,'userdata',h,'fontweight','bold','visible','off');
             conn_menumanager('onregion',ht,1,get(h,'position')+[0 -.04 0 0],h);
         end
@@ -309,7 +311,7 @@ switch(lower(type)),
 		h.h11=axes('units','norm','position',position+[.02*position(3),0,-.04*position(3),0],'color',bgcolor,'xtick',[],'ytick',[],'parent',CONN_h.screen.hfig); 
 		h.h12=patch(struct('vertices',[],'faces',[]),'edgecolor','none','facecolor','w','specularstrength',0,'backFaceLighting','lit','parent',h.h11);
         h.h13=[light('position',[1000 0 .1],'parent',h.h11) light('position',[-1000 0 .1],'parent',h.h11)];
-        hc1=uicontextmenu(CONN_h.screen.hfig);
+        hc1=uicontextmenu('parent',CONN_h.screen.hfig);
         uimenu(hc1,'Label','Superior view','callback','set(gca,''cameraposition'',[0 0 1000],''cameraupvector'',[0 1 0])');
         uimenu(hc1,'Label','Inferior view','callback','set(gca,''cameraposition'',[0 0 -1000],''cameraupvector'',[0 1 0])');
         uimenu(hc1,'Label','Anterior view','callback','set(gca,''cameraposition'',[0 1000 0],''cameraupvector'',[0 0 1])');
