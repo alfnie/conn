@@ -354,7 +354,7 @@ function varargout=conn_batch(varargin)
 %                             in mm); c) *.siemens.txt (Siemens MotionDetectionParameter.txt format); d) *.deg.txt (same 
 %                             as SPM format but rotations in degrees instead of radians)
 %      boundingbox     : (normalization) target bounding box for resliced volumes (mm) [-90,-126,-72;90,90,108] 
-%      bp_filter       : (functional_bandpass) Low- and High- frequency thresholds (in Hz)
+%      bp_filter       : (functional_bandpass, functional_regression) Low- and High- frequency thresholds (in Hz)
 %      bp_keep0        : (functional_bandpass) 0: removes average BOLD signal (freq=0Hz component); 1: keeps average BOLD signal in output 
 %                           independent of band-pass filter values; [1]
 %      coregtomean     : (functional_coregister/segment/normalize) 0: use first volume; 1: use mean volume (computed during 
@@ -370,9 +370,11 @@ function varargout=conn_batch(varargin)
 %                           'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed')
 %      reg_names       : (functional_regression) list of first-level covariates to use as model regressors / design matrix (valid entries are 
 %                           first-level covariate names or ROI names)
-%      reg_dimensions  : (functional_regression) list of maximum number of dimensions (one vlaue for each model regressor in reg_names)
-%      reg_deriv       : (functional_regression) list of 0/1/2 values (one value for each model regressorr in reg_names): add first- or 
+%      reg_dimensions  : (functional_regression) list of maximum number of dimensions (one value for each model regressor in reg_names)
+%      reg_deriv       : (functional_regression) list of 0/1/2 values (one value for each model regressor in reg_names): add first- or 
 %                           second- order derivatives to each model regressor
+%      reg_filter       : (functional_regression) list of 0/1 values (one value for each model regressor in reg_names): band-pass filter 
+%                           individual model regressors (filter specified in bp_filter field)
 %      reg_detrend     : (functional_regression) 1: adds a linear/detrending term to model regressors [1]
 %      reg_skip        : (functional_regression) 1: does not create output functional files, only creates session-specific dp_*.txt files 
 %                           with covariate timeseries to be included later in an arbitrary first-level model [0]

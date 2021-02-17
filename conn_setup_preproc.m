@@ -179,6 +179,7 @@ bp_keep0=1;
 reg_names={};
 reg_dimensions=[];
 reg_deriv=[];
+reg_filter=[];
 reg_detrend=1;
 reg_lag=[];
 reg_lagmax=8;
@@ -276,6 +277,8 @@ for n1=1:2:numel(options)-1,
             reg_dimensions=options{n1+1};
         case 'reg_deriv',
             reg_deriv=options{n1+1};
+        case 'reg_filter',
+            reg_filter=options{n1+1};
         case 'reg_detrend',
             reg_detrend=options{n1+1};
         case 'reg_lag',
@@ -881,7 +884,7 @@ if parallel_N>0,
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip);
+        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip);
     if isequal(parallel_profile,find(strcmp('Null profile',conn_jobmanager('profiles')))),
         ok=0;
     elseif dogui
@@ -902,7 +905,7 @@ else
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'sliceorder_select',sliceorder_select,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip};
+        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip};
 end
 job_id={};
 
@@ -1012,8 +1015,9 @@ for iSTEP=1:numel(STEPS)
             end
             
         case 'functional_regression'
+            if isempty(bp_filter)&&any(reg_filter), error('Band-pass filter not specified (missing #bp_filter field)'); end
             conn_disp('fprintf','regression of temporal component (%s)\n',sprintf('%s ',reg_names{:}));
-            conn_disp('fprintf','dimensions = %s; derivatives = %s; lags(0-%ss) = %s; skip = %d; detrend = %d\n',mat2str(reg_dimensions),mat2str(reg_deriv),mat2str(reg_lagmax),mat2str(reg_lag),reg_skip,reg_detrend);
+            conn_disp('fprintf','dimensions = %s; derivatives = %s; filtered = %s; lags(0-%ss) = %s; skip = %d; detrend = %d\n',mat2str(reg_dimensions),mat2str(reg_deriv),mat2str(reg_filter),mat2str(reg_lagmax),mat2str(reg_lag),reg_skip,reg_detrend);
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
@@ -1034,6 +1038,7 @@ for iSTEP=1:numel(STEPS)
                         end
                         lagidx=[];
                         lagmax=[];
+                        if any(reg_filter), rt=conn_get_rt(nsubject,nses,sets); end
                         X=[ones(numel(Vin),1)];
                         if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; end
                         entercovariates=X;
@@ -1051,9 +1056,10 @@ for iSTEP=1:numel(STEPS)
                                 end
                                 assert(size(data,1)==numel(Vin),'mismatched dimensions; functional data has %d timepoints, covariate %s has %d timepoints',numel(Vin),reg_names{nl1covariate},size(data,1));
                                 if numel(reg_dimensions)>=nl1covariate, data=data(:,1:min(size(data,2),reg_dimensions(nl1covariate))); end
-                                entercovariates=cat(2,entercovariates,data-repmat(mean(data,1),size(data,1),1)); % note: same as ROI entercovariates behavior
+                                entercovariates=cat(2,entercovariates,data-repmat(mean(data,1),size(data,1),1)); % note: same as ROI entercovariates behavior                                
                                 if numel(reg_deriv)>=nl1covariate&&reg_deriv(nl1covariate)>0, ddata=convn(cat(1,data(1,:),data,data(end,:)),[1;0;-1],'valid'); data=[data, ddata]; end
                                 if numel(reg_deriv)>=nl1covariate&&reg_deriv(nl1covariate)>1, data=[data, convn(cat(1,ddata(1,:),ddata,ddata(end,:)),[1;0;-1],'valid')]; end
+                                if numel(reg_filter)>=nl1covariate&&reg_filter(nl1covariate)>0, data=conn_filter(rt,bp_filter,data); end
                                 if numel(reg_lag)>=nl1covariate&&reg_lag(nl1covariate)>0, lagidx=[lagidx, size(X,2)+(1:size(data,2))]; end
                                 if nnz(data~=0&data~=1), X=cat(2,X,data-repmat(mean(data,1),size(data,1),1)); % note: 0/1 covariates not centered
                                 else X=cat(2,X,data);
@@ -1102,6 +1108,7 @@ for iSTEP=1:numel(STEPS)
                                 if numel(reg_dimensions)>=nl1covariate, data=data(:,1:min(size(data,2),reg_dimensions(nl1covariate))); end
                                 if numel(reg_deriv)>=nl1covariate&&reg_deriv(nl1covariate)>0, ddata=convn(cat(1,data(1,:),data,data(end,:)),[1;0;-1],'valid'); data=[data, ddata]; end
                                 if numel(reg_deriv)>=nl1covariate&&reg_deriv(nl1covariate)>1, data=[data, convn(cat(1,ddata(1,:),ddata,ddata(end,:)),[1;0;-1],'valid')]; end
+                                if numel(reg_filter)>=nl1covariate&&reg_filter(nl1covariate)>0, data=conn_filter(rt,bp_filter,data); end
                                 if numel(reg_lag)>=nl1covariate&&reg_lag(nl1covariate)>0, lagidx=[lagidx, size(X,2)+(1:size(data,2))]; end
                                 X=cat(2,X,data-repmat(mean(data,1),size(data,1),1));
                             end
@@ -1110,6 +1117,7 @@ for iSTEP=1:numel(STEPS)
                             [gridx,gridy]=ndgrid(1:Vin(1).dim(1),1:Vin(1).dim(2));
                             xyz0=[gridx(:),gridy(:)]';
                             iX=pinv(X'*X);
+                            if ~isempty(lagidx), rt=conn_get_rt(nsubject,nses,sets); end
                             for slice=1:Vin(1).dim(3)
                                 xyz=[xyz0; slice+zeros(1,size(xyz0,2)); ones(1,size(xyz0,2))];
                                 y=spm_get_data(Vin(:)',xyz);
@@ -1118,7 +1126,7 @@ for iSTEP=1:numel(STEPS)
                                 my=sum(y,1)./max(1,sum(~maskout,1));
                                 y(maskout)=my(ceil(find(maskout)./size(y,1)));
                                 if ~isempty(lagidx)
-                                    if isempty(lagmax), lagmax=reg_lagmax/conn_get_rt(nsubject,nses,sets); end
+                                    if isempty(lagmax), lagmax=reg_lagmax/rt; end
                                     if reg_detrend, X(:,lagidx)=X(:,lagidx)-X(:,1:2)*(pinv(X(:,1:2)'*X(:,1:2))*X(:,1:2)'*X(:,lagidx)); end
                                     [yfit,nill,lag]=conn_lagregress(X,y,'select',lagidx,'maxdn',lagmax,'omit',1);
                                     y=y-yfit;
@@ -3029,7 +3037,17 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
                 
-            case {'functional_bandpass','functional_regression'}
+            case {'functional_bandpass'}
+                for isubject=1:numel(subjects),
+                    nsubject=subjects(isubject);
+                    for nses=1:numel(outputfiles{isubject})
+                        if ismember(nses,sessions)
+                            nV=conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{1});
+                        end
+                    end
+                end
+                
+            case {'functional_regression'}
                 if ~sets||ALLSETSPERMISSIONS,
                     icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),'QC_regressors'));
                     if isempty(icov),

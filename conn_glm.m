@@ -181,7 +181,7 @@ else
                     dofs=trace(EE)^2/sum(sum(EE.^2,1),2);  % tr(EE)^2/tr(EE*EE)
                     dBB=sum(conj(h).*(ir*h),1).';
                     F=                real(sum(dBB)./max(eps,full(sum(diag(EE)))))*dofe/Nc0;
-                    if FIXDFSATTERTHWAITE&~(isnan(F)|F==0), F=spm_invFcdf(spm_Fcdf(F,dofs*Nc0,dofs*dofe),Nc0,dofe); end
+                    if FIXDFSATTERTHWAITE&~(isnan(F)|F==0), F=spm_invFcdf(spm_Fcdf(F,dofs*Nc0,dofs*dofe),Ns*Nc0,Ns*dofe); end
                 case 'BB_SPHERICITY',          % h: [Nc,Ns] F-test (sphericity assumption)
                     dBB=sum(conj(h).*(ir*h),1).';
                     F=                real(sum(dBB)./max(eps,full(sum(diag(EE)))))*dofe/Nc0;
@@ -227,7 +227,7 @@ if nargout>2
             dof=              [Ns*Nc0 (dofe-1/2*(Ns-Nc0+1))*doft-(Ns*Nc0-2)/2];
             statsname=        'F';
         case 'BB_SATTERTHWAITE',       % h: [Nc,Ns] F-test (Satterthwaite correction)
-            if FIXDFSATTERTHWAITE, dof=[Nc0,dofe];
+            if FIXDFSATTERTHWAITE, dof=[Ns*Nc0,Ns*dofe];
             else dof=         cat(2,dofs*Nc0,dofs*dofe);
             end
             statsname=        'F';
@@ -253,7 +253,7 @@ if nargout>2
                 p(idxvalid)=1-spm_Fcdf(F(idxvalid),Ns*Nc0,(dofe-1/2*(Ns-Nc0+1))*doft-(Ns*Nc0-2)/2);
             case {'BB_SATTERTHWAITE','BB_SPHERICITY'}, % h: [Nc,Ns] F-test (Satterthwaite or sphericity assumption)
                 if FIXDFSATTERTHWAITE, 
-                    p(idxvalid)=1-spm_Fcdf(F(idxvalid),Nc0,dofe);
+                    p(idxvalid)=1-spm_Fcdf(F(idxvalid),Ns*Nc0,Ns*dofe);
                 else
                     p(idxvalid)=1-spm_Fcdf(F(idxvalid),dofs(idxvalid)*Nc0,dofs(idxvalid)*dofe);
                 end

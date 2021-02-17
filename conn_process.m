@@ -3364,7 +3364,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     end
                                     Q=Q(:,1);
                                     if mean(Q)<0, Q=-Q; end
-                                    conn_signflip(filesout(:,:,ndim),Q);
+                                    conn_signflip(filesout(validsubjects,validconditions,ndim),Q);
                                     conn_waitbar(.75+.25*ndim/NdimsOut,h2,sprintf('Component %d',ndim));
                                 end
                                 for nsub=1:CONN_x.Setup.nsubjects

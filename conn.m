@@ -114,7 +114,7 @@ if nargin<1 || isequal(varargin{1},'lite'),
         drawnow;
         set(h,'fontunits','points');
         tfontsize=get(h,'fontsize');
-        conn_font_offset=max(-4,round(tfontsize)-8);
+        conn_font_offset=max(-4,round(tfontsize)-6);
         %fprintf('Font size change %dpts to %dpts (%f %s)\n',8+CONN_gui.font_offset,8+conn_font_offset,tfontsize,mat2str([get(0,'screensize') get(gca,'position')]));
         CONN_gui.font_offset=conn_font_offset;
     end
@@ -1662,7 +1662,7 @@ else
                         %tmp=conn_menu('popupblue',boffset+[.56,.77,.129,.04],'',{'(dataset 0)'},'Primary functional dataset','');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.200,.30,.075,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
 						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.30,.075,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Select functional data files','*.img; *.nii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
+						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Select functional data files','*.img; *.nii; *.gii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton',boffset+[.36,.60,.26,.09],'','','','conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.40,.35,.22,.25],'','','',[],@conn_callbackdisplay_functionalclick);
                         conn_menu('nullstr',' ');
@@ -2556,7 +2556,7 @@ else
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.140,.13,.075,.46],'ROIs','',['<HTML>Select ROI <br/> - click after the last item to add a new ROI <br/> - ',CONN_gui.rightclick,'-click for additional options<br/></HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
 						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{19}]=conn_menu('listbox',boffset+[.215,.13,.075,.46],'Subjects','','Select subject(s)','conn(''gui_setup'',2);');
 						[CONN_h.menus.m_setup_00{16},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.29,.13,.075,.46],'Sessions','','Select session','conn(''gui_setup'',16);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('filesearch',[],'Select ROI definition files','*.img; *.nii; *.tal; *.mgh; *.mgz; *.annot; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
+						CONN_h.menus.m_setup_00{3}=conn_menu('filesearch',[],'Select ROI definition files','*.img; *.nii; *.gii; *.tal; *.mgh; *.mgz; *.annot; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton', boffset+[.39,.47,.25,.08],'','','','conn(''gui_setup'',4);');
                         CONN_h.menus.general.names={};CONN_h.menus.general.names2={};
 						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.37,.19,.29,.28],'','','',@conn_callbackdisplay_general,@conn_callbackdisplay_roiclick); 
@@ -4279,6 +4279,7 @@ else
                                                 tnewdesc=[tnewdesc, {[conn_strjoinstr(arrayfun(@(n)sprintf('%s=%d',tnames{n},ux(n1,n)),1:numel(tnames),'uni',0),' & ')]}]; 
                                             end
                                         end
+                                    else return
                                     end
                                     nl2covariates=numel(CONN_x.Setup.l2covariates.names); 
                                 elseif varargin{2}==15 % import
@@ -4806,7 +4807,7 @@ else
 				conn_menu('frame',boffset+[.05,.10,.15,.7],'Display volumes');
 				CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.06,.20,.12,.55],'Volumes','',['<HTML>Enter volumes for display in this list<br/> - click after the last item to add a new volume <br/> - ',CONN_gui.rightclick,'-click for additional options<br></HTML>'],'conn(''gui_display'',1);','conn(''gui_display'',8);');
 				CONN_h.menus.m_setup_00{2}=conn_menu('checkbox',boffset+[.06,.11,.02,.03],'Structural overlay','','<HTML>Shows thresholded data over reference structural background','conn(''gui_display'',2);');
-                CONN_h.menus.m_setup_00{3}=conn_menu('filesearch',[],'Select files','*.img; *.nii; *.mgh; *.mgz; *.annot; *.gz; *-1.dcm','',{@conn,'gui_display',3},'conn(''gui_display'',4);');
+                CONN_h.menus.m_setup_00{3}=conn_menu('filesearch',[],'Select files','*.img; *.nii; *.gii; *.mgh; *.mgz; *.annot; *.gz; *-1.dcm','',{@conn,'gui_display',3},'conn(''gui_display'',4);');
 				CONN_h.menus.m_setup_00{5}=conn_menu('image2',boffset+[.25,.10,.50,.8]);
                 set(CONN_h.menus.m_setup_00{3}.files,'max',2);
                 if ~isfield(CONN_x.Setup,'display'), CONN_x.Setup.display={}; end
@@ -4950,7 +4951,10 @@ else
             boffset=[-.05 .0 0 0];
             if ~isfield(CONN_h.menus,'m_setup_import'), CONN_h.menus.m_setup_import='spm'; end
             if numel(varargin)>=2&&ischar(varargin{2}), 
-                if ~isempty(regexp(varargin{2},'^new')),
+                if ~isempty(regexp(varargin{2},'^reset')),
+                    CONN_h.menus.m_setup_import_isnew=true; 
+                    varargin{2}=regexprep(varargin{2},'^reset','new');
+                elseif ~isempty(regexp(varargin{2},'^new')),
                     CONN_h.menus.m_setup_import_isnew=true; 
                     if ~CONN_x.isready(1), Answ='Proceed';
                     else Answ=conn_questdlg({'Proceeding will close the current project and loose any unsaved progress','Do you want to proceed with creating a new project?'},'New project','Proceed','Cancel','Proceed');
@@ -5399,18 +5403,22 @@ else
                             case 1,
                             case 2,
                             case 3,
-                                if nargin<4, nsubs=get(CONN_h.menus.m_setup_00{1},'value'); else  nsubs=varargin{4}; end
+                                %if nargin<4, nsubs=get(CONN_h.menus.m_setup_00{1},'value'); else  nsubs=varargin{4}; end
+                                if nargin>=4&&isequal(varargin{4},'-nogui'), nogui=true; else nogui=false; end
                                 filename=fliplr(deblank(fliplr(deblank(varargin{3}))));
                                 txt=''; bak1=CONN_x.Setup.(CONN_h.menus.m_setup_import);
                                 CONN_x.Setup.bids=conn_file(filename);
-                                ht=conn_msgbox({'Analyzing root folder contents. For large datasets this process','may take several minutes. Please wait...'},'',-1);
+                                if nogui, ht=[]; fprintf('Analyzing root folder contents. For large datasets this process may take several minutes. Please wait...\n');
+                                else ht=conn_msgbox({'Analyzing root folder contents. For large datasets this process','may take several minutes. Please wait...'},'',-1); 
+                                end
                                 dataset=conn_bidsdir(CONN_x.Setup.bids{1});
                                 if isempty(dataset)
                                     CONN_x.Setup.(CONN_h.menus.m_setup_import)=bak1;
                                     conn_msgbox('No matching sub-* files found in BIDS directory. Skipping import','',2);
                                 else
                                     txt=sprintf('%d folders selected (%d matching files)\n',size(filename,1),numel(dataset.data.file));
-                                    if ~isempty(txt)&&strcmp(conn_questdlg(txt,'','Ok','Undo','Ok'),'Undo'), CONN_x.Setup.(CONN_h.menus.m_setup_import)=bak1;
+                                    if nogui, fprintf('%s\n',txt); end
+                                    if ~nogui&&~isempty(txt)&&strcmp(conn_questdlg(txt,'','Ok','Undo','Ok'),'Undo'), CONN_x.Setup.(CONN_h.menus.m_setup_import)=bak1;
                                     else
                                         if CONN_h.menus.m_setup_import_isfmriprep, 
                                             if 0, space='#EMPTY'; 
@@ -5514,6 +5522,7 @@ else
                                 CONN_x.Setup.bids{3}=info;
                             case 8, % bids select other category
                             case 9, % import
+                                if nargin>=3&&isequal(varargin{3},'-nogui'), nogui=true; else nogui=false; end
                                 nsubs=get(CONN_h.menus.m_setup_00{1}(1),'value');
                                 allsubjects=isequal(get(CONN_h.menus.m_setup_00{2},'value'),1);
                                 if allsubjects, nsubs=[]; end
@@ -5554,11 +5563,13 @@ else
                                 nset=0; 
                                 localcopy=isequal(get(CONN_h.menus.m_setup_00{10},'value'),2);
                                 copytoderiv=isequal(get(CONN_h.menus.m_setup_00{10},'value'),3);
-                                if ~isempty(txt)
+                                if ~nogui&&~isempty(txt)
                                     answ=conn_questdlg([txt,{'','Proceed with importing?'}],'','Ok','Cancel','Ok');
                                     if ~strcmp(answ,'Ok'), return; end
                                 end
-                                hm=conn_msgbox('Importing data... please wait','');
+                                if nogui, hm=[]; fprintf('Importing data... please wait\n');
+                                else hm=conn_msgbox('Importing data... please wait','');
+                                end
                                 ERR={};
                                 if allsubjects&&bids_docond
                                     CONN_x.Setup.conditions.names={' '};
@@ -5591,9 +5602,14 @@ else
                                 end
                                 if ishandle(hm), close(hm); end
                                 if isempty(ERR),
-                                    conn_msgbox(sprintf('Finished importing %d subjects data without errors',numel(nsubs)),'conn',1);
+                                    if nogui, fprintf('Finished importing %d subjects data without errors',numel(nsubs));
+                                    else conn_msgbox(sprintf('Finished importing %d subjects data without errors',numel(nsubs)),'conn',1);
+                                    end
                                     conn gui_setup;
                                     return
+                                elseif nogui, 
+                                    disp(char(ERR));
+                                    error('Erros found during import');
                                 else
                                     conn_msgbox([{'Some errors found during import. Please revise'},ERR],'conn',2);
                                 end
@@ -5818,10 +5834,10 @@ else
                 %CONN_h.menus.m_preproc_00{21}=uicontrol('style','text','units','norm','position',boffset+[.48,.47,.215,.04],'string','voxel-to-voxel r','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset);
 				[CONN_h.menus.m_preproc_00{23},CONN_h.menus.m_preproc_00{24}]=conn_menu('scatter',boffset+[.50,.36,.175,.205]);
                 CONN_h.menus.m_preproc_00{25}=uicontrol('style','text','units','norm','position',boffset+[.49,.31,.195,.04],'string','voxel-to-voxel connectivity (r)','backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset,'parent',CONN_h.screen.hfig);
-                uicontrol('style','text','units','norm','position',boffset+[.50+.18,.19,.08,.04],'string','original','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',.75/2*[1,1,1],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
-                uicontrol('style','text','units','norm','position',boffset+[.50+.18,.12,.08,.04],'string','after denoising','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',1/2*[1,1,0],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
-                uicontrol('style','text','units','norm','position',boffset+[.50+.18,.06,.08,.04],'string','GS original','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',.75/2*[1,1,1],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
-                uicontrol('style','text','units','norm','position',boffset+[.50+.18,.03,.08,.04],'string','GS after denoising','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',1/2*[1,1,0],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
+                uicontrol('style','text','units','norm','position',boffset+[.50+.18,.19,.08,.04],'string','original','fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',.75/2*[1,1,1],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
+                uicontrol('style','text','units','norm','position',boffset+[.50+.18,.12,.08,.04],'string','after denoising','fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',1/2*[1,1,0],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
+                uicontrol('style','text','units','norm','position',boffset+[.50+.18,.06,.08,.04],'string','GS original','fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',.75/2*[1,1,1],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
+                uicontrol('style','text','units','norm','position',boffset+[.50+.18,.03,.08,.04],'string','GS after denoising','fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',1/2*[1,1,0],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
                 
                 set(CONN_h.menus.m_preproc_00{23}.h2,'markersize',1);set(CONN_h.menus.m_preproc_00{23}.h1,'ydir','reverse','yaxislocation','right','xtick',-1:.5:1,'xticklabel',[]);ylabel(CONN_h.menus.m_preproc_00{23}.h1,'voxel-to-voxel distance (mm)','fontsize',8+CONN_gui.font_offset);
                 %CONN_h.menus.m_preproc_00{25}=uicontrol('style','text','units','norm','position',boffset+[.73,.03,.185,.04],'string','voxel-to-voxel dist (mm)','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset);

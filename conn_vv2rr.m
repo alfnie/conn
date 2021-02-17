@@ -1,4 +1,4 @@
-function Z=conn_vv2rr(ROI,validconditions,filepath,folderout)
+function [Z,xyz]=conn_vv2rr(ROI,validconditions,filepath,folderout)
 % computes ROI-to-ROI matrix by averaging Voxel-to-Voxel correlations
 global CONN_x;
 
@@ -15,6 +15,7 @@ if ischar(ROI), ROI=spm_vol(ROI); end
 %h=conn_waitbar(0,'Extracting correlation matrix, please wait...');
 lastmatdim=[];
 Z=[];
+xyz=[];
 for ivalidcondition=1:numel(validconditions),
     ncondition=validconditions(ivalidcondition);
     for nsub=1:CONN_x.Setup.nsubjects
@@ -22,12 +23,16 @@ for ivalidcondition=1:numel(validconditions),
         Y1=conn_vol(filename_B1);
         if isequal(lastmatdim, Y1.matdim)
         else
-            if isstruct(ROI),
+            if isstruct(ROI), % 4d-file
                 xyz=conn_convertcoordinates('idx2tal',1:prod(Y1.matdim.dim),Y1.matdim.mat,Y1.matdim.dim)';
                 W=spm_get_data(ROI,pinv(ROI(1).mat)*xyz);
                 if size(W,1)==1&&isequal(reshape(unique(W),[],1),(0:max(W(:)))'), W=double(repmat(W,[max(W(:)),1])==repmat((1:max(W(:)))',[1,size(W,2)])); end
+                w=W(:,Y1.voxels);
+                sw=sum(w,2);
+                temp=w*xyz(1:3,:)';
+                xyz=temp./repmat(max(eps,sw),1,3);
                 lastmatdim=Y1.matdim;
-            else W=ROI;
+            else W=ROI; % ROIs-by-voxels matrix
             end
             assert(prod(Y1.matdim.dim)==size(W,2),'unequal number of voxels in ROI (%d) and VV (%d) files',size(W,2), prod(Y1.matdim.dim));
         end

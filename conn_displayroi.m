@@ -81,10 +81,21 @@ switch(lower(option)),
                     info.coords=repmat({[0 0 0]},nrois,1);
                 end
                 if ~iscell(info.coords), info.coords=num2cell(info.coords,2); end % [nroisx3]
+                %z=permute(randn([nrois,nrois,size(SPM.xX_multivariate.Zfiles)]),[3,2,4,1]); 
                 vol=spm_vol(char(SPM.xX_multivariate.Zfiles));
                 z=spm_read_vols(vol);
                 z=permute(reshape(z,[nrois,nrois,size(SPM.xX_multivariate.Zfiles)]),[3,2,4,1]); % subjects x rois (targets) x conditions x rois (seeds)
                 % subjects x rois x conditions
+                validrois=any(all(all(~isnan(z),1),3),4); % note: eliminates ROIs that have no valid connectivity data with any other ROI
+                if ~all(validrois)
+                    fprintf('warning: disregarding the following ROIs from this group-level analysis due to missing-data %s\n',sprintf('%s ',info.names{~validrois}));
+                    z=z(:,validrois,:,validrois);
+                    SPM_h=SPM_h(validrois,validrois,:,:);
+                    SPM_F=SPM_F(validrois,validrois,:,:);
+                    SPM_p=SPM_p(validrois,validrois,:,:);
+                    info.names=info.names(validrois);
+                    info.coords=info.coords(validrois);
+                end
                 results=struct(...
                     'xX', struct('isSurface',SPM.xX.isSurface,'isMtx',SPM.xX.isMtx,'SelectedSubjects',SPM.xX.SelectedSubjects,'name',{SPM.xX_multivariate.Xnames},'X',SPM.xX_multivariate.X), ...
                     'data',z,...
@@ -280,7 +291,7 @@ switch(lower(option)),
         data.plotconnoptions.LCOLORSCALE=1;
         data.plotconnoptions.LCURVE=2;
         data.plotconnoptions.LBUNDL=.5;
-        data.plotconnoptions.FONTSIZE=max(4,[2,3]+CONN_gui.font_offset);
+        data.plotconnoptions.FONTSIZE=max(4,[0,1]+CONN_gui.font_offset);
         data.plotconnoptions.FONTANGLE=0;
         if 1, data.plotconnoptions.BCOLOR=.975*[1,1,1];
         elseif isfield(CONN_gui,'backgroundcolor'), data.plotconnoptions.BCOLOR=CONN_gui.backgroundcolor;
@@ -335,7 +346,7 @@ switch(lower(option)),
             'alternative settings for connection-based inferences: parametric univariate statistics ',...
             'alternative settings for ROI-based inferences: parametric multivariate statistics',...
             'alternative settings for network-based inferences: Network Based Statistics',...
-            '<HTML><i>show details (advanced Family-Wise Error control settings)</i></HTML>'},'tag','highlight','fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_displayroi,'fwec.option'},'value',data.thres,'tooltipstring','Select false-positive control method','backgroundcolor',.9*[1,1,1]);
+            '<HTML><i>user-defined (advanced Family-Wise Error control settings)</i></HTML>'},'tag','highlight','fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_displayroi,'fwec.option'},'value',data.thres,'tooltipstring','Select false-positive control method','backgroundcolor',.9*[1,1,1]);
         huicontrol_cthr0=uicontrol('style','text','units','norm','position',[.03,.925,.17,.03],'fontsize',8+CONN_gui.font_offset,'string','connection threshold: p < ','horizontalalignment','right','fontweight','bold','foregroundcolor',1-color3,'backgroundcolor',color3,'interruptible','off','parent',data.hfig);
         huicontrol_cthr1=uicontrol('style','edit','units','norm','position',[.20,.925,.10,.03],'fontsize',8+CONN_gui.font_offset,'string',num2str(data.thr),'foregroundcolor',1-color3,'backgroundcolor',color3,'interruptible','off','callback',{@conn_displayroi,'fwec.connectionlevel.value'},'tooltipstring','Connection-level threshold value (false-positive threshold value for individual connections)','parent',data.hfig);
         huicontrol_cthr2=uicontrol('style','popupmenu','units','norm','position',[.325,.915,.25,.04],'fontsize',8+CONN_gui.font_offset,'string',{'p-uncorrected','p-FDR corrected','p-FDR corrected (TFCE)','p-FWE corrected (TFCE)','F/T/X stat'},'foregroundcolor',1-color3,'backgroundcolor',color3,'tooltipstring','<HTML>False-positive control type for individual connections</HTML>','interruptible','off','callback',{@conn_displayroi,'fwec.connectionlevel.type'},'value',max(1,min(5, data.thrtype)),'parent',data.hfig);
@@ -345,18 +356,22 @@ switch(lower(option)),
         huicontrol_ccthr2=uicontrol('style','popupmenu','units','norm','position',[.325,.875,.48,.04],'fontsize',8+CONN_gui.font_offset,'string',data.mvpathrtype_all(data.mvpathrtype_shown),'value',find(data.mvpathrtype_shown==data.mvpathrtype),'foregroundcolor',1-color3,'backgroundcolor',color3,'tooltipstring',...
             ['<HTML>Type of cluster- or ROI- level false-positive control',...
             '<br/> <br/> - choose <i>network</i> measures for <b>non-parametric network-level inferences</b> (NBS: Network Based Statistics, Zalesky et al. 2010)<br/> Networks represent maximal subgraphs of suprathreshold-connected ROIs (groups of ROIs and suprathreshold effects/connections among them)<br/> Network size and Network mass measures both represent measures of degree/cost of these subgraphs (i.e. number and strength of suprathreshold effects/connections within each graph) <br/> Network TFCE scores represent a combined measure of network size and mass, defined as the Threshold Free Cluster Enhancement score for the chosen support section (Smith and Nichols 2009) <br/> Multiple comparison correction is implemented at the network-level (FWE/FDR across multiple networks). Network-level inferences remain valid when used in combination with arbitrary (e.g. p-uncorrected) connection thresholds<br/> e.g. <b>connection-level threshold p &#60 0.01 (p-uncorrected) & cluster-threshold p &#60 0.05 (network p-FDR corrected)</b>',...
+            '<br/> <br/> - choose <i>cluster</i> measures for <b>parametric cluster-level inferences</b> (FNC: Functional Network Connetivity, Jafri et al. 2008)<br/> Clusters represent groups of effects/connections within- or between- networks (networks here refers to groups of ROIs)<br/> MVPA omnibus-test represents a multivariate measure characterizing the strength of all effects/connections within a network or between two networks<br/> Multiple comparison correction is implemented at the cluster-level (FWE/FDR across multiple clusters). Cluster-level inferences remain valid when used in combination with arbitrary (e.g. p-uncorrected) connection thresholds<br/> e.g. <b>connection-level threshold p &#60 0.05 (p-uncorrected) & cluster-threshold p &#60 0.05 (cluster p-FDR corrected)</b>',...
             '<br/> <br/> - choose <i>cluster</i> measures for <b>non-parametric cluster-level inferences</b> (SPC: Spatial Pairwise Clustering, Zalesky et al. 2012)<br/> Clusters represent groups of suprathreshold effects/connections<br/> Cluster size and cluster mass measures both represent measures of degree/cost of these clusters (i.e. number and strength of suprathreshold effects/connections within each cluster)<br/> Cluster TFCE scores represent a combined measure of cluster size and mass, defined as the Threshold Free Cluster Enhancement score for the chosen support section (Smith and Nichols 2009)  <br/> Multiple comparison correction is implemented at the cluster-level (FWE/FDR across multiple clusters). Cluster-level inferences remain valid when used in combination with arbitrary (e.g. p-uncorrected) connection thresholds<br/> e.g. <b>connection-level threshold p &#60 0.01 (p-uncorrected) & cluster-threshold p &#60 0.05 (cluster p-FDR corrected)</b>',...
             '<br/> <br/> - choose <i>ROI</i> for <b>parametric or non-parametric ROI-level inferences</b><br/> MVPA omnibus-test represents a multivariate measure characterizing the strength of all effects/connections from each ROI<br/> ROI size and ROI mass measures both represent measures of degree/cost of each ROI (i.e. number and strength of suprathreshold effects/connections from each ROI)<br/> ROI TFCE scores represent a combined measure of ROI size and mass, defined as the Threshold Free Cluster Enhancement score for the chosen support section (Smith and Nichols 2009) <br/> Multiple comparison correction is implemented at the ROI-level (FWE/FDR across multiple ROIs). ROI-level inferences are invariant to the choice of connection-level threshold<br/> e.g. <b>connection-level threshold p &#60 0.01 (p-uncorrected) & cluster-threshold p &#60 0.05 (ROI p-FDR corrected)</b>',...
             '<br/> <br/> - choose <i>none</i> for <b>parametric connection-level inferences</b> <br/> This option is only appropriately corrected for multiple comparisons when used in combination with p-FDR corrected connection thresholds (but not with p-uncorrected connection thresholds)<br/> e.g. <b>connection-level threshold p &#60 0.05 (p-FDR corrected) & cluster-threshold none</b><br/></HTML>'],...
             'interruptible','off','callback',{@conn_displayroi,'fwec.clusterlevel.type'},'value',max([1,find(data.mvpathrtype_shown==data.mvpathrtype,1)]),'parent',data.hfig);
+        huicontrol_cthr4=uicontrol('style','checkbox','units','norm','position',[.88,.87,.12,.03],'string','show details','tag','highlight','value',0,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','right','foregroundcolor',1-color3,'backgroundcolor',color3,'callback',{@conn_displayroi,'advancedthr'},'tooltipstring','Displays advanced thresholding options'); 
+        hhelp=uicontrol('style','pushbutton','units','norm','position',[.81,.965,.02,.03],'fontsize',7+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'string','?','tag','highlight','tooltipstring','<HTML>Documentation about available methods of statistical inference</HTML>','interruptible','off','callback',@(varargin)conn('gui_help','url','http://www.conn-toolbox.org/fmri-methods/cluster-level-inferences'),'parent',data.hfig);
+        
         %huicontrol_ccthr3=uicontrol('style','popupmenu','units','norm','position',[.66,.35,.33,.04],'fontsize',8+CONN_gui.font_offset,'string',{'threshold seed ROIs (F-test)','threshold seed ROIs (NBS; by intensity)','threshold seed ROIs (NBS; by size)','threshold networks (NBS; by intensity)','threshold networks (NBS; by size)'},'foregroundcolor',1-color2,'backgroundcolor',color2,'fontweight','bold','horizontalalignment','right','value',data.mvpathrmeasure,'tooltipstring','Threshold individual seed ROIs or individual networks (subsets of connected ROIs)','interruptible','off','callback',{@conn_displayroi,'mvpathrmeasure'},'parent',data.hfig);
         data.handles=[...
             huicontrol_cthr,...
             huicontrol_cthr1,...
             huicontrol_cthr2,...
             huicontrol_cthr3,...
-            uicontrol('style','text','units','norm','position',[.20,.875,.605,.07],'fontsize',7+CONN_gui.font_offset,'string','','foregroundcolor',.5*[1 1 1],'backgroundcolor',color3,'horizontalalignment','center','parent',data.hfig),...
-            0, ...%uicontrol('style','listbox','units','norm','position',[.57,.31,.41,.39],'fontsize',8+CONN_gui.font_offset,'string',' ','max',2,'foregroundcolor',.9-.8*color2,'backgroundcolor',color2,'tooltipstring','Selecting one or several seed ROIs limits the analyses only to the connectivity between the selected seeds and all of the ROIs in the network','interruptible','off','callback',{@conn_displayroi,'list1'},'keypressfcn',@conn_menu_search,'visible','off','parent',data.hfig),...
+            uicontrol('style','text','units','norm','position',[.15,.875,.70,.07],'fontsize',7+CONN_gui.font_offset,'string','','foregroundcolor',.5*[1 1 1],'backgroundcolor',color3,'horizontalalignment','center','parent',data.hfig),...
+            huicontrol_cthr4, ... %0, ...%uicontrol('style','listbox','units','norm','position',[.57,.31,.41,.39],'fontsize',8+CONN_gui.font_offset,'string',' ','max',2,'foregroundcolor',.9-.8*color2,'backgroundcolor',color2,'tooltipstring','Selecting one or several seed ROIs limits the analyses only to the connectivity between the selected seeds and all of the ROIs in the network','interruptible','off','callback',{@conn_displayroi,'list1'},'keypressfcn',@conn_menu_search,'visible','off','parent',data.hfig),...
             uicontrol('style','text','units','norm','position',[.05,.22,.90,.03],'fontsize',7+CONN_gui.font_offset,'string',sprintf('%-24s  %-20s  %+12s  %+12s  %+12s','Analysis Unit','Statistic','p-unc','p-FDR','p-FWE'),'foregroundcolor',.5*[1 1 1],'backgroundcolor',color2,'fontname','monospaced','horizontalalignment','left','parent',data.hfig),...
             uicontrol('style','listbox','units','norm','position',[.05,.07,.90,.15],'fontsize',7+CONN_gui.font_offset,'string',' ','tag','highlight','fontname','monospaced','foregroundcolor',round(1-color2),'backgroundcolor',color2,'tooltipstring','Statistics for each connection, ROI, or cluster. Right-click to export table to .txt file','max',2,'interruptible','off','callback',{@conn_displayroi,'list2'},'keypressfcn',@conn_menu_search,'parent',data.hfig),...
             uicontrol('style','checkbox','units','norm','position',[.05,.04,.20,.03],'fontsize',8+CONN_gui.font_offset,'string','display extended stats','tag','highlight','foregroundcolor',1-color2,'backgroundcolor',color2,'interruptible','off','callback',{@conn_displayroi,'displayconnectionstats'},'value',data.displayconnectionstats,'tooltipstring','Check to display additional and post-hoc statistics for all suprathreshold units','parent',data.hfig),... %uicontrol('style','text','units','norm','position',[.61,.50,.38,.04],'fontsize',8+CONN_gui.font_offset,'string','Define thresholds:','foregroundcolor',color2,'backgroundcolor',1-.5*color2,'fontweight','bold','horizontalalignment','left','parent',data.hfig),...
@@ -388,6 +403,7 @@ switch(lower(option)),
             uicontrol('style','pushbutton','units','norm','position',[.71,.640,.06,.05],'string','Matrix print','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_displayroi,'matrix_print'},'tooltipstring','<HTML><b>Matrix print</b><br/>Prints current results on ROI-to-ROI matrix display</HTML>','parent',data.hfig), ...
             uicontrol('style','pushbutton','units','norm','position',[.64,.695,.06,.05],'string','Ring Display','tag','highlight','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_displayroi,'ring_view'},'tooltipstring','<HTML><b>Ring display</b><br/>Displays current results on ROI-ring display</HTML>','parent',data.hfig) ...
             ];
+        uiwrap(hhelp);
         uiwrap(data.handles([8,  12,14,  17,18,19,31,32,33]));
         bp=[36 26 27 28 34 35 29 30 ];
         bp_isprint=[0 1 0 1 0 1 0 0];
@@ -397,7 +413,7 @@ switch(lower(option)),
             temp=imread(fullfile(fileparts(which(mfilename)),sprintf('conn_displayroi_icon%02d.jpg',n1))); temp=double(temp); temp=temp/255; temp=max(0,min(1,(temp).^.5)); ft=min(size(temp,1)/ceil(pt(4)),size(temp,2)/ceil(pt(3))); if any(n1==[1,2]), ft=0.95*ft; elseif any(n1==[7,8]), ft=.90*ft; else ft=.70*ft; end;
             maxtemp=1;%mode(round(temp(:)*100))/100;
             if maxtemp<.5, temp=1-temp; maxtemp=1-maxtemp; end
-            temp=max(0,min(1, .75*temp+.25*temp/maxtemp.*repmat(shiftdim(color1,-1),[size(temp,1),size(temp,2),1,size(temp,4)]) ));
+            temp=max(0,min(.95, .75*temp+.25*temp/maxtemp.*repmat(shiftdim(color1,-1),[size(temp,1),size(temp,2),1,size(temp,4)]) ));
             if bp_isprint(n1)
                 if ismember(n1,[2,4,6]), tempprintmask=printmask(ceil(size(printmask,1)/4)+(1:ceil(size(printmask,1)/2)),ceil(size(printmask,2)/4)+(1:ceil(size(printmask,2)/2))); else tempprintmask=printmask; end
                 temp=.75*mean(color1)+.25*temp;
@@ -458,12 +474,31 @@ switch(lower(option)),
         end
         
         
+    case 'advancedthr'
+        data=get(hfig,'userdata');
+        if margin>1, advanced=varargin{1}; set(data.handles(6),'value',advanced);
+        else advanced=get(data.handles(6),'value');
+        end
+        if advanced
+            conn_displayroi(hfig,[],'fwec.option',numel(data.thres_defaults)+1,'immediatereturn');
+        else
+            ok=false;for method=1:numel(data.thres_defaults), if isequal({data.thr,data.thrtype,data.mvpathr,data.mvpathrtype},data.thres_defaults{method})&&data.side==3, ok=true; break; end; end;
+            if ~ok,
+                conn_displayroi(hfig,[],'fwec.option',numel(data.thres_defaults)+1,'immediatereturn');
+            else
+                conn_displayroi(hfig,[],'fwec.option',method,'immediatereturn');
+                data.mvpathrtype=method;
+            end
+        end
+        return
+        
     case 'fwec.option'
         data=get(hfig,'userdata');
         if margin>1&&~isempty(varargin{1}), value=varargin{1}; set(data.handles(1),'value',value);
         else  value=get(data.handles(1),'value');
         end
         data.thres=value;
+        advanced=get(data.handles(6),'value');
         if value<=numel(data.thres_defaults)
             [data.thr,data.thrtype,data.mvpathr,data.mvpathrtype]=deal(data.thres_defaults{data.thres}{:}); 
             data.side=3;
@@ -490,8 +525,14 @@ switch(lower(option)),
             if value==3||value==4, set(data.handles(5),'string',{tstr3,sprintf('%s',tstr4)});
             else set(data.handles(5),'string',{tstr3,sprintf('%s; %s',tstr5,tstr4)});
             end
-            set(data.handles(5),'visible','on');
-            set(data.handles([2,3,4,15,16,22,23]),'visible','off');
+            if advanced,
+                set(data.handles(5),'string','','visible','off');
+                set(data.handles([2,3,4,15,16,22,23]),'visible','on');
+                if data.thrtype==3||data.thrtype==4, set(data.handles([15,16,23]),'visible','off'); end
+            else
+                set(data.handles(5),'visible','on');
+                set(data.handles([2,3,4,15,16,22,23]),'visible','off');
+            end
         else
             set(data.handles(5),'string','','visible','off');
             set(data.handles([2,3,4,15,16,22,23]),'visible','on');

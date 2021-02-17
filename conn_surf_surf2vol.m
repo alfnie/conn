@@ -89,4 +89,7 @@ else dt=[spm_type('float32') spm_platform('bigend')];
 end
 a2=struct('mat',mat,'dim',dim,'fname',fileout,'pinfo',[1;0;0],'n',[1,1],'dt',dt);
 spm_write_vol(a2,M);
+
+%exts=[exts {'.txt','.csv','.xls','.info','.icon.jpg','.json'}];
+
 fprintf('created file %s\n',fileout);
