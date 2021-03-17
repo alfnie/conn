@@ -25,7 +25,7 @@ else
             if numel(temp)==1,temp=cellstr(conn_expandframe(temp{1}));end
             nvols=unique([1 numel(temp)]);
             for nvol=nvols(:)'
-                files=spm_vol(temp{nvol});
+                files=conn_fileutils('spm_vol',temp{nvol});
                 if conn_surf_dimscheck(files), files=conn_surf_parent(files,donewarning); donewarning=''; end % surface
                 if numel(txyz)<=1
                     dim=files(1).dim(1:2);
@@ -35,7 +35,7 @@ else
                     end
                     txyz=files(1).mat*[tx(:) ty(:) zslice+zeros(numel(tx),1) ones(numel(tx),1)]';
                 end
-                dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(1),pinv(files(1).mat)*txyz),dim(1:2))'));
+                dispdata{end+1}=fliplr(flipud(reshape(conn_fileutils('spm_get_data',files(1),pinv(files(1).mat)*txyz),dim(1:2))'));
                 if isempty(xlabels)
                     displabel{end+1}=temp{nvol};
                 else
@@ -481,7 +481,7 @@ end
                 state.bookmark_filename=tfilename;
                 state.bookmark_descr=descr;
                 conn_args={fcn,conn_montage_display_refresh([],[],'getstate')}; % re-save to include bookmark info
-                save(conn_prepend('',fullfilename,'.mat'),'conn_args');
+                conn_savematfile(conn_prepend('',fullfilename,'.mat'),'conn_args');
                 if 0, conn_msgbox(sprintf('Bookmark %s saved',fullfilename),'',2);
                 else out=fullfilename;
                 end

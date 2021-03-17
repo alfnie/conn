@@ -86,10 +86,10 @@ if ~overwrite&&isstruct(filename)
     Pthr_type=filename.Pthr_type;
     Pthr_side=filename.Pthr_side;
     if isfield(filename,'datatype'), datatype=filename.datatype; end
-elseif ~overwrite&&ischar(filename)&&~isempty(dir(filename))
+elseif ~overwrite&&ischar(filename)&&conn_existfile(filename)
     thisversion=VERSION;
     VERSION=[];
-    load(filename);
+    conn_loadmatfile(filename);
     assert(isequal(VERSION,thisversion),'Incompatible conn_randomise data files. Please re-compute second-level analyses or delete existing nonparametric_*.mat files');
 else
     Hist_Voxel_stat={};
@@ -549,7 +549,7 @@ if isdisplay>0, conn_waitbar('close',ht);
 elseif isdisplay==0 fprintf('\n');
 end
 if ~nargout
-    save(filename,'VERSION','model','results','Pthr','Pthr_type','Pthr_side','maxT','Hist_Voxel_stat','Dist_Voxel_statmax','Hist_Cluster_size','Hist_Cluster_mass','Hist_Cluster_score','Dist_Cluster_sizemax','Dist_Cluster_massmax','Dist_Cluster_scoremax','Hist_Seed_size','Hist_Seed_mass','Hist_Seed_score','Dist_Seed_sizemax','Dist_Seed_massmax','Dist_Seed_scoremax','Hist_Network_size','Hist_Network_mass','Hist_Network_score','Dist_Network_sizemax','Dist_Network_massmax','Dist_Network_scoremax');
+    conn_savematfile(filename,'VERSION','model','results','Pthr','Pthr_type','Pthr_side','maxT','Hist_Voxel_stat','Dist_Voxel_statmax','Hist_Cluster_size','Hist_Cluster_mass','Hist_Cluster_score','Dist_Cluster_sizemax','Dist_Cluster_massmax','Dist_Cluster_scoremax','Hist_Seed_size','Hist_Seed_mass','Hist_Seed_score','Dist_Seed_sizemax','Dist_Seed_massmax','Dist_Seed_scoremax','Hist_Network_size','Hist_Network_mass','Hist_Network_score','Dist_Network_sizemax','Dist_Network_massmax','Dist_Network_scoremax');
 else
     data=struct('VERSION',VERSION,'model',model,'results',results,'Pthr',Pthr,'Pthr_type',Pthr_type,'Pthr_side',Pthr_side,'maxT',maxT,'Hist_Voxel_stat',Hist_Voxel_stat,'Dist_Voxel_statmax',Dist_Voxel_statmax,'Hist_Cluster_size',{Hist_Cluster_size},'Hist_Cluster_mass',{Hist_Cluster_mass},'Hist_Cluster_score',{Hist_Cluster_score},'Dist_Cluster_sizemax',{Dist_Cluster_sizemax},'Dist_Cluster_massmax',{Dist_Cluster_massmax},'Dist_Cluster_scoremax',{Dist_Cluster_scoremax},'Hist_Seed_size',{Hist_Seed_size},'Hist_Seed_mass',{Hist_Seed_mass},'Hist_Seed_score',{Hist_Seed_score},'Dist_Seed_sizemax',{Dist_Seed_sizemax},'Dist_Seed_massmax',{Dist_Seed_massmax},'Dist_Seed_scoremax',{Dist_Seed_scoremax},'Hist_Network_size',{Hist_Network_size},'Hist_Network_mass',{Hist_Network_mass},'Hist_Network_score',{Hist_Network_score},'Dist_Network_sizemax',{Dist_Network_sizemax},'Dist_Network_massmax',{Dist_Network_massmax},'Dist_Network_scoremax',{Dist_Network_scoremax});
 end

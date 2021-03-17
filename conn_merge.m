@@ -12,7 +12,7 @@ function value=conn_merge(value0,value, copyfiles, disregardcurrent, softlink, m
 %
 
 if nargin<3||isempty(copyfiles), copyfiles=true; end % set to false if merged project should only contain project definitions but no connectivity datafiles
-                                                     % set to 2 if files should not be instantly copied but instead a .sh script containing the copy commands should be generated 
+                                                     % [obsolete] set to 2 if files should not be instantly copied but instead a .sh script containing the copy commands should be generated 
 if nargin<4||isempty(disregardcurrent), disregardcurrent=false; end % set to true to disregard current project info when merging multiple projects
 if nargin<5||isempty(softlink), softlink=false; end % set to true if merged project should contain symbolic links to original connectivity datafiles instead of a copy of the original datafiles
 if nargin<6||isempty(mergeinfo), mergeinfo=true; end % set to false if merged project definitions should not be changed (only copy connectivity datafiles)
@@ -23,6 +23,13 @@ MAXMEM=50; % maximum number of simultaneous project files that may be loaded at 
 global CONN_x;
 
 if nargin>0&&ischar(value0), % merge multiple project files (value0 = filenames)
+    if conn_projectmanager('inserver'), 
+        conn save; % note: save+push+rload
+        value=conn_server('run','conn_merge',value0,value, copyfiles, disregardcurrent, softlink, mergeinfo, skipchecks);
+        conn_server('run','conn','save');
+        conn load; % note: (rload+rsave)+pull+load
+        return
+    end
     filenames=value0;
     if ~iscell(filenames), filenames=cellstr(filenames); end
     if numel(filenames)>MAXMEM&&~disregardcurrent
@@ -209,7 +216,7 @@ end
 
 % rename/copy analysis files
 if copyfiles && (value<value0||any(otheridx3(setdiff(idx1,idx0)))) && ~isempty(CONN_x.filename),
-    if copyfiles>1, DEBUG_FH=fopen(conn_prepend('conn_merge_',CONN_x.filename,'_copyfiles.sh'),'wt'); fclose(DEBUG_FH); end
+    %if copyfiles>1, DEBUG_FH=fopen(conn_prepend('conn_merge_',CONN_x.filename,'_copyfiles.sh'),'wt'); fclose(DEBUG_FH); end
     for nother=1:length(other),
         filepath=other{nother}.CONN_x.folders.data;
         filepathresults1=other{nother}.CONN_x.folders.preprocessing;
@@ -242,9 +249,10 @@ if copyfiles && (value<value0||any(otheridx3(setdiff(idx1,idx0)))) && ~isempty(C
             if ~isempty(filesubjsall{1})
                 idx=find(filesubjsall{1}(:,1)==idx0(nsub));
                 for n1=1:length(idx),
-                    if ispc, [ok,nill]=mysystem(['del "',deblank(filenamesall{1}{idx(n1)}),'"']);
-                    else, [ok,nill]=mysystem(['rm ''',deblank(filenamesall{1}{idx(n1)}),'''']);
-                    end
+                    try, conn_fileutils('deletefile',deblank(filenamesall{1}{idx(n1)})); end
+                    %if ispc, [ok,nill]=mysystem(['del "',deblank(filenamesall{1}{idx(n1)}),'"']);
+                    %else, [ok,nill]=mysystem(['rm ''',deblank(filenamesall{1}{idx(n1)}),'''']);
+                    %end
                 end
             end
         elseif nsub>length(idx0), % new subject 
@@ -255,10 +263,15 @@ if copyfiles && (value<value0||any(otheridx3(setdiff(idx1,idx0)))) && ~isempty(C
                     newfilename=[filename(1:filesubjsall{otheridx1(nsub)}(idx(n1),2)-1),num2str(idx1(nsub),['%0',num2str(filesubjsall{otheridx1(nsub)}(idx(n1),3)),'d']),filename(filesubjsall{otheridx1(nsub)}(idx(n1),2)+filesubjsall{otheridx1(nsub)}(idx(n1),3):end)];
                     %filepath=filepathall{otheridx1(nsub)}{filesubjsall{otheridx1(nsub)}(idx(n1),4)};
                     newfilepath=filepathall{1}{filesubjsall{otheridx1(nsub)}(idx(n1),4)};
-                    if ispc, [ok,nill]=mysystem(['copy "',fullfile(filepath,[filename,fileext]),'" "',fullfile(newfilepath,[newfilename,fileext]),'"']);
-                    elseif softlink, [ok,nill]=mysystem(['ln -fs ''',fullfile(filepath,[filename,fileext]),''' ''',fullfile(newfilepath,[newfilename,fileext]),'''']);
-                    else, [ok,nill]=mysystem(['cp ''',fullfile(filepath,[filename,fileext]),''' ''',fullfile(newfilepath,[newfilename,fileext]),'''']);
+                    try
+                        if softlink, conn_fileutils('linkfile',fullfile(filepath,[filename,fileext]),fullfile(newfilepath,[newfilename,fileext]));
+                        else conn_fileutils('copyfile',fullfile(filepath,[filename,fileext]),fullfile(newfilepath,[newfilename,fileext]));
+                        end
                     end
+                    %if ispc, [ok,nill]=mysystem(['copy "',fullfile(filepath,[filename,fileext]),'" "',fullfile(newfilepath,[newfilename,fileext]),'"']);
+                    %elseif softlink, [ok,nill]=mysystem(['ln -fs ''',fullfile(filepath,[filename,fileext]),''' ''',fullfile(newfilepath,[newfilename,fileext]),'''']);
+                    %else, [ok,nill]=mysystem(['cp ''',fullfile(filepath,[filename,fileext]),''' ''',fullfile(newfilepath,[newfilename,fileext]),'''']);
+                    %end
                 end
             end
         elseif idx0(nsub)~=idx1(nsub), % subject renamed
@@ -268,9 +281,10 @@ if copyfiles && (value<value0||any(otheridx3(setdiff(idx1,idx0)))) && ~isempty(C
                     [filepath,filename,fileext]=fileparts(deblank(filenamesall{1}{idx(n1)}));
                     newfilename=[filename(1:filesubjsall{1}(idx(n1),2)-1),num2str(idx1(nsub),['%0',num2str(filesubjsall{1}(idx(n1),3)),'d']),filename(filesubjsall{1}(idx(n1),2)+filesubjsall{1}(idx(n1),3):end)];
                     tmp=strmatch(fullfile(filepath,[newfilename,fileext]),filenamesall{1},'exact');if isempty(tmp),newfilename=[filename(1:filesubjsall{1}(idx(n1),2)-1),num2str(idx1(nsub),['%',num2str(filesubjsall{1}(idx(n1),3)),'d']),filename(filesubjsall{1}(idx(n1),2)+filesubjsall{1}(idx(n1),3):end)];end;if isempty(strmatch(fullfile(filepath,[newfilename,fileext]),filenamesall{1},'exact')),conn_disp('warning, non existing target file'); end
-                    if ispc, [ok,nill]=mysystem(['copy "',fullfile(filepath,[newfilename,fileext]),'" "',fullfile(filepath,[filename,fileext]),'"']);
-                    else, [ok,nill]=mysystem(['cp ''',fullfile(filepath,[newfilename,fileext]),''' ''',fullfile(filepath,[filename,fileext]),'''']);
-                    end
+                    try, conn_fileutils('copyfile',fullfile(filepath,[newfilename,fileext]),fullfile(filepath,[filename,fileext])); end
+                    %if ispc, [ok,nill]=mysystem(['copy "',fullfile(filepath,[newfilename,fileext]),'" "',fullfile(filepath,[filename,fileext]),'"']);
+                    %else, [ok,nill]=mysystem(['cp ''',fullfile(filepath,[newfilename,fileext]),''' ''',fullfile(filepath,[filename,fileext]),'''']);
+                    %end
                 end
             end
         end
@@ -278,15 +292,15 @@ if copyfiles && (value<value0||any(otheridx3(setdiff(idx1,idx0)))) && ~isempty(C
 end
 if ~nargout, CONN_x.Setup.nsubjects=value; end
 
-    function [sys1,sys2]=mysystem(str)
-        sys1=[];
-        sys2=[];
-        switch(DEBUG)
-            case 0, 
-                if copyfiles>1, DEBUG_FH=fopen(conn_prepend('conn_merge_',CONN_x.filename,'_copyfiles.sh'),'at'); fprintf(DEBUG_FH,'%s\n',str); fclose(DEBUG_FH);
-                else [sys1,sys2]=system(str); disp(str);
-                end
-            case 1, disp(str);
-        end
-    end
+%     function [sys1,sys2]=mysystem(str)
+%         sys1=[];
+%         sys2=[];
+%         switch(DEBUG)
+%             case 0, 
+%                 if copyfiles>1, DEBUG_FH=fopen(conn_prepend('conn_merge_',CONN_x.filename,'_copyfiles.sh'),'at'); fprintf(DEBUG_FH,'%s\n',str); fclose(DEBUG_FH);
+%                 else [sys1,sys2]=system(str); disp(str);
+%                 end
+%             case 1, disp(str);
+%         end
+%     end
 end

@@ -101,11 +101,21 @@ if nargin<5||isempty(swd),
     else swd=pwd; 
     end
 end
+if nargin<6||isempty(effectnames), effectnames={}; end
+if nargin<7||isempty(datanames), datanames={}; end
 if nargin<8||isempty(secondlevelanalyses), secondlevelanalyses=1; end % type of second-level analysis: 1:all; 2:param only; 3:nonparam only
 if nargin<9, maskfile=''; end                                         % analysis mask file (restricts analyses to only within-mask voxels)
 if nargin<10, subjectids=''; end                                      % subject id's (keeps track in SPM.xX.SubjectIDs field of subject IDs used in this analysis)
 if size(C1,2)~=Nx, error('Incorrect dimensions (X and C1 should have the same number of columns)'); end
 if size(C2,2)~=Ny, error('Incorrect dimensions (filenames and C2 should have the same number of columns)'); end
+
+if any(conn_server('util_isremotefile',swd)), 
+    SPM=conn_server('run',mfilename,X,conn_server('util_localfile',filenames),C1,C2,conn_server('util_localfile',swd),effectnames,datanames,secondlevelanalyses,maskfile,subjectids); 
+    SPM.swd=conn_server('util_remotefile',SPM.swd);
+    %if ~nargout, conn_display(fullfile(SPM.swd,'SPM.mat'),1);end
+    return
+end
+
 NANTO0=true; % skips SPM's explicit masking of NaN values
 FORCEORTH=true; % enforces orthogonal rows in within-subject contrasts (C2)
 

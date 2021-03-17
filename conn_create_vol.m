@@ -36,6 +36,7 @@ V.voxels=[];
 nslice=1+floor((voxels-1)/prod(V.matdim.dim(1:2)));
 Nv=hist(nslice,1:V.matdim.dim(3));
 
+%conn_fileutils('filewrite',[V.fname,'c'],{});
 handle=fopen([V.fname,'c'],'wb');
 fclose(handle);
 
@@ -47,8 +48,8 @@ if issurface % surface-based extraction
     idx=1:numel(voxels);
     xyz=conn_convertcoordinates('idx2tal',voxels(idx),V.matdim.mat,V.matdim.dim);
     if ~isempty(sfilename),
-        xyzs=conn_obj_coords2(sfilename, xyz')';
-        if size(xyzs,2)<4, xyzs=cat(2,xyzs,ones(size(xyzs,1),1)); end
+        %xyzs=conn_obj_coords2(sfilename, xyz')';
+        %if size(xyzs,2)<4, xyzs=cat(2,xyzs,ones(size(xyzs,1),1)); end
     else xyzs=xyz;
     end
     if ~isempty(mask)
@@ -99,8 +100,8 @@ else % volume-based extraction
         if ~isempty(idx),
             xyz=conn_convertcoordinates('idx2tal',voxels(idx),V.matdim.mat,V.matdim.dim);
             if ~isempty(sfilename),
-                xyzs=conn_obj_coords2(sfilename, xyz')';
-                if size(xyzs,2)<4, xyzs=cat(2,xyzs,ones(size(xyzs,1),1)); end
+                %xyzs=conn_obj_coords2(sfilename, xyz')';
+                %if size(xyzs,2)<4, xyzs=cat(2,xyzs,ones(size(xyzs,1),1)); end
             else xyzs=xyz;
             end
             

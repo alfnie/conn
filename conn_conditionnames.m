@@ -1,7 +1,8 @@
 function [icond,isnew]=conn_conditionnames(name,flag,varargin)
+
 global CONN_x;
-if ~isfield(CONN_x.Setup.conditions,'allnames'), CONN_x.Setup.conditions.allnames=CONN_x.Setup.conditions.names(1:end-1); end
 if nargin<2, flag='-'; end
+if ~isfield(CONN_x.Setup.conditions,'allnames'), CONN_x.Setup.conditions.allnames=CONN_x.Setup.conditions.names(1:end-1); end
 idx=strmatch(name,CONN_x.Setup.conditions.allnames,'exact');
 if ~isempty(idx),
     icond=idx(1);
@@ -11,7 +12,7 @@ if ~isempty(idx),
         fileconditionnames=fullfile(CONN_x.folders.preprocessing,'_list_conditions.mat');
         fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,CONN_x.pobj,'.mat');
         allnames=CONN_x.Setup.conditions.allnames;
-        save(fileconditionnames,'allnames');
+        conn_savematfile(fileconditionnames,'allnames');
     elseif strcmp(flag,'renamebutnotsave')
         CONN_x.Setup.conditions.allnames{icond}=varargin{1};
     elseif strcmp(flag,'rename')
@@ -19,7 +20,7 @@ if ~isempty(idx),
         fileconditionnames=fullfile(CONN_x.folders.preprocessing,'_list_conditions.mat');
         fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,CONN_x.pobj,'.mat');
         allnames=CONN_x.Setup.conditions.allnames;
-        save(fileconditionnames,'allnames');
+        conn_savematfile(fileconditionnames,'allnames');
     end
 else,
     icond=length(CONN_x.Setup.conditions.allnames)+1;
@@ -32,14 +33,14 @@ else,
             fileconditionnames=fullfile(CONN_x.folders.preprocessing,'_list_conditions.mat');
             fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,CONN_x.pobj,'.mat');
             allnames=CONN_x.Setup.conditions.allnames;
-            save(fileconditionnames,'allnames');
+            conn_savematfile(fileconditionnames,'allnames');
         end
     elseif strcmp(flag,'+'),
         CONN_x.Setup.conditions.allnames{icond}=name;
         fileconditionnames=fullfile(CONN_x.folders.preprocessing,'_list_conditions.mat');
         fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,CONN_x.pobj,'.mat');
         allnames=CONN_x.Setup.conditions.allnames;
-        save(fileconditionnames,'allnames');
+        conn_savematfile(fileconditionnames,'allnames');
     end
     isnew=1;
 end

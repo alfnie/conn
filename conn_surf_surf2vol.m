@@ -1,5 +1,5 @@
 function fileout=conn_surf_surf2vol(filein,fileout,FSfolder,interp)
-% conn_surf_surf2vol converts surface nifti file to volume nifti file
+% CONN_SURF_SURF2VOL converts surface nifti file to volume nifti file
 %
 % conn_surf_surf2vol(filename [, fileout, folderREF, interp])
 %     filename  : input surface nifti file (containing fsaverage 2*nvertices voxels; see help conn_surf_write)
@@ -11,6 +11,10 @@ function fileout=conn_surf_surf2vol(filein,fileout,FSfolder,interp)
 %      creates curv.vol.nii volume nifti file
 %
 
+if nargin<2, fileout=[]; end
+if nargin<3, FSfolder=[]; end
+if nargin<4, interp=[]; end
+if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),conn_server('util_localfile',fileout),FSfolder,interp)); return; end
 
 if size(filein,1)>1, 
     fileout=char(cellfun(@conn_surf_surf2vol,cellstr(filein),'uni',0));

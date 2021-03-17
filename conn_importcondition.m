@@ -108,7 +108,7 @@ switch(filetype)
         if filetype==3 % look for tsv files in functional directory
             cwd=fileparts(CONN_x.Setup.functional{1}{1}{1});
             fmask=filename;
-            f=dir(fullfile(cwd,fmask));
+            f=conn_dirn(fullfile(cwd,fmask));
             if isempty(f), error('no %s file found in %s',fmask,cwd); end
             f={f.name};
             nf=1;
@@ -123,7 +123,7 @@ switch(filetype)
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsub));
                 for nses=1:nsess
                     cwd=fileparts(CONN_x.Setup.functional{nsub}{nses}{1});
-                    f=dir(fullfile(cwd,fmask));
+                    f=conn_dirn(fullfile(cwd,fmask));
                     if isempty(f), error('No %s file found in %s',fmask,cwd); end
                     f={f.name};
                     nf=1;

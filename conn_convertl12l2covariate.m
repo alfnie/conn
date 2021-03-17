@@ -8,7 +8,7 @@ if ~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
 
 filepath=CONN_x.folders.data;
 filename=fullfile(filepath,['COND_Subject',num2str(1,'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
-if isempty(dir(filename)), uiwait(warndlg(['Not ready to compute summary measures yet. Please run Setup step first (minimally: conn_process setup_conditions)'],'')); return; end
+if ~conn_existfile(filename), uiwait(warndlg(['Not ready to compute summary measures yet. Please run Setup step first (minimally: conn_process setup_conditions)'],'')); return; end
 
 if nargin<1||isempty(varargin{1}), 
     ncovariates=listdlg('liststring',CONN_x.Setup.l1covariates.names(1:end-1),'selectionmode','multiple','promptstring',{'Select first-level covariate(s)'},'ListSize',[200 100]);
@@ -111,6 +111,7 @@ conn_convertl12l2covariate_update;
             userdefined('clear');
             
             Z=cell(numel(nconditions),numel(ncovariates));
+            [samples,weights,names]=deal({});
             ht=conn_waitbar(0,'Loading covariate/condition info. Please wait...',false);
             for nsub=1:CONN_x.Setup.nsubjects
                 nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
@@ -118,8 +119,8 @@ conn_convertl12l2covariate_update;
                 W=cell(numel(nconditions),numel(ncovariates));
                 for nses=1:nsess
                     filename=fullfile(filepath,['COND_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-                    if isempty(dir(filename)), conn_disp(['Not ready. Please run Setup step first (minimally: conn_process setup_conditions)']); return; end
-                    load(filename,'samples','weights','names');
+                    if ~conn_existfile(filename), conn_disp(['Not ready. Please run Setup step first (minimally: conn_process setup_conditions)']); return; end
+                    conn_loadmatfile(filename,'samples','weights','names');
                     if ~isequal(CONN_x.Setup.conditions.names(1:end-1),names), conn_waitbar('close',ht); conn_msgbox(['Incorrect conditions in file ',filename,'. Please re-run Setup step first (minimally: conn_process setup_conditions)'],'error summarizing first-level covariate',2); return; end
                     for icondition=1:numel(nconditions)
                         for icovariate=1:numel(ncovariates)

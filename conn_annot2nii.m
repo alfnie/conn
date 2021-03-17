@@ -1,6 +1,10 @@
 function niifilename = conn_annot2nii(varargin)
 % CONN_ANNOT2NII lh.filename.annot rh.filename.annot
 % converts freesurfer .annot file into .nii/.txt surface nifti ROI file
+%
+% filename = conn_annot2nii(filename)
+%
+
 
 FORCEREDO=false; % forces creation of target file even if it already exists
 
@@ -8,6 +12,7 @@ if nargin==1&&ischar(varargin{1}), roifiles=varargin;
 elseif nargin==1&&iscell(varargin{1}), roifiles=varargin{1};
 else roifiles=varargin;
 end
+if any(conn_server('util_isremotefile',roifiles)), niifilename=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',roifiles))); return; end
 
 if numel(roifiles)==1
     [file_path,file_name,file_ext]=fileparts(roifiles{1});

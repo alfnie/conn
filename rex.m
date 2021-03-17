@@ -64,22 +64,22 @@ if nargin>=1 && ischar(ImgF) && (nargin==1 || (size(ImgF,1)==1 && any(strcmp(Img
             if nargin>1, temp=roi_path_array;opts=varargin;
             else temp=spm_select(1,'REX.*\.mat$','Select REX.mat file');opts={};
             end
-            load(deblank(temp),'params');params.output_folder=fileparts(temp);rex(params,'gui',1,'steps',[],opts{:});
+            params=struct; conn_loadmatfile(deblank(temp),'params');params.output_folder=fileparts(temp);rex(params,'gui',1,'steps',[],opts{:});
         case 'display', 
             if nargin>1, temp=roi_path_array;
             else temp=spm_select(1,'REX.*\.mat$','Select REX.mat file');
             end
-            load(deblank(temp),'params');params.output_folder=fileparts(temp);rex_display(params);
+            params=struct; conn_loadmatfile(deblank(temp),'params');params.output_folder=fileparts(temp);rex_display(params);
         case 'results', 
             if nargin>1, temp=roi_path_array;opts=varargin;
             else temp=spm_select(1,'REX.*\.mat$','Select REX.mat file');opts={};
             end
-            load(deblank(temp),'params');params.output_folder=fileparts(temp);rex(params,'gui',0,'output_type','none','steps',{'results'},opts{:});
+            params=struct; conn_loadmatfile(deblank(temp),'params');params.output_folder=fileparts(temp);rex(params,'gui',0,'output_type','none','steps',{'results'},opts{:});
         case 'plots', 
             if nargin>1, temp=roi_path_array;opts=varargin;
             else temp=spm_select(1,'REX.*\.mat$','Select REX.mat file');opts={};
             end
-            load(deblank(temp),'params');params.output_folder=fileparts(temp);rex(params,'gui',0,'output_type','none','steps',{'plots'},opts{:});
+            params=struct; conn_loadmatfile(deblank(temp),'params');params.output_folder=fileparts(temp);rex(params,'gui',0,'output_type','none','steps',{'plots'},opts{:});
         case 'split',
             if nargin>1, temp=roi_path_array; opts=varargin;
             else temp=spm_select(1,'.*\.nii|.*\.img','Select image file'); opts={};
@@ -94,8 +94,8 @@ if nargin>=1 && ischar(ImgF) && (nargin==1 || (size(ImgF,1)==1 && any(strcmp(Img
             options=[{roi_path_array}, varargin];
             [varargout{1:nargout}]=rex_test(options{:});
         otherwise,
-            if ~isempty(dir(ImgF)),
-                load(ImgF,'params');
+            if conn_existfile(ImgF),
+                params=struct; conn_loadmatfile(ImgF,'params');
                 params.output_folder=fileparts(ImgF);
                 varargout{1}=rex(params);
             end
@@ -139,19 +139,28 @@ elseif nargin>0, % COMMAND-LINE OPTIONS
         if isempty(params.output_type),if nargout>0, params.output_type='none'; else, params.output_type='save'; end; end
         if isempty(params.gui),if nargout>0, params.gui=0; else, params.gui=1; end; end
         params.sources=ImgF;
-        params.rois=char(expandframe(roi_path_array));
+        params.rois=char(conn_expandframe(roi_path_array));
         %if size(params.rois,1)>1&&numel(cellstr(roi_path_array))==1&&strcmp(params.level,'clusters'), params.level='rois'; end
     end
+
     if ~params.gui, % COMMAND-LINE 
-        if ~isempty(params.spm_file)&&(~isfield(params,'SPM')||isempty(params.SPM)),
-            params.SPM=load(params.spm_file);
+        if isfield(params,'sources')&&any(conn_server('util_isremotefile',params.sources)), 
+            for n={'sources','rois','conjunction_mask','spm_file','output_folder','fsanatomical'}
+                if isfield(params,n{1}), params.(n{1})=conn_server('util_localfile',params.(n{1})); end
+            end
+            [varargout{1:nargout}]=conn_server('run','conn_rex',params); 
+            return
         end
+        if ~isempty(params.spm_file)&&(~isfield(params,'SPM')||isempty(params.SPM)),
+            params.SPM=conn_loadmatfile(params.spm_file);
+        end
+
         if ~isfield(params,'VF') && ~isempty(params.sources),
             temp=params.sources;
             [nill,nill,ext]=fileparts(deblank(temp(1,:)));
             if size(temp,1)==1 && strcmp(ext,'.mat'),
                 params.spm_file=deblank(temp);
-                params.SPM=load(params.spm_file,'SPM');
+                params.SPM=conn_loadmatfile(params.spm_file,'SPM');
                 if (~isfield(params,'extractcontrasts')||~params.extractcontrasts)&&isfield(params.SPM.SPM,'xX_multivariate')&&isfield(params.SPM.SPM.xX_multivariate,'Zfiles')
                     params.sources=char(params.SPM.SPM.xX_multivariate.Zfiles);
                     params.VF=spm_vol(params.sources);
@@ -193,15 +202,15 @@ elseif nargin>0, % COMMAND-LINE OPTIONS
         end
         data.params=params; for n1=1:length(params.steps), data=rex_gui([],[],params.steps{n1},data,0); end; params=data.params;
         if strcmpi(params.output_type,'save')||strcmpi(params.output_type,'saverex'), 
-            save(fullfile(params.output_folder,params.output_rex),'params'); 
+            conn_savematfile(fullfile(params.output_folder,params.output_rex),'params'); 
         end
         varargout={params.ROIdata,params.ROInames,params};
         return; 
     end
 else
-    if ~isempty(dir('REX.mat')),
+    if conn_existfile('REX.mat'),
         [answ]=questdlg('Continue from previous session?','','Yes','No (starts a new session)','Yes');
-        if strcmp(answ,'Yes'),load('REX.mat');params.output_folder=pwd;rex(params,'gui',1,'steps',[]);return;end
+        if strcmp(answ,'Yes'),params=struct; conn_loadmatfile('REX.mat');params.output_folder=pwd;rex(params,'gui',1,'steps',[]);return;end
     end
     % GUI INIT
     fields={'sources','',...
@@ -321,7 +330,7 @@ switch(option),
             if size(temp,1)==1 && strcmp(ext,'.mat'),
                 hf=msgbox('Loading header files. Please wait...');
                 data.params.spm_file=deblank(temp);
-                data.params.SPM=load(data.params.spm_file,'SPM');
+                data.params.SPM=conn_loadmatfile(data.params.spm_file,'SPM');
                 if (~isfield(data.params,'extractcontrasts')||~data.params.extractcontrasts)&&isfield(data.params.SPM.SPM,'xX_multivariate')&&isfield(data.params.SPM.SPM.xX_multivariate,'Zfiles')
                     data.params.sources=char(data.params.SPM.SPM.xX_multivariate.Zfiles);
                     data.params.VF=spm_vol(data.params.sources);
@@ -505,7 +514,7 @@ switch(option),
         set(fig,'userdata',data);
     case 'extract',
         [data.params.ROIdata,data.params.ROInames,data.params.ROIinfo.basis,data.params.ROIinfo.voxels,data.params.ROIinfo.files,data.params.ROIinfo.select,data.params.ROIinfo.trans]=rex_do(data,~data.params.gui||(isfield(data.params,'steps')&&any(strcmp(data.params.steps,'nodisplay'))));
-        if strcmpi(data.params.output_type,'save')||strcmpi(data.params.output_type,'saverex'), params=data.params;save(fullfile(params.output_folder,params.output_rex),'params');end
+        if strcmpi(data.params.output_type,'save')||strcmpi(data.params.output_type,'saverex'), params=data.params;conn_savematfile(fullfile(params.output_folder,params.output_rex),'params');end
         if ishandle(fig),
             set(data.handles([10,12]),'enable','on');
             set(fig,'userdata',data);
@@ -524,7 +533,7 @@ switch(option),
             if size(temp,1)==1 && strcmp(ext,'.mat'),
                 hf=msgbox('Loading header files. Please wait...');
                 data.params.spm_file=deblank(temp);
-                data.params.SPM=load(data.params.spm_file,'SPM');
+                data.params.SPM=conn_loadmatfile(data.params.spm_file,'SPM');
                 if size(data.params.SPM.SPM.xX.X,1)~=size(data.params.ROIdata,1),
                     close(hf);
                     errordlg(['The number of datapoints extracted (',num2str(size(data.params.ROIdata,1)),') does not match the design size (',num2str(size(data.params.SPM.SPM.xX.X,1)),')']); 
@@ -573,7 +582,7 @@ switch(option),
                     data.params.results=struct('beta',cbeta,'CI',CI,'T',T,'p_unc',p,'p_FDR',P,'dof',dof,'statsname',statsname,'contrast',c,'contrast_name',{cname},'ROI_name',{{data.params.ROInames{s}}},'contrast_within',mcon,'X',xX,'Y',data.params.ROIdata(:,s));
                     if strcmpi(data.params.output_type,'save')||strcmpi(data.params.output_type,'saverex'),
                         params=data.params;
-                        save(fullfile(params.output_folder,params.output_rex),'params');
+                        conn_savematfile(fullfile(params.output_folder,params.output_rex),'params');
                         clear params;
                     end
                     
@@ -992,24 +1001,26 @@ for r=1:size(params.rois,1)
         if strcmpi(params.output_type,'save')||strcmpi(params.output_type,'savefiles')
             if ~isempty(strmatch('data.txt',params.output_files,'exact')),
                 name_dat=fullfile(params.output_folder,[ROInames{rr},'.rex.data.txt']);
-                fid = fopen(name_dat,'w');
-                if fid == -1, error(['Unable to create new file - please check permissions in current directory.']);end
-                fprintf(fid,[repmat(['%4.4f '],[1,length(rrx{r}{nclusters})]),'\n'], ROIdata(:,rrx{r}{nclusters})');
-                fclose(fid);
+                conn_fileutils('filewrite',name_dat, sprintf([repmat(['%4.4f '],[1,length(rrx{r}{nclusters})]),'\n'], ROIdata(:,rrx{r}{nclusters})'));
+                %fid = fopen(name_dat,'w');
+                %if fid == -1, error(['Unable to create new file - please check permissions in current directory.']);end
+                %fprintf(fid,[repmat(['%4.4f '],[1,length(rrx{r}{nclusters})]),'\n'], ROIdata(:,rrx{r}{nclusters})');
+                %fclose(fid);
                 txt{end+1}=['OUTPUT DATA FILE: ',char(name_dat)];
             end
             if ~isempty(strmatch('data.mat',params.output_files,'exact')),
                 name_dat=fullfile(params.output_folder,[ROInames{rr},'.rex.data.mat']);
                 R=ROIdata(:,rrx{r}{nclusters});
-                save(name_dat,'R');
+                conn_savematfile(name_dat,'R');
                 txt{end+1}=['OUTPUT DATA FILE: ',char(name_dat)];
             end
             if ~isempty(strmatch('roi.txt',params.output_files,'exact')),
                 name_dat=fullfile(params.output_folder,[ROInames{rr},'.rex.roi.tal']);
-                fid = fopen(name_dat,'w');
-                if fid == -1, error(['Unable to create new file - please check permissions in current directory.']);end
-                fprintf(fid,'%3.0f %3.0f %3.0f\n',XYZMM{r}{nclusters});
-                fclose(fid);
+                conn_fileutils('filewrite',name_dat, sprintf('%3.0f %3.0f %3.0f\n',XYZMM{r}{nclusters}) );
+                %fid = fopen(name_dat,'w');
+                %if fid == -1, error(['Unable to create new file - please check permissions in current directory.']);end
+                %fprintf(fid,'%3.0f %3.0f %3.0f\n',XYZMM{r}{nclusters});
+                %fclose(fid);
                 txt{end+1}=['OUTPUT ROI FILE : ',char(name_dat)];
             end
             txt{end+1}=['LOCATION: ',params.output_folder];
@@ -1042,9 +1053,10 @@ for r=1:size(params.rois,1)
             elseif length(XYZMM{r})>1, tROInames{nclusters}=[tROInames{nclusters},'.cluster',num2str(XYZNN{r}(nclusters),'%03d')]; end
         end
         name_dat=fullfile(params.output_folder,[roi_path_name,'.rex.roi.txt']);
-        h=fopen(name_dat,'wt');
-        for n1=1:length(tROInames),fprintf(h,'%s\n',tROInames{n1});end
-        fclose(h);
+        conn_fileutils('filewrite',name_dat, tROInames );
+        %h=fopen(name_dat,'wt');
+        %for n1=1:length(tROInames),fprintf(h,'%s\n',tROInames{n1});end
+        %fclose(h);
         txt{end+1}=['OUTPUT ROI FILE : ',char(name_dat)];
         txt{end+1}=['LOCATION: ',params.output_folder];
         txt{end+1}=' ';
@@ -1103,18 +1115,18 @@ switch(lower(type)),
 %         [xt,yt,zt]=ind2sub(a.dim,idxvoxels);
 %         xyz=[xt,yt,zt]';
         [ub,nill,iub]=unique(b(idxvoxels));
-        if isempty(roi_path_num)&&length(ub)>1&&(~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.txt'])))||~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.csv'])))||~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.xls'])))),%&&all(abs(ub-round(ub))<1e-1),
+        if isempty(roi_path_num)&&length(ub)>1&&(conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt']))||conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.csv']))||conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.xls']))),%&&all(abs(ub-round(ub))<1e-1),
             x_rep=1;
         elseif isempty(roi_path_num)&&length(ub)>1&&all(ub==round(ub))&&all(ub>=0)
             x_rep=1;
         else C=[];x_rep=0;end;
         try
-            if ~isempty(roi_path_num)&&~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.txt']))),
+            if ~isempty(roi_path_num)&&conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
                 XYZnames=textread(fullfile(roi_path_dir,[roi_path_name,'.txt']),'%s','delimiter','\n'); % sorted list of labels .txt format (ROI_LABEL)
                 if numel(XYZnames)~=roi_path_tot, rex_disp('fprintf','Warning: file %s format not recognized\n number of lines in .txt labels file = %d, number of volumes in nifti image file = %d\n',fullfile(roi_path_dir,[roi_path_name,'.txt']),length(XYZnames),roi_path_tot); end
                 XYZnames=XYZnames(roi_path_num);
                 C=ones(1,numel(idxvoxels));
-            elseif x_rep && ~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.txt']))),
+            elseif x_rep && conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
                 XYZnames=textread(fullfile(roi_path_dir,[roi_path_name,'.txt']),'%s','delimiter','\n'); % sorted list of labels .txt format (ROI_LABEL)
                 if length(XYZnames)~=max(round(ub)),
                     [id,PU]=textread(fullfile(roi_path_dir,[roi_path_name,'.txt']),'%s%s%*[^\n]','delimiter',' \t'); % FreeSurfer *LUT.txt or equivalent format (ROI_NUMBER ROI_LABEL)
@@ -1140,8 +1152,8 @@ switch(lower(type)),
                 else
                     b=round(b);ub=round(ub);XYZww=round(XYZww);C=XYZww';
                 end
-            elseif x_rep && (~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.csv'])))||~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.xls'])))), 
-                if ~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.csv'])))
+            elseif x_rep && (conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.csv']))||conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.xls']))), 
+                if conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.csv']))
                     try
                         [PU,id,nill]=textread(fullfile(roi_path_dir,[roi_path_name,'.csv']),'%s%d%d','delimiter',',','headerlines',1); % ROI_LABEL,ROI_NUMBER = SLT format (label,ID,... .csv/.xls) 
                     catch
@@ -1648,7 +1660,7 @@ filenames2=[];filename_path=[];
 for n1=1:size(filenames,1),
     [filenames_path,filenames_name,filenames_ext,filenames_num]=spm_fileparts(deblank(filenames(n1,:)));
     filename=fullfile(filenames_path,[filenames_name,filenames_ext]);
-    if isempty(dir(filename)),
+    if ~conn_existfile(filename),
         if spm_ver<=2,     filename=spm_get(1,'image',['Select file ',filenames_name,filenames_ext,filenames_num]);
         else,              filename=spm_select(1,'image',['Select file ',filenames_name,filenames_ext,filenames_num],{},filename_path); end
     else filename=deblank(filenames(n1,:)); end
@@ -2340,41 +2352,6 @@ else
     end
 end
 if dim~=1, q=ipermute(q,[dim,1:dim-1,dim+1:nd]); end
-end
-
-function filesout=expandframe(filesin)
-% expands all frames in 4d nifti file
-
-singlefile=false;
-if ~iscell(filesin), 
-    if isstruct(filesin) % special-case, passing spm_vol structure
-        filesout=cellfun(@(a,b)[a,',',b],{filesin.fname},cellfun(@(x)num2str(x(1)),{filesin.n},'uni',0),'uni',0);
-        return
-    end
-    filesin=cellstr(filesin); % passing single string
-    singlefile=true;
-end
-
-filesout={};
-for n=1:numel(filesin)
-    filename=filesin{n};
-    if ~isempty(regexp(filename,',\d+$','once'))||isempty(regexp(filename,'\.img$|\.nii$','once'))
-        filesout=cat(1,filesout, {filename});
-    else
-        ni = nifti(filename);
-        dm = [ni.dat.dim 1 1 1 1];
-        if dm(4)>1
-            filesout=cat(1,filesout, arrayfun(@(x)[filename,',',num2str(x)],(1:dm(4))','uni',0) );
-            is4d=true;
-        else
-            filesout=cat(1,filesout, {filename});
-        end
-    end
-end
-
-if singlefile
-    filesout=char(filesout);
-end
 end
 
 function idx=rex_randset(N,n)

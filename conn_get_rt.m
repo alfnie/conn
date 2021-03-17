@@ -1,12 +1,25 @@
-function RT = conn_get_rt(nsub,nses,nset)
+function RT = conn_get_rt(nsub,nses,nset, functionals)
 
 global CONN_x;
 
+if nargin<4, functionals={}; end
 if nargin<3||isempty(nset), nset=0; end
 if nargin<2||isempty(nses), nses=[]; end
 if nargin<1||isempty(nsub), nsub=[]; end
 
 if isempty(nsub), nsub=1:CONN_x.Setup.nsubjects; end
+if any(isnan(CONN_x.Setup.RT(min(numel(CONN_x.Setup.RT),nsub))))&&conn_projectmanager('inserver'), 
+    for nsub=nsub(:)'
+        for nses=nses(:)'
+            filename=conn_get_functional(nsub,nses,nset);
+            assert(~isempty(filename),'functional data for subject %d session %d not found',nsub,nses);
+            if size(filename,1)>1, filename=filename(1,:); end
+            functionals{nsub}{nses}=filename;
+        end
+    end
+    RT=conn_server('run',mfilename,nsub,nses,nset,functionals); 
+    return; 
+end
 if numel(nsub)>1
     RT=[];
     for nsub=nsub(:)',
@@ -24,7 +37,9 @@ else
             RT=max(RT);
             return
         else
-            filename=conn_get_functional(nsub,nses,nset);
+            if isempty(functionals), filename=conn_get_functional(nsub,nses,nset);
+            else filename=functionals{nsub}{nses};
+            end
             assert(~isempty(filename),'functional data for subject %d session %d not found',nsub,nses);
             if size(filename,1)>1, filename=filename(1,:); end
             [xtemp,failed]=conn_setup_preproc_meanimage(regexprep(filename,'\.gz$|\,\d+$',''),'json');

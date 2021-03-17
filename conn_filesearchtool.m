@@ -135,7 +135,7 @@ else,
             parse={[regexprep(CONN_gui.parse_html{1},'<FONT color=rgb\(\d+,\d+,\d+\)>','<FONT color=rgb(180,180,180)>'),'-'],regexprep(CONN_gui.parse_html{2},'<\/FONT>','</FONT>')};
             pathname=fliplr(deblank(fliplr(deblank(get(h.folder,'string')))));
             if strcmp(pathname,'.')||strncmp(pathname,['.' filesep],2), pathname=conn_fullfile(pwd,pathname(3:end)); end
-            if ~isdir(pathname), pathname=cwd; end
+            if ~conn_fileutils('isdir',pathname), pathname=cwd; end
             if strcmp(varargin{3},'folderpopup')
                 str=conn_filesearch_breakfolder(pathname);
                 set(h.folder,'string',[str{1:get(h.folderpopup,'value')}]);
@@ -158,10 +158,10 @@ else,
                     pathname=fullfile(pathname,filename);
                 end
             end
-            isdirectory=(isdir(pathname) || isempty(dir(pathname)));
+            isdirectory=(conn_fileutils('isdir',pathname) || ~conn_existfile(pathname));
             if ~selectfolder&&isdirectory&&doubleclick, % cd to a new directory
                 results={[parse{1},'   ..',parse{2}]}; 
-                names=dir(pathname);
+                names=conn_dirn(pathname);
                 for n1=1:length(names), if names(n1).isdir&&~strcmp(names(n1).name,'.')&&~strcmp(names(n1).name,'..'), results{end+1}=[parse{1},'   ',names(n1).name,parse{2}]; end; end
                 n0results=numel(results);
                 if n0results>0, results=conn_sortfilenames(results); end
@@ -173,7 +173,7 @@ else,
                     [filternow,filter]=strtok(filter,';');
                     while ~isempty(filternow),
                         filename=fullfile(pathname,fliplr(deblank(fliplr(deblank(filternow)))));
-                        names=dir(filename);
+                        names=conn_dirn(filename);
                         for n1=1:length(names),
                             if ~names(n1).isdir&&~isempty(regexp(names(n1).name,filter2)), results{end+1}=names(n1).name; end;
                         end
@@ -298,7 +298,7 @@ while ~isempty(filternow),
         return;
     end
     filename=fullfile(pathname,fliplr(deblank(fliplr(deblank(filternow)))));
-    dir0=dir(filename);
+    dir0=conn_dirn(filename);
     [names,idx]=sortrows(strvcat(dir0(:).name));
     for n1=1:length(dir0),
         if ~dir0(idx(n1)).isdir
@@ -314,7 +314,7 @@ set(h.selected,'string',sprintf('(%d files found) %s',size(txt,1),dchar(mod(dcha
 dcharcount=rem(dcharcount-1,8);
 drawnow;
 set(h.selected,'string',sprintf('(%d files found) %s',size(txt,1),dchar(ones(1,8))));
-dir0=dir(pathname);
+dir0=conn_dirn(pathname);
 [names,idx]=sortrows(strvcat(dir0(:).name));
 for n1=1:length(dir0),
     if dir0(idx(n1)).isdir && ~strcmp(dir0(idx(n1)).name,'.') && ~strcmp(dir0(idx(n1)).name,'..'),

@@ -1,5 +1,9 @@
 function [Z,xyz]=conn_vv2rr(ROI,validconditions,filepath,folderout)
 % computes ROI-to-ROI matrix by averaging Voxel-to-Voxel correlations
+% 
+
+% note: call from within conn_process or conn_batch
+
 global CONN_x;
 
 nconditions=length(CONN_x.Setup.conditions.names)-1;
@@ -10,7 +14,7 @@ icondition=[];isnewcondition=[];for ncondition=1:nconditions,[icondition(ncondit
 if any(isnewcondition(validconditions)), error(['Some conditions have not been processed yet. Re-run previous step']); end
 % addnew=false;
 if iscell(ROI), ROI=char(ROI); end
-if ischar(ROI), ROI=spm_vol(ROI); end
+if ischar(ROI), ROI=conn_fileutils('spm_vol',ROI); end
 
 %h=conn_waitbar(0,'Extracting correlation matrix, please wait...');
 lastmatdim=[];
@@ -25,7 +29,7 @@ for ivalidcondition=1:numel(validconditions),
         else
             if isstruct(ROI), % 4d-file
                 xyz=conn_convertcoordinates('idx2tal',1:prod(Y1.matdim.dim),Y1.matdim.mat,Y1.matdim.dim)';
-                W=spm_get_data(ROI,pinv(ROI(1).mat)*xyz);
+                W=conn_fileutils('spm_get_data',ROI,pinv(ROI(1).mat)*xyz);
                 if size(W,1)==1&&isequal(reshape(unique(W),[],1),(0:max(W(:)))'), W=double(repmat(W,[max(W(:)),1])==repmat((1:max(W(:)))',[1,size(W,2)])); end
                 w=W(:,Y1.voxels);
                 sw=sum(w,2);

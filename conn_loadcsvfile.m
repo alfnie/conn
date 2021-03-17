@@ -1,5 +1,6 @@
 function data = conn_loadcsvfile(tfilename,doheader)
 if nargin<2||isempty(doheader), doheader=true; end
+if any(conn_server('util_isremotefile',tfilename)), data=conn_server('run',mfilename,conn_server('util_localfile',tfilename),doheader); return; end
 
 tdata=regexp(fileread(tfilename),'[\n\r]+','split');
 tdata=tdata(cellfun('length',tdata)>0);

@@ -9,6 +9,8 @@ function tdata = conn_loadtextfile(tfilename,okstruct)
 % see spm_load
 
 if nargin<2||isempty(okstruct), okstruct=true; end
+if any(conn_server('util_isremotefile',tfilename)), tdata=conn_server('run',mfilename,conn_server('util_localfile',tfilename),okstruct); return; end
+
 if ischar(okstruct), v=okstruct; okstruct=true; 
 elseif ischar(tfilename)&&any(tfilename==',')
     tfields=regexp(tfilename,',','split');

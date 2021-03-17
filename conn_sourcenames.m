@@ -17,7 +17,7 @@ else,
         filesourcenames=fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name,'_list_sources.mat');
         filesourcenames=conn_projectmanager('projectfile',filesourcenames,CONN_x.pobj,'.mat');
         sourcenames=CONN_x.Analyses(ianalysis).sourcenames;
-        save(filesourcenames,'sourcenames');
+        conn_savematfile(filesourcenames,'sourcenames');
     end
     isnew=1;
 end

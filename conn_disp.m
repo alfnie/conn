@@ -167,22 +167,29 @@ if nargin>=1
                         filepath=conn_prepend('',conn_projectmanager('projectfile'),'');
                         filename=fullfile(filepath,'logfile.txt');
                     end
-                    try
-                        fh=fopen(filename,'at');
+                    try, 
+                        conn_fileutils('fileappend',filename, str);
                     catch
-                        [ok,nill]=mkdir(filepath);
-                        fh=fopen(filename,'at');
+                        conn_fileutils('mkdir',filepath);
+                        conn_fileutils('fileappend',filename, str);
                     end
-                    for n=1:numel(str), fprintf(fh,'%s\n',str{n}); end
-                    fclose(fh);
+                    %try
+                    %    fh=fopen(filename,'at');
+                    %catch
+                    %    [ok,nill]=mkdir(filepath);
+                    %    fh=fopen(filename,'at');
+                    %end
+                    %for n=1:numel(str), fprintf(fh,'%s\n',str{n}); end
+                    %fclose(fh);
                     if mirrorscreen&&~isequal(lastlogfile,filename), try, set(CONN_h.screen.hlog,'name',sprintf('CONN log history (%s)',filename)); end; end
                     if ~isequal(lastlogfile,filename),
-                        tname=dir(filename);
+                        tname=conn_dirn(filename);
                         if tname.bytes>104857600 % rename if above 100Mb limit
                             newfilename=conn_prepend('',filename,[datestr(now,'_yyyy_mm_dd_HHMMSSFFF'),'.txt']);
-                            if ispc, [ok,msg]=system(sprintf('ren "%s" "%s"',filename,newfilename));
-                            else [ok,msg]=system(sprintf('mv ''%s'' ''%s''',filename,newfilename));
-                            end
+                            try, conn_fileutils('renamefile',filename,newfilename); end
+                            %if ispc, [ok,msg]=system(sprintf('ren "%s" "%s"',filename,newfilename));
+                            %else [ok,msg]=system(sprintf('mv ''%s'' ''%s''',filename,newfilename));
+                            %end
                         end
                     end
                     lastlogfile=filename;

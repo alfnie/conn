@@ -43,6 +43,13 @@ function [vertex_coords, faces] = conn_freesurfer_read_surf(fname)
 %QUAD_FILE_MAGIC_NUMBER =  (-1 & 0x00ffffff) ;
 %NEW_QUAD_FILE_MAGIC_NUMBER =  (-3 & 0x00ffffff) ;
 
+if any(conn_server('util_isremotefile',fname)), 
+    if nargout>1, [vertex_coords, faces] = conn_server('run',mfilename,conn_server('util_localfile',fname)); 
+    else [vertex_coords] = conn_server('run',mfilename,conn_server('util_localfile',fname)); 
+    end
+    return
+end
+
 TRIANGLE_FILE_MAGIC_NUMBER =  16777214 ;
 QUAD_FILE_MAGIC_NUMBER =  16777215 ;
 

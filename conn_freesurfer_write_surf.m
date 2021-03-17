@@ -1,4 +1,6 @@
-function [vertex_coords, faces] = write_surf(fname,vertex_coords,faces)
+function conn_freesurfer_write_surf(fname,vertex_coords,faces)
+
+if any(conn_server('util_isremotefile',fname)), conn_server('run',mfilename,conn_server('util_localfile',fname),vertex_coords,faces); return; end
 
 TRIANGLE_FILE_MAGIC_NUMBER =  16777214 ;
 fid = fopen(fname, 'wb', 'b') ;

@@ -33,9 +33,10 @@ end
 icondition=[];isnewcondition=[];for ncondition=nconditions(:)',[icondition(ncondition),isnewcondition(ncondition)]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition}); end
 if any(isnewcondition), error(['Some conditions have not been processed yet. Re-run previous step']); end
 Y=zeros([size(X,1),numel(allsources),numel(alltargets),length(nconditions)]);
+[Z,names,names2,xyz]=deal([]);
 for n0=1:length(nconditions),
     filename=fullfile(filepathresults1,['resultsROI_Condition',num2str(icondition(nconditions(n0)),'%03d'),'.mat']);
-    load(filename,'Z','names','names2','xyz');
+    conn_loadmatfile(filename,'Z','names','names2','xyz');
     [ok1,iroi1]=ismember(allsources,names);
     [ok2,iroi2]=ismember(alltargets,names2);
     if ~all(ok1)|~all(ok2), error('Error loading data'); return; end
@@ -83,24 +84,26 @@ conn_disp('fprintf',' %s(%s)=%.2f  (p=%.6f)\n',statsname0,sprintf('%d ',dof0),F0
 if ~nargout
     [filename,filepath]=uiputfile('*.csv','Save within/between data to file');
     if ~isequal(filename,0)
-        fh=fopen(fullfile(filepath,filename),'wt');
-        fprintf(fh,'Statistical test (within/between ROI network tests)\n');
-        fprintf(fh,'Set-1 ROIs:,"%s"\n',sprintf('%s ',allsources{nsources}));
-        fprintf(fh,'Set-2 ROIs:,"%s"\n',sprintf('%s ',alltargets{ntargets}));
-        fprintf(fh,'Conditions:,"%s"\n',sprintf('%s ',CONN_x.Setup.conditions.names{nconditions}));
-        fprintf(fh,'Between-conditions contrast:,%s\n',mat2str(cconditions));
-        fprintf(fh,'Between-subject effects:,"%s"\n',sprintf('%s ',CONN_x.Setup.l2covariates.names{nsubjecteffects}));
-        fprintf(fh,'Between-subjects contrast:,%s\n',mat2str(csubjecteffects));
-        fprintf(fh,'\n,Within_network1,Within_network2,Between_networks\n');
+        %fh=fopen(fullfile(filepath,filename),'wt');
+        str={};
+        str{end+1}=sprintf('Statistical test (within/between ROI network tests)\n');
+        str{end+1}=sprintf('Set-1 ROIs:,"%s"\n',sprintf('%s ',allsources{nsources}));
+        str{end+1}=sprintf('Set-2 ROIs:,"%s"\n',sprintf('%s ',alltargets{ntargets}));
+        str{end+1}=sprintf('Conditions:,"%s"\n',sprintf('%s ',CONN_x.Setup.conditions.names{nconditions}));
+        str{end+1}=sprintf('Between-conditions contrast:,%s\n',mat2str(cconditions));
+        str{end+1}=sprintf('Between-subject effects:,"%s"\n',sprintf('%s ',CONN_x.Setup.l2covariates.names{nsubjecteffects}));
+        str{end+1}=sprintf('Between-subjects contrast:,%s\n',mat2str(csubjecteffects));
+        str{end+1}=sprintf('\n,Within_network1,Within_network2,Between_networks\n');
         for n=1:size(Z_within1,1)
-            fprintf(fh,'Subject %d,%s,%s,%s\n',n,mat2str(Z_within1(n,:)),mat2str(Z_within2(n,:)),mat2str(Z_between(n,:)));
+            str{end+1}=sprintf('Subject %d,%s,%s,%s\n',n,mat2str(Z_within1(n,:)),mat2str(Z_within2(n,:)),mat2str(Z_between(n,:)));
         end
-        fprintf(fh,'\nEffect size,%s,%s,%s\n',mat2str(h1),mat2str(h2),mat2str(h0));
-        fprintf(fh,'Stat name,%s,%s,%s\n',statsname1,statsname2,statsname0);
-        fprintf(fh,'Stat dof (degrees of freedom),%s,%s,%s\n',mat2str(dof1),mat2str(dof2),mat2str(dof0));
-        fprintf(fh,'Stat value,%s,%s,%s\n',mat2str(F1),mat2str(F2),mat2str(F0));
-        fprintf(fh,'p (p-value),%s,%s,%s\n',mat2str(p1),mat2str(p2),mat2str(p0));
-        fclose(fh);
+        str{end+1}=sprintf('\nEffect size,%s,%s,%s\n',mat2str(h1),mat2str(h2),mat2str(h0));
+        str{end+1}=sprintf('Stat name,%s,%s,%s\n',statsname1,statsname2,statsname0);
+        str{end+1}=sprintf('Stat dof (degrees of freedom),%s,%s,%s\n',mat2str(dof1),mat2str(dof2),mat2str(dof0));
+        str{end+1}=sprintf('Stat value,%s,%s,%s\n',mat2str(F1),mat2str(F2),mat2str(F0));
+        str{end+1}=sprintf('p (p-value),%s,%s,%s\n',mat2str(p1),mat2str(p2),mat2str(p0));
+        conn_fileutils('filewrite_raw',fullfile(filepath,filename),str);
+        %fclose(fh);
     end
     varargout={};
 else

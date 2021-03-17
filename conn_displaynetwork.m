@@ -31,7 +31,7 @@ switch(lower(option)),
             data.side=3;
             [filename,filepath]=uigetfile('*ROI*.mat');
             if ~ischar(filename), return; end
-            results=load(fullfile(filepath,filename));results=results.ROI;
+            results=conn_loadmatfile(fullfile(filepath,filename));results=results.ROI;
             if ~isfield(results(1),'c2'), results(1).c2=[]; end
             %data.cconditions=results(1).c2;
             data.source=0;%1:length(results);
@@ -396,7 +396,7 @@ switch(lower(option)),
         filename_out=fullfile(pathname,[filename_name,'.stats.mat']);
         stats=data.Zmodel.evaluate{1};
         stats.ROInames=data.names;
-        save(filename_out,'stats');
+        conn_savematfile(filename_out,'stats');
         fprintf(1,'Statistics saved as: %s\n',filename_out);
         return;
     case 'exportadj',

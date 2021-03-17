@@ -13,6 +13,9 @@ function a = conn_mtx_write(filename,data,names,coords,samples)
 
 if ~nargin, help(mfilename); return; end
 
+isremotefile=conn_server('util_isremotefile',filename);
+if isremotefile, remotefilename=filename; filename=conn_cache('new',filename); end
+
 M=size(data,1);
 N=size(data(:,:,:),3);
 assert(M==size(data,2),'input matrix must be square'); 
@@ -28,4 +31,6 @@ if nargin<3||isempty(names), names=arrayfun(@(n)sprintf('ROI#%04d',n),1:M,'uni',
 if nargin<4||isempty(coords), coords=repmat({[0 0 0]},1,M); end
 if nargin<5||isempty(samples), samples=arrayfun(@(n)sprintf('Sample#%04d',n),1:N,'uni',0); end
 spm_jsonwrite(conn_prepend('',filename,'.json'),struct('names',{names},'coords',{coords},'samples',{samples}),struct('indent',' '));
+
+if isremotefile, conn_cache('push',remotefilename); end
 

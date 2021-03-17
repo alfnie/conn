@@ -10,13 +10,14 @@ if DOGUI, i=listdlg('PromptString',{sprintf('select %s runs if you wish to copy 
 for n1=1:numel(i),
     tfilenameout=cellstr(filenameout{i(n1)});
     [tpath,tname,text]=fileparts(tfilenameout{1});
-    [ok,nill]=mkdir(tpath,folder);
+    conn_fileutils('mkdir',tpath,folder);
     for n2=1:numel(tfilenameout)
         [nill,tname,text]=fileparts(tfilenameout{n2});
         for text2={text,'.json','.mat'}
-            if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',  conn_prepend('',tfilenameout{n2},text2{1}),fullfile(tpath,folder,[tname,text2{1}])));
-            else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',conn_prepend('',tfilenameout{n2},text2{1}),fullfile(tpath,folder,[tname,text2{1}])));
-            end
+            try, conn_fileutils('copyfile',conn_prepend('',tfilenameout{n2},text2{1}),fullfile(tpath,folder,[tname,text2{1}])); end
+            %if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',  conn_prepend('',tfilenameout{n2},text2{1}),fullfile(tpath,folder,[tname,text2{1}])));
+            %else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',conn_prepend('',tfilenameout{n2},text2{1}),fullfile(tpath,folder,[tname,text2{1}])));
+            %end
         end
     end
 end

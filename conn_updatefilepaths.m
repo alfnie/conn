@@ -34,13 +34,15 @@ function var=conn_updatefilepaths(varargin)
 
 
 global CONN_x CONN_gui;
-persistent ht htcancel changed changes holdon silent hcount;
+persistent ht htcancel changed changes holdon silent remote local hcount;
 
 connfolder=fileparts(which(mfilename));
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
 if isempty(changed),changed=0;end
 if isempty(holdon),holdon=0;end
 if isempty(silent),silent=0;end
+if isempty(remote),remote=0;end
+if isempty(local),local=0;end
 if nargin==1,
     if ~isempty(ht),
         if ishandle(htcancel)&&get(htcancel,'value'), return; end
@@ -56,17 +58,23 @@ if nargin==1,
     var=varargin{1};
     if ~iscell(var), return; end
     if length(var)==3 && ischar(var{1}) && iscell(var{2}) && (isstruct(var{3})||isnumeric(var{3})),
-        if silent
-            if changed&&~isempty(var{1})&&~strcmp(deblank(var{1}(1,:)),'[raw values]'),
+        if silent||remote||local
+            if (changed|remote|local)&&~isempty(var{1})&&~strcmp(deblank(var{1}(1,:)),'[raw values]'),
                 filename=var{1};
                 switch(filesep),case '\',idx=find(filename=='/');case '/',idx=find(filename=='\');end; filename(idx)=filesep;
                 filename=regexprep(cellstr(filename),'^\s+|\s+$','');
-                [filename,changedfilename]=conn_updatefilepaths_change(filename,changes);
+                if remote, [filename,changedfilename]=conn_updatefilepaths_change(filename,'remotefile');
+                elseif local, [filename,changedfilename]=conn_updatefilepaths_change(filename,'localfile');
+                else [filename,changedfilename]=conn_updatefilepaths_change(filename,changes);
+                end
                 if changedfilename
                     var{1}=char(filename);
                     if isstruct(var{3})&&isfield(var{3},'fname'),
                         for nfname=1:numel(var{3})
-                            var{3}(nfname).fname=conn_updatefilepaths_change(var{3}(nfname).fname,changes);
+                            if remote, var{3}(nfname).fname=conn_updatefilepaths_change(var{3}(nfname).fname,'remotefile');
+                            elseif local, var{3}(nfname).fname=conn_updatefilepaths_change(var{3}(nfname).fname,'localfile');
+                            else var{3}(nfname).fname=conn_updatefilepaths_change(var{3}(nfname).fname,changes);
+                            end
                         end
                     end
                     try,
@@ -75,11 +83,11 @@ if nargin==1,
                 end
             end
         else
-            if  ~strcmp(deblank(var{1}(1,:)),'[raw values]')&&~conn_existfile(var{1}(1,:),true),%isempty(dir(var{1}(1,:))),
+            if  ~strcmp(deblank(var{1}(1,:)),'[raw values]')&&~conn_existfile(var{1}(1,:),true),
                 filename=fliplr(deblank(fliplr(deblank(var{1}))));
                 switch(filesep),case '\',idx=find(filename=='/');case '/',idx=find(filename=='\');end; filename(idx)=filesep;
                 n=0; while n<size(filename,1),
-                    ok=conn_existfile(filename(n+1,:),true);%ok=exist(filename(n+1,:),'file')==2;%dir(deblank(filename(n+1,:)));
+                    ok=conn_existfile(filename(n+1,:),true);
                     if ok, n=n+1;
                     else
                         askthis=1;
@@ -146,6 +154,7 @@ if nargin==1,
                         end
                     end
                 end
+                if isstruct(var{3})&&isfield(var{3},'fname')&&isfield(var{3},'private'), [var{3}.private]=deal([]); end
             end
         end
     else
@@ -156,12 +165,12 @@ if nargin==1,
     end
 elseif nargin>1&&ischar(varargin{1}),
     switch(lower(varargin{1}))
-        case {'init','add','silent'}
+        case {'init','add','silent','remotefile','localfile'}
             if nargin<3, error('Insufficient arguments. Usage conn_updatefilepaths(''init'',root_searchstring, root_replacestring)'); end
             match1=cellstr(varargin{2});
             match2=cellstr(varargin{3});
             if numel(match1)~=numel(match2), error('mismatch number of search/replace pairs. Usage conn_updatefilepaths(''init'',root_searchstring, root_replacestring)'); end
-            if strcmp(lower(varargin{1}),'init')||strcmp(lower(varargin{1}),'silent')||~holdon
+            if strcmp(lower(varargin{1}),'init')||strcmp(lower(varargin{1}),'silent')||strcmp(lower(varargin{1}),'remotefile')||strcmp(lower(varargin{1}),'localfile')||~holdon
                 changed=0;
                 changes=[];
             end
@@ -171,14 +180,30 @@ elseif nargin>1&&ischar(varargin{1}),
                 changed=1;
                 changes=cat(2,changes, struct('key',match1{n1},'fullname2',match2{n1},'m1',numel(match1{n1}),'m2',numel(match2{n1})));
             end
-            if changed&&strcmp(lower(varargin{1}),'silent')
+            if strcmp(lower(varargin{1}),'remotefile')
                 silent=true;
+                remote=true;
+                local=false;
+                conn_updatefilepaths;
+            elseif strcmp(lower(varargin{1}),'localfile')
+                silent=true;
+                remote=false;
+                local=true;
+                conn_updatefilepaths;
+            elseif changed&&strcmp(lower(varargin{1}),'silent')
+                silent=true;
+                remote=false;
+                local=false;
                 conn_updatefilepaths;
             end
             silent=false;
+            remote=false;
+            local=false;
         case 'hold'
             if ~isempty(varargin{2}), holdon=strcmp(lower(varargin{2}),'on'); end
             silent=false;
+            remote=false;
+            local=false;
             var=holdon;
         otherwise
             error('unknown option %s',varargin{1});
@@ -200,7 +225,7 @@ else
     end
     ht=[];
     if ~silent, conn_disp('Checking if data files have been edited or moved. Please wait...'); end
-    try
+    %try
         if ~silent&&isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
             ht=dialog('units','norm','position',[.4,.5,.3,.15],'windowstyle','normal','name','','handlevisibility','on','color','w','colormap',conn_bsxfun(@min,[1 1 1],(flipud(gray(100)))));
             htcancel=uicontrol('units','norm','position',[.3 .15 .4 .2],'style','togglebutton','string','Cancel');%,'callback',@conn_updatefilepaths_stop);
@@ -210,7 +235,7 @@ else
             uicontrol('units','norm','position',[0 .6 1 .3],'style','text','backgroundcolor','w','string',{'Checking if data files have been edited or moved','Press ''Cancel'' to skip this step'},'fontsize',8+CONN_gui.font_offset);
             drawnow;
         end
-        if ~ischar(CONN_x.filename) || isempty(dir(CONN_x.filename)),CONN_x.filename=''; end
+        if ~ischar(CONN_x.filename) || ~conn_existfile(CONN_x.filename), CONN_x.filename=''; end
         for nupdate=1:length(update),
             str=regexp(update{nupdate},'\.','split');
             temp=getfield(CONN_x,str{:});
@@ -230,9 +255,9 @@ else
                 end
             end
         end
-    catch
-        conn_disp('warning: conn_updatefilepaths did not finish');
-    end
+    %catch
+    %    conn_disp('warning: conn_updatefilepaths did not finish');
+    %end
     if any(ishandle(ht)), delete(ht(ishandle(ht))); drawnow; end
     ht=[];
     htcancel=[];
@@ -247,12 +272,20 @@ function [filename,changed]=conn_updatefilepaths_change(filename,changes)
 waschar=false;
 if ischar(filename), waschar=true; filename=cellstr(filename); end
 notmatched=1:numel(filename);
-for nch=numel(changes):-1:1
-    if isempty(notmatched), break; end
-    ok=strncmp(changes(nch).key,filename(notmatched),changes(nch).m1);
-    if any(ok),
-        filename(notmatched(ok))=cellfun(@(x)[changes(nch).fullname2(1:changes(nch).m2),x(changes(nch).m1+1:end)],filename(notmatched(ok)),'uni',0);
-        notmatched(ok)=[];
+if isequal(changes,'remotefile')
+    notmatched=find(conn_server('util_isremotefile',filename));
+    filename=conn_server('util_remotefile',filename);
+elseif isequal(changes,'localfile')
+    notmatched=find(~conn_server('util_isremotefile',filename));
+    filename=conn_server('util_localfile',filename);
+else 
+    for nch=numel(changes):-1:1
+        if isempty(notmatched), break; end
+        ok=strncmp(changes(nch).key,filename(notmatched),changes(nch).m1);
+        if any(ok),
+            filename(notmatched(ok))=cellfun(@(x)[changes(nch).fullname2(1:changes(nch).m2),x(changes(nch).m1+1:end)],filename(notmatched(ok)),'uni',0);
+            notmatched(ok)=[];
+        end
     end
 end
 changed=numel(notmatched)<numel(filename);

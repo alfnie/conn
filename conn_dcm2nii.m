@@ -21,6 +21,12 @@ function [filenameout,filetypeout,fileRTout,filedescripout,filename]=conn_dcm2ni
 
 persistent saved;
 
+if any(conn_server('util_isremotefile',filename)), 
+    [filenameout,filetypeout,fileRTout,filedescripout,filename]=conn_server('run',mfilename,conn_server('util_localfile',filename),varargin{:}); 
+    filenameout=conn_server('util_remotefile',filenameout);
+    return; 
+end
+
 if isempty(saved), 
     saved.folderout='../nii';
     saved.overwrite=false;
@@ -110,14 +116,14 @@ for n0=1:numel(filename)
     switch(lower(this.folderout))
         case './',
         case './nii',  filesout_path=fullfile(filesout_path,'nii');
-            [ok,nill]=mkdir(filesout_path);
+            conn_fileutils('mkdir',filesout_path);
         case '../nii', filesout_path=fullfile(fileparts(filesout_path),'nii');
-            [ok,nill]=mkdir(filesout_path);
+            conn_fileutils('mkdir',filesout_path);
         otherwise,
             if ~isempty(this.folderout)&&this.folderout(1)=='.', filesout_path=fullfile(filesout_path,this.folderout);
             else filesout_path=this.folderout;
             end
-            [ok,nill]=mkdir(filesout_path);
+            conn_fileutils('mkdir',filesout_path);
     end
     if ~isempty(logfile)&&isequal(bak_filesout_path,0)
         bak_filesout_path=filesout_path;

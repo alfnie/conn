@@ -32,6 +32,7 @@ if nargin<3||iscell(label), % alfnie 2017; conn_freesurfer_write_annotation(file
     label=ct.table(ROIindexes,5);
     vertices=(0:numel(ROIindexes)-1)';
     okbool=true;
+    if any(conn_server('util_isremotefile',filename)), conn_server('run',mfilename,conn_server('util_localfile',filename), vertices, label, ct); return; end
 else okbool=nargin>=4;
 end
 

@@ -12,6 +12,12 @@ function [filename,Nrois]=conn_createmniroi(fname,xyz,rad,res,mtype,ftype);
 if nargin<4||isempty(res), res=2; end        % voxel resolution (mm)
 if nargin<5||isempty(mtype), mtype='3d'; end % 3d, 4d
 if nargin<6||isempty(ftype), ftype=0; end    % 1: default bounding box; 2: tight bounding box
+if any(conn_server('util_isremotefile',fname)), 
+    [filename,Nrois]=conn_server('run',mfilename,conn_server('util_localfile',fname),xyz,rad,res,mtype,ftype); 
+    filename=conn_server('util_remotefile',filename);
+    return
+end
+
 if ftype==0, ftype=1+(res<1); end
 if ischar(xyz), 
     try,
@@ -79,8 +85,10 @@ else vol=repmat(vol,[Nrois,1]);
     for nh=1:Nrois,spm_write_vol(vol(nh),b(:,:,:,nh)); end
 end
 if Nrois>1
-    fh=fopen(conn_prepend('',filename,'.txt'),'wt');
-    for n=1:Nrois, fprintf(fh,'(%d,%d,%d)\n',round(xyz(n,1)),round(xyz(n,2)),round(xyz(n,3))); end
-    fclose(fh);
+    %fh=fopen(conn_prepend('',filename,'.txt'),'wt');
+    fh={};
+    for n=1:Nrois, fh{end+1}=sprintf('(%d,%d,%d)\n',round(xyz(n,1)),round(xyz(n,2)),round(xyz(n,3))); end
+    %fclose(fh);
+    conn_fileutils('filewrite_raw',conn_prepend('',filename,'.txt'), fh);
 end
 end

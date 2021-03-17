@@ -8,6 +8,14 @@ function [dataset,filter]=conn_bidsdir(filenames,varargin)
 %
 
 if nargin<1||isempty(filenames), filenames=pwd; end
+if any(conn_server('util_isremotefile',filenames)), 
+    [dataset,filter]=conn_server('run',mfilename,conn_server('util_localfile',filenames),varargin{:}); 
+    try
+        dataset.data.file=conn_server('util_remotefile',dataset.data.file);
+        dataset.dict.file=conn_server('util_remotefile',dataset.dict.file);
+    end
+    return; 
+end
 
 % bids filename spec 2018/7
 %spec={'sub','ses','task','acq','ce','rec','dir','run','mod','echo','recording','proc'};

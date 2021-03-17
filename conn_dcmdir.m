@@ -9,6 +9,12 @@ function Series=conn_dcmdir(filenames,DOGUI)
 
 if nargin<2||isempty(DOGUI), DOGUI=[]; end
 if nargin<1||isempty(filenames), filenames=fullfile(pwd,'*.dcm'); end
+if any(conn_server('util_isremotefile',filenames)), 
+    Series=conn_server('run',mfilename,conn_server('util_localfile',filenames),DOGUI); 
+    for n=1:numel(Series), Series(n).files=conn_server('util_remotefile',Series(n).files); end
+    return
+end
+
 if ischar(filenames), filenames=conn_dir(filenames,'-ls'); end
 if ischar(filenames), filenames=cellstr(filenames); end
 
@@ -75,10 +81,10 @@ SeriesNfiles(useries)=Nseries;
 idxNseries=1:numel(Nseries);%[nill,idxNseries]=sort(Nseries,'descend');
 if isempty(DOGUI)||DOGUI, fprintf('Found %d series and %d DICOM files\n',numel(useries),sum(~isnan(SeriesNumber))); end
 
-fhlog=[]; 
-if isempty(DOGUI)||DOGUI, 
-    try, fhlog=fopen(fullfile(filesout_path,sprintf('conn_dcmdir_%s.log',datestr(now,'yyyy_mm_dd_HHMMSSFFF'))),'wt'); end
-end
+fhlog={}; 
+%if isempty(DOGUI)||DOGUI, 
+%    try, fhlog=fopen(fullfile(filesout_path,sprintf('conn_dcmdir_%s.log',datestr(now,'yyyy_mm_dd_HHMMSSFFF'))),'wt'); end
+%end
 clear Series;
 if isempty(DOGUI)||DOGUI, 
     fprintf('\n________________________________________________________\n')
@@ -149,11 +155,12 @@ if isempty(DOGUI)||DOGUI
         fprintf2('%s',str);
     end
 end
-try, fclose(fhlog); end
+try, if isempty(DOGUI)||DOGUI, conn_fileutils('filewrite_raw',fullfile(filesout_path,sprintf('conn_dcmdir_%s.log',datestr(now,'yyyy_mm_dd_HHMMSSFFF'))), fhlog); end; end
+%try, if ~isempty(fhlog), fclose(fhlog); end; end
 
     function fprintf2(varargin)
         fprintf(varargin{:});
-        try, fprintf(fhlog,varargin{:}); end
+        if isempty(DOGUI)||DOGUI, fhlog{end+1}=sprintf(varargin{:}); end
     end
 end
 

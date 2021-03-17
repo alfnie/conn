@@ -20,6 +20,12 @@ if nargin<1||(isempty(filename)&&~iscell(filename)),
     end
 end
 if ~iscell(filename), filename={filename};end
+if any(conn_server('util_isremotefile',filename)), 
+    [outfiles,outvals]=conn_server('run',mfilename,conn_server('util_localfile',filename),dowaitbar,localfolder,dofast); 
+    outfiles=conn_server('util_remotefile',outfiles);
+    return
+end
+
 filename=regexprep(filename,'\.matc$','.mat');
 
 outfiles={}; outvals={};

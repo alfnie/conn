@@ -43,6 +43,7 @@ if nargin<2||isempty(structural),
     structural=fullfile(fname,fpath);
 end
 if nargin<3||isempty(newTPMfile), newTPMfile=fullfile(pwd,'lesionTPM.nii'); end
+if any(conn_server('util_isremotefile',lesionmask)), newTPMfile=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',lesionmask), conn_server('util_localfile',structural), conn_server('util_localfile',newTPMfile))); return; end
 
 % initialization
 Nrepeat=2; % Number of iterations (note: set to higher value for more robust but time consuming behavior)

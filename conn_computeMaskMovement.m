@@ -1,5 +1,8 @@
 function fileout = conn_computeMaskMovement(filein)
+
+if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein))); return; end
 if ~ischar(filein), filein=char(filein); end
+
 [filename_path,filename_name,filename_ext]=spm_fileparts(filein(1,:));
 a=spm_vol(filein);
 [tempx,tempy,tempz]=ind2sub(a(1).dim(1:3),1:prod(a(1).dim(1:3)));

@@ -1,5 +1,5 @@
-function [curv] = write_curv(fname, curv, fnum)
-% [curv] = write_curv(fname, curv, fnum)
+function write_curv(fname, curv, fnum)
+% write_curv(fname, curv, fnum)
 %
 % writes a curvature vector into a binary file
 %				fname - name of file to write to
@@ -31,6 +31,8 @@ function [curv] = write_curv(fname, curv, fnum)
 %
 
 if nargin<3||isempty(fnum), fnum=327680; end % alfnie added default (res=8)
+if any(conn_server('util_isremotefile',fname)), conn_server('run',mfilename,conn_server('util_localfile',fname), curv, fnum); return; end
+
 % open it as a big-endian file
 fid = fopen(fname, 'wb', 'b') ;
 vnum = length(curv) ;

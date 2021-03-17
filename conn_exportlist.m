@@ -13,11 +13,13 @@ end
 str=cellstr(get(cbo,'string'));
 if nargin>=4&&~isempty(onlyselected), str=str(get(cbo,'value')); end
 str=regexprep(str,'<[^<>]*>','');
-fh=fopen(fullfile(filepath,[filename,fileext]),'wt');
-if nargin>=3&&~isempty(header), fprintf(fh,'%s\n',header); end
-for n=1:numel(str),
-    fprintf(fh,'%s\n',str{n});
-end
-fclose(fh);
+if nargin>=3&&~isempty(header), str=[{header} reshape(str,1,[])]; end
+conn_fileutils('filewrite',fullfile(filepath,[filename,fileext]), str);
+%fh=fopen(fullfile(filepath,[filename,fileext]),'wt');
+%if nargin>=3&&~isempty(header), fprintf(fh,'%s\n',header); end
+%for n=1:numel(str),
+%    fprintf(fh,'%s\n',str{n});
+%end
+%fclose(fh);
 fprintf('Table exported to %s\n',fullfile(filepath,[filename,fileext]));
 end

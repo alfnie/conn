@@ -13,7 +13,7 @@ if nargin<1||isempty(filename),
     filename=fullfile(pathname,filename);
 end
 if iscell(filename), results=filename{1}; ss=filename{2}; filename=[];
-else load(filename,'-mat'); end
+else conn_loadmatfile(filename,'-mat'); end
 %if ~isempty(ss),ss.askn=2;ss.ask='all';end
 if nargin>1,ss.ask=ask;end
 if isfield(results(1),'measure_names'),ss.n=numel(results(1).measures.(results(1).measure_names{1}));
@@ -192,7 +192,7 @@ for nvar=1:numel(vars),
     end
     ss.evaluate{Ic}.(vars{nvar})=glmresults;
 end
-if ~isempty(filename), save(filename,'ss','-append'); end
+if ~isempty(filename), conn_savematfile(filename,'ss','-append'); end
 
 % plot results
 %vars={'pathlength','clustering','norm_pathlength','norm_clustering','degree','pathlength_roi','clustering_roi','degree_roi','norm_pathlength_roi','norm_clustering_roi'};

@@ -103,6 +103,6 @@ if ~isempty(xyz2), ROIconfiguration.xyz2=xyz2.'; end
 assert(size(xy2,2)==N,'incorrect number of elements in coords2 input (found %d expected %d)',size(xy2,2),N); 
 assert(isempty(xyz2)|size(xyz2,2)==N,'incorrect number of elements in coords3 input (found %d expected %d)',size(xyz2,2),N); 
 assert(isempty(groups)|numel(groups)==M,'incorrect number of elements in groups input (found %d expected %d)',numel(groups),M); 
-save(filename,'ROIconfiguration');
+conn_savematfile(filename,'ROIconfiguration');
 
 

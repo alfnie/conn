@@ -214,9 +214,9 @@ art_gui_display=true;
 parallel_profile=[];
 parallel_N=0;
 functional_template=fullfile(fileparts(which('spm')),'templates','EPI.nii');
-if isempty(dir(functional_template)), functional_template=fullfile(fileparts(which('spm')),'toolbox','OldNorm','EPI.nii'); end
+if ~conn_existfile(functional_template), functional_template=fullfile(fileparts(which('spm')),'toolbox','OldNorm','EPI.nii'); end
 structural_template=fullfile(fileparts(which('spm')),'templates','T1.nii');
-if isempty(dir(structural_template)), structural_template=fullfile(fileparts(which('spm')),'toolbox','OldNorm','T1.nii'); end
+if ~conn_existfile(structural_template), structural_template=fullfile(fileparts(which('spm')),'toolbox','OldNorm','T1.nii'); end
 selectedstep=1;
 if ~isempty(STEPS)&&(ischar(STEPS)||(iscell(STEPS)&&numel(STEPS)==1))
     STEPS=regexprep(char(STEPS),{'^default_mniphase$','^default_mnidirectphase$','^default_ssphase$'},{'default_mnifield','default_mnidirectfield','default_ssfield'});
@@ -897,6 +897,7 @@ if parallel_N>0,
         end
     end
     return;
+elseif conn_projectmanager('inserver'), error('inserver error');
 else
     if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log'), CONN_x.SetupPreproc.log={}; end
     try, spmver=spm('version'); catch, spmver=spm('ver'); end

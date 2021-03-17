@@ -161,7 +161,7 @@ elseif ishandle(SPMfilename) % conn_display(hfig,opts)
     end
     return;
 else
-    if isdir(SPMfilename), 
+    if conn_fileutils('isdir',SPMfilename), 
         if conn_existfile(fullfile(SPMfilename,'SPM.mat')), SPMfilename=fullfile(SPMfilename,'SPM.mat'); 
         elseif conn_existfile(fullfile(SPMfilename,'ROI.mat')), SPMfilename=fullfile(SPMfilename,'ROI.mat'); 
         else SPMfilename=fullfile(SPMfilename,'SPM.mat'); 
@@ -189,14 +189,14 @@ end
 [filepath,filename,fileext]=fileparts(SPMfilename);
 cwd=pwd;
 
-if ~isempty(filepath), cd(filepath); end
+if ~isempty(filepath), conn_fileutils('cd',filepath); end
 if strcmp([filename,fileext],'ROI.mat'), % ROI-to-ROI analyses
     hfigure=conn_displayroi('initfile',fullfile(filepath,[filename,fileext]),varargin{:});
     cd(cwd);
     return;
 end
 hm=conn_msgbox({sprintf('Loading %s',SPMfilename),'please wait...'},''); 
-if fulld, load([filename,fileext],'SPM'); end
+if fulld, SPM=struct; conn_loadmatfile(fullfile(filepath,[filename,fileext]),'SPM'); end
 if ~isfield(SPM.xX,'isSurface'), SPM.xX.isSurface=false; end
 issurface=SPM.xX.isSurface;
 if issurface&~iscell(THR), THR=max(2,THR); end % skips parametric options
@@ -216,15 +216,15 @@ else % voxel-based
     % end
     [x,y,z]=ndgrid(1:vol.dim(1),1:vol.dim(2),1:vol.dim(3));
     xyz=vol.mat*[x(:),y(:),z(:),ones(numel(x),1)]';
-    if 0,%isfield(CONN_x,'Setup')&&isfield(CONN_x.Setup,'analysismask')&&CONN_x.Setup.analysismask==1&&isfield(CONN_x.Setup,'explicitmask')&&~isempty(dir(CONN_x.Setup.explicitmask{1})),
+    if 0,
         filename=CONN_x.Setup.explicitmask{1};
         strfile=spm_vol(filename);
         a=mean(reshape(spm_get_data(strfile,pinv(strfile.mat)*xyz),vol.dim(1),vol.dim(2),vol.dim(3),[]),4);
-    elseif ~issurface&&~isempty(dir(fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii'))),
+    elseif ~issurface&&conn_existfile(fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii')),
         filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii');
         strfile=spm_vol(filename);
         a=reshape(spm_get_data(strfile,pinv(strfile.mat)*xyz),vol.dim(1:3));
-    elseif issurface&&~isempty(dir(fullfile(fileparts(which(mfilename)),'utils','surf','mask.surface.brainmask.nii'))),
+    elseif issurface&&conn_existfile(fullfile(fileparts(which(mfilename)),'utils','surf','mask.surface.brainmask.nii')),
         filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.surface.brainmask.nii');
         strfile=spm_vol(filename);
         a=reshape(spm_get_data(strfile,pinv(strfile.mat)*xyz),vol.dim(1:3));
@@ -252,7 +252,7 @@ else % voxel-based
             if length(tvol.dim)>3,tvol.dim=tvol.dim(1:3); end;
             if ~isfield(tvol,'dt'), tvol.dt=[spm_type('float32') spm_platform('bigend')]; end
             try
-                T=spm_read_vols(tvol);
+                T=conn_fileutils('spm_read_vols',tvol);
                 df=[SPM.xCon(ncon).eidf,SPM.xX.erdf];
                 R=SPM.xVol.R;
                 S=SPM.xVol.S;
@@ -270,16 +270,16 @@ else % voxel-based
                 df=SPM.xX_multivariate.dof;
                 %ncon=1;
             else
-                T=spm_read_vols(tvol);
+                T=conn_fileutils('spm_read_vols',tvol);
                 SPM.xX_multivariate.X=SPM.xX.X;
                 SPM.xX_multivariate.C=SPM.xCon(ncon).c';
                 SPM.xX_multivariate.M=1;
                 SPM.xX_multivariate.statsname=statsname;
                 SPM.xX_multivariate.dof=df;
                 SPM.xX_multivariate.F=permute(T,[4,5,1,2,3]);
-                SPM.xX_multivariate.h=permute(spm_read_vols(SPM.xCon(ncon).Vcon),[4,5,1,2,3]);
+                SPM.xX_multivariate.h=permute(conn_fileutils('spm_read_vols',SPM.xCon(ncon).Vcon),[4,5,1,2,3]);
                 SPM.xX_multivariate.derivedfromspm=true;
-                save(SPMfilename,'SPM','-v7.3');
+                conn_savematfile(SPMfilename,'SPM','-v7.3');
             end
             R=[];S=[];v2r=[];stat_thresh_fwhm=[];
         end

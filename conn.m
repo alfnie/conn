@@ -21,7 +21,7 @@ function varargout=conn(varargin)
 % alfnie@gmail.com
 %
 
-connver='20.b';
+connver='20.c';
 dodebug=false;
 
 global CONN_h CONN_x CONN_gui;
@@ -702,7 +702,6 @@ else
                     'Analyses',struct(...
                     'name','SBC_01',...
                     'sourcenames',{{}},...
-                    'variables', struct('names',{{}},'types',{{}},'deriv',{{}},'fbands',{{}},'dimensions',{{}}),...
                     'regressors',	struct('names',{{}},'types',{{}},'deriv',{{}},'fbands',{{}},'dimensions',{{}}),...
                     'type',3,...
                     'measure',1,...
@@ -711,6 +710,7 @@ else
                     'weight',2,...
                     'sources',{{}}),...
                     'Analysis',1,...
+                    'Analysis_variables', struct('names',{{}},'types',{{}},'deriv',{{}},'fbands',{{}},'dimensions',{{}}),...
                     'dynAnalyses',repmat(struct(...
                     'name','DYN_01',...
                     'regressors', struct('names',{{}}),...
@@ -811,7 +811,7 @@ else
         case 'importrois',
             if ~isfield(CONN_x.folders,'rois'), CONN_x.folders.rois=fullfile(fileparts(which(mfilename)),'rois'); end
             path=CONN_x.folders.rois;
-            names=cat(1,dir(fullfile(path,'*.nii')),dir(fullfile(path,'*.img')),dir(fullfile(path,'*.tal')));
+            names=cat(1,conn_dirn(fullfile(path,'*.nii')),conn_dirn(fullfile(path,'*.img')),conn_dirn(fullfile(path,'*.tal')));
             names={names(:).name};
             names=names(setdiff(1:numel(names),strmatch('._',names)));
             if isequal(names,{'atlas.nii','networks.nii'}), names={'networks.nii','atlas.nii'}; end
@@ -830,7 +830,7 @@ else
                 CONN_x.Setup.rois.mask(n0+n1)=0;
                 CONN_x.Setup.rois.subjectspecific(n0+n1)=0;
                 CONN_x.Setup.rois.sessionspecific(n0+n1)=0;
-                CONN_x.Setup.rois.multiplelabels(n0+n1)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(~isempty(dir(conn_prepend('',filename,'.txt')))|~isempty(dir(conn_prepend('',filename,'.csv')))|~isempty(dir(conn_prepend('',filename,'.xls'))));
+                CONN_x.Setup.rois.multiplelabels(n0+n1)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(conn_existfile(conn_prepend('',filename,'.txt'))|conn_existfile(conn_prepend('',filename,'.csv'))|conn_existfile(conn_prepend('',filename,'.xls')));
                 CONN_x.Setup.rois.regresscovariates(n0+n1)=double(CONN_x.Setup.rois.dimensions{n0+n1}>1);
                 CONN_x.Setup.rois.unsmoothedvolumes(n0+n1)=1;
                 CONN_x.Setup.rois.weighted(n0+n1)=0;
@@ -841,6 +841,8 @@ else
             else filename=CONN_x.filename; end
             if nargin>2,fromgui=varargin{3}; 
             else fromgui=false; end
+            if nargin>3,forcecheck=varargin{4}; 
+            else forcecheck=fromgui; end
             if isempty(filename)||~ischar(filename),
                 conn_disp('warning: invalid filename, project NOT loaded');
             else
@@ -850,7 +852,16 @@ else
 				try 
                     if ~pobj.isextended||conn_existfile(localfilename), 
                         errstr=localfilename; 
-                        vars=load(localfilename,'CONN_x','-mat'); 
+                        if conn_projectmanager('inserver',localfilename), 
+                            assert(conn_server('isconnected'),'unable to connect to CONN server. Use "conn_server connect ..." command to re-connect to server and try again');
+                            conn_server('run','conn','load',conn_server('util_localfile',localfilename),false,true);
+                            conn_server('run','conn','save');
+                            pobj.cache=conn_cache('pull',localfilename);
+                            vars=load(pobj.cache,'CONN_x','-mat');
+                        else
+                            vars=load(localfilename,'CONN_x','-mat');
+                            pobj.cache='';
+                        end
                         CONN_x=vars.CONN_x;
                         clear vars;
                         [nill,nill,fext]=fileparts(localfilename);
@@ -863,12 +874,13 @@ else
                     end
                     folderchanged{1}=fileparts(CONN_x.filename);
                     folderchanged{2}=fileparts(errstr);
-                    if pobj.holdsdata,
-                        try
-                            if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',localfilename,fullfile(conn_prepend('',localfilename,''),'bakfile.mat')));
-                            else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',localfilename,fullfile(conn_prepend('',localfilename,''),'bakfile.mat')));
-                            end
-                        end
+                    if pobj.holdsdata&&isempty(pobj.cache),
+                        try, conn_fileutils('copyfile',localfilename,fullfile(conn_prepend('',localfilename,''),'bakfile.mat')); end
+                        %if isfield(pobj,'cache')&&~isempty(pobj.cache)
+                        %end
+                        %if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',localfilename,fullfile(conn_prepend('',localfilename,''),'bakfile.mat')));
+                        %else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',localfilename,fullfile(conn_prepend('',localfilename,''),'bakfile.mat')));
+                        %end
                     end
                 catch me,%#ok<*CTCH>
                     if ~isempty(me)&&fromgui&&pobj.holdsdata&&~isempty(regexp(char(getReport(me,'basic','hyperlinks','off')),'File might be corrupt'))&&~isempty(regexp(errstr,'\.mat$'))&&conn_existfile(regexprep(errstr,'\.mat$',[filesep,'bakfile.mat']))
@@ -899,8 +911,17 @@ else
                 else CONN_x.filename=conn_fullfile(basefilename);
                 end
                 CONN_x.pobj=pobj;
-                if pobj.holdsdata, conn_updatefolders; end
-                conn_projectmanager('updateproject',fromgui);
+                if CONN_x.pobj.holdsdata&&~isempty(CONN_x.pobj.cache), conn_updatefolders([],false); 
+                elseif CONN_x.pobj.holdsdata, conn_updatefolders; 
+                end
+                if isempty(CONN_x.pobj.cache), conn_projectmanager('updateproject',fromgui); end
+                if isempty(CONN_x.pobj.cache), 
+                    conn_updatefilepaths('localfile',{},{}); 
+                    conn_updatefilepaths('hold','off');
+                else
+                    conn_updatefilepaths('remotefile',{},{}); 
+                    conn_updatefilepaths('hold','off');
+                end
                 if fromgui,
                 	CONN_x.gui=1;
                     try
@@ -908,8 +929,9 @@ else
                             conn_disp('Updating folder references');
                             conn_updatefilepaths('silent', folderchanged{:}); %conn_updatefilepaths('add', folderchanged{:}); 
                             conn_updatefilepaths('hold','off');
+                            folderchanged={};
                         end
-                        conn_updatefilepaths;
+                        if isempty(CONN_x.pobj.cache), conn_updatefilepaths; end
                     end
                     if isfield(CONN_x,'lastver')&&~isempty(CONN_x.lastver)&&~conn('checkver',CONN_x.lastver)
                         answ=conn_questdlg({'WARNING!!!',sprintf('This CONN project has been saved using a more recent version of CONN (%s)',CONN_x.lastver),sprintf('Proceeding to load this project using CONN %s may cause serious compatibility problems',connver)},'','Proceed','Cancel','Cancel');
@@ -920,14 +942,12 @@ else
                             return;
                         end
                     end
-%                 else
-%                     try
-%                         if numel(folderchanged)==2&&~isempty(folderchanged{1})&&~isempty(folderchanged{2})&&~isequal(folderchanged{:}), 
-%                             conn_disp('Updating folder references. Please wait...');
-%                             conn_updatefilepaths('silent', folderchanged{:}); 
-%                             conn_updatefilepaths('hold','off');
-%                         end
-%                     end
+                elseif forcecheck
+                    if numel(folderchanged)==2&&~isempty(folderchanged{1})&&~isempty(folderchanged{2})&&~isequal(folderchanged{:}),
+                        conn_updatefilepaths('silent', folderchanged{:});
+                        conn_updatefilepaths('hold','off');
+                        folderchanged={};
+                    end
                 end
                 CONN_x.lastver=connver; 
                 CONN_x.isready(1)=1;
@@ -942,8 +962,14 @@ else
                 saveas=~isequal(filename,CONN_x.filename);
                 CONN_x.filename=conn_fullfile(filename);
                 if CONN_x.pobj.holdsdata, 
-                    localfilename=CONN_x.filename;
-                    conn_updatefolders;
+                    if isfield(CONN_x.pobj,'cache')&&~isempty(CONN_x.pobj.cache), 
+                        assert(conn_server('isconnected'),'unable to connect to CONN server. Use "conn_server connect ..." command to re-connect to server and try again');
+                        localfilename=CONN_x.pobj.cache;
+                        conn_updatefolders([],false); 
+                    else
+                        localfilename=CONN_x.filename;
+                        conn_updatefolders;
+                    end
                 else
                     localfilename=conn_projectmanager('projectfile');
                 end
@@ -952,12 +978,17 @@ else
                     version73=false; 
                     try, version73=isempty(whos('-file',localfilename)); end 
                     if version73, save(localfilename,'CONN_x','-v7.3'); end % note: try 7.3 if failed to save (e.g. >2Gb -v7)
+                    if isfield(CONN_x.pobj,'cache')&&~isempty(CONN_x.pobj.cache),
+                        localfilename=CONN_x.filename;
+                        conn_cache('push',localfilename,CONN_x.pobj.cache);
+                        conn_server('run','conn','load',conn_server('util_localfile',localfilename),false,true);
+                    end
                 catch
                     error(['Failed to save file ',localfilename,'. Check file name and/or folder permissions']);
                 end
                 conn_disp('fprintf','saved %s\n',localfilename);
                 CONN_x.isready(1)=1;
-                if ~saveas&&CONN_x.pobj.holdsdata,
+                if ~saveas&&CONN_x.pobj.holdsdata&&~(isfield(CONN_x.pobj,'cache')&&~isempty(CONN_x.pobj.cache)),
                     try
                         conn_projectmanager cleanproject;
                     catch
@@ -974,7 +1005,7 @@ else
                                 filesourcenames=fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name,'_list_sources.mat');
                                 filesourcenames=conn_projectmanager('projectfile',filesourcenames,CONN_x.pobj,'.mat');
                                 sourcenames=CONN_x.Analyses(ianalysis).sourcenames;
-                                save(filesourcenames,'sourcenames');
+                                conn_savematfile(filesourcenames,'sourcenames');
                             end
                         end
                     end
@@ -984,7 +1015,7 @@ else
                                 filemeasurenames=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name,'_list_measures.mat');
                                 filemeasurenames=conn_projectmanager('projectfile',filemeasurenames,CONN_x.pobj,'.mat');
                                 measurenames=CONN_x.vvAnalyses(ianalysis).measurenames;
-                                save(filemeasurenames,'measurenames');
+                                conn_savematfile(filemeasurenames,'measurenames');
                             end
                         end
                     end
@@ -992,7 +1023,7 @@ else
                         fileconditionnames=fullfile(CONN_x.folders.preprocessing,'_list_conditions.mat');
                         fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,CONN_x.pobj,'.mat');
                         allnames=CONN_x.Setup.conditions.allnames;
-                        save(fileconditionnames,'allnames');
+                        conn_savematfile(fileconditionnames,'allnames');
                     end
                 end
             end
@@ -1366,7 +1397,7 @@ else
                 conn_disp;
                 filename=get(dlg.m2,'tooltipstring');
                 if ~strcmp(filename,CONN_gui.refs.canonical.filename)
-                    if isempty(dir(filename))
+                    if ~conn_existfile(filename)
                         filename=spm_select(1,'\.img$|\.nii$',['Select background anatomical image'],{CONN_gui.refs.canonical.filename},fileparts(CONN_gui.refs.canonical.filename));
                     end
                     if ~isempty(filename),
@@ -1379,10 +1410,10 @@ else
                 end
                 filename=get(dlg.m3,'tooltipstring');
                 if ~strcmp(filename,CONN_gui.refs.rois.filename)
-                    if isempty(dir(filename))
+                    if ~conn_existfile(filename)
                         filename=spm_select(1,'image',['Select background reference atlas'],{CONN_gui.refs.rois.filename},fileparts(CONN_gui.refs.rois.filename));
                     end
-                    if ~isempty(dir(filename))
+                    if conn_existfile(filename)
                         [filename_path,filename_name,filename_ext]=fileparts(filename);
                         V=spm_vol(filename);
                         [idxlabels,strlabels]=rex(filename,filename,'level','clusters','disregard_zeros',false); strlabels=regexprep(strlabels,['^',filename_name,'\.'],'');
@@ -1540,9 +1571,14 @@ else
                     alloption=cellfun(@(x)[{CONN_x.gui},x],CONN_x.gui.processes{2},'uni',0);
                     conn_jobmanager('submit',allpsteps,subjects,[],alloption);
                 else
+                    arglist={};
                     for n=1:numel(CONN_x.gui.processes{1}),
-                        conn_process(psteps{CONN_x.gui.processes{1}(n)},CONN_x.gui.processes{2}{n}{:}); 
+                       arglist{n}={psteps{CONN_x.gui.processes{1}(n)},CONN_x.gui.processes{2}{n}{:}}; 
                     end
+                    conn_process('multiplesteps',arglist);
+                    %for n=1:numel(CONN_x.gui.processes{1}),
+                    %    conn_process(psteps{CONN_x.gui.processes{1}(n)},CONN_x.gui.processes{2}{n}{:}); 
+                    %end
                 end
                 CONN_x.gui=1;
                 conn gui_setup_save;
@@ -1673,7 +1709,7 @@ else
                         %ht=uicontrol('style','frame','units','norm','position',[.78,.06,.20,.84],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor);
                         %set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.19,0,.81,1]);
 						%CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.39,.26,.25,.05],'Experiment data  (scans/sessions)','','',@conn_callbackdisplay_conditiondesign);
-                        CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.39,.34,.20,.01],'','','',@conn_callbackdisplay_conditiondesign);
+                        CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.41,.34,.20,.01],'','','',@conn_callbackdisplay_conditiondesign);
                         %conn_menu('nullstr',{'No functional','data selected'});
                         CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.20,.20,.25,.05],'',{'<HTML><i> - functional tools:</i></HTML>','Display slice viewer','Display slice viewer with anatomical overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display functional/anatomical coregistration (SPM)','Display functional/MNI coregistration (SPM)','Display single-slice for all subjects (montage)','Display single-slice for all timepoints (movie)', 'Apply individual preprocessing step','Reassign all functional files simultaneously'},'<HTML> - <i>slice viewer</i> displays functional dataset slices<br/> - <i>slice viewer with anatomical overlay</i>displays mean functional overlaid with same-subject structural volume<br/> - <i>slice viewer with MNI boundaries</i> displays mean functional volume slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/> - <i>display registration</i> checks the coregistration of the selected subject functional/anatomical files <br/> - <i>preprocessing</i> runs individual preprocessing step on functional volumes (e.g. realignment, slice-timing correction, etc.)<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space)<br/> - <i>reassign all functional files simultaneously</i> reassigns current dataset functional volumes using a user-generated search/replace filename rule</HTML>','conn(''gui_setup'',14);');
                         nset=1;
@@ -1905,7 +1941,7 @@ else
                                         if val==5, files={};filenames={};
                                         else
                                             functional_template=fullfile(fileparts(which('spm')),'templates','EPI.nii');
-                                            if isempty(dir(functional_template)), functional_template=fullfile(fileparts(which('spm')),'toolbox','OldNorm','EPI.nii'); end
+                                            if ~conn_existfile(functional_template), functional_template=fullfile(fileparts(which('spm')),'toolbox','OldNorm','EPI.nii'); end
                                             files={spm_vol(functional_template)}; filenames={functional_template};
                                         end
                                         nsets=get(CONN_h.menus.m_setup_00{7},'value')-1;
@@ -1928,7 +1964,7 @@ else
                                                         if numel(temp)==1,
                                                             temp=cellstr(conn_expandframe(temp{1}));
                                                         end
-                                                        files{end+1}=spm_vol(temp{1});
+                                                        files{end+1}=conn_fileutils('spm_localvol',temp{1});
                                                         filenames{end+1}=temp{1};
                                                     end
                                                 end
@@ -1977,7 +2013,7 @@ else
                                                         end
                                                         nvols=unique([1 numel(temp)]);
                                                         for nvol=nvols(:)'
-                                                            files=spm_vol(temp{nvol});
+                                                            files=conn_fileutils('spm_vol',temp{nvol});
                                                             if conn_surf_dimscheck(files), files=conn_surf_parent(files); end % surface
                                                             if numel(txyz)<=1
                                                                 dim=files(1).dim(1:2);
@@ -1987,7 +2023,7 @@ else
                                                                 end
                                                                 txyz=files(1).mat*[tx(:) ty(:) zslice+zeros(numel(tx),1) ones(numel(tx),1)]';
                                                             end
-                                                            dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(1),pinv(files(1).mat)*txyz),dim(1:2))'));
+                                                            dispdata{end+1}=fliplr(flipud(reshape(conn_fileutils('spm_get_data',files(1),pinv(files(1).mat)*txyz),dim(1:2))'));
                                                             displabel{end+1}=sprintf('Subject %d session %d volume %d dataset %d',nsub,nses,nvol,nset);
                                                         end
                                                     end
@@ -2038,7 +2074,7 @@ else
                                                         dispdata{end+1}=nan(dim([2 1]));
                                                         displabel{end+1}=sprintf('Subject %d session %d',nsub,nses);
                                                     else
-                                                        files=spm_vol(Vsource);
+                                                        files=conn_fileutils('spm_vol',Vsource);
                                                         if conn_surf_dimscheck(files), files=conn_surf_parent(files); end % surface
                                                         for nvol=1:numel(files)
                                                             if numel(txyz)<=1
@@ -2049,8 +2085,8 @@ else
                                                                 end
                                                                 txyz=files(1).mat*[tx(:) ty(:) zslice+zeros(numel(tx),1) ones(numel(tx),1)]';
                                                             end
-                                                            dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(1).mat)*txyz),dim(1:2))')); % resamples at same volume coordinates for all timepoints
-                                                            %dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(nvol).mat)*txyz),dim(1:2))'));
+                                                            dispdata{end+1}=fliplr(flipud(reshape(conn_fileutils('spm_get_data',files(nvol),pinv(files(1).mat)*txyz),dim(1:2))')); % resamples at same volume coordinates for all timepoints
+                                                            %dispdata{end+1}=fliplr(flipud(reshape(conn_fileutils('spm_get_data',files(nvol),pinv(files(nvol).mat)*txyz),dim(1:2))'));
                                                             displabel{end+1}=sprintf('Subject %d session %d volume %d dataset %d',nsub,nses,nvol,nset);
                                                         end
                                                     end
@@ -2432,14 +2468,14 @@ else
                                         sessionspecific=CONN_x.Setup.structural_sessionspecific;
                                         if ~sessionspecific, nsess=1; end
                                         structural_template=fullfile(fileparts(which('spm')),'templates','T1.nii');
-                                        if isempty(dir(structural_template)), structural_template=fullfile(fileparts(which('spm')),'toolbox','OldNorm','T1.nii'); end
+                                        if ~conn_existfile(structural_template), structural_template=fullfile(fileparts(which('spm')),'toolbox','OldNorm','T1.nii'); end
                                         files={spm_vol(structural_template)};filenames={structural_template};
                                         for n1=1:numel(nsubs)
                                             nsub=nsubs(n1);
                                             nsesst=intersect(nsess,1:CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)));
                                             for n2=1:length(nsesst)
                                                 nses=nsesst(n2);
-                                                files{end+1}=CONN_x.Setup.structural{nsub}{nses}{3}(1);
+                                                files{end+1}=conn_fileutils('spm_localvol',CONN_x.Setup.structural{nsub}{nses}{3}(1));
                                                 filenames{end+1}=CONN_x.Setup.structural{nsub}{nses}{1};
                                             end
                                         end
@@ -2464,9 +2500,9 @@ else
                                                     conn_disp('fprintf','Subject %d session %d data not found\n',nsub,nses);
                                                     dispdata{end+1}=nan(data.buttondown.matdim.dim([2 1]));
                                                 else
-                                                    files=spm_vol(Vsource);
+                                                    files=conn_fileutils('spm_vol',Vsource);
                                                     if conn_surf_dimscheck(files), files=conn_surf_parent(files); end % surface
-                                                    dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(1),pinv(files(1).mat)*txyz),data.buttondown.matdim.dim(1:2))'));
+                                                    dispdata{end+1}=fliplr(flipud(reshape(conn_fileutils('spm_get_data',files(1),pinv(files(1).mat)*txyz),data.buttondown.matdim.dim(1:2))'));
                                                 end
                                                 if ~sessionspecific, displabel{end+1}=sprintf('Subject %d',nsub);
                                                 else displabel{end+1}=sprintf('Subject %d session %d',nsub,nses);
@@ -2637,7 +2673,7 @@ else
                                         filename1=CONN_x.Setup.rois.files{nsub}{nrois}{1}{1};
                                         [nill,nill,nameext]=spm_fileparts(filename1);%deblank(filename(n1,:)));
 									end
-                                    CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(~isempty(dir(conn_prepend('',deblank(filename1),'.txt')))|~isempty(dir(conn_prepend('',deblank(filename1),'.csv')))|~isempty(dir(conn_prepend('',deblank(filename1),'.xls'))));
+                                    CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(conn_existfile(conn_prepend('',deblank(filename1),'.txt'))|conn_existfile(conn_prepend('',deblank(filename1),'.csv'))|conn_existfile(conn_prepend('',deblank(filename1),'.xls')));
                                     txt=sprintf('%d files assigned to %d subjects\n',size(filename,1),length(nsubs));
                                     if ishandle(hmsg), delete(hmsg); end
                                 elseif ~sessionspecific&&subjectspecific&&size(filename,1)==length(nsubs),
@@ -2653,7 +2689,7 @@ else
                                         filename1=CONN_x.Setup.rois.files{nsub}{nrois}{1}{1};
                                         [nill,nill,nameext]=spm_fileparts(filename1);%deblank(filename(n1,:)));
 									end
-                                    CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(~isempty(dir(conn_prepend('',deblank(filename1),'.txt')))|~isempty(dir(conn_prepend('',deblank(filename1),'.csv')))|~isempty(dir(conn_prepend('',deblank(filename1),'.xls'))));
+                                    CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(conn_existfile(conn_prepend('',deblank(filename1),'.txt'))|conn_existfile(conn_prepend('',deblank(filename1),'.csv'))|conn_existfile(conn_prepend('',deblank(filename1),'.xls')));
                                     txt=sprintf('%d files assigned to %d subjects\n',size(filename,1),length(nsubs));
                                     if ishandle(hmsg), delete(hmsg); end
                                 elseif sessionspecific&&~subjectspecific&&all(size(filename,1)==nfields0),
@@ -2669,7 +2705,7 @@ else
                                         filename1=CONN_x.Setup.rois.files{nsub}{nrois}{nses}{1};
                                         [nill,nill,nameext]=spm_fileparts(filename1);%deblank(filename(n1,:)));
 									end
-                                    CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(~isempty(dir(conn_prepend('',deblank(filename1),'.txt')))|~isempty(dir(conn_prepend('',deblank(filename1),'.csv')))|~isempty(dir(conn_prepend('',deblank(filename1),'.xls'))));
+                                    CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(conn_existfile(conn_prepend('',deblank(filename1),'.txt'))|conn_existfile(conn_prepend('',deblank(filename1),'.csv'))|conn_existfile(conn_prepend('',deblank(filename1),'.xls')));
                                     txt=sprintf('%d files assigned to %d sessions\n',size(filename,1),length(nsess));
                                     if ishandle(hmsg), delete(hmsg); end
                                 elseif subjectspecific&&sessionspecific&&size(filename,1)==nfields,
@@ -2708,7 +2744,7 @@ else
                                             end
                                         end
                                     end                                    
-                                    CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(~isempty(dir(conn_prepend('',deblank(filename1),'.txt')))|~isempty(dir(conn_prepend('',deblank(filename1),'.csv')))|~isempty(dir(conn_prepend('',deblank(filename1),'.xls'))));
+                                    CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(conn_existfile(conn_prepend('',deblank(filename1),'.txt'))|conn_existfile(conn_prepend('',deblank(filename1),'.csv'))|conn_existfile(conn_prepend('',deblank(filename1),'.xls')));
                                     txt=sprintf('%d files assigned to %d subjects/sessions\n',size(filename,1),nfields);
                                     if ishandle(hmsg), delete(hmsg); end
 								elseif size(filename,1)==1 || ~subjectspecific&&~sessionspecific,
@@ -2743,7 +2779,7 @@ else
                                                 CONN_x.Setup.rois.files{nsub}{nrois}{nses}=temp;
                                             end
                                         end
-                                        CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(~isempty(dir(conn_prepend('',deblank(filename1),'.txt')))|~isempty(dir(conn_prepend('',deblank(filename1),'.csv')))|~isempty(dir(conn_prepend('',deblank(filename1),'.xls'))));
+                                        CONN_x.Setup.rois.multiplelabels(nrois)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(conn_existfile(conn_prepend('',deblank(filename1),'.txt'))|conn_existfile(conn_prepend('',deblank(filename1),'.csv'))|conn_existfile(conn_prepend('',deblank(filename1),'.xls')));
                                         if ~isfield(CONN_x.Setup.rois,'dimensions') || length(CONN_x.Setup.rois.dimensions)<nrois, CONN_x.Setup.rois.dimensions{nrois}=1; end
                                         if ~isfield(CONN_x.Setup.rois,'mask') || length(CONN_x.Setup.rois.mask)<nrois, CONN_x.Setup.rois.mask(nrois)=0; end
                                         if ~isfield(CONN_x.Setup.rois,'subjectspecific') || length(CONN_x.Setup.rois.subjectspecific)<nrois, CONN_x.Setup.rois.subjectspecific(nrois)=0; end
@@ -3011,7 +3047,7 @@ else
                                                     if numel(temp)==1,
                                                         temp=cellstr(conn_expandframe(temp{1}));
                                                     end
-                                                    files{end+1}=spm_vol(temp{1});
+                                                    files{end+1}=conn_fileutils('spm_localvol',temp{1});
                                                     filenames{end+1}=temp{1};
                                                 end
                                                 for nroi=nrois(:)',
@@ -3020,7 +3056,7 @@ else
                                                     %[V,str,icon,filename]=conn_getinfo(filename);
                                                     %CONN_x.Setup.rois.files{nsub}{nroi}{nses}={filename,str,icon};
                                                     CONN_x.Setup.rois.files{nsub}{nroi}{nses}=conn_file(filename);
-                                                    files{end+1}=CONN_x.Setup.rois.files{nsub}{nroi}{nses}{3}(1);
+                                                    files{end+1}=conn_fileutils('spm_localvol',CONN_x.Setup.rois.files{nsub}{nroi}{nses}{3}(1));
                                                     filenames{end+1}=CONN_x.Setup.rois.files{nsub}{nroi}{nses}{1};
                                                 end
                                             end
@@ -3054,12 +3090,12 @@ else
                                                     else displabel{end+1}=sprintf('Subject %d session %d',nsub,nses);
                                                     end
                                                 else
-                                                    files=spm_vol(Vsource);
+                                                    files=conn_fileutils('spm_vol',Vsource);
                                                     if conn_surf_dimscheck(files), files=conn_surf_parent(files); end % surface
                                                     nvols=unique([1 numel(files)]); % only first and last volumes
                                                     %nvols=unique(round(linspace(1,numel(files),32))); % not more than 32 volumes
                                                     for nvol=nvols(:)'
-                                                        dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(nvol).mat)*txyz),data.buttondown.matdim.dim(1:2))'));
+                                                        dispdata{end+1}=fliplr(flipud(reshape(conn_fileutils('spm_get_data',files(nvol),pinv(files(nvol).mat)*txyz),data.buttondown.matdim.dim(1:2))'));
                                                         if ~sessionspecific, displabel{end+1}=sprintf('Subject %d volume %d',nsub,nvol);
                                                         else displabel{end+1}=sprintf('Subject %d session %d volume %d',nsub,nses,nvol);
                                                         end
@@ -3166,8 +3202,8 @@ else
                                             filename=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(idata).name,['ICA.ROIs.nii']);
                                         else filename=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses.name,['ICA.ROIs.nii']);
                                         end
-                                        if isempty(dir(filename)), ICAPCA='PCA'; filename=regexprep(filename,'ICA\.ROIs\.nii$','PCA.ROIs.nii'); end
-                                        if isempty(dir(filename)), conn_msgbox({'ICA results not found',' ','Please complete first group-ICA anayses (from first-level analysis voxel-to-voxel/ICA tab)'},'',2); 
+                                        if ~conn_existfile(filename), ICAPCA='PCA'; filename=regexprep(filename,'ICA\.ROIs\.nii$','PCA.ROIs.nii'); end
+                                        if ~conn_existfile(filename), conn_msgbox({'ICA results not found',' ','Please complete first group-ICA anayses (from first-level analysis voxel-to-voxel/ICA tab)'},'',2); 
                                         else
                                             nrois=numel(CONN_x.Setup.rois.names);
                                             if any(strcmp(CONN_x.Setup.rois.names,['group-',ICAPCA]))
@@ -3377,7 +3413,7 @@ else
 						set(CONN_h.menus.m_setup_00{4},'string','','tooltipstring','');
                     elseif ok,
                         if nrois<=3&&conn_existfile(conn_prepend('e',CONN_x.Setup.rois.files{nsub}{nrois}{nses}{1})), 
-                            vol=[CONN_x.Setup.rois.files{nsub}{nrois}{nses}{3} spm_vol(conn_prepend('e',CONN_x.Setup.rois.files{nsub}{nrois}{nses}{1}))];
+                            vol=[CONN_x.Setup.rois.files{nsub}{nrois}{nses}{3} conn_fileutils('spm_vol',conn_prepend('e',CONN_x.Setup.rois.files{nsub}{nrois}{nses}{1}))];
                             CONN_h.menus.general.names=reshape({'Original volume','Thresholded/eroded volume'},[1,1,2]);
                         else
                             vol=CONN_x.Setup.rois.files{nsub}{nrois}{nses}{3};
@@ -3563,7 +3599,7 @@ else
                                         answ=conn_questdlg({'This step will update the Denoising tab information to reflect any modifications in condition definitions',' or options performed here in the Setup tab (e.g. after additing a new condition or changing an existing one)',' ','(note: same effect as pressing Setup.Done but limited only to processes involving Setup.Conditions information)'}, 'conn','Start','Cancel','Start');
                                         if strcmp(answ,'Start'),
                                             conn_process setup_conditions;
-                                            conn save;
+                                            if ~conn_projectmanager('inserver'), conn save; end
                                             set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.conditions.names,'value',max(1,min(length(CONN_x.Setup.conditions.names)-1,max(get(CONN_h.menus.m_setup_00{1},'value')))));
                                         end
                                     else
@@ -3667,7 +3703,7 @@ else
                                             if numel(answ)==1&&answ>1, 
                                                 [CONN_x.Setup.conditions.filter{nconditions}]=deal(answ); 
                                                 answ=questdlg({'This will create additional conditions (one per frequency band)','Do you wish to create these conditions now?'},'','Yes','Later','Yes');
-                                                if ~isempty(answ)&&strcmp(answ,'Yes'),conn_process('setup_conditionsdecomposition'); conn('gui_setup'); end
+                                                if ~isempty(answ)&&strcmp(answ,'Yes'), conn_process('setup_conditionsdecomposition'); conn('gui_setup'); end
                                             end
                                         end
                                     case 4,
@@ -3691,7 +3727,7 @@ else
                                             if numel(answ)==2&&numel(answ{1})>1&&numel(answ{2})==1, 
                                                 [CONN_x.Setup.conditions.filter{nconditions}]=deal([answ{2} answ{1}(:)']); 
                                                 answ=conn_questdlg({'This will create additional conditions (one per sliding-window onset)','Do you wish to create these conditions now?'},'','Yes','Later','Yes');
-                                                if ~isempty(answ)&&strcmp(answ,'Yes'),conn_process('setup_conditionsdecomposition'); conn('gui_setup'); end
+                                                if ~isempty(answ)&&strcmp(answ,'Yes'), conn_process('setup_conditionsdecomposition'); conn('gui_setup'); end
                                             end
                                         end
                                 end
@@ -4004,7 +4040,7 @@ else
                                                         dispdata{end+1}=nan(dim([2 1]));
                                                         displabel{end+1}=sprintf('Subject %d session %d',nsub,nses);
                                                     else
-                                                        files=spm_vol(Vsource);
+                                                        files=conn_fileutils('spm_vol',Vsource);
                                                         if conn_surf_dimscheck(files), files=conn_surf_parent(files); end % surface
                                                         for nvol=1:numel(files)
                                                             if numel(txyz)<=1
@@ -4015,8 +4051,8 @@ else
                                                                 end
                                                                 txyz=files(1).mat*[tx(:) ty(:) zslice+zeros(numel(tx),1) ones(numel(tx),1)]';
                                                             end
-                                                            dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(1).mat)*txyz),dim(1:2))')); % resamples at same volume coordinates for all timepoints
-                                                            %dispdata{end+1}=fliplr(flipud(reshape(spm_get_data(files(nvol),pinv(files(nvol).mat)*txyz),dim(1:2))'));
+                                                            dispdata{end+1}=fliplr(flipud(reshape(conn_fileutils('spm_get_data',files(nvol),pinv(files(1).mat)*txyz),dim(1:2))')); % resamples at same volume coordinates for all timepoints
+                                                            %dispdata{end+1}=fliplr(flipud(reshape(conn_fileutils('spm_get_data',files(nvol),pinv(files(nvol).mat)*txyz),dim(1:2))'));
                                                             displabel{end+1}=sprintf('Subject %d session %d volume %d dataset %d',nsub,nses,nvol,nset);
                                                         end
                                                         tdata=CONN_x.Setup.l1covariates.files{nsub}{nl1covariates(1)}{nses}{3};
@@ -4075,7 +4111,7 @@ else
                                                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
                                                 for nses=1:nsess
                                                     try
-                                                        temp=load(CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1});
+                                                        temp=conn_loadmatfile(CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1});
                                                         y1(nsubject)=y1(nsubject)+sum(~any(temp.R~=0,2),1);
                                                         y2(nsubject)=y2(nsubject)+sum(sum(temp.R~=0));
                                                     catch
@@ -4102,7 +4138,7 @@ else
                                             answ=conn_questdlg({'This step will update the Denoising tab information to reflect any modifications in first-level covariate definitions',' or options performed here in the Setup tab (e.g. after additing a new first-level covariate or changing an existing one)',' ','(note: same effect as pressing Setup.Done but limited only to processes involving Setup.Covariates (first-level) information)'}, 'conn','Start','Cancel','Start');
                                             if strcmp(answ,'Start'),
                                                 conn_process setup_covariates;
-                                                conn save;
+                                                if ~conn_projectmanager('inserver'), conn save; end
                                             end
                                         else
                                             conn_msgbox({'Setup step has not been run yet','Please press ''Done'' button when ready to propagate all Setup information to the Denoising step'},'',2); 
@@ -4295,7 +4331,7 @@ else
                                     tnewdesc={sprintf('data imported from %s',tfilename)};
                                     switch(tfileext)
                                         case '.mat'
-                                            tdata=load(tfilename,'-mat');
+                                            tdata=conn_loadmatfile(tfilename,'-mat');
                                             tnames=fieldnames(tdata);
                                             if numel(tnames)==1, idata=1;jdata=[];kdata=[];
                                             else
@@ -4834,7 +4870,7 @@ else
                         temp=[];
                         for n1=1:size(filenames,1)
                             filename=fliplr(deblank(fliplr(deblank(filenames(n1,:)))));
-                            v=spm_vol(filename);
+                            v=conn_fileutils('spm_vol',filename);
                             if nvols==1
                                 [x,y,z]=ndgrid(1:v(1).dim(1),1:v(1).dim(2),1:v(1).dim(3));
                                 CONN_h.menus.m_setup.displayBxyz=v(1).mat*[x(:) y(:) z(:) ones(numel(x),1)]';
@@ -4843,7 +4879,7 @@ else
                                 CONN_h.menus.m_setup.displayBref=reshape(spm_get_data(CONN_gui.refs.canonical.V,pinv(CONN_gui.refs.canonical.V.mat)*CONN_h.menus.m_setup.displayBxyz),CONN_h.menus.m_setup.displayBdim);
                             end
                             for n2=1:numel(v),
-                                temp=cat(4,temp,reshape(spm_get_data(v(n2),pinv(v(n2).mat)*CONN_h.menus.m_setup.displayBxyz),CONN_h.menus.m_setup.displayBdim));
+                                temp=cat(4,temp,reshape(conn_fileutils('spm_get_data',v(n2),pinv(v(n2).mat)*CONN_h.menus.m_setup.displayBxyz),CONN_h.menus.m_setup.displayBdim));
                             end
                         end
                         CONN_h.menus.m_setup.displayB{nvols}=temp;
@@ -4882,7 +4918,7 @@ else
                                 CONN_h.menus.m_setup.displayBref=reshape(spm_get_data(CONN_gui.refs.canonical.V,pinv(CONN_gui.refs.canonical.V.mat)*CONN_h.menus.m_setup.displayBxyz),CONN_h.menus.m_setup.displayBdim);
                             end
                             for n2=1:numel(v),
-                                temp=cat(4,temp,reshape(spm_get_data(v(n2),pinv(v(n2).mat)*CONN_h.menus.m_setup.displayBxyz),CONN_h.menus.m_setup.displayBdim));
+                                temp=cat(4,temp,reshape(conn_fileutils('spm_get_data',v(n2),pinv(v(n2).mat)*CONN_h.menus.m_setup.displayBxyz),CONN_h.menus.m_setup.displayBdim));
                             end
                             CONN_h.menus.m_setup.displayB{nvols(n1)}=temp/max(abs(temp(:)));
                         end
@@ -5231,7 +5267,7 @@ else
                                 for isub=1:numel(nsubs)
                                     nsub=nsubs(isub);
                                     foldernames=CONN_x.Setup.dicom{nsub}{1};
-                                    if ischar(foldernames)&&isdir(deblank(foldernames(1,:))), foldernames=cellstr(foldernames);
+                                    if ischar(foldernames)&&conn_fileutils('isdir',deblank(foldernames(1,:))), foldernames=cellstr(foldernames);
                                     elseif ischar(foldernames), foldernames={cellstr(foldernames)};
                                     else foldernames=filenames;
                                     end
@@ -5246,8 +5282,8 @@ else
                                     pathname=CONN_h.menus.m_setup_import_dicom.folderout;
                                     if strcmp(lower(pathname),'bids'), pathname=fullfile(CONN_x.folders.bids,'sourcedata'); end
                                     if ~ismember(pathname,{'./','../nii','./nii'}),
-                                        [ok,msg]=mkdir(pathname);
-                                        pathname=fullfile(pathname,sprintf('sub-%04d',nsub)); [ok,msg]=mkdir(pathname);
+                                        conn_fileutils('mkdir',pathname);
+                                        pathname=fullfile(pathname,sprintf('sub-%04d',nsub)); conn_fileutils('mkdir',pathname);
                                     end
                                     if isempty(Series), conn_disp('fprintf','No DICOM files found in selected folder(s) for subject %d\n',nsub); 
                                     else
@@ -5899,8 +5935,8 @@ else
                 filepath=CONN_x.folders.data;
                 if any(CONN_x.Setup.steps([2,3])),%~isfield(CONN_x.Setup,'doROIonly')||~CONN_x.Setup.doROIonly,
                     filename=fullfile(filepath,['DATA_Subject',num2str(1,'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
-                    if isempty(dir(filename)), conn_msgbox({'Not ready to start Denoising step',' ','Please complete the Setup step first','(fill any required information and press "Done" in the Setup tab)'},'',2); return; end %conn gui_setup; return; end
-                    CONN_h.menus.m_preproc.Y=conn_vol(filename);
+                    if ~conn_existfile(filename), conn_msgbox({'Not ready to start Denoising step',' ','Please complete the Setup step first','(fill any required information and press "Done" in the Setup tab)'},'',2); return; end %conn gui_setup; return; end
+                    CONN_h.menus.m_preproc.Y=conn_vol(filename,true);
                     if isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface,%isequal(CONN_h.menus.m_preproc.Y.matdim.dim,conn_surf_dims(8).*[1 1 2])
                         CONN_h.menus.m_preproc.y.slice=1;
                         if CONN_h.menus.m_preproc_surfhires
@@ -5920,18 +5956,18 @@ else
                 end
                 CONN_h.menus.m_preproc.strlabel=sprintf('Subject %d session %d',1,1);
 				filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
-				CONN_h.menus.m_preproc.X1=load(filename);
+				CONN_h.menus.m_preproc.X1=conn_loadmatfile(filename,'-cache');
 				filename=fullfile(filepath,['COV_Subject',num2str(1,'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
-				CONN_h.menus.m_preproc.X2=load(filename);
+				CONN_h.menus.m_preproc.X2=conn_loadmatfile(filename,'-cache');
                 if any(CONN_x.Setup.steps([2,3]))
                     if ~(isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface)
                         try
-                            CONN_h.menus.m_preproc.XS=spm_vol(deblank(CONN_x.Setup.structural{1}{1}{1}));
+                            CONN_h.menus.m_preproc.XS=conn_fileutils('spm_vol',deblank(CONN_x.Setup.structural{1}{1}{1}));
                         catch
                             CONN_h.menus.m_preproc.XS=spm_vol(fullfile(fileparts(which('spm')),'canonical','single_subj_T1.nii'));
                         end
                         xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_preproc.Y.matdim.dim(1:2))*(CONN_h.menus.m_preproc.y.slice-1)+(1:prod(CONN_h.menus.m_preproc.Y.matdim.dim(1:2))),CONN_h.menus.m_preproc.Y.matdim.mat,CONN_h.menus.m_preproc.Y.matdim.dim);
-                        CONN_h.menus.m_preproc.Xs=spm_get_data(CONN_h.menus.m_preproc.XS(1),pinv(CONN_h.menus.m_preproc.XS(1).mat)*xyz');
+                        CONN_h.menus.m_preproc.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_preproc.XS(1),pinv(CONN_h.menus.m_preproc.XS(1).mat)*xyz');
                         CONN_h.menus.m_preproc.Xs=permute(reshape(CONN_h.menus.m_preproc.Xs,CONN_h.menus.m_preproc.Y.matdim.dim(1:2)),[2,1,3]);
                         set(CONN_h.menus.m_preproc_00{15},'min',1,'max',CONN_h.menus.m_preproc.Y.matdim.dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_preproc.Y.matdim.dim(3)-1)),'value',CONN_h.menus.m_preproc.y.slice);
                     else
@@ -6067,18 +6103,18 @@ else
                          end
                          CONN_h.menus.m_preproc.strlabel=sprintf('Subject %d session %d',nsubs,nsess);
 						 filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Session',num2str(nsess,'%03d'),'.mat']);
-						 CONN_h.menus.m_preproc.X1=load(filename);
+						 CONN_h.menus.m_preproc.X1=conn_loadmatfile(filename);
 						 filename=fullfile(filepath,['COV_Subject',num2str(nsubs,'%03d'),'_Session',num2str(nsess,'%03d'),'.mat']);
-						 CONN_h.menus.m_preproc.X2=load(filename);
+						 CONN_h.menus.m_preproc.X2=conn_loadmatfile(filename);
                          if any(CONN_x.Setup.steps([2,3]))&&~(isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface)
                              if ~CONN_x.Setup.structural_sessionspecific, nsesstemp=1; else nsesstemp=nsess; end
                              try
-                                 CONN_h.menus.m_preproc.XS=spm_vol(deblank(CONN_x.Setup.structural{nsubs}{nsesstemp}{1}));
+                                 CONN_h.menus.m_preproc.XS=conn_fileutils('spm_vol',deblank(CONN_x.Setup.structural{nsubs}{nsesstemp}{1}));
                              catch
                                  CONN_h.menus.m_preproc.XS=spm_vol(fullfile(fileparts(which('spm')),'canonical','single_subj_T1.nii'));
                              end
                              xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_preproc.Y.matdim.dim(1:2))*(CONN_h.menus.m_preproc.y.slice-1)+(1:prod(CONN_h.menus.m_preproc.Y.matdim.dim(1:2))),CONN_h.menus.m_preproc.Y.matdim.mat,CONN_h.menus.m_preproc.Y.matdim.dim);
-                             CONN_h.menus.m_preproc.Xs=spm_get_data(CONN_h.menus.m_preproc.XS(1),pinv(CONN_h.menus.m_preproc.XS(1).mat)*xyz');
+                             CONN_h.menus.m_preproc.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_preproc.XS(1),pinv(CONN_h.menus.m_preproc.XS(1).mat)*xyz');
                              CONN_h.menus.m_preproc.Xs=permute(reshape(CONN_h.menus.m_preproc.Xs,CONN_h.menus.m_preproc.Y.matdim.dim(1:2)),[2,1,3]);
                          end
 						 model=1;
@@ -6090,7 +6126,7 @@ else
                          if any(CONN_x.Setup.steps([2,3]))&&~(isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface)
                              [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,CONN_h.menus.m_preproc.y.slice);
                              xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_preproc.Y.matdim.dim(1:2))*(CONN_h.menus.m_preproc.y.slice-1)+(1:prod(CONN_h.menus.m_preproc.Y.matdim.dim(1:2))),CONN_h.menus.m_preproc.Y.matdim.mat,CONN_h.menus.m_preproc.Y.matdim.dim);
-                             CONN_h.menus.m_preproc.Xs=spm_get_data(CONN_h.menus.m_preproc.XS(1),pinv(CONN_h.menus.m_preproc.XS(1).mat)*xyz');
+                             CONN_h.menus.m_preproc.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_preproc.XS(1),pinv(CONN_h.menus.m_preproc.XS(1).mat)*xyz');
                              CONN_h.menus.m_preproc.Xs=permute(reshape(CONN_h.menus.m_preproc.Xs,CONN_h.menus.m_preproc.Y.matdim.dim(1:2)),[2,1,3]);
                          end
                          model=1;
@@ -6596,7 +6632,7 @@ else
                             elseif ismember(tanalysis,'temporal modulation')
                                 filepath=CONN_x.folders.preprocessing;
                                 filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(1),'%03d'),'.mat']);
-                                tempX1=load(filename);
+                                tempX1=conn_loadmatfile(filename,'names');
                                 value=listdlg('liststring',tempX1.names,'selectionmode','single','initialvalue',value,'promptstring','Select interaction factor','ListSize',[300 200]);
                                 if isempty(value), tmodulation='';
                                 else tmodulation=tempX1.names{value};
@@ -6642,10 +6678,15 @@ else
                             txt{1}=regexprep(txt{1},'[^\w\d_]','');
                             if isempty(txt{1}), break; end
                             if ~ismember(txt{1},{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
-                                if isempty(tnames{state(1)}), [ok,nill]=mkdir(tfolders{state(1)},txt{1});
-                                elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(tfolders{state(1)},tnames{state(1)}),fullfile(tfolders{state(1)},txt{1}))); ok=isequal(ok,0);
-                                else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(tfolders{state(1)},tnames{state(1)}),fullfile(tfolders{state(1)},txt{1}))); ok=isequal(ok,0);
+                                try
+                                    if isempty(tnames{state(1)}), assert(conn_fileutils('mkdir',tfolders{state(1)},txt{1}));
+                                    else conn_fileutils('renamefile',fullfile(tfolders{state(1)},tnames{state(1)}),fullfile(tfolders{state(1)},txt{1}));
+                                    end
+                                    ok=true;
                                 end
+                                %elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(tfolders{state(1)},tnames{state(1)}),fullfile(tfolders{state(1)},txt{1}))); ok=isequal(ok,0);
+                                %else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(tfolders{state(1)},tnames{state(1)}),fullfile(tfolders{state(1)},txt{1}))); ok=isequal(ok,0);
+                                %end
                                 if ~ok, conn_msgbox('Unable to create folder. Check folder permissions','conn',2);end
                             else conn_msgbox('Duplicated analysis name. Please try a different name','conn',2);
                             end
@@ -6806,28 +6847,32 @@ else
                 CONN_h.menus.m_analyses.icondition=icondition;
                 filepath=CONN_x.folders.preprocessing;
                 filename=fullfile(filepath,['DATA_Subject',num2str(1,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(1),'%03d'),'.mat']);
-                if conn_existfile(filename)&any(CONN_x.Setup.steps([2,3])),%~isfield(CONN_x.Setup,'doROIonly')||~CONN_x.Setup.doROIonly,
+                if conn_existfile(filename)&any(CONN_x.Setup.steps([2,3])),%~isfield(CONN_x.Setup,'doROIonly')||~CONN_x.Setup.doROIonly, % load slice
                     CONN_h.menus.m_analyses.Y=conn_vol(filename);
                     if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface, %isequal(CONN_h.menus.m_analyses.Y.matdim.dim,conn_surf_dims(8).*[1 1 2])
                         CONN_h.menus.m_analyses.y.slice=1;
-                        if CONN_h.menus.m_analyses_surfhires
-                            [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
-                        else
-                            [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,1);
-                            [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_analyses.Y,conn_surf_dims(8)*[0;0;1]+1);
-                            CONN_h.menus.m_analyses.y.data=[CONN_h.menus.m_analyses.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
-                            CONN_h.menus.m_analyses.y.idx=[CONN_h.menus.m_analyses.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
-                        end
+                        CONN_h.menus.m_analyses.y.data=[];
+%                         if CONN_h.menus.m_analyses_surfhires
+%                             [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
+%                         else
+%                             [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,1);
+%                             [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_analyses.Y,conn_surf_dims(8)*[0;0;1]+1);
+%                             CONN_h.menus.m_analyses.y.data=[CONN_h.menus.m_analyses.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
+%                             CONN_h.menus.m_analyses.y.idx=[CONN_h.menus.m_analyses.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
+%                         end
                         set(CONN_h.menus.m_analyses_00{15},'visible','off');
                         conn_menumanager('onregionremove',CONN_h.menus.m_analyses_00{15});
                     else
+                        CONN_h.menus.m_analyses.y.data=[];
                         CONN_h.menus.m_analyses.y.slice=ceil(CONN_h.menus.m_analyses.Y.matdim.dim(3)/2);
-                        [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
+%                         [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
                     end
                 end
-                filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(1),'%03d'),'.mat']);
-                if conn_existfile(filename)&any(CONN_x.Setup.steps([2,3]))
-                    CONN_h.menus.m_analyses.X1=load(filename);
+                CONN_h.menus.m_analyses.X1=[];
+                if state(1)==1
+                    filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(1),'%03d'),'.mat']);
+                    if conn_existfile(filename), CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; end
+                end
                     %CONN_h.menus.m_analyses.x.data=CONN_h.menus.m_analyses.X1.data
                     %                     CONN_h.menus.m_analyses.ConditionWeights={};
                     %                     for ncondition=1:nconditions,
@@ -6839,20 +6884,20 @@ else
                     %                             end
                     %                         end
                     %                     end
-                    if isfield(CONN_h.menus.m_analyses,'Y')
-                        if ~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
-                            try
-                                CONN_h.menus.m_analyses.XS=spm_vol(deblank(CONN_x.Setup.structural{1}{1}{1}));
-                            catch
-                                CONN_h.menus.m_analyses.XS=spm_vol(fullfile(fileparts(which('spm')),'canonical','single_subj_T1.nii'));
-                            end
-                            xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-                            CONN_h.menus.m_analyses.Xs=spm_get_data(CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
-                            CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
-                            set(CONN_h.menus.m_analyses_00{15},'min',1,'max',CONN_h.menus.m_analyses.Y.matdim.dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_analyses.Y.matdim.dim(3)-1)),'value',CONN_h.menus.m_analyses.y.slice);
-                        else
-                            CONN_h.menus.m_analyses.y.slice=max(1,min(4,CONN_h.menus.m_analyses.y.slice));
+                if any(CONN_x.Setup.steps([2,3]))&&isfield(CONN_h.menus.m_analyses,'Y')
+                    if ~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
+                        try
+                            CONN_h.menus.m_analyses.XS=conn_fileutils('spm_vol',deblank(CONN_x.Setup.structural{1}{1}{1}));
+                        catch
+                            CONN_h.menus.m_analyses.XS=spm_vol(fullfile(fileparts(which('spm')),'canonical','single_subj_T1.nii'));
                         end
+                        CONN_h.menus.m_analyses.Xs=[];
+                        %                             xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+                        %                             CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+                        %                             CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                        set(CONN_h.menus.m_analyses_00{15},'min',1,'max',CONN_h.menus.m_analyses.Y.matdim.dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_analyses.Y.matdim.dim(3)-1)),'value',CONN_h.menus.m_analyses.y.slice);
+                    else
+                        CONN_h.menus.m_analyses.y.slice=max(1,min(4,CONN_h.menus.m_analyses.y.slice));
                     end
                 end
             end
@@ -6920,7 +6965,7 @@ else
 %                     CONN_h.menus.m_analyses_00{29}=conn_menu('image2',boffset+pos+[.02 -.20 -.02 -pos(4)+.07],'voxel BOLD timeseries');
                     
                     %conn_menu('frame',[2*.91/4,.89,.91/4,.05],'');
-                    if ~isfield(CONN_x.Analyses(ianalysis).variables,'names')||isempty(CONN_x.Analyses(ianalysis).variables.names), 
+                    if ~isfield(CONN_x.Analysis_variables,'names')||isempty(CONN_x.Analysis_variables.names), 
                         conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); 
                         CONN_h.menus.m_analyses.isready=false;
                     else
@@ -6937,8 +6982,8 @@ else
                     set(CONN_h.menus.m_analyses_00{8},'value',CONN_x.Analyses(ianalysis).weight);
                     set(CONN_h.menus.m_analyses_00{9},'value',CONN_x.Analyses(ianalysis).type);
                     set([CONN_h.menus.m_analyses_00{1},CONN_h.menus.m_analyses_00{2}],'max',2);
-                    tnames=CONN_x.Analyses(ianalysis).variables.names;
-                    tnames(ismember(CONN_x.Analyses(ianalysis).variables.names,CONN_x.Analyses(ianalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Analyses(ianalysis).variables.names,CONN_x.Analyses(ianalysis).regressors.names)),'uni',0);
+                    tnames=CONN_x.Analysis_variables.names;
+                    tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names)),'uni',0);
                     set(CONN_h.menus.m_analyses_00{1},'string',tnames);
                     set(CONN_h.menus.m_analyses_00{2},'string',CONN_x.Analyses(ianalysis).regressors.names);
                     %conn_menumanager(CONN_h.menus.m_analyses_01,'on',1);
@@ -6960,18 +7005,18 @@ else
                                 case '<',
                                     ncovariates=get(CONN_h.menus.m_analyses_00{1},'value');
                                     for ncovariate=ncovariates(:)',
-                                        if isempty(strmatch(CONN_x.Analyses(ianalysis).variables.names{ncovariate},CONN_x.Analyses(ianalysis).regressors.names,'exact')),
-                                            CONN_x.Analyses(ianalysis).regressors.names{end+1}=CONN_x.Analyses(ianalysis).variables.names{ncovariate};
-                                            CONN_x.Analyses(ianalysis).regressors.types{end+1}=CONN_x.Analyses(ianalysis).variables.types{ncovariate};
-                                            CONN_x.Analyses(ianalysis).regressors.deriv{end+1}=CONN_x.Analyses(ianalysis).variables.deriv{ncovariate};
-                                            CONN_x.Analyses(ianalysis).regressors.fbands{end+1}=CONN_x.Analyses(ianalysis).variables.fbands{ncovariate};
-                                            CONN_x.Analyses(ianalysis).regressors.dimensions{end+1}=CONN_x.Analyses(ianalysis).variables.dimensions{ncovariate};
+                                        if isempty(strmatch(CONN_x.Analysis_variables.names{ncovariate},CONN_x.Analyses(ianalysis).regressors.names,'exact')),
+                                            CONN_x.Analyses(ianalysis).regressors.names{end+1}=CONN_x.Analysis_variables.names{ncovariate};
+                                            CONN_x.Analyses(ianalysis).regressors.types{end+1}=CONN_x.Analysis_variables.types{ncovariate};
+                                            CONN_x.Analyses(ianalysis).regressors.deriv{end+1}=CONN_x.Analysis_variables.deriv{ncovariate};
+                                            CONN_x.Analyses(ianalysis).regressors.fbands{end+1}=CONN_x.Analysis_variables.fbands{ncovariate};
+                                            CONN_x.Analyses(ianalysis).regressors.dimensions{end+1}=CONN_x.Analysis_variables.dimensions{ncovariate};
                                         end
                                     end
                                     set(CONN_h.menus.m_analyses_00{2},'string',CONN_x.Analyses(ianalysis).regressors.names);
                                     %set(CONN_h.menus.m_analyses_00{13},'string',{' TOTAL',CONN_x.Analyses(ianalysis).regressors.names{:}});
-                                    tnames=CONN_x.Analyses(ianalysis).variables.names;
-                                    tnames(ismember(CONN_x.Analyses(ianalysis).variables.names,CONN_x.Analyses(ianalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Analyses(ianalysis).variables.names,CONN_x.Analyses(ianalysis).regressors.names)),'uni',0);
+                                    tnames=CONN_x.Analysis_variables.names;
+                                    tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names)),'uni',0);
                                     set(CONN_h.menus.m_analyses_00{1},'string',tnames);
                                 case '>',
                                     ncovariates=get(CONN_h.menus.m_analyses_00{2},'value');
@@ -6983,8 +7028,8 @@ else
                                     CONN_x.Analyses(ianalysis).regressors.dimensions={CONN_x.Analyses(ianalysis).regressors.dimensions{idx}};
                                     set(CONN_h.menus.m_analyses_00{2},'string',CONN_x.Analyses(ianalysis).regressors.names,'value',min(max(ncovariates),length(CONN_x.Analyses(ianalysis).regressors.names)));
                                     %set(CONN_h.menus.m_analyses_00{13},'string',{' TOTAL',CONN_x.Analyses(ianalysis).regressors.names{:}},'value',min(max(get(CONN_h.menus.m_analyses_00{13},'value')),length(CONN_x.Analyses(ianalysis).regressors.names)+1));
-                                    tnames=CONN_x.Analyses(ianalysis).variables.names;
-                                    tnames(ismember(CONN_x.Analyses(ianalysis).variables.names,CONN_x.Analyses(ianalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Analyses(ianalysis).variables.names,CONN_x.Analyses(ianalysis).regressors.names)),'uni',0);
+                                    tnames=CONN_x.Analysis_variables.names;
+                                    tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names)),'uni',0);
                                     set(CONN_h.menus.m_analyses_00{1},'string',tnames);
                             end
                             model=1;
@@ -7014,18 +7059,18 @@ else
                         case 5,
                             nregressors=get(CONN_h.menus.m_analyses_00{2},'value');
                             value=get(CONN_h.menus.m_analyses_00{5},'value');
-                            if ~isfield(CONN_h.menus.m_analyses.X1,'fbdata')
-                                answ=conn_questdlg({'To use this feature you need to first re-run the ROI-based Denoising step.','Do you want to do this now?'},'','Yes','No','Yes');
-                                if strcmp(answ,'Yes'),
-                                    conn_process('preprocessing_roi');
-                                    nsubs=get(CONN_h.menus.m_analyses_00{11},'value');
-                                    nconditions=CONN_h.menus.m_analyses.listedconditions(get(CONN_h.menus.m_analyses_00{12},'value'));
-                                    filepath=CONN_x.folders.preprocessing;
-                                    filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
-                                    CONN_h.menus.m_analyses.X1=load(filename);
-                                else value=1;
-                                end
-                            end
+%                             if ~isfield(CONN_h.menus.m_analyses.X1,'fbdata')
+%                                 answ=conn_questdlg({'To use this feature you need to first re-run the ROI-based Denoising step.','Do you want to do this now?'},'','Yes','No','Yes');
+%                                 if strcmp(answ,'Yes'),
+%                                     conn_process('preprocessing_roi');
+%                                     nsubs=get(CONN_h.menus.m_analyses_00{11},'value');
+%                                     nconditions=CONN_h.menus.m_analyses.listedconditions(get(CONN_h.menus.m_analyses_00{12},'value'));
+%                                     filepath=CONN_x.folders.preprocessing;
+%                                     filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
+%                                     CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename); CONN_h.menus.m_analyses.X1.filename=filename; 
+%                                 else value=1;
+%                                 end
+%                             end
                             if value>1
                                 answ=num2str(max([1 CONN_x.Analyses(ianalysis).regressors.fbands{:}]));
                                 answ=inputdlg('Number of frequency bands','',1,{answ});
@@ -7036,7 +7081,7 @@ else
                                 end
                             end
                             for nregressor=nregressors(:)',
-                                CONN_x.Analyses(ianalysis).regressors.fbands{nregressor}=max(1,min(numel(CONN_h.menus.m_analyses.X1.fbdata{1}),round(value)));
+                                CONN_x.Analyses(ianalysis).regressors.fbands{nregressor}=max(1,min(8,round(value))); %max(1,min(numel(CONN_h.menus.m_analyses.X1.fbdata{1}),round(value)));
                             end
                             model=1;
                         case 6,
@@ -7088,7 +7133,7 @@ else
                                 end
                                 filename=fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,['dyn_Subject',num2str(1,'%03d'),'.mat']);
                                 try
-                                    load(filename,'names');
+                                    names={}; conn_loadmatfile(filename,'names');
                                     if ischar(CONN_x.Analyses(ianalysis).modulation)
                                         [nill,name]=fileparts(CONN_x.Analyses(ianalysis).modulation);
                                         [ok,value]=ismember(name,names);
@@ -7147,47 +7192,51 @@ else
 								set(CONN_h.screen.hfig,'pointer',CONN_gui.waiticon); drawnow;
                                 filename=fullfile(filepath,['DATA_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
                                 CONN_h.menus.m_analyses.Y=conn_vol(filename);
-                                if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface
-                                    if CONN_h.menus.m_analyses_surfhires
-                                        [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
-                                    else
-                                        [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,1);
-                                        [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_analyses.Y,conn_surf_dims(8)*[0;0;1]+1);
-                                        CONN_h.menus.m_analyses.y.data=[CONN_h.menus.m_analyses.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
-                                        CONN_h.menus.m_analyses.y.idx=[CONN_h.menus.m_analyses.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
-                                    end
-                                else
-                                    [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
-                                end
+                                CONN_h.menus.m_analyses.y.data=[];
+%                                 if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface
+%                                     if CONN_h.menus.m_analyses_surfhires
+%                                         [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
+%                                     else
+%                                         [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,1);
+%                                         [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_analyses.Y,conn_surf_dims(8)*[0;0;1]+1);
+%                                         CONN_h.menus.m_analyses.y.data=[CONN_h.menus.m_analyses.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
+%                                         CONN_h.menus.m_analyses.y.idx=[CONN_h.menus.m_analyses.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
+%                                     end
+%                                 else
+%                                     [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
+%                                 end
 								set(CONN_h.screen.hfig,'pointer','arrow');
                             end
                             filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
-                            CONN_h.menus.m_analyses.X1=load(filename);
+                            CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; 
                             %filename=fullfile(filepath,['COV_Subject',num2str(nsubs,'%03d'),'_Session',num2str(nconditions,'%03d'),'.mat']);
                             %CONN_h.menus.m_analyses.X2=load(filename);
                             if any(CONN_x.Setup.steps([2,3]))
                                 if ~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
                                     try
-                                        CONN_h.menus.m_analyses.XS=spm_vol(deblank(CONN_x.Setup.structural{nsubs}{1}{1})); %note: displaying first-session structural here
+                                        CONN_h.menus.m_analyses.XS=conn_fileutils('spm_vol',deblank(CONN_x.Setup.structural{nsubs}{1}{1})); %note: displaying first-session structural here
                                     catch
                                         CONN_h.menus.m_analyses.XS=spm_vol(fullfile(fileparts(which('spm')),'canonical','single_subj_T1.nii'));
                                     end
-                                    xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-                                    CONN_h.menus.m_analyses.Xs=spm_get_data(CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
-                                    CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                                    CONN_h.menus.m_analyses.Xs=[];
+%                                     xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+%                                     CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+%                                     CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
                                 end
                             end
                             model=1;
                         case 13,
-                            model=2;
+                            model=1;
                         case 15,
                             CONN_h.menus.m_analyses.y.slice=round(get(CONN_h.menus.m_analyses_00{15},'value'));
                             if ~CONN_h.menus.m_analyses.isready, return; end
                             if any(CONN_x.Setup.steps([2,3]))&&~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
-                                [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
-                                xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-                                CONN_h.menus.m_analyses.Xs=spm_get_data(CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
-                                CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                                CONN_h.menus.m_analyses.y.data=[];
+                                %[CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
+                                CONN_h.menus.m_analyses.Xs=[];
+%                                 xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+%                                 CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+%                                 CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
                                 CONN_h.menus.m_analyses.Xr=[];
                             end
                             model=1;
@@ -7207,7 +7256,7 @@ else
                                     txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                     if isempty(txt{1}), break; end
                                     if ~ismember(txt{1},{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
-                                        [ok,nill]=mkdir(CONN_x.folders.firstlevel,txt{1});
+                                        [ok,nill]=conn_fileutils('mkdir',CONN_x.folders.firstlevel,txt{1});
                                         if ~ok, conn_msgbox('Unable to create folder. Check folder permissions','conn',2);end
                                     else conn_msgbox('Duplicated analysis name. Please try a different name','conn',2);
                                     end
@@ -7241,10 +7290,16 @@ else
                                         txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                         if isempty(txt{1}), break; end
                                         if ~ismember(txt{1},{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
-                                            if isempty(CONN_x.Analyses(CONN_x.Analysis).name), [ok,nill]=mkdir(CONN_x.folders.firstlevel,txt{1});
-                                            elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(CONN_x.Analysis).name),fullfile(CONN_x.folders.firstlevel,txt{1}))); ok=isequal(ok,0);
-                                            else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(CONN_x.Analysis).name),fullfile(CONN_x.folders.firstlevel,txt{1}))); ok=isequal(ok,0);
+                                            try
+                                                if isempty(CONN_x.Analyses(CONN_x.Analysis).name), assert(conn_fileutils('mkdir',CONN_x.folders.firstlevel,txt{1}));
+                                                else conn_fileutils('renamefile',fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(CONN_x.Analysis).name),fullfile(CONN_x.folders.firstlevel,txt{1}));
+                                                end
+                                                ok=true;
                                             end
+                                            %if isempty(CONN_x.Analyses(CONN_x.Analysis).name), [ok,nill]=conn_fileutils('mkdir',CONN_x.folders.firstlevel,txt{1});
+                                            %elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(CONN_x.Analysis).name),fullfile(CONN_x.folders.firstlevel,txt{1}))); ok=isequal(ok,0);
+                                            %else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(CONN_x.Analysis).name),fullfile(CONN_x.folders.firstlevel,txt{1}))); ok=isequal(ok,0);
+                                            %end
                                             if ~ok, conn_msgbox('Unable to create folder. Check folder permissions','conn',2);end
                                         else conn_msgbox('Duplicated analysis name. Please try a different name','conn',2);
                                         end
@@ -7317,10 +7372,17 @@ else
                             set(CONN_h.menus.m_analyses_00{46},'string',tname);
                             if ~isempty(txt)&&~ismember(txt,{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
                                 if ~conn_existfile(fullfile(tfolder,txt),1),
-                                    if isempty(tname), [ok,nill]=mkdir(tfolder,txt);
-                                    elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
-                                    else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
+                                    ok=false;
+                                    try
+                                        if isempty(tname), assert(conn_fileutils('mkdir',tfolder,txt));
+                                        else conn_fileutils('renamefile',fullfile(tfolder,tname),fullfile(tfolder,txt));
+                                        end
+                                        ok=true;
                                     end
+                                    %if isempty(tname), [ok,nill]=conn_fileutils('mkdir',tfolder,txt);
+                                    %elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
+                                    %else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
+                                    %end
                                     if ok,
                                         CONN_x.Analyses(CONN_x.Analysis).name=txt;
                                         idx=find(CONN_h.menus.m_analyses.analyses_listtype==1&CONN_h.menus.m_analyses.analyses_listidx==CONN_x.Analysis,1);
@@ -7383,10 +7445,17 @@ else
                     else  set(CONN_h.menus.m_analyses_00{6},'string','MULTIPLE VALUES'); end
                 end
                 if ~CONN_h.menus.m_analyses.isready, return; end
+                if any([CONN_x.Analyses(ianalysis).regressors.deriv{:}]>0)
+                    if ~isfield(CONN_h.menus.m_analyses.X1,'d1data'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'d1data'); CONN_h.menus.m_analyses.X1.d1data=temp.d1data; end; end
+                    if ~isfield(CONN_h.menus.m_analyses.X1,'d2data'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'d2data'); CONN_h.menus.m_analyses.X1.d2data=temp.d2data; end; end
+                end
+                if any([CONN_x.Analyses(ianalysis).regressors.fbands{:}]>1)
+                    if ~isfield(CONN_h.menus.m_analyses.X1,'fbdata'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'fbdata'); CONN_h.menus.m_analyses.X1.fbdata=temp.fbdata; end; end
+                end
                 [CONN_h.menus.m_analyses.X,CONN_h.menus.m_analyses.select,names]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[],{nregressors,nview});
                 iroi=[];isnew=[];for nroi=1:numel(names),[iroi(nroi),isnew(nroi)]=conn_sourcenames(names{nroi});end; iroi(isnew>0)=nan;
                 CONN_h.menus.m_analyses.iroi=iroi;
-                if model==1,
+                if model==1&&nshow~=1,
                     xf=CONN_h.menus.m_analyses.X;
                     nX=size(xf,2);
                     wx=ones(size(xf,1),1);
@@ -7395,6 +7464,20 @@ else
                         case 2, wx=CONN_h.menus.m_analyses.X1.conditionweights{1};
                         case 3, wx=CONN_h.menus.m_analyses.X1.conditionweights{2};
                         case 4, wx=CONN_h.menus.m_analyses.X1.conditionweights{3};
+                    end
+                    if isempty(CONN_h.menus.m_analyses.y.data)
+                        if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface
+                            if CONN_h.menus.m_analyses_surfhires
+                                [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
+                            else
+                                [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,1);
+                                [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_analyses.Y,conn_surf_dims(8)*[0;0;1]+1);
+                                CONN_h.menus.m_analyses.y.data=[CONN_h.menus.m_analyses.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
+                                CONN_h.menus.m_analyses.y.idx=[CONN_h.menus.m_analyses.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
+                            end
+                        else
+                            [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
+                        end
                     end
                     if any(CONN_x.Setup.steps([2,3])),%~isfield(CONN_x.Setup,'doROIonly')||~CONN_x.Setup.doROIonly,
                         if ~(ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0)
@@ -7416,7 +7499,7 @@ else
                                 wx=[];
                                 for tncondition=[setdiff(validconditions,nconditions) nconditions],
                                     filename=fullfile(CONN_x.folders.preprocessing,['ROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(tncondition),'%03d'),'.mat']);
-                                    X1=load(filename,'conditionweights');
+                                    X1=conn_loadmatfile(filename,'conditionweights');
                                     wx=[wx X1.conditionweights{3}(:)];
                                 end
                                 if ~isempty(validconditions)&&~all(ismember(nconditions,validconditions)), wx(:,end-find(~ismember(nconditions,validconditions))+1)=0; end
@@ -7425,7 +7508,7 @@ else
                                 [name1,name2]=fileparts(CONN_x.Analyses(ianalysis).modulation);
                                 [ok,value1]=ismember(name1,{CONN_x.dynAnalyses.name}); if ~ok, if numel(CONN_x.dynAnalyses)==1, value1=1; else error('Analysis name %s not found',name1); end; end
                                 filename=fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(value1).name,['dyn_Subject',num2str(nsubs,'%03d'),'.mat']);
-                                xmod=load(filename);
+                                xmod=conn_loadmatfile(filename);
                                 [ok,idx]=ismember(name2,xmod.names);
                                 if ok, wx=xmod.data(:,[setdiff(1:size(xmod.data,2),idx),idx]);
                                 else error('Temporal factor not found');
@@ -7497,15 +7580,15 @@ else
                         if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface, issurface=true; else issurface=false; end
                         if isempty(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.Xr=[];
                         elseif CONN_x.Analyses(ianalysis).type==1
-                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=load(char(CONN_h.menus.m_analyses.XR)); end
+                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=conn_loadmatfile(char(CONN_h.menus.m_analyses.XR)); end
                             CONN_h.menus.m_analyses.Xr=CONN_h.menus.m_analyses.XR.Z(:,1:size(CONN_h.menus.m_analyses.XR.Z,1));
                         elseif issurface
-                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=spm_vol(char(CONN_h.menus.m_analyses.XR)); end
-                            CONN_h.menus.m_analyses.Xr=spm_read_vols(CONN_h.menus.m_analyses.XR);
+                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=conn_fileutils('spm_vol',char(CONN_h.menus.m_analyses.XR)); end
+                            CONN_h.menus.m_analyses.Xr=conn_fileutils('spm_read_vols',CONN_h.menus.m_analyses.XR);
                         else
-                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=spm_vol(char(CONN_h.menus.m_analyses.XR)); end
+                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=conn_fileutils('spm_vol',char(CONN_h.menus.m_analyses.XR)); end
                             xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-                            CONN_h.menus.m_analyses.Xr=reshape(spm_get_data(CONN_h.menus.m_analyses.XR,pinv(CONN_h.menus.m_analyses.XR(1).mat)*xyz'),CONN_h.menus.m_analyses.Y.matdim.dim(1:2));
+                            CONN_h.menus.m_analyses.Xr=reshape(conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XR,pinv(CONN_h.menus.m_analyses.XR(1).mat)*xyz'),CONN_h.menus.m_analyses.Y.matdim.dim(1:2));
                         end
                         if ~isempty(CONN_h.menus.m_analyses.Xr)
                             if CONN_x.Analyses(ianalysis).type==1 % RRC
@@ -7538,6 +7621,11 @@ else
                             else % volume
                                 t1=permute(CONN_h.menus.m_analyses.Xr,[2,1,3]);
                                 t2=abs(t1);
+                                if isempty(CONN_h.menus.m_analyses.Xs)
+                                    xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+                                    CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+                                    CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                                end
                                 conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_h.menus.m_analyses.Xs,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
                                 if nargin<2, set([CONN_h.menus.m_analyses_00{14}.h10 CONN_h.menus.m_analyses_00{15} CONN_h.menus.m_analyses_00{45}],'visible','off'); end
                             end
@@ -7616,6 +7704,11 @@ else
                             else
                                 t1=permute(t1,[2,1,3]);
                                 t2=permute(t2,[2,1,3]);
+                                if isempty(CONN_h.menus.m_analyses.Xs)
+                                    xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+                                    CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+                                    CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                                end
                                 conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_h.menus.m_analyses.Xs,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
                                 conn_callbackdisplay_firstlevelclick;
                                 if nargin<2, set([CONN_h.menus.m_analyses_00{14}.h10 CONN_h.menus.m_analyses_00{15} CONN_h.menus.m_analyses_00{45}],'visible','off'); end
@@ -7676,7 +7769,7 @@ else
                             CONN_h.menus.m_analyses.Y=conn_vol(filename);
                             CONN_h.menus.m_analyses.y.slice=ceil(CONN_h.menus.m_analyses.Y.matdim.dim(3)/2);
                             filename=fullfile(filepath,['vvPCeig_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
-                            CONN_h.menus.m_analyses.y.data=load(filename,'D');
+                            CONN_h.menus.m_analyses.y.data=conn_loadmatfile(filename,'D');
                         end
                     end
                     if any(isnewcondition), 
@@ -7755,13 +7848,13 @@ else
 %                     
 %                     if 0,%~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
 %                         try
-%                             CONN_h.menus.m_analyses.XS=spm_vol(deblank(CONN_x.Setup.structural{1}{1}{1}));
+%                             CONN_h.menus.m_analyses.XS=conn_fileutils('spm_vol',deblank(CONN_x.Setup.structural{1}{1}{1}));
 %                         catch
 %                             CONN_h.menus.m_analyses.XS=spm_vol(fullfile(fileparts(which('spm')),'canonical','single_subj_T1.nii'));
 %                         end
 %                         if ~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)&&any(CONN_x.Setup.steps([3])),%~isfield(CONN_x.Setup,'doROIonly')||~CONN_x.Setup.doROIonly,
 %                             xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-%                             CONN_h.menus.m_analyses.Xs=spm_get_data(CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+%                             CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
 %                             CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
 %                             set(CONN_h.menus.m_analyses_00{15},'min',1,'max',CONN_h.menus.m_analyses.Y.matdim.dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_analyses.Y.matdim.dim(3)-1)),'value',CONN_h.menus.m_analyses.y.slice);
 %                             set(CONN_h.menus.m_analyses_00{14}.h10,'string','eps');
@@ -7898,34 +7991,36 @@ else
 								set(CONN_h.screen.hfig,'pointer',CONN_gui.waiticon); drawnow;
                                 filename=fullfile(filepath,['DATA_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
                                 CONN_h.menus.m_analyses.Y=conn_vol(filename);
-                                if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface
-                                    if CONN_h.menus.m_analyses_surfhires
-                                        [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
-                                    else
-                                        [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,1);
-                                        [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_analyses.Y,conn_surf_dims(8)*[0;0;1]+1);
-                                        CONN_h.menus.m_analyses.y.data=[CONN_h.menus.m_analyses.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
-                                        CONN_h.menus.m_analyses.y.idx=[CONN_h.menus.m_analyses.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
-                                    end
-                                else
-                                    [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
-                                end
+                                CONN_h.menus.m_analyses.y.data=[];
+%                                 if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface
+%                                     if CONN_h.menus.m_analyses_surfhires
+%                                         [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
+%                                     else
+%                                         [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,1);
+%                                         [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_analyses.Y,conn_surf_dims(8)*[0;0;1]+1);
+%                                         CONN_h.menus.m_analyses.y.data=[CONN_h.menus.m_analyses.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
+%                                         CONN_h.menus.m_analyses.y.idx=[CONN_h.menus.m_analyses.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
+%                                     end
+%                                 else
+%                                     [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
+%                                 end
 								set(CONN_h.screen.hfig,'pointer','arrow');
                             end
-                            filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
-                            CONN_h.menus.m_analyses.X1=load(filename);
+                            %filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
+                            %CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename);
                             %filename=fullfile(filepath,['COV_Subject',num2str(nsubs,'%03d'),'_Session',num2str(nconditions,'%03d'),'.mat']);
                             %CONN_h.menus.m_analyses.X2=load(filename);
                             if any(CONN_x.Setup.steps([2,3]))
                                 if ~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
                                     try
-                                        CONN_h.menus.m_analyses.XS=spm_vol(deblank(CONN_x.Setup.structural{nsubs}{1}{1})); %note: displaying first-session structural here
+                                        CONN_h.menus.m_analyses.XS=conn_fileutils('spm_vol',deblank(CONN_x.Setup.structural{nsubs}{1}{1})); %note: displaying first-session structural here
                                     catch
                                         CONN_h.menus.m_analyses.XS=spm_vol(fullfile(fileparts(which('spm')),'canonical','single_subj_T1.nii'));
                                     end
-                                    xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-                                    CONN_h.menus.m_analyses.Xs=spm_get_data(CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
-                                    CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                                    CONN_h.menus.m_analyses.Xs=[];
+%                                     xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+%                                     CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+%                                     CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
                                 end
                             end
                             model=1;
@@ -7944,10 +8039,12 @@ else
                             CONN_h.menus.m_analyses.y.slice=round(get(CONN_h.menus.m_analyses_00{15},'value'));
                             if ~CONN_h.menus.m_analyses.isready, return; end
                             if any(CONN_x.Setup.steps([2,3]))&&~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
-                                [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
-                                xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-                                CONN_h.menus.m_analyses.Xs=spm_get_data(CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
-                                CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                                CONN_h.menus.m_analyses.y.data=[];
+                                %[CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
+                                CONN_h.menus.m_analyses.Xs=[];
+%                                 xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+%                                 CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+%                                 CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
                                 CONN_h.menus.m_analyses.Xr=[];
                             end
                             model=1;
@@ -7976,7 +8073,7 @@ else
                                     txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                     if isempty(txt{1}), break; end
                                     if ~ismember(txt{1},{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
-                                        [ok,nill]=mkdir(CONN_x.folders.firstlevel_vv,txt{1});
+                                        [ok,nill]=conn_fileutils('mkdir',CONN_x.folders.firstlevel_vv,txt{1});
                                         if ~ok, conn_msgbox('Unable to create folder. Check folder permissions','conn',2);end
                                     else conn_msgbox('Duplicated analysis name. Please try a different name','conn',2);
                                     end
@@ -8008,10 +8105,16 @@ else
                                         txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                         if isempty(txt{1}), break; end
                                         if ~ismember(txt{1},{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
-                                            if isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).name), [ok,nill]=mkdir(CONN_x.folders.firstlevel_vv,txt{1});
-                                            elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name),fullfile(CONN_x.folders.firstlevel_vv,txt{1}))); ok=isequal(ok,0);
-                                            else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name),fullfile(CONN_x.folders.firstlevel_vv,txt{1}))); ok=isequal(ok,0);
+                                            try
+                                                if isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).name), assert(conn_fileutils('mkdir',CONN_x.folders.firstlevel_vv,txt{1}));
+                                                else conn_fileutils('renamefile',fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name),fullfile(CONN_x.folders.firstlevel_vv,txt{1}));
+                                                end
+                                                ok=true;
                                             end
+                                            %if isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).name), [ok,nill]=conn_fileutils('mkdir',CONN_x.folders.firstlevel_vv,txt{1});
+                                            %elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name),fullfile(CONN_x.folders.firstlevel_vv,txt{1}))); ok=isequal(ok,0);
+                                            %else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name),fullfile(CONN_x.folders.firstlevel_vv,txt{1}))); ok=isequal(ok,0);
+                                            %end
                                             if ~ok, conn_msgbox('Unable to create folder. Check folder permissions','conn',2);end
                                         else conn_msgbox('Duplicated analysis name. Please try a different name','conn',2);
                                         end
@@ -8087,10 +8190,17 @@ else
                             set(CONN_h.menus.m_analyses_00{46},'string',tname);
                             if ~isempty(txt)&&~ismember(txt,{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
                                 if ~conn_existfile(fullfile(tfolder,txt),1),
-                                    if isempty(tname), [ok,nill]=mkdir(tfolder,txt);
-                                    elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
-                                    else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
+                                    ok=false;
+                                    try
+                                        if isempty(tname), assert(conn_fileutils('mkdir',tfolder,txt));
+                                        else conn_fileutils('renamefile',fullfile(tfolder,tname),fullfile(tfolder,txt));
+                                        end
+                                        ok=true;
                                     end
+                                    %if isempty(tname), [ok,nill]=conn_fileutils('mkdir',tfolder,txt);
+                                    %elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
+                                    %else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
+                                    %end
                                     if ok,
                                         CONN_x.vvAnalyses(CONN_x.vvAnalysis).name=txt;
                                         idx=find(CONN_h.menus.m_analyses.analyses_listtype==2&CONN_h.menus.m_analyses.analyses_listidx==CONN_x.vvAnalysis,1);
@@ -8178,13 +8288,18 @@ else
                     end
                     if isempty(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.Xr=[];
                     else
-                        if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=spm_vol(char(CONN_h.menus.m_analyses.XR)); end
+                        if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=conn_fileutils('spm_vol',char(CONN_h.menus.m_analyses.XR)); end
                         xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-                        CONN_h.menus.m_analyses.Xr=permute(reshape(spm_get_data(CONN_h.menus.m_analyses.XR,pinv(CONN_h.menus.m_analyses.XR(1).mat)*xyz'),[],CONN_h.menus.m_analyses.Y.matdim.dim(1),CONN_h.menus.m_analyses.Y.matdim.dim(2)),[2,3,4,1]);
+                        CONN_h.menus.m_analyses.Xr=permute(reshape(conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XR,pinv(CONN_h.menus.m_analyses.XR(1).mat)*xyz'),[],CONN_h.menus.m_analyses.Y.matdim.dim(1),CONN_h.menus.m_analyses.Y.matdim.dim(2)),[2,3,4,1]);
                     end
                     if ~isempty(CONN_h.menus.m_analyses.Xr)
                         t1=permute(CONN_h.menus.m_analyses.Xr,[2,1,3,4]);
                         t2=abs(t1);
+                        if isempty(CONN_h.menus.m_analyses.Xs)
+                            xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+                            CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+                            CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                        end
                         conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_h.menus.m_analyses.Xs,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
                         set(CONN_h.menus.m_analyses_00{24},'visible','off');
                         if nargin<2
@@ -8217,6 +8332,11 @@ else
                                 t2=abs(d);
                                 t2=permute(t2,[2,1,3]);
                                 set(CONN_h.menus.m_analyses_00{14}.h9,'string',mat2str(max(t2(:)),2));
+                                if isempty(CONN_h.menus.m_analyses.Xs)
+                                    xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+                                    CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+                                    CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                                end
                                 conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_h.menus.m_analyses.Xs,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
                                 conn_menu('updatecscale',[],[],CONN_h.menus.m_analyses_00{14}.h9);
                                 conn_menu('updatethr',[],[],CONN_h.menus.m_analyses_00{14}.h10);
@@ -8307,7 +8427,8 @@ else
                     CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(2)=1;
                     set(CONN_h.menus.m_analyses_00{6},'string',mat2str(CONN_x.dynAnalyses(CONN_x.dynAnalysis).window));
                     %set(CONN_h.menus.m_analyses_00{12},'value',CONN_x.dynAnalyses(CONN_x.dynAnalysis).analyses);
-                    if any(arrayfun(@(n)isempty(dir(fullfile(CONN_x.folders.preprocessing,['ROI_Subject',num2str(n,'%03d'),'_Condition',num2str(0,'%03d'),'.mat']))),1:CONN_x.Setup.nsubjects)), conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); return; end %conn gui_preproc; return; end
+                    if any(~conn_existfile(fullfile(CONN_x.folders.preprocessing,arrayfun(@(n)['ROI_Subject',num2str(n,'%03d'),'_Condition',num2str(0,'%03d'),'.mat'],1:CONN_x.Setup.nsubjects,'uni',0)))), conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); return; end %conn gui_preproc; return; end
+                    %if any(arrayfun(@(n)~conn_existfile(fullfile(CONN_x.folders.preprocessing,['ROI_Subject',num2str(n,'%03d'),'_Condition',num2str(0,'%03d'),'.mat'])),1:CONN_x.Setup.nsubjects)), conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); return; end %conn gui_preproc; return; end
                     CONN_h.menus.m_analyses.X=[];
                     CONN_h.menus.m_analyses.select={[],[]};
                     set(CONN_h.menus.m_analyses_00{13},'string',{'<HTML>Analysis results <small>(from disk)</small></HTML>'},'value',1);
@@ -8383,7 +8504,7 @@ else
                                     txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                     if isempty(txt{1}), break; end
                                     if ~ismember(txt{1},{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
-                                        [ok,nill]=mkdir(CONN_x.folders.firstlevel_dyn,txt{1});
+                                        [ok,nill]=conn_fileutils('mkdir',CONN_x.folders.firstlevel_dyn,txt{1});
                                         if ~ok, conn_msgbox('Unable to create folder. Check folder permissions','conn',2);end
                                     else conn_msgbox('Duplicated analysis name. Please try a different name','conn',2);
                                     end
@@ -8414,9 +8535,13 @@ else
                                         txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                         if isempty(txt{1}), break; end
                                         if ~ismember(txt{1},{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
-                                            if ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name),fullfile(CONN_x.folders.firstlevel_dyn,txt{1}))); ok=isequal(ok,0);
-                                            else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name),fullfile(CONN_x.folders.firstlevel_dyn,txt{1}))); ok=isequal(ok,0);
+                                            try
+                                                conn_fileutils('renamefile',fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name),fullfile(CONN_x.folders.firstlevel_dyn,txt{1}));
+                                                ok=true;
                                             end
+                                            %if ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name),fullfile(CONN_x.folders.firstlevel_dyn,txt{1}))); ok=isequal(ok,0);
+                                            %else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name),fullfile(CONN_x.folders.firstlevel_dyn,txt{1}))); ok=isequal(ok,0);
+                                            %end
                                             if ~ok, conn_msgbox('Unable to create folder. Check folder permissions','conn',2);end
                                         else conn_msgbox('Duplicated analysis name. Please try a different name','conn',2);
                                         end
@@ -8481,10 +8606,17 @@ else
                             set(CONN_h.menus.m_analyses_00{46},'string',tname);
                             if ~isempty(txt)&&~ismember(txt,{CONN_x.Analyses.name CONN_x.vvAnalyses.name CONN_x.dynAnalyses.name})
                                 if ~conn_existfile(fullfile(tfolder,txt),1),
-                                    if isempty(tname), [ok,nill]=mkdir(tfolder,txt);
-                                    elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
-                                    else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
+                                    ok=false;
+                                    try
+                                        if isempty(tname), assert(conn_fileutils('mkdir',tfolder,txt));
+                                        else conn_fileutils('renamefile',fullfile(tfolder,tname),fullfile(tfolder,txt));
+                                        end
+                                        ok=true;
                                     end
+                                    %if isempty(tname), [ok,nill]=conn_fileutils('mkdir',tfolder,txt);
+                                    %elseif ispc, [ok,nill]=system(sprintf('ren "%s" "%s"',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
+                                    %else [ok,nill]=system(sprintf('mv ''%s'' ''%s''',fullfile(tfolder,tname),fullfile(tfolder,txt))); ok=isequal(ok,0);
+                                    %end
                                     if ok,
                                         CONN_x.dynAnalyses(CONN_x.dynAnalysis).name=txt;
                                         idx=find(CONN_h.menus.m_analyses.analyses_listtype==3&CONN_h.menus.m_analyses.analyses_listidx==CONN_x.dynAnalysis,1);
@@ -8509,7 +8641,7 @@ else
                         if 0
                             temp=fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,['dyn_Subject',num2str(nsubs,'%03d'),'.mat']);
                             if conn_existfile(temp)
-                                load(temp,'names');
+                                names={}; conn_loadmatfile(temp,'names');
                                 CONN_h.menus.m_analyses.XR=cellfun(@(names)fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,names,['resultsROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']),names,'uni',0);
                             else  CONN_h.menus.m_analyses.XR=[];
                             end
@@ -8534,7 +8666,7 @@ else
                             CONN_h.menus.m_analyses.Xr=zeros(size(CONN_h.menus.m_analyses.XR,1)+2,size(CONN_h.menus.m_analyses.XR,2)+2,size(CONN_h.menus.m_analyses.XR,3));
                             CONN_h.menus.m_analyses.Xr(2:end-1,2:end-1,:)=CONN_h.menus.m_analyses.XR;
                         else
-                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=load(char(CONN_h.menus.m_analyses.XR)); end
+                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=conn_loadmatfile(char(CONN_h.menus.m_analyses.XR)); end
                             idx=strmatch(CONN_x.Setup.conditions.names{nconditions},CONN_h.menus.m_analyses.XR.COND_names,'exact');
                             if numel(idx)==1
                                 CONN_h.menus.m_analyses.Xr=CONN_h.menus.m_analyses.XR.H(CONN_h.menus.m_analyses.XR.IDX_subject==nsubs,:);
@@ -8840,7 +8972,7 @@ else
                     Nplots=[3 2];
                     pos=[.55 .35];
                     conn_menu('frame2semiborder',[pos(1)-.02,.08,pos(2)+.04,.77],' ');%'Bookmarked plots');
-                    tdirs=dir(fullfile(CONN_x.folders.bookmarks,'*'));
+                    tdirs=conn_dirn(fullfile(CONN_x.folders.bookmarks,'*'));
                     tdirs=tdirs([tdirs.isdir]&~ismember({tdirs.name},{'.','..'}));
                     tdirs={tdirs.name};
                     CONN_h.menus.m_results.bookmark_allfolders=tdirs;
@@ -8926,7 +9058,7 @@ else
                                 %j=j+round((CONN_h.menus.m_results.bookmark_Nplots(2)-max(j(:)))/2);
                                 for n=1:prod(CONN_h.menus.m_results.bookmark_Nplots)
                                     if n<=numel(files_idx),
-                                        data=imread(CONN_h.menus.m_results.bookmark_files{files_idx(n)});
+                                        data=conn_fileutils('imread',CONN_h.menus.m_results.bookmark_files{files_idx(n)});
                                         CONN_h.menus.m_results_00{10+n}.hcallback=@(varargin)CONN_h.menus.m_results.bookmark_files_descr{files_idx(n)};
                                         CONN_h.menus.m_results_00{10+n}.hcallback2=@(varargin)conn('gui_results',7,CONN_h.menus.m_results.bookmark_files{files_idx(n)});
                                         conn_menu('updatematrixequal',CONN_h.menus.m_results_00{10+n},data);
@@ -8961,7 +9093,7 @@ else
                                 case 'Delete', 
                                     answ=conn_questdlg({sprintf('Are you sure you want to delete plot %s?',name)},'','Delete','Cancel','Delete');
                                     if isequal(answ,'Delete')
-                                        try, spm_unlink(filename); end
+                                        try, conn_fileutils('spm_unlink',filename); end
                                         conn gui_results;
                                     end
                             end
@@ -9546,7 +9678,7 @@ else
                     end
                     
                     %                 filename=fullfile(filepathresults,['resultsROI_Condition',num2str(1,'%03d'),'.mat']);
-                    %                 if isempty(dir(filename)),Ransw=conn_questdlg('First-level ROI analyses have not completed. Perform now?','warning','Yes','No','Yes');if strcmp(Ransw,'Yes'), conn_process('analyses_ROI'); end;end
+                    %                 if ~conn_existfile(filename),Ransw=conn_questdlg('First-level ROI analyses have not completed. Perform now?','warning','Yes','No','Yes');if strcmp(Ransw,'Yes'), conn_process('analyses_ROI'); end;end
                     %                 load(filename,'names','xyz');
                     set(CONN_h.menus.m_results_00{11},'max',2);set(CONN_h.menus.m_results_00{12},'max',2);set(CONN_h.menus.m_results_00{13},'max',2);
                     tnames=CONN_x.Setup.l2covariates.names(1:end-1); 
@@ -9762,7 +9894,7 @@ else
                                 else
                                     CONN_h.menus.m_results.design.Ytitle{nsource,ncondition}=sprintf('%s @ %s',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures{nsources(nsource)},CONN_x.Setup.conditions.names{nconditions(ncondition)});
                                 end
-                                try, CONN_h.menus.m_results.Y=spm_vol(char(filename));
+                                try, CONN_h.menus.m_results.Y=conn_fileutils('spm_vol',char(filename));
                                 catch,
                                     CONN_h.menus.m_results.y.data=[];
                                     conn_msgbox({'Not ready to display second-level Analyses',' ',sprintf('Condition (%s) has not been processed yet. Please re-run previous step (First-level analyses)',sprintf('%s ',CONN_x.Setup.conditions.names{nconditions(ncondition)})),'or selet a different first-level analysis to continue'},'',2);
@@ -9787,21 +9919,21 @@ else
                                 end
                                 if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])
                                     if CONN_h.menus.m_results_surfhires
-                                        temp=spm_read_vols(CONN_h.menus.m_results.Y);
+                                        temp=conn_fileutils('spm_read_vols',CONN_h.menus.m_results.Y);
                                         temp=permute(temp,[4,1,2,3]);
                                         temp=temp(:,:);
                                     else
                                         tempxyz1=CONN_h.menus.m_results.y.xyz;
                                         tempxyz1(3,:)=1;
-                                        temp1=spm_get_data(CONN_h.menus.m_results.Y,tempxyz1);
+                                        temp1=conn_fileutils('spm_get_data',CONN_h.menus.m_results.Y,tempxyz1);
                                         tempxyz2=CONN_h.menus.m_results.y.xyz;
                                         tempxyz2(3,:)=conn_surf_dims(8)*[0;0;1]+1;
-                                        temp2=spm_get_data(CONN_h.menus.m_results.Y,tempxyz2);
+                                        temp2=conn_fileutils('spm_get_data',CONN_h.menus.m_results.Y,tempxyz2);
                                         temp=[temp1(:,CONN_gui.refs.surf.default2reduced) temp2(:,CONN_gui.refs.surf.default2reduced)];
                                     end
                                 else
                                     CONN_h.menus.m_results.y.xyz(3,:)=CONN_h.menus.m_results.y.slice;
-                                    temp=spm_get_data(CONN_h.menus.m_results.Y,CONN_h.menus.m_results.y.xyz);
+                                    temp=conn_fileutils('spm_get_data',CONN_h.menus.m_results.Y,CONN_h.menus.m_results.y.xyz);
                                 end
                                 
                                 %                             [temp,CONN_h.menus.m_results.y.idx]=conn_get_slice(CONN_h.menus.m_results.Y,CONN_h.menus.m_results.y.slice);
@@ -9831,7 +9963,7 @@ else
                         %                     CONN_h.menus.m_results.se.data=sqrt(CONN_h.menus.m_results.se.data);
                         CONN_h.menus.m_results.XS=CONN_gui.refs.canonical.V;
                         xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_results.Y(1).dim(1:2))*(CONN_h.menus.m_results.y.slice-1)+(1:prod(CONN_h.menus.m_results.Y(1).dim(1:2))),CONN_h.menus.m_results.Y(1).mat,CONN_h.menus.m_results.Y(1).dim);
-                        txyz=pinv(CONN_h.menus.m_results.XS(1).mat)*xyz'; CONN_h.menus.m_results.Xs=spm_sample_vol(CONN_h.menus.m_results.XS(1),txyz(1,:),txyz(2,:),txyz(3,:),1);
+                        txyz=pinv(CONN_h.menus.m_results.XS(1).mat)*xyz'; CONN_h.menus.m_results.Xs=conn_fileutils('spm_sample_vol',CONN_h.menus.m_results.XS(1),txyz(1,:),txyz(2,:),txyz(3,:),1);
                         CONN_h.menus.m_results.Xs=permute(reshape(CONN_h.menus.m_results.Xs,CONN_h.menus.m_results.Y(1).dim(1:2)),[2,1,3]);
                         CONN_h.menus.m_results.Xs=(CONN_h.menus.m_results.Xs/max(CONN_h.menus.m_results.Xs(:))).^3;
                         set(CONN_h.screen.hfig,'pointer','arrow');
@@ -9849,7 +9981,9 @@ else
                         else
                             filename=fullfile(filepathresults,['BETA_Subject',num2str(1,'%03d'),'_Condition',num2str(CONN_h.menus.m_results.icondition(nconditions(1)),'%03d'),'_Measure',num2str(CONN_h.menus.m_results.outcomeisource(nsources(1)),'%03d'),'_Component',num2str(CONN_h.menus.m_results.outcomencompsource(nsources(1)),'%03d'),'.nii']);
                         end
-                        CONN_h.menus.m_results.Y=spm_vol(char(filename));
+                        if conn_existfile(filename), CONN_h.menus.m_results.Y=conn_fileutils('spm_vol',char(filename));
+                        else CONN_h.menus.m_results.Y=CONN_gui.refs.canonical.V;
+                        end
                         if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
                         [ndgridx,ndgridy]=ndgrid(1:CONN_h.menus.m_results.Y(1).dim(1),1:CONN_h.menus.m_results.Y(1).dim(2));
                         CONN_h.menus.m_results.y.xyz=[ndgridx(:),ndgridy(:),ones(numel(ndgridx),2)]';
@@ -9859,7 +9993,7 @@ else
                         CONN_h.menus.m_results.y.MDok=[];%conn_checkmissingdata(state,nconditions,nsources);
                         CONN_h.menus.m_results.XS=CONN_gui.refs.canonical.V;
                         xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_results.Y(1).dim(1:2))*(CONN_h.menus.m_results.y.slice-1)+(1:prod(CONN_h.menus.m_results.Y(1).dim(1:2))),CONN_h.menus.m_results.Y(1).mat,CONN_h.menus.m_results.Y(1).dim);
-                        txyz=pinv(CONN_h.menus.m_results.XS(1).mat)*xyz'; CONN_h.menus.m_results.Xs=spm_sample_vol(CONN_h.menus.m_results.XS(1),txyz(1,:),txyz(2,:),txyz(3,:),1);
+                        txyz=pinv(CONN_h.menus.m_results.XS(1).mat)*xyz'; CONN_h.menus.m_results.Xs=conn_fileutils('spm_sample_vol',CONN_h.menus.m_results.XS(1),txyz(1,:),txyz(2,:),txyz(3,:),1);
                         CONN_h.menus.m_results.Xs=permute(reshape(CONN_h.menus.m_results.Xs,CONN_h.menus.m_results.Y(1).dim(1:2)),[2,1,3]);
                         CONN_h.menus.m_results.Xs=(CONN_h.menus.m_results.Xs/max(CONN_h.menus.m_results.Xs(:))).^3;
                         CONN_h.menus.m_results.design.Y={};
@@ -10096,7 +10230,7 @@ else
                                          else
                                              CONN_h.menus.m_results.design.Ytitle{nsource,ncondition}=sprintf('%s @ %s',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures{nsources(nsource)},CONN_x.Setup.conditions.names{nconditions(ncondition)});
                                          end
-                                         try, CONN_h.menus.m_results.Y=spm_vol(char(filename));
+                                         try, CONN_h.menus.m_results.Y=conn_fileutils('spm_vol',char(filename));
                                          catch,
                                              CONN_h.menus.m_results.y.data=[];
                                              conn_msgbox({'Not ready to display second-level Analyses',' ',sprintf('Condition (%s) has not been processed yet. Please re-run previous step (First-level analyses)',sprintf('%s ',CONN_x.Setup.conditions.names{ncondition})),'or selet a different first-level analysis to continue'},'',2);
@@ -10120,21 +10254,21 @@ else
                                      end
                                      if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])
                                          if CONN_h.menus.m_results_surfhires
-                                             temp=spm_read_vols(CONN_h.menus.m_results.Y);
+                                             temp=conn_fileutils('spm_read_vols',CONN_h.menus.m_results.Y);
                                              temp=permute(temp,[4,1,2,3]);
                                              temp=temp(:,:);
                                          else
                                              tempxyz1=CONN_h.menus.m_results.y.xyz;
                                              tempxyz1(3,:)=1;
-                                             temp1=spm_get_data(CONN_h.menus.m_results.Y,tempxyz1);
+                                             temp1=conn_fileutils('spm_get_data',CONN_h.menus.m_results.Y,tempxyz1);
                                              tempxyz2=CONN_h.menus.m_results.y.xyz;
                                              tempxyz2(3,:)=conn_surf_dims(8)*[0;0;1]+1;
-                                             temp2=spm_get_data(CONN_h.menus.m_results.Y,tempxyz2);
+                                             temp2=conn_fileutils('spm_get_data',CONN_h.menus.m_results.Y,tempxyz2);
                                              temp=[temp1(:,CONN_gui.refs.surf.default2reduced) temp2(:,CONN_gui.refs.surf.default2reduced)];
                                          end
                                      else
                                          CONN_h.menus.m_results.y.xyz(3,:)=CONN_h.menus.m_results.y.slice;
-                                         temp=spm_get_data(CONN_h.menus.m_results.Y,CONN_h.menus.m_results.y.xyz);
+                                         temp=conn_fileutils('spm_get_data',CONN_h.menus.m_results.Y,CONN_h.menus.m_results.y.xyz);
                                      end
                                      for nc1=find(c(:,nsource))',
                                          for nd1=find(d(:,ncondition))'
@@ -10166,7 +10300,7 @@ else
 %                              CONN_h.menus.m_results.se.data=sqrt(CONN_h.menus.m_results.se.data);
                              if varargin{2}==15||varargin{2}==18,
                                  xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_results.Y(1).dim(1:2))*(CONN_h.menus.m_results.y.slice-1)+(1:prod(CONN_h.menus.m_results.Y(1).dim(1:2))),CONN_h.menus.m_results.Y(1).mat,CONN_h.menus.m_results.Y(1).dim);
-                                 txyz=pinv(CONN_h.menus.m_results.XS(1).mat)*xyz'; CONN_h.menus.m_results.Xs=spm_sample_vol(CONN_h.menus.m_results.XS(1),txyz(1,:),txyz(2,:),txyz(3,:),1);
+                                 txyz=pinv(CONN_h.menus.m_results.XS(1).mat)*xyz'; CONN_h.menus.m_results.Xs=conn_fileutils('spm_sample_vol',CONN_h.menus.m_results.XS(1),txyz(1,:),txyz(2,:),txyz(3,:),1);
                                  CONN_h.menus.m_results.Xs=permute(reshape(CONN_h.menus.m_results.Xs,CONN_h.menus.m_results.Y(1).dim(1:2)),[2,1,3]);
                                  CONN_h.menus.m_results.Xs=(CONN_h.menus.m_results.Xs/max(CONN_h.menus.m_results.Xs(:))).^3;
                                  set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
@@ -10199,7 +10333,7 @@ else
                              end
                              if varargin{2}==15||varargin{2}==18,
                                  xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_results.Y(1).dim(1:2))*(CONN_h.menus.m_results.y.slice-1)+(1:prod(CONN_h.menus.m_results.Y(1).dim(1:2))),CONN_h.menus.m_results.Y(1).mat,CONN_h.menus.m_results.Y(1).dim);
-                                 txyz=pinv(CONN_h.menus.m_results.XS(1).mat)*xyz'; CONN_h.menus.m_results.Xs=spm_sample_vol(CONN_h.menus.m_results.XS(1),txyz(1,:),txyz(2,:),txyz(3,:),1);
+                                 txyz=pinv(CONN_h.menus.m_results.XS(1).mat)*xyz'; CONN_h.menus.m_results.Xs=conn_fileutils('spm_sample_vol',CONN_h.menus.m_results.XS(1),txyz(1,:),txyz(2,:),txyz(3,:),1);
                                  CONN_h.menus.m_results.Xs=permute(reshape(CONN_h.menus.m_results.Xs,CONN_h.menus.m_results.Y(1).dim(1:2)),[2,1,3]);
                                  CONN_h.menus.m_results.Xs=(CONN_h.menus.m_results.Xs/max(CONN_h.menus.m_results.Xs(:))).^3;
                                  set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
@@ -10691,7 +10825,8 @@ else
                             CONN_x.gui=1;
                             model=1;
                         else
-                            conn_displayroi('init','results_roi');
+                            conn gui_results_roiview;
+                            %conn_displayroi('init','results_roi');
                             modelroi=1;
                         end
                     case 47,
@@ -10873,7 +11008,7 @@ else
                             if CONN_x.Results.xX.displayvoxels==1
                                 [foldername,foldername_back]=conn_resultsfolder('subjectsconditions',state,CONN_x.Results.xX.nsubjecteffects,CONN_x.Results.xX.csubjecteffects,CONN_x.Results.xX.nconditions,CONN_x.Results.xX.cconditions);
                                 for nfolderbak=1:numel(foldername_back),
-                                    if isdir(fullfile(CONN_x.folders.secondlevel,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
+                                    if conn_fileutils('isdir',fullfile(CONN_x.folders.secondlevel,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
                                 end
                                 resultsfolder=fullfile(CONN_x.folders.secondlevel,foldername);
                                 if state==2
@@ -10887,22 +11022,22 @@ else
                                 end
                                 [foldername,foldername_back]=conn_resultsfolder('sources',state,sources,nsources,csources);
                                 for nfolderbak=1:numel(foldername_back),
-                                    if isdir(fullfile(resultsfolder,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
+                                    if conn_fileutils('isdir',fullfile(resultsfolder,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
                                 end
                                 resultsfolder=fullfile(resultsfolder,foldername);
                                 %disp(resultsfolder);
                                 p=[];h=[];F=[];statsname=[];dof=[];
                                 CONN_h.menus.m_results.design.pwd=resultsfolder;
-                                if conn_existfile(fullfile(resultsfolder,'spmF_mv.nii')), 
-                                    tvol=spm_vol(fullfile(resultsfolder,'spmF_mv.nii'));
+                                if conn_existfile(fullfile(resultsfolder,'spmF_mv.nii'))&conn_existfile(fullfile(resultsfolder,'spmF_mv.json')), 
+                                    tvol=conn_fileutils('spm_vol',fullfile(resultsfolder,'spmF_mv.nii'));
                                     [tx,ty,tz]=ndgrid(1:CONN_h.menus.m_results.Y(1).dim(1),1:CONN_h.menus.m_results.Y(1).dim(2),1:CONN_h.menus.m_results.Y(1).dim(3)); txyz=[tx(:) ty(:) tz(:) ones(numel(tx),1)]';
-                                    SPM.xX_multivariate.F=reshape(spm_get_data(tvol,pinv(tvol(1).mat)*CONN_h.menus.m_results.Y(1).mat*txyz),[1,1,CONN_h.menus.m_results.Y(1).dim]);
+                                    SPM.xX_multivariate.F=reshape(conn_fileutils('spm_get_data',tvol,pinv(tvol(1).mat)*CONN_h.menus.m_results.Y(1).mat*txyz),[1,1,CONN_h.menus.m_results.Y(1).dim]);
                                     SPM.xX_multivariate.h=SPM.xX_multivariate.F;
                                     info=conn_jsonread(fullfile(resultsfolder,'spmF_mv.json'));
                                     SPM.xX_multivariate.statsname=info.statsname;
                                     SPM.xX_multivariate.dof=info.dof;
                                 elseif conn_existfile(fullfile(resultsfolder,'SPM.mat'))
-                                    load(fullfile(resultsfolder,'SPM.mat'),'SPM');
+                                    SPM=struct; conn_loadmatfile(fullfile(resultsfolder,'SPM.mat'),'SPM');
                                 end
                                 try
                                     dof=SPM.xX_multivariate.dof;
@@ -11087,18 +11222,18 @@ else
             if modelroi&&state==1&&CONN_x.Results.xX.displayvoxels==1, % ROI-level (from disk)
                 [foldername,foldername_back]=conn_resultsfolder('subjectsconditions',state,CONN_x.Results.xX.nsubjecteffects,CONN_x.Results.xX.csubjecteffects,CONN_x.Results.xX.nconditions,CONN_x.Results.xX.cconditions);
                 for nfolderbak=1:numel(foldername_back),
-                    if isdir(fullfile(CONN_x.folders.secondlevel,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
+                    if conn_fileutils('isdir',fullfile(CONN_x.folders.secondlevel,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
                 end
                 resultsfolder=fullfile(CONN_x.folders.secondlevel,foldername);
                 CONN_h.menus.m_results.design.pwd=resultsfolder;
                 if conn_existfile(fullfile(resultsfolder,'ROI.mat'))
                     try
-                        load(fullfile(resultsfolder,'ROI.mat'),'summary');
+                        summary=struct; conn_loadmatfile(fullfile(resultsfolder,'ROI.mat'),'summary');
                         tfields=fieldnames(summary.results); for n1=1:numel(tfields), CONN_h.menus.m_results.(tfields{n1})=summary.results.(tfields{n1}); end
                         tfields=fieldnames(summary.design); for n1=1:numel(tfields), CONN_h.menus.m_results.design.(tfields{n1})=summary.design.(tfields{n1}); end
                         CONN_h.menus.m_results.design.pwd=resultsfolder;
                     catch
-                        load(fullfile(resultsfolder,'ROI.mat'),'ROI');
+                        ROI=struct; conn_loadmatfile(fullfile(resultsfolder,'ROI.mat'),'ROI');
                         F=cat(1,ROI.F);
                         p=cat(1,ROI.p);
                         dof=cat(1,ROI.dof);
@@ -11511,7 +11646,24 @@ else
             end
 		
         case 'gui_results_roiview',
-            conn_displayroi('init','results_roi'); %CONN_x.Results.xX.nsources,-1);
+            if ~isstruct(CONN_x.gui), CONN_x.gui=struct; end
+            if ~isfield(CONN_x.gui,'display')||CONN_x.gui.display, dodisp=true;
+            else dodisp=false;
+            end
+            CONN_x.gui.display=false;
+            if conn_existfile(fullfile(CONN_h.menus.m_results.design.pwd,'ROI.mat'))
+                REDO=conn_questdlg('','results explorer','Load existing analysis results', 'Recompute/overwrite results', 'Load existing analysis results');
+                if isempty(REDO), CONN_x.gui=1; set(CONN_h.screen.hfig,'pointer','arrow'); return; end
+                if strcmp(lower(REDO),'recompute/overwrite results'),
+                    CONN_x.gui.overwrite='yes';
+                    conn_process('results_roi'); 
+                end
+            else
+                CONN_x.gui.overwrite='no';
+                conn_process('results_roi');
+            end
+            if dodisp, fh=conn_display(fullfile(CONN_h.menus.m_results.design.pwd,'ROI.mat'),1); end
+            CONN_x.gui=1;
             return
 
         case 'gui_results_roi3d'
@@ -11533,7 +11685,26 @@ else
             %if ~CONN_x.Setup.normalized, warndlg('Second-level voxel-level analyses not available for non-normalized data'); return; end
             if CONN_x.Results.xX.modeltype==2, conn_msgbox('Second-level fixed-effects voxel-level analyses not implemented','',2); return; end
             CONN_x.Results.foldername='';
-            conn_process('results_voxel','readsingle','seed-to-voxel');
+            % CONN_h.menus.m_results.design.pwd
+            % CONN_x.gui.overwrite
+            if ~isstruct(CONN_x.gui), CONN_x.gui=struct; end
+            if ~isfield(CONN_x.gui,'display')||CONN_x.gui.display, dodisp=true;
+            else dodisp=false;
+            end
+            CONN_x.gui.display=false;
+            if conn_existfile(fullfile(CONN_h.menus.m_results.design.pwd,'SPM.mat'))
+                REDO=conn_questdlg('','results explorer','Load existing analysis results', 'Recompute/overwrite results', 'Load existing analysis results');
+                if isempty(REDO), CONN_x.gui=1; set(CONN_h.screen.hfig,'pointer','arrow'); return; end
+                if strcmp(lower(REDO),'recompute/overwrite results'),
+                    CONN_x.gui.overwrite='yes';
+                    conn_process('results_voxel','dosingle','seed-to-voxel');
+                end
+            else
+                CONN_x.gui.overwrite='no';
+                conn_process('results_voxel','dosingle','seed-to-voxel');
+            end
+            if dodisp, fh=conn_display(fullfile(CONN_h.menus.m_results.design.pwd,'SPM.mat'),1); end
+            CONN_x.gui=1;
             set(CONN_h.screen.hfig,'pointer','arrow');
             
         case 'gui_results_graphtheory',
@@ -11975,12 +12146,12 @@ if isempty(pos), return; end
 try
     if isempty(CONN_h.menus.m_setup.functional_vol), 
         hmsg=conn_msgbox('Initializing timeseries plots... please wait','',-1);
-        CONN_h.menus.m_setup.functional_vol=spm_vol(CONN_h.menus.m_setup.functional{1}); 
+        CONN_h.menus.m_setup.functional_vol=conn_fileutils('spm_vol',CONN_h.menus.m_setup.functional{1}); 
         if ishandle(hmsg), delete(hmsg); end
     end
     mat=CONN_h.menus.m_setup.functional{3}(1).mat;
     txyz=pinv(mat)*[pos(1:3);1];
-    data=spm_get_data(CONN_h.menus.m_setup.functional_vol,txyz);
+    data=conn_fileutils('spm_get_data',CONN_h.menus.m_setup.functional_vol,txyz);
     conn_menu('updateplotstackcenter',CONN_h.menus.m_setup_00{8},data);
     txt=sprintf('(%d,%d,%d)',pos(1),pos(2),pos(3));
     set(CONN_h.menus.m_setup_00{8}.h3,'visible','on','ytick',0,'yticklabel',{txt},'ycolor',.5*[1 1 1],'box','off');

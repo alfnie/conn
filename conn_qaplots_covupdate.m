@@ -40,7 +40,7 @@ for isub=1:numel(nsubs)
     results_str={};
     if ~isempty(qafolder)
         filename=fullfile(qafolder,sprintf('QA_COV.subject%03d.mat',nsub));
-        save(filename,'results_patch','results_line','results_info','results_label','results_str');
+        conn_savematfile(filename,'results_patch','results_line','results_info','results_label','results_str');
     else
         dataA{isub}=results_patch;
         labelA{isub}=results_label;

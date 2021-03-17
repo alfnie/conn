@@ -9,8 +9,8 @@ volname=arrayfun(@(iroi,ncomp)fullfile(filepathresults,sprintf('PCAcov_Measure%0
 ICAPCA='MVPA';
 %XR=arrayfun(@(iroi,ncomp)fullfile(fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name),['BETA_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'_Measure',num2str(iroi,'%03d'),'_Component',num2str(ncomp,'%03d'),'.nii']),iroi,ncomp,'uni',0);
 
-vol=spm_vol(char(volname));
-B=100*spm_read_vols(vol); % cumulative variance
+vol=conn_fileutils('spm_vol',char(volname));
+B=100*conn_fileutils('spm_read_vols',vol); % cumulative variance
 mask=B>0;
 prctB=[];
 for n=1:size(B,4),b=B(:,:,:,n); temp=histc(b(b>0),0:1:100); prctB(:,n)=temp; end

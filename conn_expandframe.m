@@ -1,6 +1,8 @@
 function filesout=conn_expandframe(filesin)
 % expands all frames in 4d nifti file
 
+if ~isstruct(filesin)&&any(conn_server('util_isremotefile',filesin)), filesout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filesin))); return; end
+
 singlefile=false;
 if ~iscell(filesin), 
     if isstruct(filesin) % special-case, passing spm_vol structure

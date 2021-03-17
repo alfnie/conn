@@ -10,6 +10,7 @@ function [ROIxyz,ROInames,ROIidx,ROIstruct]=conn_roicenters(filename,varargin)
 % note: for surfaces enter conn_roicenters(filename,ctype) with ctype='volumes'|'sphere'|'inflated' (default inflated)
 %       
 
+if any(conn_server('util_isremotefile',filename)), [ROIxyz,ROInames,ROIidx,ROIstruct]=conn_server('run',mfilename,conn_server('util_localfile',filename),varargin{:}); return; end
 ROIxyz=[];
 ROIdata=[];
 ROIstruct=[];

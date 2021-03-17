@@ -8,9 +8,10 @@ function fileout=conn_surf_nii2curv(filein)
 %      creates lh.con_0001 and rh.con_0001 freesurfer "curvature" files
 %
 
+if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein))); return; end
+
 fileout={};
-a=spm_vol(filein);
-b=spm_read_vols(a);
+b=conn_fileutils('spm_read_vols',filein);
 b=reshape(b,[],2); % note: assumming both-hemispheres data
 nvertices=size(b,1);
 resolution=round(log2((nvertices-2)*2/5)/2);

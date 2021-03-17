@@ -5,7 +5,7 @@ DOORTHOG=true;
 
 [pwd1,nill]=fileparts(fileSPM);
 [nill,pwd1name]=fileparts(pwd1);
-load(fileSPM,'SPM');
+SPM=struct; conn_loadmatfile(fileSPM,'SPM');
 if nargin<2||isempty(qafolder), qafolder=pwd1; end
 if nargin<3||isempty(fname), fname='QA_SPM_contrasts.jpg'; end
 if nargin<4||isempty(dpires), dpires='-r150'; end
@@ -159,19 +159,21 @@ if (isfield(SPM,'xCon')&&~isempty(SPM.xCon)) || (isfield(SPM,'xConOriginal')&&~i
             conn_print(hfig,fullfile(qafolder,fname),'-nogui','-noerror',dpires,'-nopersistent');
             conn_args={'image_display',fname};
             opts={'forcecd'};
-            save(conn_prepend('',fullfile(qafolder,fname),'.mat'),'conn_args','opts','-v7.3');
+            conn_savematfile(conn_prepend('',fullfile(qafolder,fname),'.mat'),'conn_args','opts','-v7.3');
             
-            fh=fopen(conn_prepend('',fullfile(qafolder,fname),'.txt'),'wt');
-            if all(estimablecons(jA)), fprintf(fh,'All Contrasts are estimable\n');
-            else fprintf(fh,'List of non-estimable contrasts:\n'); for nc=find(~estimablecons(jA)), fprintf(fh,'%s\n',connames{jA(nc)}); end
+            %fh=fopen(conn_prepend('',fullfile(qafolder,fname),'.txt'),'wt');
+            fh={};
+            if all(estimablecons(jA)), fh{end+1}=sprintf('All Contrasts are estimable\n');
+            else fh{end+1}=sprintf('List of non-estimable contrasts:\n'); for nc=find(~estimablecons(jA)), fh{end+1}=sprintf('%s\n',connames{jA(nc)}); end
             end
-            if all(estimablecols(iA)), fprintf(fh,'All Design Matrix columns are estimable\n');
-            else fprintf(fh,'List of non-estimable effects:\n'); for nc=find(~estimablecols(iA)), fprintf(fh,'%s\n',SPM.xX.name{iA(nc)}); end
+            if all(estimablecols(iA)), fh{end+1}=sprintf('All Design Matrix columns are estimable\n');
+            else fh{end+1}=sprintf('List of non-estimable effects:\n'); for nc=find(~estimablecols(iA)), fh{end+1}=sprintf('%s\n',SPM.xX.name{iA(nc)}); end
             end
-            fclose(fh);
+            %fclose(fh);
+            conn_fileutils('filewrite_raw',conn_prepend('',fullfile(qafolder,fname),'.txt'),fh);
             info=struct('contrasts',{connames(jA)},'contrast_orthogonality',orthcons(jA),'contrast_estimability',sizecons(jA),...
                 'effects',{SPM.xX.name(iA)},'effect_orthogonality',orthcols(iA),'effect_estimability',sizecols(iA));
-            spm_jsonwrite(conn_prepend('',fullfile(qafolder,fname),'.json'),info,struct('indent',' '));
+            conn_fileutils('spm_jsonwrite',conn_prepend('',fullfile(qafolder,fname),'.json'),info,struct('indent',' '));
             if ishandle(hfig), delete(hfig); end
         end
     end

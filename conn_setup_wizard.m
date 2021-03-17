@@ -1,4 +1,6 @@
 function conn_setup_wizard(OPTIONS)
+% obsolete fcn. tbr
+
 % CONN_SETUP_WIZARD
 % This script will take raw functional and anatomical volumes, perform
 % initial preprocessing analyses (realignment, slicetime correction, 

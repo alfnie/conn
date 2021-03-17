@@ -119,7 +119,7 @@ if keepnames
     end
     out=fullfile(newfilepath,newfilename);
     [fpath,nill,nill]=fileparts(out);
-    [ok,nill]=mkdir(fpath);
+    conn_fileutils('mkdir',fpath);
 else
     if dosinglesubjectreduce, BIDSfolder=fileparts(fileparts(CONN_x.folders.bids));
     elseif ismember(fmod,{'func','anat','dwi','fmap','roi','rois'}), BIDSfolder=fullfile(CONN_x.folders.bids,'dataset');  % root directory
@@ -149,12 +149,12 @@ else
     else fsub='';
     end
     if ~SESSASRUNS&&~isempty(nses), fses=sprintf('ses-%02d',nses(1)); else fses=''; end
-    newfilepath=BIDSfolder; [ok,nill]=mkdir(newfilepath);
+    newfilepath=BIDSfolder; conn_fileutils('mkdir',newfilepath);
     if ~dosinglesubjectreduce
-        if ~isempty(fsub),      [ok,nill]=mkdir(newfilepath,fsub); newfilepath=fullfile(newfilepath,fsub); end
-        if ~isempty(fses),      [ok,nill]=mkdir(newfilepath,fses); newfilepath=fullfile(newfilepath,fses);  end
+        if ~isempty(fsub),      conn_fileutils('mkdir',newfilepath,fsub); newfilepath=fullfile(newfilepath,fsub); end
+        if ~isempty(fses),      conn_fileutils('mkdir',newfilepath,fses); newfilepath=fullfile(newfilepath,fses);  end
     end
-    if ~isempty(fmod),      [ok,nill]=mkdir(newfilepath,fmod); newfilepath=fullfile(newfilepath,fmod); end
+    if ~isempty(fmod),      conn_fileutils('mkdir',newfilepath,fmod); newfilepath=fullfile(newfilepath,fmod); end
     if ~isempty(fses),      newfilename=sprintf('%s_%s',fses,newfilename); end
     if ~isempty(fsub),      newfilename=sprintf('%s_%s',fsub,newfilename); end
     out=fullfile(newfilepath,newfilename);
@@ -169,11 +169,11 @@ if strcmp(fext,'.nii')&&((size(filename,1)>1) || (strcmp(tfileext1,'.img')&&isem
         f=conn_dir(conn_prepend('',out,'.*'),'-R');
         if ~isempty(f)
             f=cellstr(f);
-            spm_unlink(f{:});
+            conn_fileutils('spm_unlink',f{:});
         end
         changed=true;
-        a=spm_vol(filename);
-        spm_file_merge(a,out)
+        a=conn_fileutils('spm_vol',filename);
+        conn_fileutils('spm_file_merge',a,out);
         filename=out;
     end
 else % copy/link file
@@ -182,7 +182,7 @@ else % copy/link file
         f=conn_dir(conn_prepend('',out,'.*'),'-R');
         if ~isempty(f)
             f=cellstr(f);
-            spm_unlink(f{:});
+            conn_fileutils('spm_unlink',f{:});
         end
         changed=true;
         exts={[tfileext1,tfileext2]};
@@ -199,10 +199,13 @@ if docopy&&changed
         tfilename=[tfileroot,exts{nexts}];
         if conn_existfile(tfilename)
             outfile=conn_prepend('',fullfile(newfilepath,newfilename),exts{nexts});
-            if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
-            elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
-            else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+            if SOFTLINK&~ispc, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+            else try, conn_fileutils('copyfile',tfilename,outfile); end
             end
+            %if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
+            %elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+            %else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+            %end
         end
     end
     if strcmp(fmod,'func')
@@ -210,13 +213,13 @@ if docopy&&changed
         if ~conn_existfile(tfilename), tfilename=conn_prepend('vdm_',filename); end
         if ~conn_existfile(tfilename), tfilename=conn_prepend('vdm5_',filename); end
         if ~conn_existfile(tfilename)
-            tfilename=dir(fullfile(fileparts(filename),'vdm*.nii'));
+            tfilename=conn_dirn(fullfile(fileparts(filename),'vdm*.nii'));
             if numel(tfilename)==1, tfilename=fullfile(fileparts(filename),tfilename(1).name);
             else tfilename='';
             end
         end
         if ~conn_existfile(tfilename)
-            tfilename=dir(fullfile(fileparts(filename),'vdm*.img'));
+            tfilename=conn_dirn(fullfile(fileparts(filename),'vdm*.img'));
             if numel(tfilename)==1, tfilename=fullfile(fileparts(filename),tfilename(1).name);
             else tfilename='';
             end
@@ -224,22 +227,31 @@ if docopy&&changed
         if conn_existfile(tfilename)
             if ~isempty(regexp(tfilename,'\.img$'))
                 outfile=conn_prepend('vdm_',fullfile(newfilepath,newfilename),'.img');
-                if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
-                elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
-                else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+                if SOFTLINK&~ispc, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+                else try, conn_fileutils('copyfile',tfilename,outfile); end
                 end
+%                 if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
+%                 elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+%                 else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+%                 end
                 outfile=conn_prepend('vdm_',fullfile(newfilepath,newfilename),'.hdr');
                 tfilename=conn_prepend('',tfilename,'.hdr');
-                if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
-                elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
-                else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+                if SOFTLINK&~ispc, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+                else try, conn_fileutils('copyfile',tfilename,outfile); end
                 end
+%                 if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
+%                 elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+%                 else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+%                 end
             else
                 outfile=conn_prepend('vdm_',fullfile(newfilepath,newfilename));
-                if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
-                elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
-                else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+                if SOFTLINK&~ispc, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+                else try, conn_fileutils('copyfile',tfilename,outfile); end
                 end
+%                 if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
+%                 elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+%                 else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+%                 end
             end
         end
     end
@@ -251,12 +263,15 @@ if docopy&&changed
                 [tfilename_path,tfilename_name,tfilename_ext]=spm_fileparts(tfilename);
                 [nill,tfilename_path1,tfilename_path2]=fileparts(tfilename_path);
                 tfilename_path=[tfilename_path1 tfilename_path2];
-                [ok,nill]=mkdir(fileparts(newfilepath),tfilename_path);
+                conn_fileutils('mkdir',fileparts(newfilepath),tfilename_path);
                 outfile=fullfile(fileparts(newfilepath),tfilename_path,[tfilename_name tfilename_ext]);
-                if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
-                elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
-                else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+                if SOFTLINK&~ispc, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+                else try, conn_fileutils('copyfile',tfilename,outfile); end
                 end
+%                 if ispc, [ok,nill]=system(['copy "',tfilename,'" "',outfile,'"']);
+%                 elseif SOFTLINK, [ok,nill]=system(['ln -fs ''',tfilename,''' ''',outfile,'''']);
+%                 else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
+%                 end
             end
         end
     end
@@ -265,7 +280,7 @@ if docopy
     if isempty(nses), nses=1; end
     if strcmp(fmod,'func')&&~conn_existfile(conn_prepend('',out,'.json')),
         try % if none exists, initializes .json with TR info
-            spm_jsonwrite(conn_prepend('',out,'.json'),struct('RepetitionTime',conn_get_rt(nsub(end),nses(end))));
+            conn_fileutils('spm_jsonwrite',conn_prepend('',out,'.json'),struct('RepetitionTime',conn_get_rt(nsub(end),nses(end))));
         end
     end
     if changed&&dodisp, fprintf('Created file %s from %s\n',out,filename(1,:)); end

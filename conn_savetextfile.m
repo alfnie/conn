@@ -5,6 +5,8 @@ function conn_savetextfile(tfilename,data,names,descrip)
 
 if nargin<4||isempty(descrip), descrip={}; end
 if nargin<3||isempty(names), names={}; end
+if any(conn_server('util_isremotefile',tfilename)), conn_server('run',mfilename,conn_server('util_localfile',tfilename),data,names,descrip); return; end
+
 [nill,nill,tfileext]=fileparts(tfilename);
 switch(tfileext)
     case '.mat'

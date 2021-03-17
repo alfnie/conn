@@ -13,6 +13,7 @@ function [outstruct,filenameout,filedescripout,filetypeout,fileRTout,Series]=con
 %
 
 % regexp ImageType DICOM fields to identify anat/func/etc.
+
 ISANAT='PRIMARY.OTHER|ORIGINAL.PRIMARY.M.ND.NORM';
 ISFUNC='ORIGINAL.PRIMARY.M.ND.MOSAIC';
 ISDWI='ORIGINAL.PRIMARY.DIFFUSION.NONE.ND.MOSAIC';
@@ -65,10 +66,11 @@ i=find(valid);
 try, 
     filesout_path=fileparts(filenameout{i(1)});
     logfilename=fullfile(filesout_path,sprintf('conn_dcmconvert_%s.log',datestr(now,'yyyy_mm_dd_HHMMSSFFF')));
-    fhlog=fopen(logfilename,'wt'); 
-    for n1=1:numel(i), fprintf(fhlog,'%s\n',filedescripout{i(n1)}); end
-    fclose(fhlog);
-    save(conn_prepend('',logfilename,'.mat'),'filenameout','filetypeout','fileRTout','filedescripout');
+    conn_fileutils('filewrite',logfilename,filedescripout(i));
+    %fhlog=fopen(logfilename,'wt'); 
+    %for n1=1:numel(i), fprintf(fhlog,'%s\n',filedescripout{i(n1)}); end
+    %fclose(fhlog);
+    conn_savematfile(conn_prepend('',logfilename,'.mat'),'filenameout','filetypeout','fileRTout','filedescripout');
     conn_disp('fprintf','DCM2NII log information stored in %s\n',logfilename);
     %note: ImageType=regexp(filedescripout,'(ORIGINAL|DERIVED)\S+','match','once')
     %note: SeriesDescription=regexprep(filedescripout,'\(\d+x.*|^Series #\d+ \: ','')

@@ -16,9 +16,10 @@ for n1=1:numel(files),
     for n2=1:numel(files{n1})
         if ~iscell(files{n1}{n2}), files{n1}{n2}={files{n1}{n2}}; end
         if OVERWRITE||~conn_existfile(files{n1}{n2}{1})
-            if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',file0,files{n1}{n2}{1}));
-            else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',file0,files{n1}{n2}{1}));
-            end
+            try, conn_fileutils('copyfile',file0,files{n1}{n2}{1}); end
+            %if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',file0,files{n1}{n2}{1}));
+            %else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',file0,files{n1}{n2}{1}));
+            %end
         end
     end
 end

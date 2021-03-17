@@ -17,6 +17,7 @@ function conn_cat2mgh(filename)
 %      /data/mri/T1.nii
 %
 
+if any(conn_server('util_isremotefile',filename)), conn_server('run',mfilename,conn_server('util_localfile',filename)); return; end 
 if iscell(filename)
     cellfun(@conn_cat2mgh,filename,'uni',0);
 else

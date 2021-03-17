@@ -2,16 +2,17 @@ function varargout=conn_hdr(filename)
 % CONN_HDR Displays setup information in conn*.mat file
 %
 
+CONN_x=struct; 
 if nargin<1 || isempty(filename),
     [filename,filepath]=uigetfile('conn*.mat');
     if ~ischar(filename), return; end
     filename=fullfile(filepath,filename);
-    load(filename,'CONN_x');
+    conn_loadmatfile(filename,'CONN_x');
 elseif isstruct(filename),
     CONN_x=filename;
     filename='';
 else
-    load(filename,'CONN_x');
+    conn_loadmatfile(filename,'CONN_x');
 end
 txt={};
 nl1covariates=length(CONN_x.Setup.l1covariates.names)-1;

@@ -2,6 +2,25 @@ function varargout=conn_process(options,varargin)
 
 global CONN_x
 if nargin<1, options=[]; end
+if isequal(options,'aminserver') % if running from server
+    CONN_x.gui=varargin{1};
+    try
+        if isnumeric(CONN_x.gui), CONN_x.gui=0;
+        elseif isstruct(CONN_x.gui)
+            if isfield(CONN_x.gui,'display'), CONN_x.gui.display=0; end
+            if ~isfield(CONN_x.gui,'overwrite'), CONN_x.gui.overwrite='no'; end
+        end
+    end
+    [varargout{1:nargout}]=conn_process(varargin{2:end});
+    CONN_x.gui=1;
+    conn save;
+    return
+elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 19])) % note: list of processes which may be run from client
+    conn save; % note: save+push+rload
+    [varargout{1:nargout}]=conn_server('run','conn_process','aminserver',CONN_x.gui,options,varargin{:});
+    conn load; % note: (rload+rsave)+pull+load
+    return
+end
 
 if ischar(options),
     [optionsnow,options]=strtok(options,';');
@@ -62,6 +81,7 @@ if ischar(options),
             case 'results_roi_seed',[varargout{1:nargout}]=conn_process(17.5,varargin{:});
             case 'results_connectome',[varargout{1:nargout}]=conn_process(18,varargin{:});
             case 'postmerge',       conn_process([4.5,5,9,15],varargin{:});
+            case 'maskserode',      conn_process(33,varargin{:});
             case 'qaplots',         conn_process(32,varargin{:});
             case 'update',          conn gui_setup_saveas; conn_process all; conn save;
             case 'conn',            conn(varargin{:});
@@ -74,6 +94,11 @@ if ischar(options),
                 warning('off','MATLAB:RandStream:ActivatingLegacyGenerators');
                 job_id=spm_jobman('run',varargin{:});
                 warning('on','MATLAB:RandStream:ActivatingLegacyGenerators');
+            case 'multiplesteps'
+                arglist=varargin{1};
+                for n=1:numel(arglist),
+                    conn_process(arglist{n}{:});
+                end
             otherwise,
                 if all(ismember(options,'0123456789.,()[]+- ')), conn_process(str2num(options));
                 else disp(sprintf('conn_process: unrecognized option %s',options));
@@ -640,9 +665,9 @@ if any(options==3) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                         Vmask=spm_write_vol(Vmask,a);
                     end
                 end
-                [filename,cache]=conn_cache(filename);
+                [filename,cache]=conn_tempcache(filename);
                 V=conn_create_vol(filename,Vsource,[],Vref,sfile,Vmask,CONN_x.Setup.analysisunits==1,CONN_x.Setup.spatialresolution==4,0); %CONN_x.Setup.surfacesmoothing);
-                conn_cache(cache,'matc');
+                conn_tempcache(cache,'matc');
             end
 			n=n+1;
 			conn_waitbar(n/N,h,sprintf('Subject %d Session %d',nsub,nses));
@@ -1093,9 +1118,9 @@ if any(options==5),
 	h=conn_waitbar(0,['Step ',num2str(sum(options<=5)),'/',num2str(length(options)),': Updating Denoising variables']);
 	filename1=fullfile(filepath,['ROI_Subject',num2str(validsubjects(1),'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
 	filename2=fullfile(filepath,['COV_Subject',num2str(validsubjects(1),'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
-    if isempty(dir(filename1)), conn_disp(['Not ready to process step conn_process_5']); return; end
-	x1=load(filename1);
-	x2=load(filename2);
+    if ~conn_existfile(filename1), conn_disp(['Not ready to process step conn_process_5']); return; end
+	x1=conn_loadmatfile(filename1);
+	x2=conn_loadmatfile(filename2);
 	CONN_x.Preproc.variables.names=cat(2,x1.names,x2.names);
 	CONN_x.Preproc.variables.types=cat(2,repmat({'roi'},[1,length(x1.names)]),repmat({'cov'},[1,length(x2.names)]));
 	%CONN_x.Preproc.variables.deriv=cat(2,repmat({0},[1,length(x1.names)]),repmat({1},[1,length(x2.names)]));
@@ -1112,7 +1137,7 @@ if any(options==5),
 		for nses=1:nsess,
             filename2=fullfile(filepath,['COV_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
             if conn_existfile(filename2)
-                x2=load(filename2);
+                x2=conn_loadmatfile(filename2,'data','names');
                 for n1=1:N2, CONN_x.Preproc.variables.dimensions{N1+n1}=max(CONN_x.Preproc.variables.dimensions{N1+n1},size(x2.data{n1},2)*ones(1,2)); end
             end
         end
@@ -1250,7 +1275,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                 catch, iX{nses}=pinv(X{nses}'*X{nses})*X{nses}';
                 end
                 filename=fullfile(filepathresults,['NORMS_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-                [filename,cachenorm0(nses)]=conn_cache(filename); 
+                [filename,cachenorm0(nses)]=conn_tempcache(filename); 
                 Youtnorm0{nses}=Y{1};
                 Youtnorm0{nses}.size.Nt=1;
                 Youtnorm0{nses}.fname=filename;
@@ -1293,7 +1318,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             softlinkcache=[];
             for ncondition=validconditions(missingdata),
                 filename=fullfile(filepathresults,['DATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-                [filename,cache(ncondition)]=conn_cache(filename); 
+                [filename,cache(ncondition)]=conn_tempcache(filename); 
                 Yout{ncondition}=Y{1}; Yout{ncondition}.fname=filename;
                 Yout{ncondition}.size.Nt=nsamples{ncondition};
                 if ~Yout{ncondition}.size.Nt, error(['No samples in file ',filename]); end
@@ -1302,7 +1327,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                 wx=conditionsweights{ncondition}{1};
                 emptycondition=~nnz(~isnan(wx)&wx~=0);
                 filename=fullfile(filepathresults,['NORMS_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-                [filename,cachenorm(ncondition)]=conn_cache(filename); 
+                [filename,cachenorm(ncondition)]=conn_tempcache(filename); 
                 Youtnorm{ncondition}=Yout{ncondition};
                 Youtnorm{ncondition}.size.Nt=2;
                 Youtnorm{ncondition}.fname=filename;
@@ -1311,7 +1336,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                 else
                     softlink=fullfile(filepathresults,['DATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(0,'%03d'),'.mat']);
                     softlinkoverwrite(ncondition)=strcmp(lower(REDO),'yes')||~conn_existfile([softlink 'c']); % avoids data duplication
-                    if softlinkoverwrite(ncondition), [softlink,softlinkcache]=conn_cache(softlink); end
+                    if softlinkoverwrite(ncondition), [softlink,softlinkcache]=conn_tempcache(softlink); end
                     softdone=true;
                 end
                 Yout{ncondition}=conn_init_vol(Yout{ncondition},[],[],softlink,softlinkoverwrite(ncondition));
@@ -1459,12 +1484,12 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                 end
             end
             if ~isempty(softlinkcache)
-                conn_cache(softlinkcache,'matc');
+                conn_tempcache(softlinkcache,'matc');
             end
             if any(softlinkoverwrite)
                 bstd=0;
                 for nses=1:nsess,
-                    conn_cache(cachenorm0(nses),'matc');
+                    conn_tempcache(cachenorm0(nses),'matc');
                     filename=fullfile(filepathresults,['NORMS_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
                     [nill,outvals]=conn_matc2nii(filename,0);
                     bstd=bstd+outvals{1};
@@ -1482,8 +1507,8 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                 CONN_x.Setup.l2covariates.values{nsub}{bstd_icov}=bstd;
             end
             for ncondition=validconditions(missingdata),
-                conn_cache(cachenorm(ncondition),'matc');
-                conn_cache(cache(ncondition),'matc');
+                conn_tempcache(cachenorm(ncondition),'matc');
+                conn_tempcache(cache(ncondition),'matc');
             end
             if DONEWOUTPUTCONFCORR~=1&&isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=2&&CONN_x.Setup.outputfiles(2),
                 filename={}; for ncondition=validconditions(missingdata),filename{ncondition}=fullfile(filepathresults,['DATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']); end
@@ -1840,7 +1865,7 @@ if any(options==8) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&i
 %                 Yout_A=repmat(Yout_A,[DIMS,1]);for nh=1:DIMS,Yout_A(nh).n=[nh,1];end
 %                 Yout_A=spm_create_vol(Yout_A);
                 filename_A=fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']); % spatial base
-                [filename_A,cache]=conn_cache(filename_A);
+                [filename_A,cache]=conn_tempcache(filename_A);
                 Yout_A=Y; Yout_A.fname=filename_A;Yout_A.size.Nt=DIMS;Yout_A.DOF=DOF; Yout_A.EmptyData=emptycondition;  %Yout_A.BASE.Q1=Q1;Yout_A.BASE.D=D;
                 Yout_A=conn_init_vol(Yout_A,Cidx);
                 if ~emptycondition
@@ -1955,7 +1980,7 @@ if any(options==8) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&i
                         CONN_x.Setup.l2covariates.values{nsub}{lcor_icov}=lcor;
                     end
                 end
-                conn_cache(cache,'matc');
+                conn_tempcache(cache,'matc');
             else, 
                 n=n+1.1*Y.matdim.dim(3); 
                 conn_waitbar(n/N,h,sprintf('Subject %d Condition %d',nsub,ncondition));
@@ -2027,36 +2052,36 @@ if any(floor(options)==9),
         analyses(analyses<1|analyses>numel(CONN_x.Analyses))=[];
         validsubjects=1:CONN_x.Setup.nsubjects; %if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
         if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; conn_projectmanager('addstep',9.1,analyses); end
-        missingdata=arrayfun(@(n)isempty(dir(fullfile(filepath,['ROI_Subject',num2str(validsubjects(1),'%03d'),'_Condition',num2str(icondition(n),'%03d'),'.mat']))),validconditions);
+        missingdata=~conn_existfile(conn_fullfile(filepath,arrayfun(@(n)['ROI_Subject',num2str(validsubjects(1),'%03d'),'_Condition',num2str(icondition(n),'%03d'),'.mat'],validconditions,'uni',0)));
         if any(missingdata), conn_disp(['Not ready to process step conn_process_9']); return; end
         filename1=fullfile(filepath,['ROI_Subject',num2str(validsubjects(1),'%03d'),'_Condition',num2str(icondition(validconditions(1)),'%03d'),'.mat']);
-        x1=load(filename1);
+        x1=conn_loadmatfile(filename1);        
+        CONN_x.Analysis_variables.names={};
+        CONN_x.Analysis_variables.types={};
+        CONN_x.Analysis_variables.deriv={};
+        CONN_x.Analysis_variables.fbands={};
+        CONN_x.Analysis_variables.dimensions={};
+        for n1=1:length(x1.names),
+            idx=strmatch(x1.names{n1},CONN_x.Preproc.confounds.names,'exact');
+            %if isempty(idx),
+            %    idx=strmatch(x1.names{n1},CONN_x.Preproc.confounds.names);  % allows partial-name matches
+            %    if numel(idx)~=1, idx=[]; end
+            %end
+            if isempty(idx),
+                CONN_x.Analysis_variables.names{end+1}=x1.names{n1};
+                CONN_x.Analysis_variables.types{end+1}='roi';
+                CONN_x.Analysis_variables.deriv{end+1}=0;
+                CONN_x.Analysis_variables.fbands{end+1}=1;
+                CONN_x.Analysis_variables.dimensions{end+1}=[size(x1.data{n1},2),size(x1.data{n1},2)];
+            end
+        end
         analysisbak=CONN_x.Analysis;
         for ianalysis=analyses,
             CONN_x.Analysis=ianalysis;
             if isempty(CONN_x.Analyses(ianalysis).name),CONN_x.Analyses(ianalysis).name=['SBC_',num2str(ianalysis,'%02d')]; end;
             if ~exist(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name),'dir'), [ok,nill]=mkdir(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name); end;
-            CONN_x.Analyses(ianalysis).variables.names={};
-            CONN_x.Analyses(ianalysis).variables.types={};
-            CONN_x.Analyses(ianalysis).variables.deriv={};
-            CONN_x.Analyses(ianalysis).variables.fbands={};
-            CONN_x.Analyses(ianalysis).variables.dimensions={};
-            for n1=1:length(x1.names), 
-                idx=strmatch(x1.names{n1},CONN_x.Preproc.confounds.names,'exact'); 
-                %if isempty(idx),
-                %    idx=strmatch(x1.names{n1},CONN_x.Preproc.confounds.names);  % allows partial-name matches
-                %    if numel(idx)~=1, idx=[]; end
-                %end
-                if isempty(idx),
-                    CONN_x.Analyses(ianalysis).variables.names{end+1}=x1.names{n1};
-                    CONN_x.Analyses(ianalysis).variables.types{end+1}='roi';
-                    CONN_x.Analyses(ianalysis).variables.deriv{end+1}=0;
-                    CONN_x.Analyses(ianalysis).variables.fbands{end+1}=1;
-                    CONN_x.Analyses(ianalysis).variables.dimensions{end+1}=[size(x1.data{n1},2),size(x1.data{n1},2)];
-                end
-            end
             if isfield(CONN_x.Analyses(ianalysis).regressors,'names') && ~isempty(CONN_x.Analyses(ianalysis).regressors.names), initial=CONN_x.Analyses(ianalysis).regressors.names; dims=CONN_x.Analyses(ianalysis).regressors.dimensions; ders=CONN_x.Analyses(ianalysis).regressors.deriv; fbands=CONN_x.Analyses(ianalysis).regressors.fbands;
-            else, initial=CONN_x.Analyses(ianalysis).variables.names; %(strcmp(CONN_x.Analyses(ianalysis).variables.types,'roi')); 
+            else, initial=CONN_x.Analysis_variables.names; %(strcmp(CONN_x.Analysis_variables.types,'roi')); 
                 initial=initial(~cellfun('length',regexp(initial,'^Grey Matter$|^White Matter$|^CSF Matter$|^QA_|^QC_|^Effect of'))); dims={}; ders={}; fbands={}; end
             CONN_x.Analyses(ianalysis).regressors.names={};
             CONN_x.Analyses(ianalysis).regressors.types={};
@@ -2064,18 +2089,18 @@ if any(floor(options)==9),
             CONN_x.Analyses(ianalysis).regressors.fbands={};
             CONN_x.Analyses(ianalysis).regressors.dimensions={};
             for n1=1:length(initial),
-                idx=strmatch(initial{n1},CONN_x.Analyses(ianalysis).variables.names,'exact');
+                idx=strmatch(initial{n1},CONN_x.Analysis_variables.names,'exact');
                 if isempty(idx),
-                    idx=strmatch(initial{n1},CONN_x.Analyses(ianalysis).variables.names); % allows partial-name matches
+                    idx=strmatch(initial{n1},CONN_x.Analysis_variables.names); % allows partial-name matches
                     %if numel(idx)~=1, idx=[]; end % allows multiple partial-name matches
                 end
                 for idx=idx(:)' %if ~isempty(idx),%&&~strcmp(initial{n1},'Grey Matter')&&~strcmp(initial{n1},'White Matter')&&~strcmp(initial{n1},'CSF'),
-                    CONN_x.Analyses(ianalysis).regressors.names{end+1}=CONN_x.Analyses(ianalysis).variables.names{idx};
-                    CONN_x.Analyses(ianalysis).regressors.types{end+1}=CONN_x.Analyses(ianalysis).variables.types{idx};
-                    if length(ders)>=n1&&~isempty(ders{n1}), CONN_x.Analyses(ianalysis).regressors.deriv{end+1}=ders{n1}; else, CONN_x.Analyses(ianalysis).regressors.deriv{end+1}=CONN_x.Analyses(ianalysis).variables.deriv{idx};end
-                    if length(fbands)>=n1&&~isempty(fbands{n1}), CONN_x.Analyses(ianalysis).regressors.fbands{end+1}=fbands{n1}; else, CONN_x.Analyses(ianalysis).regressors.fbands{end+1}=CONN_x.Analyses(ianalysis).variables.fbands{idx};end
-                    if length(dims)>=n1&&~isempty(dims{n1}), CONN_x.Analyses(ianalysis).regressors.dimensions{end+1}=[min(dims{n1}(1),CONN_x.Analyses(ianalysis).variables.dimensions{idx}(1)),CONN_x.Analyses(ianalysis).variables.dimensions{idx}(1)];
-                    else, CONN_x.Analyses(ianalysis).regressors.dimensions{end+1}=CONN_x.Analyses(ianalysis).variables.dimensions{idx}; end
+                    CONN_x.Analyses(ianalysis).regressors.names{end+1}=CONN_x.Analysis_variables.names{idx};
+                    CONN_x.Analyses(ianalysis).regressors.types{end+1}=CONN_x.Analysis_variables.types{idx};
+                    if length(ders)>=n1&&~isempty(ders{n1}), CONN_x.Analyses(ianalysis).regressors.deriv{end+1}=ders{n1}; else, CONN_x.Analyses(ianalysis).regressors.deriv{end+1}=CONN_x.Analysis_variables.deriv{idx};end
+                    if length(fbands)>=n1&&~isempty(fbands{n1}), CONN_x.Analyses(ianalysis).regressors.fbands{end+1}=fbands{n1}; else, CONN_x.Analyses(ianalysis).regressors.fbands{end+1}=CONN_x.Analysis_variables.fbands{idx};end
+                    if length(dims)>=n1&&~isempty(dims{n1}), CONN_x.Analyses(ianalysis).regressors.dimensions{end+1}=[min(dims{n1}(1),CONN_x.Analysis_variables.dimensions{idx}(1)),CONN_x.Analysis_variables.dimensions{idx}(1)];
+                    else, CONN_x.Analyses(ianalysis).regressors.dimensions{end+1}=CONN_x.Analysis_variables.dimensions{idx}; end
                 end
             end
             if ~isfield(CONN_x.Analyses(ianalysis),'modulation') || isempty(CONN_x.Analyses(ianalysis).modulation), CONN_x.Analyses(ianalysis).modulation=0; end
@@ -2150,7 +2175,7 @@ if any(floor(options)==9),
         if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; conn_projectmanager('addstep',9.3,analyses); end
         %CONN_x.dynAnalyses.variables.names=CONN_x.Analyses(analyses(1)).variables.names;
         filename1=fullfile(filepath,['ROI_Subject',num2str(validsubjects(1),'%03d'),'_Condition',num2str(0,'%03d'),'.mat']);
-        x1=load(filename1,'names'); %,'conditionsnames');
+        x1=conn_loadmatfile(filename1,'names'); %,'conditionsnames');
         analysisbak=CONN_x.dynAnalysis;
         for ianalysis=analyses,
             CONN_x.dynAnalysis=ianalysis;
@@ -2389,7 +2414,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                     for nroi=1:length(idxredo),
                         touched(ncondition,idxredo(nroi))=true;
                         filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,CONN_x.opt.fmt1),'_Condition',num2str(icondition(ncondition),'%03d'),'_Source',num2str(iroi(idxredo(nroi)),'%03d'),'.nii']);
-                        [filename,cache(nroi)]=conn_cache(filename);
+                        [filename,cache(nroi)]=conn_tempcache(filename);
                         Yout{nroi}=struct('mat',Y.matdim.mat,'dim',Y.matdim.dim,'fname',filename,'pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')],'descrip','');
                         if emptycondition_roi(1+nroi), Yout{nroi}.descrip='CONNlabel:MissingData'; end
                         try, delete(Yout{nroi}.fname); end
@@ -2454,7 +2479,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                         end
                     end
                     for nroi=1:length(idxredo)
-                        conn_cache(cache(nroi),'nii');
+                        conn_tempcache(cache(nroi),'nii');
                     end
                     if CONN_x.Analyses(ianalysis).measure<3&&isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=3&&any(CONN_x.Setup.outputfiles(3:min(5,numel(CONN_x.Setup.outputfiles)))),
                         for nroi=1:length(idxredo),
@@ -2618,7 +2643,7 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                     if DOREDUCED&CONN_x.Analyses(ianalysis).type==1
                         X2=X; names2=names; xyz2=xyz;
                     else
-                        [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analyses(ianalysis).variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
+                        [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analysis_variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
                     end
                     nrois2=size(X2,2)-1;
                     [nill,idxroi1roi2]=ismember(names,names2);
@@ -2766,10 +2791,10 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                     end
 
 %                     xyz={}; %note: this assumes constant number of dimensions per subject for analysis regressors
-%                     for n1=1:length(CONN_x.Analyses(ianalysis).variables.names),
-%                         for n2=1:CONN_x.Analyses(ianalysis).variables.deriv{n1}+1,
-%                             for n3=1:CONN_x.Analyses(ianalysis).variables.dimensions{n1}(1),
-%                                 idx=strmatch(CONN_x.Analyses(ianalysis).variables.names{n1},X1.names,'exact');
+%                     for n1=1:length(CONN_x.Analysis_variables.names),
+%                         for n2=1:CONN_x.Analysis_variables.deriv{n1}+1,
+%                             for n3=1:CONN_x.Analysis_variables.dimensions{n1}(1),
+%                                 idx=strmatch(CONN_x.Analysis_variables.names{n1},X1.names,'exact');
 %                                 if isempty(idx), xyz{end+1}=''; else, xyz{end+1}=X1.xyz{idx}; end
 %                             end
 %                         end;
@@ -3253,7 +3278,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     for ncondition=validconditions,
                                         for ndim=1:NdimsOut
                                             filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
-                                            [filename, cache(nsub,ncondition,ndim)]=conn_cache(filename);
+                                            [filename, cache(nsub,ncondition,ndim)]=conn_tempcache(filename);
                                             temp=struct('fname',filename,'mat',Y1.matdim.mat,'dim',Y1.matdim.dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip','');
                                             if Y1MD(nsub,ncondition)||~ismember(nsub,validsubjects), temp.descrip='CONNlabel:MissingData'; end
                                             filesout(nsub,ncondition,ndim)=spm_create_vol(temp);
@@ -3370,7 +3395,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 for nsub=1:CONN_x.Setup.nsubjects
                                     for ncondition=validconditions,
                                         for ndim=1:NdimsOut
-                                            conn_cache(cache(nsub,ncondition,ndim),'nii');
+                                            conn_tempcache(cache(nsub,ncondition,ndim),'nii');
                                         end
                                     end
                                 end
@@ -3389,7 +3414,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 for ncondition=validconditions,
                                     for ndim=1:NdimsOut
                                         filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
-                                        [filename, cache(nsub,ncondition,ndim)]=conn_cache(filename);
+                                        [filename, cache(nsub,ncondition,ndim)]=conn_tempcache(filename);
                                         temp=struct('fname',filename,'mat',Y1.matdim.mat,'dim',Y1.matdim.dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip','');
                                         if Y1MD(nsub,ncondition)||~ismember(nsub,validsubjects), temp.descrip='CONNlabel:MissingData'; end
                                         filesout(nsub,ncondition,ndim)=temp;
@@ -3599,7 +3624,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 for nsub=1:CONN_x.Setup.nsubjects
                                     for ncondition=validconditions,
                                         for ndim=1:NdimsOut
-                                            conn_cache(cache(nsub,ncondition,ndim),'nii');
+                                            conn_tempcache(cache(nsub,ncondition,ndim),'nii');
                                         end
                                     end
                                 end
@@ -4020,7 +4045,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     CONN_x.Analyses(tianalysis).regressors.deriv=repmat({0},size(CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names));
                     CONN_x.Analyses(tianalysis).regressors.types=repmat({'roi'},size(CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names));
                     CONN_x.Analyses(tianalysis).regressors.fbands=repmat({1},size(CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names));
-                    CONN_x.Analyses(tianalysis).variables=CONN_x.Analyses(tianalysis).regressors;
+                    %CONN_x.Analysis_variables=CONN_x.Analyses(tianalysis).regressors;
                     CONN_x.Analyses(tianalysis).sourcenames={};
                     CONN_x.Analysis=tianalysis;
                     [ok,nill]=mkdir(CONN_x.folders.firstlevel,name);
@@ -4160,7 +4185,7 @@ end
 %                     XX=[XX zeros(size(XX,1),size(C,2)); zeros(1,size(XX,2)) ones(1,size(C,2))];
 %                     
 %                     
-% %                     [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analyses(ianalysis).variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
+% %                     [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analysis_variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
 % %                     nrois2=size(X2,2)-1;
 % %                     idxroi1roi2=zeros(1,nrois);
 % %                     for n1=1:nrois,temp=strmatch(names{n1},names2,'exact'); idxroi1roi2(n1)=temp(1);end
@@ -4221,10 +4246,10 @@ end
 % %                         conn_waitbar(n/N,h,sprintf('Subject %d Condition %d',nsub,ncondition));
 % %                     end
 % % %                     xyz={}; %note: this assumes constant number of dimensions per subject for analysis regressors
-% % %                     for n1=1:length(CONN_x.Analyses(ianalysis).variables.names),
-% % %                         for n2=1:CONN_x.Analyses(ianalysis).variables.deriv{n1}+1,
-% % %                             for n3=1:CONN_x.Analyses(ianalysis).variables.dimensions{n1}(1),
-% % %                                 idx=strmatch(CONN_x.Analyses(ianalysis).variables.names{n1},X1.names,'exact');
+% % %                     for n1=1:length(CONN_x.Analysis_variables.names),
+% % %                         for n2=1:CONN_x.Analysis_variables.deriv{n1}+1,
+% % %                             for n3=1:CONN_x.Analysis_variables.dimensions{n1}(1),
+% % %                                 idx=strmatch(CONN_x.Analysis_variables.names{n1},X1.names,'exact');
 % % %                                 if isempty(idx), xyz{end+1}=''; else, xyz{end+1}=X1.xyz{idx}; end
 % % %                             end
 % % %                         end;
@@ -4358,7 +4383,7 @@ if any(options==15) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
             if DOREDUCED&CONN_x.Analyses(ianalysis).type==1
                 X2=X; names2=names; xyz2=xyz;
             else
-                [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analyses(ianalysis).variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
+                [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analysis_variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
             end
             nrois2=size(X2,2)-1;
             [nill,idxroi1roi2]=ismember(names,names2);
@@ -5738,7 +5763,7 @@ end
 % creates QA plots
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if any(options==32)
-    opts=varargin;
+    opts=varargin; % qafolder,procedures,SUBJECTS,validrois,validsets,nl2covariates,nl1contrasts
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; opts{3}=validsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), 
         validsubjects=CONN_x.pobj.subjects; opts{3}=validsubjects;
@@ -5750,6 +5775,16 @@ if any(options==32)
         end
     end    
     varargout{1}=conn_qaplots(opts{:});
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% erodes masks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if any(options==33)
+    opts=varargin; % validsubjects,validrois,REDO
+    if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; opts{1}=validsubjects; end
+    if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'),  validsubjects=CONN_x.pobj.subjects; opts{1}=validsubjects; end    
+    varargout{1}=conn_maskserode(opts{:});
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5769,7 +5804,7 @@ end
 return;
 end
 
-function [filename,cache]=conn_cache(in,ftype)
+function [filename,cache]=conn_tempcache(in,ftype)
 if isstruct(in)
     cache=in;
     if conn_existfile(cache.filename_cached), conn_process_movefile(cache.filename_cached,cache.filename_original); end

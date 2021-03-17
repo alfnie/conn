@@ -5,7 +5,7 @@ function conn_displaydesign(x0,dataAll,c0,m0,x0_names,designmultivariateonly)
 
 global CONN_h;
 if ismember(nargin,[1,2])&&(ischar(x0)||isstruct(x0))
-    if ischar(x0), load(x0,'SPM');
+    if ischar(x0), SPM=struct; conn_loadmatfile(x0,'SPM');
     else SPM=x0;
     end
     if nargin<2||isempty(dataAll), designmultivariateonly=false;

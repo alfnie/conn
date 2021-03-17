@@ -33,24 +33,26 @@ descrip=CONN_x.Setup.l2covariates.descrip(nl2covariates);
 switch(tfileext)
     case '.mat'
         data=tt.';
-        save(tfilename,'data','names','descrip');
+        conn_savematfile(tfilename,'data','names','descrip');
     otherwise,
         if strcmp(tfileext,'.txt'), names=regexprep(names,'\s','');
         else                        names=regexprep(names,'\,','');
         end
-        fh=fopen(tfilename,'wt');
+        %fh=fopen(tfilename,'wt');
+        fh={};
         for n1=1:numel(names),
             if isempty(names{n1}), names{n1}='-'; end
-            fprintf(fh,'%s',names{n1});
-            if n1<numel(names)&&strcmp(tfileext,'.csv'), fprintf(fh,','); elseif n1<numel(names), fprintf(fh,' '); else fprintf(fh,'\n'); end
+            fh{end+1}=sprintf('%s',names{n1});
+            if n1<numel(names)&&strcmp(tfileext,'.csv'), fh{end+1}=sprintf(','); elseif n1<numel(names), fh{end+1}=sprintf(' '); else fh{end+1}=sprintf('\n'); end
         end
         for n2=1:size(tt,2),
             for n1=1:size(tt,1),
-                fprintf(fh,'%f',tt(n1,n2));
-                if n1<size(tt,1)&&strcmp(tfileext,'.csv'), fprintf(fh,','); elseif n1<size(tt,1), fprintf(fh,' '); else fprintf(fh,'\n'); end
+                fh{end+1}=sprintf('%f',tt(n1,n2));
+                if n1<size(tt,1)&&strcmp(tfileext,'.csv'), fh{end+1}=sprintf(','); elseif n1<size(tt,1), fh{end+1}=sprintf(' '); else fh{end+1}=sprintf('\n'); end
             end
         end
-        fclose(fh);
+        %fclose(fh);
+        conn_fileutils('filewrite_raw', tfilename, fh);
 end
 ok=true;
 end

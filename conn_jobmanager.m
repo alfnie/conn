@@ -78,23 +78,20 @@ function varargout = conn_jobmanager(option,varargin)
 % conn_jobmanager('submit','conn',subjects,Njobs,[],varargin); % for project-specific conn commands
 % conn_jobmanager('submit','orphan_fcn',[],Njobs,[],varargin); % for non-project-specific commands
 
-persistent CFG PROFILES DEFAULT;
+persistent CFG PROFILES DEFAULT PML;
 global CONN_x CONN_gui;
+
+if nargin>=1&&isequal(option,'clear'), CFG=[]; return; end
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 LOADTESTPROFILES=false; % set to "true" for additional test profiles (additional profiles still in development) 
 USENODISPLAY=false; % set to "true" to replicate previous-versions behavior (switched -nodisplay to -noFigureWindows)
 if isempty(CFG)
-    if ispc, filename=conn_fullfile(getenv('USERPROFILE'),'conn_jobmanager.mat');
-    else filename=conn_fullfile('~/conn_jobmanager.mat');
-    end
+    [tfolder_user,tfolder_all]=conn_projectmanager('homedir');
+    filename=conn_fullfile(tfolder_user,'conn_jobmanager.mat');
+    if ~conn_existfile(filename), filename=conn_fullfile(tfolder_all,'conn_jobmanager.mat'); end
+    PML=conn_projectmanager('machinetype');
     if conn_existfile(filename), 
-    elseif isdeployed, 
-        [nill,tfolder]=conn_jobmanager_checkdeployedname;
-        filename=fullfile(tfolder,'conn_jobmanager.mat');
-    else filename=fullfile(fileparts(which(mfilename)),'conn_jobmanager.mat');
-    end
-    if conn_existfile(filename), 
-        data=load(filename,'profiles','default'); 
+        data=conn_loadmatfile(filename,'profiles','default'); 
         PROFILES=data.profiles; 
         for n=1:numel(PROFILES), 
             if ~isfield(PROFILES{n},'cmd_checkstatus_automatic'), PROFILES{n}.cmd_checkstatus_automatic=false; end
@@ -207,12 +204,12 @@ if isempty(CFG)
                    };
         DEFAULT=1;
         try % selects default profile
-            if ispc, DEFAULT=numel(PROFILES)-1;
-            elseif ismac, DEFAULT=numel(PROFILES)-2;
-            elseif isunix,
-                str=getenv('SHELL');
+            if PML.ispc, DEFAULT=numel(PROFILES)-1;
+            elseif PML.ismac, DEFAULT=numel(PROFILES)-2;
+            elseif PML.isunix,
+                str=conn_projectmanager('getenv','SHELL');
                 if ~isempty(regexp(str,'csh$')), PROFILES{end-2}.cmd_submit='/bin/bash SCRIPT >& STDOUT &'; end % use tcsh/csh syntax instead of bash
-                [ko,nill]=cellfun(@(x)system(sprintf('which %s',x)),{'qsub','qsub','bsub','sbatch'},'uni',0);
+                [ko,nill]=cellfun(@(x)conn_projectmanager('system',sprintf('which %s',x)),{'qsub','qsub','bsub','sbatch'},'uni',0);
                 ko=[ko{:}];
                 ko=find(~ko,1);
                 if isempty(ko), DEFAULT=numel(PROFILES)-2;
@@ -292,9 +289,11 @@ if isempty(CFG)
     end
     CFG=struct(...
         'profile',DEFAULT,... 
-        'matlabpath',fullfile(matlabroot,'bin'),...
-        'osquotes',char('"'*ispc+''''*~ispc));
-    if ispc, CFG.osfile=@(x)regexprep(x,'\\','\\\\');
+        'matlabpath',fullfile(conn_projectmanager('matlabroot'),'bin'),...
+        'machinetype',PML,...
+        'osquotes',char('"'*PML.ispc+''''*~PML.ispc));
+    
+    if CFG.machinetype.ispc, CFG.osfile=@(x)regexprep(x,'\\','\\\\');
     else     CFG.osfile=@(x)x;
     end
     for n=reshape(fieldnames(PROFILES{CFG.profile}),1,[])
@@ -310,10 +309,11 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
     end
     if ~nargin||~isempty(whichoption), 
         if isempty(CONN_x)||~isfield(CONN_x,'filename')||isempty(CONN_x.filename), 
-            ftemp=dir('*.qlog'); 
+            ftemp=conn_fileutils('dir','*.qlog'); 
             if numel(ftemp)==1, CONN_x_filename=conn_fullfile(ftemp.name); 
-            elseif ~isempty(regexp(pwd,'\.qlog$')), CONN_x_filename=pwd; 
-            else error('Unknown project. Load a conn project first (or cd to the folder containing your conn*.qlog project file)'); 
+            else
+                CONN_x_filename=conn_projectmanager('pwd'); 
+                assert(~isempty(regexp(CONN_x_filename,'\.qlog$')), 'Unknown project. Load a conn project first (or cd to the folder containing your conn*.qlog project file)'); 
             end
         else CONN_x_filename=CONN_x.filename;
         end
@@ -339,7 +339,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
                 tag=unique([tag{:}]);
                 for n=1:numel(tag)
                     pathname=fullfile(conn_prepend('',CONN_x_filename,'.qlog'),tag{n});
-                    if exist(pathname,'dir')&&conn_existfile(fullfile(pathname,'info.mat'))
+                    if conn_existfile(pathname,2)&&conn_existfile(fullfile(pathname,'info.mat'))
                         files{end+1}=fullfile(pathname,'info.mat');
                     end
                 end
@@ -365,7 +365,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
         filedates=cellfun(@(x)sprintf('%s-%s-%s',x(1:2),x(3:4),x(5:6)),filedates,'uni',0);
         for nfile=1:numel(files),
             try
-                load(files{nfile},'info');
+                conn_loadmatfile(files{nfile},'info');
                 [itag,nill,jtag]=unique(info.tagmsg);
                 [nill,temp]=fileparts(info.pathname); 
                 temp=sprintf('%s    (%s)',temp,filedates{nfile});
@@ -373,7 +373,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
                 filedates{nfile}=temp;
             end
         end
-        load(files{end},'info');
+        conn_loadmatfile(files{end},'info');
         if isempty(whichoption) % pending / check if just finished
             info=conn_jobmanager('statusjob',info,[],true); 
             if numel(files)==1, files={}; end
@@ -469,7 +469,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
 else
     switch(lower(option))
         case 'settings'
-            [PROFILES,DEFAULT]=conn_jobmanager_settings(PROFILES,DEFAULT);
+            [PROFILES,DEFAULT]=conn_jobmanager_settings(PROFILES,DEFAULT,CFG);
             CFG.profile=DEFAULT;
             for n=reshape(fieldnames(PROFILES{CFG.profile}),1,[])
                 CFG.(n{1})=PROFILES{CFG.profile}.(n{1});
@@ -491,7 +491,7 @@ else
             if iscell(name), name=[name{:}]; end
             if ischar(name)
                 names=cellfun(@(x)lower(x.name),PROFILES,'uni',0);
-                if ispc, names=regexprep(names,'.*\(unix\,mac\)$','');
+                if CFG.machinetype.ispc, names=regexprep(names,'.*\(unix\,mac\)$','');
                 else names=regexprep(names,'.*\(windows\)$','');
                 end
                 idx=strmatch(lower(name),names);
@@ -518,9 +518,9 @@ else
             varargout={CFG.name};
             
         case {'test','testprofile'}
-            conn_jobmanager_settings(PROFILES,DEFAULT,'test',true,varargin{:});
+            conn_jobmanager_settings(PROFILES,DEFAULT,CFG,'test',true,varargin{:});
         case {'save','saveprofile'}
-            conn_jobmanager_settings(PROFILES,DEFAULT,'save',varargin{:});
+            conn_jobmanager_settings(PROFILES,DEFAULT,CFG,'save',varargin{:});
             
         case 'options',
             if numel(varargin)>1
@@ -588,7 +588,7 @@ else
             info=conn_jobmanager('createjob',job,Isubjects);
             info=conn_jobmanager('submitjob',info);
             if isempty(info), return; end
-            save(fullfile(info.pathname,'info.mat'),'info');
+            conn_savematfile(fullfile(info.pathname,'info.mat'),'info');
             CONN_x.ispending=any(~doorphan);
             if nargout, varargout={info}; 
             elseif ~isempty(CFG.cmd_submit), conn_jobmanager(info);
@@ -605,8 +605,8 @@ else
             elseif ischar(ijobs), ijobs=find(strcmp(info.tagmsg,ijobs));
             end
             for i=ijobs(:)',
-                str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(info.scripts{i},'\.sh$|\.bat$',''),info.stdout{i},info.stderr{i},info.stdlog{i}},'uni',0)]);
-                [ok,msg]=system(str);
+                str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile',info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                [ok,msg]=conn_projectmanager('system',str);
                 msg(msg<32|msg>=127)=' ';
                 info.deletemsg{i}=msg;
             end
@@ -622,8 +622,8 @@ else
                 oldtag=conn_jobmanager('tag',info.scripts{i});
                 if ~isequal(oldtag,'finished'), 
                     conn_jobmanager('tag',info.scripts{i},'canceled');
-                    str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(info.scripts{i},'\.sh$|\.bat$',''),info.stdout{i},info.stderr{i},info.stdlog{i}},'uni',0)]);
-                    [ok,msg]=system(str);
+                    str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile',info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                    [ok,msg]=conn_projectmanager('system',str);
                     %if ok~=0, fprintf(2,'%s\n',msg); end
                     msg(msg<32|msg>=127)=' ';
                     info.deletemsg{i}=msg;
@@ -639,8 +639,8 @@ else
             end
             for i=ijobs(:)',
                 conn_jobmanager('tag',info.scripts{i},'stopped');
-                str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(info.scripts{i},'\.sh$|\.bat$',''),info.stdout{i},info.stderr{i},info.stdlog{i}},'uni',0)]);
-                [ok,msg]=system(str);
+                str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile',info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                [ok,msg]=conn_projectmanager('system',str);
                 %if ok~=0, fprintf(2,'%s\n',msg); end
                 msg(msg<32|msg>=127)=' ';
                 info.deletemsg{i}=msg;
@@ -662,8 +662,8 @@ else
             end
             for i=find(changed),
                 %conn_disp(['check ',info.joblabel{i}]);
-                str=regexprep(CFG.cmd_checkstatus,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(info.scripts{i},'\.sh$|\.bat$',''),info.stdout{i},info.stderr{i},info.stdlog{i}},'uni',0)]);
-                if ~isempty(str)&&(CFG.cmd_checkstatus_automatic||force), [ok,msg]=system(str); 
+                str=regexprep(CFG.cmd_checkstatus,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile',info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                if ~isempty(str)&&(CFG.cmd_checkstatus_automatic||force), [ok,msg]=conn_projectmanager('system',str); 
 %                     if ~ok
 %                         ID=regexp(msg,'\d+','match');
 %                         if isempty(ID)||(~isempty(info.jobid{i})&&~strcmp(info.jobid{i},'?')&&~any(ismember(ID,info.jobid{i}))), ok=1; end
@@ -700,7 +700,7 @@ else
                 if strcmp(info.tagmsg{i},'submitted')&&isempty(info.statusmsg{i}), info.tagmsg{i}='queued'; end
                 if numel(ijobs)==1, fprintf('%s %s\n',info.joblabel{i},info.tagmsg{i}); end
             end
-            try, if any(changed), save(fullfile(info.pathname,'info.mat'),'info'); end; end
+            try, if any(changed), conn_savematfile(fullfile(info.pathname,'info.mat'),'info'); end; end
             varargout={info};
             if dodisp||(any(changed)&&numel(ijobs)>1), 
                 [itag,nill,jtag]=unique(info.tagmsg);
@@ -742,8 +742,8 @@ else
             
             for i=ijobs(:)',
                 conn_jobmanager('tag',info.scripts{i},'submitted');
-                str=regexprep(CFG.cmd_submit,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{info.scripts{i},info.stdout{i},info.stderr{i},info.stdlog{i}},'uni',0)]);
-                [ok,msg]=system(str);
+                str=regexprep(CFG.cmd_submit,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{conn_server('util_localfile',info.scripts{i}),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                [ok,msg]=conn_projectmanager('system',str);
                 if ok~=0, 
                     %fprintf(2,'%s\n',msg); 
                     conn_jobmanager('tag',info.scripts{i},'failed');
@@ -767,13 +767,14 @@ else
             tpath=strvcat(conn_dir(conn_prepend('',conn_fullfile(conn_jobmanager('conn_x_filename')),'.*.dmat'),'-R'),conn_dir(conn_prepend('',conn_fullfile(conn_jobmanager('conn_x_filename')),'.*.emat'),'-R'));
             if ~isempty(tpath),
                 tpath=cellstr(tpath);
-                for n=1:numel(tpath)
-                    if ispc,
-                        [ok,nill]=system(sprintf('del "%s"',tpath{n}));
-                    else
-                        [ok,nill]=system(sprintf('rm -f ''%s''',tpath{n}));
-                    end
-                end
+                try, conn_fileutils('deletefile',tpath); end
+                %for n=1:numel(tpath)
+                    %if CFG.machinetype.ispc,
+                    %    [ok,nill]=system(sprintf('del "%s"',tpath{n}));
+                    %else
+                    %    [ok,nill]=system(sprintf('rm -f ''%s''',tpath{n}));
+                    %end
+                %end
             end
             
         case 'clearqlog',
@@ -782,27 +783,28 @@ else
                 tpath={info.pathname}; % removes .qlog folder
             else
                 tpath=conn_prepend('',conn_fullfile(conn_jobmanager('conn_x_filename')),'.qlog');
-                dirs=dir(fullfile(tpath,'*'));
+                dirs=conn_fileutils('dir',fullfile(tpath,'*'));
                 dirs=dirs([dirs.isdir]);
                 dirs=dirs(cellfun('length',regexp({dirs.name},'^\d+$'))>0);
                 tpath=cellfun(@(x)fullfile(tpath,x),{dirs.name},'uni',0);
             end
-            for n=1:numel(tpath)
-                if ispc,
-                    [ok,nill]=system(sprintf('del /Q "%s"',fullfile(tpath{n},'*')));
-                    [ok,nill]=system(sprintf('rmdir "%s"',tpath{n}));
-                else
-                    [ok,nill]=system(sprintf('rm -f ''%s''/*',tpath{n}));
-                    [ok,nill]=system(sprintf('rmdir ''%s''',tpath{n}));
-                end
+            conn_fileutils('rmdir',tpath);
+            %for n=1:numel(tpath)
+            %    if CFG.machinetype.ispc,
+            %        [ok,nill]=system(sprintf('del /Q "%s"',fullfile(tpath{n},'*')));
+            %        [ok,nill]=system(sprintf('rmdir "%s"',tpath{n}));
+            %    else
+            %        [ok,nill]=system(sprintf('rm -f ''%s''/*',tpath{n}));
+            %        [ok,nill]=system(sprintf('rmdir ''%s''',tpath{n}));
+            %    end
 %             % removes .dmat .emat
 %             for n=1:numel(info.nodes)
 %                 tfile=conn_projectmanager('projectfile',regexprep(info.private{n}(1).project,'\?.*$',''),struct('isextended',true,'id',info.nodes{n}));
-%                 if ispc, [ok,nill]=system(sprintf('del "%s"',tfile));
+%                 if CFG.machinetype.ispc, [ok,nill]=system(sprintf('del "%s"',tfile));
 %                 else [ok,nill]=system(sprintf('rm ''%s''',tfile));
 %                 end
 %             end
-            end
+%             end
             varargout={info};
             
         % internal use
@@ -824,15 +826,17 @@ else
             if nargin>2&&~isempty(varargin{2})
                 tag=varargin{2};
                 conn_disp(sprintf('%s %s',filename,tag));
-                if ispc, [ok,nill]=system(sprintf('del "%s"',conn_prepend('',filename,'.status.*')));
-                else [ok,nill]=system(sprintf('rm -f ''%s''*',conn_prepend('',filename,'.status.')));
-                end
-                try, fclose(fopen(conn_prepend('',filename,['.status.' tag]),'wt'));
+                try, conn_fileutils('deletefile',conn_prepend('',filename,'.status.*')); end
+                %if CFG.machinetype.ispc, [ok,nill]=system(sprintf('del "%s"',conn_prepend('',filename,'.status.*')));
+                %else [ok,nill]=system(sprintf('rm -f ''%s''*',conn_prepend('',filename,'.status.')));
+                %end
+                try, conn_fileutils('emptyfile',conn_prepend('',filename,['.status.' tag])); 
+                %try, fclose(fopen(conn_prepend('',filename,['.status.' tag]),'wt'));
                 catch, error('Unable to create file %s. Check folder permissions and try again\n',conn_prepend('',filename,['.status.' tag])); 
                 end
                 varargout={tag};
             else
-                tfiles=dir(conn_prepend('',filename,'.status.*'));
+                tfiles=conn_fileutils('dir',conn_prepend('',filename,'.status.*'));
                 info=regexp({tfiles.name},'^node\.(\d+).status\.(\w+)$','tokens','once');
                 info=info(cellfun('length',info)==2);
                 if isempty(info), varargout={{},{}};
@@ -844,7 +848,7 @@ else
             me=[];
             filename=varargin{1};
             try
-                load(filename,'job','-mat');
+                conn_loadmatfile(filename,'job','-mat');
                 conn_jobmanager('tag',job(1).tag,'running'); 
                 %if strcmp(lower(option),'rexec'), conn_jobmanager('tag',job(1).tag,'running'); end
                 for n=1:numel(job)
@@ -857,9 +861,10 @@ else
                                     localfilename=conn_projectmanager('projectfile',basefilename,pobj);
                                     if pobj.isextended&&conn_existfile(localfilename),
                                         conn_disp('fprintf','warning: restarting %s from parent project\n',localfilename);
-                                        if ispc, [ok,nill]=system(sprintf('del "%s"',localfilename));
-                                        else [ok,nill]=system(sprintf('rm -f ''%s''*',localfilename));
-                                        end
+                                        try, conn_fileutils('deletefile',localfilename); end
+                                        %if CFG.machinetype.ispc, [ok,nill]=system(sprintf('del "%s"',localfilename));
+                                        %else [ok,nill]=system(sprintf('rm -f ''%s''*',localfilename));
+                                        %end
                                     end
                                 end
                             end
@@ -917,7 +922,7 @@ else
             end
             tag=datestr(now,'yymmddHHMMSSFFF');
             pathname=fullfile(conn_prepend('',conn_jobmanager('conn_x_filename'),'.qlog'),tag);
-            [ok,nill]=mkdir(pathname);
+            conn_fileutils('mkdir',pathname);
             pathname=conn_fullfile(pathname);
             [job.pathname]=deal(pathname);
             if strcmp(CFG.name,'Null profile'), submitPROFILE=PROFILES{DEFAULT};
@@ -927,8 +932,8 @@ else
             try, isdep=isdeployed; end
             if submitPROFILE.cmd_rundeployed, isdep=true; end
             if isdep&&~isempty(submitPROFILE.cmd_deployedfile), fun_callback=submitPROFILE.cmd_deployedfile;
-            elseif isdep,                             fun_callback=conn_jobmanager_checkdeployedname; 
-            else                                      fun_callback=[CFG.osquotes fullfile(CFG.matlabpath,'matlab') CFG.osquotes];
+            elseif isdep,                             fun_callback=conn_jobmanager_checkdeployedname(CFG); 
+            else                                      fun_callback=[CFG.osquotes conn_server('util_localfile',fullfile(CFG.matlabpath,'matlab')) CFG.osquotes];
             end
             %if submitPROFILE.cmd_relativepaths, [nill,fun_callback]=fileparts(fun_callback); end
             info=struct('pathname',pathname,'scripts',{{}},'nodes',{{}},'private',{{}});
@@ -943,7 +948,7 @@ else
                 [job.project]=deal(REF);
                 filename_mat=fullfile(pathname,sprintf('node.%s.mat',ID));
                 filename_m=fullfile(pathname,sprintf('node_%s.m',ID));
-                if ispc, filename_sh=fullfile(pathname,sprintf('node.%s.bat',ID)); 
+                if CFG.machinetype.ispc, filename_sh=fullfile(pathname,sprintf('node.%s.bat',ID)); 
                 else filename_sh=fullfile(pathname,sprintf('node.%s.sh',ID)); 
                 end
                 info.scripts{n}=filename_sh;
@@ -954,80 +959,81 @@ else
                 info.stdout{n}=conn_prepend('',info.scripts{n},'.stdout');
                 info.stderr{n}=conn_prepend('',info.scripts{n},'.stderr');
                 info.stdlog{n}=conn_prepend('',info.scripts{n},'.stdlog');
-                if ispc
-                    fh=fopen(filename_sh,'wt');
+                whichfolders=conn_server('util_localfile',cellfun(@fileparts,conn_projectmanager('which',{'spm','conn','evlab17'}),'uni',0));
+                if CFG.machinetype.ispc
+                    fh={};%fopen(filename_sh,'wt');
                     if ~isempty(submitPROFILE.cmd_submitoptions_infile)
                         cmd_submitoptions=submitPROFILE.cmd_submitoptions_infile;
-                        for ncmd_submitoptions=1:numel(cmd_submitoptions), fprintf(fh,'%s\n',cmd_submitoptions{ncmd_submitoptions}); end
+                        for ncmd_submitoptions=1:numel(cmd_submitoptions), fh{end+1}=sprintf('%s\n',cmd_submitoptions{ncmd_submitoptions}); end
                     end
-                    if isdep,   fprintf(fh,'%s jobmanager rexec "%s"\n',fun_callback,filename_mat);
-                    elseif ~isempty(which('evlab17')), fprintf(fh,'%s -nodesktop -noFigureWindows -nosplash -automation -singleCompThread -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, info.stdlog{n}, fileparts(which('evlab17')), fileparts(which('spm')), fileparts(which('conn')), pathname, filename_mat);
-                    else fprintf(fh,'%s -nodesktop -noFigureWindows -nosplash -automation -singleCompThread -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, info.stdlog{n}, fileparts(which('spm')), fileparts(which('conn')), pathname, filename_mat);
+                    if isdep,   fh{end+1}=sprintf('%s jobmanager rexec "%s"\n',fun_callback,conn_server('util_localfile',filename_mat));
+                    elseif ~isempty(whichfolders{3}), fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation -singleCompThread -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    else fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation -singleCompThread -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     end
-                    fprintf(fh,'exit\n');
-                    fclose(fh);
-                    fh=fopen(filename_m,'wt');
-                    if ~isempty(which('evlab17')),fprintf(fh,' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
-                            fileparts(which('evlab17')), fileparts(which('spm')), fileparts(which('conn')), pathname, filename_mat);
-                    else fprintf(fh,' addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
-                            fileparts(which('spm')), fileparts(which('conn')), pathname, filename_mat);
+                    fh{end+1}=sprintf('exit\n');
+                    conn_fileutils('filewrite_raw',filename_sh,fh); %fclose(fh);
+                    fh={};%fopen(filename_m,'wt');
+                    if ~isempty(whichfolders{3}),fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
+                            whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    else fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
+                            whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     end
-                    fclose(fh);
+                    conn_fileutils('filewrite_raw',filename_m,fh); %fclose(fh);
                 else
-                    fh=fopen(filename_sh,'wt');
-                    %fprintf(fh,'#!/bin/bash\n'); % use this if a non-login shell is needed instead
-                    fprintf(fh,'#!/bin/bash -l\n'); % use this if a login shell is needed instead
+                    fh={};%fopen(filename_sh,'wt');
+                    %fh{end+1}=sprintf('#!/bin/bash\n'); % use this if a non-login shell is needed instead
+                    fh{end+1}=sprintf('#!/bin/bash -l\n'); % use this if a login shell is needed instead
                     if ~isempty(submitPROFILE.cmd_submitoptions_infile)
                         cmd_submitoptions=cellstr(submitPROFILE.cmd_submitoptions_infile);
-                        for ncmd_submitoptions=1:numel(cmd_submitoptions), fprintf(fh,'%s\n',cmd_submitoptions{ncmd_submitoptions}); end
+                        for ncmd_submitoptions=1:numel(cmd_submitoptions), fh{end+1}=sprintf('%s\n',cmd_submitoptions{ncmd_submitoptions}); end
                     end
-                    if isdep,   fprintf(fh,'%s jobmanager rexec ''%s''\n',fun_callback,filename_mat);
-                    elseif USENODISPLAY,   fprintf(fh,'%s -nodesktop -nodisplay -nosplash -singleCompThread -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, info.stdlog{n}, fileparts(which('spm')), fileparts(which('conn')), pathname, filename_mat);
-                    elseif ~isempty(which('evlab17')),    fprintf(fh,'%s -nodesktop -noFigureWindows -nosplash -singleCompThread -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, info.stdlog{n}, fileparts(which('evlab17')), fileparts(which('spm')), fileparts(which('conn')), pathname, filename_mat);
-                    else                   fprintf(fh,'%s -nodesktop -noFigureWindows -nosplash -singleCompThread -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, info.stdlog{n}, fileparts(which('spm')), fileparts(which('conn')), pathname, filename_mat);
+                    if isdep,   fh{end+1}=sprintf('%s jobmanager rexec ''%s''\n',fun_callback,conn_server('util_localfile',filename_mat));
+                    elseif USENODISPLAY,   fh{end+1}=sprintf('%s -nodesktop -nodisplay -nosplash -singleCompThread -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    elseif ~isempty(whichfolders{3}),    fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -singleCompThread -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    else                   fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -singleCompThread -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     end
-                    fprintf(fh,'echo _NODE END_\n');
-                    fclose(fh);
-                    fh=fopen(filename_m,'wt');
-                    if ~isempty(which('evlab17')), fprintf(fh,' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
-                            fileparts(which('evlab17')), fileparts(which('spm')), fileparts(which('conn')), pathname, filename_mat);
-                    else fprintf(fh,' addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
-                            fileparts(which('spm')), fileparts(which('conn')), pathname, filename_mat);
+                    fh{end+1}=sprintf('echo _NODE END_\n');
+                    conn_fileutils('filewrite_raw',filename_sh,fh); %fclose(fh);
+                    fh={};%fopen(filename_m,'wt');
+                    if ~isempty(whichfolders{3}), fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
+                            whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    else fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
+                            whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     end
-                    fclose(fh);
+                    conn_fileutils('filewrite_raw',filename_m,fh); %fclose(fh);
                 end
                 [job.tag]=deal(filename_sh);
-                save(filename_mat,'job');
+                conn_savematfile(filename_mat,'job');
             end
             filename_m=fullfile(pathname,'node_merge.m');
-            fh=fopen(filename_m,'wt');
-            fprintf(fh,'%% auto-generated by conn_jobmanager\n%% this script can be used in combination with node_###.m (from Matlab), .sh (from Mac or Unix OS), or .bat (from DOS/Windows OS) scripts to run this process across several computers in a shared-storage local network or HPC environment\n%% this script should only be run after all individual node_### scripts have finished\n\n');
-            fprintf(fh,'%% merges job outputs with conn project\nconn load ''%s'';\nconn save;', conn_jobmanager('conn_x_filename'));
-            fclose(fh);
+            fh={};%fopen(filename_m,'wt');
+            fh{end+1}=sprintf('%% auto-generated by conn_jobmanager\n%% this script can be used in combination with node_###.m (from Matlab), .sh (from Mac or Unix OS), or .bat (from DOS/Windows OS) scripts to run this process across several computers in a shared-storage local network or HPC environment\n%% this script should only be run after all individual node_### scripts have finished\n\n');
+            fh{end+1}=sprintf('%% merges job outputs with conn project\nconn load ''%s'';\nconn save;', conn_server('util_localfile',conn_jobmanager('conn_x_filename')));
+            conn_fileutils('filewrite_raw',filename_m,fh); %fclose(fh);
             filename_m=fullfile(pathname,'run_all.m');
-            fh=fopen(filename_m,'wt');
-            fprintf(fh,'%% auto-generated by conn_jobmanager\n%% this script can be used to run this process from Matlab locally on this machine (or in a Matlab parallel toolbox environment)\n\n');
-            if ~isempty(which('evlab17')), fprintf(fh,'addpath ''%s'';\naddpath ''%s'';\naddpath ''%s'';\ncd ''%s'';\n\n',...
-                fileparts(which('evlab17')), fileparts(which('spm')), fileparts(which('conn')), pathname);
-            else fprintf(fh,'addpath ''%s'';\naddpath ''%s'';\ncd ''%s'';\n\n',...
-                fileparts(which('spm')), fileparts(which('conn')), pathname);
+            fh={};%fopen(filename_m,'wt');
+            fh{end+1}=sprintf('%% auto-generated by conn_jobmanager\n%% this script can be used to run this process from Matlab locally on this machine (or in a Matlab parallel toolbox environment)\n\n');
+            if ~isempty(whichfolders{3}), fh{end+1}=sprintf('addpath ''%s'';\naddpath ''%s'';\naddpath ''%s'';\ncd ''%s'';\n\n',...
+                whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname));
+            else fh{end+1}=sprintf('addpath ''%s'';\naddpath ''%s'';\ncd ''%s'';\n\n',...
+                whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname));
             end
-            fprintf(fh,'jobs={');
+            fh{end+1}=sprintf('jobs={');
             for n=1:N
                 ID=sprintf('%04d%s',n,tag);
-                filename_mat=fullfile(pathname,sprintf('node.%s.mat',ID));
-                fprintf(fh,'''%s''',filename_mat);
-                if n<N, fprintf(fh,','); end
+                filename_mat=conn_server('util_localfile',fullfile(pathname,sprintf('node.%s.mat',ID)));
+                fh{end+1}=sprintf('''%s''',filename_mat);
+                if n<N, fh{end+1}=sprintf(','); end
             end
-            fprintf(fh,'};\n');
-            fprintf(fh,'%% runs individual jobs\nparfor n=1:numel(jobs)\n  conn_jobmanager(''exec'',jobs{n});\nend\n\n');
-            fprintf(fh,'%% merges job outputs with conn project\nconn load ''%s'';\nconn save;', conn_jobmanager('conn_x_filename'));
-            fclose(fh);
+            fh{end+1}=sprintf('};\n');
+            fh{end+1}=sprintf('%% runs individual jobs\nparfor n=1:numel(jobs)\n  conn_jobmanager(''exec'',jobs{n});\nend\n\n');
+            fh{end+1}=sprintf('%% merges job outputs with conn project\nconn load ''%s'';\nconn save;', conn_server('util_localfile',conn_jobmanager('conn_x_filename')));
+            conn_fileutils('filewrite_raw',filename_m,fh); %fclose(fh);
             varargout={info};
             
         otherwise,
@@ -1036,9 +1042,9 @@ else
 end
 end
 
-function [profiles,default]=conn_jobmanager_settings(profiles,default,varargin)
+function [profiles,default]=conn_jobmanager_settings(profiles,default,cfg,varargin)
 iprofile=max(1,min(numel(profiles), default));
-if nargin>2, 
+if nargin>3, 
     conn_jobmanager_settings_update(varargin{:});
     return;
 end
@@ -1090,7 +1096,7 @@ waitfor(handles.hfig);
                 set(handles.cmd_checkstatus,'string',profiles{iprofile}.cmd_checkstatus);
                 set(handles.cmd_rundeployed,'value',profiles{iprofile}.cmd_rundeployed);
                 tstr=profiles{iprofile}.cmd_deployedfile;
-                if isempty(tstr), try, tstr=conn_jobmanager_checkdeployedname; end; end
+                if isempty(tstr), try, tstr=conn_jobmanager_checkdeployedname(cfg); end; end
                 set(handles.cmd_deployedfile,'string',tstr);
                 %set(handles.cmd_relativepaths,'value',profiles{iprofile}.cmd_relativepaths);
                 set(handles.cmd_checkstatus_automatic,'value',profiles{iprofile}.cmd_checkstatus_automatic);
@@ -1129,7 +1135,7 @@ waitfor(handles.hfig);
                 profiles{iprofile}.cmd_submit_delay=get(handles.cmd_submit_delay,'value')>0;
                 profiles{iprofile}.cmd_rundeployed=get(handles.cmd_rundeployed,'value')>0;
                 tstr=get(handles.cmd_deployedfile,'string');
-                if isempty(tstr), try, tstr=conn_jobmanager_checkdeployedname; end; set(handles.cmd_deployedfile,'string',tstr); end
+                if isempty(tstr), try, tstr=conn_jobmanager_checkdeployedname(cfg); end; set(handles.cmd_deployedfile,'string',tstr); end
                 profiles{iprofile}.cmd_deployedfile=tstr;
                 %profiles{iprofile}.cmd_relativepaths=get(handles.cmd_relativepaths,'value')>0;
                 if get(handles.isdefault,'value'), default=iprofile; end
@@ -1150,10 +1156,13 @@ waitfor(handles.hfig);
                 end
             case 'test'
                 dogui=nargin<=1;
-                if dogui&&isempty(conn_jobmanager('conn_x_filename'))&&~isdir(fullfile(pwd,'.qlog')), 
-                    answ=conn_questdlg({'CONN project: undefined',sprintf('Log files for this test will be stored in folder %s',pwd)},'','Continue','Modify','Cancel','Continue');
-                    if isempty(answ)||strcmp(answ,'Cancel'), return; end
-                    if strcmp(answ,'Modify'), try, cd(uigetdir(pwd)); catch, return; end; end
+                if dogui&&isempty(conn_jobmanager('conn_x_filename'))
+                    tpwd=conn_projectmanager('pwd');
+                    if ~conn_fileutils('isdir',fullfile(tpwd,'.qlog')), 
+                        answ=conn_questdlg({'CONN project: undefined',sprintf('Log files for this test will be stored in folder %s',tpwd)},'','Continue','Modify','Cancel','Continue');
+                        if isempty(answ)||strcmp(answ,'Cancel'), return; end
+                        if strcmp(answ,'Modify'), try, cd(uigetdir(pwd)); catch, return; end; end
+                    end
                 end
                 conn_jobmanager('options','profile',iprofile);
                 for n=reshape(fieldnames(profiles{iprofile}),1,[])
@@ -1177,19 +1186,12 @@ waitfor(handles.hfig);
                 else answ=conn_questdlg('Save parallelization profiles for all users or current user only?','','All','Current','None','Current');
                 end
                 if ~(isempty(answ)||strcmpi(answ,'none')), 
-                    if strcmpi(answ,'all'),
-                        if isdeployed,
-                            [nill,tfolder]=conn_jobmanager_checkdeployedname;
-                            filename=fullfile(tfolder,'conn_jobmanager.mat');
-                        else filename=fullfile(fileparts(which(mfilename)),'conn_jobmanager.mat');
-                        end
-                    else
-                        if ispc, filename=conn_fullfile(getenv('USERPROFILE'),'conn_jobmanager.mat');
-                        else filename=conn_fullfile('~/conn_jobmanager.mat');
-                        end
+                    [tfolder_user,tfolder_all]=conn_projectmanager('homedir');
+                    if strcmpi(answ,'all'), filename=fullfile(tfolder_all,'conn_jobmanager.mat');
+                    else filename=fullfile(tfolder_user,'conn_jobmanager.mat');
                     end
                     try
-                        save(filename,'profiles','default');
+                        conn_savematfile(filename,'profiles','default');
                         if nargin<=1, conn_msgbox({sprintf('Parallelization profiles saved to %s',filename),'Changes will apply to current and future Matlab sessions'},'',true); 
                         else fprintf('Parallelization profiles saved to %s\n',filename); 
                         end
@@ -1292,7 +1294,7 @@ ok=1+handles.finished;
         switch(option)
             case 'updatefile' 
                 n=get(handles.files,'value');
-                data=load(files{n},'info');
+                data=conn_loadmatfile(files{n},'info');
                 info=data.info;
                 conn_jobmanager_update('refresh');
                 
@@ -1474,10 +1476,12 @@ ok=1+handles.finished;
             j=get(h.types,'value');
             switch(j)
                 case {1,2,3,4},
-                    fh=fopen(tfiles{j}{i},'rt');
-                    if ~isequal(fh,-1)
-                        str=fread(fh,inf,'uchar');
-                        fclose(fh);
+                    try, 
+                        str=conn_fileutils('fileread',tfiles{j}{i});
+%                     fh=fopen(tfiles{j}{i},'rt');
+%                     if ~isequal(fh,-1)
+%                         str=fread(fh,inf,'uchar');
+%                         fclose(fh);
                         str=char(str(:)');
                         b=find(diff([0 str==8 0]));
                         for n=1:2:numel(b)-1,
@@ -1485,7 +1489,8 @@ ok=1+handles.finished;
                         end
                         str=str(str~=0);
                         str=regexp(str,'[\r\n]','split');
-                    else str={' '};
+                    catch
+                        str={' '};
                     end
                 case 5,
                     if isfield(info,'submitcmd')&&numel(info.submitcmd)>=i, str=regexp(info.submitcmd{i},'[\r\n]','split');
@@ -1506,7 +1511,7 @@ ok=1+handles.finished;
     end
 end
 
-function [isdep_callback,isdep_folder]=conn_jobmanager_checkdeployedname(varargin)
+function [isdep_callback,isdep_folder]=conn_jobmanager_checkdeployedname(cfg,varargin)
 % for deployed standalone versions (CONN or SPM+toolboxes):
 %   returns name of system-level call to invoque conn
 %   e.g. run_conn.sh [MCRfolder]
@@ -1514,28 +1519,28 @@ function [isdep_callback,isdep_folder]=conn_jobmanager_checkdeployedname(varargi
 %        
 
 idx=1;
-CFG.osquotes=char('"'*ispc+''''*~ispc);
+% cfg.osquotes=char('"'*cfg.machinetype.ispc+''''*~cfg.machinetype.ispc);
 isdep_folder='';
 isdep_callback={'%s','%s function conn','%s function conn'};
 isdep_checkexists={'conn','spm','spm12'};
-if ~ispc
+if ~cfg.machinetype.ispc
     if isdeployed, mcrroot=matlabroot;
-    else mcrroot=getenv('MCRROOT'); if isempty(mcrroot), mcrroot=getenv('MCR'); end
+    else mcrroot=conn_projectmanager('getenv','MCRROOT'); if isempty(mcrroot), mcrroot=conn_projectmanager('getenv','MCR'); end
     end
     if isempty(mcrroot), mcrroot='$MCRROOT'; end
     isdep_callback=[{sprintf('%s %s','%s',mcrroot),sprintf('%s %s function conn','%s',mcrroot),sprintf('%s %s function conn','%s',mcrroot)} isdep_callback];
     isdep_checkexists=[{'run_conn.sh','run_spm.sh','run_spm12.sh'} isdep_checkexists];
 end
 try,
-    [ko,nill]=cellfun(@(x)system(sprintf('which %s',x)),isdep_checkexists,'uni',0);
+    [ko,nill]=cellfun(@(x)conn_projectmanager('system',sprintf('which %s',x)),isdep_checkexists,'uni',0);
     ko=[ko{:}];
     ko=find(~ko,1);
     if ~isempty(ko), idx=ko; end
 end
-[ok,msg]=system(sprintf('which %s',isdep_checkexists{idx}));
+[ok,msg]=conn_projectmanager('system',sprintf('which %s',isdep_checkexists{idx}));
 if ~ok&&conn_existfile(msg(msg>=32)), 
-    isdep_callback=sprintf(isdep_callback{idx},[CFG.osquotes msg(msg>=32) CFG.osquotes]); % full-path to executable
-    isdep_folder=[CFG.osquotes fileparts(msg(msg>=32)) CFG.osquotes];
+    isdep_callback=sprintf(isdep_callback{idx},[cfg.osquotes msg(msg>=32) cfg.osquotes]); % full-path to executable
+    isdep_folder=[cfg.osquotes fileparts(msg(msg>=32)) cfg.osquotes];
 else
     isdep_callback=sprintf(isdep_callback{idx},isdep_checkexists{idx});
 end

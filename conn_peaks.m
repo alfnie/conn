@@ -8,8 +8,8 @@ if iscell(filename)
     b=filename{1};
     mat=filename{2};
 else
-    a=spm_vol(filename);
-    b=spm_read_vols(a);
+    a=conn_fileutils('spm_vol',filename);
+    b=conn_fileutils('spm_read_vols',a);
     mat=a.mat;
 end
 switch(METHOD)

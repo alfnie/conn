@@ -4,8 +4,8 @@ CHECKCELLS=true;
 if nargin<3, 
     basestr=''; 
     disp('Differences between A and B:');
-    if ischar(a), a=load(a); end
-    if ischar(b), b=load(b); end
+    if ischar(a), a=conn_loadmatfile(a); end
+    if ischar(b), b=conn_loadmatfile(b); end
 end
 if isempty(a), disp([basestr,' empty input A']); return; end
 if isempty(b), disp([basestr,' empty input B']); return; end

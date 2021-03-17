@@ -88,11 +88,6 @@ end
                     if nargin<3, conn_msgbox('Duplicated design name. Unable to proceed','',2); end
                     return;
                 end
-%                 dirname=regexprep(name,'[^\w\d_-\.]','_');
-%                 if ~isempty(dir(fullfile(CONN_x.folders.secondlevel,dirname))), 
-%                     answ=questdlg({'Warning!',sprintf('Folder %s already exists. Do you want to continue?',fullfile(CONN_x.folders.secondlevel,dirname))},'','Yes','No','No');
-%                     if ~isequal(answ,'Yes'), return; end
-%                 end
                 if isempty(descrip), nameext=sprintf('<b>%s</b>',name);
                 else nameext=sprintf('<b>%s</b> <i>(%s)</i>',name,descrip);
                 end
@@ -111,19 +106,6 @@ end
                     name=CONN_x.Results.saved.names{ncontrast};
                     answ=conn_questdlg(sprintf('Delete contrast %s?',name),'','Delete','Cancel','Delete');
                     if ~isequal(answ,'Delete'), return; end
-%                 dirname=regexprep(name,'[^\w\d_-\.]','_');
-%                 if ~isempty(dir(fullfile(CONN_x.folders.secondlevel,dirname))), 
-%                     answ=questdlg({sprintf('Folder %s already exists. Delete its contents as well?',fullfile(CONN_x.folders.secondlevel,dirname))},'','Yes','No','Cancel','Cancel');
-%                     if isequal(answ,'Cancel'), return; end
-%                     if isequal(answ,'Yes'), 
-%                         if ispc, [ok,nill]=system(sprintf('del /Q %s',fullfile(CONN_x.folders.secondlevel,dirname,'*.*')));
-%                         else 	 [ok,nill]=system(sprintf('rm -f %s',fullfile(CONN_x.folders.secondlevel,dirname,'*')));
-%                         end
-%                         if ispc, [ok,nill]=system(sprintf('rmdir "%s"',fullfile(CONN_x.folders.secondlevel,dirname)));
-%                         else     [ok,nill]=system(sprintf('rmdir ''%s''',fullfile(CONN_x.folders.secondlevel,dirname)));
-%                         end
-%                     end
-%                 end
                     idx=setdiff(1:numel(CONN_x.Results.saved.names),ncontrast);
                     CONN_x.Results.saved.names=CONN_x.Results.saved.names(idx);
                     CONN_x.Results.saved.labels=CONN_x.Results.saved.labels(idx);
@@ -146,12 +128,6 @@ end
                         conn_msgbox(sprintf('Duplicated design name %s. Unable to proceed',name),'',2);
                         return;
                     end
-%                 olddirname=regexprep(CONN_x.Results.saved.names{ncontrast},'[^\w\d_-\.]','_');
-%                 dirname=regexprep(name,'[^\w\d_-\.]','_');
-%                 if ~isempty(dir(fullfile(CONN_x.folders.secondlevel,dirname))), 
-%                     answ=questdlg({'Warning!',sprintf('Folder %s already exists. Do you want to continue?',fullfile(CONN_x.folders.secondlevel,dirname))},'','Yes','No','No');
-%                     if ~isequal(answ,'Yes'), return; end
-%                 end
                     if numel(answ)>1
                         CONN_x.Results.saved.descrip{ncontrast}=answ{2};
                         CONN_x.Results.saved.nsubjecteffects{ncontrast}=regexp(answ{3},'\s*;\s*','split');
@@ -177,14 +153,10 @@ end
         ncontrast=min([numel(CONN_x.Results.saved.names),ncontrast]);
         if ~ncontrast, ncontrast=[]; end
         labels=CONN_x.Results.saved.labels;
-%         dirnames=regexprep(CONN_x.Results.saved.names,'[^\w\d_-\.]','_');
-%         existdirnames=cellfun(@(x)~isempty(dir(fullfile(CONN_x.folders.secondlevel,x,'*.mat'))),dirnames);
-%         labels(existdirnames)=regexprep(labels(existdirnames),{'<b>','</b>'},{'<b><FONT color=rgb(0,255,0)>','</FONT></b>'});
-%         labels(~existdirnames)=regexprep(labels(~existdirnames),{'<b>','</b>'},{'<b><FONT color=rgb(255,0,0)>','</FONT></b>'});
         try, set(ht1,'string',labels,'value',ncontrast); end
         fileresultsnames=fullfile(CONN_x.folders.secondlevel,'_list_results.mat');
         results=CONN_x.Results.saved;
-        save(fileresultsnames,'results');
+        conn_savematfile(fileresultsnames,'results');
         try
             if numel(labels)>0, set([ht_del ht_ren ht_sort ht_sel],'enable','on');
             else set([ht_del ht_ren ht_sort ht_sel],'enable','off');

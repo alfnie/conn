@@ -12,7 +12,7 @@ if nargin<1||isempty(filename),
 end
 
 % loads connectivity values
-load(filename,'Z','names')
+Z=[]; names={}; conn_loadmatfile(filename,'Z','names')
 [nROI,nROI2,nSubjects]=size(Z);
 if nargin<2||isempty(rois),
     [rois,ok]=listdlg('PromptString','Select ROIs:',...

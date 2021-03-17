@@ -18,11 +18,13 @@ end
 
 if nargin<3||isempty(justchecking), justchecking=false; end
 if nargin<2||isempty(filelabels),  filelabels=fullfile(fileparts(which(mfilename)),'utils','surf','FreeSurferColorLUT.txt'); end
-if isdir(filename), filename=fullfile(filename,'aseg.mgz'); end
+if ~justchecking&&any(conn_server('util_isremotefile',filename)), varargout={conn_server('run',mfilename,conn_server('util_localfile',filename),filelabels,justchecking)}; return; end
+
+if conn_fileutils('isdir',filename), filename=fullfile(filename,'aseg.mgz'); end
 [file_path,file_name,file_ext,file_num]=spm_fileparts(filename);
 filenames=arrayfun(@(n)fullfile(file_path,sprintf('c%d_%s.img',n,file_name)),1:3,'uni',0);
-ok1=~isempty(dir(filename));
-ok2=ok1&all(cellfun(@(x)~isempty(dir(x)),filenames));
+ok1=conn_existfile(filename);
+ok2=ok1&all(cellfun(@(x)conn_existfile(x),filenames));
 
 if justchecking
     varargout={ok1,ok2};

@@ -129,7 +129,7 @@ switch(lower(option))
                     out=e;
                 else 
                     out=conn_prepend([ocov,'_'],filename,'.mat');
-                    R=e; save(out,'R');
+                    R=e; conn_savematfile(out,'R');
                     conn_disp('fprintf','created file %s\n',out);
                 end
                 fout{nsub}{nses}=out;
@@ -173,7 +173,7 @@ switch(lower(option))
                     out=e;
                 else 
                     out=conn_prepend([ocov,'_'],filename,'.mat');
-                    R=e; save(out,'R');
+                    R=e; conn_savematfile(out,'R');
                     conn_disp('fprintf','created file %s\n',out);
                 end
                 fout{nsub}{nses}=out;
@@ -211,7 +211,7 @@ switch(lower(option))
                     out=e;
                 else 
                     out=conn_prepend([ocov,'_'],filename,'.mat');
-                    R=e; save(out,'R');
+                    R=e; conn_savematfile(out,'R');
                     conn_disp('fprintf','created file %s\n',out);
                 end
                 fout{nsub}{nses}=out;
@@ -260,7 +260,7 @@ switch(lower(option))
                     R=e; 
                 else 
                     out=conn_prepend([ocov,'_'],filename,'.mat');
-                    R=e; save(out,'R');
+                    R=e; conn_savematfile(out,'R');
                     conn_disp('fprintf','created file %s\n',out);
                 end
                 fout{nsub}{nses}=out;
@@ -316,7 +316,7 @@ switch(lower(option))
                                 out=e;
                             else
                                 out=conn_prepend('',filename,sprintf('_%s.mat',unames{n1}));
-                                R=e; save(out,'R');
+                                R=e; conn_savematfile(out,'R');
                                 conn_disp('fprintf','created file %s\n',out);
                             end
                             fout{n1}{nsub}{nses}=out;
@@ -329,7 +329,7 @@ switch(lower(option))
                                 out=e;
                             else
                                 out=conn_prepend('',filename,sprintf('_%d.mat',n1));
-                                R=e; save(out,'R');
+                                R=e; conn_savematfile(out,'R');
                                 conn_disp('fprintf','created file %s\n',out);
                             end
                             fout{n1}{nsub}{nses}=out;

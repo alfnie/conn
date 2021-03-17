@@ -697,7 +697,7 @@ switch(lower(type)),
                 icon=[];
                 try
                     if isstruct(title)&&isfield(title(1),'fname')&&~isempty(title(1).fname)&&conn_existfile(conn_prepend('',title(1).fname,'.icon.jpg'))
-                        icon=imread(conn_prepend('',title(1).fname,'.icon.jpg'),'jpg');
+                        icon=conn_fileutils('imread',conn_prepend('',title(1).fname,'.icon.jpg'),'jpg');
                     end
                 end
                 if isstruct(title)&&isfield(title,'vertices') % patch
@@ -730,15 +730,15 @@ switch(lower(type)),
                         if conn_surf_dimscheck(title(1).dim), %if isequal(title(1).dim,conn_surf_dims(8).*[1 1 2]) % surface
                             if length(title)>1,
                                 volhdr=title(1);
-                                temp1=spm_read_vols(title(1));
+                                temp1=conn_fileutils('spm_read_vols',title(1));
                                 temp1=reshape(temp1(:,:,[1,size(temp1,3)/2+1],:),size(temp1,1)*size(temp1,2),2,1,[]);
-                                temp2=spm_read_vols(title(end));
+                                temp2=conn_fileutils('spm_read_vols',title(end));
                                 temp2=reshape(temp2(:,:,[1,size(temp2,3)/2+1],:),size(temp2,1)*size(temp2,2),2,1,[]);
                                 temp=cat(4,temp1,temp2);
                                 title={CONN_gui.refs.surf.defaultreduced,temp(CONN_gui.refs.surf.default2reduced,:,:,:),abs(temp(CONN_gui.refs.surf.default2reduced,:,:,:))};
                             else
                                 volhdr=title(1);
-                                temp=spm_read_vols(title);
+                                temp=conn_fileutils('spm_read_vols',title);
                                 temp=reshape(temp,size(CONN_gui.refs.surf.default(1).vertices,1),2,1,[]);
                                 title={CONN_gui.refs.surf.default,temp,abs(temp)};
                                 %temp=reshape(temp(:,:,[1,size(temp,3)/2+1],:),size(temp,1)*size(temp,2),2,1,[]);
@@ -752,12 +752,16 @@ switch(lower(type)),
                             string={volhdr,[]};
                         else
                             if length(title)>1,
-                                newtitle=[];
-                                for n=reshape(unique(round(linspace(1,length(title),position.maxvolsdisplayed))),1,[])
-                                    [temp,volhdr]=conn_spm_read_vols(title(n));
-                                    newtitle=cat(4,newtitle,permute(temp,[2,1,3]));
+                                if 0
+                                    newtitle=[];
+                                    for n=reshape(unique(round(linspace(1,length(title),position.maxvolsdisplayed))),1,[])
+                                        [temp,volhdr]=conn_spm_read_vols(title(n));
+                                        newtitle=cat(4,newtitle,permute(temp,[2,1,3]));
+                                    end
+                                    title=newtitle;
+                                else
+                                    [title,volhdr]=conn_spm_read_vols(title(reshape(unique(round(linspace(1,length(title),position.maxvolsdisplayed))),1,[])));
                                 end
-                                title=newtitle;
 %                             elseif length(title)>1,
 %                                 [temp1,volhdr1]=conn_spm_read_vols(title(1));
 %                                 [temp2,volhdr2]=conn_spm_read_vols(title(end));
@@ -770,10 +774,11 @@ switch(lower(type)),
                             %title0=title;titleTHR=title;
                         end
                     end
-					%title=permute(spm_read_vols(title),[2,1,3,4]); 
+					%title=permute(conn_fileutils('spm_read_vols',title),[2,1,3,4]); 
 				end
 				%if size(title,4)>1, title=cat(2,title(:,:,:,end),title(:,:,:,1)); end
-                if isstruct(title), data.x1=title;
+                if isstruct(title)&&isfield(title,'vol'), data.x1=title;
+                elseif isstruct(title), data.x1=title;
                 else
                     title(isnan(title))=0;
                     if sum(title(:)<0)/sum(title(:)>0)<1e-2, data.x1=max(1,min(128, round(1+127*(title)/max(eps,max(max(title(:)))) )));
@@ -784,13 +789,13 @@ switch(lower(type)),
                     %end
                     %data.x1=round(1+127*(title-min(title(:)))/max(max(title(:))-min(title(:)),eps));
                 end
-				if size(data.x1,3)>1, if ~isfield(data,'view')||isempty(data.view), data.view=3-~isempty(icon); end; data.viewselect=true;
+				if size(data.x1,3)>1||(isstruct(title)&&isfield(title,'vol')), if ~isfield(data,'view')||isempty(data.view), data.view=3-~isempty(icon); end; data.viewselect=true;
                 else data.view=3; data.viewselect=false;
                 end
                 xslice={'change coronal slice','change sagittal slice','change axial slice'};
                 set(position.h5,'tooltipstring',xslice{data.view});
-				if ~isfield(data,'n')||isempty(data.n), if numel(title)==4, data.n=1; else data.n=ceil(size(title,data.view)/2); end; end
-				data.n=max(1,min(size(title,data.view),data.n));
+				if ~isfield(data,'n')||isempty(data.n), if isstruct(title)&&isfield(title,'vol'), data.n=ceil(title(1).dim(max(1,min(numel(title(1).dim),data.view)))/2); elseif numel(title)==4, data.n=1; else data.n=ceil(size(title,data.view)/2); end; end
+				if isstruct(title)&&isfield(title,'vol'), data.n=max(1,min(title(1).dim(max(1,min(numel(title(1).dim),data.view))),data.n)); else data.n=max(1,min(size(title,data.view),data.n)); end
                 %data.x1=round(1+127*max(0,min(1,title)));
 				if ~isempty(title0),
 					data.x0=title0; %max(-1,min(1,title0)); % x1: structural; x0: activation; xTHR: p-value
@@ -807,13 +812,17 @@ switch(lower(type)),
 					data.x0=[]; 
 					set([position.h7,position.h8,position.h8a,position.h9,position.h9a,position.h10,position.h10a],'visible','off');
 				end
-				if size(data.x1,data.view)>1, 
+				if isfield(data.x1,'vol')||size(data.x1,data.view)>1, 
                     conn_menumanager('onregionremove',position.h5);
                     conn_menumanager('onregionremove',position.h5b);
-					set(position.h5,'min',1,'max',size(data.x1,data.view),'sliderstep',min(1,[1,10]/(size(data.x1,data.view)-1)),'value',data.n,'visible','off');
+                    if isstruct(title)&&isfield(title,'vol'), set(position.h5,'min',1,'max',data.x1.rdim(data.view),'sliderstep',min(1,[1,10]/(data.x1.rdim(data.view)-1)),'value',data.n,'visible','off');
+                    else set(position.h5,'min',1,'max',size(data.x1,data.view),'sliderstep',min(1,[1,10]/(size(data.x1,data.view)-1)),'value',data.n,'visible','off');
+                    end
                     set(position.h5b,'visible','off');
-                    if isstruct(title), conn_menumanager('onregion',[position.h5],1,get(position.h1,'position')+[0 0 .015 0]);
-                    else conn_menumanager('onregion',[position.h5,position.h5b],1,get(position.h1,'position')+[0 0 .015 0]);
+                    if isstruct(title)&&~isfield(title,'vol'), 
+                        conn_menumanager('onregion',[position.h5],1,get(position.h1,'position')+[0 0 .015 0]);
+                    else
+                        conn_menumanager('onregion',[position.h5,position.h5b],1,get(position.h1,'position')+[0 0 .015 0]);
                     end
                 else
                     set([position.h5,position.h5b],'visible','off');
@@ -821,7 +830,7 @@ switch(lower(type)),
                     conn_menumanager('onregionremove',position.h5b);
                 end
                 n1n2=[1 1];
-                if isstruct(title)
+                if isstruct(title)&&~isfield(title,'vol') % surf
                     if size(data.x0,4)>1
                         mv=mean(title(data.n).vertices,1);
                         rv=max(title(data.n).vertices,[],1)-min(title(data.n).vertices,[],1);
@@ -870,9 +879,9 @@ switch(lower(type)),
                     else set(position.h11,'cameraPosition',[1000-2000*rem(data.n,2) 0 .1],'cameraupvector',[0 0 1]);
                     end
                     %set(position.h13,'position',[1000-2000*rem(data.n,2) 0 .1]);
-                else
+                else % volume
                     %title=fliplr(flipud(data.x1(:,:,data.n,:)));
-                    title=conn_menu_selectslice(data.x1,data.n,data.view);
+                    title=conn_menu_selectslice(data.x1,data.n,data.view); 
                     c1=zeros(2,0);c2=zeros(2,0); c1c=[0 0 0]; c2c=[0 0 0]; n1n2=[1 1];
                     if ~isempty(data.x0),
                         %title0=fliplr(flipud(data.x0(:,:,data.n,:))); %if all(size(title)==2*size(title0)-1), title0=interp2(title0,'nearest'); end
@@ -995,9 +1004,11 @@ switch(lower(type)),
             data=get(position.h2,'userdata');
             if data.viewselect
                 data.view=1+mod(data.view,3);
-                data.n=max(1,min(size(data.x1,data.view), data.n));
+                if isstruct(data.x1)&&isfield(data.x1,'vol'), data.n=max(1,min(data.x1(1).rdim(max(1,min(numel(data.x1(1).rdim),data.view))),data.n)); else data.n=max(1,min(size(data.x1,data.view), data.n)); end
                 xslice={'change coronal slice','change sagittal slice','change axial slice'};
-                set(position.h5,'min',1,'max',size(data.x1,data.view),'sliderstep',min(1,[1,10]/(size(data.x1,data.view)-1)),'value',data.n,'tooltipstring',xslice{data.view});
+                if isstruct(data.x1)&&isfield(data.x1,'vol'), set(position.h5,'min',1,'max',data.x1(1).rdim(data.view),'sliderstep',min(1,[1,10]/(data.x1(1).rdim(data.view)-1)),'value',data.n,'tooltipstring',xslice{data.view});
+                else set(position.h5,'min',1,'max',size(data.x1,data.view),'sliderstep',min(1,[1,10]/(size(data.x1,data.view)-1)),'value',data.n,'tooltipstring',xslice{data.view});
+                end
                 set(position.h2,'userdata',data);
             end
         end
@@ -1026,13 +1037,13 @@ switch(lower(type)),
             data=get(position.h2,'userdata');
         end
         if strcmpi(type,'updateslider1')
-            data.n=max(1,min(size(data.x1,data.view), round(title)));
+            if isstruct(data.x1)&&isfield(data.x1,'vol'), data.n=max(1,min(data.x1(1).rdim(max(1,min(numel(data.x1(1).rdim),data.view))),round(title))); else data.n=max(1,min(size(data.x1,data.view), round(title))); end
         end
         if strcmpi(type,'updateslider2')
             data.thr=max(0,min(1, title));
         end
         if isfield(data,'thr'), set(position.h10,'string',num2str(data.thr)); end
-        if isstruct(data.x1)
+        if isstruct(data.x1)&&~isfield(data.x1,'vol') % surface
             title=data.x1;
             if size(data.x0,4)>1
                 mv=mean(title(data.n).vertices,1);
@@ -1203,18 +1214,28 @@ try
     xyz=xyz/xyz_scale; % scale/center to fit
     xyz_center=mean(xyz,2);
     xyz_center=xyz_center(1:3)-(v1dim+1)/2; % center-ref wrt center-vol
-    %xyz(1:3,:)=conn_bsxfun(@minus,xyz(1:3,:),xyz_center);
-    x=double(spm_sample_vol(v,xyz(1,:)-xyz_center(1),xyz(2,:)-xyz_center(2),xyz(3,:)-xyz_center(3),1));
+    if 0, x=double(conn_fileutils('spm_sample_vol',v,xyz(1,:)-xyz_center(1),xyz(2,:)-xyz_center(2),xyz(3,:)-xyz_center(3),1));
+    else x=struct('vol',v,'dim',CONN_gui.refs.canonical.V.dim,'x',reshape(xyz(1,:)-xyz_center(1),CONN_gui.refs.canonical.V.dim),'y',reshape(xyz(2,:)-xyz_center(2),CONN_gui.refs.canonical.V.dim),'z',reshape(xyz(3,:)-xyz_center(3),CONN_gui.refs.canonical.V.dim),'rdim',CONN_gui.refs.canonical.V.dim([2 1 3]));
+    end
 catch
     error('Error reading file %s. File may have been modified or relocated. Please load file again',v(1).fname);
 end
-%x=spm_get_data(v,xyz);
-x=permute(reshape(x,[numel(v),CONN_gui.refs.canonical.V.dim]),[2,3,4,1]);
+if 0, x=permute(reshape(x,[numel(v),CONN_gui.refs.canonical.V.dim]),[2,3,4,1]); end
 matdim=struct('dim',CONN_gui.refs.canonical.V.dim,'mat',v(1).mat*[[eye(3) -xyz_center(:)];[0 0 0 1]]*[[eye(3)/xyz_scale zeros(3,1)];[zeros(1,3) 1]]*pinv(v(1).mat)*CONN_gui.refs.canonical.V.mat);
 end
 
 function y=conn_menu_selectslice(x,n,dim)
-if isstruct(x)
+if isstruct(x)&&isfield(x,'vol')
+    switch(dim),
+        case 2, y=[]; for nv=1:numel(x.vol), ty=reshape(conn_fileutils('spm_sample_vol',x.vol(nv),reshape(x.x(n,:,:),1,[]),reshape(x.y(n,:,:),1,[]),reshape(x.z(n,:,:),1,[]),1),x.dim([2 3])); y=cat(4,y,ty(end:-1:1,end:-1:1)'); end
+        case 1, y=[]; for nv=1:numel(x.vol), ty=reshape(conn_fileutils('spm_sample_vol',x.vol(nv),reshape(x.x(:,n,:),1,[]),reshape(x.y(:,n,:),1,[]),reshape(x.z(:,n,:),1,[]),1),x.dim([1 3])); y=cat(4,y,ty(end:-1:1,end:-1:1)'); end
+        case 3, y=[]; for nv=1:numel(x.vol), ty=reshape(conn_fileutils('spm_sample_vol',x.vol(nv),reshape(x.x(:,:,n),1,[]),reshape(x.y(:,:,n),1,[]),reshape(x.z(:,:,n),1,[]),1),x.dim([1 2])); y=cat(4,y,ty(end:-1:1,end:-1:1)'); end
+    end    
+    if sum(y(:)<0)/sum(y(:)>0)<1e-2, y=max(1,min(128, round(1+127*(y)/max(eps,max(max(y(:)))) )));
+    else y=max(1,min(128, round(1+127*(y-min(min(y(:))))/max(eps,max(max(y(:)))-min(min(y(:)))) )));
+    end
+    %y=max(1,min(128, round(1+127*(y)/max(eps,max(max(y(:)))) )));
+elseif isstruct(x)
     y=x;
     if isfield(x,'mat0'), y.mat=y.mat0; end
     if isfield(x,'dim0'), y.dim=y.dim0; end

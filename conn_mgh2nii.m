@@ -1,7 +1,10 @@
 function filename=conn_mgh2nii(filename)
 % CONN_MGH2NII converts MGH .mgh/.mgz files to NIFTI .nii format
 %
+% filename = conn_mgh2nii(filename)
+%
 
+if any(conn_server('util_isremotefile',filename)), filename=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filename))); return; end
 ischarfilename=ischar(filename);
 filename=cellfun(@strtrim,cellstr(filename),'uni',0);
 filenameout=regexprep(filename,'\.mgh\s*$|\.mgz\s*$','.nii');
@@ -51,11 +54,7 @@ for n=find(redo(:)')
     if ~isempty(regexp(tname,'^aparc.*\+aseg$'))
         tfile=conn_prepend('',filenameout{n},'.txt');
         file0=fullfile(fileparts(which(mfilename)),'utils','surf','FreeSurferColorLUT.txt');
-        if ~conn_existfile(tfile), 
-            if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',file0,tfile));
-            else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',file0,tfile));
-            end
-        end
+        if ~conn_existfile(tfile), try, conn_fileutils('copyfile',file0,tfile); end; end
     end
 end
 filename=filenameout; 

@@ -1,6 +1,8 @@
-function V=conn_vol(filename)
+function V=conn_vol(filename,docache)
 
-load(filename,'V');
+if nargin>1&&~isempty(docache)&&docache, opts={'-cache'}; else opts={}; end
+V=struct; 
+conn_loadmatfile(filename,'V',opts{:});
 V.fname=filename;
 V.overwritesoftlink=true;
 if isfield(V,'softlink')&&~isempty(V.softlink), 

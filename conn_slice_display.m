@@ -33,11 +33,11 @@ state.actthr=actthr(1);
 state.volthr=actthr(2);
 V=[];
 doinit=true;
-if ~isempty(data)&&ischar(data)&&~isempty(regexp(data,'\.mat$|\.jpg$')), data=load(conn_prepend('',data,'.mat'),'state'); data=data.state; end
+if ~isempty(data)&&ischar(data)&&~isempty(regexp(data,'\.mat$|\.jpg$')), data=conn_loadmatfile(conn_prepend('',data,'.mat'),'state'); data=data.state; end
 if isstruct(data)&&isfield(data,'faces'), state.surf=data; data=[]; else state.surf=[]; end
 if isstruct(data)&&isfield(data,'structural'), % struct from getstate
     state=data;
-    if ~isdir(state.defaultfilepath), state.defaultfilepath=pwd; end
+    if ~conn_fileutils('isdir',state.defaultfilepath), state.defaultfilepath=pwd; end
     doinit=false;
 elseif isstruct(data)  % conn_slice_display( struct:T,p,stats,dof,mat ...
     state.isstat=true;
@@ -61,8 +61,8 @@ elseif isstruct(data)  % conn_slice_display( struct:T,p,stats,dof,mat ...
 elseif ~isempty(data) % conn_slice_display(datafile [,structural_file])
     state.isstat=false;
     state.isvol=true;
-    try, V=spm_vol(char(data));
-    catch, V=spm_vol(conn_dir(data,'-R'));
+    try, V=conn_fileutils('spm_vol',char(data));
+    catch, V=conn_fileutils('spm_vol',conn_dir(data,'-R'));
     end
     if isempty(V), 
         if ishandle(hmsg), delete(hmsg); end
@@ -71,10 +71,10 @@ elseif ~isempty(data) % conn_slice_display(datafile [,structural_file])
     if conn_surf_dimscheck(V(1)),  V=conn_surf_parent(V,'conn_slice_display',true); end % data is in surface space
     try
         [ok,nill,fsfiles]=conn_checkFSfiles(char(data),false);
-        if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=spm_vol(fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
+        if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=conn_fileutils('spm_vol',fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
     end
     %V=V(1);
-    state.supra=spm_read_vols(V);
+    state.supra=conn_fileutils('spm_read_vols',V);
     state.mat=V(1).mat;
     state.size=size(state.supra);
     state.info.structural='none';
@@ -85,8 +85,8 @@ elseif ~isempty(data) % conn_slice_display(datafile [,structural_file])
 else                   % conn_slice_display([],structural_file)
     state.isstat=false;
     state.isvol=false;
-    try, V=spm_vol(char(state.structural));
-    catch, V=spm_vol(conn_dir(state.structural,'-R'));%
+    try, V=conn_fileutils('spm_vol',char(state.structural));
+    catch, V=conn_fileutils('spm_vol',conn_dir(state.structural,'-R'));%
     end
     if isempty(V), 
         if ishandle(hmsg), delete(hmsg); end
@@ -96,10 +96,10 @@ else                   % conn_slice_display([],structural_file)
     state.info.structural=char(state.structural);
     try
         [ok,nill,fsfiles]=conn_checkFSfiles(char(state.structural),false);
-        if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=spm_vol(fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
+        if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=conn_fileutils('spm_vol',fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
     end
     %V=V(1);
-    state.structural=spm_read_vols(V);
+    state.structural=conn_fileutils('spm_read_vols',V);
     state.mat=V(1).mat;
     state.size=size(state.structural);
     state.info.vol='none';
@@ -190,12 +190,12 @@ if doinit
     state.xyz_range=[min(state.xyz_x(:)) max(state.xyz_x(:)); min(state.xyz_y(:)) max(state.xyz_y(:)); min(state.xyz_z(:)) max(state.xyz_z(:))];
     state.resamplestructural=false;
     if ischar(state.structural)
-        V=spm_vol(state.structural);
+        V=conn_fileutils('spm_vol',state.structural);
         if conn_surf_dimscheck(V(1)), V=conn_surf_parent(V,'conn_slice_display'); end % surface
         state.info.structural=state.structural;
         try
             [ok,nill,fsfiles]=conn_checkFSfiles(state.structural,false);
-            if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=spm_vol(fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
+            if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=conn_fileutils('spm_vol',fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
         end
         fact=abs(det(state.mat)/det(V(1).mat));
         while fact>1.1
@@ -215,9 +215,9 @@ if doinit
         state.resamplestructural=true;
         if numel(V)==1, 
             txyz=pinv(V(1).mat)*xyz;
-            state.structural=reshape(spm_sample_vol(V,txyz(1,:),txyz(2,:),txyz(3,:),1),state.size(1),state.size(2),state.size(3));
+            state.structural=reshape(conn_fileutils('spm_sample_vol',V,txyz(1,:),txyz(2,:),txyz(3,:),1),state.size(1),state.size(2),state.size(3));
         else
-            state.structural=reshape(spm_get_data(V,pinv(V(1).mat)*xyz)',state.size(1),state.size(2),state.size(3),[]);
+            state.structural=reshape(conn_fileutils('spm_get_data',V,pinv(V(1).mat)*xyz)',state.size(1),state.size(2),state.size(3),[]);
         end
         %V=V(1);
     end

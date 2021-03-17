@@ -11,8 +11,10 @@ function filename=conn_surf_smooth(filename,nsmooth,ref)
 %
 
 if nargin<2||isempty(nsmooth), nsmooth=10; end
-if nargin<3||isempty(ref), ref=fullfile(fileparts(which('conn')),'utils','surf','lh.pial.surf'); end
+if nargin<3, ref=[]; end
+if any(conn_server('util_isremotefile',filename)), filename=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filename),nsmooth,ref)); return; end
 
+if isempty(ref), ref=fullfile(fileparts(which('conn')),'utils','surf','lh.pial.surf'); end
 [xyz,faces]=conn_freesurfer_read_surf(ref);
 faces=faces+1;
 iscellfilename=iscell(filename);

@@ -1,4 +1,6 @@
 function p=conn_surf_volume(filename,DODISP,THR,SMOOTH,DISREGARDZEROS,HEMSEPARATE,SIGNSHIFT)
+% CONN_SURF_VOLUME computes iso-surface from 3d volume data
+% internal function
 
 if nargin<1||isempty(filename)
     [file_name,file_path]=uigetfile('*.img;*.nii','Select volume',pwd);
@@ -16,14 +18,14 @@ elseif ischar(filename),
         p=[conn_surf_readsurf(fullfile(file_path,[regexprep(file_name,'^(lh|rh)(\.)?','lh$2'),file_ext])),conn_surf_readsurf(fullfile(file_path,[regexprep(file_name,'^(lh|rh)(\.)?','rh$2'),file_ext]))];
         return
     else
-        VOL=spm_vol(filename); fname=filename;
+        VOL=conn_fileutils('spm_vol',filename); fname=filename;
     end
 elseif iscell(filename)
     DATA=filename{1};
     XYZ=filename{2};
     fname=[];
 end
-if isempty(DATA), DATA=spm_read_vols(VOL); end
+if isempty(DATA), DATA=conn_fileutils('spm_read_vols',VOL); end
 if nargin<2||isempty(DODISP), DODISP=true; end
 if nargin<3||isempty(THR), THR=0; end %median(DATA(~isnan(DATA)&DATA~=0)); end
 if nargin<4||isempty(SMOOTH), SMOOTH=10; end

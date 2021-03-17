@@ -4,6 +4,12 @@ function [filenamesout,filestructsout]=conn_dir(PATHNAME,varargin)
 %      filenames=CONN_DIR('c:/*.nii');
 %
 
+if any(conn_server('util_isremotefile',PATHNAME)), 
+    [filenamesout,filestructsout]=conn_server('run',mfilename,conn_server('util_localfile',PATHNAME),varargin{:}); 
+    filenamesout=conn_server('util_remotefile',filenamesout);
+    return
+end
+
 DORECURSIVE=true;
 OUTPUTCELL=false;
 DOSORT=false;

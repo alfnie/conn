@@ -1,4 +1,4 @@
-ls /function fileout=conn_surf_gii2nii(filein,filein2,fileout)
+function fileout=conn_surf_gii2nii(filein,filein2,fileout)
 % conn_surf_gii2nii converts freesurfer gifti files to surface nifti file
 %
 % conn_surf_gii2nii(filename)
@@ -9,6 +9,10 @@ ls /function fileout=conn_surf_gii2nii(filein,filein2,fileout)
 %      from data in lh.curv.gii and rh.curv.gii gifti files
 %
 
+if nargin<2||isempty(filein2), filein2=[]; end
+if nargin<3||isempty(fileout), fileout=[]; end
+if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),conn_server('util_localfile',filein2),conn_server('util_localfile',fileout))); return; end
+
 if size(filein,1)>1, 
     fileout=char(cellfun(@conn_surf_gii2nii,cellstr(filein),'uni',0));
     return
@@ -18,7 +22,6 @@ if iscell(filein),
     return
 end
 
-fileout={};
 [filepath,filename,fileext]=fileparts(filein);
 if nargin<2||isempty(filein2)
     if ~isempty(regexp(filename,'^lh\.'))

@@ -1,12 +1,15 @@
 function out = conn_jsonread(filename,fieldname,isnumericfield)
 if nargin<3||isempty(isnumericfield), isnumericfield=true; end
+if nargin<2||isempty(fieldname),fieldname=''; end
+if any(conn_server('util_isremotefile',filename)), out=conn_server('run',mfilename,conn_server('util_localfile',filename),fieldname,isnumericfield); return; end
+
 out=[];
 if ~isempty(regexp(filename,'\.nii(\.gz)?(\,\d+)?$'))
     [tfilename,failed]=conn_setup_preproc_meanimage(regexprep(filename,'\.gz$|\,\d+$',''),'json');
     if isempty(tfilename), return; end %conn_disp('fprintf','warning: unable to find .json file associated with data file %s',filename); 
     filename=tfilename;
 end
-if nargin<2,
+if nargin<2||isempty(fieldname),
     try, out=spm_jsonread(filename);
     end
 else % note: faster but only for single-value numeric fields

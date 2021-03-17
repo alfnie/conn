@@ -210,7 +210,8 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 end
                 if ischar(filename),
                     data=rmfield(DATA,'handles');
-                    save(fullfile(filepath,filename),'data');
+                    data=rmfield(DATA,'axes');
+                    conn_savematfile(fullfile(filepath,filename),'data');
                     conn_disp('fprintf','Results structure file saved as %s\n',fullfile(filepath,filename));
                 end
             case {'export','export_mask','export_mask_selected'},
@@ -241,30 +242,33 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     end
                     descrip=sprintf('%s ; %s',descrip1,descrip2);                    
                     V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'dt',[spm_type('float32') spm_platform('bigend')],'fname',fullfile(filepath,filename),'descrip',descrip);
-                    V=spm_write_vol(V,maskselected.*tempT.*double(b(:,:,:,end)>0));
-                    try, spm_jsonwrite(conn_prepend('',fullfile(filepath,filename),'.json'),struct('description',sprintf('%s ; %s ; %s',descrip1,descrip2,descrip3)),struct('indent',' ')); end
+                    V=conn_fileutils('spm_write_vol',V,maskselected.*tempT.*double(b(:,:,:,end)>0));
+                    try, conn_fileutils('spm_jsonwrite',conn_prepend('',fullfile(filepath,filename),'.json'),struct('description',sprintf('%s ; %s ; %s',descrip1,descrip2,descrip3)),struct('indent',' ')); end
                     conn_disp('fprintf','Suprathreshold stats file saved as %s\n',V.fname);
                     
                     V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'dt',[spm_type('float32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.Mask.nii']),'descrip',descrip);
-                    V=spm_write_vol(V,maskselected.*double(b(:,:,:,end)>0));
+                    V=conn_fileutils('spm_write_vol',V,maskselected.*double(b(:,:,:,end)>0));
                     %conn_disp('fprintf','Mask file saved as %s\n',V.fname);
-                    try, spm_jsonwrite(fullfile(filepath,[filename_name,'.json']),struct('HeightThreshold',descrip1,'SizeThreshold',descrip2,'Stats',descrip3)); end
+                    try, conn_fileutils('spm_jsonwrite',fullfile(filepath,[filename_name,'.json']),struct('HeightThreshold',descrip1,'SizeThreshold',descrip2,'Stats',descrip3)); end
                     
                     V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'dt',[spm_type('float32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.nonthr.nii']),'descrip',descrip);
-                    V=spm_write_vol(V,tempT);
+                    V=conn_fileutils('spm_write_vol',V,tempT);
                     %conn_disp('fprintf','Non-thresholded stats file saved as %s\n',V.fname);
                     
                     V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'pinfo',[1;0;0],'dt',[spm_type('uint32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.ROIs.nii']),'descrip',descrip);
                     btemp=zeros(size(b(:,:,:,1)));
                     for nbtemp=1:numel(DATA.clusters), btemp(DATA.clusters{nbtemp})=nbtemp; end
-                    V=spm_write_vol(V,btemp);
+                    V=conn_fileutils('spm_write_vol',V,btemp);
                     conn_disp('fprintf','ROI file saved as %s\n',V.fname);
-                    fh=fopen(fullfile(filepath,[filename_name,'.ROIs.txt']),'wt');
+                    str={};
+                    %fh=fopen(fullfile(filepath,[filename_name,'.ROIs.txt']),'wt');
                     for nbtemp=1:numel(DATA.clusters),
-                        fprintf(fh,'%+d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)');
-                        fprintf(fh,'\n');
+                        str{end+1}=sprintf('%+d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)');
+                        str{end+1}=sprintf('\n');
                     end
-                    fclose(fh);
+                    %fclose(fh);
+                    conn_fileutils('filewrite_raw',fullfile(filepath,[filename_name,'.ROIs.txt']),str);
+
 
                     if (DATA.thres{2}==3||DATA.thres{2}==4), 
                         [tx,ty,tz]=ind2sub(size(b(:,:,:,1)), find(DATA.f&b(:,:,:,end)>0));
@@ -274,19 +278,21 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     
                     try, conn_exportlist(DATA.handles(8),fullfile(filepath,[filename_name,'.Table.txt']),get(DATA.handles(7),'string')); end
                     try
-                        fh=fopen(fullfile(filepath,[filename_name,'.Table.txt']),'at');
-                        fprintf(fh,'\n\n');
+                        %fh=fopen(fullfile(filepath,[filename_name,'.Table.txt']),'at');
+                        str={};
+                        str{end+1}=sprintf('\n\n');
                         for nbtemp=1:numel(DATA.clusters),
-                            fprintf(fh,'\nCluster ');
-                            fprintf(fh,'%+d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)');
-                            fprintf(fh,' :\n');
-                            str=cellstr(DATA.clusternames{nbtemp}.txt);
-                            for n=1:numel(str),fprintf(fh,'%s\n',str{n});end
+                            str{end+1}=sprintf('\nCluster ');
+                            str{end+1}=sprintf('%+d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)');
+                            str{end+1}=sprintf(' :\n');
+                            tstr=cellstr(DATA.clusternames{nbtemp}.txt);
+                            for n=1:numel(tstr),str{end+1}=sprintf('%s\n',tstr{n});end
                         end
-                        fprintf(fh,'\nAll clusters combined :\n');
-                        str=cellstr(DATA.clusternames{end}.txt);
-                        for n=1:numel(str),fprintf(fh,'%s\n',str{n});end
-                        fclose(fh);
+                        str{end+1}=sprintf('\nAll clusters combined :\n');
+                        tstr=cellstr(DATA.clusternames{end}.txt);
+                        for n=1:numel(tstr),str{end+1}=sprintf('%s\n',tstr{n});end
+                        %fclose(fh);
+                        conn_fileutils('fileappend_raw',fullfile(filepath,[filename_name,'.Table.txt']),str);
                     end
 
 %                     [peaks,peaks_idx]=conn_peaks({tempT,mat{1}},12);
@@ -298,7 +304,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     %fprintf('Peaks file saved as %s\n',fullfile(filepath,[filename_name,'.PEAKS.mat']));
                     %if ~isempty(C)
                     %    V=struct('mat',mat{1},'dim',size(C),'pinfo',[1;0;0],'dt',[spm_type('uint32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.SEGs.img']),'descrip',descrip);
-                    %    V=spm_write_vol(V,C);
+                    %    V=conn_fileutils('spm_write_vol',V,C);
                     %    conn_disp('fprintf','Segmentation file saved as %s\n',V.fname);
                     %    fh=fopen(fullfile(filepath,[filename_name,'.SEGs.txt']),'wt');
                     %    for nbtemp=1:numel(peaks_idx),
@@ -311,7 +317,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 return;
                 
             case 'plot_design',
-                load(spmfile,'SPM');
+                SPM=struct; conn_loadmatfile(spmfile,'SPM');
                 if isfield(SPM,'xX_multivariate')
                     if 0,%isfield(SPM.xX_multivariate,'Zcontr')
                         conn_displaydesign(SPM.xX_multivariate.X,SPM.xX_multivariate.Zfiles,SPM.xX_multivariate.C,SPM.xX_multivariate.Zcontr,SPM.xX_multivariate.Xnames,false);
@@ -387,8 +393,8 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 
             case 'spm_view'
                 [spmfile_path,spmfile_name]=fileparts(spmfile);
-                cwd=pwd;cd(spmfile_path);
-                load(spmfile,'SPM');
+                cwd=pwd;conn_fileutils('cd',spmfile_path);
+                SPM=struct; conn_loadmatfile(spmfile,'SPM');
                 spm defaults fmri;
                 [hReg,xSPM,SPM] = spm_results_ui('setup',SPM);
                 assignin('base','hReg',hReg);
@@ -423,7 +429,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 end
                 return
                 
-            case 'cluster_view'
+            case 'cluster_view_old'
                 filename=fullfile(fileparts(spmfile),'results.nii');
                 conn_vproject(GCF,[],'export_mask',filename);
                 filename=fullfile(fileparts(spmfile),'results.ROIs.nii');
@@ -431,7 +437,8 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 if isempty(tfilename), return; end
                 [tspmfile_path,tspmfile_name]=fileparts(tspmfile);
                 cwd=pwd;
-                cd(tspmfile_path);
+                conn_fileutils('cd',tspmfile_path);
+                
                 if tviewrex
                     conn_rex(tspmfile,tfilename,'output_type','saverex','level','clusters','select_clusters',0,'s',[],'gui',1);%,'mstats',false);
                 else
@@ -442,37 +449,68 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 cd(cwd);
                 return;
                 
-            case 'cluster_import',
+            case {'cluster_import','cluster_view'}
                 filename=fullfile(fileparts(spmfile),'results.nii');
                 conn_vproject(GCF,[],'export_mask',filename);
                 filename=fullfile(fileparts(spmfile),'results.ROIs.nii');
-                [tfilename,tspmfile]=conn_vproject_selectfiles(filename,spmfile,[]);
+                if strcmpi(OPTION,'cluster_view')&&~conn_server('util_isremotefile',filename), tviewrex=false; else tviewrex=[]; end
+                [tfilename,tspmfile]=conn_vproject_selectfiles(filename,spmfile,tviewrex);
                 if isempty(tfilename), return; end
                 [tspmfile_path,tspmfile_name]=fileparts(tspmfile);
                 cwd=pwd;
-                cd(tspmfile_path);
-                htfig=conn_msgbox('Loading connectivity values. Please wait','',-1);
-                [y,name,info]=conn_rex(tspmfile,tfilename,'level','clusters');
-                if ishandle(htfig), delete(htfig); end
-                name=regexprep(name,'^results\.ROIs\.?','cluster ');
-                %temp=load(tspmfile,'SPM');
-                if isfield(info.SPM.SPM.xX,'SelectedSubjects')&&~rem(size(y,1),nnz(info.SPM.SPM.xX.SelectedSubjects)) % fill-in with NaN for missing data
-                    ty=nan(size(y,1)/nnz(info.SPM.SPM.xX.SelectedSubjects)*numel(info.SPM.SPM.xX.SelectedSubjects),size(y,2));
-                    ty(repmat(logical(info.SPM.SPM.xX.SelectedSubjects),size(y,1)/nnz(info.SPM.SPM.xX.SelectedSubjects),1),:)=y;
-                    y=ty;
-                end
-                if (~isfield(info,'extractcontrasts')||~info.extractcontrasts)&&isfield(info.SPM.SPM,'xX_multivariate')&&isfield(info.SPM.SPM.xX_multivariate,'Zfiles')
-                    if ~rem(size(y,1),CONN_x.Setup.nsubjects)&&size(y,1)/CONN_x.Setup.nsubjects==numel(info.SPM.SPM.xX_multivariate.Znames)
-                        name=reshape(cellfun(@(a,b)sprintf('%s %s',a,b),repmat(name(:)',numel(info.SPM.SPM.xX_multivariate.Znames),1),repmat(info.SPM.SPM.xX_multivariate.Znames(:),1,numel(name)),'uni',0),1,[]);
-                        y=reshape(y,CONN_x.Setup.nsubjects,[],size(y,2));
-                    end
+                conn_fileutils('cd',tspmfile_path);
+                
+                if tviewrex
+                    conn_rex(tspmfile,tfilename,'output_type','saverex','level','clusters','select_clusters',0,'s',[],'gui',1);%,'mstats',false);
                 else
-                    if ~rem(size(y,1),CONN_x.Setup.nsubjects)&&size(y,1)/CONN_x.Setup.nsubjects==numel(info.SPM.SPM.xX_multivariate.Ynames)
-                        name=reshape(cellfun(@(a,b)sprintf('%s %s',a,b),repmat(name(:)',numel(info.SPM.SPM.xX_multivariate.Ynames),1),repmat(info.SPM.SPM.xX_multivariate.Ynames(:),1,numel(name)),'uni',0),1,[]);
-                        y=reshape(y,CONN_x.Setup.nsubjects,[],size(y,2));
+                    htfig=conn_msgbox('Loading connectivity values. Please wait','',-1);
+                    [y,name,info]=conn_rex(tspmfile,tfilename,'level','clusters');
+                    if ishandle(htfig), delete(htfig); end
+                    name=regexprep(name,'^results\.ROIs\.?','cluster ');
+                    if strcmpi(OPTION,'cluster_import')
+                        %temp=conn_loadmatfile(tspmfile,'SPM');
+                        if isfield(info.SPM.SPM.xX,'SelectedSubjects')&&~rem(size(y,1),nnz(info.SPM.SPM.xX.SelectedSubjects)) % fill-in with NaN for missing data
+                            ty=nan(size(y,1)/nnz(info.SPM.SPM.xX.SelectedSubjects)*numel(info.SPM.SPM.xX.SelectedSubjects),size(y,2));
+                            ty(repmat(logical(info.SPM.SPM.xX.SelectedSubjects),size(y,1)/nnz(info.SPM.SPM.xX.SelectedSubjects),1),:)=y;
+                            y=ty;
+                        end
+                        if (~isfield(info,'extractcontrasts')||~info.extractcontrasts)&&isfield(info.SPM.SPM,'xX_multivariate')&&isfield(info.SPM.SPM.xX_multivariate,'Zfiles')
+                            if ~rem(size(y,1),CONN_x.Setup.nsubjects)&&size(y,1)/CONN_x.Setup.nsubjects==numel(info.SPM.SPM.xX_multivariate.Znames)
+                                name=reshape(cellfun(@(a,b)sprintf('%s %s',a,b),repmat(name(:)',numel(info.SPM.SPM.xX_multivariate.Znames),1),repmat(info.SPM.SPM.xX_multivariate.Znames(:),1,numel(name)),'uni',0),1,[]);
+                                y=reshape(y,CONN_x.Setup.nsubjects,[],size(y,2));
+                            end
+                        else
+                            if ~rem(size(y,1),CONN_x.Setup.nsubjects)&&size(y,1)/CONN_x.Setup.nsubjects==numel(info.SPM.SPM.xX_multivariate.Ynames)
+                                name=reshape(cellfun(@(a,b)sprintf('%s %s',a,b),repmat(name(:)',numel(info.SPM.SPM.xX_multivariate.Ynames),1),repmat(info.SPM.SPM.xX_multivariate.Ynames(:),1,numel(name)),'uni',0),1,[]);
+                                y=reshape(y,CONN_x.Setup.nsubjects,[],size(y,2));
+                            end
+                        end
+                        conn_importl2covariate(name,num2cell(y,1));
+                    else
+                        s=1:length(info.ROInames);
+                        cname={};mcon=[]; if isfield(info,'mstats'), mstats=info.mstats; else mstats=true; end
+                        try, cname=info.SPM.SPM.xX_multivariate.Znames; mcon=info.SPM.SPM.xX_multivariate.Zcontr; end
+                        if isempty(cname), try, cname=info.SPM.SPM.xX_multivariate.Ynames; mcon=info.SPM.SPM.xX_multivariate.M; end; end
+                        if isfield(info.SPM.SPM,'xX_multivariate')&&isfield(info.SPM.SPM.xX_multivariate,'dof')
+                            c=info.SPM.SPM.xX_multivariate.C;
+                            xX=info.SPM.SPM.xX_multivariate;
+                            %if numel(mcon)<=1, mstats=false; end
+                        else
+                            if isfield(info,'ic')&&~isempty(info.ic), Ic=info.ic;
+                            elseif isfield(info,'gui')&&~info.gui&&isfield(info.SPM.SPM,'xCon')&&numel(info.SPM.SPM.xCon)==1, Ic=1;
+                            else [Ic,info.SPM.SPM.xCon] = spm_conman(info.SPM.SPM,'T|F',inf,'Select contrast','',1);
+                            end
+                            c=[info.SPM.SPM.xCon(Ic).c];
+                            if isempty(cname), cname={info.SPM.SPM.xCon(Ic).name}; end
+                            xX=info.SPM.SPM.xX;
+                            mcon=1;
+                            %mstats=false;
+                        end
+                        if ~isfield(info,'ROIinfo'), info.ROIinfo=[]; end
+                        if ~isfield(info,'gui'), info.gui=true; end
+                        conn_rex('test',xX,info.ROIdata(:,s),c,cname,{info.ROInames{s}},s,info.ROIinfo,mstats,mcon,info.SPM.SPM,true);
                     end
                 end
-                conn_importl2covariate(name,num2cell(y,1));
                 cd(cwd);
                 return;
                 
@@ -490,7 +528,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 dataplot=conn_displaysubject(spmfile);
 %                 [spmfile_path,spmfile_name]=fileparts(spmfile);
 %                 cwd=pwd;cd(spmfile_path);
-%                 load(spmfile,'SPM');
+%                 conn_loadmatfile(spmfile,'SPM');
 %                 idxsubjects=1:size(SPM.xX.X,1);
 %                 if isfield(SPM.xX,'SelectedSubjects'), consubjects=find(SPM.xX.SelectedSubjects); consubjects=consubjects(1+rem(idxsubjects-1,numel(consubjects))); 
 %                 else consubjects=idxsubjects;
@@ -592,7 +630,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 return;
                 
             case 'openfolder'
-                cd(fileparts(spmfile));
+                conn_fileutils('cd',fileparts(spmfile));
                 try
                     if ispc, [nill,nill]=system(sprintf('start "%s"',fileparts(spmfile)));
                     else [nill,nill]=system(sprintf('open ''%s''',fileparts(spmfile)));
@@ -644,11 +682,11 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 end
                 peaks_suprathreshold=b(peaks_idx+size(b,1)*size(b,2)*size(b,3))>0;
                 [spmfile_path,spmfile_name]=fileparts(spmfile);
-                save(fullfile(spmfile_path,'PEAKS.mat'),'peaks','peaks_suprathreshold');
+                conn_savematfile(fullfile(spmfile_path,'PEAKS.mat'),'peaks','peaks_suprathreshold');
                 conn_process('extract_connectome',peaks(peaks_suprathreshold,:),[peaks(peaks_suprathreshold,:);peaks(~peaks_suprathreshold,:)],-1);
                 return
 %                 ROI=conn_process('results_connectome',spmfile_path,-1);
-%                 save(fullfile(spmfile_path,'ROI.mat'),'ROI');
+%                 conn_savematfile(fullfile(spmfile_path,'ROI.mat'),'ROI');
 %                 conn_displayroi('initfile','results_roi',0,fullfile(spmfile_path,'ROI.mat'));
                 %conn_displayroi('initfile','results_connectome',0,spmfile_path,peaks_suprathreshold,fullfile(spmfile_path,'ROI.mat'));
                 %conn_displayroi('init','results_connectome',0,spmfile_path,peaks_suprathreshold);
@@ -689,9 +727,9 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 SIDE=DATA.side;
                 if conn_vproject_randomise(spmfile,THR_TYPE,THR,~skipgui);
                     try, 
-                        SIM=load(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); 
+                        SIM=conn_loadmatfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); 
                         if ~isfield(SIM,'VERSION'), SIM.VERSION=0; end
-                        if SIM.VERSION<2, SIM=[]; spm_unlink(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); end % note: disregard older versions
+                        if SIM.VERSION<2, SIM=[]; conn_fileutils('spm_unlink',conn_vproject_simfilename(spmfile,THR_TYPE,THR)); end % note: disregard older versions
                     end
                 end
                 init=-1;
@@ -1507,10 +1545,10 @@ if isempty(refsrois)||(isfield(refsrois,'filename')&&~isempty(refatlas)&&~isequa
         end
         %filename=fullfile(fileparts(which('conn')),'utils','otherrois','BA.img');
         [filename_path,filename_name,filename_ext]=fileparts(filename);
-        V=spm_vol(filename);
+        V=conn_fileutils('spm_vol',filename);
         [idxlabels,strlabels]=rex(filename,filename,'level','clusters','disregard_zeros',false); strlabels=regexprep(strlabels,['^',filename_name,'\.'],''); 
         %strlabels=textread(fullfile(filename_path,[filename_name,'.txt']),'%s','delimiter','\n');
-        tempdata=spm_read_vols(V); if numel(V)>1, [nill,tempdata]=max(tempdata,[],4); tempdata(~nill)=0; idxlabels=1:numel(strlabels); end
+        tempdata=conn_fileutils('spm_read_vols',V); if numel(V)>1, [nill,tempdata]=max(tempdata,[],4); tempdata(~nill)=0; idxlabels=1:numel(strlabels); end
         refsrois=struct('filename',filename,'filenameshort',filename_name,'V',V,'data',tempdata,'labels',{strlabels},'labelsidx',full(sparse(1,round(idxlabels(:)'),1:numel(idxlabels))));
     end
     if isempty(surfcoords)||conn_surf_dimscheck(refsrois.V)
@@ -1623,11 +1661,11 @@ switch(thres{2}),
             THR=0;%thres{1};
             SIDE=side;
             if isempty(SIM)||~any(SIM.Pthr==THR&SIM.Pthr_type==THR_TYPE&SIM.Pthr_side==SIDE)
-                if ~isempty(dir(conn_vproject_simfilename(spmfile,THR_TYPE,THR)))||conn_vproject_randomise(spmfile,THR_TYPE,THR,init~=1),
+                if conn_existfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR))||conn_vproject_randomise(spmfile,THR_TYPE,THR,init~=1),
                     try,
-                        SIM=load(conn_vproject_simfilename(spmfile,THR_TYPE,THR));
+                        SIM=conn_loadmatfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR));
                         if ~isfield(SIM,'VERSION'), SIM.VERSION=0; end
-                        if SIM.VERSION<2, SIM=[]; spm_unlink(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); end % note: disregard older versions
+                        if SIM.VERSION<2, SIM=[]; conn_fileutils('spm_unlink',conn_vproject_simfilename(spmfile,THR_TYPE,THR)); end % note: disregard older versions
                     end
                 end
             end
@@ -1734,11 +1772,11 @@ if ~isempty(idxvoxels),
         THR=thres{1};
         SIDE=side;
         if isempty(SIM)||~any(SIM.Pthr==THR&SIM.Pthr_type==THR_TYPE&SIM.Pthr_side==SIDE)
-            if ~isempty(dir(conn_vproject_simfilename(spmfile,THR_TYPE,THR)))||((thres4~=1&&thres4~=8)&&conn_vproject_randomise(spmfile,THR_TYPE,THR,init~=1)),
+            if conn_existfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR))||((thres4~=1&&thres4~=8)&&conn_vproject_randomise(spmfile,THR_TYPE,THR,init~=1)),
                 try, 
-                    SIM=load(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); 
+                    SIM=conn_loadmatfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); 
                     if ~isfield(SIM,'VERSION'), SIM.VERSION=0; end
-                    if SIM.VERSION<2, SIM=[]; spm_unlink(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); end % note: disregard older versions
+                    if SIM.VERSION<2, SIM=[]; conn_fileutils('spm_unlink',conn_vproject_simfilename(spmfile,THR_TYPE,THR)); end % note: disregard older versions
                 end
             end
         end
@@ -2769,7 +2807,7 @@ if nargin==2&&isequal(THR_TYPE,'all')
     simfilename=fullfile(fileparts(spmfile),'nonparametric_p*.mat');
 else
     simfilename=char(arrayfun(@(a,b)fullfile(fileparts(spmfile),sprintf('nonparametric_p%d_%.8f.mat',a,b)),THR_TYPE,THR,'uni',0));
-    if ~isempty(dir(conn_prepend('parallel_*_',simfilename))), conn_process('results_nonparametric_collapse',simfilename); end
+    if conn_existfile(conn_prepend('parallel_*_',simfilename)), conn_process('results_nonparametric_collapse',simfilename); end
 end
 end
 
@@ -2809,13 +2847,13 @@ if ishandle(fh),
     maskfile=fullfile(fileparts(spmfile),'mask.nii');
     if niters<=0, return; end
     if ~conn_existfile(maskfile), maskfile=fullfile(fileparts(spmfile),'mask.img'); end
-    if conn_existfile(maskfile), mask=spm_read_vols(spm_vol(maskfile)); 
+    if conn_existfile(maskfile), mask=conn_fileutils('spm_read_vols',conn_fileutils('spm_vol',maskfile)); 
     else mask=[]; 
     end
     SIDE=1:3;
     THR=THR+[0 0 0];
     THR_TYPE=THR_TYPE+[0 0 0];
-    load(spmfile,'SPM');
+    SPM=struct; conn_loadmatfile(spmfile,'SPM');
     if isfield(SPM,'xX_multivariate')
         X=SPM.xX_multivariate.X;
         c=SPM.xX_multivariate.C;
@@ -2831,7 +2869,7 @@ if ishandle(fh),
     if v3==1, % now
         ht=conn_msgbox('Preparing data. Please wait...','results explorer',-1);
         try
-            a=spm_vol(char(SPM.xY.Y));
+            a=conn_fileutils('spm_vol',char(SPM.xY.Y));
         catch
             a=SPM.xY.VY;
         end
@@ -2839,7 +2877,7 @@ if ishandle(fh),
         if ~conn_existfile(a(1).fname), conn_msgbox({sprintf('Unable to find file %s',a(1).fname),'Please re-compute second-level model and try again'},'Outdated file references',2); return; end
         y=[];
         if isempty(mask)
-            y=spm_read_vols(a);
+            y=conn_fileutils('spm_read_vols',a);
             mask=~any(isnan(y),4)&any(diff(y,1,4)~=0,4);
             y=reshape(y,size(y,1)*size(y,2)*size(y,3),size(y,4));
             y=y(mask,:);
@@ -2847,7 +2885,7 @@ if ishandle(fh),
         fmask=find(mask);
         [i,j,k]=ind2sub(size(mask),fmask);
         xyz=[i(:) j(:) k(:)]';
-        if isempty(y), y=spm_get_data(a,xyz)'; end
+        if isempty(y), y=conn_fileutils('spm_get_data',a,xyz)'; end
         y=permute(reshape(y,size(y,1),size(X,1),[]),[2,3,1]);
         if conn_surf_dimscheck(a),
             surfparams=load(fullfile(fileparts(which(mfilename)),'utils','surf','surf_top.mat'),'A');
@@ -2875,7 +2913,7 @@ if ishandle(fh),
         N=str2num(v5);
         tfilename=fullfile(fileparts(spmfile),'args_nonparam.mat');
         niters=max(1,ceil(niters/N));
-        save(tfilename,'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples');
+        conn_savematfile(tfilename,'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples');
         conn_jobmanager('options','profile',parallel);
         info=conn_jobmanager('submit','orphan_results_nonparametric',N,N,[],tfilename);
         info=conn_jobmanager(info,'','donotupdate'); 
@@ -2889,11 +2927,11 @@ if ishandle(fh),
         if isfield(SPM.xY,'Y'), Y=char(SPM.xY.Y);
         else Y=char({SPM.xY.VY.fname});
         end
-        if ~isempty(dir(fullfile(file2_path,[file2_name,'.m'])))
+        if conn_existfile(fullfile(file2_path,[file2_name,'.m']))
             answ=conn_questdlg(sprintf('Overwrite %s file?',fullfile(file2_path,[file2_name,'.m'])),'warning','Yes','No','Yes');
             if strcmp(answ,'No'), ok=false; return; end
         end
-        save(fullfile(file2_path,[file2_name,'.mat']),'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples');
+        conn_savematfile(fullfile(file2_path,[file2_name,'.mat']),'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples');
         conn_disp('fprintf','Created file %s\n',fullfile(file2_path,[file2_name,'.mat']));
         fh=fopen(fullfile(file2_path,[file2_name,'.m']),'wt');
         fprintf(fh,'load %s;\n',fullfile(file2_path,[file2_name,'.mat']));

@@ -3,7 +3,7 @@ function [ROInames,ROIidx]=conn_roilabels(filename)
 
 [roi_path_dir,roi_path_name,roi_path_ext]=fileparts(filename);
 ok=false;
-if ~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.txt']))),
+if conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
     lines=textread(fullfile(roi_path_dir,[roi_path_name,'.txt']),'%s','delimiter','\n');
     for opts=1:3
         try
@@ -42,7 +42,7 @@ if ~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.txt']))),
         end
         if ok, break; end
     end
-elseif ~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.csv']))),
+elseif conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.csv'])),
     lines=textread(fullfile(roi_path_dir,[roi_path_name,'.csv']),'%s','delimiter','\n');
     lines=lines(cellfun('length',lines)>0);
     for opts=1:4
@@ -88,7 +88,7 @@ elseif ~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.csv']))),
         end
         if ok, break; end
     end
-elseif ~isempty(dir(fullfile(roi_path_dir,[roi_path_name,'.xls']))),
+elseif conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.xls'])),
     [idxpairs,PU]=xlsread(fullfile(roi_path_dir,[roi_path_name,'.xls'])); % ROI_NUMBER,ROI_LABEL
     if size(PU,1)==size(idxpairs,1), ROInames=PU(:,1);ROIidx=idxpairs(:,1); ok=true;
     elseif size(PU,1)==size(idxpairs,1)+1, ROInames=PU(2:end,1);ROIidx=idxpairs(:,1); ok=true;

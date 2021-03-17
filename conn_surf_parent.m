@@ -5,7 +5,7 @@ if nargin<3||isempty(doerror), doerror=false; end
 if isstruct(V), fnames=conn_expandframe(V); 
 else
     fnames=cellstr(V);
-    V=spm_vol(char(fnames));
+    V=conn_fileutils('spm_vol',char(fnames));
 end
 
 for n=1:numel(fnames),
@@ -17,7 +17,7 @@ for n=1:numel(fnames),
         %if ~ok, fname=conn_prepend(-1,fname); ok=conn_existfile(fname); end
         if ok,
             if ~isempty(warnmsg), fprintf('%s warning: displaying slices in %s instead of in %s (surface file)\n',warnmsg,fname,fnames{n}); end
-            V(n)=spm_vol(fname);
+            V(n)=conn_fileutils('spm_vol',fname);
         elseif doerror, error('%s error: %s is a non-compatible format (surface file)',warnmsg,fnames{n});
         elseif ~isempty(warnmsg), fprintf('%s warning: %s is a non-compatible format (surface file)\n',warnmsg,fnames{n});
         end

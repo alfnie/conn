@@ -26,7 +26,7 @@ if doconvert
         [pathname,name,ext]=spm_fileparts(filename(1,:));
     end
 end
-if size(filename,1)>=1&&isdir(deblank(filename(1,:)))
+if size(filename,1)>=1&&conn_fileutils('isdir',deblank(filename(1,:)))
     nV=size(filename,1);
     str=[{'Directory'},reshape(cellstr(filename),1,[])];
 %     try
@@ -59,35 +59,36 @@ else
             if all(issinglevolume)
                 try
                     if nV>1
-                        V1=spm_vol([deblank(filename(1,:))]);
-                        V2=spm_vol([deblank(filename(end,:))]);
+                        V1=conn_fileutils('spm_vol',[deblank(filename(1,:))]);
+                        V2=conn_fileutils('spm_vol',[deblank(filename(end,:))]);
                         V=[V1 V2];
                         ok=true;
                     end
                 end
             elseif size(filename,1)==1
-                nfilename=nifti(filename);
+                nfilename=conn_fileutils('nifti',filename);
                 nV=0; for n=1:numel(nfilename), tV=size(nfilename(n).dat,4); nV=nV+tV; end
                 try
                     if nV>10
-                        V1=spm_vol([deblank(filename),',1']);
-                        V2=spm_vol([deblank(filename),',',num2str(nV)]);
+                        V1=conn_fileutils('spm_vol',[deblank(filename),',1']);
+                        V2=conn_fileutils('spm_vol',[deblank(filename),',',num2str(nV)]);
                         V=[V1 V2];
                         ok=true;
                     end
                 end
             else
                 try
-                    V1=spm_vol([deblank(filename(1,:))]);
-                    V2=spm_vol([deblank(filename(end,:))]);
+                    V1=conn_fileutils('spm_vol',[deblank(filename(1,:))]);
+                    V2=conn_fileutils('spm_vol',[deblank(filename(end,:))]);
                     V=[V1(1) V2(end)];
-                    nfilename=nifti(cellstr(filename(~issinglevolume,:)));
+                    nfilename=conn_fileutils('nifti',cellstr(filename(~issinglevolume,:)));
                     for n=1:numel(nfilename), tV=size(nfilename(n).dat,4); nV=nV+tV; end
                     ok=true;
                 end
             end
-            if ~ok, V=spm_vol(filename); nV=numel(V); end
+            if ~ok, V=conn_fileutils('spm_vol',filename); nV=numel(V); end
             %V=spm_vol(filename);
+            if isfield(V,'private'), [V.private]=deal([]); end
             if length(V)==1, icon=V;
             else icon=V([1,end]);
                 %else icon=V(reshape(unique(round(linspace(1,numel(V),maxvolsdisplayed))),1,[]));
@@ -108,8 +109,8 @@ else
                     if strcmp(names,'CONN_x')&&isstruct(x)
                         V(n1).dim=x.Setup.nsubjects;
                         V(n1).fname=deblank(filename(n1,:));
-                        temp=spm_vol(x.Setup.structural{1}{1}{1});
-                        if x.Setup.nsubjects>1, temp=[temp spm_vol(x.Setup.structural{x.Setup.nsubjects}{1}{1})]; end
+                        temp=conn_fileutils('spm_vol',x.Setup.structural{1}{1}{1});
+                        if x.Setup.nsubjects>1, temp=[temp conn_fileutils('spm_vol',x.Setup.structural{x.Setup.nsubjects}{1}{1})]; end
                         icon=cat(2,icon,temp);
                         tok=true;
                     elseif strcmp(names,'SPM')&&isstruct(x)

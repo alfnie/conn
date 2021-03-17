@@ -4,12 +4,12 @@ global CONN_x CONN_h CONN_gui;
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
 filepathresults=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name);
 ICAPCA='ICA';
-if isempty(dir(fullfile(filepathresults,[ICAPCA,'.Timeseries.mat']))), ICAPCA='PCA'; end
-if isempty(dir(fullfile(filepathresults,[ICAPCA,'.Timeseries.mat']))), conn_msgbox('Sorry, this option is not available until the first-level ICA analyses have been re-run','',2); return; end
+if ~conn_existfile(fullfile(filepathresults,[ICAPCA,'.Timeseries.mat'])), ICAPCA='PCA'; end
+if ~conn_existfile(fullfile(filepathresults,[ICAPCA,'.Timeseries.mat'])), conn_msgbox('Sorry, this option is not available until the first-level ICA analyses have been re-run','',2); return; end
 %set(CONN_h.screen.hfig,'pointer','watch');drawnow
-load(fullfile(filepathresults,[ICAPCA,'.Timeseries.mat']),'data','conditions','weights');
-if conn_existfile(fullfile(filepathresults,[ICAPCA,'.Maps.nii'])), vol=spm_vol(fullfile(filepathresults,[ICAPCA,'.Maps.nii']));
-else vol=spm_vol(fullfile(filepathresults,[ICAPCA,'.ROIs.nii']));
+[data,conditions,weights]=deal({}); conn_loadmatfile(fullfile(filepathresults,[ICAPCA,'.Timeseries.mat']),'data','conditions','weights');
+if conn_existfile(fullfile(filepathresults,[ICAPCA,'.Maps.nii'])), filevol=fullfile(filepathresults,[ICAPCA,'.Maps.nii']); vol=conn_fileutils('spm_localvol',filevol); 
+else filevol=fullfile(filepathresults,[ICAPCA,'.ROIs.nii']); vol=conn_fileutils('spm_localvol',filevol);
 end
 B=spm_read_vols(vol);
 [maxB,imaxB]=max(B,[],4);
@@ -237,8 +237,8 @@ fh=@conn_icaexplore_update;
                 filename=fullfile(file_path,file_name);
             end
             set(hselect,'tooltipstring',filename);
-            maskV=spm_vol(filename);
-            v=spm_get_data(maskV,pinv(maskV(1).mat)*xyz);
+            maskV=conn_fileutils('spm_vol',filename);
+            v=conn_fileutils('spm_get_data',maskV,pinv(maskV(1).mat)*xyz);
             maskv=~isnan(v);
             v(isnan(v))=0;
             if size(v,1)==1&&max(v)>1&&~any(rem(v,1)), v=full(sparse(v(v>0),find(v>0),1,max(v),numel(v))); end
@@ -323,10 +323,11 @@ fh=@conn_icaexplore_update;
                 conn_icaexplore_update;
                 answ=conn_questdlg({'Saving these changes stores the (currently displayed) group-level spatial maps and component timeseries for future reference','(note: subject-level backprojected spatial maps or any imported group-ICA ROIs are NOT changed by this operation;','you may flip the sign manually in any second-level analysis by changing the sign of the between-source contrast elements)',' ','Not saving these changes does not modify any of the stored maps or timeseries.','The sign-flip operation effect is still viewable in the current ''summary'' display, but ','switching to a different tab or clicking again on the ''sumary'' button will revert to the original (saved) maps',' ','Save these changes now?'},'','Yes','Not now','Not now');
                 if ~(isempty(answ)||strcmp(answ,'Not now')), 
-                    save(fullfile(filepathresults,[ICAPCA,'.Timeseries.mat']),'data','-append');
-                    try, delete(fullfile(filepathresults,[ICAPCA,'.Maps.nii'])); end
+                    conn_savematfile(fullfile(filepathresults,[ICAPCA,'.Timeseries.mat']),'data','-append');
+                    try, conn_fileutils('deletefile',fullfile(filepathresults,[ICAPCA,'.Maps.nii'])); end
                     vol=spm_create_vol(vol);
                     for n1=1:size(B,4), vol(n1).fname=fullfile(filepathresults,[ICAPCA,'.Maps.nii']); vol(n1)=spm_write_vol(vol(n1),B(:,:,:,n1)); end
+                    if conn_server('util_isremotefile',filevol), conn_cache('push',filevol); end
                 end
             end
         end
@@ -347,13 +348,15 @@ fh=@conn_icaexplore_update;
        if ~ishandle(hfig), return; end
        delete(hfig);
        labels=newlabels;
-       fh=fopen(fullfile(filepathresults,[ICAPCA,'.ROIs.txt']),'wt');
+       %fh=fopen(fullfile(filepathresults,[ICAPCA,'.ROIs.txt']),'wt');
+       fh={};
        for nl=1:numel(labels), 
-           if isempty(labels{nl}), fprintf(fh,'%d\n',nl);
-           else fprintf(fh,'%s\n',labels{nl}(labels{nl}>=32));
+           if isempty(labels{nl}), fh{end+1}=sprintf('%d\n',nl);
+           else fh{end+1}=sprintf('%s\n',labels{nl}(labels{nl}>=32));
            end
        end
-       fclose(fh);
+       %fclose(fh);
+       conn_fileutils('filewrite_raw',fullfile(filepathresults,[ICAPCA,'.ROIs.txt']),fh);
        conn_icaexplore_update;
        
         function conn_icaexplore_label_update(str)
@@ -387,13 +390,14 @@ fh=@conn_icaexplore_update;
            %[maxB,imaxB]=max(abs(B(:,:,:,selectedcomponents)),[],4);
            [maxB,imaxB]=max(max(0,B(:,:,:,selectedcomponents)),[],4);
            e0=struct('fname',filename,'descrip','conn ICA parcellation file','mat',vol(1).mat,'dim',vol(1).dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('uint16'),spm_platform('bigend')]);
-           try, spm_unlink(e0.fname); end
+           try, conn_fileutils('spm_unlink',e0.fname); end
            thr=str2num(get(ht4.h10,'string'));
            txyz=round(imat(1:3,:)*xyz);
            posneg={'+','-'};
            nc=0;
            l3=zeros(size(maxB));
-           fh=fopen(conn_prepend('',filename,'.txt'),'wt');
+           %fh=fopen(conn_prepend('',filename,'.txt'),'wt');
+           fh={};
            for np=1:numel(selectedcomponents)
                tB=B(:,:,:,selectedcomponents(np));
                l2=maxB>thr & imaxB==np;
@@ -407,11 +411,12 @@ fh=@conn_icaexplore_update;
                        if isempty(labels{selectedcomponents(np)}), tname=names{selectedcomponents(np)};
                        else tname=labels{selectedcomponents(np)};
                        end
-                       fprintf(fh,'%s%s (%d,%d,%d) n=%d\n',tname,posneg{1+(mean(tB(tmask))<0)},round(mean(xyz(1,tmask))),round(mean(xyz(2,tmask))),round(mean(xyz(3,tmask))),nl(idxnl(ni2)));
+                       fh{end+1}=sprintf('%s%s (%d,%d,%d) n=%d\n',tname,posneg{1+(mean(tB(tmask))<0)},round(mean(xyz(1,tmask))),round(mean(xyz(2,tmask))),round(mean(xyz(3,tmask))),nl(idxnl(ni2)));
                    end
                end
            end
-           fclose(fh);
+           %fclose(fh);
+           conn_fileutils('filewrite_raw',conn_prepend('',filename,'.txt'),fh);
            spm_write_vol(e0,l3);
            conn_msgbox(sprintf('ICA parcellation file %s saved\n',filename),'',true);
        end        

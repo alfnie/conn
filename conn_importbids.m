@@ -103,8 +103,8 @@ for isub=1:numel(nsubs),
                         for ne=1:numel(enames)
                             fname=regexprep(filename{n2},'func(\/|\\)([^\\\/]*)_bold\.nii(\.gz)?$',['fmap$1$2_',enames{ne},'.nii']);
                             if ~conn_existfile(fname), fname=regexprep(filename{n2},'func(\/|\\)([^\\\/]*)_bold\.nii(\.gz)?$',['fmap$1$2_',enames{ne},'.nii.gz']); end
-                            if ~conn_existfile(fname), tname=regexprep(filename{n2},'func(\/|\\)([^\\\/]*)_bold\.nii(\.gz)?$',['fmap$1*_',enames{ne},'.nii']); tdir=dir(tname); if numel(tdir)==1, fname=fullfile(fileparts(tname),tdir.name); end; end
-                            if ~conn_existfile(fname), tname=regexprep(filename{n2},'func(\/|\\)([^\\\/]*)_bold\.nii(\.gz)?$',['fmap$1*_',enames{ne},'.nii.gz']); tdir=dir(tname); if numel(tdir)==1, fname=fullfile(fileparts(tname),tdir.name); end; end
+                            if ~conn_existfile(fname), tname=regexprep(filename{n2},'func(\/|\\)([^\\\/]*)_bold\.nii(\.gz)?$',['fmap$1*_',enames{ne},'.nii']); tdir=conn_dirn(tname); if numel(tdir)==1, fname=fullfile(fileparts(tname),tdir.name); end; end
+                            if ~conn_existfile(fname), tname=regexprep(filename{n2},'func(\/|\\)([^\\\/]*)_bold\.nii(\.gz)?$',['fmap$1*_',enames{ne},'.nii.gz']); tdir=conn_dirn(tname); if numel(tdir)==1, fname=fullfile(fileparts(tname),tdir.name); end; end
                             if conn_existfile(fname), fnames{ne}=fname; else fnames{ne}=''; end
                         end
                         v=cellfun('length',fnames);

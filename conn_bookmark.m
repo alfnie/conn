@@ -25,25 +25,25 @@ switch(option)
         conn_args={};opts={};
         try,
             warning('off','MATLAB:load:variableNotFound');
-            load(filename,'conn_args'); 
+            conn_loadmatfile(filename,'conn_args'); 
             %warning('on','MATLAB:load:variableNotFound');
         end
         if isempty(conn_args), %back-compatibility check
             state={};
-            try, load(filename,'state'); end 
+            try, conn_loadmatfile(filename,'state'); end 
             if ~isempty(state), conn_slice_display(state); end
             return;
         end
         try, 
             warning('off','MATLAB:load:variableNotFound');
-            load(filename,'opts'); 
+            conn_loadmatfile(filename,'opts'); 
             %warning('on','MATLAB:load:variableNotFound');
         end
         if numel(conn_args)>=2&&isstruct(conn_args{2})
             if isfield(conn_args{2},'bookmark_filename'), conn_args{2}.bookmark_filename=filename; end
             if isfield(conn_args{2},'bookmark_descr'), 
                 try
-                    descr = fileread(conn_prepend('',filename,'.txt'));
+                    descr = conn_fileutils('fileread',conn_prepend('',filename,'.txt'));
                     descr=regexp(descr,'\n','split');
                     conn_args{2}.bookmark_descr=descr;
                 end
@@ -51,7 +51,7 @@ switch(option)
         end
         if any(strcmp(opts,'forcecd')),
             cwd2=fileparts(filename);
-            if ~isempty(cwd2), cd(cwd2); end
+            if ~isempty(cwd2), try, cd(cwd2); end; end
         end
         if ishandle(hmsg), delete(hmsg); end
         conn(conn_args{:});
@@ -65,7 +65,8 @@ switch(option)
         pathfilename=[pathfilename_name,pathfilename_ext]; % bookmark folder
         if strcmp(pathfilename,'bookmarks')&&isempty(regexp(rootpath,'bookmarks$')), rootpath=fullfile(rootpath,pathfilename); pathfilename=''; end
         if ~isempty(rootpath), filepath=rootpath; end      % root bookmarks folder
-        tdirs=dir(fullfile(filepath,'*'));
+        
+        tdirs=conn_dirn(fullfile(filepath,'*'));
         tdirs=tdirs([tdirs.isdir]&~ismember({tdirs.name},{'.','..'}));
         tdirs={tdirs.name};
         descr = fileread(conn_prepend('',tfilename,'.txt'));
@@ -89,15 +90,19 @@ switch(option)
         delete(thfig);
         if ~strcmp(tfilename,newtfilename)
             for ext={'.jpg','.mat','.txt'}
-                if ispc, [ok,nill]=system(['move "',conn_prepend('',tfilename,ext{1}),'" "',conn_prepend('',newtfilename,ext{1}),'"']);
-                else, [ok,nill]=system(['mv -f ''',conn_prepend('',tfilename,ext{1}),''' ''',conn_prepend('',newtfilename,ext{1}),'''']);
-                end
+                try, conn_fileutils('movefile',conn_prepend('',tfilename,ext{1}),conn_prepend('',newtfilename,ext{1})); end
+                %if ispc, [ok,nill]=system(['move "',conn_prepend('',tfilename,ext{1}),'" "',conn_prepend('',newtfilename,ext{1}),'"']);
+                %else, [ok,nill]=system(['mv -f ''',conn_prepend('',tfilename,ext{1}),''' ''',conn_prepend('',newtfilename,ext{1}),'''']);
+                %end
             end
         end
         descr=descr(cellfun('length',descr)>0);
-        tfh=fopen(conn_prepend('',newtfilename,'.txt'),'wt');
-        for n1=1:numel(descr), fprintf(tfh,'%s\n',regexprep(descr{n1},'\n','')); end
-        fclose(tfh);
+        conn_fileutils('filewrite',newtfilename,descr);
+        %cachefile=conn_cache('pull',conn_prepend('',newtfilename,'.txt'));
+        %tfh=fopen(cachefile,'wt');
+        %for n1=1:numel(descr), fprintf(tfh,'%s\n',regexprep(descr{n1},'\n','')); end
+        %fclose(tfh);
+        %conn_cache('push',conn_prepend('',newtfilename,'.txt'));
         varargout={true};
     case 'save'
         if numel(varargin)>=1&&~isempty(varargin{1}), pfilename=varargin{1};
@@ -118,7 +123,7 @@ switch(option)
         pathfilename=[pathfilename_name,pathfilename_ext]; % bookmark folder
         if strcmp(pathfilename,'bookmarks')&&isempty(regexp(rootpath,'bookmarks$')), rootpath=fullfile(rootpath,pathfilename); pathfilename=''; end
         if ~isempty(rootpath), filepath=rootpath; end      % root bookmarks folder
-        tdirs=dir(fullfile(filepath,'*'));
+        tdirs=conn_dirn(fullfile(filepath,'*'));
         tdirs=tdirs([tdirs.isdir]&~ismember({tdirs.name},{'.','..'}));
         tdirs={tdirs.name};
         thfig=figure('units','norm','position',[.35,.5,.3,.3],'color','w','name','new bookmark','numbertitle','off','menubar','none');
@@ -142,13 +147,15 @@ switch(option)
         %if isempty(answer), return; end
         %descr=cellstr(answer{1});
         descr=descr(cellfun('length',descr)>0);
-        tfh=fopen(conn_prepend('',tfilename,'.txt'),'wt');
-        for n1=1:numel(descr), fprintf(tfh,'%s\n',descr{n1}); end
-        fclose(tfh);
-        if isempty(opts), save(conn_prepend('',tfilename,'.mat'),'conn_args','-v7.3');
-        else save(conn_prepend('',tfilename,'.mat'),'conn_args','opts','-v7.3');
+        conn_fileutils('filewrite',conn_prepend('',tfilename,'.txt'),descr);
+        %tfh=fopen(conn_prepend('',tfilename,'.txt'),'wt');
+        %for n1=1:numel(descr), fprintf(tfh,'%s\n',descr{n1}); end
+        %fclose(tfh);
+        if isempty(opts), conn_savematfile(conn_prepend('',tfilename,'.mat'),'conn_args','-v7.3');
+        else conn_savematfile(conn_prepend('',tfilename,'.mat'),'conn_args','opts','-v7.3');
         end
-        try, [nill,nill]=copyfile(fullfile(fileparts(which('conn')),'conn_icon.jpg'),conn_prepend('',tfilename,'.jpg')); end
+        try, conn_fileutils('copyfile',fullfile(fileparts(which('conn')),'conn_icon.jpg'),conn_prepend('',tfilename,'.jpg')); end
+        %try, [nill,nill]=copyfile(fullfile(fileparts(which('conn')),'conn_icon.jpg'),conn_prepend('',tfilename,'.jpg')); end
         varargout={tfilename,pfilename,descr};
         conn_msgbox({'Bookmark saved',tfilename,'Manage your bookmarks @ Results->AllAnalyses->AllBookmarks'},'',0);
         %fprintf('Bookmark saved @ %s\nManage your bookmarks @ Results->AllAnalyses->AllBookmarks\n',tfilename);
@@ -161,7 +168,7 @@ end
                 answer=inputdlg({'Folder name (alphanumeric, case sensitive)'},'',1,{''});
                 if isempty(answer), return; end
                 tfname=answer{1};
-                [ok,nill]=mkdir(filepath,tfname);
+                conn_fileutils('mkdir',filepath,tfname);
                 tdirs{end+1}=tfname;
                 tdirs=unique(tdirs);
                 set(ht2,'string',[{'<HTML><i>root folder</i></HTML>'},tdirs],'value',1,'visible','on');

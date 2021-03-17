@@ -23,8 +23,8 @@ doinit=true;
 if nargin==1&&isstruct(filenameSURF)&&isfield(filenameSURF,'structural'), % struct from getstate
     state=filenameSURF;
     filenameSURF={};
-    if ~isdir(state.defaultfilepath), state.defaultfilepath=pwd; end
-    if ~isdir(state.FSfolder), state.FSfolder=fullfile(fileparts(which('conn')),'utils','surf'); end
+    if ~conn_fileutils('isdir',state.defaultfilepath), state.defaultfilepath=pwd; end
+    if ~conn_fileutils('isdir',state.FSfolder), state.FSfolder=fullfile(fileparts(which('conn')),'utils','surf'); end
     if ~isfield(state,'fontclose'), state.fontclose=1; end
     doinit=false;
 elseif nargin>0&&isstruct(filenameSURF),data=filenameSURF;return
@@ -110,7 +110,7 @@ if doinit
             state.info.surf=filenameSURF{1}.filename;
             filepath=fileparts(filenameSURF{1}.filename);
         else
-            a=spm_vol(char(filenameSURF));
+            a=conn_fileutils('spm_vol',char(filenameSURF));
             state.info.surf=char(filenameSURF);
             filepath=fileparts(filenameSURF{1});
         end
@@ -425,8 +425,8 @@ if 1 % reference axes
             state.structural=CONN_gui.refs.canonical.filename;
         end
     end
-    state.strvol=spm_vol(state.structural);
-    state.structuraldata=spm_read_vols(state.strvol);
+    state.strvol=conn_fileutils('spm_vol',state.structural);
+    state.structuraldata=conn_fileutils('spm_read_vols',state.strvol);
     %state.structuraldata(isnan(state.structuraldata))=0; %%
     hpatch=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm);
     for nview=1:3
@@ -1212,8 +1212,8 @@ if ishandle(hmsg), delete(hmsg); end
                     end
                 else state.structural=varargin{1};
                 end
-                state.strvol=spm_vol(state.structural);
-                state.structuraldata=spm_read_vols(state.strvol);
+                state.strvol=conn_fileutils('spm_vol',state.structural);
+                state.structuraldata=conn_fileutils('spm_read_vols',state.strvol);
                 %state.structuraldata(isnan(state.structuraldata))=0; %%
                 thpatch=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm);
                 for tnview=1:3
@@ -1272,7 +1272,7 @@ if ishandle(hmsg), delete(hmsg); end
                         state.info.surf=filenameSURF{1}.filename;
                         filepath=fileparts(filenameSURF{1}.filename);
                     else
-                        a=spm_vol(char(filenameSURF));
+                        a=conn_fileutils('spm_vol',char(filenameSURF));
                         state.info.surf=char(filenameSURF);
                         filepath=fileparts(filenameSURF{1});
                     end
@@ -1349,8 +1349,8 @@ try
     [trefnames,trefidx]=conn_roilabels(filenameSURF);
     if ~isempty(trefnames)
         if numel(trefnames)>1&&numel(tfilenameSURF)==1, %3d-atlas
-            tempvol=spm_vol(char(tfilenameSURF));
-            tempdata=spm_read_vols(tempvol);
+            tempvol=conn_fileutils('spm_vol',char(tfilenameSURF));
+            tempdata=conn_fileutils('spm_read_vols',tempvol);
             maxdata=max(tempdata(:));
             if max(trefidx)==maxdata
                 idata=listdlg('liststring',trefnames,'selectionmode','multiple','initialvalue',1:numel(trefnames),'promptstring','Select ROI:','ListSize',[300 200]);
@@ -1361,8 +1361,8 @@ try
             idata=listdlg('liststring',trefnames,'selectionmode','multiple','initialvalue',1:numel(trefnames),'promptstring','Select ROI:','ListSize',[300 200]);
             if isempty(idata), return; end
             try
-                tempvol=spm_vol(char(tfilenameSURF));
-                tempdata=spm_read_vols(tempvol);
+                tempvol=conn_fileutils('spm_vol',char(tfilenameSURF));
+                tempdata=conn_fileutils('spm_read_vols',tempvol);
                 temp={}; for n=1:numel(idata)
                     ndata=idata(n);
                     temp{n}=struct('filename',char(tfilenameSURF{ndata}),'data',tempdata(:,:,:,ndata),'vol',tempvol(ndata),'label',trefnames{ndata});
@@ -1383,7 +1383,7 @@ function V=conn_mesh_display_getV(filenameSURF,a,FSfolder)
             for n=1:numel(filenameSURF), V(filenameSURF{n}.data>0)=n; end
             V=reshape(V,[],2);
         else,
-            V=spm_read_vols(a);
+            V=conn_fileutils('spm_read_vols',a);
             V=reshape(V,[],2,numel(a));
         end
     else

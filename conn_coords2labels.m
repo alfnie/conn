@@ -22,10 +22,11 @@ end
 if isempty(atlas)
     if isdefault&&~isempty(default_atlas), atlas=default_atlas;
     else 
+        if any(conn_server('util_isremotefile',filename)), filename=conn_cache('pull',filename); end
         [filename_path,filename_name,filename_ext]=fileparts(filename);
-        V=spm_vol(filename);
+        V=conn_fileutils('spm_vol',filename);
         [idxlabels,strlabels]=rex(filename,filename,'level','clusters','disregard_zeros',false); strlabels=regexprep(strlabels,['^',filename_name,'\.'],'');
-        tempdata=spm_read_vols(V); if numel(V)>1, [nill,tempdata]=max(tempdata,[],4); tempdata(~nill)=0; idxlabels=1:numel(strlabels); end % note: for 4D atlases with multiple labels per voxel, return only first
+        tempdata=conn_fileutils('spm_read_vols',V); if numel(V)>1, [nill,tempdata]=max(tempdata,[],4); tempdata(~nill)=0; idxlabels=1:numel(strlabels); end % note: for 4D atlases with multiple labels per voxel, return only first
         atlas=struct('filename',filename,'filenameshort',filename_name,'V',V,'data',tempdata,'labels',{strlabels},'labelsidx',full(sparse(1,round(idxlabels(:)'),1:numel(idxlabels))));
         if isdefault, default_atlas=atlas; end
     end

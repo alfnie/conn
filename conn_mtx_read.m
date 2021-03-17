@@ -12,6 +12,8 @@ function [data,names,coords,samples] = conn_mtx_read(filename)
 %
 
 if ~nargin, help(mfilename); return; end
+isremotefile=conn_server('util_isremotefile',filename);
+if isremotefile, remotefilename=filename; filename=conn_cache('pull',remotefilename); end
 
 vol = spm_vol(filename);
 data = permute(spm_read_vols(vol),[1,2,4,3]);

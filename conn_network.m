@@ -23,7 +23,7 @@ end
 
 % loads connectivity values
 if iscell(filename), Z=filename{1};names=filename{2};if numel(filename)>2,filename=filename{3};else filename=[]; end
-else load(filename,'Z','names'); end
+else conn_loadmatfile(filename,'Z','names'); end
 [nROI,nROI2,nSubjects]=size(Z);
 if nargin<2||isempty(rois),
     [rois,ok]=listdlg('PromptString','Select ROIs:',...
@@ -251,7 +251,7 @@ if ~isempty(filename),
     [pathname,filename,fileext]=fileparts(filename);
     if strcmp(fileext,'.mat') % create adjacency matrices .mat file
         A=ZZ_thr; ROInames=names;
-        save(fullfile(pathname,[filename,fileext]),'A','ROInames');
+        conn_savematfile(fullfile(pathname,[filename,fileext]),'A','ROInames');
         fprintf(1,'Adjacency matrices saved as: %s\n',fullfile(pathname,[filename,fileext]));
     elseif strcmp(fileext,'.dl') % creates .dl UCINET format files
         for n=1:size(ZZ,3),
@@ -269,34 +269,38 @@ if ~isempty(filename),
     else
         % creates network-level measures file
         filename_out=fullfile(pathname,[filename,'.csv']);
-        fh=fopen(filename_out,'wt');
-        if isequal(fh,-1),filename_out=fullfile(pwd,[filename,'.csv']);fh=fopen(filename_out,'wt');end
+        %fh=fopen(filename_out,'wt');
+        %if isequal(fh,-1),filename_out=fullfile(pwd,[filename,'.csv']);fh=fopen(filename_out,'wt');end
+        fh={};
         if measures==1,
             tnames=names;for n1=1:numel(names),tnames{n1}(tnames{n1}==',')=';';end
-            fprintf(fh,[',Network',repmat(',',[1,nmeasures])]);for n1=1:nROI,fprintf(fh,[',%s',repmat(',',[1,nmeasures-1])],tnames{n1});end;fprintf(fh,'\n');
-            fprintf(fh,'Subject/Sample #,');
-            for nmeasure=1:nmeasures,fprintf(fh,'%s,',measure_names{nmeasure});end
+            fh{end+1}=sprintf([',Network',repmat(',',[1,nmeasures])]);for n1=1:nROI,fh{end+1}=sprintf([',%s',repmat(',',[1,nmeasures-1])],tnames{n1});end;fh{end+1}=sprintf('\n');
+            fh{end+1}=sprintf('Subject/Sample #,');
+            for nmeasure=1:nmeasures,fh{end+1}=sprintf('%s,',measure_names{nmeasure});end
             for n1=1:nROI,
-                for nmeasure=1:nmeasures,fprintf(fh,',%s',measure_names{nmeasure});end
+                for nmeasure=1:nmeasures,fh{end+1}=sprintf(',%s',measure_names{nmeasure});end
             end;
-            fprintf(fh,'\n');
+            fh{end+1}=sprintf('\n');
             for n=1:size(ZZ,3),
-                fprintf(fh,'%d,',n);
-                for nmeasure=1:nmeasures,fprintf(fh,'%f,',net_values(n,nmeasure));end
+                fh{end+1}=sprintf('%d,',n);
+                for nmeasure=1:nmeasures,fh{end+1}=sprintf('%f,',net_values(n,nmeasure));end
                 for n1=1:nROI,
-                    for nmeasure=1:nmeasures,fprintf(fh,',%f',NET_values(n,n1,nmeasure));end
+                    for nmeasure=1:nmeasures,fh{end+1}=sprintf(',%f',NET_values(n,n1,nmeasure));end
                 end
-                fprintf(fh,'\n');
+                fh{end+1}=sprintf('\n');
             end
         else
-            fprintf(fh,',Global,,,,,');for n1=1:nROI,fprintf(fh,',%s,,',names{n1});end;fprintf(fh,'\n');
-            fprintf(fh,'Subject/Sample #,Average path distance,Normalized average path distance,Average clustering coefficient,Normalized average clustering coefficient,Average degree,');for n1=1:nROI,fprintf(fh,',Average path distance,Average clustering coefficient,degree');end;fprintf(fh,'\n');
+            fh{end+1}=sprintf(',Global,,,,,');for n1=1:nROI,fh{end+1}=sprintf(',%s,,',names{n1});end;fh{end+1}=sprintf('\n');
+            fh{end+1}=sprintf('Subject/Sample #,Average path distance,Normalized average path distance,Average clustering coefficient,Normalized average clustering coefficient,Average degree,');for n1=1:nROI,fh{end+1}=sprintf(',Average path distance,Average clustering coefficient,degree');end;fh{end+1}=sprintf('\n');
             for n=1:size(ZZ,3),
-                fprintf(fh,'%d,%f,%f,%f,%f,%f,',n,net_rd(n),net_d(n),net_rc(n),net_c(n),net_k(n));
-                for n1=1:nROI,fprintf(fh,',%f,%f,%f',NET_d(n,n1),NET_c(n,n1),NET_k(n,n1));end;fprintf(fh,'\n');
+                fh{end+1}=sprintf('%d,%f,%f,%f,%f,%f,',n,net_rd(n),net_d(n),net_rc(n),net_c(n),net_k(n));
+                for n1=1:nROI,fh{end+1}=sprintf(',%f,%f,%f',NET_d(n,n1),NET_c(n,n1),NET_k(n,n1));end;fh{end+1}=sprintf('\n');
             end
         end
-        fclose(fh);
+        %fclose(fh);
+        try, conn_fileutils('filewrite_raw',filename_out,fh);
+        catch, filename_out=fullfile(pwd,[filename,'.csv']); conn_fileutils('filewrite_raw',filename_out,fh);
+        end
         fprintf(1,'Network measures saved as: %s\n',filename_out);
     end
 end
@@ -314,6 +318,6 @@ else
 end
 if ~isempty(filename)&&strcmp(fileext,'.csv')
     filename_out=fullfile(pathname,[filename,'.networkmeasures.mat']);
-    save(filename_out,'results');
+    conn_savematfile(filename_out,'results');
     fprintf(1,'Network measures saved as: %s\n',filename_out);
 end

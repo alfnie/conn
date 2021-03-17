@@ -78,7 +78,7 @@ else ht=[];
 end
 filenames={};
 Nprocedures=numel(procedures);
-if Nprocedures, [ok,nill]=mkdir(qafolder); end
+if Nprocedures, conn_fileutils('mkdir',qafolder); end
 
 Iprocedure=1;
 if any(procedures==Iprocedure) % QA_NORM structural
@@ -101,7 +101,7 @@ if any(procedures==Iprocedure) % QA_NORM structural
                     fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
                     state=fh('getstate');
                     conn_args={'slice_display',state};
-                    save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                    conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                     fh('close');
                     filenames{end+1}=filename;
                     if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*(isub-1+(nses)/nsess)/numel(nsubs),ht);
@@ -138,7 +138,7 @@ if any(procedures==Iprocedure) % QA_NORM functional
                         fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
                         state=fh('getstate');
                         conn_args={'slice_display',state};
-                        save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                        conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                         fh('close');
                         filenames{end+1}=filename;
                     end
@@ -187,7 +187,7 @@ if any(procedures==Iprocedure) % QA_NORM rois
                         fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
                         state=fh('getstate');
                         conn_args={'slice_display',state};
-                        save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                        conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                         fh('close');
                         filenames{end+1}=filename;
                         if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*(ivalidrois-1+(isub-1+(nses)/nsess)/numel(nsubs))/numel(validrois),ht);
@@ -236,7 +236,7 @@ if any(procedures==Iprocedure) % QA_REG structural
                         fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
                         state=fh('getstate');
                         conn_args={'slice_display',state};
-                        save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                        conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                         fh('close');
                         filenames{end+1}=filename;
                         if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*(ivalidrois-1+(isub-1+(nses)/nsess)/numel(nsubs))/numel(validrois),ht);
@@ -285,7 +285,7 @@ if any(procedures==Iprocedure) % QA_REG functional
                         fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
                         state=fh('getstate');
                         conn_args={'slice_display',state};
-                        save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                        conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                         fh('close');
                         filenames{end+1}=filename;
                         if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*(ivalidrois-1+(isub-1+(nses)/nsess)/numel(nsubs))/numel(validrois),ht);
@@ -334,7 +334,7 @@ if any(procedures==Iprocedure) % QA_REG mni
                         fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
                         state=fh('getstate');
                         conn_args={'slice_display',state};
-                        save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                        conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                         fh('close');
                         filenames{end+1}=filename;
                         if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*(ivalidrois-1+(isub-1+(nses)/nsess)/numel(nsubs))/numel(validrois),ht);
@@ -366,7 +366,7 @@ if any(procedures==Iprocedure) % QA_COREG functional
                 fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
                 state=fh('getstate');
                 conn_args={'montage_display',state};
-                save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                 fh('close');
                 filenames{end+1}=filename;
                 if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*(isub/numel(nsubs)),ht);
@@ -395,7 +395,7 @@ if any(procedures==Iprocedure) % QA_TIME functional
                 fh('print',filename,'-nogui','-noerror',dpires,'-ADDnoui','-nopersistent');
                 state=fh('getstate');
                 conn_args={'montage_display',state};
-                save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                 fh('close');
                 filenames{end+1}=filename;
                 if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*(isub/numel(nsubs)),ht);
@@ -432,7 +432,7 @@ if any(procedures==Iprocedure) % QA_TIMEART functional
                 fh('print',filename,'-nogui','-noerror',dpires,'-ADDnoui','-nopersistent');
                 state=fh('getstate');
                 conn_args={'montage_display',state};
-                save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                 fh('close');
                 filenames{end+1}=filename;
                 %             end
@@ -469,7 +469,7 @@ if any(procedures==Iprocedure) % QA_REG functional-structural
                         fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
                         state=fh('getstate');
                         conn_args={'slice_display',state};
-                        save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                        conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                         fh('close');
                         filenames{end+1}=filename;
                     end
@@ -508,11 +508,11 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                 nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
                 for nses=1:nsess,
                     filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-                    X1{nses}=load(filename);
+                    X1{nses}=conn_loadmatfile(filename);
                     filename=fullfile(filepath,['COV_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-                    X2{nses}=load(filename);
+                    X2{nses}=conn_loadmatfile(filename);
                     filename=fullfile(filepath,['COND_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-                    C{nses}=load(filename);
+                    C{nses}=conn_loadmatfile(filename);
                     if ~isequal(CONN_x.Setup.conditions.names(1:end-1),C{nses}.names), error(['Incorrect conditions in file ',filename,'. Re-run previous step']); end
                     confounds=CONN_x.Preproc.confounds;
                     nfilter=find(cellfun(@(x)max(x),CONN_x.Preproc.confounds.filter));
@@ -581,7 +581,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                                 results_label=tstr;
                             end
                             filename=fullfile(qafolder,sprintf('QA_DENOISE.subject%03d.session%03d.mat',nsub,nses));
-                            save(filename,'results_patch','results_info','results_label','results_str','-v7.3');
+                            conn_savematfile(filename,'results_patch','results_info','results_label','results_str','-v7.3');
                         end
                         if any(ismember(procedures,[14]))
                             if all(isnan(d0))
@@ -601,7 +601,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                                 results_label=tstr;
                             end
                             filename=fullfile(qafolder,sprintf('QA_DENOISE_scatterplot.subject%03d.session%03d.mat',nsub,nses));
-                            save(filename,'results_patch','results_line','results_info','results_label','results_str','-v7.3');
+                            conn_savematfile(filename,'results_patch','results_line','results_info','results_label','results_str','-v7.3');
                         end
                     end
                     
@@ -617,7 +617,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                         fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
                         state=fh('getstate');
                         conn_args={'montage_display',state};
-                        save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                        conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                         fh('close');
                     end
                     
@@ -688,7 +688,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
             %[h,F,p,dof]=conn_glm([ones(size(X,1),1) X],Y,[],[],'collapse_none');
         end
         %f=conn_dir(fullfile(qafolder,'QA_DENOISE_QC-FC.*.mat'),'-R');
-        %if ~isempty(f), f=cellstr(f);spm_unlink(f{:}); end
+        %if ~isempty(f), f=cellstr(f);conn_fileutils('spm_unlink',f{:}); end
         for nm=1:numel(nl2covariates)
             z0=R{1}(nm,:);z1=R{2}(nm,:);z2=R{3}(nm,:);z3=R{4}(nm,:);
             p0=P{1}(nm,:);p1=P{2}(nm,:);p2=P{3}(nm,:);p3=P{4}(nm,:);
@@ -706,7 +706,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                 results_label=tstr;
             end
             filename=fullfile(qafolder,sprintf('QA_DENOISE_QC-FC.measure%s.mat',xnames{nl2covariates(nm)}));
-            save(filename,'results_patch','results_info','results_label','results_str','-v7.3');
+            conn_savematfile(filename,'results_patch','results_info','results_label','results_str','-v7.3');
             if any(procedures==15) % FC-QC scatterplot
                 if isempty(z0)||isempty(z1)
                     conn_disp('Warning! Empty distance data');
@@ -742,7 +742,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                     results_label=tstr;
                 end
                 filename=fullfile(qafolder,sprintf('QA_DENOISE_QC-FC_scatterplot.measure%s.mat',xnames{nl2covariates(nm)}));
-                save(filename,'results_patch','results_line','results_info','results_label','results_str','-v7.3');
+                conn_savematfile(filename,'results_patch','results_line','results_info','results_label','results_str','-v7.3');
             end
         end
     end
@@ -763,7 +763,7 @@ if any(procedures==Iprocedure) % QA_SPM_DESIGN
                 conn_disp('fprintf','Running QA plot generation %s\n',fileSPM);
                 [pwd1,nill]=fileparts(fileSPM);
                 [nill,pwd1name]=fileparts(pwd1);
-                load(fileSPM,'SPM');
+                SPM=struct; conn_loadmatfile(fileSPM,'SPM');
                 clear matlabbatch;
                 matlabbatch{1}.spm.stats.review.spmmat={fileSPM};
                 matlabbatch{1}.spm.stats.review.display.matrix=1;
@@ -777,15 +777,17 @@ if any(procedures==Iprocedure) % QA_SPM_DESIGN
                 if size(fname,1)>=1,
                     fname2=fullfile(qafolder,sprintf('QA_SPM_design_%s.subject%03d.jpg',pwd1name,nsub));
                     fname=fliplr(deblank(fliplr(deblank(fname(end,:)))));
-                    spm_unlink(fname2);
-                    if ispc, [nill,nill]=system(sprintf('move "%s" "%s"',fname,fname2));
-                    else [nill,nill]=system(sprintf('mv ''%s'' ''%s''',fname,fname2));
-                    end
+                    conn_fileutils('spm_unlink',fname2);
+                    try, conn_fileutils('movefile',fname,fname2); end
+                    %if ispc, [nill,nill]=system(sprintf('move "%s" "%s"',fname,fname2));
+                    %else [nill,nill]=system(sprintf('mv ''%s'' ''%s''',fname,fname2));
+                    %end
                     conn_args={'batch',@spm_DesRep,'DesRepUI',SPM};
-                    save(conn_prepend('',fname2,'.mat'),'conn_args','-v7.3');
-                    fh=fopen(conn_prepend('',fname2,'.txt'),'wt');
-                    fprintf(fh,'List of all effects:\n'); for nc=1:numel(SPM.xX.name), fprintf(fh,'%s\n',SPM.xX.name{nc}); end
-                    fclose(fh);
+                    conn_savematfile(conn_prepend('',fname2,'.mat'),'conn_args','-v7.3');
+                    conn_fileutils('filewrite',conn_prepend('',fname2,'.txt'), [{'List of all effects:'}, reshape(SPM.xX.name,1,[])]);
+                    %fh=fopen(conn_prepend('',fname2,'.txt'),'wt');
+                    %fprintf(fh,'List of all effects:\n'); for nc=1:numel(SPM.xX.name), fprintf(fh,'%s\n',SPM.xX.name{nc}); end
+                    %fclose(fh);
                 end
                 if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*isub/numel(nsubs),ht);
                 else fprintf('.');
@@ -841,7 +843,7 @@ if any(procedures==Iprocedure) % QA_SPM_RESULTS
                 conn_disp('fprintf','Running QA plot generation %s\n',fileSPM);
                 [pwd1,nill]=fileparts(fileSPM);
                 [nill,pwd1name]=fileparts(pwd1);
-                load(fileSPM,'SPM');
+                SPM=struct; conn_loadmatfile(fileSPM,'SPM');
                 
                 if isfield(SPM,'xCon')&&~isempty(SPM.xCon)&&isfield(SPM.xCon,'Vcon')
                     if isempty(nl1contrasts), nl1contrasts=1; end
@@ -862,7 +864,7 @@ if any(procedures==Iprocedure) % QA_SPM_RESULTS
                         state=fh('getstate');
                         conn_args={'slice_display',state};
                     end
-                    save(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
+                    conn_savematfile(conn_prepend('',filename,'.mat'),'conn_args','-v7.3');
                     fh('close');
                     filenames{end+1}=filename;
                 else conn_disp('fprintf','No contrasts defined. Skipping file %s\n',fileSPM);
@@ -894,7 +896,7 @@ if any(procedures==Iprocedure) % QA_COV
                 for isub=1:numel(nsubs)
                     filename=fullfile(qafolder,sprintf('QA_COV.subject%03d.mat',nsubs(isub)));
                     results_info=struct('Values',X(isub,:),'Subjects',nsubs(isub),'Variables',{Xnames},'Variables_descr',{Xdescr});
-                    save(filename,'results_info','-v7.3');
+                    conn_savematfile(filename,'results_info','-v7.3');
                 end
                 if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures,ht);
                 else fprintf('.');
@@ -925,7 +927,7 @@ if any(procedures==Iprocedure) % QA_COV
                 %                 results_label={{sprintf('Subject %d',nsub)}}; for n1=1:numel(Xthis), results_label{1}{1+n1}=sprintf('%s = %s',Xnames{n1},num2str(Xthis(n1))); end
                 %                 results_str={};
                 %                 filename=fullfile(qafolder,sprintf('QA_COV.subject%03d.mat',nsub));
-                %                 save(filename,'results_patch','results_line','results_info','results_label','results_str');
+                %                 conn_savematfile(filename,'results_patch','results_line','results_info','results_label','results_str');
                 %                 if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*isub/numel(nsubs),ht);
                 %                 else fprintf('.');
                 %                 end

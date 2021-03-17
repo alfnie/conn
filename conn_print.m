@@ -75,12 +75,12 @@ if dogui
         answ={get(ht1,'string'),get(ht2,'string')};
         skipoverwritequestion=isequal(get(ht1,'userdata'),1);
         filename=answ{1};
-        if ~isempty(filename)&&~isempty(dir(filename))&&~skipoverwritequestion
+        if ~isempty(filename)&&conn_existfile(filename)&&~skipoverwritequestion
             tansw=conn_questdlg({'Output file already exist','Overwrite existing file?'},'','Yes','No','Yes');
             if ~strcmp(tansw,'Yes'), filename=''; end
         end
         if ~isempty(filename)
-            try, fclose(fopen(filename,'wb'));
+            try, conn_fileutils('emptyfile',filename); %fclose(fopen(filename,'wb'));
             catch,
                 conn_msgbox('Unable to create target image file. Please check file/folder permissions and try again','',2);
                 filename='';
@@ -95,6 +95,8 @@ else
 end
 if ~isempty(answ)
     filename=answ{1};
+    isremotefile=conn_server('util_isremotefile',filename);
+    if isremotefile, filename=conn_cache('new',filename); end
     PRINT_OPTIONS=regexp(strtrim(answ{2}),'\s+','split');
     %if persistentoptions, printoptions=PRINT_OPTIONS; end
     oldpointer=get(hfig,'pointer');
@@ -188,7 +190,6 @@ if ~isempty(answ)
         drawnow;
         conn_print_internal(hfig,doerror,PRINT_OPTIONS{:},filename);
     end
-    conn_disp(['Saved file: ',filename]);
     if dogui
         try
             if 1
@@ -204,6 +205,8 @@ if ~isempty(answ)
     end
     set(hfig,'pointer',oldpointer);
     if persistentoptions, printoptions=PRINT_OPTIONS; end
+    if isremotefile, filename=answ{1}; conn_cache('push',filename); end
+    conn_disp(['Saved file: ',filename]);
 end
 end
 

@@ -178,7 +178,7 @@ switch(lower(option))
                 filemeasurenames=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name,'_list_measures.mat');
                 filemeasurenames=conn_projectmanager('projectfile',filemeasurenames,CONN_x.pobj,'.mat');
                 measurenames=CONN_x.vvAnalyses(CONN_x.vvAnalysis).measurenames;
-                save(filemeasurenames,'measurenames');
+                conn_savematfile(filemeasurenames,'measurenames');
             end
             isnew=1;
         end

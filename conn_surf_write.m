@@ -7,6 +7,9 @@ function a = conn_surf_write(filename,data)
 
 if ~nargin, help(mfilename); return; end
 
+isremotefile=conn_server('util_isremotefile',filename);
+if isremotefile, remotefilename=filename; filename=conn_cache('new',remotefilename); end
+
 dims=conn_surf_dims(8);
 N=size(data,2);
 switch(size(data,1))
@@ -21,4 +24,5 @@ a=repmat(a,1,N); for n=1:N, a(n).n=[n,1]; end
 a=spm_create_vol(a);
 for n=1:N, a(n)=spm_write_vol(a(n),data(:,:,:,n)); end
 
+if isremotefile, conn_cache('push',remotefilename); a=[]; end
 

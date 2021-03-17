@@ -32,7 +32,7 @@ switch(lower(option)),
             data.side=3;
             data.initfile='';
             if strcmpi(option,'initfile')
-                if isdir(varargin{1})
+                if conn_fileutils('isdir',varargin{1})
                     if conn_existfile(fullfile(varargin{1},'ROI.mat')), varargin{1}=fullfile(varargin{1},'ROI.mat');
                     elseif conn_existfile(fullfile(varargin{1},'SPM.mat')), varargin{1}=fullfile(varargin{1},'SPM.mat');
                     else error('unable to find ROI.mat or SPM.mat file in results directory %s',varargin{1});
@@ -44,7 +44,7 @@ switch(lower(option)),
             %h=conn_msgbox('computing ROI-level results, please wait...','conn_displayroi');
             if strcmpi(option,'initfile'), 
                 data.initfile=varargin{1};
-                results=load(varargin{1});
+                results=conn_loadmatfile(varargin{1});
                 results=results.ROI;
                 filepath=fileparts(varargin{1});
                 if isempty(data.source), data.source=0; end
@@ -56,7 +56,7 @@ switch(lower(option)),
                 filepath=fileparts(varargin{1});
                 if isempty(filepath), filepath=pwd; end
                 if isempty(data.source), data.source=0; end
-                load(varargin{1},'SPM');
+                SPM=struct; conn_loadmatfile(varargin{1},'SPM');
                 SPM_h=permute(SPM.xX_multivariate.h,[3,4,1,2]);
                 if size(SPM_h,3)>1||size(SPM_h,4)>1, SPM_h=sqrt(sum(abs(SPM_h(:,:,:)).^2,3)); end
                 SPM_F=permute(SPM.xX_multivariate.F,[3,4,1,2]);
@@ -82,8 +82,8 @@ switch(lower(option)),
                 end
                 if ~iscell(info.coords), info.coords=num2cell(info.coords,2); end % [nroisx3]
                 %z=permute(randn([nrois,nrois,size(SPM.xX_multivariate.Zfiles)]),[3,2,4,1]); 
-                vol=spm_vol(char(SPM.xX_multivariate.Zfiles));
-                z=spm_read_vols(vol);
+                vol=conn_fileutils('spm_vol',char(SPM.xX_multivariate.Zfiles));
+                z=conn_fileutils('spm_read_vols',vol);
                 z=permute(reshape(z,[nrois,nrois,size(SPM.xX_multivariate.Zfiles)]),[3,2,4,1]); % subjects x rois (targets) x conditions x rois (seeds)
                 % subjects x rois x conditions
                 validrois=any(all(all(~isnan(z),1),3),4); % note: eliminates ROIs that have no valid connectivity data with any other ROI
@@ -128,7 +128,7 @@ switch(lower(option)),
             data.side=3;
             [filename,filepath]=uigetfile('*ROI*.mat');
             if ~ischar(filename), return; end
-            results=load(fullfile(filepath,filename));results=results.ROI;
+            results=conn_loadmatfile(fullfile(filepath,filename));results=results.ROI;
             data.initfile=fullfile(filepath,filename);
             data.source=0;
             if isempty(filepath), data.defaultfilepath=pwd;
@@ -695,14 +695,14 @@ switch(lower(option)),
             conn_importl2covariate(name,y);
         else
             if get(data.handles(9),'value'), % one plot per connection
-                rex('test',data.results(1).xX,reshape(y3,[size(y3,1)*size(y3,2),size(y3,3)]),data.results(1).c,names_conditions,name3,[],[],true,data.results(1).c2,[],true);
+                conn_rex('test',data.results(1).xX,reshape(y3,[size(y3,1)*size(y3,2),size(y3,3)]),data.results(1).c,names_conditions,name3,[],[],true,data.results(1).c2,[],true);
             else % one plot per cluster
                 breaks=[y2,size(y3,3)];
                 y2=zeros([size(y3,1),size(y3,2),numel(breaks)-1]);
                 for n=1:numel(breaks)-1,
                     y2(:,:,n)=mean(y3(:,:,breaks(n)+1:breaks(n+1)),3);
                 end
-                rex('test',data.results(1).xX,reshape(y2,[size(y2,1)*size(y2,2),size(y2,3)]),data.results(1).c,names_conditions,name2,[],[],true,data.results(1).c2,[],true);
+                conn_rex('test',data.results(1).xX,reshape(y2,[size(y2,1)*size(y2,2),size(y2,3)]),data.results(1).c,names_conditions,name2,[],[],true,data.results(1).c2,[],true);
             end
         end
         if ishandle(hmsginit), delete(hmsginit); end
@@ -781,20 +781,26 @@ switch(lower(option)),
                         conn_disp('fprintf','Suprathreshold connectivity clusters saved in %s\n',conn_prepend('',tfilename,'.clusters.nii'));
                     end
                 case '.txt'
-                    fh=fopen(tfilename,'wt');
-                    for nt=1:numel(ColumnNames), fprintf(fh,'%s\t',ColumnNames{nt}); end; fprintf(fh,'\n');
-                    for nt=1:numel(ColumnNames), for nt2=1:numel(ColumnNames), fprintf(fh,'%f\t',R(nt,nt2)); end; fprintf(fh,'\n'); end
-                    fclose(fh); conn_disp('fprintf','Thresholded connectivity matrix saved in %s\n',tfilename);
+                    %fh=fopen(tfilename,'wt');
+                    fh={};
+                    for nt=1:numel(ColumnNames), fh{end+1}=sprintf('%s\t',ColumnNames{nt}); end; fh{end+1}=sprintf('\n');
+                    for nt=1:numel(ColumnNames), for nt2=1:numel(ColumnNames), fh{end+1}=sprintf('%f\t',R(nt,nt2)); end; fh{end+1}=sprintf('\n'); end
+                    %fclose(fh); 
+                    conn_fileutils('filewrite_raw',tfilename, fh);
+                    conn_disp('fprintf','Thresholded connectivity matrix saved in %s\n',tfilename);
                 case '.csv'
-                    fh=fopen(tfilename,'wt');
-                    for nt=1:numel(ColumnNames), fprintf(fh,',%s',ColumnNames{nt}); end; fprintf(fh,'\n');
+                    %fh=fopen(tfilename,'wt');
+                    fh={};
+                    for nt=1:numel(ColumnNames), fh{end+1}=sprintf(',%s',ColumnNames{nt}); end; fh{end+1}=sprintf('\n');
                     for nt=1:numel(ColumnNames),
-                        fprintf(fh,'%s',ColumnNames{nt});
-                        for nt2=1:numel(ColumnNames), fprintf(fh,',%f',R(nt,nt2)); end; fprintf(fh,'\n');
+                        fh{end+1}=sprintf('%s',ColumnNames{nt});
+                        for nt2=1:numel(ColumnNames), fh{end+1}=sprintf(',%f',R(nt,nt2)); end; fh{end+1}=sprintf('\n');
                     end
-                    fclose(fh); conn_disp('fprintf','Thresholded connectivity matrix saved in %s\n',tfilename);
+                    conn_fileutils('filewrite_raw',tfilename, fh);
+                    %fclose(fh); 
+                    conn_disp('fprintf','Thresholded connectivity matrix saved in %s\n',tfilename);
                 case '.mat', 
-                    save(tfilename,'R','R_unthresholded','ColumnNames','ColumnGroups'); 
+                    conn_savematfile(tfilename,'R','R_unthresholded','ColumnNames','ColumnGroups'); 
                     conn_disp('fprintf','Thresholded connectivity matrix saved in %s\n',tfilename);
             end
         end
@@ -802,7 +808,7 @@ switch(lower(option)),
         
     case 'openfolder'
         data=get(hfig,'userdata');
-        cd(data.defaultfilepath);
+        conn_fileutils('cd',data.defaultfilepath);
         try
             if ispc, [nill,nill]=system(sprintf('start "%s"',data.defaultfilepath));
             else [nill,nill]=system(sprintf('open ''%s''',data.defaultfilepath));
@@ -968,7 +974,7 @@ switch(lower(option)),
             data.tfceZ=[];
             data.cMVPAF=[];
             %f=conn_dir(conn_displayroi_simfilename(data.roifile,'all'),'-R','-cell');
-            %if ~isempty(f), spm_unlink(f{:}); end
+            %if ~isempty(f), conn_fileutils('spm_unlink',f{:}); end
         end
         if ishandle(h), close(h); end
         data.proj=[];data.x=[];data.y=[];data.z=[];
@@ -989,7 +995,7 @@ switch(lower(option)),
                 if isequal(tfilename,0), return; end
                 tfilename=fullfile(tfilepath,tfilename);
             end
-            save(tfilename,'ROIconfiguration','-mat');
+            conn_savematfile(tfilename,'ROIconfiguration','-mat');
         elseif isequal(answ,'Save ROI order/groups to clipboard')
             assignin('base','ROIconfiguration',ROIconfiguration);
         end
@@ -1047,7 +1053,7 @@ switch(lower(option)),
                 tfilename=fullfile(tfilepath,tfilename);
             end
             if ~isempty(tfilename)
-                load(tfilename,'ROIconfiguration','-mat');
+                ROIconfiguration=struct; conn_loadmatfile(tfilename,'ROIconfiguration','-mat');
                 exstr='ROIs sorted manually (from file)';
             end
         elseif isequal(answ,Answ{5})
@@ -1062,7 +1068,7 @@ switch(lower(option)),
             ROIconfiguration=struct('xy2',data.xy2,'displaytheserois',data.displaytheserois,'xy2_clusters',data.xy2_clusters,'clusters',data.clusters,'names2',{data.names2},'names_clusters',{data.names_clusters});
             tfilename=conn_roiclusters(ROIconfiguration,[],[],[],fullfile(data.defaultfilepath,'ROIorder.mat'));
             if isempty(tfilename), return; end
-            load(tfilename,'ROIconfiguration','-mat');
+            conn_loadmatfile(tfilename,'ROIconfiguration','-mat');
             exstr='ROIs sorted manually';
             %conn_displayroi(hfig,[],'display.groups.labels')
         else return;
@@ -1129,7 +1135,7 @@ switch(lower(option)),
             %results=conn_process('results_roi_seed',data.displaytheserois);
             h=conn_msgbox('updating ROI-level results, please wait...','conn_displayroi');
             %f=conn_dir(conn_displayroi_simfilename(data.roifile,'all'),'-R','-cell');
-            %if ~isempty(f), spm_unlink(f{:}); end
+            %if ~isempty(f), conn_fileutils('spm_unlink',f{:}); end
             for nresults=1:size(data.results(1).data,4), %numel(data.results)
                 domvpa=data.displaytheserois;
                 ndims=ceil(sqrt(size(data.results(1).data,1))/2);
@@ -1974,11 +1980,11 @@ switch(data.display),
         end
         SIDE=data.side;
         if isempty(data.PERM)||~any(data.PERM.Pthr==THR&data.PERM.Pthr_type==THR_TYPE&data.PERM.Pthr_side==SIDE)
-            if ~isempty(dir(conn_displayroi_simfilename(data.roifile,THR_TYPE,THR,data.displaytheserois)))||((data.mvpathrtype_isnonparam(data.mvpathrtype)||data.thrtype==3||data.thrtype==4)&&conn_displayroi_randomise(data,THR_TYPE,THR,init~=1)),
+            if conn_existfile(conn_displayroi_simfilename(data.roifile,THR_TYPE,THR,data.displaytheserois))||((data.mvpathrtype_isnonparam(data.mvpathrtype)||data.thrtype==3||data.thrtype==4)&&conn_displayroi_randomise(data,THR_TYPE,THR,init~=1)),
                 try, 
-                    data.PERM=load(conn_displayroi_simfilename(data.roifile,THR_TYPE,THR,data.displaytheserois)); 
+                    data.PERM=conn_loadmatfile(conn_displayroi_simfilename(data.roifile,THR_TYPE,THR,data.displaytheserois)); 
                     if ~isfield(data.PERM,'VERSION'), data.PERM.VERSION=0; end
-                    if data.PERM.VERSION<2, data.PERM=[]; spm_unlink(conn_displayroi_simfilename(data.roifile,THR_TYPE,THR,data.displaytheserois)); end % note: disregard older versions                    
+                    if data.PERM.VERSION<2, data.PERM=[]; conn_fileutils('spm_unlink',conn_displayroi_simfilename(data.roifile,THR_TYPE,THR,data.displaytheserois)); end % note: disregard older versions                    
                 end
             end
         end
@@ -4427,16 +4433,16 @@ else
         idx=1;
         listsrois={listrois};
     else
-        load(indexfile,'listsrois');
+        listsrois={}; conn_loadmatfile(indexfile,'listsrois');
         idx=find(cellfun(@(x)isequal(x,listrois),listsrois),1);
         if isempty(idx), idx=numel(listsrois)+1; 
         else dosave=false;
         end
         listsrois{idx}=listrois;
     end    
-    if dosave, save(indexfile,'listsrois'); end
+    if dosave, conn_savematfile(indexfile,'listsrois'); end
     simfilename=char(arrayfun(@(a,b)fullfile(fileparts(spmfile),sprintf('nonparametricroi_p%d_%.8f_i%d.mat',a,b,idx)),THR_TYPE,THR,'uni',0));
-    if ~isempty(dir(conn_prepend('parallel_*_',simfilename))), conn_process('results_nonparametric_collapse',simfilename); end
+    if conn_existfile(conn_prepend('parallel_*_',simfilename)), conn_process('results_nonparametric_collapse',simfilename); end
 end
 end
 
@@ -4479,7 +4485,7 @@ end
 if strcmp([fname,fext],'SPM.mat')
     maskfile=fullfile(fileparts(data.roifile),'mask.nii');
     if ~conn_existfile(maskfile), maskfile=fullfile(fileparts(data.roifile),'mask.img'); end
-    if conn_existfile(maskfile), mask=spm_read_vols(spm_vol(maskfile))>0;
+    if conn_existfile(maskfile), mask=conn_fileutils('spm_read_vols',maskfile)>0;
     else mask=[];
     end
 else mask=[];
@@ -4504,7 +4510,7 @@ end
     % c=data.results(1).c;
     % m=data.results(1).c2;
     % X=data.results(1).xX.X;
-    % save(tfilename,'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename');
+    % conn_savematfile(tfilename,'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename');
     % conn_jobmanager('options','profile',parallel);
     % info=conn_jobmanager('submit','orphan_results_nonparametric',N,N,[],tfilename);
     % info=conn_jobmanager(info,'','donotupdate');

@@ -6,6 +6,8 @@ global CONN_x;
 if nargin<1||isempty(validsubjects), validsubjects=1:CONN_x.Setup.nsubjects; end
 if nargin<2||isempty(validrois), validrois=1:3; end
 if nargin<3||isempty(REDO), REDO='yes'; end
+if conn_projectmanager('inserver'), conn_process('maskserode',validsubjects,validrois,REDO); return; end
+
 [path,name,ext]=fileparts(CONN_x.filename);
 filepath=CONN_x.folders.data;
 clear Vmask;
@@ -31,6 +33,7 @@ for nsub=validsubjects,
         for nses=1:nsesstemp
             Vmask{nsub}{nroi}{nses}=conn_prepend('e',CONN_x.Setup.rois.files{nsub}{nroi}{nses}{1});
             if FORCERECOMPUTE||(~SKIPRECOMPUTE&&strcmp(lower(REDO),'yes'))||~conn_existfile(Vmask{nsub}{nroi}{nses}),
+                
                 [nill,nill,ext,fnum]=spm_fileparts(Vmask{nsub}{nroi}{nses});
                 switch(ext),
                     case {'.img','.nii','.hdr'},
@@ -118,6 +121,7 @@ for nsub=validsubjects,
                     otherwise,
                         Vmask{nsub}{nroi}{nses}=CONN_x.Setup.rois.files{nsub}{nroi}{nses}{1};
                 end
+                
             end
         end
     end

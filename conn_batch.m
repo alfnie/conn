@@ -653,8 +653,8 @@ if isfield(batch,'New'), % obsolete functionality / for backwards compatibility 
     if isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0, error('BATCH.New option is not compatible with parallel processing. Please use the newer BATCH.Setup.preprocessing fields instead'); return; end
     conn_disp('Use of BATCH.New for preprocessing is no longer supported and may become obsolete in future releases. Please modify your scripts using BATCH.New to use instead BATCH.Setup.preprocessing (see doc conn_batch for details)'); 
     OPTIONS=struct('RT',2,'FWHM',8,'VOX',2,'CONN_DISPLAY',0,'STRUCTURAL_TEMPLATE',fullfile(fileparts(which('spm')),'templates','T1.nii'),'FUNCTIONAL_TEMPLATE',fullfile(fileparts(which('spm')),'templates','EPI.nii'),'SO',[],'UNWARP',[]);
-    if isempty(dir(OPTIONS.FUNCTIONAL_TEMPLATE)), OPTIONS.FUNCTIONAL_TEMPLATE=fullfile(fileparts(which('spm')),'toolbox','OldNorm','EPI.nii'); end
-    if isempty(dir(OPTIONS.STRUCTURAL_TEMPLATE)), OPTIONS.STRUCTURAL_TEMPLATE=fullfile(fileparts(which('spm')),'toolbox','OldNorm','T1.nii'); end
+    if ~conn_existfile(OPTIONS.FUNCTIONAL_TEMPLATE), OPTIONS.FUNCTIONAL_TEMPLATE=fullfile(fileparts(which('spm')),'toolbox','OldNorm','EPI.nii'); end
+    if ~conn_existfile(OPTIONS.STRUCTURAL_TEMPLATE), OPTIONS.STRUCTURAL_TEMPLATE=fullfile(fileparts(which('spm')),'toolbox','OldNorm','T1.nii'); end
     if isfield(batch,'filename')&&~isempty(batch.filename),OPTIONS.CONN_NAME=batch.filename; end
     if isfield(batch.New,'center')&&~isempty(batch.New.center),OPTIONS.CENTER=batch.New.center;end
     if isfield(batch.New,'reorient')&&~isempty(batch.New.reorient),OPTIONS.REORIENT=batch.New.reorient;end
@@ -688,7 +688,7 @@ PAR_ARG={};
 %% SETUP step
 if isfield(batch,'Setup'),
     if isfield(batch,'filename'),
-        if (isfield(batch.Setup,'isnew')&&batch.Setup.isnew)||isempty(dir(batch.filename)),
+        if (isfield(batch.Setup,'isnew')&&batch.Setup.isnew)||~conn_existfile(batch.filename),
             conn init;                   % initializes CONN_x structure
             %CONN_x.Setup.RT=nan;
             if ~isempty(batch.filename)&&ischar(batch.filename), [nill,nill,extt]=fileparts(batch.filename); if isempty(extt), batch.filename=[batch.filename,'.mat']; end; end
@@ -1072,7 +1072,7 @@ if isfield(batch,'Setup'),
             if ~isfield(batch.Setup.rois,'names')||length(batch.Setup.rois.names)<n1||isempty(batch.Setup.rois.names{n1}), batch.Setup.rois.names{n1}=name; end % note: need to set names first in case localcopy==1
             if ~isfield(batch.Setup.rois,'dimensions')||length(batch.Setup.rois.dimensions)<n1||isempty(batch.Setup.rois.dimensions{n1}), batch.Setup.rois.dimensions{n1}=1; end
             if ~isfield(batch.Setup.rois,'mask')||length(batch.Setup.rois.mask)<n1, batch.Setup.rois.mask(n1)=0; end
-            if ~isfield(batch.Setup.rois,'multiplelabels')||length(batch.Setup.rois.multiplelabels)<n1, batch.Setup.rois.multiplelabels(n1)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(~isempty(dir(conn_prepend('',CONN_x.Setup.rois.files{1}{n0+n1}{1}{1},'.txt')))|~isempty(dir(conn_prepend('',CONN_x.Setup.rois.files{1}{n0+n1}{1}{1},'.csv')))|~isempty(dir(conn_prepend('',CONN_x.Setup.rois.files{1}{n0+n1}{1}{1},'.xls')))); end
+            if ~isfield(batch.Setup.rois,'multiplelabels')||length(batch.Setup.rois.multiplelabels)<n1, batch.Setup.rois.multiplelabels(n1)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(conn_existfile(conn_prepend('',CONN_x.Setup.rois.files{1}{n0+n1}{1}{1},'.txt'))|conn_existfile(conn_prepend('',CONN_x.Setup.rois.files{1}{n0+n1}{1}{1},'.csv'))|conn_existfile(conn_prepend('',CONN_x.Setup.rois.files{1}{n0+n1}{1}{1},'.xls'))); end
             if ~isfield(batch.Setup.rois,'regresscovariates')||length(batch.Setup.rois.regresscovariates)<n1, batch.Setup.rois.regresscovariates(n1)=double(batch.Setup.rois.dimensions{n1}>1); end
             if ~isfield(batch.Setup.rois,'weighted')||length(batch.Setup.rois.weighted)<n1, batch.Setup.rois.weighted(n1)=double(batch.Setup.rois.dimensions{n1}==0); end
             if ~isfield(batch.Setup.rois,'dataset')||length(batch.Setup.rois.dataset)<n1, 
@@ -1248,7 +1248,7 @@ if isfield(batch,'Setup'),
     end
     
     if isfield(batch.Setup,'done')&&batch.Setup.done,
-        conn save;
+        if ~conn_projectmanager('inserver')&&~(isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0), conn save; end
         if ~isfield(batch.Setup,'overwrite'), batch.Setup.overwrite='Yes'; end
         if isscalar(batch.Setup.overwrite)&&~isstruct(batch.Setup.overwrite)&&ismember(double(batch.Setup.overwrite),[1 89 121]), batch.Setup.overwrite='Yes'; end
         CONN_x.gui=struct('overwrite',batch.Setup.overwrite,'subjects',SUBJECTS);
@@ -1315,7 +1315,7 @@ if isfield(batch,'Denoising'),
     end
     
     if isfield(batch.Denoising,'done')&&batch.Denoising.done,
-        conn save;
+        if ~conn_projectmanager('inserver')&&~(isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0), conn save; end
         if ~isfield(batch.Denoising,'overwrite'), batch.Denoising.overwrite='Yes'; end
         if isscalar(batch.Denoising.overwrite)&&~isstruct(batch.Denoising.overwrite)&&ismember(double(batch.Denoising.overwrite),[1 89 121]), batch.Denoising.overwrite='Yes'; end
         CONN_x.gui=struct('overwrite',batch.Denoising.overwrite,'subjects',SUBJECTS);
@@ -1358,7 +1358,6 @@ if isfield(batch,'Analysis'),
                 CONN_x.Analyses(ianalysis)=struct(...
                  'name','SBC_01',...
                  'sourcenames',{{}},...
-                 'variables', struct('names',{{}},'types',{{}},'deriv',{{}},'fbands',{{}},'dimensions',{{}}),...
                  'regressors',	struct('names',{{}},'types',{{}},'deriv',{{}},'fbands',{{}},'dimensions',{{}}),...
                  'type',3,...
                  'measure',1,...
@@ -1417,7 +1416,7 @@ if isfield(batch,'Analysis'),
     end
     
     if isfield(batch.Analysis,'done')&&batch.Analysis.done,
-        conn save;
+        if ~conn_projectmanager('inserver')&&~(isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0), conn save; end
         if ~isfield(batch.Analysis,'overwrite'), batch.Analysis.overwrite='Yes'; end
         if isscalar(batch.Analysis.overwrite)&&~isstruct(batch.Analysis.overwrite)&&ismember(double(batch.Analysis.overwrite),[1 89 121]), batch.Analysis.overwrite='Yes'; end
         CONN_x.gui=struct('overwrite',batch.Analysis.overwrite,'subjects',SUBJECTS);
@@ -1524,7 +1523,7 @@ if isfield(batch,'vvAnalysis'),
     end
     
     if isfield(batch.vvAnalysis,'done')&&batch.vvAnalysis.done,
-        conn save;
+        if ~conn_projectmanager('inserver')&&~(isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0), conn save; end
         if ~isfield(batch.vvAnalysis,'overwrite'), batch.vvAnalysis.overwrite='Yes'; end
         if isscalar(batch.vvAnalysis.overwrite)&&~isstruct(batch.vvAnalysis.overwrite)&&ismember(double(batch.vvAnalysis.overwrite),[1 89 121]), batch.vvAnalysis.overwrite='Yes'; end
         CONN_x.gui=struct('overwrite',batch.vvAnalysis.overwrite,'subjects',SUBJECTS);
@@ -1590,7 +1589,7 @@ if isfield(batch,'dynAnalysis'),
     else stepname='Analyses_dyn';
     end
     if isfield(batch.dynAnalysis,'done')&&batch.dynAnalysis.done,
-        conn save;
+        if ~conn_projectmanager('inserver')&&~(isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0), conn save; end
         if ~isfield(batch.dynAnalysis,'overwrite'), batch.dynAnalysis.overwrite='Yes'; end
         if isscalar(batch.dynAnalysis.overwrite)&&~isstruct(batch.dynAnalysis.overwrite)&&ismember(double(batch.dynAnalysis.overwrite),[1 89 121]), batch.dynAnalysis.overwrite='Yes'; end
         CONN_x.gui=struct('overwrite',batch.dynAnalysis.overwrite,'subjects',SUBJECTS);
@@ -1769,8 +1768,8 @@ if isfield(batch,'Results'),
             end
             if ~isvv&&any(CONN_x.Analyses(CONN_x.Analysis).type==[1,3]), % &&isfield(batch.Results,'done')&&batch.Results.done
                 CONN_x.gui=struct('overwrite','Yes');
-                conn_process('results_roi');
                 if isfield(batch.Results,'display'), CONN_x.gui.display=batch.Results.display; end
+                conn_process('results_roi');
                 CONN_x.gui=1;
                 CONN_x.Results.foldername=[];
                 %conn save;
