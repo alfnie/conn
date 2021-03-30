@@ -430,7 +430,15 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 h4a=uicontrol('units','norm','position',[.45,.45,.45,.10],'style','listbox','max',1,'string',[{'primary dataset'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)],'value',min(2,numel(CONN_x.Setup.secondarydataset)+1),'tooltipstring','<HTML>Select functional dataset(s) to include in functional data plots</HTML>');
                 h4b=uicontrol('units','norm','position',[.45,.35,.45,.10],'style','listbox','max',2,'string',[CONN_x.Setup.rois.names(1:end-1), regexprep(CONN_x.Setup.rois.names(1:3),'^(.*)$','eroded $1')],'value',1,'tooltipstring','<HTML>Select ROI(s) to include in ROI data plots</HTML>');
                 h4c=uicontrol('units','norm','position',[.45,.25,.45,.10],'style','listbox','max',2,'string',nl2covariates,'value',il2covariates,'tooltipstring','<HTML>Select QC variable(s) to include in QC/FC plots</HTML>');
-                h3=uicontrol('style','popupmenu','units','norm','position',[.1,.125,.8,.05],'string',[{'local processing (run on this computer)'} tstr(tvalid)],'value',1);
+                toptions=[{'local processing (run on this computer)'} tstr(tvalid)];
+                if CONN_gui.isremote
+                    info=conn_server('HPC_info');
+                    if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
+                    else tnameserver='CONN server';
+                    end
+                    toptions=regexprep(toptions,'\<run on (this computer)?',['run on ',tnameserver,' ']);
+                end                
+                h3=uicontrol('style','popupmenu','units','norm','position',[.1,.125,.8,.05],'string',toptions,'value',1);
                 h6=uicontrol('units','norm','position',[.1,.025,.4,.08],'style','pushbutton','string','Start','callback','uiresume(gcbf)');
                 h7=uicontrol('units','norm','position',[.5,.025,.4,.08],'style','pushbutton','string','Cancel','callback','close(gcbf)');
                 hc1=uicontextmenu;uimenu(hc1,'Label','select group (2nd-level covariate)','callback',@(varargin)conn_qaplotsexplore_callbackgui('group',h4d)); set(h4d,'uicontextmenu',hc1);
@@ -563,8 +571,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 if isempty(qafiles), qanames={};
                 else qanames=cellstr(qafiles);
                 end
-                jpgok=cellfun(@(x)conn_existfile(x)|~isempty(regexp(x,'QA_DENOISE\.|QA_DENOISE_QC-FC\.|QA_DENOISE_scatterplot\.|QA_DENOISE_QC-FC_scatterplot\.|QA_COV\.')),conn_prepend('',qanames,'.jpg'));
-                txtok=cellfun(@(x)conn_existfile(x),conn_prepend('',qanames,'.txt'));
+                jpgok=conn_existfile(conn_prepend('',qanames,'.jpg'))|cellfun('length',regexp(qanames,'QA_DENOISE\.|QA_DENOISE_QC-FC\.|QA_DENOISE_scatterplot\.|QA_DENOISE_QC-FC_scatterplot\.|QA_COV\.'))>0;
+                txtok=conn_existfile(conn_prepend('',qanames,'.txt'));
                 qanames=qanames(jpgok);
                 txtok=txtok(jpgok);
                 dlg.files=qanames;

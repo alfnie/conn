@@ -43,7 +43,7 @@ if nargin>0&&ischar(value0), % merge multiple project files (value0 = filenames)
     end
     idx0=1:value0; % index to original subjects
     value=value0;
-    other{1}.CONN_x=CONN_x;
+    other{1}.CONN_x=conn_updatefolders(CONN_x,false);
     otheridx1=ones(1,value0);
     otheridx2=1:value0;
     otheridx3=ones(1,value0);

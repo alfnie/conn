@@ -317,6 +317,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 return;
                 
             case 'plot_design',
+                hmsg=conn_msgbox('Initializing. Please wait...','',-1);
                 SPM=struct; conn_loadmatfile(spmfile,'SPM');
                 if isfield(SPM,'xX_multivariate')
                     if 0,%isfield(SPM.xX_multivariate,'Zcontr')
@@ -327,6 +328,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 else
                     conn_displaydesign(SPM.xX.X,reshape({SPM.xY.VY.fname},size(SPM.xX.X,1),[]),SPM.xCon(1).c',1,SPM.xX.name,false);
                 end
+                if ishandle(hmsg), delete(hmsg); end
                 return;
                 
             case {'surface_view','surface_print','surface_gui_print','default_print'}
@@ -725,7 +727,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 end
                 THR=DATA.thres{1};
                 SIDE=DATA.side;
-                if conn_vproject_randomise(spmfile,THR_TYPE,THR,~skipgui);
+                if conn_vproject_randomise(spmfile,THR_TYPE,THR,~skipgui,CONN_gui.isremote);
                     try, 
                         SIM=conn_loadmatfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); 
                         if ~isfield(SIM,'VERSION'), SIM.VERSION=0; end
@@ -1661,7 +1663,7 @@ switch(thres{2}),
             THR=0;%thres{1};
             SIDE=side;
             if isempty(SIM)||~any(SIM.Pthr==THR&SIM.Pthr_type==THR_TYPE&SIM.Pthr_side==SIDE)
-                if conn_existfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR))||conn_vproject_randomise(spmfile,THR_TYPE,THR,init~=1),
+                if conn_existfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR))||conn_vproject_randomise(spmfile,THR_TYPE,THR,init~=1,CONN_gui.isremote),
                     try,
                         SIM=conn_loadmatfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR));
                         if ~isfield(SIM,'VERSION'), SIM.VERSION=0; end
@@ -1772,7 +1774,7 @@ if ~isempty(idxvoxels),
         THR=thres{1};
         SIDE=side;
         if isempty(SIM)||~any(SIM.Pthr==THR&SIM.Pthr_type==THR_TYPE&SIM.Pthr_side==SIDE)
-            if conn_existfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR))||((thres4~=1&&thres4~=8)&&conn_vproject_randomise(spmfile,THR_TYPE,THR,init~=1)),
+            if conn_existfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR))||((thres4~=1&&thres4~=8)&&conn_vproject_randomise(spmfile,THR_TYPE,THR,init~=1,CONN_gui.isremote)),
                 try, 
                     SIM=conn_loadmatfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); 
                     if ~isfield(SIM,'VERSION'), SIM.VERSION=0; end
@@ -2811,7 +2813,7 @@ else
 end
 end
 
-function ok=conn_vproject_randomise(spmfile,THR_TYPE,THR,dogui)
+function ok=conn_vproject_randomise(spmfile,THR_TYPE,THR,dogui,isremote)
 ok=true;
 [tstr,tidx]=conn_jobmanager('profiles');
 tnull=find(strcmp('Null profile',tstr));
@@ -2829,7 +2831,15 @@ end
 fh=figure('units','norm','position',[.4,.4,.3,.2],'menubar','none','numbertitle','off','name','compute non-parametric statistics','color','w');
 h1=uicontrol('units','norm','position',[.1,.7,.4,.15],'style','text','string','# of new simulations: ','fontweight','bold','backgroundcolor',get(fh,'color'));
 h2=uicontrol('units','norm','position',[.5,.7,.4,.15],'style','edit','string',num2str(v2),'tooltipstring','<HTML>Number of new data permutations/randomizations that will be evaluated in order to compute cluster-level statistics<br/> - note: if already previously computed, these new simulations will be added to any pre-existing ones (e.g. to increase the total number of simulations)</HTML>');
-h3=uicontrol('style','popupmenu','units','norm','position',[.1,.2,.8,.15],'string',[{'local processing (run on this computer)'} tstr(tvalid)],'value',1,'callback',@conn_vproject_randomise_nowlater); 
+toptions=[{'local processing (run on this computer)'} tstr(tvalid)];
+if isremote
+    info=conn_server('HPC_info');
+    if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
+    else tnameserver='CONN server';
+    end
+    toptions=regexprep(toptions,'\<run on (this computer)?',['run on ',tnameserver,' ']);
+end
+h3=uicontrol('style','popupmenu','units','norm','position',[.1,.2,.8,.15],'string',toptions,'value',1,'callback',@conn_vproject_randomise_nowlater); 
 %h3=uicontrol('style','popupmenu','units','norm','position',[.1,.2,.8,.15],'string',[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)],'value',1,'callback',@conn_vproject_randomise_nowlater); 
 %h3=uicontrol('units','norm','position',[.1,.5,.8,.25],'style','popupmenu','string',{'Run simulations now','Run simulations later'},'callback',@conn_vproject_randomise_nowlater);
 h4=uicontrol('units','norm','position',[.1,.5,.4,.15],'style','text','string','# of parallel jobs: ','fontweight','bold','backgroundcolor',get(fh,'color'),'visible','off');
@@ -2910,12 +2920,14 @@ if ishandle(fh),
         end
         if ~conn_existfile(deblank(Y(1,:)))&&isfield(SPM,'swd')&&isempty(fileparts(deblank(Y(1,:)))),Y=cellstr(Y); for n=1:numel(Y), if isempty(fileparts(deblank(Y{n}))), Y{n}=fullfile(SPM.swd,Y{n}); end; end; Y=char(Y); end
         if ~conn_existfile(deblank(Y(1,:))), conn_msgbox({sprintf('Unable to find file %s',deblank(Y(1,:))),'Please re-compute second-level model and try again'},'Outdated file references',2); return; end
+        Y=conn_server('util_localfile',Y);
+        simfilename=conn_server('util_localfile',simfilename);
         N=str2num(v5);
         tfilename=fullfile(fileparts(spmfile),'args_nonparam.mat');
         niters=max(1,ceil(niters/N));
         conn_savematfile(tfilename,'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples');
         conn_jobmanager('options','profile',parallel);
-        info=conn_jobmanager('submit','orphan_results_nonparametric',N,N,[],tfilename);
+        info=conn_jobmanager('submit','orphan_results_nonparametric',N,N,[],conn_server('util_localfile',tfilename));
         info=conn_jobmanager(info,'','donotupdate'); 
         ok=true; 
         %if v3>2, info=conn_jobmanager(info,'','donotupdate'); ok=true; 

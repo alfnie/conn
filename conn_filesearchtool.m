@@ -7,13 +7,15 @@ if ~isfield(CONN_gui,'parse_html'), CONN_gui.parse_html={'<HTML><FONT color=rgb(
 if ~isfield(CONN_gui,'rightclick'), CONN_gui.rightclick='right'; end
 if ~isfield(CONN_gui,'backgroundcolor'), CONN_gui.backgroundcolor=[0.1400 0.1400 0.1400]; end
 if ~isfield(CONN_h,'screen')||~isfield(CONN_h.screen,'hfig'), CONN_h.screen.hfig=gcf; end
-if isempty(cwd), cwd=pwd; end
+if isempty(cwd), cwd=conn_projectmanager('pwd'); end
 
 if nargin<1 || ischar(varargin{1}),
+    fntnames={'Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
     fields={'position',[.5,.1,.4,.8],...
         'backgroundcolor',.9*[1,1,1],...
         'foregroundcolor',[0,0,0],...
-        'title','File search tool',...
+        'fontname',fntname,...
+        'title','',...
         'button','Import',...
         'buttonhelp','',...
         'type','files',...
@@ -21,17 +23,27 @@ if nargin<1 || ischar(varargin{1}),
         'filter','*',...
         'regexp','.',...
         'callback','',...
+        'reduced',false,...
+        'filename','',...
         'localcopy',[],...
         'max',2};
     params=[];
     for n1=1:2:nargin, params=setfield(params,lower(varargin{n1}),varargin{n1+1}); end
     for n1=1:2:length(fields), if ~isfield(params,fields{n1}) | isempty(getfield(params,fields{n1})), params=setfield(params,fields{n1},fields{n1+1}); end; end;
     M=[params.position(1),params.position(3),0,0,0;params.position(2),0,params.position(4),0,0;0,0,0,params.position(3),0;0,0,0,0,params.position(4)]';
-    h.frame=conn_menu('frame2',[1,0,0,1,1]*M);
+    if params.reduced, h.frame=conn_menu('frame2noborder',[1,0,0,1,1]*M);
+    else h.frame=conn_menu('frame2',[1,0,0,1,1]*M);
+    end
     h.strbutton=params.button;
+    h.reduced=params.reduced;
     %uicontrol('style','frame','units','norm','position',[1,0,0,1,1]*M,'backgroundcolor',params.backgroundcolor);
     %axes('units','norm','position',[1,0,0,1,1]*M,'color',params.backgroundcolor,'xcolor',min(1,1*params.backgroundcolor),'ycolor',min(1,1*params.backgroundcolor),'xtick',[],'ytick',[],'box','on');
-     uicontrol('style','text','units','norm','position',[1,.05,.8,.9,.175]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string',params.title,'fontname','default','fontsize',8+CONN_gui.font_offset,'fontweight','bold','horizontalalignment','left','parent',CONN_h.screen.hfig);
+    if h.reduced
+        h.filename=conn_menu('edit2',[1,.05,.90,.9,.10]*M,params.title,params.filename);
+    else
+        if ~isempty(params.title), uicontrol('style','text','units','norm','position',[1,.05,.8,.9,.175]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string',params.title,'fontname',params.fontname,'fontsize',9+CONN_gui.font_offset,'fontweight','bold','horizontalalignment','left','parent',CONN_h.screen.hfig); end
+        h.filename=[];
+    end
     %uicontrol('style','text','units','norm','position',[1,.05,.85,.2,.05]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','Folder','fontangle','normal','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center');
     %uicontrol('style','text','units','norm','position',[1,.05,.15,.2,.05]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','Filter','fontangle','normal','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center');
     %uicontrol('style','text','units','norm','position',[1,.05,.10,.2,.05]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','Regexp','fontangle','normal','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center');
@@ -40,9 +52,11 @@ if nargin<1 || ischar(varargin{1}),
     h.selectfile=uicontrol('style','edit','position',[1,.25,.85,.7,.05]*M,'string','','max',2,'visible','off','parent',CONN_h.screen.hfig);
     %h.find=uicontrol('style','togglebutton','units','norm','position',[1,.7,.925,.25,.05]*M,'value',0,'string','Find','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','tooltipstring','Recursively searchs file names matching the filter starting from the current folder');
     %h.files=uicontrol('style','listbox','units','norm','position',[1,.05,.2,.9,.55]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','max',params.max,'fontname','default','fontsize',8+CONN_gui.font_offset,'tooltipstring','Displays file matches. Double-click a folder for browsing to a different location. Double-click a file to import it to the toolbox');
-    h.files=conn_menu('listbox2',[1,.05,.38,.9,.50]*M,'',''); %,'<HTML>Displays file matches<br/> - Double-click a folder for browsing to a different location<br/> - Double-click a file to import it to the toolbox</HTML>');
+    if h.reduced, h.files=conn_menu('listbox2',[1,.05,.43,.9,.40]*M,'',''); 
+    else h.files=conn_menu('listbox2',[1,.05,.38,.9,.50]*M,'',''); %,'<HTML>Displays file matches<br/> - Double-click a folder for browsing to a different location<br/> - Double-click a file to import it to the toolbox</HTML>');
+    end
     set(h.files,'max',params.max);
-    h.selected=uicontrol('style','text','units','norm','position',[1,.04,.23,.9,.10]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
+    h.selected=uicontrol('style','text','units','norm','position',[1,.04,.23,.9,.10]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','fontname',params.fontname,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
     %h.select=uicontrol('style','pushbutton','units','norm','position',[1,.7,.14,.25,.05]*M,'string','Select','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','tooltipstring','Enter selected file(s) or open selected folder','callback',{@conn_filesearchtool,'files',true});
     h.isfiles=strcmp(params.type,'files');
     if h.isfiles
@@ -51,32 +65,39 @@ if nargin<1 || ischar(varargin{1}),
         end
         h.select=conn_menu('pushbuttonblue2',[1,.05,.33,.45,.05]*M,'',h.strbutton,h.strbuttonhelp,{@conn_filesearchtool,'files',true});
         set(h.select,'fontsize',10+CONN_gui.font_offset);
-        h.find=conn_menu('pushbutton2',[1,.50,.33,.45,.05]*M,'','Find','Recursively searchs file names matching the filter starting from the current folder');
-        set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
-        h.selectspm=conn_menu('pushbutton2',[1,.7,.94,.29,.05]*M,'','ALTselect','<HTML>Alternative GUIs for file selection (OS-specific, spm_select GUI, select data from this or other CONN projects, etc.)</HTML>');
+        if h.reduced
+            h.find=conn_menu('pushbutton2',[1,.50,.33,.45,.05]*M,'','Cancel','');
+            set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
+            h.selectspm=[];
+        else
+            h.find=conn_menu('pushbutton2',[1,.50,.33,.45,.05]*M,'','Find','Recursively searchs file names matching the filter starting from the current folder');
+            set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
+            h.selectspm=conn_menu('pushbutton2',[1,.7,.94,.29,.05]*M,'','ALTselect','<HTML>Alternative GUIs for file selection (OS-specific, spm_select GUI, select data from this or other CONN projects, etc.)</HTML>');
+        end
     else
         if ~isempty(params.buttonhelp), h.strbuttonhelp=params.buttonhelp; 
         else h.strbuttonhelp=[h.strbutton,' highlighted folder'];
         end
         h.select=conn_menu('pushbuttonblue2',[1,.05,.33,.45,.05]*M,'',h.strbutton,h.strbuttonhelp,{@conn_filesearchtool,'selectfolder',true});
         set(h.select,'fontsize',10+CONN_gui.font_offset);
-        h.find=[];
+        if h.reduced
+            h.find=conn_menu('pushbutton2',[1,.50,.33,.45,.05]*M,'','Cancel','');
+            set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
+        else
+            h.find=[];
+        end
         h.selectspm=[];
     end
     h.find_state=0;
     h.folder=conn_menu('edit2',[1,.05,.175,.9,.05]*M,'',params.folder,'<HTML>Current folder<br/> - Type a full path to change to a different folder</HTML>');
-    %set(h.folder,'visible','off');
     str=conn_filesearch_breakfolder(params.folder);
-    h.folderpopup=conn_menu('popup2',[1,.05,.88,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
-    set(h.folderpopup,'value',numel(str));
-    if h.isfiles
-        h.filter=conn_menu('edit2',[1,.05,.125,.9,.05]*M,'',params.filter,'<HTML>File name filter (standard format)<br/> - Show only files with names matching any of these patterns<br/> - Use ";" to separate multiple filters</HTML>');
-        h.regexp=conn_menu('edit2',[1,.05,.075,.9,.05]*M,'',params.regexp,'<HTML>Additional full-path filename filter (regexp format)<br/> - Show only files with full-path filename matching this pattern<br/> - See <i>help regexp</i> for additional information');
-    else
-        h.filter=[]; 
-        h.regexp=[];
+    if h.reduced, h.folderpopup=conn_menu('popup2',[1,.05,.83,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
+    else h.folderpopup=conn_menu('popup2',[1,.05,.88,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
     end
-    if ~isempty(params.localcopy),  h.localcopy=conn_menu('popup2',[1,.05,.025,.9,.05]*M,'',{'import selected files','copy to local BIDS folder and import'},['<HTML>Controls behavior of ''',h.strbutton,''' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>copy first to local BIDS folder</i> : selected files will be first copied to your local conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified or processed)</HTML>']); set(h.localcopy,'value',params.localcopy);
+    set(h.folderpopup,'value',numel(str));
+    h.filter=conn_menu('edit2',[1,.05,.125,.9,.05]*M,'',params.filter,'<HTML>File name filter (standard format)<br/> - Show only files with names matching any of these patterns<br/> - Use ";" to separate multiple filters</HTML>');
+    h.regexp=conn_menu('edit2',[1,.05,.075,.9,.05]*M,'',params.regexp,'<HTML>Additional full-path filename filter (regexp format)<br/> - Show only files with full-path filename matching this pattern<br/> - See <i>help regexp</i> for additional information');
+    if ~isempty(params.localcopy)&&~h.reduced,  h.localcopy=conn_menu('popup2',[1,.05,.025,.9,.05]*M,'',{'import selected files','copy to project BIDS folder and import'},['<HTML>Controls behavior of ''',h.strbutton,''' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>copy first to project BIDS folder</i> : selected files will be first copied to your project conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified or processed)</HTML>']); set(h.localcopy,'value',params.localcopy);
     else h.localcopy=[];
     end
 %     hc1=uicontextmenu;
@@ -86,16 +107,19 @@ if nargin<1 || ischar(varargin{1}),
 %     h.selectspmalt3=uimenu(hc1,'Label','<HTML>Select file(s) already entered in this or a different CONN project</HTML>');%,'callback',{@conn_filesearchtool,'selectspmalt2'});
 %     set(h.selectspm,'uicontextmenu',hc1);
     h.callback=params.callback;
-    set([h.files,h.find,h.folder,h.folderpopup,h.filter,h.regexp,h.localcopy,h.select,h.selectspm],'userdata',h);
+    set([h.files,h.find,h.folder,h.folderpopup,h.filter,h.regexp,h.localcopy,h.select,h.selectspm, h.filename],'userdata',h);
     names={'files','find','selectspm'}; for n1=1:length(names), set(h.(names{n1}),'callback',{@conn_filesearchtool,names{n1}}); end
-    names={'folder','folderpopup','filter','regexp'}; for n1=1:length(names), set(h.(names{n1}),'callback',{@conn_filesearchtool,names{n1},true}); end
+    names={'folder','folderpopup','filter','regexp','filename'}; for n1=1:length(names), set(h.(names{n1}),'callback',{@conn_filesearchtool,names{n1},true}); end
     set([h.find h.select h.selectspm h.filter h.regexp h.localcopy h.folder],'visible','off');
-    conn_menumanager('onregion',[h.find h.select h.selectspm h.filter h.regexp h.localcopy h.folder],1,params.position+[-.05 -.05 +.10 +.10],h.files);
+    if h.reduced, conn_menumanager('onregion',[h.find h.select h.selectspm h.localcopy],1,params.position+[-.05 -.05 +.10 +.10],h.files);
+    else conn_menumanager('onregion',[h.find h.select h.selectspm h.filter h.regexp h.localcopy h.folder],1,params.position+[-.05 -.05 +.10 +.10],h.files);
+    end
     conn_filesearchtool(h.folder,[],'folder',true);
 else,
     h=get(varargin{1},'userdata');
     set(h.selected,'string','');
-    doubleclick=nargin>3|strcmp(get(gcbf,'SelectionType'),'open');
+    doubleclick=strcmp(get(gcbf,'SelectionType'),'open');
+    selection=nargin>3|doubleclick;
     if strcmp(varargin{3},'selectspm'),
         opts={'Use SPM gui to select individual file(s)',...
             'Use SPM gui to select individual volume(s) from 4d nifti files',...
@@ -130,11 +154,23 @@ else,
                     if length(h.callback)>1, feval(h.callback{1},h.callback{2:end},names); else, feval(h.callback{1},names); end
                 else, feval(h.callback,names); end
             end
-        case {'folder','folderpopup','filter','regexp','files','selectfolder'},
+        case {'folder','folderpopup','filter','regexp','files','selectfolder','filename'},
             %parse={[regexprep(CONN_gui.parse_html{1},'<FONT color=rgb\(\d+,\d+,\d+\)>','<FONT color=rgb(150,100,100)><i>'),'-'],regexprep(CONN_gui.parse_html{2},'<\/FONT>','</FONT></i>')};
             parse={[regexprep(CONN_gui.parse_html{1},'<FONT color=rgb\(\d+,\d+,\d+\)>','<FONT color=rgb(180,180,180)>'),'-'],regexprep(CONN_gui.parse_html{2},'<\/FONT>','</FONT>')};
             pathname=fliplr(deblank(fliplr(deblank(get(h.folder,'string')))));
-            if strcmp(pathname,'.')||strncmp(pathname,['.' filesep],2), pathname=conn_fullfile(pwd,pathname(3:end)); end
+            if strcmp(varargin{3},'filename')
+                filename=get(h.filename,'string');
+                if conn_fileutils('isdir',filename)
+                    pathname=filename; filename=''; set(h.filename,'string',filename);
+                else
+                    [tpath,tname,text]=fileparts(filename);
+                    if ~isempty(tpath),
+                        pathname=tpath; filename=[tname,text]; set(h.filename,'string',filename);
+                        if ~conn_fileutils('isdir',pathname), return; end
+                    end
+                end
+            end
+            if strcmp(pathname,'.')||strncmp(pathname,['.' filesep],2), pathname=conn_fullfile(conn_projectmanager('pwd'),pathname(3:end)); end
             if ~conn_fileutils('isdir',pathname), pathname=cwd; end
             if strcmp(varargin{3},'folderpopup')
                 str=conn_filesearch_breakfolder(pathname);
@@ -144,24 +180,32 @@ else,
             cwd=pathname;
             selectfolder=strcmp(varargin{3},'selectfolder');
             if ismember(varargin{3},{'files','selectfolder'}),
-				%disp(get(h.files,'value'))
-                filename=get(h.files,'string');
-                filename=filename(get(h.files,'value'),:);
-                if isempty(filename), return; end
-                filename=fliplr(deblank(fliplr(deblank(filename(1,:)))));
-                if strncmp(filename,parse{1},numel(parse{1})), filename=fliplr(deblank(fliplr(deblank(filename(numel(parse{1})+1:end-numel(parse{2})))))); end
-                if strcmp(filename,'..'),
-                    selectfolder=false;
-                    idx=find(pathname==filesep); idx(idx==length(pathname))=[];
-                    if ~isempty(idx), pathname=pathname(1:idx(end)); else return; end
-                elseif ~selectfolder
+                if h.reduced&&selection&&~doubleclick, % disregards if list points to a different folder
+                    filename=fliplr(deblank(fliplr(deblank(get(h.filename,'string')))));
                     pathname=fullfile(pathname,filename);
+                else
+                    %disp(get(h.files,'value'))
+                    filename=get(h.files,'string');
+                    filename=filename(get(h.files,'value'),:);
+                    if isempty(filename), return; end
+                    filename=fliplr(deblank(fliplr(deblank(filename(1,:)))));
+                    if strncmp(filename,parse{1},numel(parse{1})), filename=fliplr(deblank(fliplr(deblank(filename(numel(parse{1})+1:end-numel(parse{2})))))); end
+                    if strcmp(filename,'..'),
+                        selectfolder=false;
+                        idx=find(pathname==filesep); idx(idx==length(pathname))=[];
+                        if ~isempty(idx), pathname=pathname(1:idx(end)); else return; end
+                    elseif ~selectfolder
+                        pathname=fullfile(pathname,filename);
+                    end
                 end
             end
-            isdirectory=(conn_fileutils('isdir',pathname) || ~conn_existfile(pathname));
-            if ~selectfolder&&isdirectory&&doubleclick, % cd to a new directory
+            isdirectory=(conn_fileutils('isdir',pathname) || (~h.reduced&&~conn_existfile(pathname)));
+            if ismember(varargin{3},{'files','selectfolder'})&&h.reduced&&~isdirectory, set(h.filename,'string',filename); end
+            if ~selectfolder&&isdirectory&&selection, % cd to a new directory
+                str=conn_filesearch_breakfolder(pathname);
                 results={[parse{1},'   ..',parse{2}]}; 
-                names=conn_dirn(pathname);
+                names=conn_dirn(fullfile(pathname,'*'));
+                if ~isempty(names)&&numel(str)==1&&conn_projectmanager('inserver'), names=[names(1) names(:)']; names(1).name='CONNSERVER'; names(1).isdir=true; end
                 for n1=1:length(names), if names(n1).isdir&&~strcmp(names(n1).name,'.')&&~strcmp(names(n1).name,'..'), results{end+1}=[parse{1},'   ',names(n1).name,parse{2}]; end; end
                 n0results=numel(results);
                 if n0results>0, results=conn_sortfilenames(results); end
@@ -171,11 +215,18 @@ else,
                     if isempty(filter), filter='*'; end
                     if isempty(filter2), filter2='.'; end
                     [filternow,filter]=strtok(filter,';');
+                    allnames={names.name}; allnames=allnames([names.isdir]==0);
                     while ~isempty(filternow),
-                        filename=fullfile(pathname,fliplr(deblank(fliplr(deblank(filternow)))));
-                        names=conn_dirn(filename);
-                        for n1=1:length(names),
-                            if ~names(n1).isdir&&~isempty(regexp(names(n1).name,filter2)), results{end+1}=names(n1).name; end;
+                        if 1 % faster
+                            namematch=cellfun('length',regexp(allnames,['^',regexprep(fliplr(deblank(fliplr(deblank(filternow)))),{'[\[\]\(\)\{\}\\\^\$\.\|\?\+]','\*'},{'\\$0','.*'}),'$']))>0;
+                            if any(namematch)&&~isequal(filter2,'.'), namematch(namematch)=cellfun('length',regexp(allnames(namematch),filter2))>0; end
+                            if any(namematch), results=[results allnames(namematch)]; end
+                        else
+                            filename=fullfile(pathname,fliplr(deblank(fliplr(deblank(filternow)))));
+                            names=conn_dirn(filename);
+                            for n1=1:length(names),
+                                if ~names(n1).isdir&&~isempty(regexp(names(n1).name,filter2)), results{end+1}=names(n1).name; end;
+                            end
                         end
                         [filternow,filter]=strtok(filter,';');
                     end
@@ -191,12 +242,11 @@ else,
                 idx=unique(max(1,min(numel(results),idx)));
                 set(h.files,'string',char(results),'value',idx,'listboxtop',1);
                 set(h.folder,'string',pathname); %fullfile(pathname,filesep));
-                str=conn_filesearch_breakfolder(pathname);
                 set(h.folderpopup,'string',regexprep(str,'(.+)[\/\\]$','$1'),'value',numel(str));
                 set(h.selectfile,'string','');
                 set(h.select,'string',h.strbutton,'fontweight','bold','enable','on');
                 cwd=pathname; %fullfile(pathname,filesep);
-%             elseif selectfolder&&~isempty(h.callback)&&doubleclick, % select folder
+%             elseif selectfolder&&~isempty(h.callback)&&selection, % select folder
 %                 tcolor=get(h.select,'backgroundcolor');
 %                 set(h.select,'backgroundcolor',CONN_gui.backgroundcolor,'string','working...','fontweight','normal','enable','off');drawnow;
 %                 if iscell(h.callback),
@@ -204,9 +254,14 @@ else,
 %                 else, feval(h.callback,pathname); 
 %                 end
 %                 set(h.select,'backgroundcolor',tcolor,'string',h.strbutton,'fontweight','bold','enable','on');
-            elseif (selectfolder||~isdirectory)&&~isempty(h.callback)&&doubleclick, % select folder or select file
-                idx=get(h.files,'value');
-                names=get(h.files,'string');
+            elseif (selectfolder||~isdirectory)&&~isempty(h.callback)&&selection, % select folder or select file
+                if h.reduced&&~isdirectory
+                    idx=1;
+                    names=fliplr(deblank(fliplr(deblank(get(h.filename,'string')))));
+                else
+                    idx=get(h.files,'value');
+                    names=get(h.files,'string');
+                end
                 if ~isempty(idx) & size(names,1)>=max(idx),
                     names=names(idx,:);
                     pathname=fliplr(deblank(fliplr(deblank(get(h.folder,'string')))));
@@ -222,9 +277,9 @@ else,
                     if iscell(h.callback),
                         if length(h.callback)>1, feval(h.callback{1},h.callback{2:end},names); else, feval(h.callback{1},names); end
                     else, feval(h.callback,names); end
-                    set(h.select,'backgroundcolor',tcolor,'string',h.strbutton,'fontweight','bold','enable','on');
+                    try, set(h.select,'backgroundcolor',tcolor,'string',h.strbutton,'fontweight','bold','enable','on'); end
                 end
-            elseif ~doubleclick&&~isdirectory, % show info
+            elseif ~selection&&~isdirectory, % show info
                 idx=get(h.files,'value');
                 names=get(h.files,'string');
                 strselected=sprintf('%d files selected',numel(idx)); 
@@ -234,7 +289,8 @@ else,
                     if isempty(pathname)||pathname(end)~=filesep, pathname=[pathname,filesep]; end
                     names=[repmat(pathname,[size(names,1),1]),names];
                     try
-                        if size(names,1)>4,
+                        if h.reduced, strselected='';
+                        elseif size(names,1)>4,
                             strselected={sprintf('[%d files]',size(names,1))};
                             strselected{end+1}=['First: ',deblank(names(1,:))]; strselected{end+1}=['Last : ',deblank(names(end,:))];
                             for n1=1:length(strselected), if length(strselected{n1})>25+9, strselected{n1}=[strselected{n1}(1:4),' ... ',strselected{n1}(end-25+1:end)]; end; end; 
@@ -252,28 +308,34 @@ else,
                 set(h.selected,'string',strselected);
             end
         case {'find'}
-            state=xor(1,h.find_state);%get(h.find,'value');
-            h.find_state=state;
-            set(h.find,'userdata',h);
-            if state,
-                results=get(h.files,'string');
-                results=results(find(results(:,1)=='<'),:);
-                resultsnew=[];
-                set(h.find,'string','Cancel');
-                pathname=fliplr(deblank(fliplr(deblank(get(h.folder,'string')))));
-                filter=get(h.filter,'string');
-                filter2=get(h.regexp,'string');
-                if strcmp(filter2,'.'), filter2=''; end
-                set(h.files,'string',resultsnew,'value',1);
-                ok=dirtree(pathname,filter,filter2,h,length(pathname));
-                resultsnew=get(h.files,'string');
-                resultsnew=conn_sortfilenames(resultsnew);
-                set(h.files,'string',strvcat(results,resultsnew));
-                if ok, h.find_state=0; end  % clears the results when clicking 'cancel' button
-                set(h.find,'value',0,'string','Find','userdata',h);                
+            if h.reduced
+                if iscell(h.callback),
+                    if length(h.callback)>1, feval(h.callback{1},h.callback{2:end},''); else, feval(h.callback{1},''); end
+                else, feval(h.callback,''); end
             else
-                set(h.find,'value',0,'string','Find');
-                resultsnew=get(h.files,'string');
+                state=xor(1,h.find_state);%get(h.find,'value');
+                h.find_state=state;
+                set(h.find,'userdata',h);
+                if state,
+                    results=get(h.files,'string');
+                    results=results(find(results(:,1)=='<'),:);
+                    resultsnew=[];
+                    set(h.find,'string','Cancel');
+                    pathname=fliplr(deblank(fliplr(deblank(get(h.folder,'string')))));
+                    filter=get(h.filter,'string');
+                    filter2=get(h.regexp,'string');
+                    if strcmp(filter2,'.'), filter2=''; end
+                    set(h.files,'string',resultsnew,'value',1);
+                    ok=dirtree(pathname,filter,filter2,h,length(pathname));
+                    resultsnew=get(h.files,'string');
+                    resultsnew=conn_sortfilenames(resultsnew);
+                    set(h.files,'string',strvcat(results,resultsnew));
+                    if ok, h.find_state=0; end  % clears the results when clicking 'cancel' button
+                    set(h.find,'value',0,'string','Find','userdata',h);
+                else
+                    set(h.find,'value',0,'string','Find');
+                    resultsnew=get(h.files,'string');
+                end
             end
     end
 end

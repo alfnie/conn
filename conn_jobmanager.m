@@ -108,7 +108,7 @@ if isempty(CFG)
             struct('name','Grid Engine computer cluster',... % tested on BU scc
                    'comments','This profile may be used in cluster environments that implement a standard Open Grid Scheduler / Grid Engine / SGE scheduler',...
                    'cmd_submit','qsub -N JOBLABEL -e STDERR -o STDOUT OPTS SCRIPT',...
-                   'cmd_submitoptions','',...
+                   'cmd_submitoptions','-l h_rt=12:00:00',...
                    'cmd_submitoptions_infile',{{}},...
                    'cmd_rundeployed',0,...
                    'cmd_deployedfile','',...
@@ -120,7 +120,7 @@ if isempty(CFG)
             struct('name','Slurm computer cluster',...  % tested on MIT openmind & NEU discovery
                    'comments','This profile may be used in cluster environments that implement a standard Slurm Workload Manager scheduler',...
                    'cmd_submit','sbatch --job-name=JOBLABEL --error=STDERR --output=STDOUT OPTS SCRIPT',...
-                   'cmd_submitoptions','-t 12:00:00 --mem=8Gb',...
+                   'cmd_submitoptions','-t 12:00:00',...
                    'cmd_submitoptions_infile',{{}},...
                    'cmd_rundeployed',0,...
                    'cmd_deployedfile','',...
@@ -132,7 +132,7 @@ if isempty(CFG)
             struct('name','PBS/Torque computer cluster',...  % tested on MIT mindhive
                    'comments','This profile may be used in cluster environments that implement a standard Portable Batch System / Torque scheduler',...
                    'cmd_submit','qsub -N JOBLABEL -e STDERR -o STDOUT OPTS SCRIPT',...
-                   'cmd_submitoptions','',...
+                   'cmd_submitoptions','-l walltime=12:00:00',...
                    'cmd_submitoptions_infile',{{}},...
                    'cmd_rundeployed',0,...
                    'cmd_deployedfile','',...
@@ -381,10 +381,12 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
             if all(ismember(info.tagmsg,validlabels)),
                 answ=conn_questdlg({'Your pending job has finished','Finished jobs need to be merged with your current CONN project','Would you like to do this now?'},'Finished job','Merge now','Later','Merge now');
                 if isequal(answ,'Merge now'), 
+                    hmsg=conn_msgbox('Merging projects. Please wait...','',-1);
                     filename=regexprep(info.private{1}(1).project,'\?.*$','');
                     conn('load',filename);
                     conn save;
                     varargout={info};
+                    if ishandle(hmsg), delete(hmsg); end
                     return;
                 else
                     varargout={info};
@@ -519,8 +521,12 @@ else
             
         case {'test','testprofile'}
             conn_jobmanager_settings(PROFILES,DEFAULT,CFG,'test',true,varargin{:});
+            
         case {'save','saveprofile'}
             conn_jobmanager_settings(PROFILES,DEFAULT,CFG,'save',varargin{:});
+            
+        case 'checkdeployedname'
+            varargout={conn_jobmanager_checkdeployedname(CFG)};
             
         case 'options',
             if numel(varargin)>1
@@ -826,7 +832,7 @@ else
             if nargin>2&&~isempty(varargin{2})
                 tag=varargin{2};
                 conn_disp(sprintf('%s %s',filename,tag));
-                try, conn_fileutils('deletefile',conn_prepend('',filename,'.status.*')); end
+                try, conn_fileutils('deletefile_multiple',conn_prepend('',filename,'.status.')); end
                 %if CFG.machinetype.ispc, [ok,nill]=system(sprintf('del "%s"',conn_prepend('',filename,'.status.*')));
                 %else [ok,nill]=system(sprintf('rm -f ''%s''*',conn_prepend('',filename,'.status.')));
                 %end
@@ -960,6 +966,9 @@ else
                 info.stderr{n}=conn_prepend('',info.scripts{n},'.stderr');
                 info.stdlog{n}=conn_prepend('',info.scripts{n},'.stdlog');
                 whichfolders=conn_server('util_localfile',cellfun(@fileparts,conn_projectmanager('which',{'spm','conn','evlab17'}),'uni',0));
+                if ismember(submitPROFILE.name,{'Background process (Unix,Mac)','Background process (Windows)'}), singleCompThread=''; % note: consider adding to cmd_* options 
+                else singleCompThread=' -singleCompThread';
+                end
                 if CFG.machinetype.ispc
                     fh={};%fopen(filename_sh,'wt');
                     if ~isempty(submitPROFILE.cmd_submitoptions_infile)
@@ -967,10 +976,10 @@ else
                         for ncmd_submitoptions=1:numel(cmd_submitoptions), fh{end+1}=sprintf('%s\n',cmd_submitoptions{ncmd_submitoptions}); end
                     end
                     if isdep,   fh{end+1}=sprintf('%s jobmanager rexec "%s"\n',fun_callback,conn_server('util_localfile',filename_mat));
-                    elseif ~isempty(whichfolders{3}), fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation -singleCompThread -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
-                    else fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation -singleCompThread -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    elseif ~isempty(whichfolders{3}),   fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation%s -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    else                                fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation%s -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     end
                     fh{end+1}=sprintf('exit\n');
                     conn_fileutils('filewrite_raw',filename_sh,fh); %fclose(fh);
@@ -990,12 +999,12 @@ else
                         for ncmd_submitoptions=1:numel(cmd_submitoptions), fh{end+1}=sprintf('%s\n',cmd_submitoptions{ncmd_submitoptions}); end
                     end
                     if isdep,   fh{end+1}=sprintf('%s jobmanager rexec ''%s''\n',fun_callback,conn_server('util_localfile',filename_mat));
-                    elseif USENODISPLAY,   fh{end+1}=sprintf('%s -nodesktop -nodisplay -nosplash -singleCompThread -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
-                    elseif ~isempty(whichfolders{3}),    fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -singleCompThread -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
-                    else                   fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -singleCompThread -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    elseif USENODISPLAY,                    fh{end+1}=sprintf('%s -nodesktop -nodisplay -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    elseif ~isempty(whichfolders{3}),       fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                    else                                    fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     end
                     fh{end+1}=sprintf('echo _NODE END_\n');
                     conn_fileutils('filewrite_raw',filename_sh,fh); %fclose(fh);

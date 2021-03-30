@@ -71,13 +71,19 @@ switch(lower(option))
             if ~isequal(ok,0), error('Error renaming file %s to %s, missing file or invalid file permissions',varargin{1},varargin{2}); end
         end
         
-    case {'filedelete','deletefile'}
+    case {'filedelete','deletefile','filedelete_multiple','deletefile_multiple'}
         if any(conn_server('util_isremotefile',varargin{1})), 
             conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}));
         elseif iscell(varargin{1}), cellfun(@(x)conn_fileutils(option,x),varargin{1},'uni',0);
         else
-            if ispc, [ok,nill]=system(sprintf('del "%s"',varargin{1}));
-            else [ok,nill]=system(sprintf('rm -f ''%s''',varargin{1}));
+            if ~isempty(regexp(option,'_multiple$'))
+                if ispc, [ok,nill]=system(sprintf('del "%s"*',varargin{1}));
+                else [ok,nill]=system(sprintf('rm -f ''%s''*',varargin{1}));
+                end
+            else
+                if ispc, [ok,nill]=system(sprintf('del "%s"',varargin{1}));
+                else [ok,nill]=system(sprintf('rm -f ''%s''',varargin{1}));
+                end
             end
             if ~isequal(ok,0), error('Error deleting file %s, missing file or invalid file permissions',varargin{1}); end
         end
@@ -156,6 +162,18 @@ switch(lower(option))
         else varargout{1}=conn_fullfile('~/');
         end
         
+    case 'java.io.file'
+        if any(conn_server('util_isremotefile',varargin{1})), [varargout{1:nargout}]=conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),varargin{2:end});
+        else [varargout{1:nargout}]=java.io.File(varargin{:});
+        end
+        
+    case 'getdiskspace'
+        if any(conn_server('util_isremotefile',varargin{1})), [varargout{1:nargout}]=conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),varargin{2:end});
+        else
+            a=java.io.File(varargin{:});
+            varargout={struct('getUsableSpace',a.getUsableSpace,'getTotalSpace',a.getTotalSpace,'canWrite',a.canWrite)};
+        end
+
     case 'imread',
         if any(conn_server('util_isremotefile',varargin{1})), [varargout{1:nargout}]=imread(conn_cache('pull',varargin{1}),varargin{2:end});
         else [varargout{1:nargout}]=imread(varargin{:});

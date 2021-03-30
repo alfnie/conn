@@ -126,7 +126,7 @@ conn_convertl12l2covariate_update;
                         for icovariate=1:numel(ncovariates)
                             nl1covariate=ncovariates(icovariate);
                             if 1,%~isempty(CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{3})
-                                x=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{3};
+                                x=conn_get_l1covariate(nsub,nl1covariate,nses); %CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{3};
                                 if nconditions(icondition),
                                     y=x(samples{nconditions(icondition)},:);
                                     w=weights{nconditions(icondition)}{3};

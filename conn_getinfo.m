@@ -96,7 +96,9 @@ else
         case {'.tal','.mat','.txt','.par','.1d','.csv','.tsv'},
             nV=size(filename,1);
             for n1=1:nV,
-                x=conn_loadtextfile(deblank(filename(n1,:)));
+                if strcmp(ext(1:min(4,length(ext))),'.mat'), x=conn_loadmatfile(deblank(filename(n1,:)));
+                else x=conn_loadtextfile(deblank(filename(n1,:)));
+                end
                 if isstruct(x), 
                     names=fieldnames(x); 
                     try, x=cell2mat(cellfun(@(n)x.(n),names(:)','uni',0)); names=deblank(sprintf('%s ',names{:})); 
@@ -140,9 +142,9 @@ else
                 if ~tok
                     V(n1).dim=size(x);
                     V(n1).fname=deblank(filename(n1,:));
-                    if isnumeric(x) && (n1==1 || n1==size(filename,1)),
-                        icon=cat(2,icon,x(:,:));
-                    end
+                    %if isnumeric(x) && (n1==1 || n1==size(filename,1)),
+                    %    icon=cat(2,icon,x(:,:));
+                    %end
                 end
             end
         otherwise,

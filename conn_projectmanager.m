@@ -4,7 +4,7 @@ function varargout = conn_projectmanager(option,varargin)
 % internal function: manages project access, delayed processing steps and parallelization/synchronization options
 %
 
-global CONN_x;
+global CONN_x CONN_gui;
 switch(lower(option))
     case 'null'
         pobj.isextended=false;    % is this project an extension of a different base project?
@@ -146,8 +146,8 @@ switch(lower(option))
                 vtag=true(size(utag));
                 for n=1:numel(utag)
                     pathname=fullfile(conn_prepend('',CONN_x.filename,'.qlog'),utag{n});
-                    if exist(pathname,'dir')&&conn_existfile(fullfile(pathname,'info.mat'))
-                        load(fullfile(pathname,'info.mat'),'info'); % look at associated .qlog folders
+                    if conn_existfile(pathname,2)&&conn_existfile(fullfile(pathname,'info.mat'))
+                        conn_loadmatfile(fullfile(pathname,'info.mat'),'info'); % look at associated .qlog folders
                         info=conn_jobmanager('statusjob',info,[],true);
                         validlabels={'finished','canceled'}; %{'finished','stopped'};
                         vtag(n)=all(ismember(info.tagmsg,validlabels));
@@ -203,7 +203,7 @@ switch(lower(option))
                             if isfield(CONN_x.Analyses(ianalysis),'name')&&isfield(CONN_x.Analyses(ianalysis),'sourcenames')
                                 filesourcenames=fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name,'_list_sources.mat');
                                 filesourcenames=conn_projectmanager('projectfile',filesourcenames,struct('id',id{n},'isextended',true),'.mat');
-                                addfiles{end+1}=filesourcenames;
+                                addfiles{end+1}=conn_server('util_localfile',filesourcenames);
                             end
                         end
                         if isfield(CONN_x,'vvAnalyses')
@@ -211,14 +211,14 @@ switch(lower(option))
                                 if isfield(CONN_x.vvAnalyses(ianalysis),'name')&&isfield(CONN_x.vvAnalyses(ianalysis),'measurenames')
                                     filemeasurenames=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name,'_list_measures.mat');
                                     filemeasurenames=conn_projectmanager('projectfile',filemeasurenames,struct('id',id{n},'isextended',true),'.mat');
-                                    addfiles{end+1}=filemeasurenames;
+                                    addfiles{end+1}=conn_server('util_localfile',filemeasurenames);
                                 end
                             end
                         end
                         if isfield(CONN_x.Setup.conditions,'allnames')
                             fileconditionnames=fullfile(CONN_x.folders.preprocessing,'_list_conditions.mat');
                             fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,struct('id',id{n},'isextended',true),'.mat');
-                            addfiles{end+1}=fileconditionnames;
+                            addfiles{end+1}=conn_server('util_localfile',fileconditionnames);
                         end
                     end
                     if ~isempty(addfiles)
@@ -301,13 +301,16 @@ switch(lower(option))
         save(filename,'process');
         
     case 'inserver'
-        try
-            if numel(varargin)>=1, filename=varargin{1};
-            else filename=CONN_x.filename;
+        if isfield(CONN_gui,'isremote')&&CONN_gui.isremote>0, varargout={true}; 
+        else
+            try
+                if numel(varargin)>=1, filename=varargin{1};
+                else filename=CONN_x.filename;
+                end
+                varargout={conn_server('util_isremotefile',filename)};
+            catch
+                varargout={false};
             end
-            varargout={conn_server('util_isremotefile',filename)};
-        catch
-            varargout={false};
         end
         
     otherwise,

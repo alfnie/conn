@@ -1,4 +1,4 @@
-function tdata = conn_loadtextfile(tfilename,okstruct)
+function tdata = conn_loadtextfile(tfilename,okstruct,varargin)
 % loads text/mat file (.mat .txt .csv .tsv .json)
 % data = conn_loadtextfile(filename)
 %
@@ -9,12 +9,27 @@ function tdata = conn_loadtextfile(tfilename,okstruct)
 % see spm_load
 
 if nargin<2||isempty(okstruct), okstruct=true; end
-if any(conn_server('util_isremotefile',tfilename)), tdata=conn_server('run',mfilename,conn_server('util_localfile',tfilename),okstruct); return; end
+if any(conn_server('util_isremotefile',tfilename)), 
+    DOCACHE=false;
+    if ~isempty(varargin)&&any(cellfun(@(x)isequal(x,'-cache'),varargin)), DOCACHE=true; 
+    else
+        try
+            info=conn_fileutils('dir',tfilename);
+            DOCACHE=info.bytes>1e6;
+        end
+    end
+    if DOCACHE
+        tfilename=conn_cache('pull',tfilename);
+    else
+        tdata=conn_server('run',mfilename,conn_server('util_localfile',tfilename),okstruct);
+        return
+    end
+end
 
 if ischar(okstruct), v=okstruct; okstruct=true; 
 elseif ischar(tfilename)&&any(tfilename==',')
     tfields=regexp(tfilename,',','split');
-    assert(numel(tfields)==2,'unable to interpret filename %s',tfields);
+    assert(numel(tfields)==2,'unable to interpret filename %s',tfilename);
     tfilename=tfields{1};
     v=tfields{2};
 else v='';

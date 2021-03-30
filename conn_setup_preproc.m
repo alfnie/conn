@@ -417,7 +417,15 @@ if ~nargin||isempty(STEPS)||dogui,
     elseif 1, tvalid=tidx; % show only default scheduler
     else tstr{tidx}=sprintf('<HTML><b>%s</b></HTML>',tstr{tidx});
     end
-    dlg.m9=uicontrol('style','popupmenu','units','norm','position',[.55,.12,.40,.05],'string',[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)],'value',1,'backgroundcolor',1*[1 1 1],'fontsize',8+CONN_gui.font_offset);
+    toptions=[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)];
+    if CONN_gui.isremote
+        info=conn_server('HPC_info');
+        if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
+        else tnameserver='CONN server';
+        end
+        toptions=regexprep(toptions,'\<run on (this computer)?',['run on ',tnameserver,' ']);
+    end    
+    dlg.m9=uicontrol('style','popupmenu','units','norm','position',[.55,.12,.40,.05],'string',toptions,'value',1,'backgroundcolor',1*[1 1 1],'fontsize',8+CONN_gui.font_offset);
     if multiplesteps, dlg.m11=uicontrol('style','pushbutton','units','norm','position',[.55,.04,.2,.07],'string','Start','tooltipstring','Accept changes and run data preprocessing pipeline','callback','set(gcbf,''userdata'',0); uiresume(gcbf)','fontsize',9+font_offset,'fontweight','bold');
     else              dlg.m11=uicontrol('style','pushbutton','units','norm','position',[.55,.04,.2,.07],'string','Start','tooltipstring','Accept changes and run data preprocessing step','callback','set(gcbf,''userdata'',0); uiresume(gcbf)','fontsize',9+font_offset);
     end

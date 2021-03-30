@@ -1388,9 +1388,12 @@ function V=conn_mesh_display_getV(filenameSURF,a,FSfolder)
         end
     else
         V=[];
+        if isequal(FSfolder,fullfile(fileparts(which('conn')),'utils','surf')), files={'lh.pial.surf','rh.pial.surf','lh.mid.surf','rh.mid.surf','lh.white.surf','rh.white.surf'}; 
+            %files={fullfile(FSfolder,'lh.mid.surf'),fullfile(FSfolder,'rh.mid.surf')}; % use this for accurate values
+        else files={fullfile(FSfolder,'lh.pial.surf'),fullfile(FSfolder,'rh.pial.surf'),fullfile(FSfolder,'lh.mid.surf'),fullfile(FSfolder,'rh.mid.surf'),fullfile(FSfolder,'lh.white.surf'),fullfile(FSfolder,'rh.white.surf')};
+        end
         for nfilenameSURF=1:numel(filenameSURF)
-            tV=conn_surf_extract(filenameSURF{nfilenameSURF},{fullfile(FSfolder,'lh.pial.surf'),fullfile(FSfolder,'rh.pial.surf'),fullfile(FSfolder,'lh.mid.surf'),fullfile(FSfolder,'rh.mid.surf'),fullfile(FSfolder,'lh.white.surf'),fullfile(FSfolder,'rh.white.surf')},[],10); % use this for smoother display
-            %tV=conn_surf_extract(filenameSURF{nfilenameSURF},{fullfile(FSfolder,'lh.mid.surf'),fullfile(FSfolder,'rh.mid.surf')});                                                                                                                                          % use this for accurate values
+            tV=conn_surf_extract(filenameSURF{nfilenameSURF},files,[],10); % use this for smoother display
             tV=cell2mat(tV);
             maskV=isnan(tV)|(tV==0);
             tV(maskV)=0;

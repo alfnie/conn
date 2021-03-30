@@ -46,6 +46,8 @@ if isempty(FS_folder) % extracts from single surface file (assumes all files in 
             return;
         end
     end
+    surfnames_incomplete=cellfun('length',regexp(surfnames,'^lh\.|^rh\.'))>0;
+    if any(surfnames_incomplete), surfnames(surfnames_incomplete)=conn_fullfile(fileparts(which(mfilename)),'utils','surf',surfnames(surfnames_incomplete)); end
     voldata=[];
     if isstruct(filename)&&isfield(filename,'fname'), vol=filename;
     elseif isstruct(filename)&&isfield(filename,'data'), vol=filename.vol; voldata=filename.data;

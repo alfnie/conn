@@ -42,6 +42,7 @@ if nargin<1||isempty(datafiles),
     end
     if isempty(datafiles), return; end
 end
+hmsg=conn_msgbox('Initializing. Please wait...','',-1);
 if ischar(datafiles), datafiles=cellstr(datafiles); end
 if size(datafiles,1)==1, datafiles=datafiles'; end
 [file_path,file_name,file_ext]=cellfun(@fileparts,datafiles,'uni',0);
@@ -73,6 +74,7 @@ else
 end
 if isempty(consubjects), consubjects=nan(size(idxsubjects)); end
 if isempty(datafiles_names), datafiles_names=arrayfun(@(n)sprintf('subject %d',n),consubjects,'uni',0); end
+if ishandle(hmsg), delete(hmsg); end
 ok=true;
 thfig=dialog('units','norm','position',[.3,.4,.3,.3],'windowstyle','normal','name','Plot individual subject','color','w','resize','on');
 uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string','Display type:','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');

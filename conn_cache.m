@@ -38,7 +38,7 @@ if isempty(params)
     if ispc, params.local_folder=conn_fullfile(getenv('USERPROFILE'),'.conn_cache');
     else params.local_folder=conn_fullfile('~/.conn_cache');
     end
-    conn_fileutils('mkdir',params.local_folder);
+    try, if ~conn_existfile(params.local_folder,2), conn_fileutils('mkdir',params.local_folder); end; end
 end
 if ~nargin||isempty(option), option='init'; end
 
@@ -48,8 +48,14 @@ switch(lower(option))
         params.remote_files={};
         params.local_hashes={};
         params.remote_hashes={};
-        if ispc, [ok,nill]=system(sprintf('del /Q "%s"',fullfile(params.local_folder,'conncache_*')));
-        else [ok,nill]=system(sprintf('rm -f ''%s''/conncache_*',params.local_folder));
+        if ispc, 
+            [ok,nill]=system(sprintf('del /Q "%s"',fullfile(params.local_folder,'conncache_*')));
+            [ok,nill]=system(sprintf('del /Q "%s"',fullfile(params.local_folder,'cachetmp_*')));
+            [ok,nill]=system(sprintf('del /Q "%s"',fullfile(params.local_folder,'conntcpipwrite_*')));
+        else
+            [ok,nill]=system(sprintf('rm -f ''%s''/conncache_*',params.local_folder));
+            [ok,nill]=system(sprintf('rm -f ''%s''/cachetmp_*',params.local_folder));
+            [ok,nill]=system(sprintf('rm -f ''%s''/conntcpipwrite_*',params.local_folder));
         end
         fprintf('CONN drive initialized\nLocal/cache folder: %s\n', params.local_folder);
         
@@ -188,7 +194,7 @@ switch(lower(option))
         end
         if nargout, varargout={filename_local}; end
         
-    case 'clear'   % conn drive rename <remotefile> <remotefile_newname>
+    case 'clear'   % conn drive clear filename_remote
         if isempty(varargin), conn_cache('init');
         else
             filename_remote=varargin{1};

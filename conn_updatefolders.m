@@ -10,15 +10,15 @@ if nargin<1||isempty(conn_x),
     if ~isfield(CONN_x,'ispending'), CONN_x.ispending=0; end
     [path,name,ext]=fileparts(CONN_x.filename);if isempty(path),path=pwd;end
     if ~isfield(CONN_x,'folders'),CONN_x.folders=struct('rois',[],'data',[],'preprocessing',[],'bids',[],'qa',[],'bookmarks',[],'firstlevel',[],'firstlevel_vv','firstlevel_dyn','secondlevel',[]);end
-    if CONN_x.pobj.holdsdata
+    if 1
         CONN_x.folders.rois=fullfile(fileparts(which(mfilename)),'rois');
-        CONN_x.folders.data=fullfile(path,name,'data'); if ~conn_existfile(CONN_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
-        CONN_x.folders.bids=fullfile(path,name,'data','BIDS'); if ~conn_existfile(CONN_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
-        CONN_x.folders.qa=fullfile(path,name,'results','qa'); if ~conn_existfile(CONN_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
-        CONN_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); if ~conn_existfile(CONN_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
-        CONN_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); if ~conn_existfile(CONN_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
-        CONN_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); if ~conn_existfile(CONN_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end
-        CONN_x.folders.secondlevel=fullfile(path,name,'results','secondlevel'); if ~conn_existfile(CONN_x.folders.secondlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'secondlevel'); end
+        CONN_x.folders.data=fullfile(path,name,'data'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
+        CONN_x.folders.bids=fullfile(path,name,'data','BIDS'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
+        CONN_x.folders.qa=fullfile(path,name,'results','qa'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
+        CONN_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
+        CONN_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
+        CONN_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end
+        CONN_x.folders.secondlevel=fullfile(path,name,'results','secondlevel'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.secondlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'secondlevel'); end
         if conn('checkver','15.h',CONN_x.ver)
             if isfield(CONN_x,'vvAnalyses')&&~isfield(CONN_x.vvAnalyses,'name'), 
                 [nill,CONN_x.vvAnalyses.name]=fileparts(CONN_x.folders.firstlevel_vv); 
@@ -164,12 +164,13 @@ if nargin<1||isempty(conn_x),
         %if ~isempty(CONN_x.Analyses(ianalysis).variables)&&isstruct(CONN_x.Analyses(ianalysis).variables)&&~isfield(CONN_x.Analyses(ianalysis).variables,'fbands'), CONN_x.Analyses(ianalysis).variables.fbands=repmat({1},size(CONN_x.Analyses(ianalysis).variables.names)); end
         if ~isempty(CONN_x.Analyses(ianalysis).regressors)&&isstruct(CONN_x.Analyses(ianalysis).regressors)&&~isfield(CONN_x.Analyses(ianalysis).regressors,'fbands'), CONN_x.Analyses(ianalysis).regressors.fbands=repmat({1},size(CONN_x.Analyses(ianalysis).regressors.names)); end
     end    
-    if ~isfield(CONN_x,'vvAnalyses'), CONN_x.vvAnalyses=struct('name','','measurenames',{{}},'variables', conn_v2v('measures'),'regressors', conn_v2v('measures'),'mask',[],'options',''); end
+    if ~isfield(CONN_x,'vvAnalyses'), CONN_x.vvAnalyses=struct('name','','measurenames',{{}},'variables', conn_v2v('measures'),'regressors', conn_v2v('measures'),'measures',{{}},'mask',[],'options',''); end
     if ~isfield(CONN_x,'vvAnalysis'), CONN_x.vvAnalysis=1; end
     for ianalysis=1:numel(CONN_x.vvAnalyses)
         if ~isfield(CONN_x.vvAnalyses(ianalysis),'name')||isempty(CONN_x.vvAnalyses(ianalysis).name), CONN_x.vvAnalyses(ianalysis).name=''; end
         if ~isfield(CONN_x.vvAnalyses(ianalysis),'mask'), CONN_x.vvAnalyses(ianalysis).mask=[]; end
         if ~isfield(CONN_x.vvAnalyses(ianalysis),'options')||isempty(CONN_x.vvAnalyses(ianalysis).options), CONN_x.vvAnalyses(ianalysis).options=''; end
+        if ~isfield(CONN_x.vvAnalyses(ianalysis),'measures'), CONN_x.vvAnalyses(ianalysis).measures={}; end
         if isfield(CONN_x.vvAnalyses(ianalysis),'variables')&&~isfield(CONN_x.vvAnalyses(ianalysis).variables,'norm'), CONN_x.vvAnalyses(ianalysis).variables.norm=repmat({1},1,numel(CONN_x.vvAnalyses(ianalysis).variables.names)); end
         if isfield(CONN_x.vvAnalyses(ianalysis),'regressors')&&~isfield(CONN_x.vvAnalyses(ianalysis).regressors,'norm'), CONN_x.vvAnalyses(ianalysis).regressors.norm=repmat({1},1,numel(CONN_x.vvAnalyses(ianalysis).regressors.names)); end
         if isfield(CONN_x.vvAnalyses(ianalysis),'variables')&&~isfield(CONN_x.vvAnalyses(ianalysis).variables,'alt_names'), CONN_x.vvAnalyses(ianalysis).variables.alt_names=repmat({{}},1,numel(CONN_x.vvAnalyses(ianalysis).variables.names)); end
@@ -248,15 +249,15 @@ else
     if ~isfield(conn_x,'ispending'), conn_x.ispending=0; end
     [path,name,ext]=fileparts(conn_x.filename);if isempty(path),path=pwd;end
     if ~isfield(conn_x,'folders'),conn_x.folders=struct('rois',[],'data',[],'preprocessing',[],'bids',[],'qa',[],'bookmarks',[],'firstlevel',[],'firstlevel_vv','firstlevel_dyn','secondlevel',[]);end
-    if conn_x.pobj.holdsdata
+    if 1
         conn_x.folders.rois=fullfile(fileparts(which(mfilename)),'rois');
-        conn_x.folders.data=fullfile(path,name,'data'); if ~conn_existfile(conn_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
-        conn_x.folders.bids=fullfile(path,name,'data','BIDS'); if ~conn_existfile(conn_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
-        conn_x.folders.qa=fullfile(path,name,'results','qa'); if ~conn_existfile(conn_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
-        conn_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); if ~conn_existfile(conn_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
-        conn_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); if ~conn_existfile(conn_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
-        conn_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); if ~conn_existfile(conn_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end
-        conn_x.folders.secondlevel=fullfile(path,name,'results','secondlevel'); if ~conn_existfile(conn_x.folders.secondlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'secondlevel'); end
+        conn_x.folders.data=fullfile(path,name,'data'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
+        conn_x.folders.bids=fullfile(path,name,'data','BIDS'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
+        conn_x.folders.qa=fullfile(path,name,'results','qa'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
+        conn_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
+        conn_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
+        conn_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end
+        conn_x.folders.secondlevel=fullfile(path,name,'results','secondlevel'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.secondlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'secondlevel'); end
         if conn('checkver','15.h',conn_x.ver)
             if isfield(conn_x,'vvAnalyses')&&~isfield(conn_x.vvAnalyses,'name'), [nill,conn_x.vvAnalyses.name]=fileparts(conn_x.folders.firstlevel_vv); end
             if isfield(conn_x,'dynAnalyses')&&~isfield(conn_x.dynAnalyses,'name'), [nill,conn_x.dynAnalyses.name]=fileparts(conn_x.folders.firstlevel_dyn); end
@@ -396,12 +397,13 @@ else
         %if ~isempty(conn_x.Analyses(ianalysis).variables)&&isstruct(conn_x.Analyses(ianalysis).variables)&&~isfield(conn_x.Analyses(ianalysis).variables,'fbands'), conn_x.Analyses(ianalysis).variables.fbands=repmat({1},size(conn_x.Analyses(ianalysis).variables.names)); end
         if ~isempty(conn_x.Analyses(ianalysis).regressors)&&isstruct(conn_x.Analyses(ianalysis).regressors)&&~isfield(conn_x.Analyses(ianalysis).regressors,'fbands'), conn_x.Analyses(ianalysis).regressors.fbands=repmat({1},size(conn_x.Analyses(ianalysis).regressors.names)); end
     end    
-    if ~isfield(conn_x,'vvAnalyses'), conn_x.vvAnalyses=struct('name','','measurenames',{{}},'variables', conn_v2v('measures'),'regressors', conn_v2v('measures'),'mask',[],'options',''); end
+    if ~isfield(conn_x,'vvAnalyses'), conn_x.vvAnalyses=struct('name','','measurenames',{{}},'variables', conn_v2v('measures'),'regressors', conn_v2v('measures'),'measures',{{}},'mask',[],'options',''); end
     if ~isfield(conn_x,'vvAnalysis'), conn_x.vvAnalysis=1; end
     for ianalysis=1:numel(conn_x.vvAnalyses)
         if ~isfield(conn_x.vvAnalyses(ianalysis),'name')||isempty(conn_x.vvAnalyses(ianalysis).name), conn_x.vvAnalyses(ianalysis).name=''; end
         if ~isfield(conn_x.vvAnalyses(ianalysis),'mask'), conn_x.vvAnalyses(ianalysis).mask=[]; end
         if ~isfield(conn_x.vvAnalyses(ianalysis),'options')||isempty(conn_x.vvAnalyses(ianalysis).options), conn_x.vvAnalyses(ianalysis).options=''; end
+        if ~isfield(conn_x.vvAnalyses(ianalysis),'measures'), conn_x.vvAnalyses(ianalysis).measures={}; end
         if isfield(conn_x.vvAnalyses(ianalysis),'variables')&&~isfield(conn_x.vvAnalyses(ianalysis).variables,'norm'), conn_x.vvAnalyses(ianalysis).variables.norm=repmat({1},1,numel(conn_x.vvAnalyses(ianalysis).variables.names)); end
         if isfield(conn_x.vvAnalyses(ianalysis),'regressors')&&~isfield(conn_x.vvAnalyses(ianalysis).regressors,'norm'), conn_x.vvAnalyses(ianalysis).regressors.norm=repmat({1},1,numel(conn_x.vvAnalyses(ianalysis).regressors.names)); end
         if isfield(conn_x.vvAnalyses(ianalysis),'variables')&&~isfield(conn_x.vvAnalyses(ianalysis).variables,'alt_names'), conn_x.vvAnalyses(ianalysis).variables.alt_names=repmat({{}},1,numel(conn_x.vvAnalyses(ianalysis).variables.names)); end

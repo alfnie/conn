@@ -49,7 +49,7 @@ for nsub=1:CONN_x.Setup.nsubjects,
             filename=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{1};
             names=CONN_x.Setup.l1covariates.names{nl1covariate};
             if strcmp(filename,'[raw values]'),
-                data=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{3};
+                data=conn_get_l1covariate(nsub,nl1covariate,nses);%CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{3};
                 txt{end+1}=sprintf('First-level covariate "%s" (%d scans, %d dimensions)',names,size(data,1),size(data,2));
             else
                 txt{end+1}=sprintf('First-level covariate "%s": %s',names,filename);

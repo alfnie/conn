@@ -21,6 +21,8 @@ function varargout = conn_tcpip(option, varargin)
 %   TIMESTAMP = conn_tcpip('readtofile',FILENAME)    : receives raw data and save it to file (continuous stream / no memory-limitation)
 %                                                    Returns TIMESTAMP (conn_tcpip sethash timestamp) or MD5-hash (conn_tcpip sethash md5) of received data 
 %
+%   conn_tcpip('writekeepalive')                    : sends an empty/keepalive packet
+%
 %   conn_tcpip('close')                             : stops server/client
 %   conn_tcpip('clear')                             : clears connection buffers
 %
@@ -80,8 +82,8 @@ if isempty(connection)
     if ispc, connection.cache=conn_fullfile(getenv('USERPROFILE'),'.conn_cache');
     else connection.cache=conn_fullfile('~/.conn_cache');
     end
-    conn_fileutils('mkdir',connection.cache);
-    if ~conn_existfile(connection.cache,true), connection.cache=pwd; end
+    try, [nill,nill]=mkdir(connection.cache); end
+    try, if ~conn_existfile(connection.cache,true), connection.cache=pwd; end; end
 end
 
 switch(lower(option))
@@ -103,15 +105,18 @@ switch(lower(option))
             if numel(varargin)>=4 && ~isempty(varargin{4}), connection.id=varargin{4}; else connection.id=''; end
         end
         if ischar(connection.port), connection.port=str2double(connection.port); end
-        try,
-            connection.socket.close;
-            pause(rand);
-        end
-        try, connection.channel.close; end
+        try, connection.socket.close; pause(rand); end
+        try, connection.channel.close; if connection.isserver, pause(rand); else pause(5+rand); end; end
         if connection.isserver
-            fprintf('Opening port %d...\n',connection.port);
             try
-                connection.socket=java.net.ServerSocket(connection.port);
+                if isempty(connection.port)||isequal(connection.port,0)
+                    connection.socket=java.net.ServerSocket(0);
+                    connection.port=connection.socket.getLocalPort;
+                    fprintf('Opening port %d...\n',connection.port);
+                else
+                    fprintf('Opening port %d...\n',connection.port);
+                    connection.socket=java.net.ServerSocket(connection.port);
+                end
             catch
                 if forceport
                     error('Port %d unavailable. Try a different port, or leave the port entry empty to have conn_tcpip bind to the first available port',connection.port);
@@ -179,6 +184,7 @@ switch(lower(option))
         try,
             if connection.isserver % handshake
                 varcheck=conn_tcpip('read');
+                if isequal(varcheck,'handshake'), varcheck=conn_tcpip('read'); end
                 if isequal(varcheck,handshake)
                     conn_tcpip('write','ok');
                     if true||isempty(connection.id), fprintf('Succesfully established connection to client\n');
@@ -189,15 +195,22 @@ switch(lower(option))
                     fprintf('Client was unable to match CONN server ID. Try starting a server at a different port\n');
                 end
             else
-                conn_tcpip('write',handshake);
-                ok=conn_tcpip('read');
-                if isequal(ok,'ok')
-                    if true||isempty(connection.id), fprintf('Succesfully established connection to server\n');
-                    else fprintf('Succesfully established connection to server. Connection ID = %s\n',connection.id);
+                for ntries=1:3
+                    try
+                        pause(2^(ntries-1)+rand);
+                        conn_tcpip('write','handshake');
+                        conn_tcpip('write',handshake);
+                        ok=conn_tcpip('read');
+                        if isequal(ok,'ok')
+                            if true||isempty(connection.id), fprintf('Succesfully established connection to server\n');
+                            else fprintf('Succesfully established connection to server. Connection ID = %s\n',connection.id);
+                            end
+                        else
+                            conn_tcpip('close');
+                            fprintf('Client was unable to match CONN server ID\n');
+                        end
+                        break;
                     end
-                else
-                    conn_tcpip('close');
-                    fprintf('Client was unable to match CONN server ID\n');
                 end
             end
         catch
@@ -210,6 +223,11 @@ switch(lower(option))
         connection.length=nan;
         connection.header1=[];
         connection.header2=[];
+        try
+            while connection.input.stream.available
+                data=char(connection.input.stream.readUTF);
+            end
+        end
         
     case 'close' % close socket
         try, connection.channel.close; end
@@ -300,7 +318,7 @@ switch(lower(option))
                                 loadok=true;
                             end
                             if ispc, [ok,nill]=system(sprintf('del "%s"',cachefilename));
-                            else [ok,nill]=system(sprintf('rm ''%s''',cachefilename));
+                            else [ok,nill]=system(sprintf('rm -f ''%s''',cachefilename));
                             end
                             if loadok, varargout={msg};
                             else fprintf('Error reading variable (possibly incomplete data). Disregarding');
@@ -341,11 +359,11 @@ switch(lower(option))
                 end
                 bored=false;
             end
-            if isnan(connection.length)&&~isempty(connection.header1)&&~isempty(connection.header2)&&any(connection.header2>connection.header1(1)) % read header
+            while isnan(connection.length)&&~isempty(connection.header1)&&~isempty(connection.header2)&&any(connection.header2>connection.header1(1)) % read header
                 i1=connection.header1(1);
                 i2=connection.header2(find(connection.header2>i1,1));
                 i1=connection.header1(find(connection.header1<i2,1,'last'));
-                connection.length=str2double(connection.buffer(i1+1:i2-1));
+                connection.length=str2double(connection.buffer(i1+1:i2-1)); % note: empty or non-numeric are keepalive packets (length=NaN)
                 connection.buffer=connection.buffer(i2+1:end);
                 connection.header1=connection.header1-i2; connection.header1(connection.header1<=0)=[];
                 connection.header2=connection.header2-i2; connection.header2(connection.header2<=0)=[];
@@ -357,13 +375,16 @@ switch(lower(option))
             if ~isempty(filehandle), 
                 fclose(filehandle); 
                 if ispc, [ok,nill]=system(sprintf('del "%s"',cachefilename));
-                else [ok,nill]=system(sprintf('rm ''%s''',cachefilename));
+                else [ok,nill]=system(sprintf('rm -f ''%s''',cachefilename));
                 end
             end
             varargout={[]};
         else varargout={};
         end
         
+    case 'writekeepalive'
+        try, connection.output.stream.writeUTF('<>'); end
+            
     case 'write' % writes Matlab variable to remote
         if numel(varargin)>=1, msg=varargin{1};
         else msg='hello world';
@@ -376,9 +397,9 @@ switch(lower(option))
             end
             ok=conn_tcpip('writefromfile',filename);
             if ispc, [nill,nill]=system(sprintf('del "%s"',filename));
-            else [nill,nill]=system(sprintf('rm ''%s''',filename));
+            else [nill,nill]=system(sprintf('rm -f ''%s''',filename));
             end
-        else % send data directly
+        else % send data directly (unused failback)
             if isempty(msg), data='';
             elseif isempty(base64), data=matlab.net.base64encode(mygetByteStreamFromArray(msg)); %(slow)
             else, data=char(base64.encode(uint8(mygetByteStreamFromArray(msg))')');

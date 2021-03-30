@@ -607,9 +607,9 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                     
                     if any(procedures==12)&&numel(nl1covariates)>1,
                         temp=permute([x0 nan(size(x0,1),10) x1],[2,3,4,1]);
-                        tdata=CONN_x.Setup.l1covariates.files{nsub}{nl1covariates(1)}{nses}{3};
+                        tdata=conn_get_l1covariate(nsub,nl1covariates(1),nses);%CONN_x.Setup.l1covariates.files{nsub}{nl1covariates(1)}{nses}{3};
                         tdata=sum(tdata,2);
-                        tdata=cat(2,CONN_x.Setup.l1covariates.files{nsub}{nl1covariates(end)}{nses}{3},tdata);
+                        tdata=cat(2,conn_get_l1covariate(nsub,nl1covariates(end),nses), tdata); %CONN_x.Setup.l1covariates.files{nsub}{nl1covariates(end)}{nses}{3},tdata);
                         fh=conn_montage_display(temp,{sprintf('Subject %d Session %d   Top carpetplot: before denoising   Bottom carpetplot: after denoising',nsub,nses)},'timeseries',tdata,{'BOLD GS changes (z)','Subject motion (mm)','Outliers'});
                         fh('colormap','gray');
                         fh('colorscale','equalize');

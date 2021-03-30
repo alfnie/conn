@@ -2,9 +2,10 @@
 function [h,h2,htb]=conn_menu(type,position,title,string,tooltipstring,callback,callback2,callback3)
 
 global CONN_gui CONN_h;
-persistent nullstr;
+persistent nullstr fname;
 
 if isempty(nullstr), nullstr=''; end
+if isempty(fname), fnames={'Avenir','Helvetica'}; fname=fnames{end}; try, ok=ismember(fnames,listfonts); if nnz(ok), fname=fnames{find(ok,1)}; end; end; end
 h=[];h2=[];htb=[];
 nmax=100;
 if nargin<2 || isempty(position), position=[0,0,0,0]; end
@@ -16,15 +17,15 @@ if nargin<7, callback2=''; end
 if nargin<8, callback3=''; end
 if ~ischar(type), [type,position,title]=deal(title,get(type,'userdata'),get(type,'value')); end
 if ~CONN_gui.tooltips, tooltipstring=''; end
-titleopts={'fontname','Arial','fontangle','normal','fontweight','bold','foregroundcolor',CONN_gui.fontcolorA,'fontsize',8+CONN_gui.font_offset};
+titleopts={'fontname',fname,'fontangle','normal','fontweight','bold','foregroundcolor',CONN_gui.fontcolorA,'fontsize',8+CONN_gui.font_offset};
 titleopts2=titleopts;titleopts2(7:8)={'color',CONN_gui.fontcolorA};
-contropts={'fontname','Arial','fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset};
+contropts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset};
 contropts2=contropts;contropts2(7:8)={'color',CONN_gui.fontcolorA};
 contropts3=contropts([1:6 9:numel(contropts)]);
 doemphasis1=CONN_gui.doemphasis1;
 doemphasis2=CONN_gui.doemphasis2;
 %type=regexprep(type,'white','');
-if any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2'})), bgcolor=CONN_gui.backgroundcolor; mapcolor=CONN_h.screen.colormap;
+if any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','frame2highlight','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2'})), bgcolor=CONN_gui.backgroundcolor; mapcolor=CONN_h.screen.colormap;
 else bgcolor=CONN_gui.backgroundcolorA; mapcolor=CONN_h.screen.colormapA;
 end
 bgwhite=CONN_gui.backgroundcolorE; %.5*bgcolor+.5*round(bgcolor); %.9*bgcolor+.1*round(1-bgcolor); %[.95 .95 .9]
@@ -332,7 +333,7 @@ switch(lower(type)),
         [h.h9,nill,h.h9a]=conn_menu(regexprep(type,{'imagep?','0$'},{'edit',''}),[position(1)-.015-.03,position(2)+position(4)*.85-.02,.03,.035],'',mat2str(data.cscale,2),'display colorscale',{@conn_menu,'updatecscale'});
         set(h.h9,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','right');
         [h.h10,nill,h.h10a]=conn_menu(regexprep(type,{'imagep?','0$'},{'edit',''}),[position(1)+position(3)/2,position(2)-1*.05,min(position(3)/4,.05),.04],'',num2str(data.thr),'display threshold',{@conn_menu,'updatethr'});
-		h.h6a=uicontrol('units','norm','position',[.0001 .0001 .0001 .0001],'style','text','fontsize',8+CONN_gui.font_offset,'foregroundcolor','k','backgroundcolor','w','horizontalalignment','left','parent',CONN_h.screen.hfig); 
+		h.h6a=uicontrol('units','norm','position',[.0001 .0001 .0001 .0001],'style','text','fontsize',8+CONN_gui.font_offset,'foregroundcolor',.75*[1 1 1],'backgroundcolor',.25*[1 1 1],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
         conn_menumanager('onregion',h.h6a,1,position,h.h2,@(varargin)conn_menubuttonmtnfcn('volume',CONN_h.screen.hfig,h.h1,h.h2,h.h6a,h.h2c,varargin{:}));
 		h.h6b=uicontrol('units','norm','position',[.0001 .0001 .0001 .0001],'style','text','fontsize',8+CONN_gui.font_offset,'foregroundcolor','k','backgroundcolor','w','horizontalalignment','left','parent',CONN_h.screen.hfig); 
         if ~isempty(h.h3), 
@@ -435,6 +436,14 @@ switch(lower(type)),
         h.mapcolor=mapcolor;
 		set(h.h1,'color',CONN_gui.backgroundcolor,'ytick',[],'xcolor',.5+0.0*([0 0 0]+(mean(CONN_gui.backgroundcolor)<.5)),'ycolor',CONN_gui.backgroundcolor,'visible','off'); 
         set([h.h1,h.h2,h.h3,h.h4,h.h5,h.h6,h.h7],'visible','off');
+	case 'filesearchprojectload',
+        %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
+		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+			'title',title,'filter',string,'callback',callback,'max',1,'reduced',true,'button','Open','buttonhelp','Loads selected CONN project');
+	case 'filesearchprojectsave',
+        %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
+		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+			'title',title,'filter',string,'callback',callback,'max',1,'type','files','filename',tooltipstring,'reduced',true,'button','Save','buttonhelp','Saves new CONN project');
 	case 'filesearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
 		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
@@ -483,7 +492,7 @@ switch(lower(type)),
                 h2=uicontrol('style','frame','units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig);
                 h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',title,titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
                 if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
-                if 1||strcmpi(type,'frame'), set(h2,'fontsize',12+CONN_gui.font_offset); end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
+                if 1||strcmpi(type,'frame'), set(h2,'fontsize',18+CONN_gui.font_offset,'fontweight','normal'); end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
             else
                 %h2=conn_menu('pushbutton2',(position+[0,position(4),0,0]).*[1,1,1,0]+[0,0*.01,0,.04],'',title);
                 h2=uicontrol('style','pushbutton','units','norm','position',(position+[0,position(4),0,0]).*[1,1,1,0]+[0,0*.01,0,.04],'string',title,titleopts{:},'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);

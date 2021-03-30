@@ -365,6 +365,7 @@ else
         handle=length(CONN_MM.MENU)+1; 
         CONN_MM.POSITION(handle,:)=0;
         CONN_MM.ACTIVE(handle)=0;
+        fntnames={'Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
         % note1: possible status are: [Mouse outside of item, Mouse inside item, Item selected and mouse inside item, Item selected and mouse outside item]
         params=struct(...
             'n',0,...                                           % number of items
@@ -383,7 +384,7 @@ else
             'horizontalalignment','center',...
             'transparent',1,...
             'fontcolor',[.75,.75,.75; 1,1,1;1,1,.9],...                             % 
-            'fontname','Arial',...                              % 
+            'fontname',fntname,...                              % 
             'fontsize',8,...									% 
             'fontweight','normal',...                             % 
             'fontangle','normal',...                             % 

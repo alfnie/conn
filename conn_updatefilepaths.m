@@ -82,6 +82,8 @@ if nargin==1,
                     end
                 end
             end
+            if isstruct(var{3})&&isfield(var{3},'fname')&&isfield(var{3},'private'), [var{3}.private]=deal([]); end % space-saving measures
+            if isnumeric(var{3})&&~isempty(regexp(var{1}(1,:),'\.tal\s*$|\.mat\s*$|\.txt\s*$|\.par\s*$|\.1d\s*$|\.csv\s*$|\.tsv\s*$')), var{3}=zeros(size(var{3},1),0); end % space-saving measures
         else
             if  ~strcmp(deblank(var{1}(1,:)),'[raw values]')&&~conn_existfile(var{1}(1,:),true),
                 filename=fliplr(deblank(fliplr(deblank(var{1}))));
@@ -154,7 +156,8 @@ if nargin==1,
                         end
                     end
                 end
-                if isstruct(var{3})&&isfield(var{3},'fname')&&isfield(var{3},'private'), [var{3}.private]=deal([]); end
+                if isstruct(var{3})&&isfield(var{3},'fname')&&isfield(var{3},'private'), [var{3}.private]=deal([]); end % space-saving measures
+                if isnumeric(var{3})&&~isempty(regexp(var{1}(1,:),'\.tal\s*$|\.mat\s*$|\.txt\s*$|\.par\s*$|\.1d\s*$|\.csv\s*$|\.tsv\s*$')), var{3}=zeros(size(var{3},1),0); end % space-saving measures
             end
         end
     else
@@ -225,7 +228,7 @@ else
     end
     ht=[];
     if ~silent, conn_disp('Checking if data files have been edited or moved. Please wait...'); end
-    %try
+    try
         if ~silent&&isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
             ht=dialog('units','norm','position',[.4,.5,.3,.15],'windowstyle','normal','name','','handlevisibility','on','color','w','colormap',conn_bsxfun(@min,[1 1 1],(flipud(gray(100)))));
             htcancel=uicontrol('units','norm','position',[.3 .15 .4 .2],'style','togglebutton','string','Cancel');%,'callback',@conn_updatefilepaths_stop);
@@ -255,9 +258,9 @@ else
                 end
             end
         end
-    %catch
-    %    conn_disp('warning: conn_updatefilepaths did not finish');
-    %end
+    catch
+       conn_disp('warning: conn_updatefilepaths did not finish');
+    end
     if any(ishandle(ht)), delete(ht(ishandle(ht))); drawnow; end
     ht=[];
     htcancel=[];

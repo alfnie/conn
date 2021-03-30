@@ -16,9 +16,18 @@ if isequal(options,'aminserver') % if running from server
     conn save;
     return
 elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 19])) % note: list of processes which may be run from client
+    hmsg=[];
+    if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
+        info=conn_server('hpc_info');
+        if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
+        else tnameserver='none';
+        end
+        hmsg=conn_msgbox({sprintf('Process running remotely (%s)',tnameserver),' ','CONN will resume automatically when this process finishes','Please wait...'},'');
+    end
     conn save; % note: save+push+rload
     [varargout{1:nargout}]=conn_server('run','conn_process','aminserver',CONN_x.gui,options,varargin{:});
     conn load; % note: (rload+rsave)+pull+load
+    if ~isempty(hmsg)&&ishandle(hmsg), delete(hmsg); end
     return
 end
 
