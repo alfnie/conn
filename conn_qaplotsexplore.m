@@ -458,17 +458,18 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     close(fh);
                     if nalt==1, 
                         %conn_batch('subjects',validsubjects,'QA.foldername',fullfile(qafolder,tag),'QA.plots',procedures,'QA.rois',validrois,'QA.sets',validsets,'QA.l2covariates',nl2covariates,'QA.l1contrasts',nl1contrasts);
-                        conn_qaplots(fullfile(qafolder,tag),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
+                        %conn_qaplots(conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
+                        conn_process('qaplots',conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
                     else
                         if numel(validsubjects)>1
-                            answer=inputdlg('Number of parallel jobs?','',1,{num2str(numel(validsubjects))});
+                            answer=inputdlg('Number of parallel jobs?','',1,{num2str(min(50,numel(validsubjects)))});
                             if isempty(answer), return; end
                             N=str2num(answer{1});
                         else N=1;
                         end
                         %conn_batch('subjects',validsubjects,'parallel.N',N,'parallel.profile',tvalid(nalt-1),'QA.foldername',fullfile(qafolder,tag),'QA.plots',procedures,'QA.rois',validrois,'QA.sets',validsets,'QA.l2covariates',nl2covariates,'QA.l1contrasts',nl1contrasts);
                         conn_jobmanager('setprofile',tvalid(nalt-1));
-                        conn_jobmanager('submit','qaplots',validsubjects,N,[],fullfile(qafolder,tag),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
+                        conn_jobmanager('submit','qaplots',validsubjects,N,[],conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
                     end
                     conn_qaplotsexplore_update([],[],'set');
                     conn_msgbox('Finished creating new plot','',2);
@@ -579,7 +580,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 dlg.files_jpg=conn_prepend('',qanames,'.jpg');
                 dlg.files_txt=conn_prepend('',qanames,'.txt');
                 try 
-                    if ~all(txtok),cellfun(@(s)conn_fileutils('emptyfile',s),dlg.files_txt(~txtok),'uni',0); end
+                    if ~all(txtok),conn_fileutils('emptyfile',dlg.files_txt(~txtok)); end
+                    %if ~all(txtok),cellfun(@(s)conn_fileutils('emptyfile',s),dlg.files_txt(~txtok),'uni',0); end
                     %if ~all(txtok),cellfun(@(s)fclose(fopen(s,'wt')),dlg.files_txt(~txtok),'uni',0); end
                 catch
                     conn_disp('warning: unable to create annotation files; please check QA folder write-permissions'); 
@@ -794,11 +796,16 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     dlg.lineA={};
                     %dlg.dataB={};
                     dlg.dataIDXplots=in;
+                    dopull=conn_server('util_isremotefile',dlg.files(in));
+                    if any(dopull), 
+                        dlg.files(in(dopull))=conn_cache('pull',dlg.files(in(dopull))); 
+                        dlg.files_txt(in(dopull))=conn_prepend('',dlg.files(in(dopull)),'.txt');
+                    end
                     for n=1:numel(in),
                         data=conn_loadmatfile(dlg.files{in(n)});
                         if isfield(data,'results_patch'), dlg.dataA{n}=data.results_patch; end
                         %dlg.dataB{n}=data.results_label;
-                        descr=''; try, descr = fileread(dlg.files_txt{in(n)}); end
+                        descr=''; try, descr = conn_fileutils('fileread',dlg.files_txt{in(n)}); end
                         if isfield(data,'results_label'), dlg.labelA{n}=data.results_label; 
                         else dlg.labelA{n}='';
                         end
@@ -917,8 +924,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 if val==1,
                                     if ~showdiff&&isequal(in(:)',1:size(data,4)), data=dlg.dataM;
                                     elseif showdiff&&isequal(in(:)',1:size(data,4)), 
-                                        data.dlgD=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
-                                        data=mean(data.dlgD,4);
+                                        dlg.dlgD=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
+                                        data=mean(dlg.dlgD,4);
                                     elseif showdiff, data=mean(abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)])),4);
                                     else data=mean(data(:,:,:,in),4);
                                     end
@@ -926,8 +933,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 elseif val==2,
                                     if ~showdiff&&isequal(in(:)',1:size(data,4)), data=dlg.dataS;
                                     elseif showdiff&&isequal(in(:)',1:size(data,4)), 
-                                        data.dlgD=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
-                                        data=std(data.dlgD,1,4);
+                                        dlg.dlgD=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
+                                        data=std(dlg.dlgD,1,4);
                                     elseif showdiff, data=std(abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)])),1,4);
                                     else data=std(data(:,:,:,in),1,4);
                                     end
@@ -936,8 +943,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                     dlg.dispsize=[size(data,2) size(data,1)];
                                 elseif val==3,
                                     if showdiff&&isequal(in(:)',1:size(data,4)), 
-                                        data.dlgD=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
-                                        data=data.dlgD;
+                                        dlg.dlgD=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
+                                        data=dlg.dlgD;
                                     elseif showdiff, data=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
                                     else data=data(:,:,:,in);
                                     end
@@ -1078,27 +1085,27 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                             if ~isempty(dlg.results_info)&&isstruct(dlg.results_info{1}), 
                                 if isfield(dlg.results_info{1},'IntersectionBefore')
                                     if isfield(dlg.results_info{1},'PercentSignificantBefore')
-                                        text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,100*dlg.results_info{1}.IntersectionAfter),sprintf('%.1f%% edges with p<.05, %.1f%% edges with q<.05',100*dlg.results_info{1}.PercentSignificantAfter(1),100*dlg.results_info{1}.PercentSignificantAfter(2))},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
-                                        text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,100*dlg.results_info{1}.IntersectionBefore),sprintf('%.1f%% edges with p<.05, %.1f%% edges with q<.05',100*dlg.results_info{1}.PercentSignificantBefore(1),100*dlg.results_info{1}.PercentSignificantBefore(2))},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                        text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,100*dlg.results_info{1}.IntersectionAfter),sprintf('%.1f%% edges with p<.05, %.1f%% edges with q<.05',100*dlg.results_info{1}.PercentSignificantAfter(1),100*dlg.results_info{1}.PercentSignificantAfter(2))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
+                                        text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,100*dlg.results_info{1}.IntersectionBefore),sprintf('%.1f%% edges with p<.05, %.1f%% edges with q<.05',100*dlg.results_info{1}.PercentSignificantBefore(1),100*dlg.results_info{1}.PercentSignificantBefore(2))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                                     else
-                                        text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,100*dlg.results_info{1}.IntersectionAfter)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
-                                        text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,100*dlg.results_info{1}.IntersectionBefore)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                        text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,100*dlg.results_info{1}.IntersectionAfter)},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
+                                        text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,100*dlg.results_info{1}.IntersectionBefore)},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                                     end
                                 elseif isfield(dlg.results_info{1},'DofBefore')
-                                    text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (df=%.1f)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,dlg.results_info{1}.DofAfter)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
-                                    text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (df=%.1f)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,dlg.results_info{1}.DofBefore)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                    text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (df=%.1f)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,dlg.results_info{1}.DofAfter)},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
+                                    text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (df=%.1f)',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore,dlg.results_info{1}.DofBefore)},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                                 elseif isfield(dlg.results_info{1},'CorrBefore')
-                                    text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('R^2 = %.3f',dlg.results_info{1}.CorrAfter.^2)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
-                                    text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('R^2 = %.3f',dlg.results_info{1}.CorrBefore.^2)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                    text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('R^2 = %.3f',dlg.results_info{1}.CorrAfter.^2)},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
+                                    text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('R^2 = %.3f',dlg.results_info{1}.CorrBefore.^2)},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                                 else
-                                    text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
-                                    text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore)},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                                    text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter)},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
+                                    text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f',dlg.results_info{1}.MeanBefore,177,dlg.results_info{1}.StdBefore)},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                                 end
                             end
                             if ~isempty(ttitle), text(0,dlg.plothistinfo3*1.05,ttitle,'horizontalalignment','center','fontsize',10+font_offset,'fontweight','bold','interpreter','none','parent',dlg.handles.hax); end
                         elseif ~isempty(dlg.results_info)&&isfield(dlg.results_info{1},'DofBefore')
-                            text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean r=%.2f%c%.2f',mean(cellfun(@(x)x.MeanAfter,dlg.results_info)),177,std(cellfun(@(x)x.MeanAfter,dlg.results_info)))},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
-                            text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean r=%.2f%c%.2f',mean(cellfun(@(x)x.MeanBefore,dlg.results_info)),177,std(cellfun(@(x)x.MeanBefore,dlg.results_info)))},'horizontalalignment','left','fontsize',7+font_offset,'parent',dlg.handles.hax);
+                            text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean r=%.2f%c%.2f',mean(cellfun(@(x)x.MeanAfter,dlg.results_info)),177,std(cellfun(@(x)x.MeanAfter,dlg.results_info)))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
+                            text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean r=%.2f%c%.2f',mean(cellfun(@(x)x.MeanBefore,dlg.results_info)),177,std(cellfun(@(x)x.MeanBefore,dlg.results_info)))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                         end
                         if dlg.uanalysestype(dlg.ianalysis)==4, 
                             plot([.99 1 1 .99 nan .99 1 1 .99],[dlg.plotminmax([1 1 2 2],1)' nan dlg.plothistinfo2+dlg.plotminmax([1 1 2 2],1)'],'k-','linewidth',1,'parent',dlg.handles.hax);
@@ -1181,7 +1188,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                     ty=dlg.results_info{n}.Interquartiles;
                                     text((1:size(tx,2))+.2,tx(1,:)-.02,arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(1,:),'uni',0),'horizontalalignment','right','color',.5*[1 1 1],'fontsize',5+font_offset,'rotation',90,'parent',dlg.handles.hax);
                                     text((1:size(tx,2))+.2,tx(5,:)+.02,arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(5,:),'uni',0),'horizontalalignment','left','color',.5*[1 1 1],'fontsize',5+font_offset,'rotation',90,'parent',dlg.handles.hax);
-                                    text((1:size(tx,2)),-.15+zeros(1,size(tx,2)),regexprep(dlg.results_info{n}.Variables,'^QC_',''),'horizontalalignment','right','color','k','fontsize',7+font_offset,'rotation',90,'interpreter','none','parent',dlg.handles.hax); 
+                                    text((1:size(tx,2)),-.15+zeros(1,size(tx,2)),regexprep(dlg.results_info{n}.Variables,'^QC_',''),'horizontalalignment','right','color','k','fontsize',5+font_offset,'rotation',90,'interpreter','none','parent',dlg.handles.hax); 
                                 end
                             end
                             %ht(1)=plot(1:size(dlg.results_info{n}.InterquartilesDisplay,2),dlg.results_info{n}.InterquartilesDisplay(2,:),'k--','linewidth',2,'parent',dlg.handles.hax);
@@ -1285,7 +1292,15 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 [d,idx]=min(abs(dlg.results_line{n1}{labels}-posb(1))+abs((dlg.results_line{n1}{1}-posb(2))/dlg.plothistinfo4));
                                 if d<dmin, dmin=d; dwin=n1; dpos=[dlg.results_line{n1}{labels}(idx) dlg.results_line{n1}{1}(idx)]; end
                             end
+                        elseif dlg.uanalysestype(dlg.ianalysis)==2, 
+                            %if nargin<=2&&rand<.9, return; end
+                            [nill,idx]=min(abs(dlg.results_patch{1}{1}-posb(1)));
+                            d=zeros(1,numel(dlg.results_patch));
+                            for n1=1:numel(dlg.results_patch), d(n1)=dlg.results_patch{n1}{labels}(idx); end
+                            [dmin,dwin]=min(abs(d-posb(2)));
+                            dpos=[dlg.results_patch{dwin}{1}(idx) dlg.results_patch{dwin}{labels}(idx)];
                         else
+                            %if nargin<=2&&rand<.9, return; end
                             for n1=1:numel(dlg.results_patch)
                                 [d,idx]=min(abs(dlg.results_patch{n1}{1}-posb(1))+abs((dlg.results_patch{n1}{labels}-posb(2))/dlg.plothistinfo4));
                                 if d<dmin, dmin=d; dwin=n1; dpos=[dlg.results_patch{n1}{1}(idx) dlg.results_patch{n1}{labels}(idx)]; end

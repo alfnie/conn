@@ -202,6 +202,7 @@ else,
             isdirectory=(conn_fileutils('isdir',pathname) || (~h.reduced&&~conn_existfile(pathname)));
             if ismember(varargin{3},{'files','selectfolder'})&&h.reduced&&~isdirectory, set(h.filename,'string',filename); end
             if ~selectfolder&&isdirectory&&selection, % cd to a new directory
+                if conn_projectmanager('inserver'), pathname=conn_server('util_remotefile',pathname); end % note: comment this line to allow access to local drives
                 str=conn_filesearch_breakfolder(pathname);
                 results={[parse{1},'   ..',parse{2}]}; 
                 names=conn_dirn(fullfile(pathname,'*'));

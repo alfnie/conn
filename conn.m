@@ -11972,6 +11972,7 @@ catch me
             h.button4=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.7 .05 .2 .2],'string','Continue','callback','delete(gcbf)');
             set(h.button1,'userdata',h,'callback','h=get(gcbo,''userdata'');set(h.fig,''position'',get(h.fig,''position'')+[0,0,0,.3]);set(h.button1,''visible'',''off'');set(h.edit1,''position'',[.1 .30 .8 .65],''visible'',''on'');set(h.edit2,''position'',[.1 .12 .8 .18]);set(h.button2,''position'',[.1 .025 .25 .07]);set(h.button3,''position'',[.4 .025 .25 .07]);set(h.button4,''position'',[.7 .025 .2 .07]);');
         end
+        try, if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn_tcpip('clear'); end; end
     end
 end
 

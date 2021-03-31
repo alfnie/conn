@@ -224,7 +224,7 @@ switch(lower(option))
         connection.header1=[];
         connection.header2=[];
         try
-            while connection.input.stream.available
+            while connection.input.stream.available>0
                 data=char(connection.input.stream.readUTF);
             end
         end

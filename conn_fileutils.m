@@ -238,8 +238,8 @@ switch(lower(option))
         varargout{1}=data;
         
     case 'spm_get_data'
-        DOCACHE=true;
-        try, DOCACHE=size(varargin{2},2)>1e5; end
+        DOCACHE=false;
+        try, DOCACHE=size(varargin{2},2)>.10*sum(arrayfun(@(n)prod(size(varargin{1}(n).private.dat)),1:numel(varargin{1}))); end
         if DOCACHE
             vol=conn_fileutils('spm_localvol',varargin{1});
             data=spm_get_data(vol,varargin{2:end});
@@ -256,8 +256,8 @@ switch(lower(option))
         varargout{1}=data;
         
     case 'spm_sample_vol'
-        DOCACHE=true;
-        try, DOCACHE=numel(varargin{2})>1e5; end
+        DOCACHE=false;
+        try, DOCACHE=numel(varargin{2})>.10*sum(arrayfun(@(n)prod(size(varargin{1}(n).private.dat)),1:numel(varargin{1}))); end
         if DOCACHE
             vol=conn_fileutils('spm_localvol',varargin{1});
             [varargout{1:nargout}]=spm_sample_vol(vol,varargin{2:end});

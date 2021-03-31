@@ -147,7 +147,7 @@ switch(lower(option))
                 for n=1:numel(utag)
                     pathname=fullfile(conn_prepend('',CONN_x.filename,'.qlog'),utag{n});
                     if conn_existfile(pathname,2)&&conn_existfile(fullfile(pathname,'info.mat'))
-                        conn_loadmatfile(fullfile(pathname,'info.mat'),'info'); % look at associated .qlog folders
+                        info=struct; conn_loadmatfile(fullfile(pathname,'info.mat'),'info'); % look at associated .qlog folders
                         info=conn_jobmanager('statusjob',info,[],true);
                         validlabels={'finished','canceled'}; %{'finished','stopped'};
                         vtag(n)=all(ismember(info.tagmsg,validlabels));

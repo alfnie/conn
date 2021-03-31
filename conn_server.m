@@ -108,7 +108,7 @@ switch(lower(option))
         data.nargout=nargout;
         data.immediatereturn=strcmp(lower(option),'run_immediatereturn');
         data.hpc=false;
-        if isfield(params.info,'host')&&~isempty(params.info.host), data.hpc=true; end
+        if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'scp')&&params.info.scp>0, data.hpc=true; end
         conn_tcpip('write',data);
         if ~data.immediatereturn;
             ok=false;
@@ -133,7 +133,6 @@ switch(lower(option))
                 if conn_server('HPC_pull',tmpfile2,tmpfile1), var=load(tmpfile1,'arg'); var=var.arg;
                 else var={'ko','unable to run HPC_pull to read response from server'};
                 end
-%temp=dir(tmpfile2)
                 conn_fileutils('deletefile',tmpfile1);
                 conn_tcpip('write','ok'); % signal server to continue
             end
@@ -206,7 +205,7 @@ switch(lower(option))
                                     end
                                 end
                                 disp([data.cmd, argout]);
-                                if 0,%numel(argout)>1&&isequal(argout{1},'ok')&&isfield(data,'hpc')&&data.hpc>0&&getfield(whos('argout'),'bytes')>1e6, % send response using ssh/scp?
+                                if numel(argout)>1&&isequal(argout{1},'ok')&&isfield(data,'hpc')&&data.hpc>0&&getfield(whos('argout'),'bytes')>1e6, % send response using ssh/scp?
                                     tmpfile=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
                                     arg=argout; save(tmpfile,'arg');
                                     argout={'ok_hasattachment',tmpfile};
@@ -256,7 +255,7 @@ switch(lower(option))
         ok=false(1,numel(filename1));
         for n=1:numel(filename1)
             if conn_existfile(filename1{n}),
-                if isfield(params.info,'host')&&~isempty(params.info.host)
+                if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'scp')&&params.info.scp>0
                     ok(n)=conn_server('HPC_push',filename1{n},filename2{n});
                 else
                     conn_server('run_immediatereturn','conn_tcpip','readtofile',filename2{n});
@@ -276,7 +275,7 @@ switch(lower(option))
         assert(numel(filename1)==numel(filename2), 'mismatched number of source/destination files');
         hash=cell(1,numel(filename1));
         ok=false(1,numel(filename1));
-        if isfield(params.info,'host')&&~isempty(params.info.host)
+        if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'scp')&&params.info.scp>0
             for n=1:numel(filename1)
                 ok(n)=conn_server('HPC_pull',filename1{n},filename2{n});
                 if ok(n), hash{n}=conn_cache('hash',filename2{n}); end
@@ -363,6 +362,7 @@ switch(lower(option))
             params.info.login_ip=sprintf('%s@%s',params.info.user,params.info.host);
             localcachefolder=conn_cache('private.local_folder');
         end
+        params.info.scp=false;
         if ispc&&~isempty(params.info.host),
             error('in development');
         else
@@ -434,10 +434,18 @@ switch(lower(option))
         end
         
     case 'hpc_exit' % send exit signal to server to stop running (this will also cause the remote Matlab session to exit)
-        if conn_server('isconnected'), conn_server('exit')
-        else fprintf('unable to connect to server, please terminate the server manually or use "conn_server HPC_restart" to restart the connection with the server and try "conn_server HPC_exit" again\n');
+        if conn_server('isconnected'), 
+            fprintf('Exiting remote CONN session and disconnecting\n');
+            conn_tcpip('write','exit');
+            try, [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' -O exit %s', params.info.filename_ctrl,params.info.login_ip)); end
+            conn_tcpip('close');
+            params.state='off';
+            conn_cache clear;
+            conn_jobmanager clear;
+        else
+            fprintf('unable to connect to server, please terminate the server manually or use "conn_server HPC_restart" to restart the connection with the server and try "conn_server HPC_exit" again\n');
+            system(sprintf('ssh -o ControlPath=''%s'' -O exit %s', params.info.filename_ctrl,params.info.login_ip));
         end
-        system(sprintf('ssh -o ControlPath=''%s'' -O exit %s', params.info.filename_ctrl,params.info.login_ip));
         
     case 'hpc_exitforce' % run remotely a command to forcibly delete the server's job
         if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'login_ip')&&~isempty(params.info.login_ip)&&isfield(params.info,'remote_log')&&~isempty(params.info.remote_log)
@@ -494,7 +502,7 @@ switch(lower(option))
     case 'hpc_submitexit' % internal use only
         try
             pathname=varargin{1};
-            conn_loadmatfile(fullfile(pathname,'info.mat'),'info');
+            info=struct; conn_loadmatfile(fullfile(pathname,'info.mat'),'info');
             info=conn_jobmanager('canceljob',info);
             fprintf('HPC_EXIT finished\n');
         catch
