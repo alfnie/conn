@@ -4,27 +4,27 @@ function varargout=conn_remotely(varargin)
 % 
 % CONN_REMOTELY allows you to work and interact with CONN projects stored in any SSH-accessible 
 % computer (e.g. projects stored in your own server, or in your institution's cluster-computing environment)
+% using the standard SSH protocol for tunneling all communications between your local computer and 
+% the computer where the CONN project data is stored
 % 
 % Configuration/Installation: %!
 %
 % To use this functionality you need to have access to a Linux computer ("server") that is in a network-
-% accessible location and which has a ssh server/daemon running, as well as access to a second Linux/Mac 
-% computer ("client") with regular network/internet access and a ssh client installed (e.g. this is installed 
-% by default in Linux/Mac). 
+% accessible location (e.g. fixed IP address) and that has a SSH server/daemon running, as well as access 
+% to a second Linux/Mac/Windows computer ("client") with regular network/internet access and a SSH client 
+% installed (e.g. this is already installed by default in your Operating System in Linux & Mac computers). 
 %
-% Installation in the "server" computer requires the standard installation of SPM/CONN, and then simply
-% running (just once as part of the installation procedure) the Matlab command: 
-%
-%    conn_remotely setup
-% 
+% Installation in the "server" computer requires the standard installation of SPM/CONN, and also running
+% just once as part of the installation procedure the Matlab command "conn_remotely setup" (without quotes),
 % which will create a file in your home directory [~/connserverinfo.json] describing the location of
-% Matlab, CONN, and SPM installations. This command needs to be run for any user that wishes to access
-% this server remotely (alternatively the ~/connserverinfo.json file may be copied across different users).
-% If the "server" computer is part of a HPC or cluster environment, CONN_REMOTELY will also be able to initiate
-% jobs in your cluster remotely (see https://web.conn-toolbox.org/resources/cluster-configuration for HPC/cluster 
-% installation instructions). In this case, the "server" computer may simply be any login-node of your cluster, 
-% and CONN will use this login-node only as a proxy while all CPU-intensive processes will be run in automatically-
-% spawned work-nodes as required. 
+% Matlab, CONN, and SPM packages. This command needs to be run for any user that wishes to access this
+% server remotely (alternatively another ~/connserverinfo.json file may be manually copied to a user's
+% home directory).
+%
+% If the "server" computer is part of a HPC or cluster environment, see www.conn-toolbox.org/resources/cluster-configuration 
+% for additional HPC/cluster installation instructions. Setting up CONN's cluster/HPC configuration in 
+% your "server" computer allows CONN_REMOTELY to also submit jobs to your cluster remotely (from the 
+% "client" computer). 
 %
 % Installation in the "client" computer simply requires the standard installation of SPM/CONN. 
 %
@@ -37,29 +37,53 @@ function varargout=conn_remotely(varargin)
 % When prompted enter:
 %
 %   "Server address" prompt  :      Enter the IP-address of the "server" computer (this may be a login-node in a 
-%                                   computing cluster environment) 
+%                                   computer cluster environment) 
 %   "Username" prompt        :      Enter your username in the "server" computer (used to establish an SSH-connection with 
 %                                   the "server")
 %   "Password" prompt        :      Enter your password in the "server" computer (note: CONN does not read or record your 
 %                                   password, this is read by your system's ssh command directly from tty)
 %
-% After this CONN will launch the standard CONN gui and allow you to load and work with remote CONN projects
-% stored in your "server" computer. 
+% After this CONN will launch the standard CONN gui and allow you to load and work with any CONN projects that may be 
+% accessible from the "server" computer. 
+%
+%
+% note on implementation: when conn_remotely starts, the "client" computer will attempt to connect using ssh to the "server"
+% computer and it will establish a secure tunnel for communications. The server computer will then use its default profile
+% in HPC/cluster configuration settings to launch a new Matlab session (if using default HPC settings this session will be 
+% simply run as a new background Matlab process in the server computer; if using non-default HPC setting this session will be 
+% submitted to your cluster scheduler and run in a work-node as appropriate) which will in turn wait for the client's connection. 
+% Once the connection is established, the server Matlab session will simply wait for instructions from the client process, while
+% the client process runs CONN normally (typically for anything that relates to GUI-interaction), querying the server when needed 
+% (e.g. when needing to load data from remote files), or requesting the server Matlab session to run longer or more complex steps 
+% when appropriate (e.g. when preprocessing the data or running any analysis steps that requires significant interaction with the 
+% data). When the CONN gui is closed in the client computer, the server Matlab session will exit and the SSH tunnel will be closed.
+%
+%
+% note on 'CONN remotely' use: when working with a remote project, all of the elements in CONN's gui will be run locally by 
+% the "client" computer and therefore will be as responsive as usual, but some steps in the GUI do require largers amount 
+% of data being transferred from the "server" (e.g. when switching to a new tab, or when launching a 3D-view renderer)
+% so these may take longer than usual to get started while that data is being transferred, please be patient. Also when
+% working with a remote project and running preprocessing or analysis steps, you will be offered the option to have those 
+% steps run on the "server" computer directly, or have the "server" computer use instead its own HPC/Cluster configuration 
+% options to submit a job to its HPC/Cluster environment (to clarify: there is no option to run those processes locally on 
+% your "client" computer since that would require large amounts of data being transfered from the "server" where the data 
+% is stored to the "client" where the analysis would be run, which would make that option inpractical in most scenarios). 
 %
 %
 % note: if the "server" computer is NOT SSH-accessible (e.g. another computer in your home/office network), the following 
-% workaround allows you to still use CONN_REMOTELY while setting up the server and the connection manually:
+% workaround allows you to still use CONN_REMOTELY funcitonality while setting up the server and the connection manually. 
+% Note that this will skip SSH entirely, so in this case your communication data will not be tunneled nor encrypted:
 %
 %   step 1) in the "server" computer, run the Matlab command "conn server" to manually launch a CONN server process
 %           From the output printed by this command, note the first occurrence of a keyphrase of the form 
 %           conn_server <IP_address> <numeric_code>CONN<alphanumeric_code> (to be used below)
 %
 %   step 2) in the "client" computer, run "conn_remotely" and then enter:
-%           2.a) in the "Server address" prompt, enter 'none' (without quotes)
-%           2.b) in the "Remote session host address" prompt, enter the <IP_address> portion of the keyphrase above
-%           2.c) in the "Remote session access port" prompt, enter the <numeric_code> portion of the keyphrase above
-%           2.d) in the "Remote session id" prompt, enter the <alphanumeric_code> portion of the keyphrase above
-%           2.e) in the "Remote session log folder" prompt, leave empty (press Return)
+%           2.a) in the "Server address" prompt:                 enter 'none' (without quotes)
+%           2.b) in the "Remote session host address" prompt:    enter the <IP_address> portion of the keyphrase above
+%           2.c) in the "Remote session access port" prompt:     enter the <numeric_code> portion of the keyphrase above
+%           2.d) in the "Remote session id" prompt:              enter the <alphanumeric_code> portion of the keyphrase above
+%           2.e) in the "Remote session log folder" prompt:      leave empty (press Return)
 % 
 
 
