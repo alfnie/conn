@@ -9,12 +9,12 @@ if nargin<1||isempty(nsub), nsub=[]; end
 
 if isempty(nsub), nsub=1:CONN_x.Setup.nsubjects; end
 if any(isnan(CONN_x.Setup.RT(min(numel(CONN_x.Setup.RT),nsub))))&&conn_projectmanager('inserver'), 
-    for nsub=nsub(:)'
-        for nses=nses(:)'
-            filename=conn_get_functional(nsub,nses,nset);
-            assert(~isempty(filename),'functional data for subject %d session %d not found',nsub,nses);
+    for insub=nsub(:)'
+        for inses=nses(:)'
+            filename=conn_get_functional(insub,inses,nset);
+            assert(~isempty(filename),'functional data for subject %d session %d not found',insub,inses);
             if size(filename,1)>1, filename=filename(1,:); end
-            functionals{nsub}{nses}=filename;
+            functionals{insub}{inses}=conn_server('util_localfile',filename);
         end
     end
     RT=conn_server('run',mfilename,nsub,nses,nset,functionals); 

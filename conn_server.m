@@ -6,7 +6,7 @@ function varargout = conn_server(option, varargin)
 %
 % commands from client side: (e.g. from a computer at home/office where you live)
 %   conn_server('connect', IP , SERVER_ID)          : stablishes connection to CONN server
-%   conn_server('run', fcn, arg1, arg2, ...)        : runs on server the command fcn(arg1,arg2,...); note: fcn must be a CONN function name, e.g. conn_server('run','conn','load','myfile.mat')
+%   conn_server('run', fcn, arg1, arg2, ...)        : runs on server the command fcn(arg1,arg2,...); note: fcn must be a CONN function name, e.g. conn_server('run','conn_disp','hello world')
 %   [var1, var2,...]=conn_server('run',...)         : as 'run' but also collecting the output(s) of the fcn call
 %   conn_server('run_immediatereturn',...)          : as 'run' but without waiting for the command to finish on the server (or check for possible error messages)
 %   conn_server('push',file_local,file_remote)      : copies file from client to server
@@ -75,6 +75,7 @@ switch(lower(option))
         end
         conn_cache clear;
         conn_jobmanager clear;
+        conn_disp('__portcomm',true);
         conn_server('continue');
         
     case 'connect' % init client
@@ -103,8 +104,10 @@ switch(lower(option))
         conn_cache clear;
         conn_jobmanager clear;
         
-    case {'run','run_immediatereturn'}
-        data.cmd=varargin;
+    case {'run','run_immediatereturn','run_withwaitbar'}
+        if strcmp(lower(option),'run_withwaitbar'), statushandle=varargin{1}; data.cmd=varargin(2:end); data.withwaitbar=true;
+        else statushandle=[]; data.cmd=varargin; data.withwaitbar=false;
+        end
         data.nargout=nargout;
         data.immediatereturn=strcmp(lower(option),'run_immediatereturn');
         data.hpc=false;
@@ -115,7 +118,6 @@ switch(lower(option))
             while ~ok
                 try
                     var=conn_tcpip('read');
-                    ok=true;
                 catch me,
                     if ~isempty(regexp(me.message,'SocketTimeoutException')), fprintf('.');  % timeout
                     elseif ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) % restart
@@ -124,22 +126,35 @@ switch(lower(option))
                         conn_tcpip('write',data);
                     else error('ERROR: connection problem: %s',me.message);
                     end
+                    var={''};
                 end
-            end
-            assert(iscell(var)&~isempty(var), 'ERROR: unexpected data from server');
-            if isequal(var{1},'ok_hasattachment') % server is waiting for us to scp its response
-                tmpfile1=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
-                tmpfile2=var{2};
-                if conn_server('HPC_pull',tmpfile2,tmpfile1), var=load(tmpfile1,'arg'); var=var.arg;
-                else var={'ko','unable to run HPC_pull to read response from server'};
+                assert(iscell(var)&~isempty(var), 'ERROR: unexpected data from server');
+                if isequal(var{1},'ok_hasattachment') % server is waiting for us to scp its response
+                    tmpfile1=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
+                    tmpfile2=var{2};
+                    if conn_server('HPC_pull',tmpfile2,tmpfile1), var=load(tmpfile1,'arg'); var=var.arg;
+                    else var={'ko','unable to run HPC_pull to read response from server'};
+                    end
+                    conn_fileutils('deletefile',tmpfile1);
+                    conn_tcpip('write',{'ack_hasattachment'}); % signal server to continue
                 end
-                conn_fileutils('deletefile',tmpfile1);
-                conn_tcpip('write','ok'); % signal server to continue
-            end
-            if isequal(var{1},'ok')
-                varargout=var(2:end);
-            else
-                error('ERROR MESSAGE RETURNED BY SERVER: %s\n',var{2});
+                if isequal(var{1},'ok')
+                    varargout=var(2:end);
+                    ok=true;
+                elseif isequal(var{1},'ko')
+                    error('ERROR MESSAGE RETURNED BY SERVER: %s\n',var{2});
+                    %ok=true;
+                elseif isequal(var{1},'status')
+                    str=regexprep(var{2},'[\r\n\s]*',' ');
+                    if data.withwaitbar,
+                        conn_disp(str);
+                        if ~isempty(statushandle), set(statushandle,'string',str); drawnow; end
+                    else
+                        if iscell(str), for n=1:numel(str), fprintf('%s\n',str{n}); end
+                        else fprintf('%s',str);
+                        end
+                    end
+                end
             end
         end
         
@@ -176,6 +191,7 @@ switch(lower(option))
                 elseif isequal(data,'exit')
                     fprintf('\n Server closed by client\n'); dispstr='';
                     conn_tcpip('close');
+                    conn_disp('__portcomm',false);
                     return
                 elseif isequal(data,'ping')
                     conn_tcpip('write','ok');
@@ -183,10 +199,14 @@ switch(lower(option))
                     if ischar(data.cmd), data.cmd={data.cmd}; end
                     data.cmd{1}=regexprep(data.cmd{1},'\.m$','');
                     if isequal(data.cmd{1},'conn')||~isempty(regexp(data.cmd{1},'^conn_'))||isequal(data.cmd{1},'spm')||~isempty(regexp(data.cmd{1},'^spm_')) % run only conn or spm commands
-                        fprintf('\n -'); dispstr='';
+                        fprintf('\n -'); dispstr=''; timer=[];
                         try
                             fh=eval(sprintf('@%s',data.cmd{1}));
                             %disp([data.cmd]);
+%                             if isfield(data,'displaystatus')&&data.displaystatus,
+%                                 htimer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@conn_server_update);
+%                                 start(htimer);
+%                             end
                             if ~isfield(data,'immediatereturn')||~data.immediatereturn
                                 if isfield(data,'nargout')&&data.nargout>0,
                                     argout=cell(1,data.nargout+1);
@@ -194,14 +214,18 @@ switch(lower(option))
                                         [argout{2:data.nargout+1}]=feval(fh,data.cmd{2:end});
                                         argout{1}='ok';
                                     catch me
-                                        argout={'ko', char(getReport(me,'basic','hyperlinks','off'))};
+                                        str=conn_errormessage(me);
+                                        str=sprintf('%s\n',str{:});
+                                        argout={'ko', str};
                                     end
                                 else
                                     try
                                         feval(fh,data.cmd{2:end});
                                         argout={'ok'};
                                     catch me
-                                        argout={'ko', char(getReport(me,'basic','hyperlinks','off'))};
+                                        str=conn_errormessage(me);
+                                        str=sprintf('%s\n',str{:});
+                                        argout={'ko', str};
                                     end
                                 end
                                 disp([data.cmd, argout]);
@@ -210,7 +234,12 @@ switch(lower(option))
                                     arg=argout; save(tmpfile,'arg');
                                     argout={'ok_hasattachment',tmpfile};
                                     conn_tcpip('write',argout);
-                                    conn_tcpip('read'); % wait for client to finish
+                                    while 1, 
+                                        rsp=[]; 
+                                        try, rsp=conn_tcpip('read'); end % wait for client to finish
+                                        if isequal(rsp,{'ack_hasattachment'}), break; end
+                                        fprintf('.'); pause(rand);
+                                    end
                                     conn_fileutils('deletefile',tmpfile);
                                 else % send response through communication socket
                                     conn_tcpip('write',argout);
@@ -222,8 +251,11 @@ switch(lower(option))
                                 disp(data.cmd);
                             end
                         catch me
-                            argout={'ko', char(getReport(me,'basic','hyperlinks','off'))};
+                            str=conn_errormessage(me);
+                            str=sprintf('%s\n',str{:});
+                            argout={'ko', str};
                         end
+%                         if ~isempty(htimer), try, stop(htimer); delete(htimer); end; end
                             
                     elseif ~isfield(data,'immediatereturn')||~data.immediatereturn
                         argout={'ko', sprintf('unrecognized option %s ',data.cmd{1})};
@@ -618,7 +650,8 @@ switch(lower(option))
             catch, pong='-';
             end
             t2=etime(clock,t1);
-            str=sprintf('sent ping received %s from %s:%d: round-trip time = %d ms\n',pong,conn_tcpip('private.ip'),conn_tcpip('private.port'),ceil(1000*t2));
+            if isequal(pong,'ok'), failed=''; else failed='FAILED: '; end
+            str=sprintf('%ssent ping received %s from %s:%d: round-trip time = %d ms\n',failed,pong,conn_tcpip('private.ip'),conn_tcpip('private.port'),ceil(1000*t2));
             varargout={str};
         else
             for niter=1:10

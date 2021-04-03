@@ -28,64 +28,89 @@ DOWNLOADFILES=true; % set to false if already manually-downloaded the dataset (o
 UNZIPFILES=true;    % set to false if already manually-unzipped the dataset
 DOPARALLEL=false;   % set to true/false to run in parallel or locally
 PARALLELPROFILE=[];
-    
+DODISPLAY=true;     % set to false to skip loading/displaying conn project after finishing
+
 iopt=strcmp(varargin,'-overwrite'); if any(iopt), varargin=varargin(~iopt); OVERWRITE=true; end
 iopt=strcmp(varargin,'-download'); if any(iopt), varargin=varargin(~iopt); DOWNLOADFILES=true; end
 iopt=strcmp(varargin,'-unzip'); if any(iopt), varargin=varargin(~iopt); UNZIPFILES=true; end
+iopt=strcmp(varargin,'-display'); if any(iopt), varargin=varargin(~iopt); DODISPLAY=true; end
 iopt=strcmp(varargin,'-donotoverwrite'); if any(iopt), varargin=varargin(~iopt); OVERWRITE=false; end
 iopt=strcmp(varargin,'-donotdownload'); if any(iopt), varargin=varargin(~iopt); DOWNLOADFILES=false; end
 iopt=strcmp(varargin,'-donotunzip'); if any(iopt), varargin=varargin(~iopt); UNZIPFILES=false; end
+iopt=strcmp(varargin,'-donotdisplay'); if any(iopt), varargin=varargin(~iopt); DODISPLAY=false; end
 iopt=strcmp(varargin,'-parallel'); if any(iopt), varargin=varargin(~iopt); DOPARALLEL=true; end
 
 if ~nargin||isempty(varargin), 
     data={'1a','1b','2a','2b','3a','3b'}; % define the subsets to be downloaded (all data by default) 
-    try
-        answ=conn_questdlg({'Preparing to download and analyze the publicly available NYU test-retest dataset (https://www.nitrc.org/projects/nyu_trt/)','This procedure will create a new CONN project with the fully analyzed NYU test-retest dataset','The full dataset requires approximately 200Gb of hard-drive space and up to 30 hours to finish. You may download/process the full dataset or only a portion of it',' ','Please select dataset to download/use:'},'Sample data download','Full dataset','Partial dataset','Already downloaded dataset','Cancel','Full dataset');
-        if isempty(answ)||isequal(answ,'Cancel'), return; end
-        if isequal(answ,'Partial dataset')
-            datastr={'Subset A (13 subjects), session 1','Subset B (12 subjects), session 1','Subset A (13 subjects), session 2','Subset B (12 subjects), session 2','Subset A (13 subjects), session 3','Subset B (12 subjects), session 3'};
-            s = listdlg('PromptString','Select data subset(s) to download','ListSize',[300 100],...
-                      'SelectionMode','multiple',...
-                      'ListString',datastr,...
-                      'InitialValue',1:6);
-            if isempty(s), return; end
-            data=data(s);
-        end
-        if isequal(answ,'Already downloaded dataset')
-            str='Select folder containing NYU_TRT_session* files/folders';
-            disp(str);
+    answ=conn_questdlg({'Preparing to download and analyze the publicly available NYU test-retest dataset (https://www.nitrc.org/projects/nyu_trt/)','This procedure will create a new CONN project with the fully analyzed NYU test-retest dataset','The full dataset requires approximately 200Gb of hard-drive space and up to 30 hours to finish. You may download/process the full dataset or only a portion of it',' ','Please select dataset to download/use:'},'Sample data download','Full dataset','Partial dataset','Already downloaded dataset','Cancel','Full dataset');
+    if isempty(answ)||isequal(answ,'Cancel'), return; end
+    if isequal(answ,'Partial dataset')
+        datastr={'Subset A (13 subjects), session 1','Subset B (12 subjects), session 1','Subset A (13 subjects), session 2','Subset B (12 subjects), session 2','Subset A (13 subjects), session 3','Subset B (12 subjects), session 3'};
+        s = listdlg('PromptString','Select data subset(s) to download','ListSize',[300 100],...
+            'SelectionMode','multiple',...
+            'ListString',datastr,...
+            'InitialValue',1:6);
+        if isempty(s), return; end
+        data=data(s);
+    end
+    if isequal(answ,'Already downloaded dataset')
+        str='Select folder containing NYU_TRT_session* files/folders';
+        disp(str);
+        if conn_projectmanager('inserver'),
+            cwd=inputdlg(str,'data folder',1,{conn_projectmanager('homedir')});
+            if isempty(cwd), return; end
+            cwd=conn_server('util_remotefile',char(cwd));
+        else
             cwd=uigetdir(pwd,str);
             if isequal(cwd,0), return; end
-            folders=dir(fullfile(cwd,'NYU_TRT_session*'));
-            if isempty(folders), return; end
-            folders={folders.name};
-            folders=regexp(folders,'^NYU_TRT_session([123][ab]).*','tokens','once');
-            data=unique([folders{:}]);
-            DOWNLOADFILES=false;
-        else
-            cwd=pwd;
-            answ=conn_questdlg(sprintf('Files will be downloaded to %s',cwd),'','Continue','Modify','Cancel','Continue');
-            if isempty(answ)||strcmp(answ,'Cancel'), return; end
-            if strcmp(answ,'Modify'), cwd=uigetdir(pwd,'Select target folder to store the new CONN project and data'); end
         end
-        if isequal(cwd,0), return; end
-        cd(cwd);
-        pr0='Run locally on this computer';
-        pr1=conn_jobmanager('getprofile');
-        pr={pr0, pr1};
-        %pr=conn_jobmanager('profiles');
-        %pr=[{pr0} {pr1} pr(~ismember(pr,pr1))];
-        answ=conn_questdlg('','Parallelization',pr{:},pr0);
-        if isempty(answ), return; end
-        if isequal(answ,pr0), DOPARALLEL=false; 
-        else DOPARALLEL=true; PARALLELPROFILE=answ;
+        folders=conn_fileutils('dir',fullfile(char(cwd),'NYU_TRT_session*'));
+        if isempty(folders), return; end
+        folders={folders.name};
+        folders=regexp(folders,'^NYU_TRT_session([123][ab]).*','tokens','once');
+        data=unique([folders{:}]);
+        DOWNLOADFILES=false;
+    else
+        cwd=conn_projectmanager('pwd');
+        answ=conn_questdlg(sprintf('Files will be downloaded to %s',cwd),'','Continue','Modify','Cancel','Continue');
+        if isempty(answ)||strcmp(answ,'Cancel'), return; end
+        if strcmp(answ,'Modify'),
+            if conn_projectmanager('inserver'),
+                cwd=inputdlg('Select target folder to store the new CONN project and data','data folder',1,{cwd});
+                if isempty(cwd), return; end
+                cwd=conn_server('util_remotefile',char(cwd));
+            else
+                cwd=uigetdir(pwd,'Select target folder to store the new CONN project and data');
+                if isequal(cwd,0), return; end
+            end
         end
     end
-else data=varargin;
+    conn_fileutils('cd',char(cwd));
+    pr0='Run locally on this computer';
+    pr1=conn_jobmanager('getprofile');
+    pr={pr0, pr1};
+    %pr=conn_jobmanager('profiles');
+    %pr=[{pr0} {pr1} pr(~ismember(pr,pr1))];
+    answ=conn_questdlg('','Parallelization',pr{:},pr0);
+    if isempty(answ), return; end
+    if isequal(answ,pr0), DOPARALLEL=false;
+    else DOPARALLEL=true; PARALLELPROFILE=answ;
+    end
+    if conn_projectmanager('inserver'),
+        opts={};
+        if OVERWRITE, opts{end+1}='-overwrite'; end
+        if ~DOWNLOADFILES, opts{end+1}='-donotdownload'; end
+        if ~UNZIPFILES, opts{end+1}='-donotunzip'; end
+        if DOPARALLEL, opts{end+1}='-parallel'; end
+        hmsg=conn_msgbox({'Process running remotely',' ','CONN will resume automatically when this process finishes','Please wait...'},'');
+        conn_server('run','conn_process','nyudataset',opts{:},'-donotdisplay',data{:});
+        if ~isempty(hmsg)&&ishandle(hmsg), delete(hmsg); end
+        conn('load',fullfile(cwd,'conn_NYU.mat'));
+        conn gui_results
+        return
+    end
+else data=varargin
 end
-
-
-
 
 %% DOWNLOADS/LOCATES FUNCTIONAL&ANATOMICAL DATA
 %% DOWNLOAD *.tar.gz files
@@ -214,7 +239,9 @@ conn_batch(batch);
 
 %% CONN Display
 % launches conn gui to explore results
-conn
-conn('load',fullfile(cwd,'conn_NYU.mat'));
-conn gui_results
+if DODISPLAY
+    conn
+    conn('load',fullfile(cwd,'conn_NYU.mat'));
+    conn gui_results
+end
 

@@ -1768,7 +1768,7 @@ if isfield(batch,'Results'),
             end
             if ~isvv&&any(CONN_x.Analyses(CONN_x.Analysis).type==[1,3]), % &&isfield(batch.Results,'done')&&batch.Results.done
                 CONN_x.gui=struct('overwrite','Yes');
-                if isfield(batch.Results,'display'), CONN_x.gui.display=batch.Results.display; end
+                if isfield(batch.Results,'display'), CONN_x.gui.display_results=batch.Results.display; end
                 conn_process('results_roi');
                 CONN_x.gui=1;
                 CONN_x.Results.foldername=[];
@@ -1803,7 +1803,7 @@ if isfield(batch,'Results'),
                     
                     if 1, %isfield(batch.Results,'done')&&batch.Results.done,
                         CONN_x.gui=struct('overwrite','Yes');
-                        if isfield(batch.Results,'display'), CONN_x.gui.display=batch.Results.display; end
+                        if isfield(batch.Results,'display'), CONN_x.gui.display_results=batch.Results.display; end
                         conn_process('results_voxel','dosingle','voxel-to-voxel');
                         CONN_x.gui=1;
                         CONN_x.Results.foldername=[];
@@ -1840,7 +1840,7 @@ if isfield(batch,'Results'),
                     
                     if 1, %isfield(batch.Results,'done')&&batch.Results.done,
                         CONN_x.gui=struct('overwrite','Yes');
-                        if isfield(batch.Results,'display'), CONN_x.gui.display=batch.Results.display; end
+                        if isfield(batch.Results,'display'), CONN_x.gui.display_results=batch.Results.display; end
                         conn_process('results_voxel','dosingle','seed-to-voxel');
                         CONN_x.gui=1;
                         CONN_x.Results.foldername=[];

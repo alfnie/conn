@@ -1330,6 +1330,17 @@ else
                 conn('gui_help','url',['http://',url]);
             end
             
+        case 'gui_clear'
+            conn_menumanager clf;
+            conn_menuframe;
+            tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
+            conn_menu('frame2border',[.0,.955,1,.045],'');
+            conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
+            conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+            if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+            elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
+            end
+            
         case 'gui_settings',
             dlg.fig=figure('units','norm','position',[.3,.1,.5,.4],'menubar','none','numbertitle','off','name','CONN GUI options','color','w','visible','off');
             %uicontrol('style','frame','unit','norm','position',[.05,.5,.9,.45],'backgroundcolor','w','foregroundcolor',[.5 .5 .5]);
@@ -4799,15 +4810,7 @@ else
                 if ischar(filename)&&~isempty(filename),filename=fullfile(pathname,filename);end
             else
                 if nargin<2,
-                    conn_menumanager clf;
-                    conn_menuframe;
-                    tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
-                    conn_menu('frame2border',[.0,.955,1,.045],'');
-                    conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                    conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
-                    if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
-                    elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
-                    end
+                    conn('gui_clear');
                     conn_menu('filesearchprojectload',[],'CONN project name: ','*.mat','',{@conn,'gui_setup_load'});
                     return;
                 end
@@ -4856,15 +4859,7 @@ else
                     if ~CONN_gui.isremote
                         [filename,pathname]=uiputfile('conn_*.mat',strmsg,filename); saveas=true;
                     else
-                        conn_menumanager clf;
-                        conn_menuframe;
-                        tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
-                        conn_menu('frame2border',[.0,.955,1,.045],'');
-                        conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                        conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
-                        if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
-                        elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
-                        end
+                        conn('gui_clear');
                         thfig=uicontrol('units','norm','position',[0 0 .01 .01],'visible','off','userdata',0,'parent',CONN_h.screen.hfig);
                         conn_menu('filesearchprojectsave',[],'CONN project name: ','*.mat',filename,{@(x)set(thfig,'userdata',x)});
                         set(CONN_h.screen.hfig,'pointer','arrow');
@@ -11771,10 +11766,10 @@ else
 		
         case 'gui_results_roiview',
             if ~isstruct(CONN_x.gui), CONN_x.gui=struct; end
-            if ~isfield(CONN_x.gui,'display')||CONN_x.gui.display, dodisp=true;
+            if ~isfield(CONN_x.gui,'display_results')||CONN_x.gui.display_results, dodisp=true;
             else dodisp=false;
             end
-            CONN_x.gui.display=false;
+            CONN_x.gui.display=true;
             if conn_existfile(fullfile(CONN_h.menus.m_results.design.pwd,'ROI.mat'))
                 REDO=conn_questdlg('','results explorer','Load existing analysis results', 'Recompute/overwrite results', 'Load existing analysis results');
                 if isempty(REDO), CONN_x.gui=1; set(CONN_h.screen.hfig,'pointer','arrow'); return; end
@@ -11812,10 +11807,10 @@ else
             % CONN_h.menus.m_results.design.pwd
             % CONN_x.gui.overwrite
             if ~isstruct(CONN_x.gui), CONN_x.gui=struct; end
-            if ~isfield(CONN_x.gui,'display')||CONN_x.gui.display, dodisp=true;
+            if ~isfield(CONN_x.gui,'display_results')||CONN_x.gui.display_results, dodisp=true;
             else dodisp=false;
             end
-            CONN_x.gui.display=false;
+            CONN_x.gui.display=true;
             if conn_existfile(fullfile(CONN_h.menus.m_results.design.pwd,'SPM.mat'))
                 REDO=conn_questdlg('','results explorer','Load existing analysis results', 'Recompute/overwrite results', 'Load existing analysis results');
                 if isempty(REDO), CONN_x.gui=1; set(CONN_h.screen.hfig,'pointer','arrow'); return; end
@@ -12096,9 +12091,9 @@ if ok
     conn_disp('fprintf','      %s\n',tstr{get(ht1,'value')});
     if ~isempty(ht5)
         if isequal(get(ht5,'value'),0)||isempty(get(ht5,'userdata')), 
-            CONN_x.gui.display=0;
+            CONN_x.gui.display_results=0;
         else
-            CONN_x.gui.display=1;
+            CONN_x.gui.display_results=1;
             CONN_x.gui.display_options={};
             val=get(ht5,'userdata');
             if any(ismember(val,[5,6]))&~any(ismember(val,[2,3,4])), val=[val(:)' 2]; end

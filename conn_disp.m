@@ -2,7 +2,7 @@ function varargout=conn_disp(varargin)
 % internal function: logged "disp"
 
 global CONN_x CONN_h CONN_gui;
-persistent MAXHISTORY SAVELOG CWCOPY TBSPACE lastdate lastlogfile;
+persistent MAXHISTORY SAVELOG CWCOPY TBSPACE PORTCOMM lastdate lastlogfile;
 
 if isempty(lastdate), lastdate=''; end
 if isempty(lastlogfile), lastlogfile=''; end
@@ -10,6 +10,7 @@ if isempty(MAXHISTORY), MAXHISTORY=1e4; end
 if isempty(SAVELOG), SAVELOG=true; end
 if isempty(CWCOPY), CWCOPY=true; end
 if isempty(TBSPACE), TBSPACE=0; end
+if isempty(PORTCOMM), PORTCOMM=false; end
 silent=false;
 varargout={};
 %try
@@ -31,6 +32,10 @@ if nargin>=1&&ischar(varargin{1})&&size(varargin{1},1)==1&&~isempty(regexp(varar
         case '__tbspace'
             if nargin>1, TBSPACE=varargin{2}; end
             if nargout>0, varargout={TBSPACE}; end
+            return
+        case '__portcomm',
+            if nargin>1, PORTCOMM=varargin{2}; end
+            if nargout>0, varargout={PORTCOMM}; end
             return
         case '__lastdate'
             if nargin>1, lastdate=varargin{2}; end
@@ -123,7 +128,7 @@ if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.g
 elseif isfield(CONN_h,'screen')&&isfield(CONN_h.screen,'hlog')&&ishandle(CONN_h.screen.hlog)&&isfield(CONN_h.screen,'hlogstr')&&ishandle(CONN_h.screen.hlogstr), mirrorscreen=true;
 end
 if nargin>=1
-    if mirrorscreen||savelog||nargout>0
+    if mirrorscreen||savelog||PORTCOMM||nargout>0
         if iscell(varargin{1})&&all(cellfun(@ischar,varargin{1}))
             newstr=varargin{1}; newstr=newstr(cellfun('length',newstr)>0);
         elseif ~ischar(varargin{1})
@@ -197,6 +202,9 @@ if nargin>=1
                     lastlogfile=filename;
                 end
             elseif ~savelog&&mirrorscreen, try, set(CONN_h.screen.hlog,'name','CONN log history'); end; lastlogfile=''; 
+            end
+            if PORTCOMM&&~isempty(str)
+                conn_tcpip('write',{'status',str});
             end
             if nargout>0&&~isempty(newstr), varargout={newstr}; end
         end

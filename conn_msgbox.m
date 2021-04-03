@@ -1,10 +1,12 @@
-function h = conn_msgbox(txt,title,ok)
+function [h,h2] = conn_msgbox(txt,title,ok,lowerquarter)
 global CONN_gui;
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
 
-if nargin<2, title=''; end
-if nargin<3, ok=false; end
+if nargin<2||isempty(title), title=''; end
+if nargin<3||isempty(ok), ok=false; end
+if nargin<4||isempty(lowerquarter), lowerquarter=false; end
 if ok==2, bg=.925*[1 1 1]; fg=[.25 0 0]; ws='modal'; else bg=.925*[1 1 1]; fg=[0 0 0]; ws='normal'; end
+h2=[];
 % if ok==2, h=dialog('units','norm','position',[.5 .7 .2 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','off','units','pixels');
 % else h=figure('units','norm','position',[.5 .7 .2 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','off','units','pixels');
 % end
@@ -37,6 +39,7 @@ else % do not wait for user confirmation
     hpos=get(h,'position');
     set(h,'position',[hpos(1)-hext2(1)/2,hpos(2)-hext2(2)/2,hext2(1),hext2(2)]);
     set(ha,'position',[30 30 hext(end-1:end)]);
+    if lowerquarter, h2=uicontrol('style','text','units','norm','position',[.1 .10 .8 .15],'backgroundcolor',.9*bg,'horizontalalignment','left','string','','fontsize',6+CONN_gui.font_offset,'foregroundcolor',.25*[1 1 1],'parent',h); end
     if ok==0, conn_disp(char(txt)); end
     drawnow;
 end

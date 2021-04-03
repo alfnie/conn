@@ -15,17 +15,19 @@ if isequal(options,'aminserver') % if running from server
     CONN_x.gui=1;
     conn save;
     return
-elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 19])) % note: list of processes which may be run from client
+elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 19 34])) % note: list of processes which may be run from client
     hmsg=[];
     if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
         info=conn_server('hpc_info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
         else tnameserver='none';
         end
-        hmsg=conn_msgbox({sprintf('Process running remotely (%s)',tnameserver),' ','CONN will resume automatically when this process finishes','Please wait...'},'');
+        [hmsg,hstat]=conn_msgbox({sprintf('Process running remotely (%s)',tnameserver),' ','CONN will resume automatically when this process finishes','Please wait...',' ',' '},[],[],true);
     end
     conn save; % note: save+push+rload
-    [varargout{1:nargout}]=conn_server('run','conn_process','aminserver',CONN_x.gui,options,varargin{:});
+    if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,'conn_process','aminserver',CONN_x.gui,options,varargin{:});
+    else [varargout{1:nargout}]=conn_server('run','conn_process','aminserver',CONN_x.gui,options,varargin{:});
+    end
     conn load; % note: (rload+rsave)+pull+load
     if ~isempty(hmsg)&&ishandle(hmsg), delete(hmsg); end
     return
@@ -92,6 +94,7 @@ if ischar(options),
             case 'postmerge',       conn_process([4.5,5,9,15],varargin{:});
             case 'maskserode',      conn_process(33,varargin{:});
             case 'qaplots',         conn_process(32,varargin{:});
+            case 'nyudataset',      conn_process(34,varargin{:});
             case 'update',          conn gui_setup_saveas; conn_process all; conn save;
             case 'conn',            conn(varargin{:});
             case 'batch',           conn_batch(varargin{:});
@@ -4925,7 +4928,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
     end
     if dosinglecontrast==2,
         cd(filepathresults3{1});
-        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
+        if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display_results')&&CONN_x.gui.display_results || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
             if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
             if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end
@@ -5016,7 +5019,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                         spm_write_vol(V,double(mask));
                         save('SPM.mat','SPM','-v7.3');
                         conn_disp('fprintf','\nSecond-level results saved in folder %s\n',pwd);
-                        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
+                        if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display_results')&&CONN_x.gui.display_results || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
                             if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
                             if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end
@@ -5078,7 +5081,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                                     spm_write_vol(V,tanh(t));
                             end
                         end
-                        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
+                        if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display_results')&&CONN_x.gui.display_results || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
                             if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
                             if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end
@@ -5110,7 +5113,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                                     spm_write_vol(V,tanh(t));
                             end
                         end
-                        if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
+                        if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display_results')&&CONN_x.gui.display_results || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                             if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
                             if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
                             if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end
@@ -5181,7 +5184,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                     SPM.xVol.S=[];
                     save('SPM.mat','SPM','-v7.3');
                     
-                    if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),conn_display('SPM.mat',1); end
+                    if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display_results')&&CONN_x.gui.display_results),conn_display('SPM.mat',1); end
                     conn_waitbar(1/2+1/2*(n1/(length(SPMall))),h);
                 end
                 conn_waitbar('close',h);
@@ -5484,7 +5487,7 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
             end
             try
                 %if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
-                if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
+                if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display_results')&&CONN_x.gui.display_results || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                     cwd=pwd;
                     cd(filepathresults2);
                     if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
@@ -5794,6 +5797,13 @@ if any(options==33)
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; opts{1}=validsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'),  validsubjects=CONN_x.pobj.subjects; opts{1}=validsubjects; end    
     varargout{1}=conn_maskserode(opts{:});
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% WORKSHOP DATASET
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if any(options==34)
+    conn_batch_workshop_nyudataset(varargin{:});
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
