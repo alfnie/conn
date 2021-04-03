@@ -2809,7 +2809,7 @@ if nargin==2&&isequal(THR_TYPE,'all')
     simfilename=fullfile(fileparts(spmfile),'nonparametric_p*.mat');
 else
     simfilename=char(arrayfun(@(a,b)fullfile(fileparts(spmfile),sprintf('nonparametric_p%d_%.8f.mat',a,b)),THR_TYPE,THR,'uni',0));
-    if conn_existfile(conn_prepend('parallel_*_',simfilename)), conn_process('results_nonparametric_collapse',simfilename); end
+    if ~isempty(conn_fileutils('dir',conn_prepend('parallel_*_',simfilename))), conn_process('results_nonparametric_collapse',conn_server('util_localfile',simfilename)); end
 end
 end
 
@@ -2837,7 +2837,7 @@ if isremote
     if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
     else tnameserver='CONN server';
     end
-    toptions=regexprep(toptions,'\<run on (this computer)?',['run on ',tnameserver,' ']);
+    toptions=regexprep(toptions(2:end),'\<run on (this computer)?',['run on ',tnameserver,' ']);
 end
 h3=uicontrol('style','popupmenu','units','norm','position',[.1,.2,.8,.15],'string',toptions,'value',1,'callback',@conn_vproject_randomise_nowlater); 
 %h3=uicontrol('style','popupmenu','units','norm','position',[.1,.2,.8,.15],'string',[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)],'value',1,'callback',@conn_vproject_randomise_nowlater); 
@@ -2852,6 +2852,7 @@ if ishandle(fh),
     v3=get(h3,'value');
     v5=get(h5,'string');
     close(fh);
+    if isremote, v3=v3+1; end
     niters=v2;
     simfilename=conn_vproject_simfilename(spmfile,THR_TYPE,THR);
     maskfile=fullfile(fileparts(spmfile),'mask.nii');

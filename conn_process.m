@@ -4,6 +4,7 @@ global CONN_x
 if nargin<1, options=[]; end
 if isequal(options,'aminserver') % if running from server
     CONN_x.gui=varargin{1};
+    skiploadsave=varargin{2};
     try
         if isnumeric(CONN_x.gui), CONN_x.gui=0;
         elseif isstruct(CONN_x.gui)
@@ -11,9 +12,9 @@ if isequal(options,'aminserver') % if running from server
             if ~isfield(CONN_x.gui,'overwrite'), CONN_x.gui.overwrite='no'; end
         end
     end
-    [varargout{1:nargout}]=conn_process(varargin{2:end});
+    [varargout{1:nargout}]=conn_process(varargin{3:end});
     CONN_x.gui=1;
-    conn save;
+    if ~skiploadsave, conn save; end
     return
 elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 19 34])) % note: list of processes which may be run from client
     hmsg=[];
@@ -24,11 +25,13 @@ elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(option
         end
         [hmsg,hstat]=conn_msgbox({sprintf('Process running remotely (%s)',tnameserver),' ','CONN will resume automatically when this process finishes','Please wait...',' ',' '},[],[],true);
     end
-    conn save; % note: save+push+rload
-    if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,'conn_process','aminserver',CONN_x.gui,options,varargin{:});
-    else [varargout{1:nargout}]=conn_server('run','conn_process','aminserver',CONN_x.gui,options,varargin{:});
+    if ~isfield(CONN_x,'filename')||isempty(CONN_x.filename), skiploadsave=true; else skiploadsave=false; end
+    if ~isfield(CONN_x,'gui'), conn_x_gui=0; else conn_x_gui=CONN_x.gui; end
+    if ~skiploadsave, conn save; end % note: save+push+rload
+    if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,'conn_process','aminserver',conn_x_gui,skiploadsave,options,varargin{:});
+    else [varargout{1:nargout}]=conn_server('run','conn_process','aminserver',conn_x_gui,skiploadsave,options,varargin{:});
     end
-    conn load; % note: (rload+rsave)+pull+load
+    if ~skiploadsave, conn load; end % note: (rload+rsave)+pull+load
     if ~isempty(hmsg)&&ishandle(hmsg), delete(hmsg); end
     return
 end
