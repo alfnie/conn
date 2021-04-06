@@ -1,9 +1,10 @@
 % 
-% Using CONN in a computer cluster environment
+% Using CONN in a parallel within a computer cluster / HPC environment
 % 
-% CONN grid computing options allow you to process your subjects in parallel, with each subject, 
+% CONN HPC/cluster options allow you to process your subjects in parallel, with each subject, 
 % or each of several smaller groups of subjects, being processed independently by a different 
-% computer node. This can significantly increase the speed of your analyses, allowing you to 
+% computing node (a computing node may represent a different processor or a different computer
+% entirely). This can significantly increase the speed of your analyses, allowing you to  
 % process hundreds of subjects in the time it would take to process just one or a few subjects.
 % 
 % Configuration/Installation: %!
@@ -27,10 +28,10 @@
 % job scheduler that handles job submission in your cluster environment. In addition, profiles for 
 % other schedulers, or system-specific settings (e.g to increase your system default walltime settings, 
 % enter optional project or account ids, etc.), can be easily created/edited in 
-% CONN Tools.Cluster/HPCsettings if necessary.
+% CONN 'Tools. HPC options' menu if necessary.
 % 
 % To get started simply install CONN on a computer that is part of your distributed cluster environment.
-% Then launch CONN GUI interactively and select Tools.Cluster/HPCsettings. There you can select and test 
+% Then launch CONN GUI interactively and select 'Tools. HPC options'. There you can select and test 
 % your system job scheduler. If in doubt simply try one of the four default configurations (GridEngine, 
 % PBS, LSF, or SLURM) and click on 'Test profile' (each test may take up to a few minutes). If you see a 
 % 'failed' message, click 'Cancel' and try a different profile. If you see a 'Test finished correctly'

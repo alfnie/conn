@@ -32,7 +32,7 @@ function varargout=conn_remotely(varargin)
 %
 % Start CONN from the "client" computer using the Matlab command:
 %
-%    conn_remotely
+%    conn remotely
 % 
 % When prompted enter:
 %
@@ -51,12 +51,15 @@ function varargout=conn_remotely(varargin)
 % computer and it will establish a secure tunnel for communications. The server computer will then use its default profile
 % in HPC/cluster configuration settings to launch a new Matlab session (if using default HPC settings this session will be 
 % simply run as a new background Matlab process in the server computer; if using non-default HPC setting this session will be 
-% submitted to your cluster scheduler and run in a work-node as appropriate) which will in turn wait for the client's connection. 
-% Once the connection is established, the server Matlab session will simply wait for instructions from the client process, while
+% submitted to your cluster scheduler and run in a work-node as appropriate different from the login-node) which will in turn 
+% wait for the client's connection. Once the connection is established, the "server" computer will only act as a gateway between
+% the client 
+% remote Matlab session
+the remote Matlab session will simply wait for instructions from the client process, while
 % the client process runs CONN normally (typically for anything that relates to GUI-interaction), querying the server when needed 
-% (e.g. when needing to load data from remote files), or requesting the server Matlab session to run longer or more complex steps 
+% (e.g. when needing to load data from remote files), or requesting the remote Matlab session to run longer or more complex steps 
 % when appropriate (e.g. when preprocessing the data or running any analysis steps that requires significant interaction with the 
-% data). When the CONN gui is closed in the client computer, the server Matlab session will exit and the SSH tunnel will be closed.
+% data). When the CONN gui is closed in the client computer, the remote Matlab session will exit and the SSH tunnel will be closed.
 %
 %
 % note on 'CONN remotely' use: when working with a remote project, all of the elements in CONN's gui will be run locally by 
@@ -64,7 +67,7 @@ function varargout=conn_remotely(varargin)
 % of data being transferred from the "server" (e.g. when switching to a new tab, or when launching a 3D-view renderer)
 % so these may take longer than usual to get started while that data is being transferred, please be patient. Also when
 % working with a remote project and running preprocessing or analysis steps, you will be offered the option to have those 
-% steps run on the "server" computer directly, or have the "server" computer use instead its own HPC/Cluster configuration 
+% steps run on the server Matlab session directly, or have the remote session use instead its own HPC/Cluster configuration 
 % options to submit a job to its HPC/Cluster environment (to clarify: there is no option to run those processes locally on 
 % your "client" computer since that would require large amounts of data being transfered from the "server" where the data 
 % is stored to the "client" where the analysis would be run, which would make that option inpractical in most scenarios). 

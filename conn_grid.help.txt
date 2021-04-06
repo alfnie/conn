@@ -1,10 +1,11 @@
 
   
-  Using CONN in a computer cluster environment
+  Using CONN in a parallel within a computer cluster / HPC environment
   
-  CONN grid computing options allow you to process your subjects in parallel, with each subject, 
+  CONN HPC/cluster options allow you to process your subjects in parallel, with each subject, 
   or each of several smaller groups of subjects, being processed independently by a different 
-  computer node. This can significantly increase the speed of your analyses, allowing you to 
+  computing node (a computing node may represent a different processor or a different computer
+  entirely). This can significantly increase the speed of your analyses, allowing you to  
   process hundreds of subjects in the time it would take to process just one or a few subjects.
   
   Configuration/Installation: %!

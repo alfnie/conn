@@ -147,6 +147,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^guiisr
     conn importrois;
     CONN_x.gui=1;
     CONN_gui.newversionavailable=false;
+    clear conn_filesearchtool
     try, if CONN_gui.checkupdates, [nill,CONN_gui.newversionavailable]=conn_update([],[],2); end; end
 	conn_menumanager on;
 	CONN_h.menus.m_setup_02sub=conn_menumanager([], 'n',8,...
@@ -9667,9 +9668,9 @@ else
                         if ~isfield(CONN_x.Results.xX,'inferencelevel'), CONN_x.Results.xX.inferencelevel=.05; end
                         if ~isfield(CONN_x.Results.xX,'inferenceleveltype'), CONN_x.Results.xX.inferenceleveltype=1; end
                         if ~isfield(CONN_x.Results.xX,'displayrois'), CONN_x.Results.xX.displayrois=2; end
-                        strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Seed-based parameters <small>(preview of current settings)</small></HTML>'};
+                        strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Individual connections <small>(preview of current settings)</small></HTML>'};
                         if stateb, strstr3=strstr3(1); end
-                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Seed-based parameters (preview of current settings)''</i> to display a preview of the results of this group-level analysis for the selected seed/source ROI only, and adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
+                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Individual connections (preview of current settings)''</i> to display a preview of the results of this group-level analysis for individual ROI-to-ROI pairs only, and adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
                         CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3), CONN_x.Results.xX.displayvoxels));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
                         
@@ -9694,7 +9695,7 @@ else
                         set(CONN_h.menus.m_results_00{47},'value',1);
                         %CONN_h.menus.m_results_00{31}=conn_menu('popup2',boffset+[.63,pos(2)+pos(4),.26,.04],'',strstr3,'choose target ROIs','conn(''gui_results'',31);');
                         %set(CONN_h.menus.m_results_00{31},'value',CONN_x.Results.xX.displayrois);
-                        CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.095,.165,.045],'','display results','<HTML>Computes (or displays, if already computed) analyses of the entire ROI-to-ROI connectivity matrix, including connection-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
+                        CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.095,.165,.045],'','display RRC results','<HTML>Computes (or displays, if already computed) analyses of the entire ROI-to-ROI connectivity matrix, including connection-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
                         CONN_h.menus.m_results_00{52}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.140,.165,.045],'','graph-theory results','<HTML>Computes graph-theoretical analyses of the entire ROI-to-ROI connectivity matrix, including network- and ROI-level statistics</HTML>','conn(''gui_results_graphtheory'');');
                         
                         %CONN_h.menus.m_results_00{28}=uicontrol('style','popupmenu','units','norm','position',boffset+[.81,.08,.08,.045],'string',strstr1,'fontsize',8+CONN_gui.font_offset,'value',CONN_x.Results.xX.inferencetype,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','choose inference directionality','callback','conn(''gui_results'',28);');
