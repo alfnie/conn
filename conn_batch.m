@@ -1063,9 +1063,10 @@ if isfield(batch,'Setup'),
                         [nill,nill,nameext2]=fileparts(batch.Setup.rois.labelfiles{n1});
                         if ~ismember(nameext2,{'.txt','.csv','.xls'}), nameext2='.txt'; end
                         tmfile=conn_prepend('',CONN_x.Setup.rois.files{nsub}{n0+n1}{nses}{1},nameext2);
-                        if ispc, [ok,msg]=system(sprintf('copy "%s" "%s"',batch.Setup.rois.labelfiles{n1},tmfile));
-                        else [ok,msg]=system(sprintf('cp ''%s'' ''%s''',batch.Setup.rois.labelfiles{n1},tmfile));
-                        end
+                        try, conn_fileutils('copyfile',batch.Setup.rois.labelfiles{n1},tmfile); end
+                        %if ispc, [ok,msg]=system(sprintf('copy "%s" "%s"',batch.Setup.rois.labelfiles{n1},tmfile));
+                        %else [ok,msg]=system(sprintf('cp ''%s'' ''%s''',batch.Setup.rois.labelfiles{n1},tmfile));
+                        %end
                     end
                 end
             end

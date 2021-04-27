@@ -1412,7 +1412,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                             end
                             norm_post=sqrt(max(0,sum(repmat(Yout{ncondition}.conditionsweights{1},1,size(ytemp,2)).*ytemp.^2,1)/max(eps,sum(Yout{ncondition}.conditionsweights{1}))));
                             conn_write_slice(Yout{ncondition},ytemp,slice);
-                            if ~emptycondition, conn_write_slice(Youtnorm{ncondition},cat(1,norm_pre,norm_post),slice); end
+                            if ~Youtnorm{ncondition}.EmptyData, conn_write_slice(Youtnorm{ncondition},cat(1,norm_pre,norm_post),slice); end
                         end
                     else, % analyses per slice/session (slower but requires less memory)
                         for nses=1:nsess,

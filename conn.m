@@ -40,8 +40,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^guiisr
          warning('off','MATLAB:load:variableNotFound');
          warning('off','MATLAB:DELETE:FileNotFound');
     end
-    conn_backgroundcolor=.10*[1 1.05 1.1];                 % backgroundcolor
-    conn_backgroundcolorA=.15*[1 1.05 1.1];                % highlight
+    conn_backgroundcolor=.08*[1 1.05 1.1];                 % backgroundcolor
+    conn_backgroundcolorA=.16*[1 1.05 1.1];                % highlight
     if ismac, CONN_gui.uicontrol_border=2;            % crops borders GUI elements
     else      CONN_gui.uicontrol_border=2;
     end
@@ -1363,7 +1363,7 @@ else
 %               uimenu(hc1,'label','Remove GUI background image','callback','conn_guibackground clear'); 
 %               set(dlg.m4,'uicontextmenu',hc1);
             uicontrol('style','popupmenu','units','norm','position',[.1,.775,.45,.075],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','string',{'<HTML><i>Select GUI background color/image</i></HTML>','Light text on dark background theme','Dark text on light background theme','Random background image','Screenshot background image','User-defined background image'},'userdata',[dlg.m4 dlg.m4A],'callback',...
-                'h=get(gcbo,''userdata''); switch(get(gcbo,''value'')), case 1, conn_guibackground clear; color=uisetcolor; if numel(color)==3, set(h(1),''backgroundcolor'',color); colorA=color;set(h(2),''backgroundcolor'',colorA); end; case 2, conn_guibackground clear; color=.10*[1 1.05 1.10]; set(h(1),''backgroundcolor'',color); colorA=.15*[1 1.05 1.10];set(h(2),''backgroundcolor'',colorA); case 3, conn_guibackground clear; color=.9*[1 1 1]; set(h(1),''backgroundcolor'',color); colorA=.95*[1 1 1];set(h(2),''backgroundcolor'',colorA); case 4, answ=conn_guibackground(''setfiledefault''); case 5, answ=conn_guibackground(''cleartrans''); case 6, answ=conn_guibackground(''setfile''); end; set(gcbf,''userdata'',1); uiresume(gcbf);',...
+                'h=get(gcbo,''userdata''); switch(get(gcbo,''value'')), case 1, conn_guibackground clear; color=uisetcolor; if numel(color)==3, set(h(1),''backgroundcolor'',color); colorA=color;set(h(2),''backgroundcolor'',colorA); end; case 2, conn_guibackground clear; color=.08*[1 1.05 1.10]; set(h(1),''backgroundcolor'',color); colorA=.16*[1 1.05 1.10];set(h(2),''backgroundcolor'',colorA); case 3, conn_guibackground clear; color=.9*[1 1 1]; set(h(1),''backgroundcolor'',color); colorA=.95*[1 1 1];set(h(2),''backgroundcolor'',colorA); case 4, answ=conn_guibackground(''setfiledefault''); case 5, answ=conn_guibackground(''cleartrans''); case 6, answ=conn_guibackground(''setfile''); end; set(gcbf,''userdata'',1); uiresume(gcbf);',...
                 'tooltipstring','Changes the default theme colors in the CONN toolbox GUI','parent',dlg.fig);
             uicontrol('style','frame','unit','norm','position',[.05,.15,.9,.25],'backgroundcolor','w','foregroundcolor',[.5 .5 .5],'parent',dlg.fig);
             %uicontrol('style','text','unit','norm','position',[.07,.91,.3,.08],'string','Appearance','backgroundcolor','w','foregroundcolor',[.5 .5 .5]);
@@ -1378,7 +1378,7 @@ else
             while 1
                 if numel(varargin)>1&&ischar(varargin{2})
                     switch(lower(varargin{2}))
-                        case 'dark', hmsg=conn_msgbox('Setting dark-mode color theme... please wait','',-1); conn_guibackground clear; color=.10*[1 1.05 1.10]; set(dlg.m4,'backgroundcolor',color); colorA=.15*[1 1.05 1.10]; set(dlg.m4A,'backgroundcolor',colorA);
+                        case 'dark', hmsg=conn_msgbox('Setting dark-mode color theme... please wait','',-1); conn_guibackground clear; color=.08*[1 1.05 1.10]; set(dlg.m4,'backgroundcolor',color); colorA=.16*[1 1.05 1.10]; set(dlg.m4A,'backgroundcolor',colorA);
                         case 'color', hmsg=conn_msgbox('Setting color theme... please wait','',-1); conn_guibackground clear; if 1, color=.1*rand(1,3); colorA=.19/.14*color; else color=.85+.15*rand(1,3); colorA=color+.25*(1-color); end; set(dlg.m4,'backgroundcolor',color); set(dlg.m4A,'backgroundcolor',colorA); CONN_gui.backgroundcolor=color; CONN_gui.backgroundcolorA=colorA; conn_guibackground setfilecolor;
                         case 'light', hmsg=conn_msgbox('Setting light-mode color theme... please wait','',-1); conn_guibackground clear; color=.9*[1 1 1]; set(dlg.m4,'backgroundcolor',color); colorA=.95*[1 1 1]; set(dlg.m4A,'backgroundcolor',colorA);
                         case 'font+', hmsg=conn_msgbox('Increasing fontsize... please wait','',-1); fontsize=str2num(get(dlg.m1,'string')); fontsize=fontsize+1; if numel(fontsize)==1, set(dlg.m1 ,'string',num2str(fontsize)); end
@@ -1762,7 +1762,7 @@ else
                         %tmp=conn_menu('popupblue',boffset+[.56,.77,.129,.04],'',{'(dataset 0)'},'Primary functional dataset','');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.200,.30,.075,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
 						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.30,.075,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Select functional data files','*.img; *.nii; *.gii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
+						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import functional data files','*.img; *.nii; *.gii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton',boffset+[.36,.60,.26,.09],'','','','conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.40,.35,.22,.25],'','','',[],@conn_callbackdisplay_functionalclick);
                         conn_menu('nullstr',' ');
@@ -1930,7 +1930,7 @@ else
                                     nset=0;
                                 elseif nset==numel(CONN_x.Setup.secondarydataset)+4, %remove
                                     str=arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0);
-                                    nset=listdlg('name',['Removing set'],'PromptString','Select set(s) to remove','ListString',str,'SelectionMode','multiple','ListSize',[200 200]);
+                                    nset=listdlg('name',['Removing set'],'PromptString','Select set(s) to remove','ListString',str,'SelectionMode','multiple','ListSize',[300 300]);
                                     if ~isempty(nset)
                                         if numel(nset)==numel(CONN_x.Setup.secondarydataset), conn_msgbox({'At least one set must remain',' ','Set deletion canceled'},'',2);
                                         else CONN_x.Setup.secondarydataset=CONN_x.Setup.secondarydataset(setdiff(1:numel(CONN_x.Setup.secondarydataset),nset));
@@ -2300,7 +2300,7 @@ else
 						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.200,.63,.15,.05],'',{'Session-invariant structurals','Session-specific structurals'},'<HTML>(only applies to studies with multiple sessions/runs) <br/> - Select session-invariant if the structural data does not change across sessions (enter one structural volume per subject) <br/> - Select session-specific if the structural data may change across sessions (enter one structural volume per session; e.g. longitudinal studies)</HTML>','conn(''gui_setup'',13);');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.200,.25,.075,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
 						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.275,.25,.075,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Select structural data files','*.img; *.nii; *.mgh; *.mgz; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
+						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import structural data files','*.img; *.nii; *.mgh; *.mgz; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton', boffset+[.35,.57,.24,.10],'','','','conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.37,.26,.20,.31],'','','',[],@conn_callbackdisplay_structuralclick);
                         CONN_h.menus.m_setup_00{6}=conn_menu('popup',boffset+[.41,.21,.18,.045],'',{'Structural volume view','Structural surface view'},'select display view (surface view only available when selecting freesurfer-generated mri/T1.nii files)','conn(''gui_setup'',6);');
@@ -2656,7 +2656,7 @@ else
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.140,.13,.075,.46],'ROIs','',['<HTML>Select ROI <br/> - click after the last item to add a new ROI <br/> - ',CONN_gui.rightclick,'-click for additional options<br/></HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
 						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{19}]=conn_menu('listbox',boffset+[.215,.13,.075,.46],'Subjects','','Select subject(s)','conn(''gui_setup'',2);');
 						[CONN_h.menus.m_setup_00{16},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.29,.13,.075,.46],'Sessions','','Select session','conn(''gui_setup'',16);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('filesearch',[],'Select ROI definition files','*.img; *.nii; *.gii; *.tal; *.mgh; *.mgz; *.annot; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
+						CONN_h.menus.m_setup_00{3}=conn_menu('filesearch',[],'Import ROI files','*.img; *.nii; *.gii; *.tal; *.mgh; *.mgz; *.annot; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton', boffset+[.39,.47,.25,.08],'','','','conn(''gui_setup'',4);');
                         CONN_h.menus.general.names={};CONN_h.menus.general.names2={};
 						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.37,.19,.29,.28],'','','',@conn_callbackdisplay_general,@conn_callbackdisplay_roiclick); 
@@ -3379,9 +3379,9 @@ else
                                                 delete(thfig);
                                                 answ=questdlg({'Do you wish to create thresholded/eroded','masks and associated QC variables now?'},'','Yes','Later','Yes');
                                                 if ~isempty(answ)&&strcmp(answ,'Yes'),
-                                                    nroisall=listdlg('liststring',CONN_x.Setup.rois.names(1:3),'selectionmode','multiple','initialvalue',nrois,'promptstring',{'Compute thresholded/eroded masks'},'ListSize',[200 100]);
+                                                    nroisall=listdlg('liststring',CONN_x.Setup.rois.names(1:3),'selectionmode','multiple','initialvalue',nrois,'promptstring',{'Compute thresholded/eroded masks'},'ListSize',[300 200]);
                                                     if isempty(nroisall), return; end
-                                                    nsubsall=listdlg('liststring',arrayfun(@(x)sprintf('Subject %d',x),1:CONN_x.Setup.nsubjects,'uni',0),'selectionmode','multiple','initialvalue',1:CONN_x.Setup.nsubjects,'promptstring',{'Select subjects'},'ListSize',[200 100]);
+                                                    nsubsall=listdlg('liststring',arrayfun(@(x)sprintf('Subject %d',x),1:CONN_x.Setup.nsubjects,'uni',0),'selectionmode','multiple','initialvalue',1:CONN_x.Setup.nsubjects,'promptstring',{'Select subjects'},'ListSize',[300 200]);
                                                     if isempty(nsubsall), return; end
                                                     hmsg=conn_msgbox('Updating masks... please wait','');
                                                     conn_maskserode(nsubsall,nroisall);
@@ -3606,7 +3606,7 @@ else
                                             conn_conditionnames(CONN_x.Setup.conditions.names{nconditions},'renamebutnotsave',name);
                                             %conn save;
                                         end
-                                    else
+                                    elseif ~isnew
                                         answ=conn_questdlg({'This new condition name has been used before and run through at least some of the processing steps.','Using this name will associate this condition with those already-processed data.','Do you want to proceed?'},'','Yes','No','No');
                                         isnew=isequal(answ,'Yes');
                                     end
@@ -3952,7 +3952,7 @@ else
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.200,.28,.075,.46],'Covariates','',['<HTML>Select first-level covariate <br/> - click after the last item to add a new covariate <br/> - ',CONN_gui.rightclick,'-click for additional options<br></HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
 						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.28,.075,.46],'Subjects','','Select subject(s)','conn(''gui_setup'',2);');
 						CONN_h.menus.m_setup_00{3}=conn_menu('listbox',boffset+[.350,.28,.075,.46],'Sessions','','Select session(s)','conn(''gui_setup'',3);');
-						CONN_h.menus.m_setup_00{4}=conn_menu('filesearch',[],'Select covariate files','*.mat; *.txt; *.par; *.1d; *.csv; *.tsv','',{@conn,'gui_setup',4},'conn(''gui_setup'',5);');
+						CONN_h.menus.m_setup_00{4}=conn_menu('filesearch',[],'Import covariate files','*.mat; *.txt; *.par; *.1d; *.csv; *.tsv','',{@conn,'gui_setup',4},'conn(''gui_setup'',5);');
 						CONN_h.menus.m_setup_00{5}=conn_menu('pushbutton', boffset+[.45,.56,.20,.09],'','','','conn(''gui_setup'',5);');
 						CONN_h.menus.m_setup_00{6}=conn_menu('image',boffset+[.455,.25,.20,.30]);
                         %set([CONN_h.menus.m_setup_00{5}],'visible','off'); conn_menumanager('onregion',[CONN_h.menus.m_setup_00{5}],1,boffset+[.435,.25,.23,.41]);
@@ -4409,7 +4409,7 @@ else
                                                 jdata=find(strcmp(tnames,'names'));
                                                 kdata=find(strcmp(tnames,'descrip'));
                                                 if numel(idata)~=1||numel(jdata)~=1||numel(kdata)~=1
-                                                    idata=listdlg('liststring',tnames,'selectionmode','single','initialvalue',1,'promptstring','Select variable of interest:','ListSize',[200 200]);
+                                                    idata=listdlg('liststring',tnames,'selectionmode','single','initialvalue',1,'promptstring','Select variable of interest:','ListSize',[300 200]);
                                                 end
                                             end
                                             if isempty(idata), 
@@ -6985,7 +6985,9 @@ else
                 CONN_h.menus.m_analyses.X1=[];
                 if state(1)==1
                     filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(1),'%03d'),'.mat']);
-                    if conn_existfile(filename), CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; end
+                    if conn_existfile(filename), CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; 
+                    else conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); 
+                    end
                 end
                     %CONN_h.menus.m_analyses.x.data=CONN_h.menus.m_analyses.X1.data
                     %                     CONN_h.menus.m_analyses.ConditionWeights={};
@@ -8286,7 +8288,7 @@ else
                                         files={CONN_h.menus.m_analyses.XR.fname};
                                         if numel(files)==1, files=files{1};
                                         else
-                                            answ=listdlg('name','','PromptString','Select measure','ListString',conn_v2v('cleartext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures),'SelectionMode','single','ListSize',[200 200]);
+                                            answ=listdlg('name','','PromptString','Select measure','ListString',conn_v2v('cleartext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures),'SelectionMode','single','ListSize',[300 200]);
                                             if isempty(answ), return; end
                                             files=files{answ};
                                         end
@@ -10672,7 +10674,8 @@ else
                             temp=regexp(CONN_h.menus.m_results.roiresults.names2,'BA\.(\d*) \(R\)','tokens'); itemp=~cellfun(@isempty,temp); idxresortv(itemp)=-1e6+cellfun(@(x)str2double(x{1}),temp(itemp));
                             [nill,idxresort]=sort(idxresortv);
                             [nill,tidx]=ismember(CONN_x.Results.xX.roiselected2,idxresort);
-                            answ=listdlg('Promptstring','Select target ROIs','selectionmode','multiple','liststring',CONN_h.menus.m_results.roiresults.names2(idxresort),'initialvalue',sort(tidx));
+                            answ=listdlg('Promptstring','Select target ROIs','selectionmode','multiple','liststring',CONN_h.menus.m_results.roiresults.names2(idxresort),'initialvalue',sort(tidx),'ListSize',[300 200]);
+                            
                             if ~isempty(answ)>0, 
                                 CONN_x.Results.xX.roiselected2=sort(idxresort(answ)); 
                                 CONN_x.Results.xX.roiselected2byname=CONN_h.menus.m_results.roiresults.names2(CONN_x.Results.xX.roiselected2);
@@ -10914,7 +10917,7 @@ else
                                 files=CONN_h.menus.m_results.y.dataname; 
                                 if numel(files)==1, select=1;
                                 else
-                                    answ=listdlg('name','','PromptString','Select condition/source','ListString',reshape(CONN_h.menus.m_results.y.dataname,1,[]),'SelectionMode','single','ListSize',[200 200]);
+                                    answ=listdlg('name','','PromptString','Select condition/source','ListString',reshape(CONN_h.menus.m_results.y.dataname,1,[]),'SelectionMode','single','ListSize',[300 200]);
                                     if isempty(answ), return; end
                                     select=answ;
                                 end
@@ -10927,7 +10930,7 @@ else
                             files=CONN_h.menus.m_results.Yall;
                             if numel(files)==1, files=files{1};
                             else
-                                answ=listdlg('name','','PromptString','Select condition/source','ListString',reshape(CONN_h.menus.m_results.design.Ytitle,1,[]),'SelectionMode','single','ListSize',[200 200]);
+                                answ=listdlg('name','','PromptString','Select condition/source','ListString',reshape(CONN_h.menus.m_results.design.Ytitle,1,[]),'SelectionMode','single','ListSize',[300 200]);
                                 if isempty(answ), return; end
                                 files=files{answ};
                             end

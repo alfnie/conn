@@ -223,9 +223,10 @@ catch
         catch
             filename=varargin{end};
             conn_disp('fprintf','Unable to create figure %s. Using default icon\n',filename);
-            if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',fullfile(fileparts(which(mfilename)),'conn_print_wrn.jpg'),filename));
-            else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',fullfile(fileparts(which(mfilename)),'conn_print_wrn.jpg'),filename));
-            end
+            try, conn_fileutils('filecopy',fullfile(fileparts(which(mfilename)),'conn_print_wrn.jpg'),filename); end
+            %if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',fullfile(fileparts(which(mfilename)),'conn_print_wrn.jpg'),filename));
+            %else     [nill,nill]=system(sprintf('cp -f ''%s'' ''%s''',fullfile(fileparts(which(mfilename)),'conn_print_wrn.jpg'),filename));
+            %end
         end
     end
     warning('on','MATLAB:prnRenderer:opengl');

@@ -485,7 +485,7 @@ switch(lower(type)),
                 if strcmpi(type,'frame')&&~isempty(deblank(title)), bg2=bgcolor;%CONN_gui.backgroundcolorE; 
                 else bg2=bgcolor;
                 end
-                if strcmpi(type,'frame'), temp=(position+[position(3)*.05,position(4),0,0]).*[1,1,.9,0]+[.001,.001,0,.048];
+                if strcmpi(type,'frame'), temp=(position+[position(3)*.05,position(4),0,0]).*[1,1,.9,0]+[.001,.001,0,.058];
                 %if strcmpi(type,'frame'), temp=(position+[0,position(4),0,0]).*[1,1,1,0]+[.005,0,-.010,.039];
                 else temp=(position+[position(3)*0,position(4),0,0]).*[1,1,1,0]+[1*.001,0,1*-.002,.049];
                 end
@@ -511,7 +511,7 @@ switch(lower(type)),
             ht2=axes('units','norm','position',position,'parent',CONN_h.screen.hfig);
             set(ht2,'unit','pixels');
             bscale=1;%.75;
-            tpos=get(ht2,'position')+14*[-1 -1 2 2]*bscale; 
+            tpos=get(ht2,'position')+1*14*[-1 -1 2 2]*bscale; 
             %if extendshade, tpos(4)=(tpos(4)-1*24)*(1+.04/position(4))+1*24; end
             %tpos=get(ht2,'position')+1*[-8 -12 20 20];
             set(ht2,'position',tpos,'color',0*min(1,CONN_gui.backgroundcolor),'xtick',[],'ytick',[],'xcolor',max(0,0*CONN_gui.backgroundcolor),'ycolor',max(0,0*CONN_gui.backgroundcolor),'box','off','yaxislocation','right');
@@ -919,7 +919,7 @@ switch(lower(type)),
                     end
                     data.displayed.raw=title;
                     title3b=conn_ind2rgb(title,position.mapcolor);
-                    set(position.h2,'cdata',.4*title3a+.6*title3b);set(position.h1,'xlim',[.5,size(title,2)+.5],'ylim',[.5,size(title,1)+.5+eps],'xtick',[],'ytick',[]);
+                    set(position.h2,'cdata',.25*title3a+.75*title3b);set(position.h1,'xlim',[.5,size(title,2)+.5],'ylim',[.5,size(title,1)+.5+eps],'xtick',[],'ytick',[]);
                     set(position.h2b(1),'xdata',c1(1,:),'ydata',c1(2,:),'zdata',ones(1,size(c1,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c1c);
                     set(position.h2b(2),'xdata',c2(1,:),'ydata',c2(2,:),'zdata',ones(1,size(c2,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c2c);
                     set(position.h2c,'xdata',[],'ydata',[],'zdata',[]);
@@ -1102,7 +1102,7 @@ switch(lower(type)),
             end
             set(position.h10,'string',num2str(data.thr));
             title3b=conn_ind2rgb(title,position.mapcolor,2);
-            set(position.h12,'facevertexcdata',.2*title3a+.8*title3b,'facecolor','interp');
+            set(position.h12,'facevertexcdata',.25*title3a+.75*title3b,'facecolor','interp');
             %set(position.h12,'facevertexcdata',title,'facecolor','interp','cdatamapping','direct'); %Use this line instead of line above if experiencing render-related errors 
             set(position.h11,'xtick',[],'ytick',[],'ztick',[]);
             set([position.h11 position.h12 position.h13],'visible','on');
@@ -1149,7 +1149,7 @@ switch(lower(type)),
             data.displayed.raw=title;
             if isfield(data,'thr'), set(position.h10,'string',num2str(data.thr)); end
             title3b=conn_ind2rgb(title,position.mapcolor);
-            set(position.h2,'cdata',.2*title3a+.8*title3b);
+            set(position.h2,'cdata',.25*title3a+.75*title3b);
             set(position.h2b(1),'xdata',c1(1,:),'ydata',c1(2,:),'zdata',ones(1,size(c1,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c1c);
             set(position.h2b(2),'xdata',c2(1,:),'ydata',c2(2,:),'zdata',ones(1,size(c2,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c2c);
             set(position.h2c,'xdata',[],'ydata',[],'zdata',[]);

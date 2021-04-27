@@ -97,7 +97,7 @@ for isub=1:numel(nsubs),
                             end
                         end
                     end
-                    if ~options.nset, % search for fmap/*_magnitude.nii and fmap/*_phasediff.nii or fmap/*_real1.nii fmap/*_real2.nii fmap/*_imag1.nii fmap/*_imag2.nii
+                    if ~options.nset, % search for fmap/*_magnitude.nii and fmap/*_phasediff.nii or fmap/*_real1.nii fmap/*_real2.nii fmap/*_imag1.nii fmap/*_imag2.nii fmap
                         enames={'phasediff','magnitude','magnitude1','magnitude2','real1','real2','imag1','imag2','fieldmap'};
                         fnames={};
                         for ne=1:numel(enames)

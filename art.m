@@ -458,7 +458,7 @@ catch
     output_dir=pwd;
     save(fullfile(output_dir,art_mask_temporalfile),'maskscan','maskscan_files','VY1','VY','notcoregistered','xyz','xyz_voxel','Data_Sum','Data_SumSquared','-v7.3'); 
 end
-set(handles.figure1,'closerequestfcn',['try,if ispc,[nill,ok]=system(''del "',fullfile(output_dir,[art_mask_temporalfile(1:end-4),'"*.mat']),''');else [nill,ok]=system(''rm ''''',fullfile(output_dir,[art_mask_temporalfile(1:end-4),'''''*.mat']),'''); end; end; delete(gcbf);']);
+set(handles.figure1,'closerequestfcn',['try,if ispc,[nill,ok]=system(''del /Q "',fullfile(output_dir,[art_mask_temporalfile(1:end-4),'"*.mat']),''');else [nill,ok]=system(''rm -f ''''',fullfile(output_dir,[art_mask_temporalfile(1:end-4),'''''*.mat']),'''); end; end; delete(gcbf);']);
 
 %update text fields
 set(handles.data_stdv,'String',num2str(cat(2,gsigma{:}),'%0.1f '));

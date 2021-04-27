@@ -130,8 +130,8 @@ else
                                 try,
                                     if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',fullfile(path0,'conn_font_default.dat'),fullfile(path0,'bakconn_font_default.dat')));
                                              [nill,nill]=system(sprintf('copy "%s" "%s"',fullfile(path0,'conn_jobmanager.mat'),fullfile(path0,'bakconn_jobmanager.mat')));
-                                    else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',fullfile(path0,'conn_font_default.dat'),fullfile(path0,'bakconn_font_default.dat')));
-                                             [nill,nill]=system(sprintf('cp ''%s'' ''%s''',fullfile(path0,'conn_jobmanager.mat'),fullfile(path0,'bakconn_jobmanager.mat')));
+                                    else     [nill,nill]=system(sprintf('''cp'' ''%s'' ''%s''',fullfile(path0,'conn_font_default.dat'),fullfile(path0,'bakconn_font_default.dat')));
+                                             [nill,nill]=system(sprintf('''cp'' ''%s'' ''%s''',fullfile(path0,'conn_jobmanager.mat'),fullfile(path0,'bakconn_jobmanager.mat')));
                                     end
                                 end
                             end
@@ -160,14 +160,14 @@ else
                                     if isequal(path0,path2)
                                         if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',fullfile(path0,'bakconn_font_default.dat'),fullfile(path2,'conn_font_default.dat')));
                                                  [nill,nill]=system(sprintf('copy "%s" "%s"',fullfile(path0,'bakconn_jobmanager.mat'),fullfile(path2,'conn_jobmanager.mat')));
-                                        else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',fullfile(path0,'bakconn_font_default.dat'),fullfile(path2,'conn_font_default.dat')));
-                                                 [nill,nill]=system(sprintf('cp ''%s'' ''%s''',fullfile(path0,'bakconn_jobmanager.mat'),fullfile(path2,'conn_jobmanager.mat')));
+                                        else     [nill,nill]=system(sprintf('''cp'' ''%s'' ''%s''',fullfile(path0,'bakconn_font_default.dat'),fullfile(path2,'conn_font_default.dat')));
+                                                 [nill,nill]=system(sprintf('''cp'' ''%s'' ''%s''',fullfile(path0,'bakconn_jobmanager.mat'),fullfile(path2,'conn_jobmanager.mat')));
                                         end
                                     else
                                         if ispc, [nill,nill]=system(sprintf('copy "%s" "%s"',fullfile(path0,'conn_font_default.dat'),fullfile(path2,'conn_font_default.dat')));
                                                  [nill,nill]=system(sprintf('copy "%s" "%s"',fullfile(path0,'conn_jobmanager.mat'),fullfile(path2,'conn_jobmanager.mat')));
-                                        else     [nill,nill]=system(sprintf('cp ''%s'' ''%s''',fullfile(path0,'conn_font_default.dat'),fullfile(path2,'conn_font_default.dat')));
-                                                 [nill,nill]=system(sprintf('cp ''%s'' ''%s''',fullfile(path0,'conn_jobmanager.mat'),fullfile(path2,'conn_jobmanager.mat')));
+                                        else     [nill,nill]=system(sprintf('''cp'' ''%s'' ''%s''',fullfile(path0,'conn_font_default.dat'),fullfile(path2,'conn_font_default.dat')));
+                                                 [nill,nill]=system(sprintf('''cp'' ''%s'' ''%s''',fullfile(path0,'conn_jobmanager.mat'),fullfile(path2,'conn_jobmanager.mat')));
                                         end
                                     end
                                     if isequal(path0,pwd)||isequal(path2,pwd)

@@ -53,9 +53,7 @@ function varargout=conn_remotely(varargin)
 % simply run as a new background Matlab process in the server computer; if using non-default HPC setting this session will be 
 % submitted to your cluster scheduler and run in a work-node as appropriate different from the login-node) which will in turn 
 % wait for the client's connection. Once the connection is established, the "server" computer will only act as a gateway between
-% the client 
-% remote Matlab session
-the remote Matlab session will simply wait for instructions from the client process, while
+% the client and the remote Matlab session. The remote Matlab session will wait for instructions from the client process, while
 % the client process runs CONN normally (typically for anything that relates to GUI-interaction), querying the server when needed 
 % (e.g. when needing to load data from remote files), or requesting the remote Matlab session to run longer or more complex steps 
 % when appropriate (e.g. when preprocessing the data or running any analysis steps that requires significant interaction with the 

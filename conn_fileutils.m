@@ -35,7 +35,7 @@ switch(lower(option))
         elseif iscell(varargin{1}), cellfun(@(a,b)conn_fileutils(option,a,b),varargin{1},varargin{2},'uni',0);
         else
             if ispc, [ok,nill]=system(['copy "',varargin{1},'" "',varargin{2},'"']);
-            else, [ok,nill]=system(['cp -f ''',varargin{1},''' ''',varargin{2},'''']);
+            else, [ok,nill]=system(['''cp'' -f ''',varargin{1},''' ''',varargin{2},'''']);
             end
             if ~isequal(ok,0), error('Error copying file %s to %s, missing file or invalid file permissions',varargin{1},varargin{2}); end
         end

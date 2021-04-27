@@ -254,7 +254,7 @@ end
 
 function conn_cache_copyfile(a,b,varargin)
 if ispc, [ok,nill]=system(['copy "',a,'" "',b,'"']);
-else, [ok,nill]=system(['cp -f ''',a,''' ''',b,'''']);
+else, [ok,nill]=system(['''cp'' -f ''',a,''' ''',b,'''']);
 end
 if ~isequal(ok,0), error('Error copying file %s to %s, check target permissions',a,b); end
 end

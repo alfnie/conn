@@ -2,7 +2,7 @@ function [ok,op] = conn_imcalc(filein,fileout,evaluatefunction,designmatrix,cval
 
 if nargin<4||isempty(designmatrix), designmatrix=''; end % (optional, evaluatefunction=='lin') design matrix
 if nargin<5||isempty(cvalues), values=[]; else cvalues=cvalues(:)'; end %(optional, evaluatefunction==@fun) covariate values
-if nargin<6||isempty(cnames), cnames=repmat({''},1:size(values,2)); end %(optional, evaluatefunction==@fun) covariate names
+if nargin<6||isempty(cnames), cnames=repmat({''},1,size(values,2)); end %(optional, evaluatefunction==@fun) covariate names
 if isstruct(evaluatefunction)
     op=evaluatefunction;
 elseif isequal(evaluatefunction,'lin'), % lin
