@@ -283,16 +283,16 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^guiisr
                                     'bordertype','square',...
 									'callback',{{@conn_msghelp},{@conn_update,connver},CONN_h.menus.m_setup_07c,{@conn,'gui_about'}} );
                                 
-	CONN_h.menus.m_setup_01c=conn_menumanager([], 'n',4,...
-									'string',{'','','',''},...
-									'help',{'','','',''},...
+	CONN_h.menus.m_setup_01c=conn_menumanager([], 'n',6,...
+									'string',{'','','','','',''},...
+									'help',{'','','','','',''},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.084,.955-1.5*.045-4*.045,.229,4*.045],...%[.09,.88-6*.05,.08,6*.05],...
+									'position',[.084,.955-1.5*.045-6*.045,.229,6*.045],...%[.09,.88-6*.05,.08,6*.05],...
 									'fontsize',7,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_recent_load',1},{@conn,'gui_recent_load',2},{@conn,'gui_recent_load',3},{@conn,'gui_recent_load',4}} );
+									'callback',{{@conn,'gui_recent_load',1},{@conn,'gui_recent_load',2},{@conn,'gui_recent_load',3},{@conn,'gui_recent_load',4},{@conn,'gui_recent_load',5},{@conn,'gui_recent_load',6}} );
 	CONN_h.menus.m_setup_01a=conn_menumanager([], 'n',7,...
 									'string',{'Open','Open Recent','New (blank)','New (import)','Save','Save As','Close'},...%,'Merge'},...
 									'help',{'Loads existing study information file','Loads recently open file','Starts a new empty study','Starts a new empty study and imports study information and data from external sources','Saves current study information','Saves current study to a different file','Closes current study without saving'},...%,'Merge other study files with the current study'},...
@@ -3307,7 +3307,7 @@ else
                                                 nrois=listdlg('liststring',CONN_x.Setup.rois.names(1:numel(CONN_x.Setup.rois.names)-1),'selectionmode','multiple','initialvalue',nrois,'promptstring',{str},'ListSize',[300 200]);
                                                 if isempty(nrois), return; end
                                                 conn_disp(char(CONN_x.Setup.rois.names(nrois)));
-                                                conn('gui_setup_finish_rois',nrois);
+                                                conn('gui_setup_finish_rois',nrois); 
                                                 return;
                                             end
                                         else
@@ -5474,7 +5474,7 @@ else
                     if isempty(options)&&~isequal(nvalue,0), 
                         options={'as entire functional data'}; options_params={{'functional',0}}; 
                         if CONN_x.Setup.structural_sessionspecific, options{end+1}='as entire structural data'; options_params{end+1}={'structural',0}; end
-                        options={'as entire fieldmap data'}; options_params={{'fieldmap',0}}; 
+                        options{end+1}='as entire fieldmap data'; options_params{end+1}={'fieldmap',0}; 
                     end
                     set(CONN_h.menus.m_setup_00{8},'string',options,'value',max(1,min(numel(options),get(CONN_h.menus.m_setup_00{8},'value'))));
                     if isempty(options), set([CONN_h.menus.m_setup_00{8},CONN_h.menus.m_setup_00{9},CONN_h.menus.m_setup_00{10}],'visible','off');
@@ -9507,8 +9507,8 @@ else
                         end
                         %icovariates=find(cellfun(@(x)~isempty(regexp(x,'^_\S* ICA')),CONN_x.Setup.l2covariates.names));
                         conn_calculator(icovariates);
-                        conn_menu('framewhitehighlight',boffset+[-.021,.78,.561,.04],'');
-                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.02,.775,.56,.05],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
+                        conn_menu('framewhitehighlight',boffset+[-.021,.78,.561,.03],'');
+                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.02,.775,.56,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         %CONN_h.menus.m_results_00{20}=conn_menu('popupbigblue',boffset+[.095,.84,.55,.05],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         %set(CONN_h.menus.m_results_00{20},'value',tempanalyses);%,'fontsize',9+CONN_gui.font_offset);%,'fontweight','bold');
@@ -9524,8 +9524,8 @@ else
                     elseif stateb==2
                         icovariates=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_(Average|Frequency|Variability) Dynamic factor'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names));
                         conn_calculator(icovariates);
-                        conn_menu('framewhitehighlight',boffset+[-.021,.78,.561,.04],'');
-                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.025,.775,.56,.05],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
+                        conn_menu('framewhitehighlight',boffset+[-.021,.78,.561,.03],'');
+                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.025,.775,.56,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         %CONN_h.menus.m_results_00{20}=conn_menu('popupbigblue',boffset+[.10,.84,.525,.05],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>select first-level analysis</HTML>','conn(''gui_results'',20);');
                         %set(CONN_h.menus.m_results_00{20},'value',tempanalyses);%,'fontsize',9+CONN_gui.font_offset);%,'fontweight','bold');
@@ -9543,7 +9543,7 @@ else
                     tnames=conn_contrastmanager('namesextended');
                     [nill,CONN_h.menus.m_results.showncontrasts]=sort(conn_contrastmanager('names')); tnames=tnames(CONN_h.menus.m_results.showncontrasts);
                     if numel(CONN_x.Setup.l2covariates.names)>2||numel(CONN_x.Setup.conditions.names)>2
-                        CONN_h.menus.m_results_00{21}=conn_menu('popup',boffset+[-.020,.425-dp1-.10,.455,.045],'',[{'<HTML><i>unlabeled</i></HTML>'},tnames,{'<HTML><i>display all manually-labeled group-analyses</i></HTML>','<HTML><i>label this group-analysis</i></HTML>'}],'<HTML>user-defined list of group-analysis settings<br/> - select a previously-defined entry in thist list to automatically fill-in the associated group-analysis settings (<b>subjects effects</b>, <br/> <b>between-subjects contast</b>, <b>conditions</b>, and <b>between-conditions contrast</b> fields above) <br/> - select <i>label this analysis</i> to add a new entry to this list, or edit the seleted entry</HTML>','conn(''gui_results'',21);');
+                        CONN_h.menus.m_results_00{21}=conn_menu('popup',boffset+[-.020,.425-dp1-.10,.455,.045],'',[{'<HTML><i>unlabeled</i></HTML>'},tnames,{'<HTML><i>display all manually-labeled group-analysis designs</i></HTML>','<HTML><i>label this group-analysis design</i></HTML>'}],'<HTML>user-defined list of group-analysis designs<br/> - select a previously-defined entry in this list to automatically fill-in the associated group-analysis design (<b>subjects effects</b>, <br/> <b>between-subjects contast</b>, <b>conditions</b>, and <b>between-conditions contrast</b> fields above) <br/> - select <i>label this analysis design</i> to add a new entry to this list, or edit the seleted entry</HTML>','conn(''gui_results'',21);');
                         %CONN_h.menus.m_results_00{21}=conn_menu('popup',boffset+[.105,.37-dp1,.265,.04],'',[{'<HTML><i>user-defined analysis</i></HTML>'},tnames,{'<HTML><i>name this 2nd-level model</i></HTML>'}],'<HTML>User-defined list of 2nd-level models<br/> - select a previously-defined 2nd-level model to automatically fill-in the analysis model parameters (<b>subjects effects</b>, <br/> <b>between-subjects contast</b>, <b>conditions</b>, and <b>between-conditions contrast</b> fields below) <br/> - select <i>name this analysis</i> to add a new 2nd-level model to this list, or edit/remove an existing 2nd-level model</HTML>','conn(''gui_results'',21);');
                         set(CONN_h.menus.m_results_00{21},'value',1);%,'fontsize',9+CONN_gui.font_offset);%,'fontweight','bold');
                     else
@@ -9583,7 +9583,8 @@ else
                     CONN_h.menus.m_results_00{53}=uicontrol('style','frame','units','norm','position',boffset+[.375,.39-dp1,.175,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
                     CONN_h.menus.m_results_00{54}=uicontrol('style','frame','units','norm','position',boffset+[-.025,.39-dp1,.205,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
                     CONN_h.menus.m_results_00{55}=uicontrol('style','frame','units','norm','position',boffset+[.185,.39-dp1,.185,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
-                    CONN_h.menus.m_results_00{23}=conn_menu('pushbutton',boffset+[.435,.435-dp1-.10,.11,.04],'','','<HTML>Second-level model design information<br/> - click to display design matrix and additional details</HTML>',@(varargin)conn_displaydesign);
+                    CONN_h.menus.m_results_00{23}=conn_menu('pushbutton',boffset+[.435,.435-dp1-.10,.07,.04],'','','<HTML>Second-level model design information<br/> - click to display design matrix and additional details</HTML>',@(varargin)conn_displaydesign);
+                    CONN_h.menus.m_results_00{59}=conn_menu('pushbutton',boffset+[.505,.435-dp1-.10,.05,.04],'','bookmark','<HTML>Bookmarks this second-level analysis results<br/> - bookmarked results can be quickly accessed from all <i>Second-level Results</i> tabs</HTML>','conn(''gui_results'',43);');
                     %connmeasures={'correlation (bivariate)','correlation (semipartial)','regression (bivariate)','regression (multivariate)'};
                     if state==1, tpos=boffset+[-.03,.18,.585,.125]; %RRC
                     else tpos=boffset+[-.03,.10,.585,.135]; %SBC,V2V
@@ -9624,11 +9625,11 @@ else
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
                         CONN_h.menus.m_results_00{33}=[];%conn_menu('pushbuttonblue2',boffset+[.57,.08,.07,.045],'','display 3D','displays 3d view of current analysis results (full model)','conn(''gui_results'',33);');
                         CONN_h.menus.m_results_00{45}=[];%conn_menu('pushbuttonblue2',boffset+[pos(1)-.055,pos(2)-.28,.075,.045],'','plot results','computes and displays whole-brain second-level analysis results (full model)','conn(''gui_results'',33) ;');
-                        CONN_h.menus.m_results_00{44}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.17,pos(2)-.28,.06,.045],'','plot subjects','displays connectivity measures for each subject','conn(''gui_results'',44);');
-                        CONN_h.menus.m_results_00{35}=conn_menu('pushbuttonblue2',boffset+[pos(1)-.01,pos(2)-.28,.06,.045],'','plot effects','<HTML>displays between-subject contrast effect sizes<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target voxel in results display - also exports values for each subject to Matlab workspace</HTML>','conn(''gui_results'',35);');
-                        CONN_h.menus.m_results_00{36}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.05,pos(2)-.28,.06,.045],'','plot values','<HTML>displays connectivity values between selected seed/source and target voxel for each subject<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target voxel in results display - also exports values for each subject to Matlab workspace</HTML>','conn(''gui_results'',36);');
-                        CONN_h.menus.m_results_00{34}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.11,pos(2)-.28,.06,.045],'','import values','<HTML>import connectivity values between selected seed/source and target voxel for each subject as 2nd-level covariates<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target voxel in results display</HTML>','conn(''gui_results'',34);');
-                        CONN_h.menus.m_results_00{43}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.23,pos(2)-.28,.06,.045],'','bookmark','<HTML>Bookmarks this second-level analysis results<br/> - bookmarked results can be quickly accessed from all <i>Second-level Results</i> tabs</HTML>','conn(''gui_results'',43);');
+                        CONN_h.menus.m_results_00{44}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.22,pos(2)-.28,.07,.045],'','plot subjects','displays connectivity measures for each subject','conn(''gui_results'',44);');
+                        CONN_h.menus.m_results_00{35}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.01,pos(2)-.28,.07,.045],'','plot effects','<HTML>displays between-subject contrast effect sizes<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target voxel in results display - also exports values for each subject to Matlab workspace</HTML>','conn(''gui_results'',35);');
+                        CONN_h.menus.m_results_00{36}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.08,pos(2)-.28,.07,.045],'','plot values','<HTML>displays connectivity values between selected seed/source and target voxel for each subject<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target voxel in results display - also exports values for each subject to Matlab workspace</HTML>','conn(''gui_results'',36);');
+                        CONN_h.menus.m_results_00{34}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.15,pos(2)-.28,.07,.045],'','import values','<HTML>import connectivity values between selected seed/source and target voxel for each subject as 2nd-level covariates<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target voxel in results display</HTML>','conn(''gui_results'',34);');
+                        CONN_h.menus.m_results_00{43}=[];%conn_menu('pushbuttonblue2',boffset+[pos(1)+.23,pos(2)-.28,.06,.045],'','bookmark','<HTML>Bookmarks this second-level analysis results<br/> - bookmarked results can be quickly accessed from all <i>Second-level Results</i> tabs</HTML>','conn(''gui_results'',43);');
                         CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.06,pos(2)-.095,.165,.045],'','display results','<HTML>Computes (or displays, if already computed) whole-brain analyses, including voxel-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
                         set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],'visible','off');%,'fontweight','bold');
                         %conn_callbackdisplay_secondlevelclick([]); % init clicks
@@ -9693,7 +9694,7 @@ else
                         CONN_h.menus.m_results_00{30}=conn_menu('edit2',boffset+[pos(1)+.22,pos(2)-.045,.04,.04],'',num2str(CONN_x.Results.xX.inferencelevel),'enter false-positive threshold value','conn(''gui_results'',30);');
                         %CONN_h.menus.m_results_00{28}=conn_menu('popup2',boffset+[pos(1)+.17,pos(2)-.05,.09,.04],'',strstr1,'choose inference directionality','conn(''gui_results'',28);');
                         %set(CONN_h.menus.m_results_00{28},'value',CONN_x.Results.xX.inferencetype);
-                        CONN_h.menus.m_results_00{47}=conn_menu('checkbox2',boffset+[pos(1)+.26,pos(2)-.045,.09,.04],'','show connections','display schematic of individual connections, in addition to seed and target ROIs','conn(''gui_results'',47);');                        
+                        CONN_h.menus.m_results_00{47}=conn_menu('checkbox2',boffset+[pos(1)+.26,pos(2)-.045,.09,.04],'','show connections','<HTML>display schematic of individual connections (red/blue lines indicating positive/negative connectivity strength when averaged <br/>across all subjects&conditions), in addition to seed and target ROIs (red/blue ROIs indicating positive/negative test statistics)</HTML>','conn(''gui_results'',47);');                        
                         set(CONN_h.menus.m_results_00{47},'value',1);
                         %CONN_h.menus.m_results_00{31}=conn_menu('popup2',boffset+[.63,pos(2)+pos(4),.26,.04],'',strstr3,'choose target ROIs','conn(''gui_results'',31);');
                         %set(CONN_h.menus.m_results_00{31},'value',CONN_x.Results.xX.displayrois);
@@ -9743,11 +9744,11 @@ else
                         conn_menu('nullstr',' ');
                         CONN_h.menus.m_results_00{29}=conn_menu('image2',boffset+pos+[.12 -.23 -pos(3)+.125 -pos(4)+.05],'connectivity values'); 
                         CONN_h.menus.m_results_00{45}=[];%conn_menu('pushbuttonblue2',boffset+[pos(1)-.015,pos(2)-.31,.075,.045],'','plot results','computes and displays second-level analysis results (including all ROI-to-ROI connections)','conn(''gui_results_roiview'');');
-                        CONN_h.menus.m_results_00{33}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.03,pos(2)-.31,.06,.045],'','display 3D','displays 3d view of current analysis results','conn(''gui_results_roi3d'');');
-                        CONN_h.menus.m_results_00{35}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.31,.06,.045],'','plot effects','<HTML>displays between-subject contrast effect sizes<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target(s) in <i>Analysis results</i> list<br/> - also exports values for each subject to Matlab workspace</HTML>','conn(''gui_results'',35);');
-                        CONN_h.menus.m_results_00{36}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.15,pos(2)-.31,.06,.045],'','plot values','<HTML>displays connectivity values between selected seed/source and target ROIs for each subject<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target(s) in <i>Analysis results</i> list<br/> - also exports values for each subject to Matlab workspace</HTML>','conn(''gui_results'',36);');
-                        CONN_h.menus.m_results_00{34}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.21,pos(2)-.31,.06,.045],'','import values','<HTML>import connectivity values between selected seed/source and target ROIs for each subject as 2nd-level covariates<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target(s) in <i>Analysis results</i> list</HTML>','conn(''gui_results'',34);');
-                        CONN_h.menus.m_results_00{43}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.27,pos(2)-.31,.06,.045],'','bookmark','<HTML>Bookmarks this second-level analysis results<br/> - bookmarked results can be quickly accessed from all <i>Second-level Results</i> tabs</HTML>','conn(''gui_results'',43);');
+                        CONN_h.menus.m_results_00{33}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.03,pos(2)-.31,.07,.045],'','display 3D','displays 3d view of current analysis results','conn(''gui_results_roi3d'');');
+                        CONN_h.menus.m_results_00{35}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.10,pos(2)-.31,.07,.045],'','plot effects','<HTML>displays between-subject contrast effect sizes<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target(s) in <i>Analysis results</i> list<br/> - also exports values for each subject to Matlab workspace</HTML>','conn(''gui_results'',35);');
+                        CONN_h.menus.m_results_00{36}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.17,pos(2)-.31,.07,.045],'','plot values','<HTML>displays connectivity values between selected seed/source and target ROIs for each subject<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target(s) in <i>Analysis results</i> list<br/> - also exports values for each subject to Matlab workspace</HTML>','conn(''gui_results'',36);');
+                        CONN_h.menus.m_results_00{34}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.24,pos(2)-.31,.07,.045],'','import values','<HTML>import connectivity values between selected seed/source and target ROIs for each subject as 2nd-level covariates<br/> - select seed(s) in <i>Seeds/Sources</i> list and select target(s) in <i>Analysis results</i> list</HTML>','conn(''gui_results'',34);');
+                        CONN_h.menus.m_results_00{43}=[]; %conn_menu('pushbuttonblue2',boffset+[pos(1)+.27,pos(2)-.31,.06,.045],'','bookmark','<HTML>Bookmarks this second-level analysis results<br/> - bookmarked results can be quickly accessed from all <i>Second-level Results</i> tabs</HTML>','conn(''gui_results'',43);');
                         set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],'visible','off');%,'fontweight','bold');
                         if CONN_x.Results.xX.displayvoxels>1, 
                             conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],1,boffset+[.545,.05,.38,.84]);
@@ -11128,7 +11129,7 @@ else
                         if ~isempty(CONN_h.menus.m_results.y.data)||CONN_x.Results.xX.displayvoxels==1,%&&size(CONN_x.Results.xX.csubjecteffects,1)==1
                             CONN_h.menus.m_results.y.displayvoxels=CONN_x.Results.xX.displayvoxels;
                             csubjecteffects=CONN_x.Results.xX.csubjecteffects;
-                            if CONN_x.Results.xX.displayvoxels==1
+                            if 1
                                 [foldername,foldername_back]=conn_resultsfolder('subjectsconditions',state,CONN_x.Results.xX.nsubjecteffects,CONN_x.Results.xX.csubjecteffects,CONN_x.Results.xX.nconditions,CONN_x.Results.xX.cconditions);
                                 for nfolderbak=1:numel(foldername_back),
                                     if conn_fileutils('isdir',fullfile(CONN_x.folders.secondlevel,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
@@ -11148,9 +11149,10 @@ else
                                     if conn_fileutils('isdir',fullfile(resultsfolder,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
                                 end
                                 resultsfolder=fullfile(resultsfolder,foldername);
-                                %disp(resultsfolder);
-                                p=[];h=[];F=[];statsname=[];dof=[];
                                 CONN_h.menus.m_results.design.pwd=resultsfolder;
+                            end
+                            if CONN_x.Results.xX.displayvoxels==1
+                                p=[];h=[];F=[];statsname=[];dof=[];
                                 if conn_existfile(fullfile(resultsfolder,'spmF_mv.nii'))&conn_existfile(fullfile(resultsfolder,'spmF_mv.json')), 
                                     tvol=conn_fileutils('spm_vol',fullfile(resultsfolder,'spmF_mv.nii'));
                                     [tx,ty,tz]=ndgrid(1:CONN_h.menus.m_results.Y(1).dim(1),1:CONN_h.menus.m_results.Y(1).dim(2),1:CONN_h.menus.m_results.Y(1).dim(3)); txyz=[tx(:) ty(:) tz(:) ones(numel(tx),1)]';
@@ -11629,7 +11631,9 @@ else
                             else xemph=[];
                             end
                             xpos=[]; xneg=[]; 
-                            b=mean(mean(CONN_h.menus.m_results.roiresults.B(:,:,:,ntemp(ntemp2)),2),3); 
+                            %b=mean(mean(CONN_h.menus.m_results.roiresults.B(:,:,:,ntemp(ntemp2)),2),3); % regressor coefficients averaged across conditions (2) and subject-effects (3)
+                            %b=sum(mean(CONN_h.menus.m_results.roiresults.B(:,:,:,ntemp(ntemp2)),2).*repmat(shiftdim(mean(CONN_h.menus.m_results.roiresults.xX.X,1),-1),[size(CONN_h.menus.m_results.roiresults.B,1),1,1,numel(ntemp(ntemp2))]),3); % connectivity values averaged across subjects (1) and conditions (4)
+                            b=permute(mean(mean(CONN_h.menus.m_results.roiresults.y(:,ntemp(ntemp2),:,:),1),4),[3,2,1,4]); % connectivity values averaged across subjects (1) and conditions (4)
                             b=b/max(eps,max(abs(b(:))));
                             for n1=1:size(xyz1,2)
                                 [connx0,conny0]=conn_menu_montage('plotline',CONN_h.menus.m_results.xsen1n2,repmat(xyz1(:,n1),1,size(xyz2,2)),xyz2,max(.2,1/CONN_h.menus.m_results.xsen1n2(6)));
@@ -11804,7 +11808,7 @@ else
                 [],...
                 fullfile(CONN_x.folders.secondlevel,conn_resultsfolder('subjectsconditions',1,CONN_x.Results.xX.nsubjecteffects,CONN_x.Results.xX.csubjecteffects,CONN_x.Results.xX.nconditions,CONN_x.Results.xX.cconditions)));
             
-        case 'gui_results_wholebrain',
+        case {'gui_results_wholebrain','gui_results_wholebrain_vv'}
             %if ~CONN_x.Setup.normalized, warndlg('Second-level voxel-level analyses not available for non-normalized data'); return; end
             if CONN_x.Results.xX.modeltype==2, conn_msgbox('Second-level fixed-effects voxel-level analyses not implemented','',2); return; end
             CONN_x.Results.foldername='';
@@ -11820,11 +11824,15 @@ else
                 if isempty(REDO), CONN_x.gui=1; set(CONN_h.screen.hfig,'pointer','arrow'); return; end
                 if strcmp(lower(REDO),'recompute/overwrite results'),
                     CONN_x.gui.overwrite='yes';
-                    conn_process('results_voxel','dosingle','seed-to-voxel');
+                    if strcmp(lower(varargin{1}),'gui_results_wholebrain_vv'), conn_process('results_voxel','dosingle','voxel-to-voxel');
+                    else conn_process('results_voxel','dosingle','seed-to-voxel');
+                    end
                 end
             else
                 CONN_x.gui.overwrite='no';
-                conn_process('results_voxel','dosingle','seed-to-voxel');
+                if strcmp(lower(varargin{1}),'gui_results_wholebrain_vv'), conn_process('results_voxel','dosingle','voxel-to-voxel');
+                else conn_process('results_voxel','dosingle','seed-to-voxel');
+                end
             end
             if dodisp, fh=conn_display(fullfile(CONN_h.menus.m_results.design.pwd,'SPM.mat'),1); end
             CONN_x.gui=1;
@@ -11901,10 +11909,10 @@ else
             end 
             set(CONN_h.screen.hfig,'pointer','arrow');
             
-        case 'gui_results_wholebrain_vv',
-            CONN_x.Results.foldername='';
-            conn_process('results_voxel','readsingle','voxel-to-voxel');
-            set(CONN_h.screen.hfig,'pointer','arrow');
+%         case 'gui_results_wholebrain_vv',
+%             CONN_x.Results.foldername='';
+%             conn_process('results_voxel','readsingle','voxel-to-voxel');
+%             set(CONN_h.screen.hfig,'pointer','arrow');
 
 %         case 'gui_results_done_vv',
 % 			%if isempty(CONN_x.filename), conn gui_setup_save; end

@@ -147,7 +147,7 @@ if nargin==1,
                     end
                 else var=[]; end
             else
-                if ~isstruct(var{3})||numel(var{3})==1
+                if ~isstruct(var{3})||(isfield(var{3},'fname')&&numel(var{3})==1)
                     try
                         filename=fliplr(deblank(fliplr(deblank(var{1}))));
                         if ~strcmp(filename,'[raw values]'),

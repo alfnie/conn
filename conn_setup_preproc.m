@@ -2869,7 +2869,16 @@ for iSTEP=1:numel(STEPS)
                                 if isempty(ERT), ERT=1000*conn_jsonread(filename,'TotalReadoutTime'); end
                                 if isempty(ERT), ERT=1000./conn_jsonread(filename,'BandwidthPerPixelPhaseEncode'); end
                                 if nses==1&&isempty(ERT), conn_disp('fprintf','warning: unable to find TotalReadoutTime or BandwidthPerPixelPhaseEncode information in %s\n',filename); end
-                                if ~isempty(ERT)
+                                if isempty(BLIP),
+                                    BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false);
+                                    if iscell(BLIP), BLIP=char(BLIP); end
+                                    if isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=-1;
+                                    elseif isequal(BLIP,'j-'), BLIP=1;
+                                    elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
+                                    end
+                                end
+                                if nses==1&&isempty(BLIP), conn_disp('fprintf','warning: unable to find PhaseEncodingDirection information in %s\n',filename); end
+                                if ~isempty(ERT)&&~isempty(BLIP)
                                     conn_disp('fprintf','Creating vdm file for subject %d session %d...\n',nsubject,nses);
                                     pm_defaults;
                                     pm_def.sessname='session'; pm_def.TOTAL_EPI_READOUT_TIME=ERT; pm_def.EPI_BASED_FIELDMAPS=0; pm_def.K_SPACE_TRAVERSAL_BLIP_DIR=BLIP; pm_def.MASKBRAIN=1; %pm_def.match_vdm=1; %pm_def.write_unwarped=1;
@@ -2888,7 +2897,9 @@ for iSTEP=1:numel(STEPS)
                                 if isempty(ET2), ET2=1000*conn_jsonread(fmap{3},'EchoTime'); end
                                 if isempty(ET2), ET2=1000*conn_jsonread(fmap{4},'EchoTime'); end
                                 if nses==1&&isempty(ET2), conn_disp('fprintf','warning: unable to find EchoTime information in %s or %s\n',fmap{3},fmap{4}); end %ET1=4.37;
-                                if isempty(BLIP), BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false);
+                                if isempty(BLIP),
+                                    BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false);
+                                    if iscell(BLIP), BLIP=char(BLIP); end
                                     if isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=-1;
                                     elseif isequal(BLIP,'j-'), BLIP=1;
                                     elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);

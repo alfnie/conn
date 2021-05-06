@@ -236,7 +236,7 @@ switch(lower(option))
             assert(~isempty(f{ncov}),'missing first-level covariate ''%s''',icov{ncov});
         end
         fout={};
-        RECOMPUTEL2=true&iscell(ocovl2)&numel(ocovl2)==6; % note: set to false to skip recomputation of second-level covariates
+        RECOMPUTEL2=true&numel(thr)==2&iscell(ocovl2)&numel(ocovl2)==6; % note: set to false to skip recomputation of second-level covariates
         nsubjects=numel(f{1});
         y1=zeros(nsubjects,1);y2=zeros(nsubjects,1);y3=nan(nsubjects,1);y4=zeros(nsubjects,1);y5=nan(nsubjects,1);y6=zeros(nsubjects,1);
         for nsub=1:nsubjects
@@ -309,6 +309,9 @@ switch(lower(option))
                     end
                     if isstruct(data)
                         names=fieldnames(data);
+                        if numel(names)==1, data=data.(names{1}); end
+                    end
+                    if isstruct(data)
                         [unames,nill,uidx]=unique(regexprep(names,'(_?\d+|_[xyz])$',''));
                         for n1=1:numel(unames)
                             e=[]; for n2=reshape(find(uidx==n1),1,[]), e=cat(2,e,data.(names{n2})); end; 
@@ -324,7 +327,7 @@ switch(lower(option))
                         end
                     else
                         for n1=1:size(data,2)
-                            e=data(:,n1)
+                            e=data(:,n1);
                             if isnumeric(filename)
                                 out=e;
                             else

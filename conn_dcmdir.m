@@ -19,7 +19,7 @@ if ischar(filenames), filenames=conn_dir(filenames,'-ls'); end
 if ischar(filenames), filenames=cellstr(filenames); end
 
 ESSENTIALS=true; 
-OTHERESSENTIALS={'MosaicRefAcqTimes','Private_0019_1029'};
+OTHERESSENTIALS={'MosaicRefAcqTimes','Private_0019_1029','BandwidthPerPixelPhaseEncode','Private_0019_1028'};
 SeriesNumber=nan(1,numel(filenames));
 SeriesInfo={};
 HDR={};
@@ -28,7 +28,7 @@ ImagePositionPatient=nan(3,numel(filenames));
 dict=load(fullfile(fileparts(which('spm')),'spm_dicom_dict.mat'));
 filesout_path='';
 count=[];
-if ~isempty(DOGUI)&&DOGUI, ht=conn_waitbar(0,sprintf('%s Reading DICOM directory information. Please wait',DOGUI)); end
+if ~isempty(DOGUI)&&ischar(DOGUI), ht=conn_waitbar(0,sprintf('%s Reading DICOM directory information. Please wait',DOGUI)); DOGUI=true; end
 for n=1:numel(filenames)
     [filesout_path,nill,nill]=fileparts(filenames{n});
     if isempty(DOGUI)||DOGUI, fprintf('.'); end
