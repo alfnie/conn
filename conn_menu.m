@@ -919,7 +919,7 @@ switch(lower(type)),
                     end
                     data.displayed.raw=title;
                     title3b=conn_ind2rgb(title,position.mapcolor);
-                    set(position.h2,'cdata',.25*title3a+.75*title3b);set(position.h1,'xlim',[.5,size(title,2)+.5],'ylim',[.5,size(title,1)+.5+eps],'xtick',[],'ytick',[]);
+                    set(position.h2,'cdata',.15*title3a+.85*title3b);set(position.h1,'xlim',[.5,size(title,2)+.5],'ylim',[.5,size(title,1)+.5+eps],'xtick',[],'ytick',[]);
                     set(position.h2b(1),'xdata',c1(1,:),'ydata',c1(2,:),'zdata',ones(1,size(c1,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c1c);
                     set(position.h2b(2),'xdata',c2(1,:),'ydata',c2(2,:),'zdata',ones(1,size(c2,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c2c);
                     set(position.h2c,'xdata',[],'ydata',[],'zdata',[]);
@@ -1102,7 +1102,7 @@ switch(lower(type)),
             end
             set(position.h10,'string',num2str(data.thr));
             title3b=conn_ind2rgb(title,position.mapcolor,2);
-            set(position.h12,'facevertexcdata',.25*title3a+.75*title3b,'facecolor','interp');
+            set(position.h12,'facevertexcdata',.15*title3a+.85*title3b,'facecolor','interp');
             %set(position.h12,'facevertexcdata',title,'facecolor','interp','cdatamapping','direct'); %Use this line instead of line above if experiencing render-related errors 
             set(position.h11,'xtick',[],'ytick',[],'ztick',[]);
             set([position.h11 position.h12 position.h13],'visible','on');
@@ -1149,7 +1149,7 @@ switch(lower(type)),
             data.displayed.raw=title;
             if isfield(data,'thr'), set(position.h10,'string',num2str(data.thr)); end
             title3b=conn_ind2rgb(title,position.mapcolor);
-            set(position.h2,'cdata',.25*title3a+.75*title3b);
+            set(position.h2,'cdata',.15*title3a+.85*title3b);
             set(position.h2b(1),'xdata',c1(1,:),'ydata',c1(2,:),'zdata',ones(1,size(c1,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c1c);
             set(position.h2b(2),'xdata',c2(1,:),'ydata',c2(2,:),'zdata',ones(1,size(c2,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c2c);
             set(position.h2c,'xdata',[],'ydata',[],'zdata',[]);

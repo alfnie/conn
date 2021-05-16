@@ -422,6 +422,7 @@ for sess=1:num_sess
         if notcoregistered, temp=reshape(spm_get_data(VY{sess}(i),pinv(VY{sess}(i).mat)*xyz),VY{1}(1).dim);
         else temp=reshape(spm_get_data(VY{sess}(i),xyz_voxel),VY{sess}(i).dim); %temp=spm_read_vols(VY{sess}(i));
         end
+        temp(isnan(temp))=0;
         if badmask, g{sess}(i) = spm_global(VY{sess}(i));
         else g{sess}(i)=mean(temp(idxMask));
         end
@@ -1259,6 +1260,7 @@ if option>2
         i=out_idx(n1);
         if plotdata.notcoregistered, temp=reshape(spm_get_data(plotdata.VY(i),pinv(plotdata.VY(i).mat)*plotdata.xyz),plotdata.VY(1).dim);
         else temp=reshape(spm_get_data(plotdata.VY(i),plotdata.xyz_voxel),plotdata.VY(i).dim); end; %temp=spm_read_vols(plotdata.VY(i)); end
+        temp(isnan(temp))=0;
         Data_Sum=Data_Sum-temp;
         Data_SumSquared=Data_SumSquared-temp.^2;
         if numel(out_idx)>100&&~isempty(hw), waitbar(n1/numel(out_idx),hw); end
@@ -1510,6 +1512,7 @@ if any(option>1)
         i=out_idx(n1);
         if plotdata.notcoregistered, temp=reshape(spm_get_data(plotdata.VY(i),pinv(plotdata.VY(i).mat)*plotdata.xyz),plotdata.VY(1).dim);
         else temp=reshape(spm_get_data(plotdata.VY(i),plotdata.xyz_voxel),plotdata.VY(i).dim); end %temp=spm_read_vols(plotdata.VY(i)); end
+        temp(isnan(temp))=0;
         Data_Sum=Data_Sum-temp;
         Data_SumSquared=Data_SumSquared-temp.^2;
         if numel(out_idx)>100&&~isempty(hw), waitbar(n1/numel(out_idx),hw); end

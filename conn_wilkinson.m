@@ -323,7 +323,7 @@ switch(option)
                                     %%%%%%%%%%%%
                                     if ndouble==1
                                         if numel(tidx)==2, descrip{end+1}=sprintf('Do the connectivity differences between %s and %s subjects depend on %s-status?',names{iscateg(sidx(tidx(1)))},names{iscateg(sidx(tidx(2)))},conn_strjoinstr(names(factors{nfact}),'/'));
-                                        else               descrip{end+1}=sprintf('Do the connectivity differences among %sand %s subjects depend on %s-status?',conn_strjoinstr(names(iscateg(sidx(tidx(1:end-1)))),', '),names{iscateg(sidx(tidx(end)))},conn_strjoinstr(names(factors{nfact}),'/'));
+                                        else               descrip{end+1}=sprintf('Do the connectivity differences among %s and %s subjects depend on %s-status?',conn_strjoinstr(names(iscateg(sidx(tidx(1:end-1)))),', '),names{iscateg(sidx(tidx(end)))},conn_strjoinstr(names(factors{nfact}),'/'));
                                         end
                                     else
                                         if numel(factors{nfact})==2, descrip{end+1}=sprintf('Do the connectivity differences between %s and %s subjects depend on %s-status?',names{factors{nfact}(1)},names{factors{nfact}(2)},conn_strjoinstr(names(iscateg(sidx(tidx))),'/'));

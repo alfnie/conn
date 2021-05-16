@@ -14,7 +14,7 @@ function varargout=conn(varargin)
 %   launches conn GUI 
 %
 % conn remotely
-%   launches conn GUI interacting with remote CONN session
+%   launches conn GUI interacting with remote dataset
 %   see also CONN_SERVER
 %
 % conn batch filename
@@ -9671,7 +9671,7 @@ else
                         if ~isfield(CONN_x.Results.xX,'inferencelevel'), CONN_x.Results.xX.inferencelevel=.05; end
                         if ~isfield(CONN_x.Results.xX,'inferenceleveltype'), CONN_x.Results.xX.inferenceleveltype=1; end
                         if ~isfield(CONN_x.Results.xX,'displayrois'), CONN_x.Results.xX.displayrois=2; end
-                        strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Individual connections <small>(preview of current settings)</small></HTML>'};
+                        strstr3={'<HTML>Group-analysis results: all ROIs <small>(from disk)</small></HTML>','<HTML>Group-analysis results: individual ROIs</HTML>'};
                         if stateb, strstr3=strstr3(1); end
                         CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Individual connections (preview of current settings)''</i> to display a preview of the results of this group-level analysis for individual ROI-to-ROI pairs only, and adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
                         CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3), CONN_x.Results.xX.displayvoxels));
@@ -9689,7 +9689,7 @@ else
                         %strstr1={'Two-sided','One-sided (positive)','One-sided (negative)'};
                         strstr2={'p-FDR corrected < ','p-uncorrected < '};
                         %strstr3={'Analysis results: Targets are all ROIs','Analysis results: Targets are source ROIs only','Analysis results: Targets are selected ROIs only'};
-                        CONN_h.menus.m_results_00{27}=conn_menu('popup2',boffset+[pos(1)+.10,pos(2)-.05,.12,.04],'',strstr2,'choose type of false-positive control','conn(''gui_results'',29);');
+                        CONN_h.menus.m_results_00{27}=conn_menu('popup2',boffset+[pos(1)+.10,pos(2)-.05,.12,.04],'',strstr2,'<HTML>choose type of false-positive control<br/> - p-unc = connection-level uncorrected p-values<br/> - p-FDR = connection-level FDR-corrected p-values (note: corrected across all connections from selected seed(s))</HTML>','conn(''gui_results'',29);');
                         set(CONN_h.menus.m_results_00{27},'value',CONN_x.Results.xX.inferenceleveltype);
                         CONN_h.menus.m_results_00{30}=conn_menu('edit2',boffset+[pos(1)+.22,pos(2)-.045,.04,.04],'',num2str(CONN_x.Results.xX.inferencelevel),'enter false-positive threshold value','conn(''gui_results'',30);');
                         %CONN_h.menus.m_results_00{28}=conn_menu('popup2',boffset+[pos(1)+.17,pos(2)-.05,.09,.04],'',strstr1,'choose inference directionality','conn(''gui_results'',28);');
@@ -9698,7 +9698,7 @@ else
                         set(CONN_h.menus.m_results_00{47},'value',1);
                         %CONN_h.menus.m_results_00{31}=conn_menu('popup2',boffset+[.63,pos(2)+pos(4),.26,.04],'',strstr3,'choose target ROIs','conn(''gui_results'',31);');
                         %set(CONN_h.menus.m_results_00{31},'value',CONN_x.Results.xX.displayrois);
-                        CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.095,.165,.045],'','display RRC results','<HTML>Computes (or displays, if already computed) analyses of the entire ROI-to-ROI connectivity matrix, including connection-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
+                        CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.095,.165,.045],'','display results','<HTML>Computes (or displays, if already computed) analyses of the entire ROI-to-ROI connectivity matrix, including connection-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
                         CONN_h.menus.m_results_00{52}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.140,.165,.045],'','graph-theory results','<HTML>Computes graph-theoretical analyses of the entire ROI-to-ROI connectivity matrix, including network- and ROI-level statistics</HTML>','conn(''gui_results_graphtheory'');');
                         
                         %CONN_h.menus.m_results_00{28}=uicontrol('style','popupmenu','units','norm','position',boffset+[.81,.08,.08,.045],'string',strstr1,'fontsize',8+CONN_gui.font_offset,'value',CONN_x.Results.xX.inferencetype,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','choose inference directionality','callback','conn(''gui_results'',28);');
@@ -9912,11 +9912,21 @@ else
                     CONN_h.menus.m_results.suggest_within=conn_wilkinson('suggest_within',tnames(CONN_h.menus.m_results.shownconditions));
                     switch(state)
                         case 1,
-                            CONN_h.menus.m_results.suggest_within_mnamelong='ROI-to-ROI Connectivity (RRC)';
-                            CONN_h.menus.m_results.suggest_within_mnameshort='connectivity';
+                            if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0, 
+                                CONN_h.menus.m_results.suggest_within_mnamelong='ROI-to-ROI Connectivity modulation (RRC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='connectivity-modulation';
+                            else
+                                CONN_h.menus.m_results.suggest_within_mnamelong='ROI-to-ROI Connectivity (RRC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='connectivity';
+                            end
                         case 2,
-                            CONN_h.menus.m_results.suggest_within_mnamelong='Seed-Based Connectivity (SBC)';
-                            CONN_h.menus.m_results.suggest_within_mnameshort='connectivity';
+                            if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0, 
+                                CONN_h.menus.m_results.suggest_within_mnamelong='Seed-Based Connectivity modulation (SBC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='connectivity-modulation';
+                            else
+                                CONN_h.menus.m_results.suggest_within_mnamelong='Seed-Based Connectivity (SBC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='connectivity';
+                            end
                         case 3
                             CONN_h.menus.m_results.suggest_within_mnamelong=CONN_x.vvAnalyses(CONN_x.vvAnalysis).regressors.names{1};
                             CONN_h.menus.m_results.suggest_within_mnameshort=regexprep(CONN_h.menus.m_results.suggest_within_mnamelong,{'^group-MVPA$','^group-PCA$','^group-ICA$','^IntrinsicConnectivity$','^LocalCorrelation$','^GlobalCorrelation$','^RadialCorrelation$','^RadialSimilarity$'},{'connectivity','component connectivity','network connectivity','IC','LCOR','GCOR','RC','RS'});
@@ -11408,7 +11418,7 @@ else
                     if CONN_h.menus.m_results.usetablewhite~=0, conn_menu('updatetable',CONN_h.menus.m_results_00{50},CONN_h.menus.m_results.design.designmatrix.',CONN_h.menus.m_results.design.designmatrix_name, CONN_h.menus.m_results.design.subjects'); end
                     set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within,CONN_h.menus.m_results.design.pwd));
                     set([CONN_h.menus.m_results_00{23},CONN_h.menus.m_results_00{24}],'visible','on'); %design info, p-unc
-                    set(CONN_h.menus.m_results_00{46},'string','display results');
+                    set(CONN_h.menus.m_results_00{46},'string','display results'); % display RRC results
                 else
                     CONN_h.menus.m_results.RRC_F=[];
                     CONN_h.menus.m_results.RRC_p=[];
@@ -11453,7 +11463,7 @@ else
                     set(CONN_h.menus.m_results_00{51},'string',conn_wilkinson('describe',CONN_h.menus.m_results.design.designmatrix_name,CONN_h.menus.m_results.design.conditions,CONN_h.menus.m_results.design.contrast_between,CONN_h.menus.m_results.design.contrast_within,CONN_h.menus.m_results.design.pwd));
                     set(CONN_h.menus.m_results_00{23},'visible','on'); %design info
                     set(CONN_h.menus.m_results_00{24},'visible','off'); % p-unc
-                    set(CONN_h.menus.m_results_00{46},'string','compute results');
+                    set(CONN_h.menus.m_results_00{46},'string','compute results'); % compute RRC results
                 end
                 %p=[];h=[];F=[];statsname=[];dof=[];
                 %if conn_existfile(fullfile(resultsfolder,'SPM.mat'))
@@ -11579,7 +11589,7 @@ else
                     if CONN_h.menus.m_results.usetablewhite~=0, conn_menu('updatetable',CONN_h.menus.m_results_00{50},[]); end
                     set(CONN_h.menus.m_results_00{51},'string','');
                 end
-                set(CONN_h.menus.m_results_00{46},'string','display results');
+                set(CONN_h.menus.m_results_00{46},'string','display results'); % display RRC results
             end
             
             if state==1&&CONN_x.Results.xX.displayvoxels==1, % ROI-level plots (from disk)
@@ -11596,6 +11606,7 @@ else
                     set(CONN_h.menus.m_results_00{49}.h10,'visible','off');
                     conn_menu('updatecscale',[],[],CONN_h.menus.m_results_00{49}.h9);
                 end
+                set([CONN_h.menus.m_results_00{46} CONN_h.menus.m_results_00{52}],'visible','on');
             elseif state==1&&CONN_x.Results.xX.displayvoxels>1, % ROI-level plots
                 idxplotroi=ishandle(CONN_h.menus.m_results_00{26});
                 tobedeleted=CONN_h.menus.m_results_00{26}(idxplotroi);
@@ -11633,7 +11644,7 @@ else
                             xpos=[]; xneg=[]; 
                             %b=mean(mean(CONN_h.menus.m_results.roiresults.B(:,:,:,ntemp(ntemp2)),2),3); % regressor coefficients averaged across conditions (2) and subject-effects (3)
                             %b=sum(mean(CONN_h.menus.m_results.roiresults.B(:,:,:,ntemp(ntemp2)),2).*repmat(shiftdim(mean(CONN_h.menus.m_results.roiresults.xX.X,1),-1),[size(CONN_h.menus.m_results.roiresults.B,1),1,1,numel(ntemp(ntemp2))]),3); % connectivity values averaged across subjects (1) and conditions (4)
-                            b=permute(mean(mean(CONN_h.menus.m_results.roiresults.y(:,ntemp(ntemp2),:,:),1),4),[3,2,1,4]); % connectivity values averaged across subjects (1) and conditions (4)
+                            b=permute(mean(mean(CONN_h.menus.m_results.roiresults.y(:,ntemp(ntemp2),:,:),1),4),[3,4,1,2]); % connectivity values averaged across subjects (1) and conditions (4)
                             b=b/max(eps,max(abs(b(:))));
                             for n1=1:size(xyz1,2)
                                 [connx0,conny0]=conn_menu_montage('plotline',CONN_h.menus.m_results.xsen1n2,repmat(xyz1(:,n1),1,size(xyz2,2)),xyz2,max(.2,1/CONN_h.menus.m_results.xsen1n2(6)));
@@ -11769,6 +11780,7 @@ else
                     set(findobj(CONN_h.menus.m_results_00{25}),'visible','off');
                     conn_menu('update',CONN_h.menus.m_results_00{29},[]);
                 end
+                set([CONN_h.menus.m_results_00{46} CONN_h.menus.m_results_00{52}],'visible','off');
                 delete(tobedeleted);
             end
 		
@@ -11797,7 +11809,8 @@ else
             c={[0,0,1],[.25,.25,.25],[1,0,0]};
             idx=CONN_h.menus.m_results.roiresults.displayrois(:,8); 
             idx1=find(~CONN_h.menus.m_results.roiresults.displayrois(:,5));
-            b=mean(mean(CONN_h.menus.m_results.roiresults.B(:,:,:,idx),2),3);
+            %b=mean(mean(CONN_h.menus.m_results.roiresults.B(:,:,:,idx),2),3);
+            b=permute(mean(mean(CONN_h.menus.m_results.roiresults.y(:,idx,:,:),1),4),[3,4,1,2]); % connectivity values averaged across subjects (1) and conditions (4)
             b=permute(b/max(eps,max(abs(b(:)))),[1,4,2,3]);
             B=zeros(max(size(b))); B(idx1,1:size(b,2))=b;
             conn_mesh_display('','',[],struct('sph_names',{CONN_h.menus.m_results.roiresults.displayroisnames},'sph_xyz',CONN_h.menus.m_results.roiresults.displayrois(:,1:3),'sph_r',CONN_h.menus.m_results.roiresults.displayrois(:,4)*.5,'sph_c',{c(2+sign(CONN_h.menus.m_results.roiresults.displayrois(:,5)))}), ...

@@ -1,15 +1,21 @@
-CONN functional connectivity toolbox developed by 
-  The Gabrieli Lab at MIT
-  McGovern Institute for Brain Research
-  http://gablab.mit.edu/
-  http://www.nitrc.org/projects/conn
-  http://www.conn-toolbox.org
+CONN functional connectivity toolbox
+  Developed by 
+     Alfonso Nieto-Castanon
+  Funded/Supported by
+     Gabrieli Lab (McGovern Institute for Brain Research, Massachusetts Institute of Technology)
+     Guenther Lab (Sargent College, Boston University)
+     Whitfield-Gabrieli (Center for Cognitive and Brain Health, Northeastern University)
+  https://www.conn-toolbox.org
+  https://www.nitrc.org/projects/conn
 
 ________________________________________________________________________
                                                             Installation
 This software requires SPM (SPM -  http://www.fil.ion.ucl.ac.uk/spm/)
 After downloading this software simply prepend the conn directory to 
-your MATLAB path to complete the installation
+your MATLAB path to complete the installation. 
+
+See https://www.conn-toolbox.org/resources/installation for additional
+installation details
 
 ________________________________________________________________________
                                                          Getting started
@@ -18,19 +24,13 @@ In the MATLAB command window type:
 to launch the CONN gui.
 
 Post support questions to the NITRC conn support forum: 
-  http://www.nitrc.org/forum/forum.php?forum_id=1144
+  https://www.nitrc.org/forum/forum.php?forum_id=1144
 See "Resources" section below for further information/documentation.
 
 ________________________________________________________________________
                                                                Resources
-The NITRC conn project site (http://www.nitrc.org/projects/conn) is the
-main repository for the CONN toolbox resources
-  summary:    http://www.nitrc.org/projects/conn/
-  downloads:  http://www.nitrc.org/frs/?group_id=279 
-  support:    http://www.nitrc.org/forum/forum.php?forum_id=1144
-  FAQ:        http://www.alfnie.com/software/conn
-  courses:    http://www.neurometrika.org/Courses
-  references: http://www.alfnie.com/software/conn/references
+The CONN-TOOLBOX site (http://www.conn-toolbox.org) is the main respository 
+for CONN toolbox resources
 
 ________________________________________________________________________
                                                    Copyright & licencing
