@@ -2833,7 +2833,7 @@ h1=uicontrol('units','norm','position',[.1,.7,.4,.15],'style','text','string','#
 h2=uicontrol('units','norm','position',[.5,.7,.4,.15],'style','edit','string',num2str(v2),'tooltipstring','<HTML>Number of new data permutations/randomizations that will be evaluated in order to compute cluster-level statistics<br/> - note: if already previously computed, these new simulations will be added to any pre-existing ones (e.g. to increase the total number of simulations)</HTML>');
 toptions=[{'local processing (run on this computer)'} tstr(tvalid)];
 if isremote
-    info=conn_server('HPC_info');
+    info=conn_server('SSH_info');
     if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
     else tnameserver='CONN server';
     end

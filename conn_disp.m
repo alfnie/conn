@@ -204,7 +204,7 @@ if nargin>=1
             elseif ~savelog&&mirrorscreen, try, set(CONN_h.screen.hlog,'name','CONN log history'); end; lastlogfile=''; 
             end
             if PORTCOMM&&~isempty(str)
-                conn_tcpip('write',{'status',str});
+                conn_tcpip('write',struct('type','status','id','unknown','msg',{str}));
             end
             if nargout>0&&~isempty(newstr), varargout={newstr}; end
         end

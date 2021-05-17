@@ -16,15 +16,15 @@ function varargout = conn_server(option, varargin)
 %   conn_server('disconnect')                       : disconnects from CONN server (a new connection with the same server can be stablished using "conn_server('connect',...)" again from this or other machine)
 %   conn_server('exit')                             : stops the remote CONN server and disconnects (no new connections are allowed until the server is restarted, e.g. using "conn_server('start',...)" again from the server side)
 %
-% alternative procedure for SSH-accessible cluster/HPC enviornment only:
-% command from server side: (from a computer within the cluster/HPC environment)
-%   conn_server('HPC_save' [, fileout])             : HPC initialization, creates a .json file with basic information necessary to connect to this server (machine IP, and where to find Matlab/SPM/CONN) [~/connserverinfo.json]
-% commands from client side: (from a computer outside of the cluster/HPC environment)
-%   conn_server('HPC_start' [, serverip])           : SSH to HPC login node, submits a job to start a CONN server, and connects this computer to that remote server (note: expects to find serverip:~/connserverinfo.json file; run "conn_server HPC_save" in HPC once)
-%   conn_server('HPC_start', filein)                : same as above but loading HPC server information explicitly from the provided .json file
-%   conn_server('HPC_submitstart')                  : submits a job to start a new CONN server (run internally by HPC_start)
-%   conn_server('HPC_restart')                      : restarts a dropped connection
-%   conn_server('HPC_exit')                         : terminates CONN server and disconnects
+% alternative procedure for SSH-accessible networks only:
+% command from server side: (from a computer within the SSH-accessible network)
+%   conn_server('SSH_save' [, fileout])             : server configuration (run only once), creates a .json file with basic information necessary to connect to this server (machine IP, and where to find Matlab/SPM/CONN) [~/connserverinfo.json]
+% commands from client side: (from a computer with a SSH client)
+%   conn_server('SSH_start' [, serverip])           : SSH to network login node, submits a job to start a CONN server, and connects this computer to that remote server (note: expects to find serverip:~/connserverinfo.json file; run "conn_server SSH_save" in server once)
+%   conn_server('SSH_start', filein)                : same as above but loading CONN server information explicitly from the provided .json file
+%   conn_server('SSH_submitstart')                  : submits a job to start a new CONN server (run internally by SSH_start)
+%   conn_server('SSH_restart')                      : restarts a dropped connection
+%   conn_server('SSH_exit')                         : terminates CONN server and disconnects
 %
 
 %
@@ -103,8 +103,10 @@ switch(lower(option))
         end
         conn_cache clear;
         conn_jobmanager clear;
-        
+
     case {'run','run_immediatereturn','run_withwaitbar'}
+        data.type='run';
+        data.id=char(mlreportgen.utils.hash(mat2str(now)));
         if strcmp(lower(option),'run_withwaitbar'), statushandle=varargin{1}; data.cmd=varargin(2:end); data.withwaitbar=true;
         else statushandle=[]; data.cmd=varargin; data.withwaitbar=false;
         end
@@ -112,6 +114,7 @@ switch(lower(option))
         data.immediatereturn=strcmp(lower(option),'run_immediatereturn');
         data.hpc=false;
         if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'scp')&&params.info.scp>0, data.hpc=true; end
+        conn_tcpip('flush');
         conn_tcpip('write',data);
         if ~data.immediatereturn;
             ok=false;
@@ -120,32 +123,18 @@ switch(lower(option))
                     var=conn_tcpip('read');
                 catch me,
                     if ~isempty(regexp(me.message,'SocketTimeoutException')), fprintf('.');  % timeout
-                    elseif ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) % restart
-                        fprintf('\n Idle connection to server. ');
-                        conn_server restart;
-                        conn_tcpip('write',data);
-                    else error('ERROR: connection problem: %s',me.message);
+                    elseif ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) 
+                        error('ERROR: connection may be down\n');
+                        %% restart
+                        %fprintf('\n Idle connection to server. ');
+                        %conn_server restart;
+                        %conn_tcpip('write',data);
+                    else error('ERROR: connection problem %s',me.message);
                     end
-                    var={''};
+                    var=struct('type','null','id',data.id);
                 end
-                assert(iscell(var)&~isempty(var), 'ERROR: unexpected data from server');
-                if isequal(var{1},'ok_hasattachment') % server is waiting for us to scp its response
-                    tmpfile1=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
-                    tmpfile2=var{2};
-                    if conn_server('HPC_pull',tmpfile2,tmpfile1), var=load(tmpfile1,'arg'); var=var.arg;
-                    else var={'ko','unable to run HPC_pull to read response from server'};
-                    end
-                    conn_fileutils('deletefile',tmpfile1);
-                    conn_tcpip('write',{'ack_hasattachment'}); % signal server to continue
-                end
-                if isequal(var{1},'ok')
-                    varargout=var(2:end);
-                    ok=true;
-                elseif isequal(var{1},'ko')
-                    error('ERROR MESSAGE RETURNED BY SERVER: %s\n',var{2});
-                    %ok=true;
-                elseif isequal(var{1},'status')
-                    str=regexprep(var{2},'[\r\n\s]*',' ');
+                if isfield(var,'type')&&isequal(var.type,'status')
+                    str=regexprep(var.msg,'[\r\n\s]*',' ');
                     if data.withwaitbar,
                         conn_disp(str);
                         if ~isempty(statushandle), set(statushandle,'string',str); drawnow; end
@@ -153,6 +142,30 @@ switch(lower(option))
                         if iscell(str), for n=1:numel(str), fprintf('%s\n',str{n}); end
                         else fprintf('%s',str);
                         end
+                    end
+                elseif isempty(var)||~isstruct(var)||~isfield(var,'type')||~isfield(var,'id')||~isequal(var.id, data.id), 
+                    disp(var);
+                    error('ERROR: undexpected response\n');
+                else
+                    if isequal(var.type,'ok_hasattachment') % server is waiting for us to scp its response
+                        tmpfile1=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
+                        tmpfile2=var.msg;
+                        if conn_server('SSH_pull',tmpfile2,tmpfile1), var=load(tmpfile1,'arg'); var=var.arg;
+                        else var=struct('type','ko','id',var.id,'msg','unable to run SSH_pull to read response from server');
+                        end
+                        conn_fileutils('deletefile',tmpfile1);
+                        conn_tcpip('write',struct('type','ack_hasattachment','id',var.id)); % signal server to continue
+                    end
+                    if isequal(var.type,'ok')
+                        if isfield(var,'msg'), varargout=var.msg;
+                        else varargout={};
+                        end
+                        ok=true;
+                    elseif isequal(var.type,'ko')
+                        if isfield(var,'msg'), error('ERROR at server: %s\n',var.msg);
+                        else error('ERROR at server\n');
+                        end
+                        %ok=true;
                     end
                 end
             end
@@ -209,35 +222,35 @@ switch(lower(option))
 %                             end
                             if ~isfield(data,'immediatereturn')||~data.immediatereturn
                                 if isfield(data,'nargout')&&data.nargout>0,
-                                    argout=cell(1,data.nargout+1);
+                                    varout=cell(1,data.nargout);
                                     try
-                                        [argout{2:data.nargout+1}]=feval(fh,data.cmd{2:end});
-                                        argout{1}='ok';
+                                        [varout{1:data.nargout}]=feval(fh,data.cmd{2:end});
+                                        argout=struct('type','ok','id',data.id,'msg',{varout});
                                     catch me
                                         str=conn_errormessage(me);
                                         str=sprintf('%s\n',str{:});
-                                        argout={'ko', str};
+                                        argout=struct('type','ko','id',data.id,'msg',str);
                                     end
                                 else
                                     try
                                         feval(fh,data.cmd{2:end});
-                                        argout={'ok'};
+                                        argout=struct('type','ok','id',data.id);
                                     catch me
                                         str=conn_errormessage(me);
                                         str=sprintf('%s\n',str{:});
-                                        argout={'ko', str};
+                                        argout=struct('type','ko','id',data.id,'msg',str);
                                     end
                                 end
-                                disp([data.cmd, argout]);
-                                if numel(argout)>1&&isequal(argout{1},'ok')&&isfield(data,'hpc')&&data.hpc>0&&getfield(whos('argout'),'bytes')>1e6, % send response using ssh/scp?
+                                disp(data.cmd); disp(argout);
+                                if isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'hpc')&&data.hpc>0&&getfield(whos('argout'),'bytes')>1e6, % send response using ssh/scp?
                                     tmpfile=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
                                     arg=argout; save(tmpfile,'arg');
-                                    argout={'ok_hasattachment',tmpfile};
+                                    argout=struct('type','ok_hasattachment','id',data.id,'msg',tmpfile);
                                     conn_tcpip('write',argout);
                                     while 1, 
                                         rsp=[]; 
                                         try, rsp=conn_tcpip('read'); end % wait for client to finish
-                                        if isequal(rsp,{'ack_hasattachment'}), break; end
+                                        if isfield(rsp,'id')&&isequal(rsp.id,data.id)&&isfield(rsp,'type')&&isequal(rsp.type,'ack_hasattachment'), break; end
                                         fprintf('.'); pause(rand);
                                     end
                                     conn_fileutils('deletefile',tmpfile);
@@ -253,12 +266,12 @@ switch(lower(option))
                         catch me
                             str=conn_errormessage(me);
                             str=sprintf('%s\n',str{:});
-                            argout={'ko', str};
+                            argout=struct('type','ko','id',data.id,'msg',str);
                         end
 %                         if ~isempty(htimer), try, stop(htimer); delete(htimer); end; end
                             
                     elseif ~isfield(data,'immediatereturn')||~data.immediatereturn
-                        argout={'ko', sprintf('unrecognized option %s ',data.cmd{1})};
+                        argout=struct('type','ko', 'id', data.id, 'msg', sprintf('unrecognized option %s ',data.cmd{1}));
                         conn_tcpip('write',argout);
                     end
                 else % testing
@@ -266,7 +279,7 @@ switch(lower(option))
                     disp(data)
                 end
             end
-        else % client testing
+        else % client testing (obsolete)
             % sending rand
             for niter=1:1
                 if niter>1, pause(1); end
@@ -288,7 +301,7 @@ switch(lower(option))
         for n=1:numel(filename1)
             if conn_existfile(filename1{n}),
                 if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'scp')&&params.info.scp>0
-                    ok(n)=conn_server('HPC_push',filename1{n},filename2{n});
+                    ok(n)=conn_server('SSH_push',filename1{n},filename2{n});
                 else
                     conn_server('run_immediatereturn','conn_tcpip','readtofile',filename2{n});
                     ok(n)=conn_tcpip('writefromfile',filename1{n});
@@ -309,10 +322,11 @@ switch(lower(option))
         ok=false(1,numel(filename1));
         if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'scp')&&params.info.scp>0
             for n=1:numel(filename1)
-                ok(n)=conn_server('HPC_pull',filename1{n},filename2{n});
+                ok(n)=conn_server('SSH_pull',filename1{n},filename2{n});
                 if ok(n), hash{n}=conn_cache('hash',filename2{n}); end
             end
         else        
+            conn_tcpip('flush');
             for n=1:numel(filename1)
                 conn_server('run_immediatereturn','conn_tcpip','writefromfile',filename1{n});
             end
@@ -328,7 +342,7 @@ switch(lower(option))
         conn_cache clear;
         conn_tcpip clear;
         
-    case 'hpc_save' % saves .json info
+    case 'ssh_save' % saves .json info
         if numel(varargin)>=1, filename=varargin{1};
         else filename=fullfile(conn_fileutils('homedir'),'connserverinfo.json');
         end
@@ -359,7 +373,7 @@ switch(lower(option))
         if nargout>0, varargout={info}; end
         if ~nargout&&isempty(filename), disp(info); end
         
-    case {'hpc_start','hpc_restart'} % init server remotely and connect to it
+    case {'ssh_start','ssh_restart'} % init server remotely and connect to it
         % development reference notes on ssh tunneling
         %    $ ssh -fN -o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o ControlMaster=yes -o ControlPath=<local_filename> <login_node>        % authenticate first
         %    $ ssh -o ControlPath=<local_filename> -L<local_port>:<server_ip>:<server_port> <login_node>                                           % port forwarding on shared connection
@@ -415,7 +429,7 @@ switch(lower(option))
                     params.info.CONNcmd=conn_jsonread(filename,'CONNcmd');
                 end
             end
-            if strcmpi(option,'hpc_restart')
+            if strcmpi(option,'ssh_restart')
                 if ~isfield(params.info,'remote_ip')||isempty(params.info.remote_ip), params.info.remote_ip=input('Remote session host address: ','s'); end
                 if ~isfield(params.info,'remote_port')||isempty(params.info.remote_port), params.info.remote_port=str2double(input('Remote session access port: ','s')); end
                 if ~isfield(params.info,'remote_id')||isempty(params.info.remote_id), params.info.remote_id=input('Remote session id: ','s'); end
@@ -430,8 +444,8 @@ switch(lower(option))
             else
                 fprintf('Requesting a new Matlab session in %s. This may take a few minutes, please be patient as your job currently sits in a queue. CONN will resume automatically when the new Matlab session becomes available\n',params.info.login_ip);
                 % submit jobs to start server#2 in arbitrary remote node using HPC scheduler
-                [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' %s "%s"', params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server HPC_submitstart')),'"','\\"')));
-                if ~isempty(regexp(msg,'HPC_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
+                [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' %s "%s"', params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server SSH_submitstart')),'"','\\"')));
+                if ~isempty(regexp(msg,'SSH_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
                 else
                     keys=regexp(msg,'HOST:([^\n]+)\nPORT:([^\n]+)\nID:([^\n]+)\nLOG:([^\n]+)\n','tokens','once');
                     params.info.remote_ip=keys{1};
@@ -442,7 +456,7 @@ switch(lower(option))
                 end
             end
             if isempty(params.info.host)
-                if strcmpi(option,'hpc_restart'), conn_tcpip('open','client',params.info.remote_ip,params.info.remote_port,params.info.remote_id,0); params.state='on';
+                if strcmpi(option,'ssh_restart'), conn_tcpip('open','client',params.info.remote_ip,params.info.remote_port,params.info.remote_id,0); params.state='on';
                 else conn_server('connect',params.info.remote_ip,sprintf('%dCONN%s',params.info.remote_port,params.info.remote_id));
                 end
             else
@@ -459,13 +473,13 @@ switch(lower(option))
                 system(sprintf('ssh -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip)); 
                 %system(sprintf('ssh -f -N -T -o ExitOnForwardFailure=yes -o ControlPath=''%s'' -L%d:%s:%d %s', params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip)); 
                  %fprintf('Connecting to server\n');
-                if strcmpi(option,'hpc_restart'), conn_tcpip('open','client','localhost',params.info.local_port,params.info.remote_id,0); params.state='on';
+                if strcmpi(option,'ssh_restart'), conn_tcpip('open','client','localhost',params.info.local_port,params.info.remote_id,0); params.state='on';
                 else conn_server('connect','localhost',sprintf('%dCONN%s',params.info.local_port,params.info.remote_id));
                 end
             end
         end
         
-    case 'hpc_exit' % send exit signal to server to stop running (this will also cause the remote Matlab session to exit)
+    case 'ssh_exit' % send exit signal to server to stop running (this will also cause the remote Matlab session to exit)
         if conn_server('isconnected'), 
             fprintf('Exiting remote CONN session and disconnecting\n');
             conn_tcpip('write','exit');
@@ -475,11 +489,11 @@ switch(lower(option))
             conn_cache clear;
             conn_jobmanager clear;
         else
-            fprintf('unable to connect to server, please terminate the server manually or use "conn_server HPC_restart" to restart the connection with the server and try "conn_server HPC_exit" again\n');
+            fprintf('unable to connect to server, please terminate the server manually or use "conn_server SSH_restart" to restart the connection with the server and try "conn_server SSH_exit" again\n');
             system(sprintf('ssh -o ControlPath=''%s'' -O exit %s', params.info.filename_ctrl,params.info.login_ip));
         end
         
-    case 'hpc_exitforce' % run remotely a command to forcibly delete the server's job
+    case 'ssh_exitforce' % run remotely a command to forcibly delete the server's job
         if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'login_ip')&&~isempty(params.info.login_ip)&&isfield(params.info,'remote_log')&&~isempty(params.info.remote_log)
             localcachefolder=conn_cache('private.local_folder');
             params.info.filename_ctrl=fullfile(localcachefolder,sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user));
@@ -499,15 +513,15 @@ switch(lower(option))
                 assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
                 params.info.CONNcmd=conn_jsonread(filename,'CONNcmd');
             end            
-            [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' %s "%s"', params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server HPC_submitexit ''%s''',params.info.remote_log)),'"','\\"')));
+            [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' %s "%s"', params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server SSH_submitexit ''%s''',params.info.remote_log)),'"','\\"')));
             if ok~=0, disp(msg); 
             else fprintf('Remote CONN session deletion requested successfully\n');
             end
         end
         
-    case 'hpc_submitstart'
+    case 'ssh_submitstart'
         info=conn_jobmanager('submit','orphan_conn',[],1,[],'server','start',varargin{:});
-        fprintf('HPC_log in %s\n',info.pathname);
+        fprintf('SSH_log in %s\n',info.pathname);
         fprintf('waiting for job to start...\n')
         for n=1:600
             pause(5.5+rand); % check log files every 6s
@@ -522,30 +536,30 @@ switch(lower(option))
                 if ~ok, pause(1+rand); end
             end
             if ok,
-                fprintf('\nHPC_SUBMITSTART finished succesfully\n');
+                fprintf('\nSSH_SUBMITSTART finished succesfully\n');
                 match1=regexp(str,'\<ssh -L 6111:([^:]*):(\d+)','tokens');
                 match2=regexp(str,'\<conn_server connect localhost \d+CONN(\w+)','tokens');
                 fprintf('HOST:%s\nPORT:%s\nID:%s\nLOG:%s\n',match1{1}{1},match1{1}{2},match2{1}{1},info.pathname);
-            else fprintf('HPC_SUBMITSTART error\n');
+            else fprintf('SSH_SUBMITSTART error\n');
             end
-        else fprintf('HPC_SUBMITSTART error\n');
+        else fprintf('SSH_SUBMITSTART error\n');
         end
         
-    case 'hpc_submitexit' % internal use only
+    case 'ssh_submitexit' % internal use only
         try
             pathname=varargin{1};
             info=struct; conn_loadmatfile(fullfile(pathname,'info.mat'),'info');
             info=conn_jobmanager('canceljob',info);
-            fprintf('HPC_EXIT finished\n');
+            fprintf('SSH_EXIT finished\n');
         catch
-            fprintf('HPC_EXIT error\n');
+            fprintf('SSH_EXIT error\n');
         end
         
-    case 'hpc_info'
+    case 'ssh_info'
         if numel(varargin)>=1, params.info=varargin{1}; end
         varargout={params.info};
         
-    case 'hpc_details'
+    case 'ssh_details'
         clear h;
         info=struct; conn_loadmatfile(fullfile(conn_server('util_remotefile',params.info.remote_log),'info.mat'),'info');
         tfiles={info.stdout, info.stderr, info.stdlog, info.scripts};
@@ -560,7 +574,7 @@ switch(lower(option))
         set([h.files, h.types, h.refresh],'callback',@(varargin)conn_projectmanager_update_details(h.hfig));
         if ishandle(h.hfig), conn_projectmanager_update_details(h.hfig); end
         
-    case 'hpc_push'
+    case 'ssh_push'
 %         clear h;
 %         h.hfig=figure('units','norm','position',[.3 .4 .5 .2],'name','file transfer (scp)','numbertitle','off','menubar','none','color','w');
 %         uicontrol('style','text','units','norm','position',[.1 .70 .19 .15],'string','copy FROM:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);
@@ -574,7 +588,7 @@ switch(lower(option))
         ok=system(sprintf('scp -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
         varargout={isequal(ok,0)}; 
         
-    case 'hpc_pull'
+    case 'ssh_pull'
         fileremote=varargin{1};
         filelocal=varargin{2};
         [ok,msg]=system(sprintf('scp -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));

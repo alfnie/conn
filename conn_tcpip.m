@@ -4,22 +4,24 @@ function varargout = conn_tcpip(option, varargin)
 %
 % commands:
 %   conn_tcpip('open','server' [,PORT, ID])         : open TCP/IP port in local machine and waits for client to connect (default PORT=6111 ID='')
-%                                                    If no PORT is entered, conn_tcpip will first attempt port 6111 and if that fails it will
-%                                                    bind instead to the first available port
+%                                                     If no PORT is entered, conn_tcpip will first attempt port 6111 and if that fails it will
+%                                                     bind instead to the first available port
 %
 %   conn_tcpip('open','client' [,IP, PORT, ID])     : connect to server TCP/IP port at IP:PORT (default IP='127.0.0.1' PORT=6111 ID='')
-%                                                    If an ID string was provided when opening the server, the server will reject any 
-%                                                    client connection that is not open using the exact same ID (case sensitive)
+%                                                     If an ID string was provided when opening the server, the server will reject any 
+%                                                     client connection that is not open using the exact same ID (case sensitive)
 %
 %   conn_tcpip('write',VAR)                         : sends data (from server/client to client/server)
-%                                                    VAR may be any Matlab variable (numeric/string/cell/struct/etc.)
+%                                                     VAR may be any Matlab variable (numeric/string/cell/struct/etc.)
+%                                                     returns 1 if success, 0 if error
 %
 %   VAR = conn_tcpip('read')                        : receives data (from server/client to client/server)
 %
 %   conn_tcpip('writefromfile',FILENAME)            : sends raw data from file (continuous stream / no memory-limitation)
+%                                                     returns 1 if success, 0 if error
 %
-%   TIMESTAMP = conn_tcpip('readtofile',FILENAME)    : receives raw data and save it to file (continuous stream / no memory-limitation)
-%                                                    Returns TIMESTAMP (conn_tcpip sethash timestamp) or MD5-hash (conn_tcpip sethash md5) of received data 
+%   TIMESTAMP = conn_tcpip('readtofile',FILENAME)   : receives raw data and save it to file (continuous stream / no memory-limitation)
+%                                                     returns TIMESTAMP (conn_tcpip sethash timestamp) or MD5-hash (conn_tcpip sethash md5) of received data (empty if error)
 %
 %   conn_tcpip('writekeepalive')                    : sends an empty/keepalive packet
 %
@@ -218,7 +220,7 @@ switch(lower(option))
             fprintf('Communication failure. Try again at a later time\n');
         end
                 
-    case 'clear' % clear buffers
+    case {'clear','flush'} % clear buffers
         connection.buffer=[];
         connection.length=nan;
         connection.header1=[];
@@ -250,6 +252,7 @@ switch(lower(option))
         end
         filehandle=[];
         bored=false;
+        connection.length=nan;
         
         while 1
             data=[];
@@ -266,7 +269,14 @@ switch(lower(option))
                 bored=false;
             end
             %disp(connection.buffer);
-            if ~isempty(connection.header1)&&connection.header1(1)>1&&connection.header1(1)<=connection.length % found a new header, yet incomplete data
+            if isnan(connection.length)&&~isempty(connection.header1)&&connection.header1(1)>1
+                i2=connection.header1(1)-1;
+                connection.buffer=connection.buffer(i2+1:end);
+                connection.header1=connection.header1-i2; connection.header1(connection.header1<=0)=[];
+                connection.header2=connection.header2-i2; connection.header2(connection.header2<=0)=[];
+                fprintf('Incomplete TCP packet. Disregarding\n');
+            end
+            if ~isnan(connection.length)&&~isempty(connection.header1)&&connection.header1(1)<=connection.length % found a new header, yet incomplete data
                 i2=connection.header1(1)-1;
                 connection.buffer=connection.buffer(i2+1:end);
                 connection.header1=connection.header1-i2; connection.header1(connection.header1<=0)=[];

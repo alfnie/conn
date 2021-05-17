@@ -432,7 +432,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 h4c=uicontrol('units','norm','position',[.45,.25,.45,.10],'style','listbox','max',2,'string',nl2covariates,'value',il2covariates,'tooltipstring','<HTML>Select QC variable(s) to include in QC/FC plots</HTML>');
                 toptions=[{'local processing (run on this computer)'} tstr(tvalid)];
                 if CONN_gui.isremote
-                    info=conn_server('HPC_info');
+                    info=conn_server('SSH_info');
                     if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
                     else tnameserver='CONN server';
                     end

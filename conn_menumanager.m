@@ -356,6 +356,8 @@ if ischar(handle),
                 %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string',[varargin{:}],'fontsize',8+CONN_gui.font_offset);
             end
             
+        case 'private',
+            handle=CONN_MM;
         otherwise
             error(['Incorrect parameter ',handle]);
     end

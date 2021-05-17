@@ -19,7 +19,7 @@ if isequal(options,'aminserver') % if running from server
 elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 19 34])) % note: list of processes which may be run from client
     hmsg=[];
     if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
-        info=conn_server('hpc_info');
+        info=conn_server('ssh_info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
         else tnameserver='none';
         end

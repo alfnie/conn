@@ -72,7 +72,7 @@ function varargout=conn_remotely(varargin)
 %
 %
 % note: if the "server" computer is NOT SSH-accessible (e.g. another computer in your home/office network), the following 
-% workaround allows you to still use CONN_REMOTELY funcitonality while setting up the server and the connection manually. 
+% workaround allows you to still use CONN_REMOTELY functionality while setting up the server and the connection manually. 
 % Note that this will skip SSH entirely, so in this case your communication data will not be tunneled nor encrypted:
 %
 %   step 1) in the "server" computer, run the Matlab command "conn server" to manually launch a CONN server process
@@ -88,7 +88,7 @@ function varargout=conn_remotely(varargin)
 % 
 
 
-if nargin>=1&&isequal(varargin{1},'setup'),conn_server('HPC_save'); return; end
+if nargin>=1&&isequal(varargin{1},'setup'),conn_server('SSH_save'); return; end
 
 keepgui=false;
 if nargin>=1, keepgui=true; end
@@ -111,8 +111,8 @@ if strcmp(Answ,'Proceed')
     end
     if doinitconnection
         try
-            if dorestart, conn_server HPC_restart;
-            else conn_server HPC_start;
+            if dorestart, conn_server SSH_restart;
+            else conn_server SSH_start;
             end
         catch me
             fprintf('ERROR: Unable to start remote session: %s',me.message);

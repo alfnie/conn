@@ -1509,7 +1509,7 @@ else
             end
             
         case 'gui_server',
-            info=conn_server('HPC_info');
+            info=conn_server('SSH_info');
             if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
             else tnameserver='none';
             end
@@ -1529,11 +1529,11 @@ else
             h.text2=uicontrol('style','text','units','norm','position',[.05,.35,.9,.40],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string',str,'parent',thfig);
             h.text3=uicontrol('style','text','units','norm','position',[.05,.23,.9,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string','','parent',thfig);
             h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','off','units','norm','position',[.05,.11,.30,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
-            h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.35,.11,.30,.10],'callback','conn_server(''HPC_details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
+            h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.35,.11,.30,.10],'callback','conn_server(''SSH_details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
             h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.65,.11,.30,.10],'callback','conn_server(''clear'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears file temporal storage and communication buffer');
-            h.button4=uicontrol(thfig,'style','pushbutton','string','File transfer','units','norm','position',[.35,.01,.30,.10],'callback','conn_server(''HPC_filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
+            h.button4=uicontrol(thfig,'style','pushbutton','string','File transfer','units','norm','position',[.35,.01,.30,.10],'callback','conn_server(''SSH_filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
             h.button5=uicontrol(thfig,'style','pushbutton','string','Restart connection','units','norm','position',[.35,.01,.30,.10],'callback','close(gcbf); conn remotely restart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
-            h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn remotely start','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_server hpc_exitforce" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
+            h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn remotely start','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_server ssh_exitforce" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
             try, if ~isempty(info.remote_ip), set(h.button1,'enable','on'); end; end
             try, if ~isempty(info.remote_log), set(h.button2,'enable','on'); end; end
             set(thfig,'userdata',h);
@@ -1648,6 +1648,9 @@ else
                 conn gui_setup_save;
                 conn gui_setup;
             end
+            
+        case 'pause',
+            pause(varargin{2:end});
             
         case {'submit','submit_fcn'} 
             % e.g. 
@@ -9621,7 +9624,8 @@ else
                         %strstr3={'Preview data (display individual effects in GLM model)','Preview results (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
                         strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(preview of current settings)</small></HTML>','<HTML>GLM parameters <small>(preview of current settings)</small></HTML>'};
                         CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.07,pos(2)+pos(4)+.04,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire brain)<br/>Select <i>''Group-analysis results (preview of current settings)''</i> to display a preview of the results of this group-level analysis for the selected slice, adapting in real time to the options selected in the ''group-analysis settings'' tab<br/>Select <i>''GLM parameters (preview of current settings)''</i> to display a preview of the results of this group-level analysis GLM regressors coefficients for the selected slice, adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
-                        CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3),CONN_x.Results.xX.displayvoxels));
+                        if ~isfield(CONN_h.menus.m_results,'displayoption_voxellevel'), CONN_h.menus.m_results.displayoption_voxellevel=1; end
+                        CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3),CONN_h.menus.m_results.displayoption_voxellevel));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
                         CONN_h.menus.m_results_00{33}=[];%conn_menu('pushbuttonblue2',boffset+[.57,.08,.07,.045],'','display 3D','displays 3d view of current analysis results (full model)','conn(''gui_results'',33);');
                         CONN_h.menus.m_results_00{45}=[];%conn_menu('pushbuttonblue2',boffset+[pos(1)-.055,pos(2)-.28,.075,.045],'','plot results','computes and displays whole-brain second-level analysis results (full model)','conn(''gui_results'',33) ;');
@@ -9674,7 +9678,8 @@ else
                         strstr3={'<HTML>Group-analysis results: all ROIs <small>(from disk)</small></HTML>','<HTML>Group-analysis results: individual ROIs</HTML>'};
                         if stateb, strstr3=strstr3(1); end
                         CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Individual connections (preview of current settings)''</i> to display a preview of the results of this group-level analysis for individual ROI-to-ROI pairs only, and adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
-                        CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3), CONN_x.Results.xX.displayvoxels));
+                        if ~isfield(CONN_h.menus.m_results,'displayoption_roilevel'), CONN_h.menus.m_results.displayoption_roilevel=1; end
+                        CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3), CONN_h.menus.m_results.displayoption_roilevel));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
                         
                         hc1=uicontextmenu('parent',CONN_h.screen.hfig);
@@ -9751,7 +9756,8 @@ else
                         CONN_h.menus.m_results_00{43}=[]; %conn_menu('pushbuttonblue2',boffset+[pos(1)+.27,pos(2)-.31,.06,.045],'','bookmark','<HTML>Bookmarks this second-level analysis results<br/> - bookmarked results can be quickly accessed from all <i>Second-level Results</i> tabs</HTML>','conn(''gui_results'',43);');
                         set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],'visible','off');%,'fontweight','bold');
                         if CONN_x.Results.xX.displayvoxels>1, 
-                            conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],1,boffset+[.545,.05,.38,.84]);
+                            %conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],1,boffset+[.545,.05,.38,.84]);
+                            set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],'visible','on');
                             set([CONN_h.menus.m_results_00{24},CONN_h.menus.m_results_00{48}],'visible','off');
                         else
                             set(findobj(CONN_h.menus.m_results_00{25}),'visible','off'); % axis
@@ -10038,12 +10044,14 @@ else
                                     if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2]) % surface
                                         CONN_h.menus.m_results.y.slice=1;
                                         set(CONN_h.menus.m_results_00{15},'visible','off');
-                                        conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],1,boffset+[.555,.03,.375,.90]);
+                                        %conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],1,boffset+[.555,.03,.375,.90]);
+                                        set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],'visible','on');
                                         conn_menumanager('onregionremove',CONN_h.menus.m_results_00{15});
                                     else
                                         if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
                                         set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
-                                        conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],1,boffset+[.555,.03,.375,.90]);
+                                        %conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],1,boffset+[.555,.03,.375,.90]);
+                                        set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],'visible','on');
                                     end
                                     %                             filename=fullfile(filepathresults,['resultsDATA_Condition',num2str(nconditions(ncondition),'%03d'),'_Source',num2str(CONN_h.menus.m_results.outcomeisource(nsources(nsource)),'%03d'),'.mat']);
                                     %                             CONN_h.menus.m_results.Y=conn_vol(filename);
@@ -10282,11 +10290,15 @@ else
                                  return;
                              else
                                  CONN_x.Results.xX.displayvoxels=value;
+                                 if state==1, CONN_h.menus.m_results.displayoption_roilevel=CONN_x.Results.xX.displayvoxels;
+                                 else CONN_h.menus.m_results.displayoption_voxellevel=CONN_x.Results.xX.displayvoxels;
+                                 end
                              end
                              if oldvalue==1&&value>1
-                                 conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],1,boffset+[.555,.03,.375,.90]);
+                                 %conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],1,boffset+[.555,.03,.375,.90]);
+                                 set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],'visible','on');
                              elseif oldvalue>1&&value==1
-                                 conn_menumanager('onregionremove',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],1,boffset+[.555,.03,.375,.90]);
+                                 %conn_menumanager('onregionremove',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],1,boffset+[.555,.03,.375,.90]);
                                  set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{44},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{43}],'visible','off');
                                  conn_menu('update',CONN_h.menus.m_results_00{29},[]);
                                  CONN_h.menus.m_results.selectedcoords=[];
@@ -10296,11 +10308,13 @@ else
                              oldvalue=CONN_x.Results.xX.displayvoxels;
                              value=get(CONN_h.menus.m_results_00{32},'value'); 
                              CONN_x.Results.xX.displayvoxels=value;
+                             CONN_h.menus.m_results.displayoption_roilevel=CONN_x.Results.xX.displayvoxels;
                              if oldvalue==1&&value>1
                                  set([CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22},CONN_h.menus.m_results_00{27},CONN_h.menus.m_results_00{30},CONN_h.menus.m_results_00{47}],'visible','on'); % table, table title, p-fdr, threshold, show-connections
                                  set([CONN_h.menus.m_results_00{24},CONN_h.menus.m_results_00{48}],'visible','off'); % p-unc, seeds/sources
                                  set(CONN_h.menus.m_results_00{49}.h6a,'visible','off'); % roi names                                
-                                 conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],1,boffset+[.545,.05,.38,.84]);
+                                 %conn_menumanager('onregion',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],1,boffset+[.545,.05,.38,.84]);
+                                 set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],'visible','on');
                                  pos=[.58,.40,.34,.45];conn_menumanager('onregion',CONN_h.menus.m_results_00{37},1,boffset+pos+[0 0 .015 0]);
                                  set(CONN_h.menus.m_results_00{38},'cdata',max(1,CONN_h.menus.m_results.xse));
                                  set(get(CONN_h.menus.m_results_00{38},'parent'),'xlim',[.5 size(CONN_h.menus.m_results.xse,2)+.5],'ylim',[.5 size(CONN_h.menus.m_results.xse,1)+.5]);                                 
@@ -10313,9 +10327,9 @@ else
                                  delete(CONN_h.menus.m_results_00{26}(idxplotroi));
                                  CONN_h.menus.m_results_00{26}=[];
                                  conn_menu('update',CONN_h.menus.m_results_00{29},[]); % data plot
-                                 set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],'visible','off');
-                                 conn_menumanager('onregionremove',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}]);
+                                 %conn_menumanager('onregionremove',[CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}]);
                                  conn_menumanager('onregionremove',CONN_h.menus.m_results_00{37});                                 
+                                 set([CONN_h.menus.m_results_00{33},CONN_h.menus.m_results_00{45},CONN_h.menus.m_results_00{34},CONN_h.menus.m_results_00{35},CONN_h.menus.m_results_00{36},CONN_h.menus.m_results_00{43}],'visible','off');
                              end
                          end
                          if FORCEORTH&&size(c,1)>1&&~isequal(c,eye(size(c,1))), c=spm_orth(c','norm')'; end
@@ -12093,7 +12107,7 @@ if paroption,
     end
     toptions=[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)];
     if CONN_gui.isremote
-        info=conn_server('HPC_info');
+        info=conn_server('SSH_info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
         else tnameserver='CONN server';
         end
@@ -12637,7 +12651,7 @@ if isfield(CONN_x,'filename')
 end
 if conn_menumanager('ison')&&isfield(CONN_gui,'isremote')&&CONN_gui.isremote, 
     try
-        info=conn_server('HPC_info');
+        info=conn_server('SSH_info');
         if isfield(info,'remote_ip'), set(hserver,'string',sprintf('@ %s',info.remote_ip));
         else set(hserver,'string',sprintf('@ unknown'));
         end
@@ -12699,7 +12713,7 @@ switch(answ)
         %CONN_x=[];
         %CONN_gui=[];
         CONN_h=[];
-        if dohpcexit, try, conn_server('HPC_exit'); end; end
+        if dohpcexit, try, conn_server('SSH_exit'); end; end
     otherwise
         conn gui_setup;
 end

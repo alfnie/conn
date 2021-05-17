@@ -419,7 +419,7 @@ if ~nargin||isempty(STEPS)||dogui,
     end
     toptions=[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)];
     if CONN_gui.isremote
-        info=conn_server('HPC_info');
+        info=conn_server('SSH_info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
         else tnameserver='CONN server';
         end
