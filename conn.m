@@ -803,6 +803,13 @@ else
             CONN_gui.refs.surf.defaultreduced(2).vertices=CONN_gui.refs.surf.defaultreduced(2).vertices(CONN_gui.refs.surf.default2reduced,:);
             CONN_gui.refs.surf.defaultreduced(2).faces=CONN_gui.refs.surf.spherereduced.faces;
             
+        case 'findgui'
+            connversion={'CONN functional connectivity toolbox',' (',connver,') '};
+            hfig=findobj('tag',connversion{1});
+            if ~isempty(hfig)&&all(ishandle(hfig)), varargout={true};
+            else varargout={false};
+            end
+            
         case {'close','forceclose'}
             connversion={'CONN functional connectivity toolbox',' (',connver,') '};
             hfig=findobj('tag',connversion{1});
@@ -1513,30 +1520,57 @@ else
             if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
             else tnameserver='none';
             end
-            thfig=figure('units','norm','position',[.3,.4,.5,.3],'menubar','none','numbertitle','off','name','CONN remotely','color','w');
+            thfig=figure('units','norm','position',[.3,.4,.5,.4],'menubar','none','numbertitle','off','name','CONN remotely','color','w');
             str={}; 
-            try, str{end+1}=sprintf('Remote session host address: %s',info.remote_ip); end
+            try, str{end+1}=sprintf('Remote session address: %s',info.remote_ip); end
             try, str{end+1}=sprintf('Remote session access port: %d',info.remote_port); end
             try, str{end+1}=sprintf('Remote session id: %s',info.remote_id); end
             try, str{end+1}=sprintf('Remote session log folder: %s',info.remote_log); end
+            try, str{end+1}=sprintf('Remote session start time: %s (%d minutes ago)',info.start_time,round((now-datenum(info.start_time))*24*60)); end
             try, str{end+1}=sprintf('SSH tunnel local port: %d',info.local_port); end
             try, 
                 if isempty(info.filename_ctrl)||exist(info.filename_ctrl,'file'), str{end+1}=sprintf('SSH control socket: %s',info.filename_ctrl); 
-                else str{end+1}=sprintf('WARNING: SSH control socket missing, please restart connection');
+                else str{end+1}=sprintf('SSH control socket missing or timed out (some operations may require re-authentication)');
                 end
             end
-            h.text1=uicontrol('style','text','units','norm','position',[.05,.80,.9,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',9+CONN_gui.font_offset,'string',sprintf('Remote CONN session in: %s',tnameserver),'parent',thfig);
-            h.text2=uicontrol('style','text','units','norm','position',[.05,.35,.9,.40],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string',str,'parent',thfig);
-            h.text3=uicontrol('style','text','units','norm','position',[.05,.23,.9,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string','','parent',thfig);
+            h.text1=uicontrol('style','text','units','norm','position',[.05,.80,.9,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',9+CONN_gui.font_offset,'string',sprintf('Connected to %s',tnameserver),'parent',thfig);
+            h.text2=uicontrol('style','text','units','norm','position',[.05,.35,.9,.43],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string',str,'parent',thfig);
+            h.text3=uicontrol('style','text','units','norm','position',[.05,.21,.55,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string','','parent',thfig);
+            h.button0=uicontrol(thfig,'visible','off','style','pushbutton','string','transfer files','enable','off','units','norm','position',[.65,.21,.30,.10],'callback','conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy files between this computer and %s',tnameserver));
             h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','off','units','norm','position',[.05,.11,.30,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
             h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.35,.11,.30,.10],'callback','conn_server(''SSH_details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
             h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.65,.11,.30,.10],'callback','conn_server(''clear'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears file temporal storage and communication buffer');
-            h.button4=uicontrol(thfig,'style','pushbutton','string','File transfer','units','norm','position',[.35,.01,.30,.10],'callback','conn_server(''SSH_filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
-            h.button5=uicontrol(thfig,'style','pushbutton','string','Restart connection','units','norm','position',[.35,.01,.30,.10],'callback','close(gcbf); conn remotely restart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
-            h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn remotely start','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_server ssh_exitforce" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
-            try, if ~isempty(info.remote_ip), set(h.button1,'enable','on'); end; end
+            %h.button4=uicontrol(thfig,'visible','off','style','pushbutton','string','File transfer','units','norm','position',[.05,.01,.30,.10],'callback','conn_server(''SSH_filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
+            h.button4=uicontrol(thfig,'style','pushbutton','string','Check connection','units','norm','position',[.05,.01,.30,.10],'callback','if conn(''gui_isconnected''), h=get(gcbf,''userdata''); set(h.text3,''string'',''connection working correctly''); end','fontsize',6+CONN_gui.font_offset,'tooltipstring','checks the connection with an existing/running remote CONN session');
+            h.button5=uicontrol(thfig,'style','pushbutton','string','Reset connection','units','norm','position',[.35,.01,.30,.10],'callback','close(gcbf); conn_remotely restart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
+            h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn_remotely start','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_server ssh_exitforce" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
+            try, if ~isempty(info.remote_ip), set([h.button1 h.button0],'enable','on'); end; end
             try, if ~isempty(info.remote_log), set(h.button2,'enable','on'); end; end
             set(thfig,'userdata',h);
+            
+        case 'gui_isconnected'
+            if CONN_gui.isremote
+                ok=false;
+                while ~ok
+                    try, ok=conn_server('isconnected'); end
+                    if ~ok
+                        info=conn_server('SSH_info');
+                        if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
+                        else tnameserver='CONN server';
+                        end
+                        answ=conn_questdlg('',sprintf('lost connection to %s',tnameserver),'Retry','Reset connection and retry','Start new remote session','Cancel','Retry');
+                        if isempty(answ), break; end
+                        switch(answ)
+                            case 'Reset connection and retry', try, conn remotely restart; end
+                            case 'Start new server', try, conn remotely start; end
+                            case 'Retry', try, conn_tcpip('flush'); end
+                            case 'Cancel', break; 
+                        end
+                    end
+                end
+            else ok=true;
+            end
+            varargout={ok};
             
         case 'parallel_settings'
             conn_jobmanager('settings');
@@ -1683,6 +1717,7 @@ else
             varargout=cell(1,nargout);
             CONN_x.gui=1;
 			state=find([conn_menumanager(CONN_h.menus.m_setup_02a,'state') conn_menumanager(CONN_h.menus.m_setup_02b,'state')],1);
+            if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn gui_isconnected; end
             if nargin<2,
                 conn_menumanager clf;
                 conn_menuframe;
@@ -3217,8 +3252,16 @@ else
                                                     [nill,idx]=unique(files);
                                                     files=files(sort(idx));
                                                     files=cellfun(@conn_definelabels,files,'uni',0);
-                                                    if isdeployed, conn_disp('fprintf','Functionality not available in standalone release. Please manually edit the file %s\n',files{:});
-                                                    else edit(files{:});
+                                                    filescached=conn_server('util_isremotefile',files);
+                                                    if any(filescached), 
+                                                        remotefiles=files;
+                                                        files(filescached)=conn_cache('pull',remotefiles(filescached)); 
+                                                    end
+                                                    if isdeployed, conn_disp('fprintf','Functionality not available in standalone release. Please manually edit the file %s\n',sprintf('%s ',files{:}));
+                                                    else
+                                                        edit(files{:});
+                                                        for rfiles=reshape(find(filescached),1,[]), conn_disp('fprintf','after editing this file use syntax ''conn cache push %s'' to push those changes to the server\n',remotefiles{rfiles}); end
+                                                        %conn_cache('push',remotefiles(filescached));
                                                     end
                                                 end
                                             else
@@ -8791,7 +8834,7 @@ else
                             CONN_h.menus.m_analyses.Xr=zeros(size(CONN_h.menus.m_analyses.XR,1)+2,size(CONN_h.menus.m_analyses.XR,2)+2,size(CONN_h.menus.m_analyses.XR,3));
                             CONN_h.menus.m_analyses.Xr(2:end-1,2:end-1,:)=CONN_h.menus.m_analyses.XR;
                         else
-                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=conn_loadmatfile(char(CONN_h.menus.m_analyses.XR)); end
+                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=conn_loadmatfile(char(CONN_h.menus.m_analyses.XR),'-cache'); end
                             idx=strmatch(CONN_x.Setup.conditions.names{nconditions},CONN_h.menus.m_analyses.XR.COND_names,'exact');
                             if numel(idx)==1
                                 CONN_h.menus.m_analyses.Xr=CONN_h.menus.m_analyses.XR.H(CONN_h.menus.m_analyses.XR.IDX_subject==nsubs,:);
@@ -11985,26 +12028,28 @@ catch me
         if isfield(CONN_x,'filename'), filename=CONN_x.filename; else filename=[]; end
         if ~isfield(CONN_x,'ver'), CONN_x.ver='undetermined'; end
         [str,PrimaryMessage]=conn_errormessage(me,filename,0,{CONN_x.ver,connver});
-        checkdesktop=true;
-        try, checkdesktop=checkdesktop&usejava('awt'); end
-        %try, checkdesktop=checkdesktop&CONN_x.pobj.holdsdata; end
-        if ~checkdesktop
-            conn_disp('fprintf','%s\n',str{:});
-            fprintf(2,'%s\n',str{:});
-        else
-            try, conn_disp('fprintf','%s\n',str{:}); end
-            %fprintf(1,'%s\n',str{:});
-            h=[]; 
-            set(findobj(0,'tag','conn_timedwaitbar'),'windowstyle','normal');
-            try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
-            h.fig=dialog('windowstyle','normal','name','Sorry, CONN run into an unexpected issue','color','w','resize','on','units','norm','position',[.2 .4 .4 .2],'handlevisibility','callback','windowstyle','modal');
-            h.button1=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.1 .75 .8 .2],'fontsize',9+CONN_gui.font_offset,'string',PrimaryMessage);
-            h.edit1=uicontrol(h.fig,'style','edit','units','norm','position',[.1 .30 .8 .65],'backgroundcolor','w','max',2,'fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','string',str,'visible','off');
-            h.edit2=uicontrol(h.fig,'style','edit','units','norm','position',[.1 .3 .8 .4],'backgroundcolor','w','max',2,'fontsize',8+CONN_gui.font_offset,'fontangle','italic','string',{'For support information see HELP->SUPPORT or HELP->FAQ','To check for patches and updates see HELP->UPDATES','If requesting support about this error please provide the full error message'});
-            h.button2=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.1 .05 .25 .2],'string','Visit support forum','callback',@(varargin)conn('gui_help','url','http://www.nitrc.org/forum/forum.php?forum_id=1144'),'tooltipstring','http://www.nitrc.org/forum/forum.php?forum_id=1144');
-            h.button3=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.4 .05 .25 .2],'string','Visit FAQ website','callback',@(varargin)conn('gui_help','url','http://www.alfnie.com/software/conn'),'tooltipstring','http://www.alfnie.com/software/conn');
-            h.button4=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.7 .05 .2 .2],'string','Continue','callback','delete(gcbf)');
-            set(h.button1,'userdata',h,'callback','h=get(gcbo,''userdata'');set(h.fig,''position'',get(h.fig,''position'')+[0,0,0,.3]);set(h.button1,''visible'',''off'');set(h.edit1,''position'',[.1 .30 .8 .65],''visible'',''on'');set(h.edit2,''position'',[.1 .12 .8 .18]);set(h.button2,''position'',[.1 .025 .25 .07]);set(h.button3,''position'',[.4 .025 .25 .07]);set(h.button4,''position'',[.7 .025 .2 .07]);');
+        if ~isequal(PrimaryMessage,'Process terminated by user'), 
+            checkdesktop=true;
+            try, checkdesktop=checkdesktop&usejava('awt'); end
+            %try, checkdesktop=checkdesktop&CONN_x.pobj.holdsdata; end
+            if ~checkdesktop
+                conn_disp('fprintf','%s\n',str{:});
+                fprintf(2,'%s\n',str{:});
+            else
+                try, conn_disp('fprintf','%s\n',str{:}); end
+                %fprintf(1,'%s\n',str{:});
+                h=[];
+                set(findobj(0,'tag','conn_timedwaitbar'),'windowstyle','normal');
+                try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
+                h.fig=dialog('windowstyle','normal','name','Sorry, CONN run into an unexpected issue','color','w','resize','on','units','norm','position',[.2 .4 .4 .2],'handlevisibility','callback','windowstyle','modal');
+                h.button1=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.1 .75 .8 .2],'fontsize',9+CONN_gui.font_offset,'string',PrimaryMessage);
+                h.edit1=uicontrol(h.fig,'style','edit','units','norm','position',[.1 .30 .8 .65],'backgroundcolor','w','max',2,'fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','string',str,'visible','off');
+                h.edit2=uicontrol(h.fig,'style','edit','units','norm','position',[.1 .3 .8 .4],'backgroundcolor','w','max',2,'fontsize',8+CONN_gui.font_offset,'fontangle','italic','string',{'For support information see HELP->SUPPORT or HELP->FAQ','To check for patches and updates see HELP->UPDATES','If requesting support about this error please provide the full error message'});
+                h.button2=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.1 .05 .25 .2],'string','Visit support forum','callback',@(varargin)conn('gui_help','url','http://www.nitrc.org/forum/forum.php?forum_id=1144'),'tooltipstring','http://www.nitrc.org/forum/forum.php?forum_id=1144');
+                h.button3=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.4 .05 .25 .2],'string','Visit FAQ website','callback',@(varargin)conn('gui_help','url','http://www.alfnie.com/software/conn'),'tooltipstring','http://www.alfnie.com/software/conn');
+                h.button4=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.7 .05 .2 .2],'string','Continue','callback','delete(gcbf)');
+                set(h.button1,'userdata',h,'callback','h=get(gcbo,''userdata'');set(h.fig,''position'',get(h.fig,''position'')+[0,0,0,.3]);set(h.button1,''visible'',''off'');set(h.edit1,''position'',[.1 .30 .8 .65],''visible'',''on'');set(h.edit2,''position'',[.1 .12 .8 .18]);set(h.button2,''position'',[.1 .025 .25 .07]);set(h.button3,''position'',[.4 .025 .25 .07]);set(h.button4,''position'',[.7 .025 .2 .07]);');
+            end
         end
         try, if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn_tcpip('clear'); end; end
     end
@@ -12616,7 +12661,7 @@ if ~ok, CONN_gui.background_handle=image(shiftdim(CONN_gui.backgroundcolor,-1),'
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,(.85-mean(CONN_gui.backgroundcolor))*.2*[zeros(1,128) sin(linspace(0,pi,128)).^2 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor,-1))))); end
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,conn_bsxfun(@times,max(.05,(1-mean(CONN_gui.backgroundcolor))*.1)*[zeros(1,128) sin(linspace(0,pi,128)).^4 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor/max(.01,mean(CONN_gui.backgroundcolor)),-1)),shiftdim(CONN_gui.backgroundcolor,-1))))); end
 if conn_menumanager('ison')
-    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbuttonblue2',[.0,.92,.135,.035],'','reconnecting...','','conn(''gui_server'');');
+    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbuttonblue2',[.0,.920,.138,.040],'','reconnecting...','','conn(''gui_server'');');
     else hserver=[];
     end
 end
@@ -12651,9 +12696,12 @@ if isfield(CONN_x,'filename')
 end
 if conn_menumanager('ison')&&isfield(CONN_gui,'isremote')&&CONN_gui.isremote, 
     try
-        info=conn_server('SSH_info');
-        if isfield(info,'remote_ip'), set(hserver,'string',sprintf('@ %s',info.remote_ip));
-        else set(hserver,'string',sprintf('@ unknown'));
+        if conn('gui_isconnected');
+            info=conn_server('SSH_info');
+            if isfield(info,'host')&&~isempty(info.host), set(hserver,'string',sprintf('@ %s',info.host));
+            elseif isfield(info,'remote_ip'), set(hserver,'string',sprintf('@ %s',info.remote_ip));
+            else set(hserver,'string',sprintf('@ unknown'));
+            end
         end
     end
 end

@@ -203,8 +203,9 @@ if nargin>=1
                 end
             elseif ~savelog&&mirrorscreen, try, set(CONN_h.screen.hlog,'name','CONN log history'); end; lastlogfile=''; 
             end
-            if PORTCOMM&&~isempty(str)
+            if PORTCOMM&&~isempty(str) % from server
                 conn_tcpip('write',struct('type','status','id','unknown','msg',{str}));
+                tcodes=conn_tcpip('peek'); if ~isempty(tcodes)&&ismember('STOP',tcodes), error('<DisregardMessage>Process stopped by user'); end
             end
             if nargout>0&&~isempty(newstr), varargout={newstr}; end
         end

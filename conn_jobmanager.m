@@ -322,7 +322,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
             if ~isempty(files), files=cellstr(files); end
         else
             localfilename=conn_projectmanager('projectfile',CONN_x_filename,struct('id','*','isextended',true));
-            allfiles=conn_dir(localfilename,'-R'); % check .dmat
+            allfiles=conn_dir(localfilename,'-R'), % check .dmat
             files={};
             if isempty(allfiles), % no jobs running
                 if isempty(whichoption)||isequal(whichoption,7)

@@ -22,7 +22,7 @@ function varargout = conn_server(option, varargin)
 % commands from client side: (from a computer with a SSH client)
 %   conn_server('SSH_start' [, serverip])           : SSH to network login node, submits a job to start a CONN server, and connects this computer to that remote server (note: expects to find serverip:~/connserverinfo.json file; run "conn_server SSH_save" in server once)
 %   conn_server('SSH_start', filein)                : same as above but loading CONN server information explicitly from the provided .json file
-%   conn_server('SSH_submitstart')                  : submits a job to start a new CONN server (run internally by SSH_start)
+%   conn_server('SSH_submitstart' [, profilename])  : submits a job to start a new CONN server (run internally by SSH_start)
 %   conn_server('SSH_restart')                      : restarts a dropped connection
 %   conn_server('SSH_exit')                         : terminates CONN server and disconnects
 %
@@ -137,7 +137,14 @@ switch(lower(option))
                     str=regexprep(var.msg,'[\r\n\s]*',' ');
                     if data.withwaitbar,
                         conn_disp(str);
-                        if ~isempty(statushandle), set(statushandle,'string',str); drawnow; end
+                        if ~isempty(statushandle), 
+                            try
+                                set(statushandle(1),'string',str); drawnow;
+                                if numel(statushandle)>1&&get(statushandle(2),'value')>0
+                                    conn_tcpip('poke','STOP');
+                                end
+                            end
+                        end
                     else
                         if iscell(str), for n=1:numel(str), fprintf('%s\n',str{n}); end
                         else fprintf('%s',str);
@@ -145,7 +152,7 @@ switch(lower(option))
                     end
                 elseif isempty(var)||~isstruct(var)||~isfield(var,'type')||~isfield(var,'id')||~isequal(var.id, data.id), 
                     disp(var);
-                    error('ERROR: undexpected response\n');
+                    fprintf('WARNING: unexpected response\n');
                 else
                     if isequal(var.type,'ok_hasattachment') % server is waiting for us to scp its response
                         tmpfile1=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
@@ -366,9 +373,11 @@ switch(lower(option))
         else cmd=sprintf('%s -nodesktop -noFigureWindows -nosplash -r "addpath ''%s''; addpath ''%s''; conn %s; exit"',...
                 fun_callback, whichfolders{1}, whichfolders{2},'%s');
         end
+        profilename=conn_jobmanager('getdefault');
         info = struct(...
             'host', regexprep(str1,'\n',''),...
-            'CONNcmd',cmd);
+            'CONNcmd',cmd,...
+            'SERVERcmd',profilename);
         if ~isempty(filename), spm_jsonwrite(filename,info); fprintf('Host information saved in %s\n',filename); end
         if nargout>0, varargout={info}; end
         if ~nargout&&isempty(filename), disp(info); end
@@ -382,8 +391,9 @@ switch(lower(option))
         %    $ ssh -o ControlPath=<local_filename> -O exit <login_node>                                                                             % exit/close connection
         if numel(varargin)>=1,
             filename=varargin{1};
+            if isequal(filename,'recent'), filename=fullfile(conn_fileutils('homedir'),'conn_recentservers.json'); end
             if isempty(regexp(filename,'.json$')), params.info.host=filename;
-            else params.info=conn_jsonload(filename);
+            else params.info=conn_jsonread(filename);
             end
         else params.info.CONNcmd='';
         end
@@ -426,7 +436,9 @@ switch(lower(option))
                     [ok,msg]=system(sprintf('scp -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
                         params.info.filename_ctrl,params.info.login_ip,filename));
                     assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
-                    params.info.CONNcmd=conn_jsonread(filename,'CONNcmd');
+                    tjson=conn_jsonread(filename);
+                    params.info.CONNcmd=tjson.CONNcmd;
+                    if isfield(tjson,'SERVERcmd'), params.info.SERVERcmd=tjson.SERVERcmd; end
                 end
             end
             if strcmpi(option,'ssh_restart')
@@ -434,17 +446,26 @@ switch(lower(option))
                 if ~isfield(params.info,'remote_port')||isempty(params.info.remote_port), params.info.remote_port=str2double(input('Remote session access port: ','s')); end
                 if ~isfield(params.info,'remote_id')||isempty(params.info.remote_id), params.info.remote_id=input('Remote session id: ','s'); end
                 if ~isfield(params.info,'remote_log')||isempty(params.info.remote_log), params.info.remote_log=input('Remote session log folder: ','s'); end
+                if ~isfield(params.info,'start_time')||isempty(params.info.start_time), params.info.start_time=datestr(now); end
                 params.info.local_port=[];
+                startnewserver=false;
             elseif isempty(params.info.host)
                 if ~isfield(params.info,'remote_ip'), params.info.remote_ip=''; end; if isempty(params.info.remote_ip), temp=input('Remote session host address: ','s'); else temp=input(sprintf('Remote session host address [%s]: ',params.info.remote_ip),'s'); end; if ~isempty(temp), params.info.remote_ip=temp; end
                 if ~isfield(params.info,'remote_port'), params.info.remote_port=[]; end; if isempty(params.info.remote_port), temp=input('Remote session access port: ','s'); else temp=input(sprintf('Remote session access port [%d]: ',params.info.remote_port),'s'); end; if ~isempty(temp), params.info.remote_port=str2double(temp); end
                 if ~isfield(params.info,'remote_id'), params.info.remote_id=''; end; if isempty(params.info.remote_id), temp=input('Remote session id: ','s'); else temp=input(sprintf('Remote session id [%s]: ',params.info.remote_id),'s'); end; if ~isempty(temp), params.info.remote_id=temp; end
                 if ~isfield(params.info,'remote_log'), params.info.remote_log=''; end; if isempty(params.info.remote_log), temp=input('Remote session log folder: ','s'); else temp=input(sprintf('Remote session log folder [%s]: ',params.info.remote_log),'s'); end; if ~isempty(temp), params.info.remote_log=temp; end
+                if ~isfield(params.info,'start_time')||isempty(params.info.start_time), params.info.start_time=datestr(now); end
                 params.info.local_port=[];
-            else
+                startnewserver=false;
+            else startnewserver=true;
+            end
+            if startnewserver
                 fprintf('Requesting a new Matlab session in %s. This may take a few minutes, please be patient as your job currently sits in a queue. CONN will resume automatically when the new Matlab session becomes available\n',params.info.login_ip);
                 % submit jobs to start server#2 in arbitrary remote node using HPC scheduler
-                [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' %s "%s"', params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server SSH_submitstart')),'"','\\"')));
+                if isfield(params.info,'SERVERcmd')&&~isempty(params.info.SERVERcmd), tstr=sprintf('server SSH_submitstart ''%s''',params.info.SERVERcmd); 
+                else tstr=sprintf('server SSH_submitstart');
+                end
+                [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' %s "%s"', params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
                 if ~isempty(regexp(msg,'SSH_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
                 else
                     keys=regexp(msg,'HOST:([^\n]+)\nPORT:([^\n]+)\nID:([^\n]+)\nLOG:([^\n]+)\n','tokens','once');
@@ -452,6 +473,7 @@ switch(lower(option))
                     params.info.remote_port=str2double(keys{2});
                     params.info.remote_id=keys{3};
                     params.info.remote_log=keys{4};
+                    params.info.start_time=datestr(now);
                     fprintf('Remote session started:\n  Host address = %s\n  Access port = %d\n  ID = %s\n  Log folder = %s\n',params.info.remote_ip,params.info.remote_port,params.info.remote_id,params.info.remote_log);
                 end
             end
@@ -477,6 +499,8 @@ switch(lower(option))
                 else conn_server('connect','localhost',sprintf('%dCONN%s',params.info.local_port,params.info.remote_id));
                 end
             end
+            filename=fullfile(conn_fileutils('homedir'),'conn_recentservers.json');
+            spm_jsonwrite(filename,params.info,struct('indent',' ')); fprintf('Connection information saved in %s\n',filename); 
         end
         
     case 'ssh_exit' % send exit signal to server to stop running (this will also cause the remote Matlab session to exit)
@@ -520,7 +544,8 @@ switch(lower(option))
         end
         
     case 'ssh_submitstart'
-        info=conn_jobmanager('submit','orphan_conn',[],1,[],'server','start',varargin{:});
+        if ~isempty(varargin)&&~isempty(varargin{1}), conn_jobmanager('setprofile',varargin{1}); end
+        info=conn_jobmanager('submit','orphan_conn',[],1,[],'server','start');
         fprintf('SSH_log in %s\n',info.pathname);
         fprintf('waiting for job to start...\n')
         for n=1:600
@@ -682,9 +707,8 @@ switch(lower(option))
         
     case 'isconnected'
         try,
-            remote_ver=conn_server('run','conn','ver');
-            local_ver=conn('ver');
-            assert(isequal(local_ver, remote_ver));
+            conn_tcpip('write','ping');
+            assert(isequal(conn_tcpip('read'),'ok'));
             params.state='on';
             varargout={true};
         catch

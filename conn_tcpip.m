@@ -239,16 +239,20 @@ switch(lower(option))
         connection.header1=[];
         connection.header2=[];
         
-    case {'read','readtofile'} % reads Matlab variable from remote
+    case {'read','readtofile','readnowait','readword'} % reads Matlab variable from remote
         hash=[];
         readtofile=strcmpi(option,'readtofile');
+        readnowait=strcmpi(option,'readnowait');
+        readword=strcmpi(option,'readword');
         if readtofile
             filename=varargin{1}; % reads raw data to file (data does not need to fit in memory)
             if ~isempty(connection.hash)&&nargout>0&&~isequal(connection.hash,'timestamp'), hash=java.security.MessageDigest.getInstance(connection.hash); end
-        elseif 1 % read to file then load var
-            filename=fullfile(connection.cache,['conntcpipread_',char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
-        else % read to var directly
+        %elseif readnowait
+        %    filename=[];
+        elseif readword % read to var directly
             filename=[];
+        else % read to file then load var
+            filename=fullfile(connection.cache,['conntcpipread_',char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
         end
         filehandle=[];
         bored=false;
@@ -257,6 +261,7 @@ switch(lower(option))
         while 1
             data=[];
             bytes_available = connection.input.stream.available;
+            if readnowait&&bored&&~bytes_available, break; end
             if bytes_available>0 || bored
                 %fprintf('.');
                 data=char(connection.input.stream.readUTF);
@@ -377,6 +382,7 @@ switch(lower(option))
                 connection.buffer=connection.buffer(i2+1:end);
                 connection.header1=connection.header1-i2; connection.header1(connection.header1<=0)=[];
                 connection.header2=connection.header2-i2; connection.header2(connection.header2<=0)=[];
+                if connection.length<0, connection.length=-connection.length; if ~readtofile, filename=[]; end; end % note: <-#> header -> readword
                 bored=false;
             end
             %if bored, pause(rand*bored); end
@@ -392,29 +398,17 @@ switch(lower(option))
         else varargout={};
         end
         
-    case 'writekeepalive'
-        try, connection.output.stream.writeUTF('<>'); end
-            
-    case 'write' % writes Matlab variable to remote
+    case {'write','writeword'} % writes Matlab variable to remote
         if numel(varargin)>=1, msg=varargin{1};
         else msg='hello world';
         end
-        if 1 % save to file then send file
-            filename=fullfile(connection.cache,['conntcpipwrite_',char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
-            info=whos('msg');
-            if info.bytes>2e9, save(filename,'msg','-v7.3'); 
-            else save(filename,'msg','-v7'); 
-            end
-            ok=conn_tcpip('writefromfile',filename);
-            if ispc, [nill,nill]=system(sprintf('del "%s"',filename));
-            else [nill,nill]=system(sprintf('rm -f ''%s''',filename));
-            end
-        else % send data directly (unused failback)
+        info=whos('msg');
+        if info.bytes<1e6|strcmpi(option,'writeword') % send data directly
             if isempty(msg), data='';
-            elseif isempty(base64), data=matlab.net.base64encode(mygetByteStreamFromArray(msg)); %(slow)
-            else, data=char(base64.encode(uint8(mygetByteStreamFromArray(msg))')');
+            elseif isempty(base64), data=matlab.net.base64encode(getByteStreamFromArray(msg)); %(slow)
+            else, data=char(base64.encode(uint8(getByteStreamFromArray(msg))')');
             end
-            header=sprintf('<%d>',numel(data));
+            header=sprintf('<-%d>',numel(data));
             ok=false;
             try
                 connection.output.stream.writeUTF(header);
@@ -427,6 +421,15 @@ switch(lower(option))
                 ok=true;
             catch
                 fprintf('Unable to send TCP packet (possibly unresponsive server). Disregarding\n');
+            end
+        else % save to file then send file
+            filename=fullfile(connection.cache,['conntcpipwrite_',char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
+            if info.bytes>2e9, save(filename,'msg','-v7.3'); 
+            else save(filename,'msg','-v7'); 
+            end
+            ok=conn_tcpip('writefromfile',filename);
+            if ispc, [nill,nill]=system(sprintf('del "%s"',filename));
+            else [nill,nill]=system(sprintf('rm -f ''%s''',filename));
             end
         end
         varargout={ok};
@@ -470,6 +473,31 @@ switch(lower(option))
             end
         end
         varargout={ok};
+        
+    case 'writekeepalive' % write keep-alive package
+        try, connection.output.stream.writeUTF('<>'); end 
+            
+    case 'poke' % write coded (non-numeric) keep-alive package
+        try, connection.output.stream.writeUTF(['<',regexprep(varargin{1},'\d',''),'>']); end 
+            
+    case 'peek' % read coded (non-numeric) keep-alive packages (only those posterior to the data read in the last 'conn_tcpip read' command)
+        while connection.input.stream.available>0
+            data=char(connection.input.stream.readUTF);
+            if ~isempty(data)
+                connection.header1=[connection.header1,numel(connection.buffer)+reshape(find(data=='<'),1,[])];
+                connection.header2=[connection.header2,numel(connection.buffer)+reshape(find(data=='>'),1,[])];
+                connection.buffer=[connection.buffer, data];
+            end
+        end
+        out={};
+        for n=1:numel(connection.header1) 
+            i1=connection.header1(n);
+            i2=connection.header2(find(connection.header2>i1,1));
+            if ~isempty(i2), i1=connection.header1(find(connection.header1<i2,1,'last')); else i1=[]; end
+            if ~isempty(i1), i1=regexprep(connection.buffer(i1+1:i2-1),'[+-\d]+',''); end
+            if ~isempty(i1), out{end+1}=i1; end
+        end
+        varargout={out};
         
     case 'sethash',
         if numel(varargin)>=1, connection.hash=varargin{1}; end

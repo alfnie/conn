@@ -16,14 +16,14 @@ if isequal(options,'aminserver') % if running from server
     CONN_x.gui=1;
     if ~skiploadsave, conn save; end
     return
-elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 19 34])) % note: list of processes which may be run from client
+elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 17 17.5 19 34])) % note: list of processes which may be run from client
     hmsg=[];
     if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
         info=conn_server('ssh_info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
         else tnameserver='none';
         end
-        [hmsg,hstat]=conn_msgbox({sprintf('Process running remotely (%s)',tnameserver),' ','CONN will resume automatically when this process finishes','Please wait...',' ',' '},[],[],true);
+        [hmsg,hstat]=conn_msgbox({sprintf('Process running remotely (%s)',tnameserver),'Please wait...',' ',' '},[],[],true);
     end
     if ~isfield(CONN_x,'filename')||isempty(CONN_x.filename), skiploadsave=true; else skiploadsave=false; end
     if ~isfield(CONN_x,'gui'), conn_x_gui=0; else conn_x_gui=CONN_x.gui; end
@@ -5245,7 +5245,7 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
     else % vv post hoc
         filepathresults1=varargin{1};
         filename=fullfile(filepathresults1,['resultsROI_Condition',num2str(icondition(1),'%03d'),'.mat']);
-        load(filename,'names');
+        names={}; conn_loadmatfile(filename,'names');
         sources=names;
         dosinglecontrast=0;
         nsources=1:length(sources);
@@ -5263,18 +5263,20 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
     if any(isnewcondition), error(['Some conditions have not been processed yet. Re-run previous step']); end
     
     if isfield(CONN_x.Results,'foldername')&&~isempty(CONN_x.Results.foldername),
-        [ok,nill]=mkdir(filepathresults2,CONN_x.Results.foldername);
+        try, conn_fileutils('mkdir',filepathresults2,CONN_x.Results.foldername); end
+        %[ok,nill]=mkdir(filepathresults2,CONN_x.Results.foldername);
         filepathresults2=fullfile(filepathresults2,CONN_x.Results.foldername);
         CONN_x.Results.foldername=[];
     else,
         [foldername,foldername_back]=conn_resultsfolder('subjectsconditions',1,nsubjecteffects,csubjecteffects,nconditions,cconditions);
         for nfolderbak=1:numel(foldername_back), 
-            if isdir(fullfile(filepathresults2,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
+            if conn_fileutils('isdir',fullfile(filepathresults2,foldername_back{nfolderbak})), foldername=foldername_back{nfolderbak}; break; end % backwards-compatibility with existing results
         end
         if ~nargout||nargout>1,
-            [ok,nill]=mkdir(filepathresults2,foldername);
-            if ok,filepathresults2=fullfile(filepathresults2,foldername);
-            else,
+            try, 
+                conn_fileutils('mkdir',filepathresults2,foldername);
+                filepathresults2=fullfile(filepathresults2,foldername);
+            catch
                 filepathresults2=uigetdir(filepathresults2,'Select a directory to write the results');
             end
         %             if isfield(CONN_x.Results,'foldername')&&~isempty(CONN_x.Results.foldername),
@@ -5295,11 +5297,11 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
        end
        if recompute
            f=conn_dir(fullfile(filepathresults2,'nonparametricroi_*.mat'),'-R','-cell');
-           if ~isempty(f), spm_unlink(f{:}); end
+           if ~isempty(f), conn_fileutils('spm_unlink',f{:}); end
        end
     end
     if ~recompute
-        load(fullfile(filepathresults2,'ROI.mat'),'ROI');
+        ROI={}; conn_loadmatfile(fullfile(filepathresults2,'ROI.mat'),'ROI');
         varargout{1}=ROI;
         if nargout>1, varargout{2}=filepathresults2; end
     else
@@ -5318,11 +5320,11 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
         for n0=1:length(nconditions),
             ncondition=nconditions(n0);
             filename=fullfile(filepathresults1,['resultsROI_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-            if isempty(dir(filename)),
+            if ~conn_existfile(filename),
                 Ransw=conn_questdlg({'First-level ROI analyses have not completed.','Perform now?'},'warning','Yes','No','Yes');
                 if strcmp(Ransw,'Yes'), conn_process('analyses_roi'); end
             end
-            load(filename,'Z','names','names2','xyz');%,'SE','DOF');
+            Z=[]; names={}; names2={}; xyz={}; conn_loadmatfile(filename,'Z','names','names2','xyz','-cache');%,'SE','DOF');
             orig_conditions{n0}=CONN_x.Setup.conditions.names{ncondition};
             iroi=[];clear ixyz; for nroi=1:length(sources),
                 roiname=sources{nroi};
@@ -5448,7 +5450,10 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
         if ~nargout||nargout>1,
             try
                 ROI=ROIout;
-                save(fullfile(filepathresults2,'ROI.mat'),'ROI','-v7.3');
+                tinfo=whos('ROI');
+                if tinfo.bytes>2e9, conn_savematfile(fullfile(filepathresults2,'ROI.mat'),'ROI','-v7.3');
+                else conn_savematfile(fullfile(filepathresults2,'ROI.mat'),'ROI','-v7');
+                end
                 conn_disp(['ROI results saved in ',fullfile(filepathresults2,'ROI.mat')]);
             end
             try % adds summary info
@@ -5486,13 +5491,13 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
                     summary.design.data=arrayfun(@(a,b)sprintf('subject%03d: measure #%d',a,b),repmat(reshape(find(ROI.xX.SelectedSubjects),[],1),[1,size(ROI.c2,2)]),repmat(1:size(ROI.c2,2),[nnz(ROI.xX.SelectedSubjects),1]),'uni',0);
                     summary.design.dataTitle=arrayfun(@(a)sprintf('measure #%d',a),1:size(ROI.c2,2),'uni',0);
                 end
-                save(fullfile(filepathresults2,'ROI.mat'),'summary','-append');
+                conn_savematfile(fullfile(filepathresults2,'ROI.mat'),'summary','-append');
             end
             try
                 %if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                 if isfield(CONN_x,'gui')&&(isfield(CONN_x.gui,'display_results')&&CONN_x.gui.display_results || isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast) || isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style) || isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options)),
                     cwd=pwd;
-                    cd(filepathresults2);
+                    try, cd(filepathresults2); end
                     if isfield(CONN_x.gui,'display_contrast')&&~isempty(CONN_x.gui.display_contrast), ncon=CONN_x.gui.display_contrast; else ncon=1; end
                     if isfield(CONN_x.gui,'display_style')&&~isempty(CONN_x.gui.display_style), style=CONN_x.gui.display_style; else style=[]; end
                     if isfield(CONN_x.gui,'display_options')&&~isempty(CONN_x.gui.display_options), display_options=CONN_x.gui.display_options; else display_options={}; end

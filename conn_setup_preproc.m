@@ -2845,6 +2845,12 @@ for iSTEP=1:numel(STEPS)
                                     conn_setup_preproc_disp(pm_def,'   options');
                                     vfmap=spm_vol(char(fmap)); vfmap(3:end)=[]; % note: disregards any additional magnitude images
                                     VDM = FieldMap_create(vfmap,{filename},pm_def); %[ET1,ET2,0,ERT,-1]
+                                    try
+                                        tvol=spm_vol(char(VDM{1}.fname));
+                                        tdat=spm_read_vols(tvol);
+                                        tvol.fname=conn_prepend('reverse_',tvol.fname);
+                                        spm_write_vol(tvol,-tdat);
+                                    end
                                 else error('insufficient information for vdm creation. Skipping subject %d session %d...\n',nsubject,nses);
                                 end
                             elseif isequal(vdm_type,3)||(isempty(vdm_type)&&numel(fmap)==1), % FieldMap [note: work in progress; needs further testing]
@@ -2884,7 +2890,13 @@ for iSTEP=1:numel(STEPS)
                                     pm_def.sessname='session'; pm_def.TOTAL_EPI_READOUT_TIME=ERT; pm_def.EPI_BASED_FIELDMAPS=0; pm_def.K_SPACE_TRAVERSAL_BLIP_DIR=BLIP; pm_def.MASKBRAIN=1; %pm_def.match_vdm=1; %pm_def.write_unwarped=1;
                                     conn_disp('fprintf','   FieldMap : %s\n   ref : %s\n',fmap{1},filename);
                                     conn_setup_preproc_disp(pm_def,'   options');
-                                    VDM = FieldMap_create(char(fmap),{filename},pm_def); %[ET1,ET2,0,ERT,-1]
+                                    VDM = FieldMap_create(char(fmap),{filename},pm_def); %[ET1,ET2,0,ERT,-1]                                    
+                                    try
+                                        tvol=spm_vol(char(VDM{1}.fname));
+                                        tdat=spm_read_vols(tvol);
+                                        tvol.fname=conn_prepend('reverse_',tvol.fname);
+                                        spm_write_vol(tvol,-tdat);
+                                    end
                                 else error('insufficient information for vdm creation. Skipping subject %d session %d...\n',nsubject,nses);
                                 end
                             elseif isequal(vdm_type,2)||(isempty(vdm_type)&&numel(fmap)==4), % Real1+Imag1+Real2+Imag2 [note: work in progress; needs further testing]
@@ -2913,6 +2925,12 @@ for iSTEP=1:numel(STEPS)
                                     conn_disp('fprintf','   Real1 : %s\n   Imag1 : %s\n   Real2 : %s\n   Imag2 : %s\n   ref : %s\n',fmap{1},fmap{2},fmap{3},fmap{4},filename);
                                     conn_setup_preproc_disp(pm_def,'   options');
                                     VDM = FieldMap_create(char(fmap),{filename},pm_def); %[ET1,ET2,0,ERT,-1]
+                                    try
+                                        tvol=spm_vol(char(VDM{1}.fname));
+                                        tdat=spm_read_vols(tvol);
+                                        tvol.fname=conn_prepend('reverse_',tvol.fname);
+                                        spm_write_vol(tvol,-tdat);
+                                    end
                                 else error('insufficient information for vdm creation. Skipping subject %d session %d...\n',nsubject,nses);
                                 end
                             else error('type of fieldmap sequence files could not be determined from number of available files (%d) in dataset %s for subject %d session %d',numel(fmap),mat2str(vdm_fmap),nsubject,nses);
