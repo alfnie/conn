@@ -1311,7 +1311,7 @@ else
                     else opts={};
                     end
                     str=regexprep(str,'(<HTML>)?(\s*)(.*)\%\!(</HTML>)?','<HTML><pre>$2<b>$3</b></pre></HTML>');
-                    dlg.fig=figure('units','norm','position',[.2,.1,.6,.8],'menubar','none','numbertitle','off','name','help','color','w',opts{:});
+                    dlg.fig=figure('units','norm','position',[.2,.1,.7,.8],'menubar','none','numbertitle','off','name','help','color','w',opts{:});
                     dlg.box=uicontrol(dlg.fig,'units','norm','position',[0 0 1 1],'style','listbox','max',1,'str',str,'backgroundcolor','w','horizontalalignment','left','fontname','monospaced');
                     uiwait(dlg.fig,1);
             end

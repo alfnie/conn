@@ -37,33 +37,35 @@ function varargout=conn_remotely(varargin)
 % 
 % When prompted enter:
 %
-%   "Server address" prompt  :      Enter the IP-address of the "host" computer (this may be a login-node in a 
-%                                   computer cluster environment) 
-%   "Username" prompt        :      Enter your username in the "host" computer (used to establish an SSH-connection with 
-%                                   the host)
-%   "Password" prompt        :      Enter your password in the "host" computer (note: CONN does not read or record your 
-%                                   password, this is read by your system's ssh command directly from tty)
+%   "Server address" prompt  :      Enter the IP-address of the "host" computer (this may be the target computer
+%                                   you want to connect to, or simply a login-node within a target network you
+%                                   want to connect to (e.g. when connecting to a computer cluster environment)
+%   "Username" prompt        :      Enter your username in the "host" computer (used to establish an SSH-connection 
+%                                   with the host)
+%   "Password" prompt        :      Enter your password in the "host" computer (note: CONN does not read or record 
+%                                   your password, this will be read by your system's ssh command directly from tty)
 %
 % After this CONN will launch the standard CONN gui and allow you to load and work with any CONN projects that may be 
 % accessible from the "host" computer. 
 %
 % Options: %!
 %
-%    conn remotely setup     : (run in "host" computer just once) creates file ~/connserverinfo.json with the following information:
-%                               CONNcmd     : OS-level command used to start/run CONN on "host" computer
-%                               host        : name of "host" computer (or login-node for HPC/cluster environments)
-%                               SERVERcmd   : name of HPC profile to use when starting a CONN "server" 
-%                                             - see "conn_jobmanager profiles" to display a list of available profiles
-%                                             - see "help conn_jobmanager" for additional options
-%                                               (e.g. SERVERcmd='Background' will run CONN server process in the same computer
-%                                               as the "server" computer that we are connecting to, while SERVERcmd='Slurm' will
-%                                               run CONN server process in a different computer which will be requested using the
-%                                               options defined in the HPC.configuration 'Slurm' profile)
+%    conn remotely setup       : (run in "host" computer just once) creates file ~/connserverinfo.json with the following 
+%                                information:
+%                                 CONNcmd     : OS-level command used to start/run CONN on "host" computer
+%                                 host        : name of "host" computer (or login-node for HPC/cluster environments)
+%                                 SERVERcmd   : name of HPC profile to use when starting a CONN "server" 
+%                                             see "conn_jobmanager profiles" to display a list of available profiles
+%                                             see "help conn_jobmanager" for additional options
+%                                           (e.g. SERVERcmd='Background' will run CONN server process in the same computer
+%                                           as the "server" computer that we are connecting to, while SERVERcmd='Slurm' will
+%                                           run CONN server process in a different computer which will be requested using the
+%                                           options defined in the HPC.configuration 'Slurm' profile)
 %
-%    conn remotely           : starts CONN from the "client" computer
+%    conn remotely             : starts CONN from the "client" computer
 %
-%    conn remotely restart   : re-starts CONN from the "client" computer after a dropped connection (this will not start a new
-%                               CONN server process but instead will attempt to re-connect to an existing one)
+%    conn remotely restart     : re-starts CONN from the "client" computer after a dropped connection (this will not start 
+%                                a new CONN server process but instead will attempt to re-connect to an existing one)
 %
 % Additional information: %!
 %
@@ -82,12 +84,12 @@ function varargout=conn_remotely(varargin)
 % and the SSH tunnel will be closed.
 %
 %   Standard (SSH-based) structure of CONN REMOTELY components:
-%                         ------------------------------------------------------------------
-%      --------          |     --------                                 ---------           |     
-%     | Client | <---SSH--->  | Host   | ----Background/Slurm/etc.---> | Server  |          |
-%     |________|         |    |________| <---------SSH tunnel--------> |_________|          |
-% (local CONN session)   |    (gateway)                            (remote CONN session)    |
-%                        |__________________________________________________________________|
+%                         --------------------------------------------------------------------------
+%      --------          |     --------                                         ---------           |     
+%     | Client | <---SSH--->  | Host   | INIT: ---(Backg/Slurm/GridEngine)---> | Server  |          |
+%     |________|         |    |________| <-----SSH port forwarding-----------> |_________|          |
+% (local CONN session)   |    (gateway)                                    (remote CONN session)    |
+%                        |__________________________________________________________________________|
 %                            (remote network)
 %
 % note on 'CONN remotely' use: when working with a remote project, all of the elements in CONN's gui will be run locally by 
@@ -116,13 +118,13 @@ function varargout=conn_remotely(varargin)
 %           2.e) in the "Remote session log folder" prompt:      leave empty (press Return)
 % 
 %   Alternative (non-SSH) structure of CONN REMOTELY components:
-%    -------------------------------------------------
-%   |      --------                ---------------    |
-%   |     | Client | <---TCP--->  | Host/Server   |   |
-%   |     |________|              |_______________|   |
-%   |(local CONN session)      (remote CONN session)  |
-%   |_________________________________________________|
-%                  (local network)
+%      -------------------------------------------------
+%     |      --------                ---------------    |
+%     |     | Client | <---TCP--->  | Host/Server   |   |
+%     |     |________|              |_______________|   |
+%     |(local CONN session)      (remote CONN session)  |
+%     |_________________________________________________|
+%                    (local network)
 %
 
 
@@ -130,7 +132,7 @@ if nargin>=1&&isequal(varargin{1},'setup'),conn_server('SSH_save'); return; end
 
 keepgui=false;
 if nargin>=1, keepgui=conn('findgui'); end
-if nargin>=1&&isequal(varargin{1},'restart'),dorestart=true;
+if nargin>=1&&isequal(varargin{1},'restart'),dorestart=true; varargin=varargin(2:end);
 else dorestart=false;
 end
 connversion={'CONN functional connectivity toolbox',' (',conn('ver'),') '};
@@ -150,7 +152,7 @@ if strcmp(Answ,'Proceed')
     if doinitconnection
         try
             if dorestart, conn_server SSH_restart recent;
-            else conn_server SSH_start;
+            else conn_server SSH_start % note: change to "conn_server('SSH_start',varargin{:})" to allow user-defined .json files
             end
         catch me
             fprintf('ERROR: Unable to start remote session: %s',me.message);
