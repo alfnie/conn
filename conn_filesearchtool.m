@@ -26,6 +26,7 @@ if nargin<1 || ischar(varargin{1}),
         'reduced',false,...
         'filename','',...
         'localcopy',[],...
+        'inserver',[],...
         'max',2};
     params=[];
     for n1=1:2:nargin, params=setfield(params,lower(varargin{n1}),varargin{n1+1}); end
@@ -58,6 +59,7 @@ if nargin<1 || ischar(varargin{1}),
     set(h.files,'max',params.max);
     h.selected=uicontrol('style','text','units','norm','position',[1,.04,.23,.9,.10]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','fontname',params.fontname,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
     %h.select=uicontrol('style','pushbutton','units','norm','position',[1,.7,.14,.25,.05]*M,'string','Select','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','tooltipstring','Enter selected file(s) or open selected folder','callback',{@conn_filesearchtool,'files',true});
+    if ~isempty(params.inserver), h.inserver=params.inserver; else h.inserver=conn_projectmanager('inserver'); end
     h.isfiles=strcmp(params.type,'files');
     if h.isfiles
         if ~isempty(params.buttonhelp), h.strbuttonhelp=params.buttonhelp; 
@@ -202,11 +204,11 @@ else,
             isdirectory=(conn_fileutils('isdir',pathname) || (~h.reduced&&~conn_existfile(pathname)));
             if ismember(varargin{3},{'files','selectfolder'})&&h.reduced&&~isdirectory, set(h.filename,'string',filename); end
             if ~selectfolder&&isdirectory&&selection, % cd to a new directory
-                if conn_projectmanager('inserver'), pathname=conn_server('util_remotefile',pathname); end % note: comment this line to allow access to local drives
+                if h.inserver, pathname=conn_server('util_remotefile',pathname); end % note: comment this line to allow access to local drives
                 str=conn_filesearch_breakfolder(pathname);
                 results={[parse{1},'   ..',parse{2}]}; 
                 names=conn_dirn(fullfile(pathname,'*'));
-                if ~isempty(names)&&numel(str)==1&&conn_projectmanager('inserver'), names=[names(1) names(:)']; names(1).name='CONNSERVER'; names(1).isdir=true; end
+                if ~isempty(names)&&numel(str)==1&&h.inserver, names=[names(1) names(:)']; names(1).name='CONNSERVER'; names(1).isdir=true; end
                 for n1=1:length(names), if names(n1).isdir&&~strcmp(names(n1).name,'.')&&~strcmp(names(n1).name,'..'), results{end+1}=[parse{1},'   ',names(n1).name,parse{2}]; end; end
                 n0results=numel(results);
                 if n0results>0, results=conn_sortfilenames(results); end

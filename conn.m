@@ -1536,7 +1536,7 @@ else
             h.text1=uicontrol('style','text','units','norm','position',[.05,.80,.9,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',9+CONN_gui.font_offset,'string',sprintf('Connected to %s',tnameserver),'parent',thfig);
             h.text2=uicontrol('style','text','units','norm','position',[.05,.35,.9,.43],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string',str,'parent',thfig);
             h.text3=uicontrol('style','text','units','norm','position',[.05,.21,.55,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string','','parent',thfig);
-            h.button0=uicontrol(thfig,'visible','off','style','pushbutton','string','transfer files','enable','off','units','norm','position',[.65,.21,.30,.10],'callback','conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy files between this computer and %s',tnameserver));
+            h.button0=uicontrol(thfig,'style','pushbutton','string','transfer files','enable','off','units','norm','position',[.65,.21,.30,.10],'callback','delete(gcbf); conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy files between this computer and %s',tnameserver));
             h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','off','units','norm','position',[.05,.11,.30,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
             h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.35,.11,.30,.10],'callback','conn_server(''SSH_details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
             h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.65,.11,.30,.10],'callback','conn_server(''clear'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears file temporal storage and communication buffer');
@@ -1562,7 +1562,7 @@ else
                         if isempty(answ), break; end
                         switch(answ)
                             case 'Reset connection and retry', try, conn remotely restart; end
-                            case 'Start new server', try, conn remotely start; end
+                            case 'Start new remote session', try, conn remotely start; end
                             case 'Retry', try, conn_tcpip('flush'); end
                             case 'Cancel', break; 
                         end
@@ -1571,6 +1571,103 @@ else
             else ok=true;
             end
             varargout={ok};
+            
+        case 'gui_filetransfer'
+            if ~CONN_gui.isremote, return; end
+            boffset=[0 0 0 0];
+            ALLOWRMDIR=false; % set to true to allow users to use rmdir commands (recursive deletion of directory and its contents)
+            if nargin<2,
+                conn gui_clear;
+                conn_menu('frame',boffset+[.075,.36,.45,.44],'File transfer');
+                CONN_h.menus.m_filetransfer_00{1}=conn_menu('edit',boffset+[.10,.7,.40,.04],'LOCAL folder','','Full path to local folder/directory','conn(''gui_filetransfer'',''local'');');
+                CONN_h.menus.m_filetransfer_00{2}=conn_menu('edit',boffset+[.10,.6,.40,.04],'REMOTE folder','','Full path to remote folder/directory','conn(''gui_filetransfer'',''remote'');');
+                copytypes={'LOCAL-TO-REMOTE: create a copy of the local folder within the selected remote folder','REMOTE-TO-LOCAL: create a copy of the remote folder within the selected local folder'};
+                CONN_h.menus.m_filetransfer_00{3}=conn_menu('popup',boffset+[.10,.5,.40,.04],'',copytypes,'<HTML> - Select type of transfer operation <br/> - note: folders will be copied entirely (including subfolders)</HTML>','');
+                CONN_h.menus.m_filetransfer_00{4}=conn_menu('foldersearch_local',[],'Select LOCAL folder','Select','',{@conn,'gui_filetransfer','local'});
+                CONN_h.menus.m_filetransfer_00{5}=conn_menu('foldersearch_remote',[],'Select REMOTE folder','Select','',{@conn,'gui_filetransfer','remote'});
+                CONN_h.menus.m_filetransfer_00{6}=conn_menu('pushbuttonblue',boffset+[.10,.45,.40,.045],'','Copy folders','Perform file transfer operation (copy local/remote folders)','conn(''gui_filetransfer'',''copy'');');
+                if ALLOWRMDIR, CONN_h.menus.m_filetransfer_00{7}=conn_menu('popup',boffset+[.08,.35,.25,.05],'',{'<HTML><i> - file transfer tools -</i></HTML>','create new directory within local folder (local mkdir)','create new directory within remote folder (remote mkdir)','delete folder/directory within local folder (local rmdir)','delete folder/directory within remote folder (remote rmdir)'},'','conn(''gui_filetransfer'',''tools'');');
+                else CONN_h.menus.m_filetransfer_00{7}=conn_menu('popup',boffset+[.08,.35,.25,.05],'',{'<HTML><i> - file transfer tools -</i></HTML>','create new directory within local folder (local mkdir)','create new directory within remote folder (remote mkdir)'},'','conn(''gui_filetransfer'',''tools'');');
+                end
+                CONN_h.menus.m_filetransfer.file_local=conn_server('util_localfile',get(CONN_h.menus.m_filetransfer_00{4}.folder,'string'));
+                CONN_h.menus.m_filetransfer.file_remote=conn_server('util_remotefile',get(CONN_h.menus.m_filetransfer_00{5}.folder,'string'));
+            end
+            if numel(varargin)>=2&&ischar(varargin{2})
+                switch(varargin{2})
+                    case 'local'
+                        if numel(varargin)>=3&&~isempty(varargin{3}), CONN_h.menus.m_filetransfer.file_local=conn_server('util_localfile',varargin{3});
+                        else
+                            tfolder=conn_server('util_localfile',get(CONN_h.menus.m_filetransfer_00{1},'string'));
+                            if conn_existfile(tfolder,2), 
+                                CONN_h.menus.m_filetransfer.file_local=tfolder; 
+                                set(CONN_h.menus.m_filetransfer_00{4}.folder,'string',tfolder);
+                                conn_filesearchtool(CONN_h.menus.m_filetransfer_00{4}.folder,[],'folder',true);
+                            end
+                        end
+                    case 'remote'
+                        if numel(varargin)>=3&&~isempty(varargin{3}), CONN_h.menus.m_filetransfer.file_remote=conn_server('util_remotefile',varargin{3});
+                        else
+                            tfolder=conn_server('util_remotefile',get(CONN_h.menus.m_filetransfer_00{2},'string'));
+                            if conn_existfile(tfolder,2), 
+                                CONN_h.menus.m_filetransfer.file_remote=tfolder; 
+                                set(CONN_h.menus.m_filetransfer_00{5}.folder,'string',tfolder);
+                                conn_filesearchtool(CONN_h.menus.m_filetransfer_00{5}.folder,[],'folder',true);
+                            end
+                        end
+                    case 'copy'
+                        value=get(CONN_h.menus.m_filetransfer_00{3},'value');
+                        if value==1, [nill,filename,fileext]=fileparts(CONN_h.menus.m_filetransfer.file_local); answ=conn_questdlg({'This will create a new REMOTE folder named:',conn_server('util_localfile',fullfile(CONN_h.menus.m_filetransfer.file_remote,[filename,fileext])), 'which will be a copy of the LOCAL folder named:',CONN_h.menus.m_filetransfer.file_local},'','Proceed','Cancel','Proceed');
+                        else [nill,filename,fileext]=fileparts(CONN_h.menus.m_filetransfer.file_remote); answ=conn_questdlg({'This will create a new LOCAL folder named:',fullfile(CONN_h.menus.m_filetransfer.file_local,[filename,fileext]), 'which will be a copy of the REMOTE folder named:',conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_remote)},'','Proceed','Cancel','Proceed');
+                        end
+                        if strcmp(answ,'Proceed'),
+                            hmsg=conn_msgbox('Copying files... please wait','');
+                            if value==1, conn_server('ssh_folderpush',CONN_h.menus.m_filetransfer.file_local,CONN_h.menus.m_filetransfer.file_remote);
+                            else         conn_server('ssh_folderpull',CONN_h.menus.m_filetransfer.file_remote,CONN_h.menus.m_filetransfer.file_local);
+                            end
+                            if ishandle(hmsg), delete(hmsg); end
+                            conn_disp('Done');
+                            conn_filesearchtool(CONN_h.menus.m_filetransfer_00{4}.folder,[],'folder',true);
+                            conn_filesearchtool(CONN_h.menus.m_filetransfer_00{5}.folder,[],'folder',true);
+                        end
+                    case 'tools'
+                        val=get(CONN_h.menus.m_filetransfer_00{7},'value');
+                        set(CONN_h.menus.m_filetransfer_00{7},'value',1);
+                        switch(val)
+                            case 2, % local mkdir
+                                dirname=fullfile(conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_local),'NewFolder');
+                                answ=inputdlg({'Name of folder (in local computer) to create'},'',1,{dirname},struct('Resize','on'));
+                                if numel(answ)==1&&~isempty(answ{1}),
+                                    dirname=answ{1};
+                                    conn_fileutils('mkdir',conn_server('util_localfile',dirname));
+                                end
+                            case 3, % remote mkdir
+                                dirname=fullfile(conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_remote),'NewFolder');
+                                answ=inputdlg({'Name of folder (in remote computer) to create'},'',1,{dirname},struct('Resize','on'));
+                                if numel(answ)==1&&~isempty(answ{1}),
+                                    dirname=answ{1};
+                                    conn_fileutils('mkdir',conn_server('util_remotefile',dirname));
+                                end
+                            case 4, % local rmdir
+                                dirname=fullfile(conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_local),'NewFolder');
+                                answ=inputdlg({'Name of folder (in local computer) to delete'},'',1,{dirname},struct('Resize','on'));
+                                if numel(answ)==1&&~isempty(answ{1}),
+                                    dirname=answ{1};
+                                    conn_fileutils('rmdir_recursive',conn_server('util_localfile',dirname));
+                                end
+                            case 5, % remote rmdir
+                                dirname=fullfile(conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_remote),'NewFolder');
+                                answ=inputdlg({'Name of folder (in remote computer) to delete'},'',1,{dirname},struct('Resize','on'));
+                                if numel(answ)==1&&~isempty(answ{1}),
+                                    dirname=answ{1};
+                                    conn_fileutils('rmdir_recursive',conn_server('util_remotefile',dirname));
+                                end
+                        end
+                        conn_filesearchtool(CONN_h.menus.m_filetransfer_00{4}.folder,[],'folder',true);
+                        conn_filesearchtool(CONN_h.menus.m_filetransfer_00{5}.folder,[],'folder',true);                        
+                end
+            end
+            set(CONN_h.menus.m_filetransfer_00{1},'string',conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_local));
+            set(CONN_h.menus.m_filetransfer_00{2},'string',conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_remote));
             
         case 'parallel_settings'
             conn_jobmanager('settings');

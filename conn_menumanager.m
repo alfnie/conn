@@ -478,7 +478,7 @@ else
                 ximage=CONN_MM.CDATA{thishandle}{n1}{x};
                 if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, 
                     ximage0=round(ximage);
-                    ximage=max(0,min(1,ximage*2.5)); ximage=ximage.*repmat(.6+.3*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[size(ximage,1),1,size(ximage,3)]); 
+                    ximage=max(0,min(1,ximage*2.5)); ximage=ximage.*repmat(.6+.3*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
                     if 0,%CONN_MM.MENU{thishandle}.order(1)~='h'
                         ximagei=1;
                         ximage(:,ximagei,:)=ximage0(:,ximagei,:); % left

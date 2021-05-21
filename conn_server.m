@@ -599,7 +599,7 @@ switch(lower(option))
         set([h.files, h.types, h.refresh],'callback',@(varargin)conn_projectmanager_update_details(h.hfig));
         if ishandle(h.hfig), conn_projectmanager_update_details(h.hfig); end
         
-    case 'ssh_push'
+    case {'ssh_push','ssh_folderpush'}
 %         clear h;
 %         h.hfig=figure('units','norm','position',[.3 .4 .5 .2],'name','file transfer (scp)','numbertitle','off','menubar','none','color','w');
 %         uicontrol('style','text','units','norm','position',[.1 .70 .19 .15],'string','copy FROM:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);
@@ -608,15 +608,19 @@ switch(lower(option))
 %         h.filesTO=uicontrol('style','edit','max',1,'units','norm','position',[.3 .50 .6 .15],'string','','backgroundcolor','w','horizontalalignment','left','parent',h.hfig);
 %         uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.25],'callback','uiresume');
 %         uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.25],'callback','delete(gcbf)');
-        filelocal=varargin{1};
-        fileremote=varargin{2};
-        ok=system(sprintf('scp -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
+        filelocal=conn_server('util_localfile',varargin{1});
+        fileremote=conn_server('util_localfile',varargin{2});
+        if strcmpi(option,'ssh_folderpush'), ok=system(sprintf('scp -C -r -o ControlPath=''%s'' ''%s'' %s:''%s''', params.info.filename_ctrl,regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
+        else ok=system(sprintf('scp -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
+        end
         varargout={isequal(ok,0)}; 
         
-    case 'ssh_pull'
-        fileremote=varargin{1};
-        filelocal=varargin{2};
-        [ok,msg]=system(sprintf('scp -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
+    case {'ssh_pull','ssh_folderpull'}
+        fileremote=conn_server('util_localfile',varargin{1});
+        filelocal=conn_server('util_localfile',varargin{2});
+        if strcmpi(option,'ssh_folderpull'), [ok,msg]=system(sprintf('scp -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0',filesep])));
+        else [ok,msg]=system(sprintf('scp -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
+        end
         if ~isequal(ok,0), disp(msg); end
         varargout={isequal(ok,0)}; 
         

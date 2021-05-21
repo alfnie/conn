@@ -107,13 +107,14 @@ switch(lower(option))
         if nargout>=1, varargout{1}=ok; end
         if nargout>=2, varargout{2}=msg; end
         
-    case {'rmdir','rmdir_dironly'} % note: no error if fails
+    case {'rmdir','rmdir_dironly','rmdir_recursive'} % note: no error if fails
         if any(conn_server('util_isremotefile',varargin{1})), 
             [ok,msg]=conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}));
         elseif iscell(varargin{1}), [ok,msg]=cellfun(@(x)conn_fileutils(option,x),varargin{1},'uni',0);
         else
             if isdir(varargin{1})
-                if strcmpi(option,'rmdir_dironly'), [ok,msg]=rmdir(varargin{1});
+                if strcmpi(option,'rmdir_recursive'), [ok,msg]=rmdir(varargin{1},'s');
+                elseif strcmpi(option,'rmdir_dironly'), [ok,msg]=rmdir(varargin{1});
                 elseif ispc,
                     [ok,msg]=system(sprintf('del /Q "%s"',fullfile(varargin{1},'*')));
                     [ok,msg]=system(sprintf('rmdir "%s"',varargin{1})); ok=isequal(ok,0); % note: rmdir success output ~= system output
