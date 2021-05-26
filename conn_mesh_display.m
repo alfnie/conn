@@ -549,17 +549,17 @@ thdl=[];for n1=1:numel(tvalues)-1, thdl=[thdl,uimenu(hc2,'Label',num2str(n1-1),'
 set(thdl,'checked','off');set(thdl(max(1,min(numel(thdl),idx))),'checked','on');
 uimenu(hc1,'Label','Reference slices position','callback',{@conn_mesh_display_refresh,'pos_ref'});
 
-hc1=uimenu(hc0,'Label','User-defined surface');
+hc1=uimenu(hc0,'Label','Custom surface');
 tvalues=[1 .9:-.1:.1 .05 0];
-thdl=uimenu(hc1,'Label','User-defined surface on','callback',{@conn_mesh_display_refresh,'ud_transparency',1},'tag','ud_transparency');
-hc2=uimenu(hc1,'Label','User-defined surface transparent');
+thdl=uimenu(hc1,'Label','Custom surface on','callback',{@conn_mesh_display_refresh,'ud_transparency',1},'tag','ud_transparency');
+hc2=uimenu(hc1,'Label','Custom surface transparent');
 for n1=1:numel(tvalues)-1, thdl=[thdl,uimenu(hc2,'Label',num2str(n1-1),'callback',{@conn_mesh_display_refresh,'ud_transparency',tvalues(n1)},'tag','ud_transparency')]; end
-thdl=[thdl,uimenu(hc1,'Label','User-defined surface off','callback',{@conn_mesh_display_refresh,'ud_transparency',0},'tag','ud_transparency')];
+thdl=[thdl,uimenu(hc1,'Label','Custom surface off','callback',{@conn_mesh_display_refresh,'ud_transparency',0},'tag','ud_transparency')];
 [nill,idx]=min(abs(state.facealphaud-[1 tvalues]));
 set(thdl,'checked','off');set(thdl(max(1,min(numel(thdl),idx))),'checked','on');
-uimenu(hc1,'Label','User-defined surface color','callback',{@conn_mesh_display_refresh,'ud_color'});
-uimenu(hc1,'Label','User-defined surface add','callback',{@conn_mesh_display_refresh,'ud_select'});
-uimenu(hc1,'Label','User-defined surface delete','callback',{@conn_mesh_display_refresh,'ud_delete'});
+uimenu(hc1,'Label','Custom surface color','callback',{@conn_mesh_display_refresh,'ud_color'});
+uimenu(hc1,'Label','Custom surface add','callback',{@conn_mesh_display_refresh,'ud_select'});
+uimenu(hc1,'Label','Custom surface delete','callback',{@conn_mesh_display_refresh,'ud_delete'});
 
 if ~isempty(state.handles.sphplots)&&any(any(state.handles.sphplots))||~isempty(state.handles.sphplots_txt)&&any(any(state.handles.sphplots_txt))
     hc0=uimenu(hc,'Label','ROIs');

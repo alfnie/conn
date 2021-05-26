@@ -619,7 +619,7 @@ if ~nargin, help(mfilename); return; end
 if nargin==1&&~ischar(varargin{1}), batch=varargin{1}; %batch(BATCH) syntax
 elseif nargin==1&&ischar(varargin{1}), 
     if ~isempty(regexp(varargin{1},'\.mat$'))
-        data=load(varargin{1},'-mat'); tnames=fieldnames(data); batch=data.(tnames{1}); %batch(batchfilename.mat) syntax
+        data=conn_loadmatfile(varargin{1},'-mat'); tnames=fieldnames(data); batch=data.(tnames{1}); %batch(batchfilename.mat) syntax
     elseif ~isempty(regexp(varargin{1},'\.m$')) %batch(batchfilename.m) syntax
         conn_batch_eval(varargin{1});
         return;
@@ -1856,7 +1856,7 @@ end
 end
 
 function conn_batch_eval(filename)
-str=fileread(filename);
+str=conn_fileutils('fileread',filename);
 str=regexprep(str,'\s*function .*?\n(.*?)(end[\s\n]*)?$','$1');
 evalin('base',str);
 end

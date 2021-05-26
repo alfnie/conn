@@ -67,10 +67,10 @@ if n>1,%&&numel(utypes)>1
 end
 hc0=get(handle,'userdata');
 if isempty(hc0), 
-    hc0=conn_menu('popup',get(handle,'position')*[1 0 0 0;0 1 0 0;0 0 1 0;0 -1 0 1],'',[{'<HTML><i>user-defined contrast</i></HTML>'},rnames],['List of suggested possible contrasts for the selected set of ',title],@(varargin)conn_contrasthelpcallback(handle,contrasts));
+    hc0=conn_menu('popup',get(handle,'position')*[1 0 0 0;0 1 0 0;0 0 1 0;0 -1 0 1],'',[{'<HTML><i>custom contrast</i></HTML>'},rnames],['List of suggested possible contrasts for the selected set of ',title],@(varargin)conn_contrasthelpcallback(handle,contrasts));
     set(handle,'value',1,'userdata',hc0);
     set(hc0,'fontsize',get(hc0,'fontsize'));
-else set(hc0,'string',[{'<HTML><i>user-defined contrast</i></HTML>'},rnames],'value',1,'callback',@(varargin)conn_contrasthelpcallback(handle,contrasts));
+else set(hc0,'string',[{'<HTML><i>custom contrast</i></HTML>'},rnames],'value',1,'callback',@(varargin)conn_contrasthelpcallback(handle,contrasts));
 end
 contrast_value=full(str2num(get(handle,'string')));
 findval=find(cellfun(@(x)isequal(full(x),contrast_value),contrasts));

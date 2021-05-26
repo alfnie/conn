@@ -1,6 +1,38 @@
 function varargout=conn_fileutils(option,varargin)
-% internal function
-% file utilities: fileread, filewrite, filecopy, filemove, filedelete, fileempty, mkdir, rmdir, dir
+% conn_fileutils(option,...) performs basic fileio operations on files/directories (system-independent)
+%
+% GENERAL FILEIO FUNCTIONS:
+% conn_fileutils('fileread', filename)              : reads text file
+% conn_fileutils('filewrite', filename, str)        : creates text file with cell array str (one line per element)
+% conn_fileutils('fileappend', filename, str)       : appends text file with cell array str (one line per element)
+% conn_fileutils('copyfile', source, target)        : copies file
+% conn_fileutils('movefile', source, target)        : moves file
+% conn_fileutils('renamefile', source, target)      : renames file
+% conn_fileutils('deletefile', filename)            : deletes file
+% conn_fileutils('emptyfile', filename)             : creates empty file
+% conn_fileutils('mkdir', dirname)                  : creates new folder
+% conn_fileutils('rmdir', dirname)                  : removes folder
+% conn_fileutils('dir', name)                       : lists files in folder
+% conn_fileutils('isdir', dirname)                  : returns true if dirname points to an existing directory
+% conn_fileutils('cd', dirname)                     : changes current working directory
+% conn_fileutils('homedir')                         : returns user-specific home directory
+% conn_fileutils('imread')                          : see "help imread"
+%
+% SPM-SPECIFIC functions: overloaded SPM functions to support /CONNSERVER/[filepath] nomenclature (see below)
+% conn_fileutils('nifti',...)
+% conn_fileutils('spm_vol',...) 
+% conn_fileutils('spm_localvol',...)                : like spm_vol but it creates a cache copy of the file first and returns a handle to the local cache copy
+% conn_fileutils('spm_read_vols',...)
+% conn_fileutils('spm_get_data',...)
+% conn_fileutils('spm_sample_vol',...)
+% conn_fileutils('spm_write_vol',...)
+% conn_fileutils('spm_unlink',...)                      
+% conn_fileutils('spm_file_merge',...)
+% conn_fileutils('spm_jsonwrite',...)
+%
+% note: CONN_FILEUTILS accepts /CONNSERVER/[filepath] nomenclature for remote files or folders in conn_server 
+% machine (but when using multiple files/directories (e.g. filecopy) all files must be in the same machine; 
+% see CONN_REMOTELY CONN_SERVER and CONN_CACHE for options for transfering files among different machines)
 %
 
 varargout=cell(1,nargout);

@@ -322,7 +322,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
             if ~isempty(files), files=cellstr(files); end
         else
             localfilename=conn_projectmanager('projectfile',CONN_x_filename,struct('id','*','isextended',true));
-            allfiles=conn_dir(localfilename,'-R'), % check .dmat
+            allfiles=conn_dir(localfilename,'-R'); % check .dmat
             files={};
             if isempty(allfiles), % no jobs running
                 if isempty(whichoption)||isequal(whichoption,7)
@@ -724,7 +724,7 @@ else
             if ~isempty(regexp(cmd_submitoptions,'\?$'))&&~isempty(regexp(CFG.cmd_submit,'OPTS'))
                 cmd_submitoptions=regexprep(cmd_submitoptions,'\?$','');
                 try
-                    conn_disp('Enter user-defined additional submit options');
+                    conn_disp('Enter custom submit options');
                     [opt_str,opt_i,opt_j]=regexp(cmd_submitoptions,'\[.*?\]','match','start','end');
                     checkdesktop=true;
                     try, checkdesktop=checkdesktop&usejava('awt'); end
@@ -814,7 +814,7 @@ else
             varargout={info};
             
         % internal use
-        case 'job', %('job','batch',batch) ('job','process',cmdstr,...)
+        case 'job', %('job','process',cmdstr,...)
             if nargin>1&&~isempty(varargin{1}), jtype=varargin{1};
             else jtype='process';
             end
@@ -927,7 +927,10 @@ else
                 ns=Ns/N;
             end
             tag=datestr(now,'yymmddHHMMSSFFF');
-            pathname=fullfile(conn_prepend('',conn_jobmanager('conn_x_filename'),'.qlog'),tag);
+            tpname=conn_jobmanager('conn_x_filename');
+            if isempty(tpname), pathname=fullfile(conn_projectmanager('homedir'),'.qlog',tag); 
+            else pathname=fullfile(conn_prepend('',tpname,'.qlog'),tag);
+            end
             conn_fileutils('mkdir',pathname);
             pathname=conn_fullfile(pathname);
             [job.pathname]=deal(pathname);
@@ -942,6 +945,21 @@ else
             else                                      fun_callback=[CFG.osquotes conn_server('util_localfile',fullfile(CFG.matlabpath,'matlab')) CFG.osquotes];
             end
             %if submitPROFILE.cmd_relativepaths, [nill,fun_callback]=fileparts(fun_callback); end
+            whichfiles={'spm','conn'};
+            for k=1:numel(job), 
+                if isequal(job(k).fcn,'fcn')&&numel(job(k).args)>=2&&~isempty(job(k).args{2})
+                    fcnname=job(k).args{2};
+                    if isa(fcnname,'function_handle'), fcnname=func2str(fcnname); end
+                    if ~ischar(fcnname)||ismember(fcnname,whichfiles), continue; end
+                    fcnloc=conn_projectmanager('which',{fcnname,'matlab'});
+                    if ~isempty(fcnloc{1})&&isempty(regexp(fcnloc{1},'built-in'))&&~isequal(fileparts(fileparts(fileparts(fcnloc{2}))),fileparts(fileparts(fileparts(fcnloc{1})))), whichfiles{end+1}=fcnname; end
+                end
+            end
+            whichfolders=conn_server('util_localfile',cellfun(@fileparts,conn_projectmanager('which',whichfiles),'uni',0));
+            if numel(whichfolders)>3, try, whichfolders{3}=strjoin(whichfolders(3:end),''' '''); end; end
+            if ismember(submitPROFILE.name,{'Background process (Unix,Mac)','Background process (Windows)'}), singleCompThread=''; % note: consider adding to cmd_* options
+            else singleCompThread=' -singleCompThread';
+            end
             info=struct('pathname',pathname,'scripts',{{}},'nodes',{{}},'private',{{}});
             for n=1:N
                 if isempty(Isubjects), subjects=floor(ns*(n-1))+1:min(Ns,floor(ns*n));
@@ -965,10 +983,6 @@ else
                 info.stdout{n}=conn_prepend('',info.scripts{n},'.stdout');
                 info.stderr{n}=conn_prepend('',info.scripts{n},'.stderr');
                 info.stdlog{n}=conn_prepend('',info.scripts{n},'.stdlog');
-                whichfolders=conn_server('util_localfile',cellfun(@fileparts,conn_projectmanager('which',{'spm','conn','evlab17'}),'uni',0));
-                if ismember(submitPROFILE.name,{'Background process (Unix,Mac)','Background process (Windows)'}), singleCompThread=''; % note: consider adding to cmd_* options 
-                else singleCompThread=' -singleCompThread';
-                end
                 if CFG.machinetype.ispc
                     fh={};%fopen(filename_sh,'wt');
                     if ~isempty(submitPROFILE.cmd_submitoptions_infile)
@@ -976,7 +990,7 @@ else
                         for ncmd_submitoptions=1:numel(cmd_submitoptions), fh{end+1}=sprintf('%s\n',cmd_submitoptions{ncmd_submitoptions}); end
                     end
                     if isdep,   fh{end+1}=sprintf('%s jobmanager rexec "%s"\n',fun_callback,conn_server('util_localfile',filename_mat));
-                    elseif ~isempty(whichfolders{3}),   fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation%s -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                    elseif numel(whichfolders)>=3&&~isempty(whichfolders{3}),   fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation%s -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
                             fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     else                                fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation%s -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
                             fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
@@ -984,7 +998,7 @@ else
                     fh{end+1}=sprintf('exit\n');
                     conn_fileutils('filewrite_raw',filename_sh,fh); %fclose(fh);
                     fh={};%fopen(filename_m,'wt');
-                    if ~isempty(whichfolders{3}),fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
+                    if numel(whichfolders)>=3&&~isempty(whichfolders{3}),fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
                             whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     else fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
                             whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
@@ -1001,7 +1015,7 @@ else
                     if isdep,   fh{end+1}=sprintf('%s jobmanager rexec ''%s''\n',fun_callback,conn_server('util_localfile',filename_mat));
                     elseif USENODISPLAY,                    fh{end+1}=sprintf('%s -nodesktop -nodisplay -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
                             fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
-                    elseif ~isempty(whichfolders{3}),       fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
+                    elseif numel(whichfolders)>=3&&~isempty(whichfolders{3}),       fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
                             fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     else                                    fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
                             fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
@@ -1009,7 +1023,7 @@ else
                     fh{end+1}=sprintf('echo _NODE END_\n');
                     conn_fileutils('filewrite_raw',filename_sh,fh); %fclose(fh);
                     fh={};%fopen(filename_m,'wt');
-                    if ~isempty(whichfolders{3}), fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
+                    if numel(whichfolders)>=3&&~isempty(whichfolders{3}), fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
                             whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
                     else fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
                             whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
@@ -1027,7 +1041,7 @@ else
             filename_m=fullfile(pathname,'run_all.m');
             fh={};%fopen(filename_m,'wt');
             fh{end+1}=sprintf('%% auto-generated by conn_jobmanager\n%% this script can be used to run this process from Matlab locally on this machine (or in a Matlab parallel toolbox environment)\n\n');
-            if ~isempty(whichfolders{3}), fh{end+1}=sprintf('addpath ''%s'';\naddpath ''%s'';\naddpath ''%s'';\ncd ''%s'';\n\n',...
+            if numel(whichfolders)>=3&&~isempty(whichfolders{3}), fh{end+1}=sprintf('addpath ''%s'';\naddpath ''%s'';\naddpath ''%s'';\ncd ''%s'';\n\n',...
                 whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname));
             else fh{end+1}=sprintf('addpath ''%s'';\naddpath ''%s'';\ncd ''%s'';\n\n',...
                 whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname));
@@ -1166,7 +1180,7 @@ waitfor(handles.hfig);
             case 'test'
                 dogui=nargin<=1;
                 if dogui&&isempty(conn_jobmanager('conn_x_filename'))
-                    tpwd=conn_projectmanager('pwd');
+                    tpwd=conn_projectmanager('homedir');
                     if ~conn_fileutils('isdir',fullfile(tpwd,'.qlog')), 
                         answ=conn_questdlg({'CONN project: undefined',sprintf('Log files for this test will be stored in folder %s',tpwd)},'','Continue','Modify','Cancel','Continue');
                         if isempty(answ)||strcmp(answ,'Cancel'), return; end

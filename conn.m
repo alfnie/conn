@@ -15,7 +15,7 @@ function varargout=conn(varargin)
 %
 % conn remotely
 %   launches conn GUI interacting with remote dataset
-%   see also CONN_SERVER
+%   see also CONN_REMOTELY
 %
 % conn batch filename
 %   executes batch file (.m or .mat file)
@@ -1369,7 +1369,7 @@ else
 %               uimenu(hc1,'label','Set GUI background image from screenshot','callback','conn_guibackground cleartrans'); 
 %               uimenu(hc1,'label','Remove GUI background image','callback','conn_guibackground clear'); 
 %               set(dlg.m4,'uicontextmenu',hc1);
-            uicontrol('style','popupmenu','units','norm','position',[.1,.775,.45,.075],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','string',{'<HTML><i>Select GUI background color/image</i></HTML>','Light text on dark background theme','Dark text on light background theme','Random background image','Screenshot background image','User-defined background image'},'userdata',[dlg.m4 dlg.m4A],'callback',...
+            uicontrol('style','popupmenu','units','norm','position',[.1,.775,.45,.075],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','string',{'<HTML><i>Select GUI background color/image</i></HTML>','Light text on dark background theme','Dark text on light background theme','Random background image','Screenshot background image','Custom background image'},'userdata',[dlg.m4 dlg.m4A],'callback',...
                 'h=get(gcbo,''userdata''); switch(get(gcbo,''value'')), case 1, conn_guibackground clear; color=uisetcolor; if numel(color)==3, set(h(1),''backgroundcolor'',color); colorA=color;set(h(2),''backgroundcolor'',colorA); end; case 2, conn_guibackground clear; color=.08*[1 1.05 1.10]; set(h(1),''backgroundcolor'',color); colorA=.16*[1 1.05 1.10];set(h(2),''backgroundcolor'',colorA); case 3, conn_guibackground clear; color=.9*[1 1 1]; set(h(1),''backgroundcolor'',color); colorA=.95*[1 1 1];set(h(2),''backgroundcolor'',colorA); case 4, answ=conn_guibackground(''setfiledefault''); case 5, answ=conn_guibackground(''cleartrans''); case 6, answ=conn_guibackground(''setfile''); end; set(gcbf,''userdata'',1); uiresume(gcbf);',...
                 'tooltipstring','Changes the default theme colors in the CONN toolbox GUI','parent',dlg.fig);
             uicontrol('style','frame','unit','norm','position',[.05,.15,.9,.25],'backgroundcolor','w','foregroundcolor',[.5 .5 .5],'parent',dlg.fig);
@@ -1523,11 +1523,11 @@ else
             thfig=figure('units','norm','position',[.3,.4,.5,.4],'menubar','none','numbertitle','off','name','CONN remotely','color','w');
             str={}; 
             try, str{end+1}=sprintf('Remote session address: %s',info.remote_ip); end
-            try, str{end+1}=sprintf('Remote session access port: %d',info.remote_port); end
+            try, str{end+1}=sprintf('Remote session access port: TCP/%d',info.remote_port); end
             try, str{end+1}=sprintf('Remote session id: %s',info.remote_id); end
             try, str{end+1}=sprintf('Remote session log folder: %s',info.remote_log); end
             try, str{end+1}=sprintf('Remote session start time: %s (%d minutes ago)',info.start_time,round((now-datenum(info.start_time))*24*60)); end
-            try, str{end+1}=sprintf('SSH tunnel local port: %d',info.local_port); end
+            try, str{end+1}=sprintf('SSH tunnel local port: TCP/%d',info.local_port); end
             try, 
                 if isempty(info.filename_ctrl)||exist(info.filename_ctrl,'file'), str{end+1}=sprintf('SSH control socket: %s',info.filename_ctrl); 
                 else str{end+1}=sprintf('SSH control socket missing or timed out (some operations may require re-authentication)');
@@ -1783,9 +1783,25 @@ else
         case 'pause',
             pause(varargin{2:end});
             
+        case 'cmd', % e.g. conn cmd a=1
+            if numel(varargin)>2, [varargout{1:nargout}]=feval(varargin{2:end});
+            else [str,varargout{1:nargout}]=evalc(sprintf('evalin(''base'',''%s'')',regexprep(varargin{2},'''',''''''))); disp(str);
+            end
+        case 'cmd_capture' %e.g. str=conn('cmd_capture','disp(a)');
+            [varargout{1:nargout}]=evalc(sprintf('evalin(''base'',''%s'')',regexprep(varargin{2},'''','''''')));
+            disp(varargout{1});
+        case {'remote','remote_fcn'}
+            % e.g. 
+            % conn('remote','myfun',1,2)
+            % conn('remote','myscript'); 
+            % conn remote run /data/myscript.m
+            %
+            [varargout{1:nargout}]=conn_remotely('cmd',varargin{2:end});
         case {'submit','submit_fcn'} 
             % e.g. 
-            % conn('submit',@myfile); %conn submit run /data/myfile.m
+            % conn('submit','myfun',1,2)
+            % conn('submit','myscript'); 
+            % conn submit run /data/myscript.m
             % conn jobmanager all
             % note: h=conn('submit',...) returns without wait
             %
@@ -1797,6 +1813,7 @@ else
             % conn('submit_spmbatch',spmbatch);
             % conn jobmanager all
             % note: h=conn('submit_spmbatch',...) returns without wait
+            %
             if nargout>0, [varargout{1:nargout}]=conn_jobmanager('submit','orphan_spmbatch',[],1,[],varargin{2:end}); % note: will call conn_process('spmbatch',varargin{2:end}) on remote node as orphan process (unrelated to any CONN project)
             else conn_jobmanager('submit','orphan_spmbatch',[],1,[],varargin{2:end});
             end
@@ -3649,7 +3666,7 @@ else
 						CONN_h.menus.m_setup_00{4}=[];[CONN_h.menus.m_setup_00{4}(1) CONN_h.menus.m_setup_00{4}(2)]=conn_menu('edit',boffset+[.58,.63,.08,.04],'Onset',[],'<HTML>onset time(s) marking the beginning of each block/event (in seconds) <b>for the selected condition(s)/subject(s)/session(s)</b><br/> - set <i>onset</i> to <b>0</b> and <i>duration</i> to <b>inf</b> to indicate that this condition is present during the entire session (e.g. resting state)<br/> - set <i>onset</i> and <i>duration</i> to <b>[]</b> (empty brackets) if the condition is not present in this session (e.g. pre- post- designs) <br/> - enter a series of block onsets if the condition is only present during a portion of this session (e.g. block designs)</HTML>','conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{5}=[];[CONN_h.menus.m_setup_00{5}(1) CONN_h.menus.m_setup_00{5}(2)]=conn_menu('edit',boffset+[.66,.63,.08,.04],'Duration',[],'<HTML>duration(s) of condition blocks/events (in seconds) <b>for the selected condition(s)/subject(s)/session(s)</b><br/> - set <i>onset</i> to <b>0</b> and <i>duration</i> to <b>inf</b> to indicate that this condition is present during the entire session (e.g. resting state)<br/> - set <i>onset</i> and <i>duration</i> to <b>[]</b> (empty brackets) if the condition is not present in this session (e.g. pre- post- designs) <br/> - enter a series of block/event durations if the condition is only present during a portion of this session (e.g. block designs) <br/> or a single value if all blocks/events have the same duration</HTML>','conn(''gui_setup'',5);');
                         analysistypes={'average across input conditions','standard deviation across input conditions','minimum across input conditions','maximum across input conditions','regressor in linear model fitting input conditions','user-defined function across input conditions'};
-						CONN_h.menus.m_setup_00{15}=[];[CONN_h.menus.m_setup_00{15}(1) CONN_h.menus.m_setup_00{15}(2)]=conn_menu('popup',boffset+[.48,.61,.32,.05],'Model as',analysistypes,'<HTML>Select function<br/> - connectivity values in the selected condition will be defined as a function of the connectivity values in other user-defined conditions<br/> - select <i>average</i> to define this condition as the average across other previously-defined conditions<br/> - select <i>standard deviation</i> to define this condition as the standard deviation across previously-defined conditions<br/> - select <i>linear model</i> to define this condition as a function of the regressor coefficients of a linear model fitting other previously-defined <br/>conditions. You will be promped to enter a design matrix (with as many rows as input conditions and one or more columns). The output <br/>condition value is the regressor coefficient associated with the first column of this desing matrix. Optionally the design matrix may contain second-<br/>level covariate names in the place of individual numbers to indicate subject-specific values<br/> - select <i>user-defined</i> to define this condition as any arbitrary user-defined function of other previously-defined conditions. You will be prompted<br/> to enter a function handle or a function name for a user-defined function of the form Y=f(X) with X being a (MxN) matrix with data from M conditions<br/> and Y being a (1xN) row vector with the output condition values. Optionally f may have the form f(X,Cvalues,Cnames) and it will receive as additional <br/>inputs the second-level covariate values and names for the subject being analyzed</HTML>','conn(''gui_setup'',15);');
+						CONN_h.menus.m_setup_00{15}=[];[CONN_h.menus.m_setup_00{15}(1) CONN_h.menus.m_setup_00{15}(2)]=conn_menu('popup',boffset+[.48,.61,.32,.05],'Model as',analysistypes,'<HTML>Select function<br/> - connectivity values in the selected condition will be defined as a function of the connectivity values in other selected conditions<br/> - select <i>average</i> to define this condition as the average across other selected conditions<br/> - select <i>standard deviation</i> to define this condition as the standard deviation across other selected conditions<br/> - select <i>linear model</i> to define this condition as a function of the regressor coefficients of a linear model fitting other selected <br/>conditions. You will be promped to enter a design matrix (with as many rows as input conditions and one or more columns). The output <br/>condition value is the regressor coefficient associated with the first column of this design matrix. Optionally the design matrix may contain second-<br/>level covariate names in the place of individual numbers to indicate subject-specific values<br/> - select <i>user-defined</i> to define this condition as any arbitrary function of other selected conditions. You will be prompted<br/> to enter a function handle or a function name for a user-defined function of the form Y=f(X) with X being a (MxN) matrix with data from M conditions<br/> and Y being a (1xN) row vector with the output condition values. Optionally f may have the form f(X,Cvalues,Cnames) and it will receive as additional <br/>inputs the second-level covariate values and names for the subject being analyzed</HTML>','conn(''gui_setup'',15);');
 						CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.48,.42,.26,.15],'Study Design   (x:sessions/scans; y:conditions)','','',@conn_callbackdisplay_conditiondesign,@conn_callbackdisplay_conditiondesignclick);
 						tmp=conn_menu('text',boffset+[.48,.30,.20,.04],'','Advanced options:');
                         set(tmp,'horizontalalignment','left','fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA);
@@ -4880,7 +4897,7 @@ else
                         analysistypes={'Explicit mask ','Implicit mask (subject-specific)','None'};
                         [nill,tfilename,tfilename_ext]=fileparts(CONN_x.Setup.explicitmask{1});
                         analysistypes{1}=[analysistypes{1},'(',tfilename,tfilename_ext,')'];
-                        CONN_h.menus.m_setup_00{3}=conn_menu('popup',boffset+[.2,.4,.25,.05],'Analysis mask (voxel-level)',analysistypes,'<HTML>Choose analysis mask for voxel-based analyses <br/> - select <i>explicit mask</i> for user-defined analysis mask (defaults to MNI-space brainmask for volume-based analyses or fsaverage cortical mask for surface-based analyses) <br/> - select <i>implicit mask</i> to use subject-specific brainmasks derived from global BOLD signal amplitude <br/> - select <i>none</i> to skip masking (include entire volume in analyses)</HTML>','conn(''gui_setup'',3);');
+                        CONN_h.menus.m_setup_00{3}=conn_menu('popup',boffset+[.2,.4,.25,.05],'Analysis mask (voxel-level)',analysistypes,'<HTML>Choose analysis mask for voxel-based analyses <br/> - select <i>explicit mask</i> to use a custom analysis mask (defaults to MNI-space brainmask for volume-based analyses or fsaverage cortical mask for surface-based analyses) <br/> - select <i>implicit mask</i> to use automatically-computed subject-specific brainmasks derived from global BOLD signal amplitude <br/> - select <i>none</i> to skip masking (include entire volume in analyses)</HTML>','conn(''gui_setup'',3);');
                         analysistypes={'Parametric and non-parametric analyses','Only parametric statistics, univariate models (RFT/SPM)','Only non-parametric statistics, multivariate models (permutation tests)'};
                         CONN_h.menus.m_setup_00{6}=conn_menu('popup',boffset+[.2,.3,.35,.05],'Second-level analyses (voxel-level)',analysistypes,'<HTML>Choose type of second-level voxel-level analyses<br/> <i> - parametric statistics, univariate model</i> uses parametric distributions (Random Field Theory) for cluster-level statistics, assumes<br/>similar between-conditions or between-sources covariance across voxels (equal up to scaling factor; estimated using SPM''s ReML) and <br/> similar spatial covariance across voxels (equal up to scaling factor; estimated using SPM''s residual smoothness estimation) . The analysis <br/>results can be exported to SPM software<br/> - <i>non-parametric statistics, multivariate model</i> uses non-parametric analyses (residual permutation/randomization tests) for cluster level <br/>statistics, and multivariate between-conditions or between-sources covariance estimation (multivariate analyses separately for each voxel).<br/> This provides additional control in cases where the assumptions of RFT might not be met, but the statistics will take longer to compute and<br/> the results cannot be exported to SPM software<br/> - <i>Parametric and non-parametric analyses</i> will perform both types of analyses (in the second-level <i>results explorer</i> window switch between the <i>parametric</i> and <i>non-parametric</i> options<br/> to explore both results</HTML>','conn(''gui_setup'',6);');
                         analysistypes={'PSC (percent signal change)','Raw'};
@@ -5417,7 +5434,7 @@ else
                         %CONN_h.menus.m_setup_00{2}=conn_menu('edit',boffset+[.2,.7,.2,.04],'Number of subjects',num2str(CONN_x.Setup.nsubjects),'Number of subjects in this study','conn(''gui_setup_import'',2);');
                         CONN_h.menus.m_setup_00{3}=conn_menu('dicomfoldersearch',[],'Select DICOM root folder','Select','',{@conn,'gui_setup_import',3},'conn(''gui_setup_import'',4);');
                         CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton', boffset+[.4,.7,.285,.09],'','','','conn(''gui_setup_import'',4)');
-                        CONN_h.menus.m_setup_00{5}=conn_menu('popup',boffset+[.42,.50,.27,.04],'',{'NIFTI output in DICOM root folder','NIFTI output in ../nii folder (nii subdirectory outside DICOM root folder)','NIFTI output in ./nii folder (nii subdirectory inside DICOM root folder)','NIFTI output in project BIDS folder','NIFTI output in user-defined folder'},'<HTML>Define where nifti files (named "run-#.nii"; one file for each complete DICOM series) are stored<br/> - note: when selecting <i>local BIDS</i> or <i>user-defined</i> options, folder names are auto-completed with a subject-specific "sub-#" subdirectory</HTML>','conn(''gui_setup_import'',5);');
+                        CONN_h.menus.m_setup_00{5}=conn_menu('popup',boffset+[.42,.50,.27,.04],'',{'NIFTI output in DICOM root folder','NIFTI output in ../nii folder (nii subdirectory outside DICOM root folder)','NIFTI output in ./nii folder (nii subdirectory inside DICOM root folder)','NIFTI output in project BIDS folder','NIFTI output in custom folder'},'<HTML>Define where nifti files (named "run-#.nii"; one file for each complete DICOM series) are stored<br/> - note: when selecting <i>local BIDS</i> or <i>custom</i> options, folder names are auto-completed with a subject-specific "sub-#" subdirectory</HTML>','conn(''gui_setup_import'',5);');
                         CONN_h.menus.m_setup_00{11}=conn_menu('pushbuttonblue',boffset+[.42,.55,.2,.04],'','Unpack DICOM now','Reads contents of selected DICOM folders and convert each DICOM series to a 4d NIFTI file','conn(''gui_setup_import'',11)');
                         CONN_h.menus.m_setup_00{6}=[];[CONN_h.menus.m_setup_00{6}(1) CONN_h.menus.m_setup_00{6}(2)]=conn_menu('listbox',boffset+[.35,.45,.345,.19],'DICOM series','',['<HTML>Select one or multiple DICOM series to display their contents and/or import them into CONN as functional/anatomical volumes<br/> - ',CONN_gui.rightclick,'-click for additional options</HTML>'],'conn(''gui_setup_import'',6)');
                         CONN_h.menus.m_setup_00{7}=conn_menu('image',boffset+[.37,.22,.305,.22]);
@@ -6826,8 +6843,8 @@ else
                         str={'default',         'SBC', '<HTML><b>default</b> (seed-based and ROI-to-ROI connectivity)</HTML>',         {'computes Seed-Based Connectivity (SBC) correlation maps and ROI-to-ROI Connectivity (RRC) matrices characterizing functional connectivity with one or multiple seeds/ROIs',' ','standard analyses for resting-state datasets (or task-based block designs)',' ','for method details see: Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press'};...
                             'SBC',              'SBC', '<HTML><b>SBC</b> (seed-based connectivity)</HTML>',         {'computes Seed-Based Connectivity (SBC) correlation maps characterizing functional connectivity between one or multiple seeds and the rest of the brain',' ','for method details see: Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press'};...
                             'RRC',              'RRC', '<HTML><b>RRC</b> (ROI-to-ROI connectivity)</HTML>',         {'computes ROI-to-ROI Connectivity (RRC) correlation matrices characterizing functional connectivity between a set of regions of interest',' ','for method details see: Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press'};...
-                            'gPPI',             'gPPI', '<HTML><b>gPPI</b> (task-based generalized psychophysiological interactions)</HTML>',           {'computes generalized Psycho-Physological Interaction (gPPI) maps characterizing task-based modulation of functional connectivity with one or multiple seeds/ROIs',' ','standard analyses for task-based event-related designs',' ','for method details see: McLaren, D. G., Ries, M. L., Xu, G., & Johnson, S. C. (2012). A generalized form of context-dependent psychophysiological interactions (gPPI): a comparison to standard approaches. Neuroimage, 61(4), 1277-1286'};...
-                            'temporal modulation','MOD','<HTML><b>temporal modulation</b> (generalized physiological interactions)</HTML>',                 {'computes generalized Psycho-Physological Interaction (gPPI) maps characterizing the association between dynamic changes in functional connectivity strength and user-defined factors/timeseries',' ','for method details see: Friston, K. J., Buechel, C., Fink, G. R., Morris, J., Rolls, E., & Dolan, R. J. (1997). Psychophysiological and modulatory interactions in neuroimaging. Neuroimage, 6(3), 218-229'};...
+                            'gPPI',             'gPPI', '<HTML><b>gPPI</b> (task-based generalized psychophysiological interactions)</HTML>',           {'computes generalized Psycho-Physiological Interaction (gPPI) maps characterizing task-based modulation of functional connectivity with one or multiple seeds/ROIs',' ','standard analyses for task-based event-related designs',' ','for method details see: McLaren, D. G., Ries, M. L., Xu, G., & Johnson, S. C. (2012). A generalized form of context-dependent psychophysiological interactions (gPPI): a comparison to standard approaches. Neuroimage, 61(4), 1277-1286'};...
+                            'temporal modulation','MOD','<HTML><b>temporal modulation</b> (generalized physiological interactions)</HTML>',                 {'computes generalized Physiological Interaction (gPPI) maps characterizing the association between dynamic changes in functional connectivity strength and user-defined factors/timeseries',' ','for method details see: Friston, K. J., Buechel, C., Fink, G. R., Morris, J., Rolls, E., & Dolan, R. J. (1997). Psychophysiological and modulatory interactions in neuroimaging. Neuroimage, 6(3), 218-229'};...
                             'group-ICA',        'ICA',  '<HTML><b>group-ICA</b> (independent component analysis)</HTML>',               {'data-driven Independent Component Analyses (ICA) characterizing independent spatial components or networks',' ','for method details see: Calhoun, V. D., Adali, T., Pearlson, G. D., & Pekar, J. J. (2001). A method for making group inferences from functional MRI data using independent component analysis. Human brain mapping, 14(3), 140-151'};...
                             'group-PCA',        'PCA',  '<HTML><b>group-PCA</b> (principal component analysis)</HTML>',               {'data-driven Principal Component Analyses (PCA) characterizing orthogonal spatial components or networks',' ','for method details see: Andersen, A. H., Gash, D. M., & Avison, M. J. (1999). Principal component analysis of the dynamic response measured by fMRI: a generalized linear systems framework. Magnetic Resonance Imaging, 17(6), 795-815'};...
                             'group-MVPA',       'MVPA', '<HTML><b>group-MVPA</b> (multivoxel pattern analysis)</HTML>',                 {'data-driven MultiVoxel Pattern Analyses (MVPA) characterizing seed-based connectivity patterns at each voxel',' ','for method details see: Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press'};...
@@ -6843,7 +6860,7 @@ else
                             %'V2V',              'V2V',  '<HTML>any user-defined network-based or voxel-to-voxel connectivity analyses</HTML>',''};
                         thfig=dialog('units','norm','position',[.2,.3,.7,.6],'windowstyle','normal','name','New first-level analysis','color','w','resize','on');
                         uicontrol(thfig,'style','text','units','norm','position',[.1,.88,.5,.04],'string','Analysis name:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','fontweight','bold');
-                        ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.80,.5,.08],'string','SBC_01','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','<HTML>Enter a user-defined name for this first-level analysis<br/> - analysis names must be unique and containing only alphanumeric characters (case sensitive, no spaces, ideally short</HTML>');
+                        ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.80,.5,.08],'string','SBC_01','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','<HTML>Enter a custom name for this first-level analysis<br/> - analysis names must be unique and containing only alphanumeric characters (case sensitive, no spaces, ideally short</HTML>');
                         uicontrol(thfig,'style','text','units','norm','position',[.1,.70,.5,.04],'string','Analysis type:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','fontweight','bold');
                         ht2=uicontrol(thfig,'style','listbox','units','norm','position',[.1,.15,.5,.55],'max',1,'string',str(:,3),'value',1,'fontsize',8+CONN_gui.font_offset,'tooltipstring','<HTML>Select new first-level analysis type<br/> - note: analysis details may be modified later');
                         ht3=uicontrol(thfig,'style','text','units','norm','position',[.65,.15,.25,.55],'string',str{1,4},'backgroundcolor','w','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left');
@@ -7175,18 +7192,18 @@ else
                             ' - select <i><b>weighted GLM</b></i> for raw or weighted correlation/regression analyses (standard resting-state or task/condition-specific functional connectivity measures)<br/>',...
                             ' - select <i><b>gPPI</b></i> for Generalized PsychoPhysiological Interaction models (estimation of functional connectivity changes associated with an experimental task or stimulus; note: task-effects defined in <i>Setup.Conditions</i>) <br/>',...
                             ' - select <i><b>dyn-ICA</b></i> for dynamic connectivity analyses (PPI model with modulatory effects defined in <i>First-level.dyn-ICA</i>) <br/>',...
-                            ' - select <i><b>other temporal-modulation</b></i> for user-defined temporal-modulation effects (same as gPPI model but using arbitrary user-defined modulatory terms; e.g. PhysioPhysiological Interactions; note: modulatory effects can be defined in <i>Setup.ROIs</i> or <i>Setup.Covariates1st-level</i>)</HTML>'],'conn(''gui_analyses'',10);');
+                            ' - select <i><b>other temporal-modulation</b></i> for custom temporal-modulation effects (same as gPPI model but using arbitrary user-defined modulatory terms; e.g. PhysioPhysiological Interactions; note: modulatory effects can be defined in <i>Setup.ROIs</i> or <i>Setup.Covariates1st-level</i>)</HTML>'],'conn(''gui_analyses'',10);');
                     else
                         CONN_h.menus.m_analyses_00{10}=conn_menu('popup',boffset+[.275,.68,.21,.04],'Analysis type',analysistypes,['<HTML>Select desired first-level analysis type:<br/>',...
                             ' - select <i><b>weighted GLM</b></i> for raw or weighted correlation/regression analyses (standard resting-state or task/condition-specific functional connectivity measures)<br/>',...
                             ' - select <i><b>gPPI</b></i> for Generalized PsychoPhysiological Interaction models (estimation of functional connectivity changes associated with an experimental task or stimulus; note: task-effects defined in <i>Setup.Conditions</i>) <br/>',...
                             ' - select <i><b>dyn-ICA</b></i> for dynamic connectivity analyses (PPI model with modulatory effects defined in <i>First-level.dyn-ICA</i>) <br/>',...
-                            ' - select <i><b>other temporal-modulation</b></i> for user-defined temporal-modulation effects (same as gPPI model but using arbitrary user-defined modulatory terms; e.g. PhysioPhysiological Interactions; note: modulatory effects can be defined in <i>Setup.ROIs</i> or <i>Setup.Covariates1st-level</i>)</HTML>'],'conn(''gui_analyses'',10);');
+                            ' - select <i><b>other temporal-modulation</b></i> for custom temporal-modulation effects (same as gPPI model but using arbitrary user-defined modulatory terms; e.g. PhysioPhysiological Interactions; note: modulatory effects can be defined in <i>Setup.ROIs</i> or <i>Setup.Covariates1st-level</i>)</HTML>'],'conn(''gui_analyses'',10);');
                     end
                     CONN_h.menus.m_analyses_00{9}=conn_menu('popup',boffset+[.175,.59,.31,.04],'Analysis options',{'ROI-to-ROI analyses only','Seed-to-Voxel analyses only','ROI-to-ROI and Seed-to-Voxel analyses'},'Choose type of connectivity analysis (seed-to-voxel and/or ROI-to-ROI)','conn(''gui_analyses'',9);');
                     connmeasures={'correlation (bivariate)','correlation (semipartial)','regression (bivariate)','regression (multivariate)'};
                     CONN_h.menus.m_analyses_00{7}=conn_menu('popup',boffset+[.175,.55,.18,.04],'',connmeasures,'<HTML>Choose functional connectivity measure<br/> - <i>bivariate</i> measures are computed separately for each pair of source&target ROIs (ROI-to-ROI analyses)<br/> or for each pair of source ROI and target voxel (seed-to-voxel analyses)<br/> - <i>semipartial</i> and <i>multivariate</i> measures are computed entering all the chosen source ROIs simultaneously <br/>into a single predictive model (separately for each target ROI/voxel) <br/> - <i>correlation</i> measures output Fisher-transformed correlation-coefficients (bivariate or semipartial) and <br/>are typically associated with measures of <i>functional</i> connectivity<br/> - <i>regression</i> measures output regression coefficients (bivariate or multivariate) and are typically associated <br/>with measures of <i>effective</i> connectivity</HTML>','conn(''gui_analyses'',7);');
-                    CONN_h.menus.m_analyses_00{8}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'no weighting','hrf weighting','hanning weighting','task/condition factor'},'<HTML>Choose method for weighting scans/samples within each condition block when computing condition-specific connectivity measures (for weighted GLM analyses only) <br/> - <b>no weighting</b> uses binary 0/1 weights identifying scans associated with each condition<br/> - <b>hrf weights</b> additionally convolves the above binary weights with a canonical hemodynamic response function<br/> - <b>hanning weights</b> uses instead a hanning window across within-condition scans/samples  as weights (focusing only on center segment within each block)<br/> - <b>task/condition factor</b> uses instead the factor timeseries defined in <i>Setup.Conditions.TaskModulationFactor</i> as weights (for other user-defined weighting)</HTML>','conn(''gui_analyses'',8);');
+                    CONN_h.menus.m_analyses_00{8}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'no weighting','hrf weighting','hanning weighting','task/condition factor'},'<HTML>Choose method for weighting scans/samples within each condition block when computing condition-specific connectivity measures (for weighted GLM analyses only) <br/> - <b>no weighting</b> uses binary 0/1 weights identifying scans associated with each condition<br/> - <b>hrf weights</b> additionally convolves the above binary weights with a canonical hemodynamic response function<br/> - <b>hanning weights</b> uses instead a hanning window across within-condition scans/samples  as weights (focusing only on center segment within each block)<br/> - <b>task/condition factor</b> uses instead the factor timeseries defined in <i>Setup.Conditions.TaskModulationFactor</i> as weights (for other custom weighting)</HTML>','conn(''gui_analyses'',8);');
                     
                     %[nill,CONN_h.menus.m_analyses_00{16}]=conn_menu('text',boffset+[.125,.48,.26,.05],'Functional connectivity seeds/sources:');
                     %set(CONN_h.menus.m_analyses_00{16},'horizontalalignment','left');
@@ -11203,7 +11220,7 @@ else
                         cellfun(@(x)max(abs(reshape(x(1:min(numel(CONN_x.Results.xX.cconditions),numel(x))),[],1)-reshape(CONN_x.Results.xX.cconditions(1:min(numel(CONN_x.Results.xX.cconditions),numel(x))),[],1)))<1e-10,CONN_h.menus.m_results.suggest_within.ceffects));                   
                     if isempty(newnconditions), 
                         newnconditions=numel(CONN_h.menus.m_results.suggest_within.ceffects)+1; 
-                        set(CONN_h.menus.m_results_00{56},'string',regexprep([CONN_h.menus.m_results.suggest_within.descrip,{'user-defined combination of functional connectivity strength acrosss multiple conditions'}],{'.*','functional connectivity'},{'Analysis of $0',CONN_h.menus.m_results.suggest_within_mnamelong}),'value',newnconditions); 
+                        set(CONN_h.menus.m_results_00{56},'string',regexprep([CONN_h.menus.m_results.suggest_within.descrip,{'custom combination of functional connectivity strength acrosss multiple conditions'}],{'.*','functional connectivity'},{'Analysis of $0',CONN_h.menus.m_results.suggest_within_mnamelong}),'value',newnconditions); 
                     else
                         set(CONN_h.menus.m_results_00{56},'string',regexprep(CONN_h.menus.m_results.suggest_within.descrip,{'.*','functional connectivity'},{'Analysis of $0',CONN_h.menus.m_results.suggest_within_mnamelong}),'value',newnconditions(1)); 
                         %if ~any(get(CONN_h.menus.m_results_00{56},'value')==newnconditions), set(CONN_h.menus.m_results_00{56},'value',newnconditions(1)); end
@@ -11251,7 +11268,7 @@ else
                     else newname='connectivity-combination';
                     end
                     newname=regexprep(newname,'connectivity',CONN_h.menus.m_results.suggest_within_mnameshort);
-                    if newneffects>numel(CONN_h.menus.m_results.suggest_between.neffects), set(CONN_h.menus.m_results_00{57},'string',[regexprep(CONN_h.menus.m_results.suggest_between.descrip,'connectivity',newname),{'<HTML><i>user-defined model</i></HTML>'}],'value',newneffects);
+                    if newneffects>numel(CONN_h.menus.m_results.suggest_between.neffects), set(CONN_h.menus.m_results_00{57},'string',[regexprep(CONN_h.menus.m_results.suggest_between.descrip,'connectivity',newname),{'<HTML><i>custom model</i></HTML>'}],'value',newneffects);
                     else set(CONN_h.menus.m_results_00{57},'string',regexprep(CONN_h.menus.m_results.suggest_between.descrip,'connectivity',newname),'value',newneffects);
                     end
                     %set(CONN_h.menus.m_results_00{57},'value',newneffects);
@@ -12835,18 +12852,21 @@ end
 
 function conn_closerequestfcn(varargin)
 global CONN_gui CONN_x;
+if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, dohpcexit=true; else dohpcexit=false; end
 if isfield(CONN_x,'isready')&&any(CONN_x.isready)
-    answ=conn_questdlg({'Closing this figure will exit CONN and loose any unsaved progress','Do you want to:'},'Warning','Exit without saving','Save and Exit','Cancel','Save and Exit');
+    if dohpcexit, answ=conn_questdlg({'Closing this figure will exit CONN and loose any unsaved progress','Do you want to:'},'Warning','Exit without saving/disconnecting','Save and Exit','Cancel','Save and Exit');
+    else answ=conn_questdlg({'Closing this figure will exit CONN and loose any unsaved progress','Do you want to:'},'Warning','Exit without saving','Save and Exit','Cancel','Save and Exit');
+    end
     if isempty(answ), answ='Cancel'; end
 else answ='Exit CONN'; 
 end
 if strcmp(answ,'Save and Exit'), conn save; end
+if strcmp(answ,'Exit without saving/disconnecting'), dohpcexit=false; end
 switch(answ)
-    case {'Exit CONN','Exit without saving','Save and Exit'}
+    case {'Exit CONN','Exit without saving','Exit without saving/disconnecting','Save and Exit'}
         CONN_gui.status=1;
         delete(gcbf);
         CONN_x.gui=0;
-        if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, dohpcexit=true; else dohpcexit=false; end
         try
             conn_disp('__exit');
             if isfield(CONN_gui,'originalCOMB'),javax.swing.UIManager.put('ComboBoxUI',CONN_gui.originalCOMB); end
@@ -12854,7 +12874,7 @@ switch(answ)
             if isfield(CONN_gui,'originalLAF'), javax.swing.UIManager.setLookAndFeel(CONN_gui.originalLAF); end
         end
         CONN_x.filename='';
-        CONN_gui.isremote=0;
+        if dohpcexit, CONN_gui.isremote=0; end
         %CONN_x=[];
         %CONN_gui=[];
         CONN_h=[];
