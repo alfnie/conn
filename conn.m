@@ -32,7 +32,7 @@ global CONN_h CONN_x CONN_gui;
 if dodebug, dbstop if caught error; end
 me=[]; 
 try 
-if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^guiisremote$'))),
+if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremotely$'))),
     connversion={'CONN functional connectivity toolbox',' (',connver,') '};
     hfig=findobj('tag',connversion{1});
     if ~isempty(hfig),figure(hfig); return;end
@@ -91,7 +91,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^guiisr
     CONN_gui.status=0;
     CONN_gui.warnloadbookmark={};
     if ismac, CONN_gui.rightclick='control'; CONN_gui.keymodifier='command'; else CONN_gui.rightclick='right'; CONN_gui.keymodifier='ctrl'; end
-    if ~isempty(varargin)&&isequal(varargin{1},'guiisremote'), CONN_gui.isremote=true;
+    if ~isempty(varargin)&&isequal(varargin{1},'isremotely'), CONN_gui.isremote=true;
     else CONN_gui.isremote=false;
     end
 	CONN_h=struct;
@@ -1796,7 +1796,9 @@ else
             % conn('remote','myscript'); 
             % conn remote run /data/myscript.m
             %
-            [varargout{1:nargout}]=conn_remotely('cmd',varargin{2:end});
+            if numel(varargin)>=2&&ischar(varargin{2})&&ismember(lower(varargin{2}),{'on','off','offandon','push','pull','folderpush','folderpull','command','cmd'}), conn_remotely(varargin{2:end});
+            else [varargout{1:nargout}]=conn_remotely('cmd',varargin{2:end});
+            end
         case {'submit','submit_fcn'} 
             % e.g. 
             % conn('submit','myfun',1,2)

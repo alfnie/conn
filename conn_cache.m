@@ -2,15 +2,20 @@ function varargout=conn_cache(option, varargin)
 % CONN_CACHE manages local cache & server drives
 %
 % commands:
-%   filename_local=conn_cache('pull',filename_remote)           : copies file from remote storage to local cache (note: filename_remote should include the FULL path to the file)
-%   filename_local=conn_cache('new',filename_remote)            : creates local cache for a yet-to-be-created file in remote storage (note: file in remote storage will only be created after a push)
+%   filename_local=conn_cache('pull',filename_remote)           : copies file from remote storage to local cache (note: 
+%                                                                 filename_remote should include the FULL path to the file)
+%   filename_local=conn_cache('new',filename_remote)            : creates local cache for a yet-to-be-created file in remote 
+%                                                                 storage (note: file in remote storage will only be created 
+%                                                                 after a push)
 %   conn_cache('push',filename_remote)                          : copies file from local cache to remote storage
 %   conn_cache('pushall')                                       : copies all files in local cache to remote storage
 %   
 %   conn_cache                                                  : initializes CONN drive (clear all memory and cached files)
 %   conn_cache('setlocal', folder_local)                        : defines local cache folder (default: ~/.conn_cache)
-%   conn_cache('rename',filename1_remote,filename2_remote)      : reassigns remote storage target of file "filename1_remote" to "filename2_remote"
-%   conn_cache('sethash',method)                                : defines algorithm used to identify file-changes ('md5' or 'timestamp'; see "help conn_tcpip")
+%   conn_cache('rename',filename1_remote,filename2_remote)      : reassigns remote storage target of file "filename1_remote" 
+%                                                                 to "filename2_remote"
+%   conn_cache('sethash',method)                                : defines algorithm used to identify file-changes ('md5' 
+%                                                                 or 'timestamp'; see "help conn_tcpip")
 %
 %   note: CONN_CACHE accepts /CONNSERVER/[filepath] nomenclature for remote files in conn_server machine, e.g.
 %     conn_cache('pull','/Volumes/usb-disk/data/myfile.nii')    pulls file from the /data folder within the Volumes/usb-disk drive
@@ -194,7 +199,7 @@ switch(lower(option))
         end
         if nargout, varargout={filename_local}; end
         
-    case 'clear'   % conn drive clear filename_remote
+    case 'clear'   % conn cache clear filename_remote
         if isempty(varargin), conn_cache('init');
         else
             filename_remote=varargin{1};

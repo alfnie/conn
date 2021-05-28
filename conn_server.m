@@ -2,10 +2,14 @@ function varargout = conn_server(option, varargin)
 % CONN_SERVER server over TCP/IP
 %
 % commands from server side: (e.g. from a computer at work/university where the data lives)
-%   conn_server('start' [,PORT])                    : starts CONN server and prints out instructions for connecting to this server
+%   conn_server('start' [,PORT, PUBLICKEY])          : starts CONN server and prints out instructions for connecting to this server (only a single client connection will be permitted)
+%                                                     If a non-empty PUBLICKEY string is provided the server will reject any client connection that does not know the associated PRIVATEKEY
+%                                                     (note: use [PUBLICKEY,PRIVATEKEY]=conn_tcpip('keypair') to generate a one-time-use KEY pair)
 %
 % commands from client side: (e.g. from a computer at home/office where you live)
-%   conn_server('connect', IP , SERVER_ID)          : stablishes connection to CONN server
+%   conn_server('connect', IP , SERVER_ID)          : stablishes connection to CONN server 
+%                                                     IP : address of computer running conn_server (e.g. '127.0.0.1')
+%                                                     SERVER_ID: keyword of the form <PORTNUMBER>CONN<PRIVATEKEY> (e.g. '6111CONNe5823002ac891dacbf3c48ae54d8f438')
 %   conn_server('run', fcn, arg1, arg2, ...)        : runs on server the command fcn(arg1,arg2,...); note: fcn must be a CONN function name, e.g. conn_server('run','conn_disp','hello world')
 %   [var1, var2,...]=conn_server('run',...)         : as 'run' but also collecting the output(s) of the fcn call
 %   conn_server('run_immediatereturn',...)          : as 'run' but without waiting for the command to finish on the server (or check for possible error messages)
@@ -18,11 +22,14 @@ function varargout = conn_server(option, varargin)
 %
 % alternative procedure for SSH-accessible networks only:
 % command from server side: (from a computer within the SSH-accessible network)
-%   conn_server('SSH_save' [, fileout])             : server configuration (run only once), creates a .json file with basic information necessary to connect to this server (machine IP, and where to find Matlab/SPM/CONN) [~/connserverinfo.json]
+%   conn_server('SSH_save' [, fileout])             : server configuration (run only once in order to configure this computer), creates a .json file with basic information necessary to connect to this server (machine IP, and where to find Matlab/SPM/CONN) [~/connserverinfo.json]
+%
 % commands from client side: (from a computer with a SSH client)
-%   conn_server('SSH_start' [, serverip])           : SSH to network login node, submits a job to start a CONN server, and connects this computer to that remote server (note: expects to find serverip:~/connserverinfo.json file; run "conn_server SSH_save" in server once)
-%   conn_server('SSH_start', filein)                : same as above but loading CONN server information explicitly from the provided .json file
-%   conn_server('SSH_submitstart' [, profilename])  : submits a job to start a new CONN server (run internally by SSH_start)
+%   conn_server('SSH_start' [, IP])                 : SSH to network login node, submits a job to start a CONN server, and connects this computer to that remote server (note: expects to find IP:~/connserverinfo.json file; run "conn_server SSH_save" in server once)
+%   conn_server('SSH_start' [, filein])             : same as above but loading CONN server information explicitly from the provided .json file
+%   conn_server('SSH_submitstart', P, K)            : submits a job to start a new CONN server (this function is run internally by SSH_start)
+%                                                     P: profile name used to submit jobs (e.g. 'background'; see "conn_jobmanager profiles")
+%                                                     K: PUBLICKEY string
 %   conn_server('SSH_restart')                      : restarts a dropped connection
 %   conn_server('SSH_exit')                         : terminates CONN server and disconnects
 %
@@ -61,7 +68,7 @@ switch(lower(option))
     case 'start' % init server
         params.isserver=true;
         if numel(varargin)>=1&&~isempty(varargin{1}), port=varargin{1}; else port=0; end
-        if numel(varargin)>=2&&~isempty(varargin{2}), id=varargin{2}; else id=char(mlreportgen.utils.hash(mat2str(now))); id=id(1:8); end
+        if numel(varargin)>=2&&~isempty(varargin{2}), id=char(varargin{2}); else id=[]; end
         ok=false;
         while ~ok
             try
@@ -461,9 +468,10 @@ switch(lower(option))
             end
             if startnewserver
                 fprintf('Requesting a new Matlab session in %s. This may take a few minutes, please be patient as your job currently sits in a queue. CONN will resume automatically when the new Matlab session becomes available\n',params.info.login_ip);
+                [keys_public,keys_private]=conn_tcpip('keypair');
                 % submit jobs to start server#2 in arbitrary remote node using HPC scheduler
-                if isfield(params.info,'SERVERcmd')&&~isempty(params.info.SERVERcmd), tstr=sprintf('server SSH_submitstart ''%s''',params.info.SERVERcmd); 
-                else tstr=sprintf('server SSH_submitstart');
+                if isfield(params.info,'SERVERcmd')&&~isempty(params.info.SERVERcmd), tstr=sprintf('server SSH_submitstart ''%s'' ''%s''',params.info.SERVERcmd, keys_public); 
+                else tstr=sprintf('server SSH_submitstart '''' ''%s''', keys_public);
                 end
                 [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' %s "%s"', params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
                 if ~isempty(regexp(msg,'SSH_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
@@ -475,6 +483,7 @@ switch(lower(option))
                     params.info.remote_log=keys{4};
                     params.info.start_time=datestr(now);
                     fprintf('Remote session started:\n  Host address = %s\n  Access port = %d\n  ID = %s\n  Log folder = %s\n',params.info.remote_ip,params.info.remote_port,params.info.remote_id,params.info.remote_log);
+                    params.info.remote_id=keys_private;
                 end
             end
             if isempty(params.info.host)
@@ -545,7 +554,8 @@ switch(lower(option))
         
     case 'ssh_submitstart'
         if ~isempty(varargin)&&~isempty(varargin{1}), conn_jobmanager('setprofile',varargin{1}); end
-        info=conn_jobmanager('submit','orphan_conn',[],1,[],'server','start');
+        if ~isempty(varargin)&&~isempty(varargin{2}), id=char(varargin{2}); else id=[]; end
+        info=conn_jobmanager('submit','orphan_conn',[],1,[],'server','start',[],id); 
         fprintf('SSH_log in %s\n',info.pathname);
         fprintf('waiting for job to start...\n')
         for n=1:600
@@ -788,3 +798,4 @@ end
 set(h.str,'string',str,'value',numel(str),'listboxtop',numel(str));
 %uiwait(h.hfig);
 end
+

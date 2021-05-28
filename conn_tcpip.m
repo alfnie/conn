@@ -3,13 +3,14 @@ function varargout = conn_tcpip(option, varargin)
 % CONN_TCPIP manages TCP/IP client/server communication
 %
 % commands:
-%   conn_tcpip('open','server' [,PORT, ID])         : open TCP/IP port in local machine and waits for client to connect (default PORT=6111 ID='')
+%   conn_tcpip('open','server' [,PORT, PUBLICKEY])   : open TCP/IP port in local machine and waits for client to connect (default PORT=6111 KEY='')
 %                                                     If no PORT is entered, conn_tcpip will first attempt port 6111 and if that fails it will
-%                                                     bind instead to the first available port
+%                                                     bind instead to the first available port. 
 %
-%   conn_tcpip('open','client' [,IP, PORT, ID])     : connect to server TCP/IP port at IP:PORT (default IP='127.0.0.1' PORT=6111 ID='')
-%                                                     If an ID string was provided when opening the server, the server will reject any 
-%                                                     client connection that is not open using the exact same ID (case sensitive)
+%   conn_tcpip('open','client' [,IP, PORT, PRIVATEKEY]) : connect to server TCP/IP port at IP:PORT (default IP='127.0.0.1' PORT=6111 KEY='')
+%                                                     If a non-empty PUBLICKEY string was provided when opening the server, the server will reject 
+%                                                     any client connection where conn_tcpip('keypair',PRIVATEKEY) is different from PUBLICKEY
+%                                                     (note: use [PUBLICKEY,PRIVATEKEY]=conn_tcpip('keypair') to generate a one-time-use KEY pair)
 %
 %   conn_tcpip('write',VAR)                         : sends data (from server/client to client/server)
 %                                                     VAR may be any Matlab variable (numeric/string/cell/struct/etc.)
@@ -23,13 +24,14 @@ function varargout = conn_tcpip(option, varargin)
 %   TIMESTAMP = conn_tcpip('readtofile',FILENAME)   : receives raw data and save it to file (continuous stream / no memory-limitation)
 %                                                     returns TIMESTAMP (conn_tcpip sethash timestamp) or MD5-hash (conn_tcpip sethash md5) of received data (empty if error)
 %
-%   conn_tcpip('writekeepalive')                    : sends an empty/keepalive packet
-%
 %   conn_tcpip('close')                             : stops server/client
 %   conn_tcpip('clear')                             : clears connection buffers
 %
+%   conn_tcpip('writekeepalive')                    : sends an empty/keepalive packet
 %   conn_tcpip('sethash','md5')                     : uses MD5-hash to identify changes in files (slower)
 %   conn_tcpip('sethash','timestamp')               : uses filesystem last-modified timestamps to identify changes in files (faster)
+%   [publickey, privatekey] = conn_tcpip('keypair') : generates one-time-use public (used by server) & private (used by client) key pair
+%   publickey = conn_tcpip('keypair', privatekey)   : generates public key (used by server) from user-defined private key (used by client)
 %
 % e.g.
 %
@@ -129,14 +131,15 @@ switch(lower(option))
                 end
             end
             connection.socket.setSoTimeout(1000*10);
-            %if ~isempty(connection.id), fprintf('Server ID = %s\n',connection.id); end
             if disphelp
                 if ispc, [nill,str1]=system('hostname');
                 else [nill,str1]=system('hostname -f');
                 end
                 [nill,str2]=system('whoami');
                 if disphelp>1 % help for conn_server use
-                    fullid=[num2str(connection.port), 'CONN', connection.id];
+                    if isempty(connection.id), fullid=[num2str(connection.port), 'CONN'];
+                    else fullid=[num2str(connection.port), 'CONN', 'privatekey'];
+                    end
                     fprintf('******************************************************************************\n\n');
                     fprintf('To connect to this server, use the Matlab syntax:\n');
                     fprintf('   conn_server connect %s %s\n\n',regexprep(str1,'\n',''),fullid);
@@ -147,7 +150,7 @@ switch(lower(option))
                 else % help for conn_tcpip use
                     fprintf('******************************************************************************\n\n');
                     fprintf('To connect to this server, use the Matlab syntax:\n');
-                    if ~isempty(connection.id), fprintf('   conn_tcpip open client %s %d ''%s''\n\n',regexprep(str1,'\n',''),connection.port,connection.id);
+                    if ~isempty(connection.id), fprintf('   conn_tcpip open client %s %d ''%s''\n\n',regexprep(str1,'\n',''),connection.port,'YOUR-PRIVATE-KEY');
                     elseif connection.port==6111, fprintf('   conn_tcpip open client %s\n\n',regexprep(str1,'\n',''));
                     else fprintf('   conn_tcpip open client %s %d\n\n',regexprep(str1,'\n',''),connection.port);
                     end
@@ -180,19 +183,20 @@ switch(lower(option))
         istream   = connection.channel.getInputStream;  
         connection.input.stream = java.io.DataInputStream(istream);
         
-        if isempty(connection.id), handshake='-'; 
+        if isempty(connection.id), 
+            if connection.isserver, handshake=conn_tcpip('keypair','conn_tcpip'); 
+            else handshake='conn_tcpip'; 
+            end
         else handshake=connection.id;
         end
         try,
             if connection.isserver % handshake
                 varcheck=conn_tcpip('read');
                 if isequal(varcheck,'handshake'), varcheck=conn_tcpip('read'); end
-                if isequal(varcheck,handshake)
+                if ischar(varcheck)&&isequal(conn_tcpip('keypair',varcheck),handshake)
                     conn_tcpip('write','ok');
-                    if true||isempty(connection.id), fprintf('Succesfully established connection to client\n');
-                    else fprintf('Succesfully established connection to client. Connection ID = %s\n',connection.id);
-                    end
-                else
+                    fprintf('Succesfully established connection to client\n');
+                else % single attempt to correct ID only
                     conn_tcpip('close');
                     fprintf('Client was unable to match CONN server ID. Try starting a server at a different port\n');
                 end
@@ -204,9 +208,7 @@ switch(lower(option))
                         conn_tcpip('write',handshake);
                         ok=conn_tcpip('read');
                         if isequal(ok,'ok')
-                            if true||isempty(connection.id), fprintf('Succesfully established connection to server\n');
-                            else fprintf('Succesfully established connection to server. Connection ID = %s\n',connection.id);
-                            end
+                            fprintf('Succesfully established connection to server\n');
                         else
                             conn_tcpip('close');
                             fprintf('Client was unable to match CONN server ID\n');
@@ -506,6 +508,17 @@ switch(lower(option))
     case 'setmaxlength',
         connection.maxlength=varargin{1};
         if ischar(connection.maxlength), connection.maxlength=str2double(connection.maxlength); end
+        
+    case 'keypair'
+        persistent count
+        if isempty(count), count=0; 
+        else count=count+1; 
+        end
+        if numel(varargin)>=1 && ~isempty(varargin{1}), keyprivate=reshape(varargin{1},1,[]); else keyprivate=char(mlreportgen.utils.hash(mat2str(now+count))); end
+        hash=java.security.MessageDigest.getInstance('sha-256');
+        hash.update(uint8(keyprivate));
+        keypublic=char(mlreportgen.utils.hash(char(reshape(typecast(hash.digest,'uint8'),1,[]))));
+        varargout={keypublic,keyprivate};
         
     case 'private.ip',
         %if numel(varargin)>=1, connection.ip=varargin{1}; end

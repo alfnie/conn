@@ -2,7 +2,7 @@ function fileout=conn_surf_vol2surf(filein,FSfolder)
 % CONN_SURF_VOL2SURF resamples MNI-space volume at [lh|rh].[pial|mid|white].surf surfaces
 %
 % conn_surf_vol2surf('file.nii')
-% creates 'file.surf.nii' file with sapled values at each vertex averaged across the three surfaces and smoothed (10 steps of iterative diffusion smoothing)
+% creates 'file.surf.nii' file with sampled values at each vertex averaged across the three surfaces and smoothed (10 steps of iterative diffusion smoothing)
 %
 
 if nargin<2, FSfolder=''; end

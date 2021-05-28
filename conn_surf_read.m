@@ -3,7 +3,8 @@ function data = conn_surf_read(filename)
 %
 % data = conn_surf_read(filename) reads surface numeric data from filename
 %  filename : input filename *.surf.nii
-%  data     : output data [163842 vertices, 1|2 hemispheres, nsamples] 3d matrix
+%  data     : output data [nvertices, nobservations]
+%             (note: full density fsaverage space, nvertices=163842*2 for both hemispheres data)
 %
 
 if ~nargin, help(mfilename); return; end
@@ -12,5 +13,5 @@ if isremotefile, remotefilename=filename; filename=conn_cache('pull',remotefilen
 
 vol = spm_vol(filename);
 data = spm_read_vols(vol);
-data = reshape(data, 163842, [], size(data,4));
+data = reshape(data, [], size(data,4));
 
