@@ -1561,8 +1561,8 @@ else
                         answ=conn_questdlg('',sprintf('lost connection to %s',tnameserver),'Retry','Reset connection and retry','Start new remote session','Cancel','Retry');
                         if isempty(answ), break; end
                         switch(answ)
-                            case 'Reset connection and retry', try, conn remotely restart; end
-                            case 'Start new remote session', try, conn remotely start; end
+                            case 'Reset connection and retry', try, conn_remotely restart; end
+                            case 'Start new remote session', try, conn_remotely start; end
                             case 'Retry', try, conn_tcpip('flush'); end
                             case 'Cancel', break; 
                         end

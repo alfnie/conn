@@ -18,10 +18,10 @@ function varargout = conn_tcpip(option, varargin)
 %
 %   VAR = conn_tcpip('read')                        : receives data (from server/client to client/server)
 %
-%   conn_tcpip('writefromfile',FILENAME)            : sends raw data from file (continuous stream / no memory-limitation)
+%   conn_tcpip('writefromfile',FILENAME)            : sends raw data from file 
 %                                                     returns 1 if success, 0 if error
 %
-%   TIMESTAMP = conn_tcpip('readtofile',FILENAME)   : receives raw data and save it to file (continuous stream / no memory-limitation)
+%   TIMESTAMP = conn_tcpip('readtofile',FILENAME)   : receives raw data and save it to file 
 %                                                     returns TIMESTAMP (conn_tcpip sethash timestamp) or MD5-hash (conn_tcpip sethash md5) of received data (empty if error)
 %
 %   conn_tcpip('close')                             : stops server/client
@@ -83,11 +83,11 @@ if isempty(connection)
         'header2',[],...
         'maxlength',65532); % note: want divisible by 12 and <=65535
     try, base64=org.apache.commons.codec.binary.Base64; end
-    if ispc, connection.cache=conn_fullfile(getenv('USERPROFILE'),'.conn_cache');
-    else connection.cache=conn_fullfile('~/.conn_cache');
+    if ispc, connection.cache=fullfile(getenv('USERPROFILE'),'.conn_cache');
+    else connection.cache=fullfile(char(java.lang.System.getProperty('user.home')),'.conn_cache');
     end
     try, [nill,nill]=mkdir(connection.cache); end
-    try, if ~conn_existfile(connection.cache,true), connection.cache=pwd; end; end
+    try, if ~isdir(connection.cache), connection.cache=pwd; end; end
 end
 
 switch(lower(option))
@@ -249,8 +249,6 @@ switch(lower(option))
         if readtofile
             filename=varargin{1}; % reads raw data to file (data does not need to fit in memory)
             if ~isempty(connection.hash)&&nargout>0&&~isequal(connection.hash,'timestamp'), hash=java.security.MessageDigest.getInstance(connection.hash); end
-        %elseif readnowait
-        %    filename=[];
         elseif readword % read to var directly
             filename=[];
         else % read to file then load var
@@ -265,7 +263,6 @@ switch(lower(option))
             bytes_available = connection.input.stream.available;
             if readnowait&&bored&&~bytes_available, break; end
             if bytes_available>0 || bored
-                %fprintf('.');
                 data=char(connection.input.stream.readUTF);
             end
             bored=true;
@@ -275,7 +272,6 @@ switch(lower(option))
                 connection.buffer=[connection.buffer, data];
                 bored=false;
             end
-            %disp(connection.buffer);
             if isnan(connection.length)&&~isempty(connection.header1)&&connection.header1(1)>1
                 i2=connection.header1(1)-1;
                 connection.buffer=connection.buffer(i2+1:end);

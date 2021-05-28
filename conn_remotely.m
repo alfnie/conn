@@ -210,7 +210,7 @@ global CONN_gui;
 if ~nargin||isempty(option), option='init'; end
 
 switch(option)
-    case {'init','restart'}         % GUI interaction
+    case {'init','start','restart'}         % GUI interaction
         dorestart=strcmpi(option,'restart');
         if dorestart, keepgui=conn('findgui');
         else keepgui=false;
@@ -232,7 +232,9 @@ switch(option)
                     fprintf('ERROR: Unable to start remote session: %s',me.message);
                 end
             end
-            if keepgui conn gui_setup
+            if keepgui 
+                CONN_gui.isremote=true;
+                conn gui_setup
             else conn isremotely;
             end
         end
