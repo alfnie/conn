@@ -1,9 +1,18 @@
-function [x,idx]=conn_get_slice(V,slice,ntime)
-if nargin<3, ntime=V.size.Nt; 
+function [x,idx]=conn_get_slice(V,slice,ntime,allowlinks)
+if nargin<4||isempty(allowlinks), allowlinks=false; end
+if nargin<3||isempty(ntime), ntime=V.size.Nt; 
 else ntime=max(1,min(V.size.Nt,ntime)); 
 end
-if nargin<2, slice=1; end
-if any(conn_server('util_isremotefile',V.fname)), V.fname=conn_server('util_localfile',V.fname); [x,idx]=conn_server('run',mfilename,V,slice,ntime); return; end
+
+if nargin<2||isempty(slice), slice=1; end
+if any(conn_server('util_isremotefile',V.fname)), 
+    V.fname=conn_server('util_localfile',V.fname); 
+    if ischar(allowlinks)&&~isempty(regexp(allowlinks,'^.*run_keepas:')), [x,idx]=conn_server('run_keepas',regexprep(allowlinks,'^.*run_keepas:',''),mfilename,V,slice,ntime);
+    elseif allowlinks, [x,idx]=conn_server('run_keep',mfilename,V,slice,ntime);
+    else [x,idx]=conn_server('run',mfilename,V,slice,ntime); 
+    end
+    return
+end
 
 if isfield(V,'softlink')&&~isempty(V.softlink), 
     str1=regexp(V.fname,'Subject\d+','match'); if ~isempty(str1), V.softlink=regexprep(V.softlink,'Subject\d+',str1{end}); end

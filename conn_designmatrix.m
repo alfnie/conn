@@ -1,5 +1,7 @@
 
 function [X,select,names,xyz,Xnames]=conn_designmatrix(confounds,X1,X2,nconfounds)
+if nargin<=3, nconfounds={}; end
+if any(conn_server('util_isremotevar',{X1,X2})), [X,select,names,xyz,Xnames]=conn_server('run',mfilename,confounds,X1,X2,nconfounds); return; end % note: returns expanded variables
 
 select=[];X=[];names={};xyz={}; Xnames={};
 if iscell(confounds),
@@ -25,7 +27,7 @@ if iscell(confounds),
         for n2=1:numel(tempfields), confounds.(tempfields{n2})=confounds.(tempfields{n2})(idx); end
     end
 end
-if nargin>3, select=cell(size(nconfounds)); end
+if nargin>3&&~isempty(nconfounds), select=cell(size(nconfounds)); end
 
 
 for n1=1:length(confounds.names), 
@@ -82,7 +84,7 @@ for n1=1:length(confounds.names),
         if strcmp(confounds.types{n1},'roi')&&isfield(X1,'xyz'), for n0=1:size(x,2),xyz{end+1}=X1.xyz{idx}+(n0-1)*(confounds.deriv{n1}+1);end; 
         else for n0=1:size(x,2),xyz{end+1}=nan(1,3);end; 
         end
-        if nargin>3, for n0=1:length(nconfounds),
+        if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),
                 if any(n1==nconfounds{n0}), select{n0}=cat(2,select{n0},ones(1,size(x,2)));
                 else select{n0}=cat(2,select{n0},zeros(1,size(x,2))); end
             end; end
@@ -103,7 +105,7 @@ for n1=1:length(confounds.names),
                 if strcmp(confounds.types{n1},'roi')&&isfield(X1,'xyz'),for n0=1:size(x,2),xyz{end+1}=X1.xyz{idx}+(n0-1)*(confounds.power{n1})+n2;end;
                 else for n0=1:size(x,2),xyz{end+1}=nan(1,3);end;
                 end
-                if nargin>3, for n0=1:length(nconfounds),
+                if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),
                         if any(n1==nconfounds{n0}), select{n0}=cat(2,select{n0},ones(1,size(x,2)));
                         else select{n0}=cat(2,select{n0},zeros(1,size(x,2))); end
                     end; end
@@ -123,7 +125,7 @@ for n1=1:length(confounds.names),
             if strcmp(confounds.types{n1},'roi')&&isfield(X1,'xyz'),for n0=1:size(x,2),xyz{end+1}=X1.xyz{idx}+(n0-1)*(confounds.deriv{n1}+1)+n2;end;
             else for n0=1:size(x,2),xyz{end+1}=nan(1,3);end; 
             end
-            if nargin>3, for n0=1:length(nconfounds),
+            if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),
                     if any(n1==nconfounds{n0}), select{n0}=cat(2,select{n0},ones(1,size(x,2)));
                     else select{n0}=cat(2,select{n0},zeros(1,size(x,2))); end
                 end; end
@@ -148,7 +150,7 @@ for n1=1:length(confounds.names),
                     if strcmp(confounds.types{n1},'roi')&&isfield(X1,'xyz'),for n0=1:size(x,2),xyz{end+1}=X1.xyz{idx}+(n0-1)*(confounds.power{n1})+n2;end;
                     else for n0=1:size(x,2),xyz{end+1}=nan(1,3);end;
                     end
-                    if nargin>3, for n0=1:length(nconfounds),
+                    if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),
                             if any(n1==nconfounds{n0}), select{n0}=cat(2,select{n0},ones(1,size(x,2)));
                             else select{n0}=cat(2,select{n0},zeros(1,size(x,2))); end
                         end; end
@@ -162,18 +164,18 @@ N=size(X,1); if ~N, N=size(X1.data{1},1); end
 if any(strcmp(confounds.types,'detrend'))
     X=[X,linspace(-1,1,N)'];
     Xnames{end+1}='trend linear term';
-    if nargin>3, for n0=1:length(nconfounds),select{n0}=[select{n0},0];end; end
+    if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[select{n0},0];end; end
 end
 if any(strcmp(confounds.types,'detrend2'))
     X=[X,linspace(-1,1,N)'.^2];
     Xnames{end+1}='trend quadratic term';
-    if nargin>3, for n0=1:length(nconfounds),select{n0}=[select{n0},0];end; end
+    if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[select{n0},0];end; end
 end
 if any(strcmp(confounds.types,'detrend3'))
     X=[X,linspace(-1,1,N)'.^3];
     Xnames{end+1}='trend cubic term';
-    if nargin>3, for n0=1:length(nconfounds),select{n0}=[select{n0},0];end; end
+    if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[select{n0},0];end; end
 end
 X=[ones(N,1),X];
 Xnames=[{'constant term'}, Xnames];
-if nargin>3, for n0=1:length(nconfounds),select{n0}=[0,select{n0}];end; end
+if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[0,select{n0}];end; end

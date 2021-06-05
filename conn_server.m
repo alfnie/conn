@@ -10,9 +10,39 @@ function varargout = conn_server(option, varargin)
 %   conn_server('connect', IP , SERVER_ID)          : stablishes connection to CONN server 
 %                                                     IP : address of computer running conn_server (e.g. '127.0.0.1')
 %                                                     SERVER_ID: keyword of the form <PORTNUMBER>CONN<PRIVATEKEY> (e.g. '6111CONNe5823002ac891dacbf3c48ae54d8f438')
-%   conn_server('run', fcn, arg1, arg2, ...)        : runs on server the command fcn(arg1,arg2,...); note: fcn must be a CONN function name, e.g. conn_server('run','conn_disp','hello world')
-%   [var1, var2,...]=conn_server('run',...)         : as 'run' but also collecting the output(s) of the fcn call
-%   conn_server('run_immediatereturn',...)          : as 'run' but without waiting for the command to finish on the server (or check for possible error messages)
+%   conn_server('run', fcn, arg1, arg2, ...)        : runs on server the command fcn(arg1,arg2,...) and wait for its termination, e.g. 
+%                                                        >> tic; conn_server('run','pause',10); toc
+%                                                        Elapsed time is 10.019476 seconds.
+%   [var1, var2,...]=conn_server('run',...)         : as 'run' but also collecting back the output(s) of the fcn call, e.g.
+%                                                        >> a = conn_server('run','fft',1:10)
+%                                                        a =
+%                                                          55.0000 + 0.0000i  -5.0000 +15.3884i  -5.0000 + 6.8819i  -5.0000 + 3.6327i  -5.0000 + 1.6246i  -5.0000 + 0.0000i  -5.0000 - 1.6246i  -5.0000 - 3.6327i  -5.0000 - 6.8819i  -5.0000 -15.3884i
+%                                                        >> b = conn_server('run','sum',a)
+%                                                        b =
+%                                                          10.0000 - 0.0000i
+%   conn_server('run_immediatereturn',...)          : as 'run' but without waiting for the command to finish on the server (or check for possible error messages), e.g.
+%                                                        >> tic; conn_server('run_immediatereturn','pause',10); toc
+%                                                        Elapsed time is 0.006219 seconds.
+%   varLink = conn_server('run_keep',...)           : as 'run' but keeping the result in server, returning only a link/label to the result.
+%                                                     note: variable links can be used in subsequent conn_server 'run' or 'run_keep' commands, e.g.
+%                                                        >> a = conn_server('run_keep','fft',1:10)
+%                                                        a = 
+%                                                         struct with fields: conn_server_variable: 'var_a5f0baeb5e8d3d4fc18dae3553a61c8b_1'
+%                                                        >> b = conn_server('run','sum',a)
+%                                                        b =
+%                                                          10.0000 - 0.0000i
+%                                                        >> conn_server('clear',a);
+%                                                     note: use varLink = conn_server('run_keepas',label,...) to fix the remote variable link/label (e.g. to save memory by re-using the same remote variable-space), e.g.
+%                                                        >> a = conn_server('run_keepas','a','fft',1:10)
+%                                                        a = 
+%                                                         struct with fields: conn_server_variable: 'labeled_a_1'
+%                                                        >> a = conn_server('run_keepas','a','abs',a)
+%                                                        a = 
+%                                                         struct with fields: conn_server_variable: 'labeled_a_1'
+%                                                        >> b = conn_server('run','sum',a)
+%                                                        b =
+%                                                          132.2490
+%                                                        >> conn_server('clear',a);
 %   conn_server('push',file_local,file_remote)      : copies file from client to server
 %   conn_server('pull', file_remote,file_local)     : copies file from server to client
 %   conn_server('ping')                             : pings the server and shows round-trip times
@@ -40,6 +70,7 @@ function varargout = conn_server(option, varargin)
 %   usage model #1: (a function will run remotely if it needs to work with remote files) (optimal when the fcn call requires minimal transfer of information)
 %   function fileout = fcn(filein, varargin)
 %      if any(conn_server('util_isremotefile',filin)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),varargin{:})); return; end
+%      % the code below this point works with normal/local files
 %
 %   usage model #2: (a function will work on a local cache/copy of remote files) (optimal when working with mixture of local and remote files)
 %   function fileout = fcn(filein, varargin)
@@ -49,11 +80,17 @@ function varargout = conn_server(option, varargin)
 %      if isremotefile, conn_cache('push',remotefilename); end
 %   end
 %
-%   usage model #3: (a function that accesses files only through calls to functions that follow model #1 or model #2)
+%   usage model #3: (a function will run remotely if it needs to work with remote variables) (optimal when working with large intermediate variables)
+%   function output = fcn(input, varargin)
+%      if conn_server('util_isremotevar',input), output=conn_server('run_keep',mfilename,input,varargin{:}); return; end
+%      % the code below this point works with normal/local variables
+%
+%   usage model #4: (a function that accesses files only through calls to functions that follow model #1 or model #2)
 %
 %
 
 persistent params
+persistent local_vars
 if ~nargin||isempty(option), option='start'; end
 
 varargout={};
@@ -63,6 +100,7 @@ if isempty(params)
         'info',struct(),...
         'state','off');
 end
+if isempty(local_vars), local_vars=struct; end
 
 switch(lower(option))
     case 'start' % init server
@@ -111,14 +149,15 @@ switch(lower(option))
         conn_cache clear;
         conn_jobmanager clear;
 
-    case {'run','run_immediatereturn','run_withwaitbar'}
+    case {'run','run_immediatereturn','run_withwaitbar','run_keep','run_keepas'}
         data.type='run';
         data.id=char(mlreportgen.utils.hash(mat2str(now)));
-        if strcmp(lower(option),'run_withwaitbar'), statushandle=varargin{1}; data.cmd=varargin(2:end); data.withwaitbar=true;
-        else statushandle=[]; data.cmd=varargin; data.withwaitbar=false;
+        if strcmpi(option,'run_withwaitbar'), statushandle=varargin{1}; data.cmd=varargin(2:end); data.withwaitbar=true; data.keeplocal=false; 
+        elseif strcmpi(option,'run_keepas'), statushandle=[]; data.cmd=varargin(2:end); data.withwaitbar=true; data.keeplocal=varargin{1}; 
+        else statushandle=[]; data.cmd=varargin; data.withwaitbar=false; data.keeplocal=strcmpi(option,'run_keep'); 
         end
         data.nargout=nargout;
-        data.immediatereturn=strcmp(lower(option),'run_immediatereturn');
+        data.immediatereturn=strcmpi(option,'run_immediatereturn');
         data.hpc=false;
         if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'scp')&&params.info.scp>0, data.hpc=true; end
         conn_tcpip('flush');
@@ -224,11 +263,22 @@ switch(lower(option))
                     conn_tcpip('write','ok');
                 elseif isstruct(data)&&numel(data)==1&&isfield(data,'cmd') % run command
                     if ischar(data.cmd), data.cmd={data.cmd}; end
-                    data.cmd{1}=regexprep(data.cmd{1},'\.m$','');
-                    if isequal(data.cmd{1},'conn')||~isempty(regexp(data.cmd{1},'^conn_'))||isequal(data.cmd{1},'spm')||~isempty(regexp(data.cmd{1},'^spm_')) % run only conn or spm commands
+                    try, data.cmd{1}=regexprep(data.cmd{1},'\.m$',''); end
+                    if ischar(data.cmd{1})||conn_server('util_isremotevar',data.cmd{1}), %isequal(data.cmd{1},'conn')||~isempty(regexp(data.cmd{1},'^conn_'))||isequal(data.cmd{1},'spm')||~isempty(regexp(data.cmd{1},'^spm_')) % run only conn or spm commands
                         fprintf('\n -'); dispstr=''; timer=[];
                         try
-                            fh=eval(sprintf('@%s',data.cmd{1}));
+                            disp(data.cmd); 
+                            if conn_server('util_isremotevar',data.cmd{1}), fh=@(x)x; data.cmd=[{''},data.cmd]; 
+                            elseif isempty(data.cmd{1}), fh=@(x)x;
+                            else fh=eval(sprintf('@%s',data.cmd{1}));
+                            end
+                            is_server_variable=find(conn_server('util_isremotevar',data.cmd(2:end)));
+                            for nvar=reshape(is_server_variable,1,[]) % use variables defined using run_keep
+                                if numel(data.cmd)>2&&isequal(data.cmd{1},'conn_server')&&isequal(data.cmd{2},'clear'), data.cmd{1+nvar}=data.cmd{1+nvar}.conn_server_variable;
+                                elseif isfield(local_vars,data.cmd{1+nvar}.conn_server_variable), data.cmd{1+nvar}=local_vars.(data.cmd{1+nvar}.conn_server_variable);
+                                else data.cmd{1+nvar}=[]; % error, variable does not exist
+                                end
+                            end
                             %disp([data.cmd]);
 %                             if isfield(data,'displaystatus')&&data.displaystatus,
 %                                 htimer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@conn_server_update);
@@ -255,8 +305,18 @@ switch(lower(option))
                                         argout=struct('type','ko','id',data.id,'msg',str);
                                     end
                                 end
-                                disp(data.cmd); disp(argout);
-                                if isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'hpc')&&data.hpc>0&&getfield(whos('argout'),'bytes')>1e6, % send response using ssh/scp?
+                                %disp(data.cmd); 
+                                disp(argout);
+                                if isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'keeplocal')&&all(data.keeplocal>0)
+                                    for nvar=1:numel(argout.msg)
+                                        if ischar(data.keeplocal), varname=['labeled_',data.keeplocal,'_',num2str(nvar)]; 
+                                        else varname=['var_',char(mlreportgen.utils.hash(mat2str(now))),'_',num2str(nvar)];
+                                        end
+                                        local_vars.(varname)=argout.msg{nvar};
+                                        argout.msg{nvar}=struct('conn_server_variable',varname);
+                                    end
+                                    conn_tcpip('write',argout);
+                                elseif isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'hpc')&&data.hpc>0&&getfield(whos('argout'),'bytes')>1e6, % send response using ssh/scp?
                                     tmpfile=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
                                     arg=argout; save(tmpfile,'arg');
                                     argout=struct('type','ok_hasattachment','id',data.id,'msg',tmpfile);
@@ -275,7 +335,7 @@ switch(lower(option))
                                 try
                                     feval(fh,data.cmd{2:end});
                                 end
-                                disp(data.cmd);
+                                %disp(data.cmd);
                             end
                         catch me
                             str=conn_errormessage(me);
@@ -288,7 +348,7 @@ switch(lower(option))
                         argout=struct('type','ko', 'id', data.id, 'msg', sprintf('unrecognized option %s ',data.cmd{1}));
                         conn_tcpip('write',argout);
                     end
-                else % testing
+                else % testing (obsolete)
                     fprintf('\n received test data:\n');  dispstr='';
                     disp(data)
                 end
@@ -352,9 +412,20 @@ switch(lower(option))
         assert(ok(1), 'communication with server interrupted during file pull');
         varargout=hash;
         
-    case 'clear'
+    case 'clear_cache'
         conn_cache clear;
         conn_tcpip clear;
+        
+    case {'clear','clear_keep'}
+        if params.isserver, 
+            if strcmpi(option,'clear_keep')||isempty(varargin)||isequal(varargin,{'all'})
+                local_vars=struct;
+            else
+                local_vars=rmfield(local_vars,varargin);
+            end
+        else
+            try, conn_server('run_immediatereturn','conn_server','clear',varargin{:}); end
+        end
         
     case 'ssh_save' % saves .json info
         if numel(varargin)>=1, filename=varargin{1};
@@ -459,8 +530,8 @@ switch(lower(option))
             elseif isempty(params.info.host)
                 if ~isfield(params.info,'remote_ip'), params.info.remote_ip=''; end; if isempty(params.info.remote_ip), temp=input('Remote session host address: ','s'); else temp=input(sprintf('Remote session host address [%s]: ',params.info.remote_ip),'s'); end; if ~isempty(temp), params.info.remote_ip=temp; end
                 if ~isfield(params.info,'remote_port'), params.info.remote_port=[]; end; if isempty(params.info.remote_port), temp=input('Remote session access port: ','s'); else temp=input(sprintf('Remote session access port [%d]: ',params.info.remote_port),'s'); end; if ~isempty(temp), params.info.remote_port=str2double(temp); end
-                if ~isfield(params.info,'remote_id'), params.info.remote_id=''; end; if isempty(params.info.remote_id), temp=input('Remote session id: ','s'); else temp=input(sprintf('Remote session id [%s]: ',params.info.remote_id),'s'); end; if ~isempty(temp), params.info.remote_id=temp; end
-                if ~isfield(params.info,'remote_log'), params.info.remote_log=''; end; if isempty(params.info.remote_log), temp=input('Remote session log folder: ','s'); else temp=input(sprintf('Remote session log folder [%s]: ',params.info.remote_log),'s'); end; if ~isempty(temp), params.info.remote_log=temp; end
+                if ~isfield(params.info,'remote_id'), params.info.remote_id=''; end; if isempty(params.info.remote_id), temp=input('Remote session id: ','s'); else temp=input(sprintf('Remote session id [%s]: ',params.info.remote_id),'s'); end; if ~isempty(temp), params.info.remote_id=deblank(temp); end
+                if ~isfield(params.info,'remote_log'), params.info.remote_log=''; end; if isempty(params.info.remote_log), temp=input('Remote session log folder: ','s'); else temp=input(sprintf('Remote session log folder [%s]: ',params.info.remote_log),'s'); end; if ~isempty(temp), params.info.remote_log=deblank(temp); end
                 if ~isfield(params.info,'start_time')||isempty(params.info.start_time), params.info.start_time=datestr(now); end
                 params.info.local_port=[];
                 startnewserver=false;
@@ -729,6 +800,23 @@ switch(lower(option))
             params.state='off';
             varargout={false};
         end
+        
+    case 'util_who'
+        if params.isserver
+            names=fieldnames(local_vars);
+        else
+            names=conn_server('run','conn_server','util_who');
+        end            
+        if nargout>0, varargout={names};
+        else disp(char(names));
+        end
+        
+    case 'util_isremotevar',
+        var=varargin{1}; 
+        if ~iscell(var), var={var}; end
+        out=false(size(var));
+        for nvar=1:numel(var), if isstruct(var{nvar})&&isfield(var{nvar},'conn_server_variable'), out(nvar)=true; end; end
+        varargout={out};
         
     case 'util_isremotefile'
         varargout={false};

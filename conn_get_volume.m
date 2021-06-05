@@ -1,6 +1,14 @@
-function [x,idx]=conn_get_volume(V)
+function [x,idx]=conn_get_volume(V,allowlinks)
+if nargin<2||isempty(allowlinks), allowlinks=false; end
 
-if any(conn_server('util_isremotefile',V.fname)), V.fname=conn_server('util_localfile',V.fname); [x,idx]=conn_server('run',mfilename,V); return; end
+if any(conn_server('util_isremotefile',V.fname)), 
+    V.fname=conn_server('util_localfile',V.fname);
+    if ischar(allowlinks)&&~isempty(regexp(allowlinks,'^.*run_keepas:')), [x,idx]=conn_server('run_keepas',regexprep(allowlinks,'^.*run_keepas:',''),mfilename,V);
+    elseif allowlinks, [x,idx]=conn_server('run_keep',mfilename,V);
+    else [x,idx]=conn_server('run',mfilename,V);
+    end
+    return
+end
 
 if isfield(V,'softlink')&&~isempty(V.softlink), 
     str1=regexp(V.fname,'Subject\d+','match'); if ~isempty(str1), V.softlink=regexprep(V.softlink,'Subject\d+',str1{end}); end

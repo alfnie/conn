@@ -2094,7 +2094,7 @@ if any(floor(options)==9),
         for ianalysis=analyses,
             CONN_x.Analysis=ianalysis;
             if isempty(CONN_x.Analyses(ianalysis).name),CONN_x.Analyses(ianalysis).name=['SBC_',num2str(ianalysis,'%02d')]; end;
-            if ~exist(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name),'dir'), [ok,nill]=mkdir(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name); end;
+            if ~conn_existfile(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name),2), try, conn_fileutils('mkdir',CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name); end; end;
             if isfield(CONN_x.Analyses(ianalysis).regressors,'names') && ~isempty(CONN_x.Analyses(ianalysis).regressors.names), initial=CONN_x.Analyses(ianalysis).regressors.names; dims=CONN_x.Analyses(ianalysis).regressors.dimensions; ders=CONN_x.Analyses(ianalysis).regressors.deriv; fbands=CONN_x.Analyses(ianalysis).regressors.fbands;
             else, initial=CONN_x.Analysis_variables.names; %(strcmp(CONN_x.Analysis_variables.types,'roi')); 
                 initial=initial(~cellfun('length',regexp(initial,'^Grey Matter$|^White Matter$|^CSF Matter$|^QA_|^QC_|^Effect of'))); dims={}; ders={}; fbands={}; end
@@ -2137,7 +2137,7 @@ if any(floor(options)==9),
         analysisbak=CONN_x.vvAnalysis;
         for ianalysis=analyses,
             CONN_x.vvAnalysis=ianalysis;
-            if ~exist(fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name),'dir'), [ok,nill]=mkdir(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name); end;
+            if ~conn_existfile(fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name),2), try, conn_fileutils('mkdir',CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name); end; end;
             
             CONN_x.vvAnalyses(ianalysis).variables=conn_v2v('measures');
             if isfield(CONN_x.vvAnalyses(ianalysis).regressors,'names') && ~isempty(CONN_x.vvAnalyses(ianalysis).regressors.names),
@@ -2194,7 +2194,7 @@ if any(floor(options)==9),
         analysisbak=CONN_x.dynAnalysis;
         for ianalysis=analyses,
             CONN_x.dynAnalysis=ianalysis;
-            if ~exist(fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(ianalysis).name),'dir'), [ok,nill]=mkdir(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(ianalysis).name); end;
+            if ~conn_existfile(fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(ianalysis).name),2), try, conn_fileutils('mkdir',CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(ianalysis).name); end; end;
             CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names={};
             for n1=1:length(x1.names),
                 idx=strmatch(x1.names{n1},CONN_x.Preproc.confounds.names,'exact');

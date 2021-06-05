@@ -1,8 +1,12 @@
-function [y,fy]=conn_filter(rt,filter,x,option)
+function [y,fy]=conn_filter(rt,filter,x,option,cols)
+
+if nargin<5, cols=[]; end
+if nargin<4||isempty(option), option='full'; end
+if conn_server('util_isremotevar',x), if nargout>1, [y,fy]=conn_server('run_keep',mfilename,rt,filter,x,option,cols); else y=conn_server('run_keep',mfilename,rt,filter,x,option,cols); end; return; end
 
 USEDCT=true;
-if nargin<4, option='full'; end
 if strcmpi(option,'base'), Nx=x; x=eye(Nx); end
+if ~isempty(cols), X=x; x=X(:,cols); end
 if USEDCT % discrete cosine basis
     Nx=size(x,1);
     fy=fft(cat(1,x,flipud(x)),[],1);
@@ -38,4 +42,5 @@ else % discrete fourier basis
             y=fy(idx,:);
     end
 end
+if ~isempty(cols), X(:,cols)=y; y=X; end
 

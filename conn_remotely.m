@@ -212,7 +212,8 @@ if ~nargin||isempty(option), option='init'; end
 switch(option)
     case {'init','start','restart'}         % GUI interaction
         dorestart=strcmpi(option,'restart');
-        if dorestart, keepgui=conn('findgui');
+        dostart=strcmpi(option,'start');
+        if dostart||dorestart, keepgui=conn('findgui');
         else keepgui=false;
         end
         connversion={'CONN functional connectivity toolbox',' (',conn('ver'),') '};

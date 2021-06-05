@@ -1,6 +1,6 @@
 function [issurf,ismtx] = conn_surf_dimscheck(dim)
 if isstruct(dim), dim=dim(1).dim; 
-elseif iscell(dim)||ischar(dim), dim=nifti(dim); dim=size(dim(1).dat); 
+elseif iscell(dim)||ischar(dim), dim=conn_fileutils('nifti',dim); dim=size(dim(1).dat); 
 end
 if numel(dim)<3, dim=[dim(:)',ones(1,3)]; end
 dim=reshape(dim(1:3),1,3);

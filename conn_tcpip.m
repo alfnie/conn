@@ -512,7 +512,7 @@ switch(lower(option))
         end
         if numel(varargin)>=1 && ~isempty(varargin{1}), keyprivate=reshape(varargin{1},1,[]); else keyprivate=char(mlreportgen.utils.hash(mat2str(now+count))); end
         hash=java.security.MessageDigest.getInstance('sha-256');
-        hash.update(uint8(keyprivate));
+        for n=1:1024,hash.update(uint8(keyprivate));end
         keypublic=char(mlreportgen.utils.hash(char(reshape(typecast(hash.digest,'uint8'),1,[]))));
         varargout={keypublic,keyprivate};
         

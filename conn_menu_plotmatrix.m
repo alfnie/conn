@@ -22,6 +22,7 @@ if ischar(x)
     end
     axis(h,'equal','off');
     if SERIOUSNESS<2
+        text(0,0,'horizontalalignment','center','units','norm','parent',h);
         for n=1:abs(nr)+0,
             if n>0&&nr>0, pause(.01); drawnow; end
             if isnan(nv), tnv=n; else tnv=nv; end

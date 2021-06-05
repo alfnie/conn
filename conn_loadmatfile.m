@@ -2,13 +2,25 @@ function data=conn_loadmatfile(filename,varargin)
 % loads .mat file into structure
 % data = conn_loadmatfile(filename)
 
+DOKEEP=false;
+DOCACHE=false;
+idx=find(cellfun(@(x)isequal(x,'-run_keep'),varargin));
+if ~isempty(idx),
+    varargin(idx)=[];
+    DOKEEP=true;
+end
+idx=find(cellfun(@(x)isequal(x,'-run_keepas'),varargin));
+if ~isempty(idx),
+    DOKEEP=varargin{idx(1)+1};
+    varargin([idx idx+1])=[];
+end
+idx=find(cellfun(@(x)isequal(x,'-cache'),varargin));
+if ~isempty(idx),
+    varargin(idx)=[];
+    DOCACHE=true;
+end
 if any(conn_server('util_isremotefile',filename)), 
-    DOCACHE=false;
-    idx=find(cellfun(@(x)isequal(x,'-cache'),varargin));
-    if ~isempty(idx), 
-        varargin(idx)=[]; 
-        DOCACHE=true;
-    elseif isempty(varargin)
+    if ~DOCACHE&&isempty(varargin)&&isequal(DOKEEP,false)
         try
             info=conn_fileutils('dir',filename);
             DOCACHE=info.bytes>1e6;
@@ -17,6 +29,10 @@ if any(conn_server('util_isremotefile',filename)),
     if DOCACHE
         filelocal=conn_cache('pull',filename);
         data=load(filelocal,varargin{:});
+    elseif ischar(DOKEEP)&&~isempty(DOKEEP)
+        data=conn_server('run_keepas',DOKEEP, mfilename,conn_server('util_localfile',filename),varargin{:});
+    elseif DOKEEP
+        data=conn_server('run_keep',mfilename,conn_server('util_localfile',filename),varargin{:});
     else
         data=conn_server('run',mfilename,conn_server('util_localfile',filename),varargin{:});
     end

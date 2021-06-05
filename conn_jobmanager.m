@@ -381,7 +381,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
             if all(ismember(info.tagmsg,validlabels)),
                 answ=conn_questdlg({'Your pending job has finished','Finished jobs need to be merged with your current CONN project','Would you like to do this now?'},'Finished job','Merge now','Later','Merge now');
                 if isequal(answ,'Merge now'), 
-                    hmsg=conn_msgbox('Merging projects. Please wait...','',-1);
+                    hmsg=conn_msgbox({'Merging projects','This procedure may take several minutes. Please wait...'},'',-1);
                     filename=regexprep(info.private{1}(1).project,'\?.*$','');
                     conn('load',filename);
                     conn save;

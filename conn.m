@@ -111,19 +111,21 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 	CONN_h.screen.hfig=figure('units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-48,h0(1)-0*72-1,max(minheight,.5*h0(1))],'color',CONN_gui.backgroundcolor,'doublebuffer','on','tag',connversion{1},'name',tname,'numbertitle','off','menubar','none','resize','on','colormap',CONN_h.screen.colormap,'closerequestfcn',@conn_closerequestfcn,'deletefcn',@conn_deletefcn,'resizefcn',@conn_resizefcn,'interruptible','off');
     try, if isequal(datestr(now,'mmdd'),'0401'), conn_guibackground('setfiledefault',[],'True color'); end; end
     conn_menuframe;
-    if CONN_gui.isremote, ht=conn_menu('text0c',[.3 .7 .4 .2],'','CONN remotely'); set(ht,'fontunits','norm','fontsize',.5,'horizontalalignment','center','color',[0 0 0]+(mean(CONN_gui.backgroundcolor)<.5));
-    else ht=conn_menu('text0c',[.3 .7 .4 .2],'','CONN'); set(ht,'fontunits','norm','fontsize',.5,'horizontalalignment','center','color',[0 0 0]+(mean(CONN_gui.backgroundcolor)<.5));
-    end
+    ht=conn_menu('text0c',[.3 .7 .4 .2],'','CONN'); set(ht,'fontunits','norm','fontsize',.5,'horizontalalignment','center','color',[0 0 0]+(mean(CONN_gui.backgroundcolor)<.5));
+    if CONN_gui.isremote, ht=conn_menu('text0c',[.3 .7 .4 .05],'','(remotely)'); set(ht,'fontunits','norm','fontsize',.5,'horizontalalignment','center','color',[0 0 0]+(mean(CONN_gui.backgroundcolor)<.5)); end
     imicon=imread(fullfile(fileparts(which(mfilename)),'conn_icon.jpg')); ha=axes('units','norm','position',[.425 .3 .15 .4],'parent',CONN_h.screen.hfig);him=image(conn_bsxfun(@plus,shiftdim([.1 .1 .1],-1),conn_bsxfun(@times,.5*shiftdim(1-[.1 .1 .1],-1),double(imicon)/255)),'parent',ha);axis(ha,'equal','off');
-    conn_menu_plotmatrix('',CONN_h.screen.hfig,[20 1 10],[.425 .2 .15 .1]);
     hax=axes('units','norm','position',[0 0 1 1],'parent',CONN_h.screen.hfig);
-    h=text(0,-2,'Initializing. Please wait','fontunits','norm','fontsize',1/60,'horizontalalignment','center','verticalalignment','bottom','color',.75*[1 1 1],'parent',hax);
+    h=text(0,-2,'Initializing, please wait...','fontunits','norm','fontsize',1/60,'horizontalalignment','center','verticalalignment','bottom','color',.75*[1 1 1],'parent',hax);
     set(hax,'units','norm','position',[0 0 1 1],'xlim',[-2 2],'ylim',[-2.5 2]); axis(hax,'off');
+    conn_menu_plotmatrix('',CONN_h.screen.hfig,[20 1 10],[.425 .2 .15 .1]);
+    %hax=axes('units','norm','position',[0 0 1 1],'parent',CONN_h.screen.hfig);
+    %h=text(0,-2,conn_msg(1),'fontunits','norm','fontsize',1/60,'horizontalalignment','center','verticalalignment','bottom','color',.75*[1 1 1],'parent',hax);
+    %set(hax,'units','norm','position',[0 0 1 1],'xlim',[-2 2],'ylim',[-2.5 2]); axis(hax,'off');
     if conn_font_init,
         drawnow;
         set(h,'fontunits','points');
         tfontsize=get(h,'fontsize');
-        conn_font_offset=max(-4,round(tfontsize)-6);
+        conn_font_offset=max(-4,round(tfontsize)/2);
         %fprintf('Font size change %dpts to %dpts (%f %s)\n',8+CONN_gui.font_offset,8+conn_font_offset,tfontsize,mat2str([get(0,'screensize') get(gca,'position')]));
         CONN_gui.font_offset=conn_font_offset;
     end
@@ -133,7 +135,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
             tsize=javaMethod('values','com.mathworks.widgets.BusyAffordance$AffordanceSize');
             CONN_h.menus.waiticonObj=com.mathworks.widgets.BusyAffordance(tsize(1), '');
             pos=get(CONN_h.screen.hfig,'position');
-            CONN_h.menus.waiticon=javacomponent(CONN_h.menus.waiticonObj.getComponent, [pos(3)-16-1,.95*pos(4)-16+3,16,16], CONN_h.screen.hfig);
+            CONN_h.menus.waiticon=javacomponent(CONN_h.menus.waiticonObj.getComponent, [pos(3)-16-1,.95*pos(4)-16+0,16,16], CONN_h.screen.hfig);
             set(CONN_h.menus.waiticon,'Background',java.awt.Color(CONN_gui.backgroundcolor(1),CONN_gui.backgroundcolor(2),CONN_gui.backgroundcolor(3)));
             CONN_h.menus.waiticonObj.useWhiteDots(mean(CONN_gui.backgroundcolor)<.5);
             CONN_h.menus.waiticonObj.start;
@@ -1536,15 +1538,16 @@ else
             h.text1=uicontrol('style','text','units','norm','position',[.05,.80,.9,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',9+CONN_gui.font_offset,'string',sprintf('Connected to %s',tnameserver),'parent',thfig);
             h.text2=uicontrol('style','text','units','norm','position',[.05,.35,.9,.43],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string',str,'parent',thfig);
             h.text3=uicontrol('style','text','units','norm','position',[.05,.21,.55,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string','','parent',thfig);
-            h.button0=uicontrol(thfig,'style','pushbutton','string','transfer files','enable','off','units','norm','position',[.65,.21,.30,.10],'callback','delete(gcbf); conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy files between this computer and %s',tnameserver));
-            h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','off','units','norm','position',[.05,.11,.30,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
-            h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.35,.11,.30,.10],'callback','conn_server(''SSH_details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
-            h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.65,.11,.30,.10],'callback','conn_server(''clear'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears file temporal storage and communication buffer');
+            h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.05,.11,.15,.10],'callback','conn_server(''SSH_details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
+            h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.20,.11,.15,.10],'callback','conn_server(''clear_cache'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears file temporal storage and communication buffer');
+            h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','off','units','norm','position',[.50,.11,.15,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
+            h.button7=uicontrol(thfig,'style','pushbutton','string','cmd','units','norm','position',[.65,.11,.15,.10],'callback','disp(''TYPE quit TO FINISH''); conn_remotely(''cmd'')','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('Matlab command-line in %s',tnameserver));
+            h.button8=uicontrol(thfig,'style','pushbutton','string','scp','enable','off','units','norm','position',[.80,.11,.15,.10],'callback','delete(gcbf); conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy/transfer entire folders between this computer and %s',tnameserver));
             %h.button4=uicontrol(thfig,'visible','off','style','pushbutton','string','File transfer','units','norm','position',[.05,.01,.30,.10],'callback','conn_server(''SSH_filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
             h.button4=uicontrol(thfig,'style','pushbutton','string','Check connection','units','norm','position',[.05,.01,.30,.10],'callback','if conn(''gui_isconnected''), h=get(gcbf,''userdata''); set(h.text3,''string'',''connection working correctly''); end','fontsize',6+CONN_gui.font_offset,'tooltipstring','checks the connection with an existing/running remote CONN session');
             h.button5=uicontrol(thfig,'style','pushbutton','string','Reset connection','units','norm','position',[.35,.01,.30,.10],'callback','close(gcbf); conn_remotely restart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
             h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn_remotely start','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_server ssh_exitforce" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
-            try, if ~isempty(info.remote_ip), set([h.button1 h.button0],'enable','on'); end; end
+            try, if ~isempty(info.remote_ip), set([h.button1 h.button8],'enable','on'); end; end
             try, if ~isempty(info.remote_log), set(h.button2,'enable','on'); end; end
             set(thfig,'userdata',h);
             
@@ -6103,6 +6106,9 @@ else
             CONN_x.gui=1;
 			model=0;
             boffset=[-.02 .05 0 0];
+            %DOREM={{'run_keepas:y'},{'-run_keepas','x1'},{'-run_keepas','x2'}}; % remotely: keep all vars remotely
+            DOREM={{'run_keepas:y'},{'-cache'},{'-cache'}}; % remotely: keep some vars remotely
+            %DOREM={{},{'-cache'},{'-cache'}}; % remotely: bring all vars locally
             if nargin<2,
                 conn_menumanager clf;
                 conn_menuframe;
@@ -6115,6 +6121,7 @@ else
                 end
 				if isempty(CONN_x.Preproc.variables.names), conn_msgbox({'Not ready to start Denoising step',' ','Please complete the Setup step first','(fill any required information and press "Done" in the Setup tab)'},'',2); return; end; %conn gui_setup; return; end
                 conn_menu('nullstr',' '); %{'No data','to display'});
+                if CONN_gui.isremote, conn_server('clear','all'); end
 
 				%conn_menu('frame',boffset+[.04,.27,.37,.53],'DENOISING OPTIONS');
 				%conn_menu('frame',boffset+[.04,.06,.37,.205]);
@@ -6216,25 +6223,26 @@ else
                     if isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface,%isequal(CONN_h.menus.m_preproc.Y.matdim.dim,conn_surf_dims(8).*[1 1 2])
                         CONN_h.menus.m_preproc.y.slice=1;
                         if CONN_h.menus.m_preproc_surfhires
-                            [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_volume(CONN_h.menus.m_preproc.Y);
+                            [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_volume(CONN_h.menus.m_preproc.Y, DOREM{1}{:});
                         else
-                            [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,1);
-                            [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_preproc.Y,conn_surf_dims(8)*[0;0;1]+1);
-                            CONN_h.menus.m_preproc.y.data=[CONN_h.menus.m_preproc.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
-                            CONN_h.menus.m_preproc.y.idx=[CONN_h.menus.m_preproc.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
+                            [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_rvolume(CONN_h.menus.m_preproc.Y, DOREM{1}{:});
+                            %[CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,1);
+                            %[tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_preproc.Y,conn_surf_dims(8)*[0;0;1]+1);
+                            %CONN_h.menus.m_preproc.y.data=[CONN_h.menus.m_preproc.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
+                            %CONN_h.menus.m_preproc.y.idx=[CONN_h.menus.m_preproc.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
                         end
                         set(CONN_h.menus.m_preproc_00{15},'visible','off');
                         conn_menumanager('onregionremove',CONN_h.menus.m_preproc_00{15});
                     else
                         CONN_h.menus.m_preproc.y.slice=ceil(CONN_h.menus.m_preproc.Y.matdim.dim(3)/2);
-                        [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,CONN_h.menus.m_preproc.y.slice);
+                        [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,CONN_h.menus.m_preproc.y.slice,[],DOREM{1}{:});
                     end
                 end
                 CONN_h.menus.m_preproc.strlabel=sprintf('Subject %d session %d',1,1);
 				filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
-				CONN_h.menus.m_preproc.X1=conn_loadmatfile(filename,'-cache');
+				CONN_h.menus.m_preproc.X1=conn_loadmatfile(filename,DOREM{2}{:});
 				filename=fullfile(filepath,['COV_Subject',num2str(1,'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
-				CONN_h.menus.m_preproc.X2=conn_loadmatfile(filename,'-cache');
+				CONN_h.menus.m_preproc.X2=conn_loadmatfile(filename,DOREM{3}{:});
                 if any(CONN_x.Setup.steps([2,3]))
                     if ~(isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface)
                         try
@@ -6366,22 +6374,23 @@ else
                              CONN_h.menus.m_preproc.Y=conn_vol(filename,true);
                              if isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface
                                  if CONN_h.menus.m_preproc_surfhires
-                                     [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_volume(CONN_h.menus.m_preproc.Y);
+                                     [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_volume(CONN_h.menus.m_preproc.Y, DOREM{1}{:});
                                  else
-                                     [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,1);
-                                     [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_preproc.Y,conn_surf_dims(8)*[0;0;1]+1);
-                                     CONN_h.menus.m_preproc.y.data=[CONN_h.menus.m_preproc.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
-                                     CONN_h.menus.m_preproc.y.idx=[CONN_h.menus.m_preproc.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
+                                     [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_rvolume(CONN_h.menus.m_preproc.Y, DOREM{1}{:});
+                                     %[CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,1);
+                                     %[tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_preproc.Y,conn_surf_dims(8)*[0;0;1]+1);
+                                     %CONN_h.menus.m_preproc.y.data=[CONN_h.menus.m_preproc.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
+                                     %CONN_h.menus.m_preproc.y.idx=[CONN_h.menus.m_preproc.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
                                  end
                              else
-                                 [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,CONN_h.menus.m_preproc.y.slice);
+                                 [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,CONN_h.menus.m_preproc.y.slice, [], DOREM{1}{:});
                              end
                          end
                          CONN_h.menus.m_preproc.strlabel=sprintf('Subject %d session %d',nsubs,nsess);
 						 filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Session',num2str(nsess,'%03d'),'.mat']);
-						 CONN_h.menus.m_preproc.X1=conn_loadmatfile(filename);
+						 CONN_h.menus.m_preproc.X1=conn_loadmatfile(filename,DOREM{2}{:});
 						 filename=fullfile(filepath,['COV_Subject',num2str(nsubs,'%03d'),'_Session',num2str(nsess,'%03d'),'.mat']);
-						 CONN_h.menus.m_preproc.X2=conn_loadmatfile(filename);
+						 CONN_h.menus.m_preproc.X2=conn_loadmatfile(filename,DOREM{3}{:});
                          if any(CONN_x.Setup.steps([2,3]))&&~(isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface)
                              if ~CONN_x.Setup.structural_sessionspecific, nsesstemp=1; else nsesstemp=nsess; end
                              try
@@ -6400,7 +6409,7 @@ else
 						 nsubs=get(CONN_h.menus.m_preproc_00{11},'value');
                          CONN_h.menus.m_preproc.y.slice=round(get(CONN_h.menus.m_preproc_00{15},'value'));
                          if any(CONN_x.Setup.steps([2,3]))&&~(isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface)
-                             [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,CONN_h.menus.m_preproc.y.slice);
+                             [CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.idx]=conn_get_slice(CONN_h.menus.m_preproc.Y,CONN_h.menus.m_preproc.y.slice, [], DOREM{1}{:});
                              xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_preproc.Y.matdim.dim(1:2))*(CONN_h.menus.m_preproc.y.slice-1)+(1:prod(CONN_h.menus.m_preproc.Y.matdim.dim(1:2))),CONN_h.menus.m_preproc.Y.matdim.mat,CONN_h.menus.m_preproc.Y.matdim.dim);
                              CONN_h.menus.m_preproc.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_preproc.XS(1),pinv(CONN_h.menus.m_preproc.XS(1).mat)*xyz');
                              CONN_h.menus.m_preproc.Xs=permute(reshape(CONN_h.menus.m_preproc.Xs,CONN_h.menus.m_preproc.Y.matdim.dim(1:2)),[2,1,3]);
@@ -6431,8 +6440,13 @@ else
                             t2=zeros(CONN_h.menus.m_preproc.Y.matdim.dim(1:2));
                             dispdata={};
                             displabel={};
-                            covdata={};
+                            covdata={}; 
                             showdemeaned=0;
+                            if CONN_gui.isremote&&any(conn_server('util_isremotevar',{CONN_h.menus.m_preproc.y.data,CONN_h.menus.m_preproc.y.data_afterdenoising,CONN_h.menus.m_preproc.y.idx})), hmsg=conn_msgbox('Loading data... please wait','',-1); else hmsg=[]; end
+                            if CONN_gui.isremote&&conn_server('util_isremotevar',CONN_h.menus.m_preproc.y.data), CONN_h.menus.m_preproc.y.data=conn_server('run',CONN_h.menus.m_preproc.y.data); end
+                            if CONN_gui.isremote&&conn_server('util_isremotevar',CONN_h.menus.m_preproc.y.data_afterdenoising), CONN_h.menus.m_preproc.y.data_afterdenoising=conn_server('run',CONN_h.menus.m_preproc.y.data_afterdenoising); end
+                            if CONN_gui.isremote&&conn_server('util_isremotevar',CONN_h.menus.m_preproc.y.idx), CONN_h.menus.m_preproc.y.idx=conn_server('run',CONN_h.menus.m_preproc.y.idx); end
+                            if ishandle(hmsg), delete(hmsg); end; 
                             mydata=mean(CONN_h.menus.m_preproc.y.data,1);
                             for n=1:size(CONN_h.menus.m_preproc.y.data,1)
                                 t1(CONN_h.menus.m_preproc.y.idx)=CONN_h.menus.m_preproc.y.data(n,:)-showdemeaned*mydata;
@@ -6514,7 +6528,8 @@ else
                 if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2,
                     xf=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf);
                 elseif nnz(CONN_h.menus.m_preproc.select{3})
-                    xf(:,find(CONN_h.menus.m_preproc.select{3}))=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf(:,find(CONN_h.menus.m_preproc.select{3})));
+                    xf=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf,[],find(CONN_h.menus.m_preproc.select{3}));
+                    %xf(:,find(CONN_h.menus.m_preproc.select{3}))=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf(:,find(CONN_h.menus.m_preproc.select{3})));
                 end
             end
 			if isempty(nconfounds)||isequal(nconfounds,0), 
@@ -6539,87 +6554,82 @@ else
                     if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2,
                         xf=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf);
                     elseif nnz(CONN_h.menus.m_preproc.select{3})
-                        xf(:,find(CONN_h.menus.m_preproc.select{3}))=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf(:,find(CONN_h.menus.m_preproc.select{3})));
+                        xf=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf,[],find(CONN_h.menus.m_preproc.select{3}));
+                        %xf(:,find(CONN_h.menus.m_preproc.select{3}))=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf(:,find(CONN_h.menus.m_preproc.select{3})));
                     end
                     yf=CONN_h.menus.m_preproc.y.data;%conn_filter(...,CONN_x.Preproc.filter,CONN_h.menus.m_preproc.y.data,'partial');
-                    if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==1,
-                        my=repmat(median(yf,1),[size(yf,1),1]);
-                        sy=repmat(4*median(abs(yf-my)),[size(yf,1),1]);
-                        yf=my+sy.*tanh((yf-my)./max(eps,sy));
-                    end
+                    if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==1, yf=conn_despike(yf); end
                     if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, yf2=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,yf); % just to make the 'BOLD % variance' plot more meaningful in this case (percent variance within band-pass)
-                    else yf2=yf-repmat(mean(yf,1),size(yf,1),1);
+                    else yf2=conn_fcnutils('demean',yf);
                     end
-                    [CONN_h.menus.m_preproc.B,CONN_h.menus.m_preproc.opt]=conn_glmunivariate('estimate',xf,yf2);
+                    [CONN_h.menus.m_preproc.B,CONN_h.menus.m_preproc.opt]=conn_glmunivariate('estimate',xf,yf2); 
                     if 1
                         B=conn_glmunivariate('estimate',xf,yf);
-                        yf=yf-xf*B;
-                        if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2,
-                            my=repmat(median(yf,1),[size(yf,1),1]);
-                            sy=repmat(4*median(abs(yf-my)),[size(yf,1),1]);
-                            yf=my+sy.*tanh((yf-my)./max(eps,sy));
-                        end
+                        yf=conn_fcnutils('residual',xf,yf,B);
+                        if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2, yf=conn_despike(yf); end
                         yf=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,yf);
-                        CONN_h.menus.m_preproc.y.data_afterdenoising=yf;
+                        CONN_h.menus.m_preproc.y.data_afterdenoising=yf; 
                     end
-                    if CONN_h.menus.m_preproc.opt.dof<=0, conn_disp(['Warning: Over-determined model (no degrees of freedom for this subject). Please consider reducing the number, dimensions, or covariates order of the confounds or disregarding this subject/session']); end
+                    if conn_server('util_isremotevar',CONN_h.menus.m_preproc.opt), dof=conn_server('run','getfield',CONN_h.menus.m_preproc.opt,'dof'); else dof=CONN_h.menus.m_preproc.opt.dof; end
+                    if dof<=0, conn_disp(['Warning: Over-determined model (no degrees of freedom for this subject). Please consider reducing the number, dimensions, or covariates order of the confounds or disregarding this subject/session']); end
                 end
-                if isfield(CONN_h.menus.m_preproc.X1,'sampledata'),
+                if conn_server('util_isremotevar',CONN_h.menus.m_preproc.X1), issampledata=conn_server('run','isfield',CONN_h.menus.m_preproc.X1,'sampledata'); else issampledata=isfield(CONN_h.menus.m_preproc.X1,'sampledata'); end
+                if issampledata %isfield(CONN_h.menus.m_preproc.X1,'sampledata'),
                     xf=CONN_h.menus.m_preproc.X;
                     if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2,
                         xf=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf);
                     elseif nnz(CONN_h.menus.m_preproc.select{3})
-                        xf(:,find(CONN_h.menus.m_preproc.select{3}))=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf(:,find(CONN_h.menus.m_preproc.select{3})));
+                        xf=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf,[],find(CONN_h.menus.m_preproc.select{3}));
+                        %xf(:,find(CONN_h.menus.m_preproc.select{3}))=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,xf(:,find(CONN_h.menus.m_preproc.select{3})));
                     end
 %                     if ~any(CONN_x.Setup.steps([2,3])),%isfield(CONN_x.Setup,'doROIonly')&&CONN_x.Setup.doROIonly,
 %                         CONN_h.menus.m_preproc.opt.dof=size(CONN_h.menus.m_preproc.X1.sampledata,1)-size(xf,2); 
 %                     end
 %                     dof=CONN_h.menus.m_preproc.opt.dof;
-                    x0=CONN_h.menus.m_preproc.X1.sampledata;
-                    if isfield(CONN_h.menus.m_preproc.X1,'samplexyz')&&numel(CONN_h.menus.m_preproc.X1.samplexyz)==size(x0,2), xyz=cell2mat(CONN_h.menus.m_preproc.X1.samplexyz);
-                    else xyz=nan(3,size(x0,2));
+                    [scatterplotdata,a0,b0,a1,b1, z0,z1, temp,tempB,tempXYZ, dof0, dof1, dof2]=conn_fcnutils('zcorr', CONN_h.menus.m_preproc.X1, xf, CONN_x.Preproc.despiking, CONN_x.Preproc.filter, max(conn_get_rt(nsubs))); 
+                    if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,dof2(1)*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0-dof2(2));
+                    elseif nnz(CONN_h.menus.m_preproc.select{3}), dof2=max(0,(dof2(1)-dof2(2)+nnz(CONN_h.menus.m_preproc.select{3}))*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0-nnz(CONN_h.menus.m_preproc.select{3}));
+                    else dof2=max(0,(dof2(1)-dof2(2))*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0);
                     end
-                    %x0=detrend(x0);
-                    x0orig=x0;
-                    x0=detrend(x0,'constant');
-                    maskx0=~all(abs(x0)<1e-4,1)&~any(isnan(x0),1);
-                    x0=x0(:,maskx0);
-                    x0orig=x0orig(:,maskx0);
-                    xyz=xyz(:,maskx0);
-                    if isempty(x0), 
-                        conn_disp('Warning! No temporal variation in BOLD signal within sampled grey-matter voxels');
-                    end
-                    x1=x0;
-                    %fy=mean(abs(fft(x0)).^2,2);
-                    if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==1,
-                        my=repmat(median(x1,1),[size(x1,1),1]);
-                        sy=repmat(4*median(abs(x1-my)),[size(x1,1),1]);
-                        x1=my+sy.*tanh((x1-my)./max(eps,sy));
-                    end
-                    x1=x1-xf*(pinv(xf'*xf)*(xf'*x1));
-                    if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2,
-                        my=repmat(median(x1,1),[size(x1,1),1]);
-                        sy=repmat(4*median(abs(x1-my)),[size(x1,1),1]);
-                        x1=my+sy.*tanh((x1-my)./max(eps,sy));
-                    end
-                    [x1,fy]=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,x1);
-                    fy=mean(abs(fy(1:round(size(fy,1)/2),:)).^2,2); 
-                    %dof=max(0,sum(fy)^2/sum(fy.^2)-size(xf,2)); % change dof displayed to WelchSatterthwaite residual dof approximation
-                    dof0=size(CONN_h.menus.m_preproc.X1.sampledata,1)-1;
-                    dof1=max(0,sum(fy)^2/sum(fy.^2)); % WelchSatterthwaite residual dof approximation
-                    if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,size(CONN_h.menus.m_preproc.X1.sampledata,1)*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0-size(xf,2));
-                    elseif nnz(CONN_h.menus.m_preproc.select{3}), dof2=max(0,(size(CONN_h.menus.m_preproc.X1.sampledata,1)-size(xf,2)+nnz(CONN_h.menus.m_preproc.select{3}))*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0-nnz(CONN_h.menus.m_preproc.select{3}));
-                    else dof2=max(0,(size(CONN_h.menus.m_preproc.X1.sampledata,1)-size(xf,2))*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0);
-                    end
-                    z0=corrcoef(x0);z1=corrcoef(x1);d0=shiftdim(sqrt(sum(abs(conn_bsxfun(@minus, xyz,permute(xyz,[1,3,2]))).^2,1)),1);
-                    maskz=z0~=1&z1~=1;
-                    z0=z0(maskz);z1=z1(maskz);d0=d0(maskz);
-                    [a0,b0]=hist(z0(:),linspace(-1,1,100));[a1,b1]=hist(z1(:),linspace(-1,1,100));
+                    
+%                     %x0=detrend(x0);
+%                     x0orig=x0;
+%                     x0=conn_fcnutils('demean',x0);
+%                     maskx0=~all(abs(x0)<1e-4,1)&~any(isnan(x0),1);
+%                     x0=x0(:,maskx0);
+%                     x0orig=x0orig(:,maskx0);
+%                     xyz=xyz(:,maskx0);
+%                     if isempty(x0), 
+%                         conn_disp('Warning! No temporal variation in BOLD signal within sampled grey-matter voxels');
+%                     end
+%                     x1=x0;
+%                     %fy=mean(abs(fft(x0)).^2,2);
+%                     if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==1,
+%                         my=repmat(median(x1,1),[size(x1,1),1]);
+%                         sy=repmat(4*median(abs(x1-my)),[size(x1,1),1]);
+%                         x1=my+sy.*tanh((x1-my)./max(eps,sy));
+%                     end
+%                     x1=x1-xf*(pinv(xf'*xf)*(xf'*x1));
+%                     if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2,
+%                         my=repmat(median(x1,1),[size(x1,1),1]);
+%                         sy=repmat(4*median(abs(x1-my)),[size(x1,1),1]);
+%                         x1=my+sy.*tanh((x1-my)./max(eps,sy));
+%                     end
+%                     [x1,fy]=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,x1);
+%                     fy=mean(abs(fy(1:round(size(fy,1)/2),:)).^2,2); 
+%                     %dof=max(0,sum(fy)^2/sum(fy.^2)-size(xf,2)); % change dof displayed to WelchSatterthwaite residual dof approximation
+%                     dof0=size(CONN_h.menus.m_preproc.X1.sampledata,1)-1;
+%                     dof1=max(0,sum(fy)^2/sum(fy.^2)); % WelchSatterthwaite residual dof approximation
+%                     z0=corrcoef(x0);z1=corrcoef(x1);d0=shiftdim(sqrt(sum(abs(conn_bsxfun(@minus, xyz,permute(xyz,[1,3,2]))).^2,1)),1);
+%                     maskz=z0~=1&z1~=1;
+%                     z0=z0(maskz);z1=z1(maskz);d0=d0(maskz);
+                    
+                    
 %                     if 0
 %                         subplot(211); zt=z0; plot(d0,zt,'k.','markersize',1,'color',.5*[1 1 1]); [nill,idx]=sort(d0); idx(idx)=ceil(20*(1:numel(idx))/numel(idx)); hold on; mzt=accumarray(idx(:),zt(:),[],@mean); szt=accumarray(idx(:),zt(:),[],@std); md0=accumarray(idx(:),d0(:),[],@mean); plot(repmat(md0',2,1),[mzt+szt mzt-szt]','r:',md0,mzt,'ro','markerfacecolor','r','linewidth',3); hold off; set(gca,'color','k');
 %                         subplot(212); zt=z1; plot(d0,zt,'k.','markersize',1,'color',.5*[1 1 1]); [nill,idx]=sort(d0); idx(idx)=ceil(20*(1:numel(idx))/numel(idx)); hold on; mzt=accumarray(idx(:),zt(:),[],@mean); szt=accumarray(idx(:),zt(:),[],@std); md0=accumarray(idx(:),d0(:),[],@mean); plot(repmat(md0',2,1),[mzt+szt mzt-szt]','r:',md0,mzt,'ro','markerfacecolor','r','linewidth',3); hold off; set(gca,'color','k');
 %                     end
-                    if isempty(z0)||isempty(z1), 
+                    if ~any(a0)||~any(a1), 
                         conn_disp('Warning! Empty correlation data');
                         conn_menu('updatehist',CONN_h.menus.m_preproc_00{16},[]);
                         conn_menu('updatescatter',CONN_h.menus.m_preproc_00{23},[]);
@@ -6628,36 +6638,37 @@ else
                         end
                     else
                         conn_menu('updatehist',CONN_h.menus.m_preproc_00{16},{[b1(1),b1,b1(end)],[0,a1,0],[0,a0,0]});
-                        set(CONN_h.menus.m_preproc_00{16}.h6,'string',sprintf('original (%.2f%c%.2f; df=%.1f)',mean(z0(:)),177,std(z0(:)),dof0)); % (df_W_S=%.1f)',dof2,dof1));
-                        set(CONN_h.menus.m_preproc_00{16}.h7,'string',sprintf('after denoising (%.2f%c%.2f; df=%.1f)',mean(z1(:)),177,std(z1(:)),dof2)); % (df_W_S=%.1f)',dof2,dof1));
-                        if all(isnan(d0))
+                        set(CONN_h.menus.m_preproc_00{16}.h6,'string',sprintf('original (%.2f%c%.2f; df=%.1f)',z0.mean,177,z0.std,dof0)); % (df_W_S=%.1f)',dof2,dof1));
+                        set(CONN_h.menus.m_preproc_00{16}.h7,'string',sprintf('after denoising (%.2f%c%.2f; df=%.1f)',z1.mean,177,z1.std,dof2)); % (df_W_S=%.1f)',dof2,dof1));
+                        if isempty(scatterplotdata)
                             conn_menu('updatescatter',CONN_h.menus.m_preproc_00{23},[]);
                         else
-                            th0=conn_hanning(255); th0=th0/sum(th0); [nill,tidx]=sort(d0(:)); t0=convn(z0(tidx),th0,'valid'); t1=convn(z1(tidx),th0,'valid'); td0=convn(d0(tidx),th0,'valid');
-                            conn_menu('updatescatter',CONN_h.menus.m_preproc_00{23},{{t0(1:50:end) t1(1:50:end) z0 z1},{td0(1:50:end) td0(1:50:end) d0 d0}});
+                            %th0=conn_hanning(255); th0=th0/sum(th0); [nill,tidx]=sort(d0(:)); t0=convn(z0(tidx),th0,'valid'); t1=convn(z1(tidx),th0,'valid'); td0=convn(d0(tidx),th0,'valid');
+                            %conn_menu('updatescatter',CONN_h.menus.m_preproc_00{23},{{t0(1:50:end) t1(1:50:end) z0 z1},{td0(1:50:end) td0(1:50:end) d0 d0}});
+                            conn_menu('updatescatter',CONN_h.menus.m_preproc_00{23},scatterplotdata);
                             %th0=conn_hanning(11); th0=th0/sum(th0); [td0,tidx]=sort(d0(:)); t0=z0(tidx);t1=z1(tidx); for tn=1:5,t0=convn(t0,th0,'valid');t1=convn(t1,th0,'valid'); td0=convn(td0,th0,'valid'); t0=t0(1:2:end);t1=t1(1:2:end);td0=td0(1:2:end); end
                             %conn_menu('updatescatter',CONN_h.menus.m_preproc_00{23},{{t0 t1 z0 z1},{td0 td0 d0 d0}});
                             set(CONN_h.menus.m_preproc_00{23}.h1,'xlim',[-1 1]);
                             %set(CONN_h.menus.m_preproc_00{21},'string',{'voxel-to-voxel r',['dof(residual) ~ ',num2str(dof,'%.1f')]});
                         end
                         if 1,
-                            if size(x0,2)==size(xyz,2)&&~all(isnan(xyz(:)))
-                                [nill,idx]=sort(sum(xyz.^2,1),'descend');
-                                x0=x0(:,idx); x1=x1(:,idx); xyz=xyz(:,idx);
-                            end
-                            temp=[x0 nan(size(x0,1),20) x1]';
-                            temp=.5+.5*temp/max(abs(temp(:)));
-                            temp(isnan(temp))=0;
+%                             if size(x0,2)==size(xyz,2)&&~all(isnan(xyz(:)))
+%                                 [nill,idx]=sort(sum(xyz.^2,1),'descend');
+%                                 x0=x0(:,idx); x1=x1(:,idx); xyz=xyz(:,idx);
+%                             end
+%                             temp=[x0 nan(size(x0,1),20) x1]';
+%                             temp=.5+.5*temp/max(abs(temp(:)));
+%                             temp(isnan(temp))=0;
                             tempA=ind2rgb(round(1+(size(CONN_h.screen.colormap,1)/2-1)*temp),CONN_h.screen.colormap);
-                            %temp=repmat(temp,[1,1,3]);
-                            %temp=cat(2,temp, nan(size(temp,1),10,3), cat(1,repmat(shiftdim(.75/2*[1,1,1],-1),size(x0,2),10), nan(10,10,3), repmat(shiftdim(1/2*[1,1,0],-1),size(x1,2),10)));
-                            tempB=[mean(x0orig,2) mean(x1,2)];
+%                             %temp=repmat(temp,[1,1,3]);
+%                             %temp=cat(2,temp, nan(size(temp,1),10,3), cat(1,repmat(shiftdim(.75/2*[1,1,1],-1),size(x0,2),10), nan(10,10,3), repmat(shiftdim(1/2*[1,1,0],-1),size(x1,2),10)));
+%                             tempB=[mean(x0orig,2) mean(x1,2)];
                             conn_menu('updatematrix',CONN_h.menus.m_preproc_00{26},tempA);
                             conn_menu('updateplotstackcenter',CONN_h.menus.m_preproc_00{28},tempB);
                             try, set(CONN_h.menus.m_preproc_00{28}.h4(1),'color',.75/2*[1,1,1]); set(CONN_h.menus.m_preproc_00{28}.h4(2),'color',1/2*[1,1,0]); end
                             CONN_h.menus.m_preproc.tracesA=temp;
                             CONN_h.menus.m_preproc.tracesB=tempB;
-                            CONN_h.menus.m_preproc.tracesXYZ=[xyz nan(size(xyz,1),20) xyz]';
+                            CONN_h.menus.m_preproc.tracesXYZ=tempXYZ;
                         end
                     end
                 else
@@ -6675,7 +6686,8 @@ else
                     if isempty(idx)&&isequal(get(CONN_h.menus.m_preproc_00{13},'value')-1,0), C=C(2:end,:); 
                     else %C=pinv(CONN_h.menus.m_preproc.opt.X(:,[1,idx]))*CONN_h.menus.m_preproc.opt.X; C=C(2:end,:); % unique + shared variance
                         warning('off','MATLAB:rankDeficientMatrix');
-                        C=CONN_h.menus.m_preproc.opt.X(:,[1,idx])\CONN_h.menus.m_preproc.opt.X; C=C(2:end,:); % unique + shared variance
+                        if conn_server('util_isremotevar',CONN_h.menus.m_preproc.opt), X=conn_server('run','getfield',CONN_h.menus.m_preproc.opt,'X'); else X=CONN_h.menus.m_preproc.opt.X; end
+                        C=X(:,[1,idx])\X; C=C(2:end,:); % unique + shared variance
                         warning('on','MATLAB:rankDeficientMatrix');
                         %C=C(idx,:);  % unique variance
                     end
@@ -6683,10 +6695,11 @@ else
                         conn_menu('update',CONN_h.menus.m_preproc_00{14},[]);
                         conn_menu('update',CONN_h.menus.m_preproc_00{29},[]);
                     else
-                        [h,F,p,dof,R]=conn_glmunivariate('evaluate',CONN_h.menus.m_preproc.opt,[],C);
+                        R=conn_glmunivariate('evaluateR',CONN_h.menus.m_preproc.opt,[],C);
                         if isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface, issurface=true; else issurface=false; end
                         t1=zeros(CONN_h.menus.m_preproc.Y.matdim.dim(1:2+issurface));
                         t2=nan+zeros(CONN_h.menus.m_preproc.Y.matdim.dim(1:2+issurface));
+                        if CONN_gui.isremote&&conn_server('util_isremotevar',CONN_h.menus.m_preproc.y.idx), CONN_h.menus.m_preproc.y.idx=conn_server('run',CONN_h.menus.m_preproc.y.idx); end
                         t1(CONN_h.menus.m_preproc.y.idx)=abs(R);
                         t2(CONN_h.menus.m_preproc.y.idx)=abs(R);
                         if isfield(CONN_h.menus.m_preproc.Y,'issurface')&&CONN_h.menus.m_preproc.Y.issurface
@@ -7748,10 +7761,11 @@ else
                             if CONN_h.menus.m_analyses_surfhires
                                 [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
                             else
-                                [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,1);
-                                [tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_analyses.Y,conn_surf_dims(8)*[0;0;1]+1);
-                                CONN_h.menus.m_analyses.y.data=[CONN_h.menus.m_analyses.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
-                                CONN_h.menus.m_analyses.y.idx=[CONN_h.menus.m_analyses.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
+                                [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_rvolume(CONN_h.menus.m_analyses.Y);
+                                %[CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,1);
+                                %[tempdata,tempidx]=conn_get_slice(CONN_h.menus.m_analyses.Y,conn_surf_dims(8)*[0;0;1]+1);
+                                %CONN_h.menus.m_analyses.y.data=[CONN_h.menus.m_analyses.y.data(:,CONN_gui.refs.surf.default2reduced) tempdata(:,CONN_gui.refs.surf.default2reduced)];
+                                %CONN_h.menus.m_analyses.y.idx=[CONN_h.menus.m_analyses.y.idx(CONN_gui.refs.surf.default2reduced);prod(conn_surf_dims(8))+tempidx(CONN_gui.refs.surf.default2reduced)];
                             end
                         else
                             [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
@@ -8877,6 +8891,13 @@ else
                                     B=permute(CONN_h.menus.m_analyses.XR.B,[3,1,2]);
                                     C=permute(reshape(CONN_h.menus.m_analyses.Xr*B(:,:),[size(CONN_h.menus.m_analyses.Xr,1),size(B,2),size(B,3)]),[2,3,4,1]);
                                     C=C+repmat(CONN_h.menus.m_analyses.XR.B0(:,:,nsubs),[1,1,1,size(C,3)]);
+                                    if ~isfield(CONN_h.menus.m_analyses.XR,'B')
+                                        hmsg=conn_msgbox('Loading data... please wait','',-1);
+                                        fname=CONN_h.menus.m_analyses.XR.fname;
+                                        CONN_h.menus.m_analyses.XR=conn_loadmatfile(fname,'-cache');
+                                        CONN_h.menus.m_analyses.XR.fname=fname;
+                                        if ishandle(hmsg), delete(hmsg); end
+                                    end
                                     fh=conn_montage_display(C,{},'movie',CONN_h.menus.m_analyses.Xr,{'dynICA components'},[],{},[],{},[],CONN_h.menus.m_analyses.XR.ROInames);
                                     fh('fontsize',6);
                                     fh('start');
@@ -8950,7 +8971,11 @@ else
                             CONN_h.menus.m_analyses.Xr=zeros(size(CONN_h.menus.m_analyses.XR,1)+2,size(CONN_h.menus.m_analyses.XR,2)+2,size(CONN_h.menus.m_analyses.XR,3));
                             CONN_h.menus.m_analyses.Xr(2:end-1,2:end-1,:)=CONN_h.menus.m_analyses.XR;
                         else
-                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=conn_loadmatfile(char(CONN_h.menus.m_analyses.XR),'-cache'); end
+                            if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), 
+                                fname=char(CONN_h.menus.m_analyses.XR);
+                                CONN_h.menus.m_analyses.XR=conn_loadmatfile(fname,'COND_names','COND_weights','IDX_subject','H'); 
+                                CONN_h.menus.m_analyses.XR.fname=fname;
+                            end
                             idx=strmatch(CONN_x.Setup.conditions.names{nconditions},CONN_h.menus.m_analyses.XR.COND_names,'exact');
                             if numel(idx)==1
                                 CONN_h.menus.m_analyses.Xr=CONN_h.menus.m_analyses.XR.H(CONN_h.menus.m_analyses.XR.IDX_subject==nsubs,:);
@@ -9280,7 +9305,7 @@ else
                         files=files(idx);files_name=files_name(idx); files_folder=files_folder(idx);
                         files_descr=repmat({''},size(files));
                         tvalid=cellfun(@conn_existfile,conn_prepend('',files,'.txt'));
-                        files_descr(tvalid)=cellfun(@fileread,conn_prepend('',files(tvalid),'.txt'),'uni',0);
+                        files_descr(tvalid)=cellfun(@(x)conn_fileutils('fileread',x),conn_prepend('',files(tvalid),'.txt'),'uni',0);
                         files_descr=cellfun(@(a,b){a,['(',b,')']},files_descr,files_name,'uni',0);
                         [j,i]=ind2sub(fliplr(Nplots),1:prod(Nplots));
                         maxpages=ceil(numel(files)/prod(Nplots));
@@ -9823,8 +9848,8 @@ else
                             conn_menumanager('onregion',CONN_h.menus.m_results_00{37},1,boffset+pos+[0 0 .015 0]);
                         end
                         %conn_menu('frame2noborder',boffset+[-.005,.085,.565,.135],'');
-                        if CONN_h.menus.m_results.usetablewhite, [CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22}]=conn_menu('listbox0',boffset+[.005,.06,.550,.05],sprintf('%-60s%10s%10s%12s%12s','Targets','beta','T','p-unc','p-FDR'),'   ','browse target ROIs -or right click for more options-','conn(''gui_results'',18);');
-                        else [CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22}]=conn_menu('listbox0',boffset+[.005,.06,.550,.09],sprintf('%-60s%10s%10s%12s%12s','Targets','beta','T','p-unc','p-FDR'),'   ','browse target ROIs -or right click for more options-','conn(''gui_results'',18);');
+                        if CONN_h.menus.m_results.usetablewhite, [CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22}]=conn_menu('listbox0',boffset+[.005,.075,.550,.05],sprintf('%-60s%10s%10s%12s%12s','Targets','beta','T','p-unc','p-FDR'),'   ','browse target ROIs -or right click for more options-','conn(''gui_results'',18);');
+                        else [CONN_h.menus.m_results_00{18},CONN_h.menus.m_results_00{22}]=conn_menu('listbox0',boffset+[.005,.075,.550,.09],sprintf('%-60s%10s%10s%12s%12s','Targets','beta','T','p-unc','p-FDR'),'   ','browse target ROIs -or right click for more options-','conn(''gui_results'',18);');
                         end
                         set(CONN_h.menus.m_results_00{18},'max',2,'fontname','monospaced','fontsize',8+CONN_gui.font_offset);
                         set(CONN_h.menus.m_results_00{22},'fontsize',8+CONN_gui.font_offset);
@@ -9988,7 +10013,7 @@ else
                         temptxt=conn_v2v('cleartext',CONN_h.menus.m_results.outcomenames(CONN_h.menus.m_results.shownsources));
                         if state==3&&stateb&&conn_existfile(fullfile(filepathresults,['ICA','.ROIs.txt'])),
                             try
-                                trefnames=regexp(fileread(fullfile(filepathresults,['ICA','.ROIs.txt'])),'[\n\r]*','split');
+                                trefnames=regexp(conn_fileutils('fileread',fullfile(filepathresults,['ICA','.ROIs.txt'])),'[\n\r]*','split');
                                 trefnames=trefnames(cellfun('length',trefnames)>0);
                                 if numel(trefnames)==numel(temptxt), 
                                     for n=1:numel(trefnames), if ~strcmp(trefnames{n},regexprep(temptxt{n},'^.*_','')), temptxt{n}=sprintf('%s (%s)',temptxt{n},trefnames{n}); end; end
@@ -10698,7 +10723,7 @@ else
                                 files=files(idx);files_name=files_name(idx); files_folder=files_folder(idx);
                                 files_descr=repmat({''},size(files));
                                 tvalid=cellfun(@conn_existfile,conn_prepend('',files,'.txt'));
-                                files_descr(tvalid)=cellfun(@fileread,conn_prepend('',files(tvalid),'.txt'),'uni',0);
+                                files_descr(tvalid)=cellfun(@(x)conn_fileutils('fileread',x),conn_prepend('',files(tvalid),'.txt'),'uni',0);
                                 files_descr=cellfun(@(a,b){a,['(',b,')']},files_descr,files_name,'uni',0);
 
                                 str=regexprep(cellfun(@(a,b)sprintf('%s : %s',a,sprintf('%s ',b{:})),files_folder,files_descr,'uni',0),'\n',' ');
@@ -12516,11 +12541,12 @@ end
 
 function conn_callbackdisplay_denoisingclick(pos,varargin)
 persistent tpos;
-global CONN_h CONN_x;
+global CONN_h CONN_x CONN_gui;
 try
     if nargin>0, tpos=pos; end
     if ~isempty(tpos)
         t1=zeros(CONN_h.menus.m_preproc.Y.matdim.dim(1:2));
+        if CONN_gui.isremote&&conn_server('util_isremotevar',CONN_h.menus.m_preproc.y.idx), CONN_h.menus.m_preproc.y.idx=conn_server('run',CONN_h.menus.m_preproc.y.idx); end
         t1(CONN_h.menus.m_preproc.y.idx)=1:numel(CONN_h.menus.m_preproc.y.idx);
         txyz=round(pinv(CONN_h.menus.m_preproc.Y.matdim.mat)*[tpos(1:3);1]);
         tidx=t1(txyz(1),txyz(2));

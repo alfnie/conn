@@ -1,7 +1,8 @@
 function varargout=conn_glmunivariate(option,X,Y,C)
 
-switch(option),
+switch(lower(option)),
 	case {'estimate','estimatefixed'}
+        if any(conn_server('util_isremotevar',{X,Y})), [varargout{1:nargout}]=conn_server('run_keep',mfilename,option,X,Y); return; end
 		[N1,Nx]=size(X);
 		[N2,Ns]=size(Y);
 		if N1~=N2, error('wrong dimensions'); end
@@ -22,14 +23,17 @@ switch(option),
         else,
             varargout{2}=struct('B',B,'X',X,'Y',Y,'EE',EE,'EE0',EE0,'iX',iX,'dof',C.dof,'XX',XX,'SE',C.data);
         end
-	case {'evaluate','evaluatefixed'},
+	case {'evaluate','evaluatefixed','evaluater'},
+        if any(conn_server('util_isremotevar',{X,C})), [varargout{1:nargout}]=conn_server('run',mfilename,option,X,Y,C); return; end % note: expands output
+        %if conn_server('util_isremotevar',X), X=conn_server('run',X); end
+        %if conn_server('util_isremotevar',C), C=conn_server('run',C); end
 		[N1,Nx]=size(X.X);
 		Nc0=rank(X.X*C');
 		h=C*X.B;
 		r=C*X.iX*C';
 		BB=sum(conj(h).*(pinv(r)*h),1); 	% diag(between matrix)
 		
-        if strcmp(lower(option),'evaluate'),
+        if strcmpi(option,'evaluate')||strcmpi(option,'evaluater'),
             if 0,%size(h,1)>1,
                 F=                real(BB./max(eps,X.EE))*X.dof/max(eps,Nc0);
                 idxvalid=find(~isnan(F)&~isinf(F));if isempty(idxvalid),p=F;else,p=nan+zeros(size(F));p(idxvalid)=1-spm_Fcdf(F(idxvalid),max(eps,Nc0),max(eps,X.dof));end
@@ -49,13 +53,17 @@ switch(option),
         end
         
 		dof=              [Nc0,X.dof];
-		varargout{1}=real(h);
-		varargout{2}=F;
-		varargout{3}=p;
-		varargout{4}=dof;
-		varargout{5}=(real(BB./max(eps,X.EE0)));
-		varargout{6}=statsname;
-		if size(h,1)==1, varargout{5}=sign(real(h)).*varargout{5}; end
-		%varargout{4}=(X.EE0-X.EE)./max(eps,X.EE0);
+        if strcmpi(option,'evaluater')
+            varargout={(real(BB./max(eps,X.EE0)))};
+        else
+            varargout{1}=real(h);
+            varargout{2}=F;
+            varargout{3}=p;
+            varargout{4}=dof;
+            varargout{5}=(real(BB./max(eps,X.EE0)));
+            varargout{6}=statsname;
+            if size(h,1)==1, varargout{5}=sign(real(h)).*varargout{5}; end
+            %varargout{4}=(X.EE0-X.EE)./max(eps,X.EE0);
+        end
 end
 	
