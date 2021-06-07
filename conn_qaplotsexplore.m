@@ -5,10 +5,10 @@ function fh=conn_qaplotsexplore(varargin)
 global CONN_x CONN_gui;
 
 if isfield(CONN_gui,'font_offset'),font_offset=CONN_gui.font_offset; else font_offset=0; end
-if ~isfield(CONN_x,'folders')||~isfield(CONN_x.folders,'qa')||isempty(CONN_x.folders.qa), 
+if ~isfield(CONN_x,'folders')||~isfield(CONN_x.folders,'qa')||isempty(CONN_x.folders.qa),
     qafolder=pwd;
     isCONN=false;
-else qafolder=CONN_x.folders.qa; 
+else qafolder=CONN_x.folders.qa;
     isCONN=true;
 end
 fh=@(varargin)conn_qaplotsexplore_update([],[],varargin{:});
@@ -18,7 +18,7 @@ end
 if nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'createdenoise')), dlg.forceinitdenoise=true; dlg.createdenoise=true;
 else dlg.createdenoise=false;
 end
-if nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'createreport')), dlg.createreport=true; 
+if nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'createreport')), dlg.createreport=true;
 else dlg.createreport=false;
 end
 if nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'keepcurrentfigure')), dlg.keepcurrentfigure=true;
@@ -30,11 +30,11 @@ end
 hfig=[];
 if dlg.overwritecurrentfigure||dlg.keepcurrentfigure
     hfig=findobj('tag','conn_qaplotsexplore');
-    if ~isempty(hfig), 
-        hfig=hfig(end); 
-        if dlg.keepcurrentfigure, 
-            figure(hfig); 
-            fh=get(hfig,'userdata'); 
+    if ~isempty(hfig),
+        hfig=hfig(end);
+        if dlg.keepcurrentfigure,
+            figure(hfig);
+            fh=get(hfig,'userdata');
             fh(varargin{~strcmp(varargin(cellfun(@ischar,varargin)),'keepcurrentfigure')});
             return;
         end
@@ -44,11 +44,11 @@ if nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'thesefolders')),   % 
     qafolder=pwd;
     qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
     dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
-    isCONN=false; 
+    isCONN=false;
 elseif nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'thisfolder')), % single QA report in current folder
     [qafolder,qagroups]=fileparts(pwd);
     dlg.sets={qagroups};
-    isCONN=false; 
+    isCONN=false;
 elseif nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'flfolders')),  % each conn folder contains a different subject
     if ischar(varargin{1})&&conn_fileutils('isdir',varargin{1}), qafolder=varargin{1};
     else qafolder=pwd;
@@ -81,7 +81,7 @@ elseif nargin&&ischar(varargin{1})&&conn_fileutils('isdir',varargin{1})         
     if isempty(qagroups), [qafolder,qagroups]=fileparts(qafolder); end
     if isempty(qafolder), qafolder=pwd; end
     dlg.sets={qagroups};
-    isCONN=false; 
+    isCONN=false;
 else
     qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
     dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
@@ -97,7 +97,7 @@ bgc=.9*[1 1 1];
 dlg.handles.fh=fh;
 figcolor=[.95 .95 .9];
 dlg.handles.hfig=hfig;
-if isempty(dlg.handles.hfig)||~ishandle(dlg.handles.hfig), dlg.handles.hfig=figure('units','norm','position',[.1,.3,.8,.6],'menubar','none','numbertitle','off','name','Quality Assurance reports','color',figcolor,'colormap',gray(256),'interruptible','off','busyaction','cancel','tag','conn_qaplotsexplore','userdata',fh); 
+if isempty(dlg.handles.hfig)||~ishandle(dlg.handles.hfig), dlg.handles.hfig=figure('units','norm','position',[.1,.3,.8,.6],'menubar','none','numbertitle','off','name','Quality Assurance reports','color',figcolor,'colormap',gray(256),'interruptible','off','busyaction','cancel','tag','conn_qaplotsexplore','userdata',fh);
 else figure(dlg.handles.hfig); clf(dlg.handles.hfig);
 end
 %dlg.handles.menuprint=uimenu(dlg.handles.hfig,'Label','Print');
@@ -183,12 +183,12 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 invertim=get(dlg.handles.invertim,'value')==0;
                 hmsg=conn_msgbox({sprintf('Generating %s report',format),'This may take several minutes. Please wait...'});
                 cd(outputDir);
-                if strcmp(format,'html')&&~isempty(which('private/mxdom2simplehtml.xsl')), 
+                if strcmp(format,'html')&&~isempty(which('private/mxdom2simplehtml.xsl')),
                     stylesheet=conn_prepend('',fullfile(outputDir,tfilename),'_style.xsl');
                     stylestr=textread(which('private/mxdom2simplehtml.xsl'),'%s');
                     stylestr=regexprep(stylestr,'background:#fff',['background:#',sprintf('%x',ceil(figcolor*255))]);
                     %tfh=fopen(stylesheet,'wt');for n1=1:numel(stylestr), fprintf(tfh,'%s\n',stylestr{n1}); end; fclose(tfh);
-                    conn_fileutils('filewrite',stylesheet,stylestr); 
+                    conn_fileutils('filewrite',stylesheet,stylestr);
                     stylesheet={'stylesheet',stylesheet};
                 else stylesheet={};
                 end
@@ -276,9 +276,9 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 if ishandle(hmsg), delete(hmsg); end
                 switch(format)
                     case 'html', web(conn_prepend('',fullfile(outputDir,tfilename),'.html'));
-                    case 'pdf',  if ispc, system(sprintf('open "%s"',fullfile(outputDir,tfilename))); 
-                                 else system(sprintf('open ''%s''',fullfile(outputDir,tfilename))); 
-                                 end
+                    case 'pdf',  if ispc, system(sprintf('open "%s"',fullfile(outputDir,tfilename)));
+                        else system(sprintf('open ''%s''',fullfile(outputDir,tfilename)));
+                        end
                     otherwise, try, system(sprintf('open %s',fullfile(outputDir,tfilename))); end
                 end
                 cd(cwd);
@@ -389,7 +389,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 analyses={'QA_COV','QA_NORM_structural','QA_NORM_functional','QA_NORM_ROI','QA_REG_functional','QA_REG__structural','QA_REG__functional','QA_REG__mni','QA_COREG_functional','QA_TIME_functional','QA_TIMEART_functional','QA_DENOISE_timeseries','QA_DENOISE_QC-FC','QA_DENOISE','QA_DENOISE_scatterplot','QA_DENOISE_QC-FC_scatterplot','QA_SPM_design','QA_SPM_contrasts','QA_SPM_results'};
                 %analyses_numbers=[31,1,2,3,10,4,5,6,7,8,9,12,13,11,14,15,21,22,23];
                 defaultset=[1,2,4,5,9,11,12,13,31];
-                if ~isfield(CONN_x,'isready')||~CONN_x.isready(2), 
+                if ~isfield(CONN_x,'isready')||~CONN_x.isready(2),
                     dokeep=~cellfun('length',regexp(lower(analyses),'denoise'));
                     analyses=analyses(dokeep);%analyses_numbers=analyses_numbers(dokeep); % disable analyses that require having run Setup step
                 end
@@ -401,10 +401,10 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 %uanalyses_long = regexprep(analyses,...
                 %    {'^QA_NORM_(.*)','^QA_REG_functional','^QA_REG_(.*?)_?functional','^QA_REG_(.*?)_?structural','^QA_REG_(.*?)_?mni','^QA_COREG_(.*)','^QA_TIME_(.*)','^QA_TIMEART_(.*)','^QA_DENOISE_timeseries','^QA_DENOISE_QC-FC','^QA_DENOISE_scatterplot','^QA_DENOISE','^QA_SPM_design','^QA_SPM_contrasts'},...
                 %    {'QA normalization: $1 data + outline of MNI TPM template','QA registration: functional data + structural overlay','QA registration: functional data + outline of ROI $1','QA registration: structural data + outline of ROI $1','QA registration: mni reference template + outline of ROI $1','QA realignment: $1 center-slice across multiple sessions/datasets','QA artifacts: $1 movie across all timepoints/acquisitions','QA artifacts: BOLD GS changes & subject motion timeseries with $1 movie','QA denoising: BOLD signal traces (carpetplot) before and after denoising + ART timeseries','QA denoising: distribution of QC-FC associations before and after denoising','QA denoising: scatterplot of functional correlations (FC) vs. distance (mm) before and after denoising','QA denoising: distribution of functional correlations (FC) before and after denoising','QA SPM design: review SPM first-level design matrix','QA SPM contrasts: review SPM first-level contrasts'});
-                if strcmpi(option,'recreateset'), answ1=find(ismember(analyses_numbers,dlg.uanalysesnumber)); 
-                elseif strcmpi(option,'recreateplot'), answ1=find(analyses_numbers==dlg.uanalysesnumber(dlg.ianalysis)); 
-                elseif isempty(dlg.uanalyses), answ1=find(ismember(analyses_numbers,defaultset)); 
-                else answ1=[]; 
+                if strcmpi(option,'recreateset'), answ1=find(ismember(analyses_numbers,dlg.uanalysesnumber));
+                elseif strcmpi(option,'recreateplot'), answ1=find(analyses_numbers==dlg.uanalysesnumber(dlg.ianalysis));
+                elseif isempty(dlg.uanalyses), answ1=find(ismember(analyses_numbers,defaultset));
+                else answ1=[];
                 end
                 
                 [tstr,tidx]=conn_jobmanager('profiles');
@@ -419,8 +419,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 
                 nl2covariates=[];
                 [x,nl2covariates]=conn_module('get','l2covariates','^[^_]');
-                il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(Motion|Global|GSchange|ValidScans)')));
-
+                il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(QCOR_|MeanMotion|MeanGlobal|MeanGSchange|ValidScans)')));
+                
                 fh=figure('units','norm','position',[.4,.4,.4,.5],'menubar','none','numbertitle','off','name','compute QA plots','color','w');
                 h1=uicontrol('units','norm','position',[.1,.90,.4,.05],'style','text','string','Plot type: ','horizontalalignment','left','fontweight','bold','backgroundcolor',get(fh,'color'));
                 h2=uicontrol('units','norm','position',[.1,.65,.8,.25],'style','listbox','max',2,'string',uanalyses_long,'value',answ1,'tooltipstring','<HTML>Select type of plot(s) to create</HTML>');
@@ -437,7 +437,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     else tnameserver='CONN server';
                     end
                     toptions=regexprep(toptions,'\<run on (this computer)?',['run on ',tnameserver,' ']);
-                end                
+                end
                 h3=uicontrol('style','popupmenu','units','norm','position',[.1,.125,.8,.05],'string',toptions,'value',1);
                 h6=uicontrol('units','norm','position',[.1,.025,.4,.08],'style','pushbutton','string','Start','callback','uiresume(gcbf)');
                 h7=uicontrol('units','norm','position',[.5,.025,.4,.08],'style','pushbutton','string','Cancel','callback','close(gcbf)');
@@ -456,7 +456,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     nalt=get(h3,'value');
                     nl1contrasts='?';
                     close(fh);
-                    if nalt==1, 
+                    if nalt==1,
                         %conn_batch('subjects',validsubjects,'QA.foldername',fullfile(qafolder,tag),'QA.plots',procedures,'QA.rois',validrois,'QA.sets',validsets,'QA.l2covariates',nl2covariates,'QA.l1contrasts',nl1contrasts);
                         %conn_qaplots(conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
                         conn_process('qaplots',conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
@@ -475,54 +475,54 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     conn_msgbox('Finished creating new plot','',2);
                 end
                 
-%                 if 1||isempty(answ), answ=listdlg('liststring',uanalyses_long,'selectionmode','multiple','initialvalue',answ,'promptstring','Select type of plot(s) to create:','ListSize',[600 250]); end
-%                 if isempty(answ), return; end
-%                 procedures=analyses_numbers(answ);
-%                 validsets=[];
-%                 if any(ismember(procedures,[2,7,8,9,10]))&&numel(CONN_x.Setup.secondarydataset)>0,
-%                     if numel(CONN_x.Setup.secondarydataset)==0, nalt=1;
-%                     else nalt=listdlg('liststring',arrayfun(@(n)sprintf('dataset %d',n),0:numel(CONN_x.Setup.secondarydataset),'uni',0),'selectionmode','multiple','initialvalue',min(2,numel(CONN_x.Setup.secondarydataset)+1),'promptstring',{'Select functional dataset(s)','to include in functional data plots:'},'ListSize',[300 200]);
-%                     end
-%                     if isempty(nalt), return; end
-%                     validsets=nalt-1;
-%                 end
-%                 validrois=[];
-%                 if any(ismember(procedures,[3:6])),
-%                     %nalt=listdlg('liststring',CONN_x.Setup.rois.names(1:end-1),'selectionmode','multiple','initialvalue',2,'promptstring',{'Select ROI(s)','to include in ROI data plots:'},'ListSize',[300 200]);
-%                     nalt=listdlg('liststring',[CONN_x.Setup.rois.names(1:end-1), regexprep(CONN_x.Setup.rois.names(1:3),'^(.*)$','eroded $1')],'selectionmode','multiple','initialvalue',1,'promptstring',{'Select ROI(s)','to include in ROI data plots:'},'ListSize',[300 200]);
-%                     if isempty(nalt), return; end
-%                     temp=numel(CONN_x.Setup.rois.names)-1;
-%                     nalt(nalt>temp)=-(nalt(nalt>temp)-temp);
-%                     validrois=nalt;
-%                 end
-%                 nl2covariates=[];
-%                 if any(ismember(procedures,[13,31]))
-%                     [x,nl2covariates]=conn_module('get','l2covariates','^[^_]');
-%                     if any(procedures==13), il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(Motion|Global|GSchange|ValidScans)')));
-%                     else il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_')));
-%                     end
-%                     il2covariates=listdlg('liststring',nl2covariates,'selectionmode','multiple','initialvalue',il2covariates,'promptstring',{'Select QC variable(s)','to include in QC-FC analyses:'},'ListSize',[300 200]);
-%                     if isempty(il2covariates), return; end
-%                     nl2covariates=nl2covariates(il2covariates);
-%                 end
-%                 nl1contrasts='?';
-%                 if CONN_x.Setup.nsubjects==1, nalt=1;
-%                 else  nalt=listdlg('liststring',arrayfun(@(n)sprintf('subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'selectionmode','multiple','initialvalue',1:CONN_x.Setup.nsubjects,'promptstring',{'Select subject(s)','to include in these plots:'},'ListSize',[300 200]);
-%                 end
-%                 if isempty(nalt), return; end
-%                 validsubjects=nalt;
-%                 
-%                 [tstr,tidx]=conn_jobmanager('profiles');
-%                 tnull=find(strcmp('Null profile',tstr));
-%                 tlocal=find(strcmp('Background process (Unix,Mac)',tstr),1);
-%                 tvalid=setdiff(1:numel(tstr),tnull);
-%                 tstr=cellfun(@(x)sprintf('distributed processing (run on %s)',x),tstr,'uni',0);
-%                 if 1, tvalid=tidx; if isunix&&~isempty(tlocal)&&~ismember(tlocal,tvalid), tvalid=[tvalid(:)' tlocal]; end % show default+local profiles
-%                 elseif 1, tvalid=tidx; % show only default profile
-%                 else tstr{tidx}=sprintf('<HTML><b>%s</b></HTML>',tstr{tidx}); % show all profiles
-%                 end
-%                 nalt=listdlg('liststring',[{'local processing (run on this computer)'} tstr(tvalid)],'selectionmode','single','initialvalue',1,'promptstring','','ListSize',[300 200]);
-%                 if isempty(nalt), return; end
+                %                 if 1||isempty(answ), answ=listdlg('liststring',uanalyses_long,'selectionmode','multiple','initialvalue',answ,'promptstring','Select type of plot(s) to create:','ListSize',[600 250]); end
+                %                 if isempty(answ), return; end
+                %                 procedures=analyses_numbers(answ);
+                %                 validsets=[];
+                %                 if any(ismember(procedures,[2,7,8,9,10]))&&numel(CONN_x.Setup.secondarydataset)>0,
+                %                     if numel(CONN_x.Setup.secondarydataset)==0, nalt=1;
+                %                     else nalt=listdlg('liststring',arrayfun(@(n)sprintf('dataset %d',n),0:numel(CONN_x.Setup.secondarydataset),'uni',0),'selectionmode','multiple','initialvalue',min(2,numel(CONN_x.Setup.secondarydataset)+1),'promptstring',{'Select functional dataset(s)','to include in functional data plots:'},'ListSize',[300 200]);
+                %                     end
+                %                     if isempty(nalt), return; end
+                %                     validsets=nalt-1;
+                %                 end
+                %                 validrois=[];
+                %                 if any(ismember(procedures,[3:6])),
+                %                     %nalt=listdlg('liststring',CONN_x.Setup.rois.names(1:end-1),'selectionmode','multiple','initialvalue',2,'promptstring',{'Select ROI(s)','to include in ROI data plots:'},'ListSize',[300 200]);
+                %                     nalt=listdlg('liststring',[CONN_x.Setup.rois.names(1:end-1), regexprep(CONN_x.Setup.rois.names(1:3),'^(.*)$','eroded $1')],'selectionmode','multiple','initialvalue',1,'promptstring',{'Select ROI(s)','to include in ROI data plots:'},'ListSize',[300 200]);
+                %                     if isempty(nalt), return; end
+                %                     temp=numel(CONN_x.Setup.rois.names)-1;
+                %                     nalt(nalt>temp)=-(nalt(nalt>temp)-temp);
+                %                     validrois=nalt;
+                %                 end
+                %                 nl2covariates=[];
+                %                 if any(ismember(procedures,[13,31]))
+                %                     [x,nl2covariates]=conn_module('get','l2covariates','^[^_]');
+                %                     if any(procedures==13), il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(Motion|Global|GSchange|ValidScans)')));
+                %                     else il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_')));
+                %                     end
+                %                     il2covariates=listdlg('liststring',nl2covariates,'selectionmode','multiple','initialvalue',il2covariates,'promptstring',{'Select QC variable(s)','to include in QC-FC analyses:'},'ListSize',[300 200]);
+                %                     if isempty(il2covariates), return; end
+                %                     nl2covariates=nl2covariates(il2covariates);
+                %                 end
+                %                 nl1contrasts='?';
+                %                 if CONN_x.Setup.nsubjects==1, nalt=1;
+                %                 else  nalt=listdlg('liststring',arrayfun(@(n)sprintf('subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'selectionmode','multiple','initialvalue',1:CONN_x.Setup.nsubjects,'promptstring',{'Select subject(s)','to include in these plots:'},'ListSize',[300 200]);
+                %                 end
+                %                 if isempty(nalt), return; end
+                %                 validsubjects=nalt;
+                %
+                %                 [tstr,tidx]=conn_jobmanager('profiles');
+                %                 tnull=find(strcmp('Null profile',tstr));
+                %                 tlocal=find(strcmp('Background process (Unix,Mac)',tstr),1);
+                %                 tvalid=setdiff(1:numel(tstr),tnull);
+                %                 tstr=cellfun(@(x)sprintf('distributed processing (run on %s)',x),tstr,'uni',0);
+                %                 if 1, tvalid=tidx; if isunix&&~isempty(tlocal)&&~ismember(tlocal,tvalid), tvalid=[tvalid(:)' tlocal]; end % show default+local profiles
+                %                 elseif 1, tvalid=tidx; % show only default profile
+                %                 else tstr{tidx}=sprintf('<HTML><b>%s</b></HTML>',tstr{tidx}); % show all profiles
+                %                 end
+                %                 nalt=listdlg('liststring',[{'local processing (run on this computer)'} tstr(tvalid)],'selectionmode','single','initialvalue',1,'promptstring','','ListSize',[300 200]);
+                %                 if isempty(nalt), return; end
                 %conn_qaplots(fullfile(qafolder,tag),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
                 figure(dlg.handles.hfig);
             case 'displayannotation'
@@ -533,16 +533,16 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     elseif numel(in)>1
                         txt=arrayfun(@(n)sprintf('%s %s %s: %s',dlg.usubjects{dlg.isubjects(dlg.dataIDXplots(n))},dlg.usessions{dlg.isessions(dlg.dataIDXplots(n))},dlg.umeasures{dlg.imeasures(dlg.dataIDXplots(n))},sprintf('%s ',dlg.txtA{n}{:})),in,'uni',0);
                     end
-                    for n1=1:numel(txt), 
+                    for n1=1:numel(txt),
                         if ischar(txt{n1}), txt{n1}=cellstr(txt{n1}); end
                         for n2=1:numel(txt{n1})
-                            if ~isempty(txt{n1}{n2})&&isempty(regexp(txt{n1}{n2},'\[empty\]$')), conn_disp('fprintf','%s\n',txt{n1}{n2}); end; 
+                            if ~isempty(txt{n1}{n2})&&isempty(regexp(txt{n1}{n2},'\[empty\]$')), conn_disp('fprintf','%s\n',txt{n1}{n2}); end;
                         end
                     end
                 end
             case 'details'
                 filename=dlg.filethis;
-                if isempty(filename)||~conn_existfile(filename), conn_msgbox(sprintf('Data file %s not found',filename),'Details not available',2); 
+                if isempty(filename)||~conn_existfile(filename), conn_msgbox(sprintf('Data file %s not found',filename),'Details not available',2);
                 else
                     conn_bookmark('open',filename);
                     %load(filename,'state');
@@ -554,10 +554,10 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 if numel(varargin)>=1&&~isempty(varargin{1}), dlg.iset=varargin{1}; set(dlg.handles.set,'value',dlg.iset);
                 else dlg.iset=get(dlg.handles.set,'value');
                 end
-                if isempty(dlg.sets), 
+                if isempty(dlg.sets),
                     set(dlg.handles.settxt,'visible','on');
                     set([dlg.handles.set dlg.handles.deleteset dlg.handles.recomputeset dlg.handles.printset],'visible','off');
-                    set(dlg.handles.addnewset,'fontweight','bold'); 
+                    set(dlg.handles.addnewset,'fontweight','bold');
                     set([dlg.handles.selectall1 dlg.handles.selectall2 dlg.handles.selectall3 dlg.handles.subjects dlg.handles.sessions dlg.handles.measures dlg.handles.showdiff dlg.handles.showannot dlg.handles.invertim dlg.handles.analysis dlg.handles.analysistxt dlg.handles.addnewplot dlg.handles.deleteplot dlg.handles.recomputeplot dlg.handles.printplot dlg.handles.text1 dlg.handles.text2 dlg.handles.textoptions dlg.handles.details],'visible','off');
                     delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
                     delete(dlg.handles.han(ishandle(dlg.handles.han)));
@@ -566,7 +566,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 else
                     set(dlg.handles.settxt,'visible','off');
                     set([dlg.handles.set dlg.handles.deleteset dlg.handles.recomputeset dlg.handles.printset],'visible','on');
-                    set(dlg.handles.addnewset,'fontweight','normal'); 
+                    set(dlg.handles.addnewset,'fontweight','normal');
                 end
                 qafiles=conn_dir(fullfile(qafolder,dlg.sets{dlg.iset},'QA_*.mat'));%,'-R'); % note: remove -R to allow search of recursive subfolders in "plots"
                 if isempty(qafiles), qanames={};
@@ -579,12 +579,12 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 dlg.files=qanames;
                 dlg.files_jpg=conn_prepend('',qanames,'.jpg');
                 dlg.files_txt=conn_prepend('',qanames,'.txt');
-                try 
+                try
                     if ~all(txtok),conn_fileutils('emptyfile',dlg.files_txt(~txtok)); end
                     %if ~all(txtok),cellfun(@(s)conn_fileutils('emptyfile',s),dlg.files_txt(~txtok),'uni',0); end
                     %if ~all(txtok),cellfun(@(s)fclose(fopen(s,'wt')),dlg.files_txt(~txtok),'uni',0); end
                 catch
-                    conn_disp('warning: unable to create annotation files; please check QA folder write-permissions'); 
+                    conn_disp('warning: unable to create annotation files; please check QA folder write-permissions');
                 end
                 if isempty(qanames)
                     qanames_parts1={};qanames_parts2={};qanames_parts3={};qanames_parts4={};
@@ -593,7 +593,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 else
                     [qafolders,qanames]=cellfun(@fileparts,qanames,'uni',0);
                     qanames=regexp(qanames,'\.','split');
-
+                    
                     qanames_parts=repmat({''},numel(qanames),3);
                     for n=1:numel(qanames), i=1:min(3,numel(qanames{n})); qanames_parts(n,i)=qanames{n}(i); end % analyses / subject /session
                     qanames_parts1=qanames_parts(:,1);
@@ -607,7 +607,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     qanames_parts3=str2double(regexprep(qanames_parts(:,3),'^session',''));
                     qanames_parts4valid=cellfun('length',regexp(qanames_parts(:,2),'^measure'))>0;
                     qanames_parts4=regexprep(qanames_parts(:,2),'^measure','');
-                    if numel(qafolders)>1&any(any(diff(char(qafolders),1,1))), 
+                    if numel(qafolders)>1&any(any(diff(char(qafolders),1,1))),
                         tidx=find(any(diff(char(qafolders),1,1)),1);
                         tidx=max([1,find(ismember(qafolders{1}(1:tidx),'\/'),1,'last')+1]);
                         if max(qanames_parts2)==1 % folders are subjects
@@ -619,25 +619,25 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                             if all(cellfun('length',qafolders_str)==1)
                                 qafolders_n=str2double([qafolders_str{:}]);
                                 if all(~isnan(qafolders_n))
-                                    qanames_parts2(these)=qafolders_n; 
+                                    qanames_parts2(these)=qafolders_n;
                                     qanames_parts2isnumber=true;
                                 end
                             end
                             if ~qanames_parts2isnumber, qanames_parts2=tqanames_parts2; end
-%                             qafolders_str=regexp(qafolders(these),'\d+','match','once');
-%                             qafolders_n=str2double(qafolders_str);
-%                             if all(~isnan(qafolders_n)), eqafolders=cellfun(@(a,b)[a,b],qafolders_str,qanames_parts1(these),'uni',0);
-%                             else eqafolders=cellfun(@(a,b)[a,b],qafolders(these),qanames_parts1(these),'uni',0);
-%                             end
-%                             try, [i1,i2,i3]=unique(eqafolders,'last');
-%                             catch, [i1,i2,i3]=unique(eqafolders);
-%                             end
-%                             qanames_parts2(these)=nan;
-%                             if ~all(~isnan(qafolders_n)), qanames_parts2(these(i2))=1:numel(i1); else qanames_parts2(these(i2))=qafolders_n(i2); end % keeps last
-%                             %if ~all(~isnan(qafolders_n)), qanames_parts2(these)=i3; else qanames_parts2(these)=qafolders_n; end % keeps all (aggregate)
-%                             %qanames_parts2(these)=1:numel(these); % keeps all (expand)
-%                             for n1=reshape(unique(qanames_parts2(these(~isnan(qanames_parts2(these))))),1,[]),temp=unique(qafolders(these(qanames_parts2(these)==n1))); conn_disp('fprintf','note: subject %d = %s\n',n1,sprintf('%s ',temp{:})); end
-%                             if any(isnan(qanames_parts2(these))), temp=unique(qafolders(these(isnan(qanames_parts2(these))))); conn_disp('fprintf','note: subject --- = %s\n',sprintf('%s ',temp{:})); end
+                            %                             qafolders_str=regexp(qafolders(these),'\d+','match','once');
+                            %                             qafolders_n=str2double(qafolders_str);
+                            %                             if all(~isnan(qafolders_n)), eqafolders=cellfun(@(a,b)[a,b],qafolders_str,qanames_parts1(these),'uni',0);
+                            %                             else eqafolders=cellfun(@(a,b)[a,b],qafolders(these),qanames_parts1(these),'uni',0);
+                            %                             end
+                            %                             try, [i1,i2,i3]=unique(eqafolders,'last');
+                            %                             catch, [i1,i2,i3]=unique(eqafolders);
+                            %                             end
+                            %                             qanames_parts2(these)=nan;
+                            %                             if ~all(~isnan(qafolders_n)), qanames_parts2(these(i2))=1:numel(i1); else qanames_parts2(these(i2))=qafolders_n(i2); end % keeps last
+                            %                             %if ~all(~isnan(qafolders_n)), qanames_parts2(these)=i3; else qanames_parts2(these)=qafolders_n; end % keeps all (aggregate)
+                            %                             %qanames_parts2(these)=1:numel(these); % keeps all (expand)
+                            %                             for n1=reshape(unique(qanames_parts2(these(~isnan(qanames_parts2(these))))),1,[]),temp=unique(qafolders(these(qanames_parts2(these)==n1))); conn_disp('fprintf','note: subject %d = %s\n',n1,sprintf('%s ',temp{:})); end
+                            %                             if any(isnan(qanames_parts2(these))), temp=unique(qafolders(these(isnan(qanames_parts2(these))))); conn_disp('fprintf','note: subject --- = %s\n',sprintf('%s ',temp{:})); end
                         else                      % folders are plots
                             qanames_parts1=cellfun(@(a,b)sprintf('%s (%s)',a,regexprep(b(min(numel(b),tidx):end),'[\/\\].*','')),qanames_parts1,qafolders,'uni',0);
                         end
@@ -663,10 +663,10 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 %dlg.uanalysestype(cellfun('length',regexp(dlg.uanalyses,'^QA_COV$'))>0)=5; %QA_COV
                 if qanames_parts2isnumber, dlg.usubjects=regexprep(arrayfun(@(n)sprintf('subject %d',n),dlg.usubjects,'uni',0),'^subject 0$','---'); end
                 if qanames_parts3isnumber, dlg.usessions=regexprep(arrayfun(@(n)sprintf('session %d',n),dlg.usessions,'uni',0),'^session 0$','---'); end
-                    %dlg.umeasures=regexprep(arrayfun(@(n)sprintf('measure %d',n),dlg.umeasures,'uni',0),'^measure 0$','---');
-                dlg.ianalysis=0; 
+                %dlg.umeasures=regexprep(arrayfun(@(n)sprintf('measure %d',n),dlg.umeasures,'uni',0),'^measure 0$','---');
+                dlg.ianalysis=0;
                 [dlg.uanalyses_long,dlg.uanalysesnumber,dlg.uanalysestype]=conn_qaplotsexplore_translate(dlg.uanalyses);
-                if dlg.forceinitdenoise, 
+                if dlg.forceinitdenoise,
                     dlg.ianalysis=find(dlg.uanalysestype==2,1);
                     %if ~dlg.createdenoise&&~isempty(dlg.ianalysis)
                     %    answ=conn_questdlg({'Overwrite existing denoising plot?'},'','Yes','No','Yes');
@@ -679,9 +679,9 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     end
                     if isempty(dlg.ianalysis), dlg.ianalysis=find(dlg.uanalysestype>1,1); end
                     dlg.forceinitdenoise=false;
-                %else
-                %    temp=find(dlg.uanalysestype>1,1); % note: tries loading denoising by default (faster)
-                %    if ~isempty(temp), dlg.ianalysis=temp; end
+                    %else
+                    %    temp=find(dlg.uanalysestype>1,1); % note: tries loading denoising by default (faster)
+                    %    if ~isempty(temp), dlg.ianalysis=temp; end
                 end
                 if numel(dlg.uanalyses)==1, dlg.ianalysis=1; end
                 %if ~isfield(dlg,'ianalysis')||isempty(dlg.ianalysis)||dlg.ianalysis<1||dlg.ianalysis>numel(dlg.uanalyses), dlg.ianalysis=1; end
@@ -697,12 +697,12 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 else dlg.ianalysis=get(dlg.handles.analysis,'value')-1;
                 end
                 if isempty(dlg.sets)||isempty(dlg.uanalyses),
-                    set([dlg.handles.selectall1 dlg.handles.selectall2 dlg.handles.selectall3 dlg.handles.subjects dlg.handles.sessions dlg.handles.measures dlg.handles.showdiff dlg.handles.showannot dlg.handles.invertim dlg.handles.analysis dlg.handles.text1 dlg.handles.text2 dlg.handles.textoptions dlg.handles.details],'visible','off'); 
+                    set([dlg.handles.selectall1 dlg.handles.selectall2 dlg.handles.selectall3 dlg.handles.subjects dlg.handles.sessions dlg.handles.measures dlg.handles.showdiff dlg.handles.showannot dlg.handles.invertim dlg.handles.analysis dlg.handles.text1 dlg.handles.text2 dlg.handles.textoptions dlg.handles.details],'visible','off');
                     delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
                     delete(dlg.handles.han(ishandle(dlg.handles.han)));
                     set([dlg.handles.analysis dlg.handles.deleteplot dlg.handles.recomputeplot dlg.handles.printplot dlg.handles.recomputeset dlg.handles.printset],'visible','off')
-                    set(dlg.handles.analysistxt,'visible','on'); 
-                    set(dlg.handles.addnewplot,'fontweight','bold','visible','on'); 
+                    set(dlg.handles.analysistxt,'visible','on');
+                    set(dlg.handles.addnewplot,'fontweight','bold','visible','on');
                     dlg.dispsize=[];
                     return;
                 else
@@ -711,7 +711,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     set(dlg.handles.addnewplot,'fontweight','normal','visible','on');
                 end
                 if isequal(dlg.ianalysis,0)
-                    set([dlg.handles.selectall1 dlg.handles.selectall2 dlg.handles.selectall3 dlg.handles.subjects dlg.handles.sessions dlg.handles.measures dlg.handles.showdiff dlg.handles.showannot dlg.handles.invertim dlg.handles.text1 dlg.handles.text2 dlg.handles.textoptions,dlg.handles.details,dlg.handles.deleteplot dlg.handles.recomputeplot dlg.handles.printplot],'visible','off'); 
+                    set([dlg.handles.selectall1 dlg.handles.selectall2 dlg.handles.selectall3 dlg.handles.subjects dlg.handles.sessions dlg.handles.measures dlg.handles.showdiff dlg.handles.showannot dlg.handles.invertim dlg.handles.text1 dlg.handles.text2 dlg.handles.textoptions,dlg.handles.details,dlg.handles.deleteplot dlg.handles.recomputeplot dlg.handles.printplot],'visible','off');
                     delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
                     delete(dlg.handles.han(ishandle(dlg.handles.han)));
                 elseif dlg.uanalysestype(dlg.ianalysis)==1 % QA_NORM/QA_REG/QA_COREG/QA_TIME/QA_TIMEART
@@ -720,58 +720,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     set(dlg.handles.hfig,'pointer','watch');
                     in=find(ismember(dlg.ianalyses,dlg.ianalysis));% & ismember(dlg.isubjects, dlg.isubject) & ismember(dlg.isessions, dlg.isession);
                     %ht=conn_msgbox(sprintf('Loading %d plots. Please wait...',numel(in)),'');
-                    ht=conn_waitbar(0,sprintf('Loading %d plots. Please wait...',numel(in)),false);
-                    dlg.dataA=[];
-                    dlg.txtA={};
                     dlg.dataIDXplots=in;
-                    dataM=0;
-                    dataS=0;
-                    for n=1:numel(in),
-                        data=conn_fileutils('imread',dlg.files_jpg{in(n)});
-                        if isa(data,'uint8'), data=double(data)/255; end
-                        if isempty(dlg.dataA), dlg.dataA=zeros([size(data,1),size(data,2),size(data,3),numel(in)]); end
-                        if size(data,1)>size(dlg.dataA,1), dlg.dataA(size(data,1),1,1,1)=0; end
-                        if size(data,2)>size(dlg.dataA,2), dlg.dataA(1,size(data,2),1,1)=0; end
-                        if size(data,3)>size(dlg.dataA,3), dlg.dataA(1,1,size(data,3),1)=0; end
-                        if size(dlg.dataA,1)>size(data,1), data(size(dlg.dataA,1),1,1,1)=0; end
-                        if size(dlg.dataA,2)>size(data,2), data(1,size(dlg.dataA,2),1,1)=0; end
-                        if size(dlg.dataA,3)>size(data,3), data(1,1,size(dlg.dataA,3),1)=0; end
-                        %if mean(data(:))<.5, data=1-data; end
-                        %if size(data,3)==3, data=data.*repmat(shiftdim(figcolor,-1),[size(data,1),size(data,2)]); end
-                        dlg.dataA(:,:,:,n)=data;
-                        dataM=dataM+data;
-                        dataS=dataS+data.^2;
-                        descr=''; try, descr = fileread(dlg.files_txt{in(n)}); end
-                        if isempty(descr), dlg.txtA{n}={'[empty]'}; 
-                        else dlg.txtA{n}=regexp(descr,'\n+','split');
-                        end
-                        conn_waitbar(n/numel(in),ht);
-                    end
-                    dlg.dataM=dataM/numel(in); %mean(dlg.dataA,4);
-                    dlg.dataS=sqrt(max(0,dataS/numel(in)-dlg.dataM.^2)); %sqrt(mean(dlg.dataD.^2,4)); %std(dlg.dataA,1,4);
-                    if 0
-                        dlg.dataD=abs(dlg.dataA-repmat(dlg.dataM,[1,1,1,size(dlg.dataA,4)]));
-                        %                     flth=1; %conn_hanning(3); flth=flth/sum(flth);
-                        %                     if numel(flth)==1
-                        %                         temp=repmat(sum(dlg.dataS.^2,3),[1,1,1,size(dlg.dataA,4)]);
-                        %                         dlg.dataD=sqrt(sum(dlg.dataD.^2,3)./max(eps,.01*mean(temp(:))+temp));
-                        %                     else
-                        %                         temp=repmat(convn(convn(sum(dlg.dataS.^2,3),flth,'same'),flth','same'),[1,1,1,size(dlg.dataA,4)]);
-                        %                         dlg.dataD=sqrt(convn(convn(sum(dlg.dataD.^2,3),flth,'same'),flth','same')./max(eps,.01*mean(temp(:))+temp));
-                        %                     end
-                        %[dlg.dataDmax,dlg.dataDidx]=max(dlg.dataD,[],4);
-                    else % skips pre-computation of dataD
-                        dlg.dataD=[];
-                        dataDmax=-inf(size(dlg.dataM));
-                        dataDidx=nan(size(dlg.dataM));
-                        for n=1:numel(in)
-                            temp=abs(dlg.dataA(:,:,:,n)-dlg.dataM); % dataD(:,:,:,n)
-                            mask=temp>dataDmax;
-                            dataDidx(mask)=n;
-                            dataDmax(mask)=temp(mask);
-                        end
-                    end
-                    conn_waitbar('close',ht);
+                    [dlg.dataM,dlg.dataS,dlg.dataA,dlg.txtA,dlg.dataD,dataDmax,dataDidx]=conn_qaplotsexplore_readfiles(dlg.files_jpg,dlg.files_txt,in,false);
                     %if ishandle(ht),delete(ht); end
                     if ~ishandle(dlg.handles.hfig), return; end
                     dlg.usubjects_shown=unique(dlg.isubjects(in));
@@ -788,62 +738,15 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     set([dlg.handles.showdiff dlg.handles.showannot dlg.handles.invertim dlg.handles.text1 dlg.handles.text2 dlg.handles.textoptions dlg.handles.details],'visible','off');
                     set(dlg.handles.hfig,'pointer','watch');
                     in=find(ismember(dlg.ianalyses,dlg.ianalysis));% & ismember(dlg.isubjects, dlg.isubject) & ismember(dlg.isessions, dlg.isession);
-                    %ht=conn_msgbox(sprintf('Loading %d plots. Please wait...',numel(in)),''); 
-                    ht=conn_waitbar(0,sprintf('Loading %d plots. Please wait...',numel(in)),false);
-                    dlg.dataA={};
-                    dlg.labelA={};
-                    dlg.infoA={};
-                    dlg.lineA={};
-                    %dlg.dataB={};
+                    %ht=conn_msgbox(sprintf('Loading %d plots. Please wait...',numel(in)),'');
                     dlg.dataIDXplots=in;
-                    dopull=conn_server('util_isremotefile',dlg.files(in));
-                    if any(dopull), 
-                        dlg.files(in(dopull))=conn_cache('pull',dlg.files(in(dopull))); 
-                        dlg.files_txt(in(dopull))=conn_prepend('',dlg.files(in(dopull)),'.txt');
-                    end
-                    for n=1:numel(in),
-                        data=conn_loadmatfile(dlg.files{in(n)});
-                        if isfield(data,'results_patch'), dlg.dataA{n}=data.results_patch; end
-                        %dlg.dataB{n}=data.results_label;
-                        descr=''; try, descr = conn_fileutils('fileread',dlg.files_txt{in(n)}); end
-                        if isfield(data,'results_label'), dlg.labelA{n}=data.results_label; 
-                        else dlg.labelA{n}='';
-                        end
-                        if isfield(data,'results_info'), dlg.infoA{n}=data.results_info; 
-                        else dlg.infoA{n}=[];
-                        end
-                        if isfield(data,'results_line'), dlg.lineA{n}=data.results_line; 
-                        else dlg.lineA{n}=[];
-                        end
-                        if isempty(descr), dlg.txtA{n}={'[empty]'}; 
-                        else dlg.txtA{n}=regexp(descr,'\n+','split');
-                        end
-                        conn_waitbar(n/numel(in),ht);
-                    end
-                    if isempty(dlg.dataA)&&~isempty(dlg.infoA) % refresh plot info
-                        X=[];Xnames={};Xdescr={};
-                        inok=false(numel(in),1);
-                        for n=1:numel(dlg.infoA)
-                            if ~isempty(dlg.infoA{n}.Variables)
-                                if isempty(Xnames), Xnames=dlg.infoA{n}.Variables; Xdescr=dlg.infoA{n}.Variables_descr; inok(n)=true;
-                                elseif ~isequal(dlg.infoA{n}.Variables,Xnames), conn_disp('fprintf','warning %s mismatch variable names %s (expected %s)\n',dlg.files{in(n)},sprint('%s ',Xnames{:}),sprintf('%s ',dlg.infoA{n}.Variables{:}));
-                                else inok(n)=true;
-                                end
-                            end
-                            if inok(n), X=cat(1,X,dlg.infoA{n}.Values); end
-                        end
-                        tX=X;X=nan(numel(in),size(tX,2));X(inok,:)=tX;
-                        [dlg.dataA,dlg.labelA,dlg.infoA,dlg.lineA]=conn_qaplots_covupdate(X,Xnames,Xdescr,dlg.usubjects(dlg.isubjects(in)));
-                    end
-                    assert(numel(dlg.dataA)==numel(in) && all(cellfun('length',dlg.dataA)>0),'missing information in plot files');
-                    miny=inf(1,numel(dlg.dataA{1})); maxy=-inf(1,numel(dlg.dataA{1}));
-                    for n=1:numel(dlg.dataA), miny=min(miny,cellfun(@(x)min(x(:)),dlg.dataA{n})); maxy=max(maxy,cellfun(@(x)max(x(:)),dlg.dataA{n})); end
+                    [dlg.dataA,dlg.labelA,dlg.infoA,dlg.lineA,miny,maxy]=conn_qaplotsexplore_readplots(dlg.files,dlg.files_txt,in, dlg.usubjects(dlg.isubjects(in)));
+                    
                     %miny1=inf;miny2=inf;miny3=inf;maxy1=0;maxy2=0;maxy3=0;
                     %for n=1:numel(dlg.dataA), miny1=min(miny1,min(dlg.dataA{n}{1})); miny2=min(miny2,min(dlg.dataA{n}{2})); miny3=min(miny3,min(dlg.dataA{n}{3})); maxy1=max(maxy1,max(dlg.dataA{n}{1})); maxy2=max(maxy2,max(dlg.dataA{n}{2})); maxy3=max(maxy3,max(dlg.dataA{n}{3})); end
                     dlg.plotminmax=[miny; maxy]; %[miny1 miny2 miny3; maxy1 maxy2 maxy3];
                     dlg.plothistinfo=[0 maxy(2)*1.1 (maxy(2)+maxy(min(numel(maxy),3)))*1.1 max(maxy(2),maxy(min(numel(maxy),3))) maxy(1)*1.1];
                     %if ishandle(ht),delete(ht); end
-                    conn_waitbar('close',ht);
                     if ~ishandle(dlg.handles.hfig), return; end
                     dlg.usubjects_shown=unique(dlg.isubjects(in));
                     set(dlg.handles.subjects,'string',dlg.usubjects(dlg.usubjects_shown),'value',unique(max(1,min(numel(dlg.usubjects_shown),get(dlg.handles.subjects,'value')))));
@@ -852,25 +755,25 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     dlg.umeasures_shown=unique(dlg.imeasures(in));
                     set(dlg.handles.measures,'string',dlg.umeasures(dlg.umeasures_shown),'value',unique(max(1,min(numel(dlg.umeasures_shown),get(dlg.handles.measures,'value')))));
                     set(dlg.handles.showannot,'visible','on');
-                    conn_qaplotsexplore_update([],[],'subjects');
+                    conn_qaplotsexplore_update([],[],'subjects'); 
                     set(dlg.handles.hfig,'pointer','arrow');
                 end
                 
             case {'subjects','sessions','measures','selectannotation','refresh'}
                 if isempty(dlg.sets)||isempty(dlg.uanalyses), return; end
                 if isequal(dlg.ianalysis,0)
-                        delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
-                        delete(dlg.handles.han(ishandle(dlg.handles.han)));
-                    return; 
-                elseif isempty(dlg.usubjects_shown)||isempty(dlg.usessions_shown)||isempty(dlg.umeasures_shown), 
-                        delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
-                        delete(dlg.handles.han(ishandle(dlg.handles.han)));
-                        set([dlg.handles.text1 dlg.handles.text2 dlg.handles.textoptions dlg.handles.details],'visible','off');
-                    return; 
+                    delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
+                    delete(dlg.handles.han(ishandle(dlg.handles.han)));
+                    return;
+                elseif isempty(dlg.usubjects_shown)||isempty(dlg.usessions_shown)||isempty(dlg.umeasures_shown),
+                    delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
+                    delete(dlg.handles.han(ishandle(dlg.handles.han)));
+                    set([dlg.handles.text1 dlg.handles.text2 dlg.handles.textoptions dlg.handles.details],'visible','off');
+                    return;
                 end
                 isvisible=[numel(dlg.usubjects_shown)>=2 numel(dlg.usessions_shown)>=2 numel(dlg.umeasures_shown)>=2];
                 %.73 .57 - .51 .41 - .35 .25
-                set([dlg.handles.subjects dlg.handles.sessions dlg.handles.measures dlg.handles.selectall1 dlg.handles.selectall2 dlg.handles.selectall3],'visible','off'); 
+                set([dlg.handles.subjects dlg.handles.sessions dlg.handles.measures dlg.handles.selectall1 dlg.handles.selectall2 dlg.handles.selectall3],'visible','off');
                 if isvisible(1), set(dlg.handles.subjects,'position',[.035,.57*isvisible(2)+.41*~isvisible(2)*isvisible(3)+.25*~isvisible(2)*~isvisible(3),.1,.16*isvisible(2)+.32*~isvisible(2)*isvisible(3)+.48*~isvisible(2)*~isvisible(3)]); end
                 if isvisible(2), set(dlg.handles.sessions,'position',[.035,.41*isvisible(3)+.25*~isvisible(3),.1,.10*isvisible(3)+.26*~isvisible(3)+~.22*isvisible(1)]); end
                 if isvisible(3), set(dlg.handles.measures,'position',[.035,.25,.1,.10*isvisible(2)+.26*~isvisible(2)*isvisible(1)+.48*~isvisible(2)*~isvisible(1)]); end
@@ -881,14 +784,14 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 if isvisible(2), set([dlg.handles.sessions dlg.handles.selectall2],'visible','on'); end
                 if isvisible(3), set([dlg.handles.measures dlg.handles.selectall3],'visible','on'); end
                 if strcmp(lower(option),'selectannotation')
-                   n=get(dlg.handles.han(end),'value');
-                   subjects=dlg.isubjects(dlg.dataIDXplots(dlg.dataIDXsubjects(n)));
-                   sessions=dlg.isessions(dlg.dataIDXplots(dlg.dataIDXsubjects(n)));
-                   measures=dlg.imeasures(dlg.dataIDXplots(dlg.dataIDXsubjects(n)));
-                   set(dlg.handles.subjects,'value',find(dlg.usubjects_shown==subjects));
-                   set(dlg.handles.sessions,'value',find(dlg.usessions_shown==sessions));
-                   set(dlg.handles.measures,'value',find(dlg.umeasures_shown==measures));
-                 else
+                    n=get(dlg.handles.han(end),'value');
+                    subjects=dlg.isubjects(dlg.dataIDXplots(dlg.dataIDXsubjects(n)));
+                    sessions=dlg.isessions(dlg.dataIDXplots(dlg.dataIDXsubjects(n)));
+                    measures=dlg.imeasures(dlg.dataIDXplots(dlg.dataIDXsubjects(n)));
+                    set(dlg.handles.subjects,'value',find(dlg.usubjects_shown==subjects));
+                    set(dlg.handles.sessions,'value',find(dlg.usessions_shown==sessions));
+                    set(dlg.handles.measures,'value',find(dlg.umeasures_shown==measures));
+                else
                     subjects=get(dlg.handles.subjects,'value');
                     sessions=get(dlg.handles.sessions,'value');
                     measures=get(dlg.handles.measures,'value');
@@ -904,7 +807,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 switch(dlg.uanalysestype(dlg.ianalysis))
                     case 1,
                         if numel(in)>1, set(dlg.handles.text1,'string','computing. please wait...','visible','on');set(dlg.handles.textoptions,'visible','off');set(dlg.handles.text2,'visible','off'); drawnow; end
-                        if size(dlg.dataA,4)>1, 
+                        if numel(in)==1,%if size(dlg.dataA,4)>1,
                             set(dlg.handles.showdiff,'visible','on');
                             showdiff=get(dlg.handles.showdiff,'value');
                         else
@@ -913,7 +816,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         end
                         val=(numel(in)>1)*dlg.showavg + (numel(in)<=1);
                         delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
-                        pos=[.20 .10 .75 .65]; 
+                        pos=[.20 .10 .75 .65];
                         if get(dlg.handles.showannot,'value'), pos=[pos(1)+.225 pos(2) pos(3)-.20 pos(4)]; end
                         dlg.handles.hax=axes('units','norm','position',pos,'color',figcolor,'visible','off','parent',dlg.handles.hfig);
                         switch(val)
@@ -921,40 +824,43 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 if showdiff&&~isempty(dlg.dataD), data=dlg.dataD;
                                 else data=dlg.dataA;
                                 end
+                                if iscell(data), sd4=numel(data);
+                                else sd4=size(data,4);
+                                end
                                 if val==1,
-                                    if ~showdiff&&isequal(in(:)',1:size(data,4)), data=dlg.dataM;
-                                    elseif showdiff&&isequal(in(:)',1:size(data,4)), 
-                                        dlg.dlgD=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
+                                    if ~showdiff&&isequal(in(:)',1:sd4), data=dlg.dataM;
+                                    elseif showdiff&&isequal(in(:)',1:sd4),
+                                        dlg.dlgD=abs(conn_qaplotsexplore_getdata(data,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
                                         data=mean(dlg.dlgD,4);
-                                    elseif showdiff, data=mean(abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)])),4);
-                                    else data=mean(data(:,:,:,in),4);
+                                    elseif showdiff, data=mean(abs(conn_qaplotsexplore_getdata(data,in)-repmat(dlg.dataM,[1,1,1,numel(in)])),4);
+                                    else data=mean(conn_qaplotsexplore_getdata(data,in),4);
                                     end
                                     dlg.dispsize=[size(data,2) size(data,1)];
                                 elseif val==2,
-                                    if ~showdiff&&isequal(in(:)',1:size(data,4)), data=dlg.dataS;
-                                    elseif showdiff&&isequal(in(:)',1:size(data,4)), 
-                                        dlg.dlgD=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
+                                    if ~showdiff&&isequal(in(:)',1:sd4), data=dlg.dataS;
+                                    elseif showdiff&&isequal(in(:)',1:sd4),
+                                        dlg.dlgD=abs(conn_qaplotsexplore_getdata(data,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
                                         data=std(dlg.dlgD,1,4);
-                                    elseif showdiff, data=std(abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)])),1,4);
-                                    else data=std(data(:,:,:,in),1,4);
+                                    elseif showdiff, data=std(abs(conn_qaplotsexplore_getdata(data,in)-repmat(dlg.dataM,[1,1,1,numel(in)])),1,4);
+                                    else data=std(conn_qaplotsexplore_getdata(data,in),1,4);
                                     end
                                     data=sqrt(sum(data.^2,3));
                                     data=data/max(data(:));
                                     dlg.dispsize=[size(data,2) size(data,1)];
                                 elseif val==3,
-                                    if showdiff&&isequal(in(:)',1:size(data,4)), 
-                                        dlg.dlgD=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
+                                    if showdiff&&isequal(in(:)',1:sd4),
+                                        dlg.dlgD=abs(conn_qaplotsexplore_getdata(data,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
                                         data=dlg.dlgD;
-                                    elseif showdiff, data=abs(data(:,:,:,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
-                                    else data=data(:,:,:,in);
+                                    elseif showdiff, data=abs(conn_qaplotsexplore_getdata(data,in)-repmat(dlg.dataM,[1,1,1,numel(in)]));
+                                    else data=conn_qaplotsexplore_getdata(data,in);
                                     end
                                 elseif val==4,
-                                    if showdiff, data=abs(data(:,:,:,in(end))-dlg.dataM);
-                                    else data=data(:,:,:,in(end));
+                                    if showdiff, data=abs(conn_qaplotsexplore_getdata(data,in(end))-dlg.dataM);
+                                    else data=conn_qaplotsexplore_getdata(data,in(end));
                                     end
                                 end
                                 if get(dlg.handles.invertim,'value')>0,
-                                    if size(data,3)==3&&min(data(:))>=0&&max(data(:))<=1, 
+                                    if size(data,3)==3&&min(data(:))>=0&&max(data(:))<=1,
                                         maxdata=mode(round(reshape(permute(data,[1,2,4,3]),[],3)*100))/100;
                                         if maxdata<.5, data=1-data; maxdata=1-maxdata; end
                                         data=max(0,min(1, data.*repmat(shiftdim(figcolor./maxdata,-1),[size(data,1),size(data,2),1,size(data,4)]) ));
@@ -963,12 +869,12 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 end
                                 [data,dlg.dispsize]=conn_menu_montage(dlg.handles.hax,data);
                                 masknan=find(any(isnan(data),3)); if ~isempty(masknan), mostnan=data(1,1,:); for n=1:size(data,3), data(masknan+(n-1)*size(data,1)*size(data,2))=mostnan(n); end; end
-                                cla(dlg.handles.hax); 
+                                cla(dlg.handles.hax);
                                 him=imagesc(data,'parent',dlg.handles.hax);
                                 axis(dlg.handles.hax,'equal');
                                 set(dlg.handles.hax,'ydir','reverse','visible','off');
-                                %if numel(in)==1, set(him,'buttondownfcn',{@conn_qaplotsexplore_update,'details'} ); 
-                                %else set(him,'buttondownfcn','conn_disp(''select individual subject/session first'')'); 
+                                %if numel(in)==1, set(him,'buttondownfcn',{@conn_qaplotsexplore_update,'details'} );
+                                %else set(him,'buttondownfcn','conn_disp(''select individual subject/session first'')');
                                 %end
                             case 5, % placeholder
                                 data=reshape(dlg.dataD(:,:,:,in),[],numel(in));
@@ -1007,7 +913,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         
                     case {2,3,4} % QA_DENOISE
                         delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
-                        pos=[.30 .175 .55 .575]; 
+                        pos=[.30 .175 .55 .575];
                         if get(dlg.handles.showannot,'value'), pos=[pos(1)+.225 pos(2) pos(3)-.20 pos(4)]; end
                         dlg.handles.hax=axes('units','norm','position',pos,'color',figcolor,'visible','off','parent',dlg.handles.hfig);
                         dlg.results_patch=dlg.dataA(in); %%%
@@ -1077,12 +983,12 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         end
                         text(-.95,dlg.plothistinfo2*.25,'After denoising','horizontalalignment','left','fontsize',10+font_offset,'fontweight','bold','parent',dlg.handles.hax);
                         text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25,'Before denoising','horizontalalignment','left','fontsize',10+font_offset,'fontweight','bold','parent',dlg.handles.hax);
-                        if numel(in)==1, 
+                        if numel(in)==1,
                             ttitle=dlg.results_label{1};
                             tlabel={};
                             if iscell(ttitle), tlabel=ttitle(2:end); ttitle=ttitle{1}; end
-                            text(0,-dlg.plothistinfo3*.175,tlabel,'horizontalalignment','center','fontsize',5+font_offset,'interpreter','none','parent',dlg.handles.hax); 
-                            if ~isempty(dlg.results_info)&&isstruct(dlg.results_info{1}), 
+                            text(0,-dlg.plothistinfo3*.175,tlabel,'horizontalalignment','center','fontsize',5+font_offset,'interpreter','none','parent',dlg.handles.hax);
+                            if ~isempty(dlg.results_info)&&isstruct(dlg.results_info{1}),
                                 if isfield(dlg.results_info{1},'IntersectionBefore')
                                     if isfield(dlg.results_info{1},'PercentSignificantBefore')
                                         text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('%.2f%c%.2f (%.1f%% match with NH)',dlg.results_info{1}.MeanAfter,177,dlg.results_info{1}.StdAfter,100*dlg.results_info{1}.IntersectionAfter),sprintf('%.1f%% edges with p<.05, %.1f%% edges with q<.05',100*dlg.results_info{1}.PercentSignificantAfter(1),100*dlg.results_info{1}.PercentSignificantAfter(2))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
@@ -1107,7 +1013,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                             text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean r=%.2f%c%.2f',mean(cellfun(@(x)x.MeanAfter,dlg.results_info)),177,std(cellfun(@(x)x.MeanAfter,dlg.results_info)))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                             text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean r=%.2f%c%.2f',mean(cellfun(@(x)x.MeanBefore,dlg.results_info)),177,std(cellfun(@(x)x.MeanBefore,dlg.results_info)))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                         end
-                        if dlg.uanalysestype(dlg.ianalysis)==4, 
+                        if dlg.uanalysestype(dlg.ianalysis)==4,
                             plot([.99 1 1 .99 nan .99 1 1 .99],[dlg.plotminmax([1 1 2 2],1)' nan dlg.plothistinfo2+dlg.plotminmax([1 1 2 2],1)'],'k-','linewidth',1,'parent',dlg.handles.hax);
                             text(1.05*[1 1 1 1],[dlg.plotminmax(1:2,1)' dlg.plothistinfo2+dlg.plotminmax(1:2,1)'],arrayfun(@(n)sprintf('%d mm',round(n)),[dlg.plotminmax(1:2,1)' dlg.plotminmax(1:2,1)'],'uni',0),'parent',dlg.handles.hax);
                             text(1.10,dlg.plothistinfo2/2,'Distance (mm)','rotation',90,'horizontalalignment','center','fontsize',11+font_offset,'parent',dlg.handles.hax);
@@ -1125,9 +1031,10 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         else set(dlg.handles.hax,'ylim',dlg.plothistinfo([1 3]))
                         end
                         set(dlg.handles.hax,'xlim',[-1,1],'ytick',[],'ycolor',figcolor,'ydir','normal','visible','on');
+                        conn_qaplotsexplore_figuremousemove([],[],'updatemousetrack');
                     case 5 % QA_COV
                         delete(dlg.handles.hax(ishandle(dlg.handles.hax)));
-                        pos=[.30 .175 .55 .575]; 
+                        pos=[.30 .175 .55 .575];
                         if get(dlg.handles.showannot,'value'), pos=[pos(1)+.225 pos(2) pos(3)-.20 pos(4)]; end
                         dlg.plothistinfo4=1;
                         dlg.handles.hax=axes('units','norm','position',pos,'color',figcolor,'visible','off','parent',dlg.handles.hfig);
@@ -1144,11 +1051,11 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         for n=1:numel(dlg.results_patch),
                             if numel(in)>1
                                 mask=dlg.results_line{n}{2}>dlg.results_info{n}.InterquartilesDisplay(5,:) | dlg.results_line{n}{2}<dlg.results_info{n}.InterquartilesDisplay(1,:);
-                                if nnz(mask), 
+                                if nnz(mask),
                                     ttx=reshape(dlg.results_line{n}{1}(mask),[],1);
                                     tty=reshape(dlg.results_line{n}{2}(mask),[],1);
-                                    plot([ttx ttx-.25]',[tty tty+sign(tty-.5)*.05]','-','color',.5*[.8 .8 1],'parent',dlg.handles.hax); 
-                                    text(ttx-.25,tty+sign(tty-.5)*.05,regexprep(dlg.results_label{n}{1}{1},'^[sS]ubject ','S'),'color',.5*[.8 .8 1],'horizontalalignment','right','fontsize',5+font_offset,'parent',dlg.handles.hax); 
+                                    plot([ttx ttx-.25]',[tty tty+sign(tty-.5)*.05]','-','color',.5*[.8 .8 1],'parent',dlg.handles.hax);
+                                    text(ttx-.25,tty+sign(tty-.5)*.05,regexprep(dlg.results_label{n}{1}{1},'^[sS]ubject ','S'),'color',.5*[.8 .8 1],'horizontalalignment','right','fontsize',5+font_offset,'parent',dlg.handles.hax);
                                 end
                             end
                             if ~isequal(tx,dlg.results_patch{n}{1})||~isequal(ty,dlg.results_patch{n}{2});
@@ -1167,10 +1074,10 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         for n=1:numel(dlg.results_patch),
                             dlg.handles.resultsline(n,1)=plot(dlg.results_line{n}{1},dlg.results_line{n}{2},'ko','markerfacecolor',.25*[.8 .8 1],'markeredgecolor',.25*[.8 .8 1],'linewidth',1,'color',.75*[.8 .8 1],'parent',dlg.handles.hax);
                         end
-                        if numel(in)==1, 
+                        if numel(in)==1,
                             ttitle=dlg.results_label{n}{1}{1};
-                            text(numel(dlg.results_line{1}{1})/2+.5,1.1*1.05,ttitle,'horizontalalignment','center','fontsize',10+font_offset,'fontweight','bold','interpreter','none','parent',dlg.handles.hax); 
-                            set(dlg.handles.resultsline(:,1),'linestyle','-'); 
+                            text(numel(dlg.results_line{1}{1})/2+.5,1.1*1.05,ttitle,'horizontalalignment','center','fontsize',10+font_offset,'fontweight','bold','interpreter','none','parent',dlg.handles.hax);
+                            set(dlg.handles.resultsline(:,1),'linestyle','-');
                         end
                         dlg.handles.resultsline_add=plot(0,0,'ko-','markeredgecolor',[1 1 1],'visible','off');
                         dlg.handles.resultspatch_add=[];
@@ -1184,25 +1091,27 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 ht(3)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(4,[1 1:end end]),'k:','linewidth',1,'parent',dlg.handles.hax);
                                 ht(4)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(5,[1 1:end end]),'r--','linewidth',2,'parent',dlg.handles.hax);
                                 text(size(tx,2)+.55+zeros(1,4),tx([5,4,2,1],end)',{'3rd Q + 1.5 IQR','3rd Quartile','1st Quartile','1st Q - 1.5 IQR'},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
-                                if numel(dlg.results_info{n}.Variables)>1, 
+                                if numel(dlg.results_info{n}.Variables)>1,
                                     ty=dlg.results_info{n}.Interquartiles;
                                     text((1:size(tx,2))+.2,tx(1,:)-.02,arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(1,:),'uni',0),'horizontalalignment','right','color',.5*[1 1 1],'fontsize',5+font_offset,'rotation',90,'parent',dlg.handles.hax);
                                     text((1:size(tx,2))+.2,tx(5,:)+.02,arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(5,:),'uni',0),'horizontalalignment','left','color',.5*[1 1 1],'fontsize',5+font_offset,'rotation',90,'parent',dlg.handles.hax);
-                                    text((1:size(tx,2)),-.15+zeros(1,size(tx,2)),regexprep(dlg.results_info{n}.Variables,'^QC_',''),'horizontalalignment','right','color','k','fontsize',5+font_offset,'rotation',90,'interpreter','none','parent',dlg.handles.hax); 
+                                    text((1:size(tx,2)),-.15+zeros(1,size(tx,2)),regexprep(dlg.results_info{n}.Variables,'^QC_',''),'horizontalalignment','right','color','k','fontsize',5+font_offset,'rotation',90,'interpreter','none','parent',dlg.handles.hax);
                                 end
                             end
                             %ht(1)=plot(1:size(dlg.results_info{n}.InterquartilesDisplay,2),dlg.results_info{n}.InterquartilesDisplay(2,:),'k--','linewidth',2,'parent',dlg.handles.hax);
                             %ht(2)=plot(1:size(dlg.results_info{n}.InterquartilesDisplay,2),dlg.results_info{n}.InterquartilesDisplay(4,:),'k--','linewidth',2,'parent',dlg.handles.hax);
                         end
-                        if numel(dlg.results_info{1}.Variables)==1, 
+                        if numel(dlg.results_info{1}.Variables)==1,
                             tx=dlg.results_info{n}.InterquartilesDisplay;
                             ty=dlg.results_info{n}.Interquartiles;
                             for n1=[1,2,4,5], text(.45,tx(n1,:),arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(n1,:),'uni',0),'horizontalalignment','right','color',.5*[1 1 1],'fontsize',5+font_offset,'parent',dlg.handles.hax); end
                             tx=dlg.results_info{1}.Variables;
-                            text(1,-.15,[regexprep(dlg.results_info{1}.Variables,'^QC_',''),dlg.results_info{1}.Variables_descr],'horizontalalignment','center','color','k','fontsize',8+font_offset,'interpreter','none','parent',dlg.handles.hax); 
+                            text(1,-.15,[regexprep(dlg.results_info{1}.Variables,'^QC_',''),dlg.results_info{1}.Variables_descr],'horizontalalignment','center','color','k','fontsize',8+font_offset,'interpreter','none','parent',dlg.handles.hax);
                         end
                         hold(dlg.handles.hax,'off');
                         set(dlg.handles.hax,'xlim',[.5,numel(dlg.results_line{1}{1})+.5],'ytick',[],'ycolor',figcolor,'ydir','normal','visible','off');
+                        conn_qaplotsexplore_figuremousemove([],[],'updatemousetrack');
+
                 end
                 if get(dlg.handles.showannot,'value')
                     delete(dlg.handles.han(ishandle(dlg.handles.han)));
@@ -1213,18 +1122,49 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     elseif numel(in)>1
                         txt=arrayfun(@(n)sprintf('%s %s %s: %s',dlg.usubjects{dlg.isubjects(dlg.dataIDXplots(n))},dlg.usessions{dlg.isessions(dlg.dataIDXplots(n))},dlg.umeasures{dlg.imeasures(dlg.dataIDXplots(n))},sprintf('%s ',dlg.txtA{n}{:})),in,'uni',0);
                         dlg.handles.han=[uicontrol('style','text','units','norm','position',[.20 .75 .20 .05],'string','annotations','horizontalalignment','center','backgroundcolor',figcolor,'foregroundcolor','k','parent',dlg.handles.hfig),...
-                                         uicontrol('style','listbox','units','norm','position',[.20 .10 .20 .65],'max',1,'string',txt,'horizontalalignment','left','backgroundcolor',figcolor,'foregroundcolor','k','callback',{@conn_qaplotsexplore_update,'selectannotation'},'interruptible','off','parent',dlg.handles.hfig)];
+                            uicontrol('style','listbox','units','norm','position',[.20 .10 .20 .65],'max',1,'string',txt,'horizontalalignment','left','backgroundcolor',figcolor,'foregroundcolor','k','callback',{@conn_qaplotsexplore_update,'selectannotation'},'interruptible','off','parent',dlg.handles.hfig)];
                     end
                 else
                     delete(dlg.handles.han(ishandle(dlg.handles.han)));
                 end
                 drawnow;
-
+                
         end
     end
 
     function conn_qaplotsexplore_figuremousemove(hObject,eventdata,option,varargin)
-        persistent lastpos_counter newpos refpos nlines
+        persistent lastpos_counter newpos refpos nlines mousetrack
+        if nargin>=3&&isequal(option,'updatemousetrack')
+            xlim=get(dlg.handles.hax,'xlim');ylim=get(dlg.handles.hax,'ylim');
+            if dlg.uanalysestype(dlg.ianalysis)==5,     ix=1; iy=2; ii=dlg.results_line; bpos=0;
+            elseif dlg.uanalysestype(dlg.ianalysis)==4, ix=[2,3]; iy=[1,1]; ii=dlg.results_line; bpos=[0 dlg.plothistinfo2];
+            else,                                       ix=[1,1]; iy=[2,3]; ii=dlg.results_patch; bpos=[0 dlg.plothistinfo2];
+            end
+            zlim=256;
+            mousetrack.idx=zeros(zlim,zlim);
+            mousetrack.n1=zeros(zlim,zlim);
+            mousetrack.xlim=xlim;
+            mousetrack.ylim=ylim;
+            mousetrack.zlim=zlim;
+            for n1=1:numel(dlg.results_patch)
+                for n2=1:numel(ix)
+                    x1=1+round((zlim-1)*max(0,min(1, (ii{n1}{ix(n2)}-xlim(1))/(xlim(2)-xlim(1)) )));
+                    y1=1+round((zlim-1)*max(0,min(1, (ii{n1}{iy(n2)}+bpos(n2)-ylim(1))/(ylim(2)-ylim(1)) )));
+                    mousetrack.idx((x1-1)*zlim+y1)=1:numel(ii{n1}{1});
+                    mousetrack.n1((x1-1)*zlim+y1)=n1;
+                    mousetrack.labels((x1-1)*zlim+y1)=n2;
+                end
+            end
+            [i1,i2,v]=find(mousetrack.n1);
+            [n1,n2]=ndgrid(-5:5,-5:5);
+            [nill,i3]=sort(sqrt(abs(n1(:)).^2+abs(n2(:)).^2));
+            for n3=reshape(i3,1,[])
+                idx=max(1,min(zlim, i1+n1(n3)))+zlim*(max(1,min(zlim, i2+n2(n3)))-1);
+                val=mousetrack.n1(idx)==0;
+                mousetrack.n1(idx(val))=v(val);
+            end
+            return
+        end
         try
             p1=get(0,'pointerlocation');
             p2=get(dlg.handles.hfig,'position');
@@ -1233,10 +1173,10 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
             pos0=(p1-p4);
             if pos0(1)/p2(3)<0.25, return; end
             set(dlg.handles.hfig,'currentpoint',pos0);
-            pos=(get(dlg.handles.hax,'currentpoint')); 
+            pos=(get(dlg.handles.hax,'currentpoint'));
             pos=pos(1,1:3);
             switch(dlg.uanalysestype(dlg.ianalysis))
-                case 1, % QA_NORM/QA_REG            
+                case 1, % QA_NORM/QA_REG
                     pos=round(pos);
                     set(dlg.handles.hax,'units','pixels');posax=get(dlg.handles.hax,'position');set(dlg.handles.hax,'units','norm');
                     nX=dlg.dispsize;
@@ -1267,7 +1207,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 ntlabel=numel(tlabel);
                                 set(dlg.handles.hlabel,'visible','on','position',[newpos(1:2)+(pos0(1:2)-refpos(1:2)) newpos(3:4)],'string',reshape([tlabel,repmat(' ',1,nlines*ceil(ntlabel/nlines)-ntlabel)]',[],nlines)');
                             end
-                        else 
+                        else
                             set(dlg.handles.hlabel,'visible','off');
                         end
                     else
@@ -1276,34 +1216,50 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 case {2,3,4,5}, %QA_DENOISE
                     posb=pos;
                     if dlg.uanalysestype(dlg.ianalysis)==5, labels=2;
-                    elseif pos(2)>=dlg.plothistinfo2&&pos(2)<=dlg.plothistinfo3, posb(2)=posb(2)-dlg.plothistinfo2; labels=3;
-                    elseif pos(2)>=dlg.plothistinfo(1)&&pos(2)<=dlg.plothistinfo2, labels=2;
-                    else pos=[];
+                    elseif pos(2)>=dlg.plothistinfo2&&pos(2)<=dlg.plothistinfo3, labels=3; %posb(2)=posb(2)-dlg.plothistinfo2; 
+                    elseif pos(2)>=dlg.plothistinfo(1)&&pos(2)<=dlg.plothistinfo2, labels=2; 
+                    else pos=[]; 
                     end
                     if ~isempty(pos)
-                        dwin=[];dmin=inf;
-                        if dlg.uanalysestype(dlg.ianalysis)==5, 
-                            for n1=1:numel(dlg.results_patch)
-                                [d,idx]=min(abs(dlg.results_line{n1}{1}-posb(1))+abs((dlg.results_line{n1}{2}-posb(2))));
-                                if d<dmin, dmin=d; dwin=n1; dpos=[dlg.results_line{n1}{1}(idx) dlg.results_line{n1}{2}(idx)]; end
+                        if ~isempty(mousetrack)&&isfield(mousetrack,'n1')
+                            dwin=[];
+                            x1=1+round((mousetrack.zlim-1)*max(0,min(1, (posb(1)-mousetrack.xlim(1))/(mousetrack.xlim(2)-mousetrack.xlim(1)) )));
+                            y1=1+round((mousetrack.zlim-1)*max(0,min(1, (posb(2)-mousetrack.ylim(1))/(mousetrack.ylim(2)-mousetrack.ylim(1)) )));
+                            n1=mousetrack.n1(y1,x1);
+                            if n1>0
+                                idx=mousetrack.idx(y1,x1);
+                                dwin=n1;
+                                dpos=posb(1:2);
+                                %if dlg.uanalysestype(dlg.ianalysis)==4, dpos=[dlg.results_line{n1}{labels}(idx) dlg.results_line{n1}{1}(idx)]; 
+                                %else dpos=[dlg.results_patch{n1}{1}(idx) dlg.results_patch{n1}{labels}(idx)]; 
+                                %end
+                                %posb(1:2)=dpos;
                             end
-                        elseif dlg.uanalysestype(dlg.ianalysis)==4, 
-                            for n1=1:numel(dlg.results_patch)
-                                [d,idx]=min(abs(dlg.results_line{n1}{labels}-posb(1))+abs((dlg.results_line{n1}{1}-posb(2))/dlg.plothistinfo4));
-                                if d<dmin, dmin=d; dwin=n1; dpos=[dlg.results_line{n1}{labels}(idx) dlg.results_line{n1}{1}(idx)]; end
-                            end
-                        elseif dlg.uanalysestype(dlg.ianalysis)==2, 
-                            %if nargin<=2&&rand<.9, return; end
-                            [nill,idx]=min(abs(dlg.results_patch{1}{1}-posb(1)));
-                            d=zeros(1,numel(dlg.results_patch));
-                            for n1=1:numel(dlg.results_patch), d(n1)=dlg.results_patch{n1}{labels}(idx); end
-                            [dmin,dwin]=min(abs(d-posb(2)));
-                            dpos=[dlg.results_patch{dwin}{1}(idx) dlg.results_patch{dwin}{labels}(idx)];
-                        else
-                            %if nargin<=2&&rand<.9, return; end
-                            for n1=1:numel(dlg.results_patch)
-                                [d,idx]=min(abs(dlg.results_patch{n1}{1}-posb(1))+abs((dlg.results_patch{n1}{labels}-posb(2))/dlg.plothistinfo4));
-                                if d<dmin, dmin=d; dwin=n1; dpos=[dlg.results_patch{n1}{1}(idx) dlg.results_patch{n1}{labels}(idx)]; end
+                        elseif 0
+                            dwin=[];dmin=inf;
+                            if dlg.uanalysestype(dlg.ianalysis)==5,
+                                for n1=1:numel(dlg.results_patch)
+                                    [d,idx]=min(abs(dlg.results_line{n1}{1}-posb(1))+abs((dlg.results_line{n1}{2}-posb(2))));
+                                    if d<dmin, dmin=d; dwin=n1; dpos=[dlg.results_line{n1}{1}(idx) dlg.results_line{n1}{2}(idx)]; end
+                                end
+                            elseif dlg.uanalysestype(dlg.ianalysis)==4,
+                                for n1=1:numel(dlg.results_patch)
+                                    [d,idx]=min(abs(dlg.results_line{n1}{labels}-posb(1))+abs((dlg.results_line{n1}{1}-posb(2))/dlg.plothistinfo4));
+                                    if d<dmin, dmin=d; dwin=n1; dpos=[dlg.results_line{n1}{labels}(idx) dlg.results_line{n1}{1}(idx)]; end
+                                end
+                            elseif dlg.uanalysestype(dlg.ianalysis)==2,
+                                %if nargin<=2&&rand<.9, return; end
+                                [nill,idx]=min(abs(dlg.results_patch{1}{1}-posb(1)));
+                                d=zeros(1,numel(dlg.results_patch));
+                                for n1=1:numel(dlg.results_patch), d(n1)=dlg.results_patch{n1}{labels}(idx); end
+                                [dmin,dwin]=min(abs(d-posb(2)));
+                                dpos=[dlg.results_patch{dwin}{1}(idx) dlg.results_patch{dwin}{labels}(idx)];
+                            else
+                                %if nargin<=2&&rand<.9, return; end
+                                for n1=1:numel(dlg.results_patch)
+                                    [d,idx]=min(abs(dlg.results_patch{n1}{1}-posb(1))+abs((dlg.results_patch{n1}{labels}-posb(2))/dlg.plothistinfo4));
+                                    if d<dmin, dmin=d; dwin=n1; dpos=[dlg.results_patch{n1}{1}(idx) dlg.results_patch{n1}{labels}(idx)]; end
+                                end
                             end
                         end
                         if ~isempty(dwin)&&max(abs(dpos-posb(1:2))./[1 dlg.plothistinfo4])<.10
@@ -1355,7 +1311,7 @@ end
 function [descrip, procedure, proceduretype]=conn_qaplotsexplore_translate(root)
 % root_list={'^QA_NORM_(.*)','^QA_REG_functional','^QA_REG_(.*?)_?functional','^QA_REG_(.*?)_?structural','^QA_REG_(.*?)_?mni','^QA_COREG_(.*)','^QA_TIME_(.*)','^QA_TIMEART_(.*)','^QA_DENOISE_timeseries','^QA_DENOISE_QC-FC','^QA_DENOISE_scatterplot','^QA_DENOISE','^QA_SPM_design','^QA_SPM_contrasts'};
 % root_descrip={'QA normalization: $1 data + outline of MNI TPM template','QA registration: functional data + structural overlay','QA registration: functional data + outline of ROI $1','QA registration: structural data + outline of ROI $1','QA registration: mni reference template + outline of ROI $1','QA realignment: $1 center-slice across multiple sessions/datasets','QA artifacts: $1 movie across all timepoints/acquisitions','QA artifacts: BOLD GS changes & subject motion timeseries with $1 movie','QA denoising: BOLD signal traces (carpetplot) before and after denoising + ART timeseries','QA denoising: distribution of QC-FC associations before and after denoising','QA denoising: scatterplot of functional correlations (FC) vs. distance (mm) before and after denoising','QA denoising: distribution of functional correlations (FC) before and after denoising','QA SPM design: review SPM first-level design matrix','QA SPM contrasts: review SPM first-level contrasts'};
-% 
+%
 root_list={...
     '^QA_NORM_structural.*?(\(.*?\)\s*)?$','QA normalization: structural data + outline of MNI TPM template $1','1','1';
     '^QA_NORM_functional.*?(\(.*?\)\s*)?$','QA normalization: functional data + outline of MNI TPM template $1','2','1';
@@ -1385,7 +1341,7 @@ procedure=cellfun(@str2num,regexprep(root,...
 proceduretype=cellfun(@str2num,regexprep(root,...
     root_list(:,1)',root_list(:,4)'));
 end
-                
+
 function conn_qaplotsexplore_callbackgui(option,h1,h2,h3,h4,h0,procedures,h5,h6)
 global CONN_x;
 switch(option)
@@ -1421,5 +1377,25 @@ switch(option)
 end
 end
 
-
+function m=conn_qaplotsexplore_getdata(data,in);
+if iscell(data)
+    m=[];
+    for n=1:numel(in),
+        a=conn_fileutils('imread',data{in(n)});
+        if isa(a,'uint8'), a=double(a)/255; end
+        if isempty(m), m=zeros([size(a,1),size(a,2),size(a,3),numel(in)]); end
+        if size(a,1)>size(m,1), m(size(a,1),1,1,1)=0; end
+        if size(a,2)>size(m,2), m(1,size(a,2),1,1)=0; end
+        if size(a,3)>size(m,3), m(1,1,size(a,3),1)=0; end
+        if size(m,1)>size(a,1), a(size(m,1),1,1,1)=0; end
+        if size(m,2)>size(a,2), a(1,size(m,2),1,1)=0; end
+        if size(m,3)>size(a,3), a(1,1,size(m,3),1)=0; end
+        %if mean(data(:))<.5, data=1-data; end
+        %if size(data,3)==3, data=data.*repmat(shiftdim(figcolor,-1),[size(data,1),size(data,2)]); end
+        m(:,:,:,n)=a;
+    end
+else
+    m=data(:,:,:,in);
+end
+end
 

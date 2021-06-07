@@ -295,8 +295,8 @@ fexts={fext};
 if ismember(fext,{'.nii','.img'}), fexts=[fexts, {'.mat','.json','.txt','.csv','.xls','.info','.icon.jpg'}]; end
 if strcmp(fext,'.img'), fexts=[fexts, {'.hdr'}];
 elseif strcmp(fext,'.mat'), fexts=[fexts, {'.txt','.jpg'}];
-elseif strcmp(fext,'.txt'), fexts=[fexts, {'.mat','.jpg'}];
-elseif strcmp(fext,'.jpg'), fexts=[fexts, {'.mat','.txt'}];
+%elseif strcmp(fext,'.txt'), fexts=[fexts, {'.jpg'}];
+%elseif strcmp(fext,'.jpg'), fexts=[fexts, {'.txt'}];
 elseif strcmp(fext,'.matc'), fexts=[fexts, {'.mat'}];
 end
 end

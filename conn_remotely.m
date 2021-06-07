@@ -233,10 +233,12 @@ switch(option)
                     fprintf('ERROR: Unable to start remote session: %s',me.message);
                 end
             end
+            CONN_gui.isremote=true;
             if keepgui 
-                CONN_gui.isremote=true;
                 conn gui_setup
-            else conn isremotely;
+            else
+                conn gui_isconnected;
+                conn isremotely;
             end
         end
     case 'setup'

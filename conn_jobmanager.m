@@ -1289,6 +1289,7 @@ if ~numel(files)
     set(handles.enable,'value',0); 
     conn_jobmanager_update('enable');
     handles.finished=false;
+    conn_jobmanager_update('refresh')
     try, start(handles.timer); end
     if nogui, 
         warning('off','MATLAB:hg:NoDisplayNoFigureSupportSeeReleaseNotes');

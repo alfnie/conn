@@ -4633,8 +4633,10 @@ else
                                                     tnames=CONN_x.Setup.l2covariates.names(1:end-1);
                                                     [nill,idx]=sort(-cellfun('length',tnames));
                                                     for n1=idx(:)',
-                                                        for n2=fliplr(strfind(tstring,tnames{n1}))
-                                                            tstring=[tstring(1:n2-1) '(' mat2str(x(:,n1)') ')' tstring(n2+numel(tnames{n1}):end)];
+                                                        if ~isempty(deblank(tnames{n1}))
+                                                            for n2=fliplr(strfind(tstring,tnames{n1}))
+                                                                tstring=[tstring(1:n2-1) '(' mat2str(x(:,n1)') ')' tstring(n2+numel(tnames{n1}):end)];
+                                                            end
                                                         end
                                                     end
                                                     value=evalin('base',tstring);
@@ -7136,11 +7138,11 @@ else
                 CONN_h.menus.m_analyses.icondition=icondition;
                 filepath=CONN_x.folders.preprocessing;
                 filename=fullfile(filepath,['DATA_Subject',num2str(1,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(1),'%03d'),'.mat']);
+                CONN_h.menus.m_analyses.y.data=[];
                 if conn_existfile(filename)&any(CONN_x.Setup.steps([2,3])),%~isfield(CONN_x.Setup,'doROIonly')||~CONN_x.Setup.doROIonly, % load slice
                     CONN_h.menus.m_analyses.Y=conn_vol(filename,true);
                     if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface, %isequal(CONN_h.menus.m_analyses.Y.matdim.dim,conn_surf_dims(8).*[1 1 2])
                         CONN_h.menus.m_analyses.y.slice=1;
-                        CONN_h.menus.m_analyses.y.data=[];
 %                         if CONN_h.menus.m_analyses_surfhires
 %                             [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
 %                         else
@@ -7152,7 +7154,6 @@ else
                         set(CONN_h.menus.m_analyses_00{15},'visible','off');
                         conn_menumanager('onregionremove',CONN_h.menus.m_analyses_00{15});
                     else
-                        CONN_h.menus.m_analyses.y.data=[];
                         CONN_h.menus.m_analyses.y.slice=ceil(CONN_h.menus.m_analyses.Y.matdim.dim(3)/2);
 %                         [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
                     end
@@ -7502,7 +7503,7 @@ else
                             CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; 
                             %filename=fullfile(filepath,['COV_Subject',num2str(nsubs,'%03d'),'_Session',num2str(nconditions,'%03d'),'.mat']);
                             %CONN_h.menus.m_analyses.X2=load(filename);
-                            if any(CONN_x.Setup.steps([2,3]))
+                            if any(CONN_x.Setup.steps([2,3]))&&isfield(CONN_h.menus.m_analyses,'Y')
                                 if ~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
                                     try
                                         CONN_h.menus.m_analyses.XS=conn_fileutils('spm_vol',deblank(CONN_x.Setup.structural{nsubs}{1}{1})); %note: displaying first-session structural here
@@ -7521,7 +7522,7 @@ else
                         case 15,
                             CONN_h.menus.m_analyses.y.slice=round(get(CONN_h.menus.m_analyses_00{15},'value'));
                             if ~CONN_h.menus.m_analyses.isready, return; end
-                            if any(CONN_x.Setup.steps([2,3]))&&~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
+                            if any(CONN_x.Setup.steps([2,3]))&&isfield(CONN_h.menus.m_analyses,'Y')&&~(isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface)
                                 CONN_h.menus.m_analyses.y.data=[];
                                 %[CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
                                 CONN_h.menus.m_analyses.Xs=[];
@@ -7699,7 +7700,7 @@ else
                 nconditions=CONN_h.menus.m_analyses.listedconditions(get(CONN_h.menus.m_analyses_00{12},'value'));
                 set(CONN_h.menus.m_analyses_00{46},'string',CONN_x.Analyses(ianalysis).name);
                 if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0
-                    if ~isfield(CONN_h.menus.m_analyses,'X1')||~isfield(CONN_h.menus.m_analyses.X1,'crop')||CONN_h.menus.m_analyses.X1.crop||(any(CONN_x.Setup.steps([2,3]))&&(~isfield(CONN_h.menus.m_analyses.Y,'crop')||CONN_h.menus.m_analyses.Y.crop)),
+                    if ~isfield(CONN_h.menus.m_analyses,'X1')||~isfield(CONN_h.menus.m_analyses.X1,'crop')||CONN_h.menus.m_analyses.X1.crop||(any(CONN_x.Setup.steps([2,3]))&&(~isfield(CONN_h.menus.m_analyses,'Y')||~isfield(CONN_h.menus.m_analyses.Y,'crop')||CONN_h.menus.m_analyses.Y.crop)),
                         CONN_x.Analyses(ianalysis).modulation=0;
                         conn_msgbox({'Temporal-modulation analyses not ready for selected condition'},'',2); 
                     end
@@ -7756,7 +7757,7 @@ else
                         case 3, wx=CONN_h.menus.m_analyses.X1.conditionweights{2};
                         case 4, wx=CONN_h.menus.m_analyses.X1.conditionweights{3};
                     end
-                    if isempty(CONN_h.menus.m_analyses.y.data)&&nshow~=1
+                    if isempty(CONN_h.menus.m_analyses.y.data)&&nshow~=1&&isfield(CONN_h.menus.m_analyses,'Y')
                         if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface
                             if CONN_h.menus.m_analyses_surfhires
                                 [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_volume(CONN_h.menus.m_analyses.Y);
@@ -7875,8 +7876,8 @@ else
                             end
                             if ~isempty(CONN_h.menus.m_analyses.XR)&&~conn_existfile(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=[]; end
                         end
-                        if isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface, issurface=true; else issurface=false; end
-                        if isempty(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.Xr=[];
+                        if isfield(CONN_h.menus.m_analyses,'Y')&&isfield(CONN_h.menus.m_analyses.Y,'issurface')&&CONN_h.menus.m_analyses.Y.issurface, issurface=true; else issurface=false; end
+                        if isempty(CONN_h.menus.m_analyses.XR)||~isfield(CONN_h.menus.m_analyses,'Y'), CONN_h.menus.m_analyses.Xr=[];
                         elseif CONN_x.Analyses(ianalysis).type==1
                             if iscell(CONN_h.menus.m_analyses.XR)||ischar(CONN_h.menus.m_analyses.XR), CONN_h.menus.m_analyses.XR=conn_loadmatfile(char(CONN_h.menus.m_analyses.XR)); end
                             CONN_h.menus.m_analyses.Xr=CONN_h.menus.m_analyses.XR.Z(:,1:size(CONN_h.menus.m_analyses.XR.Z,1));
