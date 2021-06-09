@@ -25,13 +25,16 @@ switch(lower(option))
         %x0=detrend(x0);
         x0orig=x0;
         x0=x0-repmat(mean(x0,1),size(x0,1),1);
-        maskx0=~all(abs(x0)<1e-4,1)&~any(isnan(x0),1);
+        maskx0=find(~all(abs(x0)<1e-4,1)&~any(isnan(x0),1));
+        [nill,tidx]=sort(sum(x0(:,maskx0).*repmat(mean(x0(:,maskx0),2),1,numel(maskx0)),1));maskx0=maskx0(tidx); % sort timeseries by projection on avg
+        %[nill,tidx]=sort(sum(abs(x0(:,maskx0)).^2,1));maskx0=maskx0(tidx); % sort timeseries by var
         x0=x0(:,maskx0);
         x0orig=x0orig(:,maskx0);
         xyz=xyz(:,maskx0);
         %if isempty(x0),
         %    conn_disp('Warning! No temporal variation in BOLD signal within sampled grey-matter voxels');
         %end
+
         x1=x0;
         %fy=mean(abs(fft(x0)).^2,2);
         if isfield(Preproc,'despiking')&&Preproc.despiking==1,
@@ -57,7 +60,7 @@ switch(lower(option))
         maskz=z0~=1&z1~=1;
         z0=z0(maskz);z1=z1(maskz);d0=d0(maskz);
         
-        if size(x0,2)==size(xyz,2)&&~all(isnan(xyz(:)))
+        if 0, %size(x0,2)==size(xyz,2)&&~all(isnan(xyz(:)))
             [nill,idx]=sort(sum(xyz.^2,1),'descend');
             x0=x0(:,idx); x1=x1(:,idx); xyz=xyz(:,idx);
         end

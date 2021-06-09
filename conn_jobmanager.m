@@ -308,6 +308,8 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
     else whichoption=[];
     end
     if ~nargin||~isempty(whichoption), 
+        hmsg=[]; 
+        if isempty(whichoption)||isequal(whichoption,1), try, hmsg=conn_msgbox('Initializing... please wait','',-1); end; end
         if isempty(CONN_x)||~isfield(CONN_x,'filename')||isempty(CONN_x.filename), 
             ftemp=conn_fileutils('dir','*.qlog'); 
             if numel(ftemp)==1, CONN_x_filename=conn_fullfile(ftemp.name); 
@@ -358,6 +360,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
                 else conn_msgbox('There are no pending jobs associated with this project','',true);
                 end
             end
+            if ishandle(hmsg), delete(hmsg); end
             return;
         end
         [nill,filedates]=cellfun(@(x)fileparts(fileparts(x)),files,'uni',0);
@@ -378,6 +381,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
             info=conn_jobmanager('statusjob',info,[],true); 
             if numel(files)==1, files={}; end
             validlabels={'finished','canceled'}; %{'finished','stopped'};
+            if ishandle(hmsg), delete(hmsg); end
             if all(ismember(info.tagmsg,validlabels)),
                 answ=conn_questdlg({'Your pending job has finished','Finished jobs need to be merged with your current CONN project','Would you like to do this now?'},'Finished job','Merge now','Later','Merge now');
                 if isequal(answ,'Merge now'), 
@@ -461,6 +465,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
             varargout={info};
             return;
         end
+        if ishandle(hmsg), delete(hmsg); end
     else
         info=option;
         files={};

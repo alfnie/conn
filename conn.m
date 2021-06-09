@@ -6593,40 +6593,7 @@ else
                     elseif nnz(CONN_h.menus.m_preproc.select{3}), dof2=max(0,(dof2(1)-dof2(2)+nnz(CONN_h.menus.m_preproc.select{3}))*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0-nnz(CONN_h.menus.m_preproc.select{3}));
                     else dof2=max(0,(dof2(1)-dof2(2))*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0);
                     end
-                    
-%                     %x0=detrend(x0);
-%                     x0orig=x0;
-%                     x0=conn_fcnutils('demean',x0);
-%                     maskx0=~all(abs(x0)<1e-4,1)&~any(isnan(x0),1);
-%                     x0=x0(:,maskx0);
-%                     x0orig=x0orig(:,maskx0);
-%                     xyz=xyz(:,maskx0);
-%                     if isempty(x0), 
-%                         conn_disp('Warning! No temporal variation in BOLD signal within sampled grey-matter voxels');
-%                     end
-%                     x1=x0;
-%                     %fy=mean(abs(fft(x0)).^2,2);
-%                     if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==1,
-%                         my=repmat(median(x1,1),[size(x1,1),1]);
-%                         sy=repmat(4*median(abs(x1-my)),[size(x1,1),1]);
-%                         x1=my+sy.*tanh((x1-my)./max(eps,sy));
-%                     end
-%                     x1=x1-xf*(pinv(xf'*xf)*(xf'*x1));
-%                     if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2,
-%                         my=repmat(median(x1,1),[size(x1,1),1]);
-%                         sy=repmat(4*median(abs(x1-my)),[size(x1,1),1]);
-%                         x1=my+sy.*tanh((x1-my)./max(eps,sy));
-%                     end
-%                     [x1,fy]=conn_filter(max(conn_get_rt(nsubs)),CONN_x.Preproc.filter,x1);
-%                     fy=mean(abs(fy(1:round(size(fy,1)/2),:)).^2,2); 
-%                     %dof=max(0,sum(fy)^2/sum(fy.^2)-size(xf,2)); % change dof displayed to WelchSatterthwaite residual dof approximation
-%                     dof0=size(CONN_h.menus.m_preproc.X1.sampledata,1)-1;
-%                     dof1=max(0,sum(fy)^2/sum(fy.^2)); % WelchSatterthwaite residual dof approximation
-%                     z0=corrcoef(x0);z1=corrcoef(x1);d0=shiftdim(sqrt(sum(abs(conn_bsxfun(@minus, xyz,permute(xyz,[1,3,2]))).^2,1)),1);
-%                     maskz=z0~=1&z1~=1;
-%                     z0=z0(maskz);z1=z1(maskz);d0=d0(maskz);
-                    
-                    
+                                        
 %                     if 0
 %                         subplot(211); zt=z0; plot(d0,zt,'k.','markersize',1,'color',.5*[1 1 1]); [nill,idx]=sort(d0); idx(idx)=ceil(20*(1:numel(idx))/numel(idx)); hold on; mzt=accumarray(idx(:),zt(:),[],@mean); szt=accumarray(idx(:),zt(:),[],@std); md0=accumarray(idx(:),d0(:),[],@mean); plot(repmat(md0',2,1),[mzt+szt mzt-szt]','r:',md0,mzt,'ro','markerfacecolor','r','linewidth',3); hold off; set(gca,'color','k');
 %                         subplot(212); zt=z1; plot(d0,zt,'k.','markersize',1,'color',.5*[1 1 1]); [nill,idx]=sort(d0); idx(idx)=ceil(20*(1:numel(idx))/numel(idx)); hold on; mzt=accumarray(idx(:),zt(:),[],@mean); szt=accumarray(idx(:),zt(:),[],@std); md0=accumarray(idx(:),d0(:),[],@mean); plot(repmat(md0',2,1),[mzt+szt mzt-szt]','r:',md0,mzt,'ro','markerfacecolor','r','linewidth',3); hold off; set(gca,'color','k');
@@ -12724,7 +12691,7 @@ try
     tempB=CONN_h.menus.m_preproc.tracesB;
     str=CONN_h.menus.m_preproc.strlabel;
     fh=conn_montage_display(permute(temp(:,:,1),[1,3,4,2]),{[str ' BOLD    Top: before denoising   Bottom: after denoising']},'timeseries');%,tempB,{'GS original','GS after denoising'});
-    fh('colormap','gray');fh('colorscale','equalize');
+    fh('colormap','gray');%fh('colorscale','equalize');
 end
 end
 

@@ -103,8 +103,7 @@ switch(lower(option))
                 ok=1; msg='unknown error';
             end
         end
-        if nargout>=1, varargout{1}=ok; end
-        if nargout>=2, varargout{2}=msg; end
+        varargout={ok,msg};
 
     case 'pwd' 
         if conn_projectmanager('inserver'), out=conn_server('util_remotefile',conn_server('run',mfilename,option,varargin{:}));

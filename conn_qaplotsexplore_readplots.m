@@ -1,8 +1,8 @@
-function [dataA,labelA,infoA,lineA,miny,maxy]=conn_qaplotsexplore_readplots(files,files_txt,in,usubjects, dogui);
+function [dataA,labelA,infoA,lineA,txtA,miny,maxy]=conn_qaplotsexplore_readplots(files,files_txt,in,usubjects, dogui);
 if nargin<5||isempty(dogui), dogui=true; end
 if any(conn_server('util_isremotefile',files)), 
     hmsg=conn_msgbox(sprintf('Loading %d images. Please wait...',numel(in)),'',-1);
-    [dataA,labelA,infoA,lineA,miny,maxy]=conn_server('run',mfilename,conn_server('util_localfile',files),conn_server('util_localfile',files_txt),in,usubjects, false); 
+    [dataA,labelA,infoA,lineA,txtA,miny,maxy]=conn_server('run',mfilename,conn_server('util_localfile',files),conn_server('util_localfile',files_txt),in,usubjects, false); 
     if ishandle(hmsg), delete(hmsg); end
     return; 
 end

@@ -535,7 +535,9 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                     else xyz=nan(3,size(x0,2));
                     end
                     x0=detrend(x0,'constant');
-                    x0valid=~all(abs(x0)<1e-4,1)&~any(isnan(x0),1);
+                    x0valid=find(~all(abs(x0)<1e-4,1)&~any(isnan(x0),1));
+                    [nill,tidx]=sort(sum(x0(:,x0valid).*repmat(mean(x0(:,x0valid),2),1,numel(x0valid)),1));x0valid=x0valid(tidx);
+                    %[nill,tidx]=sort(sum(abs(x0(:,x0valid)).^2,1));x0valid=x0valid(tidx);
                     x0=x0(:,x0valid);
                     xyz=xyz(:,x0valid);
                     if isempty(x0),
