@@ -7658,6 +7658,7 @@ else
                 end
                 nsubs=get(CONN_h.menus.m_analyses_00{11},'value');
                 nregressors=get(CONN_h.menus.m_analyses_00{2},'value');
+                if ~isempty(nregressors)&&isempty(get(CONN_h.menus.m_analyses_00{2},'string')), nregressors=[]; end
                 %nview=get(CONN_h.menus.m_analyses_00{13},'value')-1;
                 nview=nregressors;
                 if CONN_x.Analyses(ianalysis).type==1, set(CONN_h.menus.m_analyses_00{13},'string',{'<HTML>Analysis results <small>(from disk)</small></HTML>'},'value',1);
