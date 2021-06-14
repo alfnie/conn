@@ -200,10 +200,20 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.135,.955-3.5*.045-5*.045,.20,5*.045],...
+									'position',[.135,.955-4.5*.045-5*.045,.20,5*.045],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setup_preproc','multiplesteps',1},{@conn,'run_process',[]},{@conn,'gui_results_done'},{@conn,'run',[]},{@conn,'run_cmd',[]}} );
+	CONN_h.menus.m_setup_07j=conn_menumanager([],	'n',2,...
+									'string',{'Configuration','Active/last connection'},...
+									'help',{'Configuration settings in distributed cluster or multi-processor environments','Configuration options for connecting to/from remote computers'},...
+                                    'order','vertical',...
+                                    'toggle',0,...
+                                    'roll',1,...
+									'position',[.135,.955-2.5*.045-2*.045,.129,2*.045],...
+									'fontsize',8,...
+                                    'bordertype','square',...
+									'callback',{{@conn_remotely,'settings'},{@conn,'gui_server'}} );
 	CONN_h.menus.m_setup_07f=conn_menumanager([],	'n',3,...
 									'string',{'Configuration','Active/pending jobs','Job history'},...
 									'help',{'Configuration settings in distributed cluster or multi-processor environments','Displays status of currently running, pending, or queued jobs','Displays all jobs (past and present)'},...
@@ -220,7 +230,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.135,.955-3.5*.045-3*.045,.15,4*.045],...
+									'position',[.135,.955-4.5*.045-3*.045,.15,4*.045],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setup_import','dicom'},{@conn,'gui_setup_import','spm'},{@conn,'gui_setup_import','bids'},{@conn,'gui_setup_import','fmriprep'}} );
@@ -234,16 +244,16 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setup_import','newdicom'},{@conn,'gui_setup_import','newspm'},{@conn,'gui_setup_import','newbids'},{@conn,'gui_setup_import','newfmriprep'}} );
-	CONN_h.menus.m_setup_07a=conn_menumanager([],	'n',8,...
-									'string',{'GUI options','HPC options','Convert / Import','Run','QA plots','Log history','Screenshot','Calculator'},...%,'QA plots'},...
-									'help',{'Change GUI display options','Parallelization options for distributed clusters and High Performance Computing environments','Imports study Setup information from external sources','Run SPM preprocessing steps, CONN processing steps, batch script, or Matlab commands','Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising','Log history: displays log of processing&analysis steps','Saves a screenshot of the GUI','Explore second-level covariates'},...%,'Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
+	CONN_h.menus.m_setup_07a=conn_menumanager([],	'n',9,...
+									'string',{'GUI options','HPC options','Remote options','Convert / Import','Run','QA plots','Log history','Screenshot','Calculator'},...%,'QA plots'},...
+									'help',{'Change GUI display options','Parallelization options for distributed clusters and High Performance Computing environments','Options for connecting to projects/studies stored in a different computer or network','Imports study Setup information from external sources','Run SPM preprocessing steps, CONN processing steps, batch script, or Matlab commands','Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising','Log history: displays log of processing&analysis steps','Saves a screenshot of the GUI','Explore second-level covariates'},...%,'Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.045,.955-8*.045,.129,8*.045],...
+									'position',[.045,.955-9*.045,.129,9*.045],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_settings'},CONN_h.menus.m_setup_07f,CONN_h.menus.m_setup_07h,CONN_h.menus.m_setup_07e,{@conn,'gui_setup_qadisplay'},{@conn,'gui_setup_logdisplay'},{@conn_print},{@conn,'gui_calculator'}} ); %,{@conn,'gui_setup_qadisplay'}} );
+									'callback',{{@conn,'gui_settings'},CONN_h.menus.m_setup_07f,CONN_h.menus.m_setup_07j,CONN_h.menus.m_setup_07h,CONN_h.menus.m_setup_07e,{@conn,'gui_setup_qadisplay'},{@conn,'gui_setup_logdisplay'},{@conn_print},{@conn,'gui_calculator'}} ); %,{@conn,'gui_setup_qadisplay'}} );
 	CONN_h.menus.m_setup_07d=conn_menumanager([],	'n',8,...
 									'string',{'Support','FAQ','Methods','Tutorials','CONN site','NITRC site','SPM site','Registration'},...
 									'help',{'Search/ask for help at CONN support forum site (browse www.nitrc.org/forum/forum.php?forum_id=1144)','Browse www.alfnie.com/software/conn','Browse www.conn-toolbox.org/fmri-methods','Browse www.conn-toolbox.org/tutorials','Browse www.conn-toolbox.org','Browse www.nitrc.org/projects/conn','Browse www.fil.ion.ucl.ac.uk/spm','Register CONN toolbox software'},...
@@ -295,16 +305,16 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'fontsize',7,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_recent_load',1},{@conn,'gui_recent_load',2},{@conn,'gui_recent_load',3},{@conn,'gui_recent_load',4},{@conn,'gui_recent_load',5},{@conn,'gui_recent_load',6}} );
-	CONN_h.menus.m_setup_01a=conn_menumanager([], 'n',7,...
-									'string',{'Open','Open Recent','New (blank)','New (import)','Save','Save As','Close'},...%,'Merge'},...
-									'help',{'Loads existing study information file','Loads recently open file','Starts a new empty study','Starts a new empty study and imports study information and data from external sources','Saves current study information','Saves current study to a different file','Closes current study without saving'},...%,'Merge other study files with the current study'},...
+	CONN_h.menus.m_setup_01a=conn_menumanager([], 'n',8,...
+									'string',{'Open','Open Recent','New (blank)','New (import)','Save','Save As','Close','Remote'},...%,'Merge'},...
+									'help',{'Loads existing study information file','Loads recently open study information file','Starts a new empty study','Starts a new empty study and imports study information and data from external sources','Saves current study information','Saves current study to a different file','Closes current study without saving','Switch to remote/local to work with studies and datasets stored remotely (on or connected to a remote host) or locally (on or connected to this computer)'},...%,'Merge other study files with the current study'},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.0,.955-7*.045,.135,7*.045],...%[.09,.88-6*.05,.08,6*.05],...
+									'position',[.0,.955-8*.045,.135,8*.045],...%[.09,.88-6*.05,.08,6*.05],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_setup_load'},CONN_h.menus.m_setup_01c,{@conn,'gui_setup_new'},CONN_h.menus.m_setup_07i,{@conn,'gui_setup_save'},{@conn,'gui_setup_saveas'},{@conn,'gui_setup_close'}} ); %,{@conn,'gui_setup_merge'}} );
+									'callback',{{@conn,'gui_setup_load'},CONN_h.menus.m_setup_01c,{@conn,'gui_setup_new'},CONN_h.menus.m_setup_07i,{@conn,'gui_setup_save'},{@conn,'gui_setup_saveas'},{@conn,'gui_setup_close'},{@conn,'gui_localremote'}} ); %,{@conn,'gui_setup_merge'}} );
 	CONN_h.menus.m_setup_01b=conn_menumanager([], 'n',2,...
 									'string',{'New','Open'},...
 									'help',{'Starts a new empty study / CONN project','Loads existing study information / CONN project'},...
@@ -1114,6 +1124,7 @@ else
             if conn_existfile(filename),
                 try,
                     conn_loadmatfile(filename,'recentfiles','-mat');
+                    recentfiles=recentfiles(cellfun('length',recentfiles)>0);
                     [nill,idx]=unique(recentfiles);
                     CONN_gui.recentfiles=recentfiles(sort(idx));
                 catch, 
@@ -1159,7 +1170,7 @@ else
                     conn_msgbox({sprintf('File %s cannot be found',filename),'Please check whether the project may have been moved to a different location'},'',2);
                 else
                     if ~CONN_x.isready(1), Answ='Proceed';
-                    else Answ=conn_questdlg({'Proceeding will close the current project and loose any unsaved progress','Do you want to proceed with loading a new project?'},'Load project','Proceed','Cancel','Proceed');
+                    else Answ=conn_questdlg({'Proceeding will close the current project and lose any unsaved progress','Do you want to proceed with loading a new project?'},'Load project','Proceed','Cancel','Proceed');
                     end
                     if strcmp(Answ,'Proceed')
                         ht=conn_msgbox('Loading project file. Please wait...','',-1);
@@ -1172,7 +1183,11 @@ else
                     end
                 end
             end
-
+            
+        case 'gui_isready'
+            if isfield(CONN_x,'isready')&&any(CONN_x.isready), varargout={true};
+            else varargout={false};
+            end
             
         case 'gui_analyses_cleanup'
             ok=arrayfun(@(n)exist(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(n).name),'dir'),1:numel(CONN_x.Analyses))>0;
@@ -1541,13 +1556,13 @@ else
             h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.05,.11,.15,.10],'callback','conn_server(''SSH_details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
             h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.20,.11,.15,.10],'callback','conn_server(''clear_cache'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears file temporal storage and communication buffer');
             h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','off','units','norm','position',[.50,.11,.15,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
-            h.button7=uicontrol(thfig,'style','pushbutton','string','cmd','units','norm','position',[.65,.11,.15,.10],'callback','disp(''TYPE quit TO FINISH''); conn_remotely(''cmd'')','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('Matlab command-line in %s',tnameserver));
+            h.button7=uicontrol(thfig,'style','pushbutton','string','cmd','enable','off','units','norm','position',[.65,.11,.15,.10],'callback','disp(''TYPE quit TO FINISH''); conn_remotely(''cmd'')','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('Matlab command-line in %s',tnameserver));
             h.button8=uicontrol(thfig,'style','pushbutton','string','scp','enable','off','units','norm','position',[.80,.11,.15,.10],'callback','delete(gcbf); conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy/transfer entire folders between this computer and %s',tnameserver));
             %h.button4=uicontrol(thfig,'visible','off','style','pushbutton','string','File transfer','units','norm','position',[.05,.01,.30,.10],'callback','conn_server(''SSH_filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
-            h.button4=uicontrol(thfig,'style','pushbutton','string','Check connection','units','norm','position',[.05,.01,.30,.10],'callback','if conn(''gui_isconnected''), h=get(gcbf,''userdata''); set(h.text3,''string'',''connection working correctly''); end','fontsize',6+CONN_gui.font_offset,'tooltipstring','checks the connection with an existing/running remote CONN session');
+            h.button4=uicontrol(thfig,'style','pushbutton','string','Check connection','units','norm','position',[.05,.01,.30,.10],'callback','h=get(gcbf,''userdata'');  if conn(''gui_isconnected''), set(h.text3,''string'',''connection working correctly''); else set(h.text3,''string'',''connection failed''); end','fontsize',6+CONN_gui.font_offset,'tooltipstring','checks the connection with an existing/running remote CONN session');
             h.button5=uicontrol(thfig,'style','pushbutton','string','Reset connection','units','norm','position',[.35,.01,.30,.10],'callback','close(gcbf); conn_remotely restart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
             h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn_remotely start','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_server ssh_exitforce" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
-            try, if ~isempty(info.remote_ip), set([h.button1 h.button8],'enable','on'); end; end
+            try, if ~isempty(info.remote_ip), set([h.button1 h.button7 h.button8],'enable','on'); end; end
             try, if ~isempty(info.remote_log), set(h.button2,'enable','on'); end; end
             set(thfig,'userdata',h);
             
@@ -1571,7 +1586,7 @@ else
                         end
                     end
                 end
-            else ok=true;
+            else ok=false;
             end
             varargout={ok};
             
@@ -1672,6 +1687,19 @@ else
             set(CONN_h.menus.m_filetransfer_00{1},'string',conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_local));
             set(CONN_h.menus.m_filetransfer_00{2},'string',conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_remote));
             
+        case 'gui_localremote'
+            if CONN_gui.isremote, 
+                hmsg=conn_msgbox('Disconnecting from remote projects','');
+                conn_remotely end;
+                if ishandle(hmsg), delete(hmsg); end
+                conn_msgbox({'Done. Working with local projects/studies now'},'',true);
+            else
+                hmsg=conn_msgbox('Connecting to remote projects','');
+                conn_remotely start;
+                if ishandle(hmsg), delete(hmsg); end
+                conn_msgbox({'Done. Working with remote projects/studies now'},'',true);
+            end
+
         case 'parallel_settings'
             conn_jobmanager('settings');
             
@@ -1842,14 +1870,14 @@ else
                 conn_menuframe;
                 CONN_x.isready(1)=~isempty(CONN_x.filename);
                 if ~CONN_x.isready(1), 
-                    tstate=conn_menumanager(CONN_h.menus.m_setup_07a,'enable'); tstate(3:end)=0; conn_menumanager(CONN_h.menus.m_setup_07a,'enable',tstate); 
+                    tstate=conn_menumanager(CONN_h.menus.m_setup_07a,'enable'); tstate(4:end)=0; conn_menumanager(CONN_h.menus.m_setup_07a,'enable',tstate); 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_07f,'enable'); tstate(2:end)=0; conn_menumanager(CONN_h.menus.m_setup_07f,'enable',tstate); 
-                    tstate=conn_menumanager(CONN_h.menus.m_setup_01a,'enable'); tstate(5:end)=0; conn_menumanager(CONN_h.menus.m_setup_01a,'enable',tstate); 
+                    tstate=conn_menumanager(CONN_h.menus.m_setup_01a,'enable'); tstate(5:end-1)=0; conn_menumanager(CONN_h.menus.m_setup_01a,'enable',tstate); 
                     
                 else 
-                    tstate=conn_menumanager(CONN_h.menus.m_setup_07a,'enable'); tstate(3:end)=1; conn_menumanager(CONN_h.menus.m_setup_07a,'enable',tstate); 
+                    tstate=conn_menumanager(CONN_h.menus.m_setup_07a,'enable'); tstate(4:end)=1; conn_menumanager(CONN_h.menus.m_setup_07a,'enable',tstate); 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_07f,'enable'); tstate(2:end)=1; conn_menumanager(CONN_h.menus.m_setup_07f,'enable',tstate); 
-                    tstate=conn_menumanager(CONN_h.menus.m_setup_01a,'enable'); tstate(5:end)=1; conn_menumanager(CONN_h.menus.m_setup_01a,'enable',tstate); 
+                    tstate=conn_menumanager(CONN_h.menus.m_setup_01a,'enable'); tstate(5:end-1)=1; conn_menumanager(CONN_h.menus.m_setup_01a,'enable',tstate); 
                     %conn_menu('frame2borderl',[0,0,.135,1],'');
                 end
                 %axes('units','norm','position',[.10,.36,.002,.42]); image(shiftdim(1-CONN_gui.backgroundcolorA,-1)); axis off;
@@ -2224,7 +2252,7 @@ else
                                                 for nset=nsets(:)'
                                                     Vsource=conn_get_functional(nsub,nses,nset);
                                                     if isempty(Vsource),
-                                                        conn_disp('fprintf','Dataset %d subject %d session %d data not found\n',nset,nsub,nses);
+                                                        conn_disp('__nolog','fprintf','Dataset %d subject %d session %d data not found\n',nset,nsub,nses);
                                                         dispdata{end+1}=nan(dim([2 1]));
                                                         displabel{end+1}=sprintf('Subject %d session %d',nsub,nses);
                                                     else
@@ -2291,7 +2319,7 @@ else
                                                 for nset=nsets(:)'
                                                     Vsource=conn_get_functional(nsub,nses,nset);
                                                     if isempty(Vsource),
-                                                        conn_disp('fprintf','Dataset %d subject %d session %d data not found\n',nset,nsub,nses);
+                                                        conn_disp('__nolog','fprintf','Dataset %d subject %d session %d data not found\n',nset,nsub,nses);
                                                         dispdata{end+1}=nan(dim([2 1]));
                                                         displabel{end+1}=sprintf('Subject %d session %d',nsub,nses);
                                                     else
@@ -2638,7 +2666,7 @@ else
                                 if ~CONN_x.Setup.structural_sessionspecific, nsess=1; end
                                 if ~isempty(CONN_x.Setup.structural{nsubs(1)}{nsess(1)}{1})
                                     tempstr=cellstr(CONN_x.Setup.structural{nsubs(1)}{nsess(1)}{1});
-                                    conn_disp(char(tempstr));
+                                    conn_disp('__nolog',char(tempstr));
                                     [nill,tempstr_name,tempstr_ext]=cellfun(@spm_fileparts,tempstr,'uni',0);
                                     tempstr_name=cellfun(@(a,b)[a b],tempstr_name,tempstr_ext,'uni',0);
                                     set(CONN_h.menus.m_setup_00{3}.selectfile,'string',unique(tempstr_name));
@@ -2718,7 +2746,7 @@ else
                                             for nses=1:nsess
                                                 Vsource=CONN_x.Setup.structural{nsub}{nses}{1};
                                                 if isempty(Vsource), 
-                                                    conn_disp('fprintf','Subject %d session %d data not found\n',nsub,nses);
+                                                    conn_disp('__nolog','fprintf','Subject %d session %d data not found\n',nsub,nses);
                                                     dispdata{end+1}=nan(data.buttondown.matdim.dim([2 1]));
                                                 else
                                                     files=conn_fileutils('spm_vol',Vsource);
@@ -3039,7 +3067,7 @@ else
                                 if ~sessionspecific, nsess=1; end
                                 if ~isempty(CONN_x.Setup.rois.files{nsubs(1)}{nrois(1)}{nsess(1)}{1})
                                     tempstr=cellstr(CONN_x.Setup.rois.files{nsubs(1)}{nrois(1)}{nsess(1)}{1});
-                                    conn_disp(char(tempstr));
+                                    conn_disp('__nolog',char(tempstr));
                                     [nill,tempstr_name,tempstr_ext]=cellfun(@spm_fileparts,tempstr,'uni',0);
                                     tempstr_name=cellfun(@(a,b)[a b],tempstr_name,tempstr_ext,'uni',0);
                                     set(CONN_h.menus.m_setup_00{3}.selectfile,'string',unique(tempstr_name));
@@ -3305,7 +3333,7 @@ else
                                             for nses=1:nsess
                                                 Vsource=CONN_x.Setup.rois.files{nsub}{nrois}{nses}{1};
                                                 if isempty(Vsource), 
-                                                    conn_disp('fprintf','Subject %d session %d data not found\n',nsub,nses);
+                                                    conn_disp('__nolog','fprintf','Subject %d session %d data not found\n',nsub,nses);
                                                     dispdata{end+1}=nan(data.buttondown.matdim.dim([2 1]));
                                                     if ~sessionspecific, displabel{end+1}=sprintf('Subject %d',nsub);
                                                     else displabel{end+1}=sprintf('Subject %d session %d',nsub,nses);
@@ -3379,7 +3407,7 @@ else
                                                     if isdeployed, conn_disp('fprintf','Functionality not available in standalone release. Please manually edit the file %s\n',sprintf('%s ',files{:}));
                                                     else
                                                         edit(files{:});
-                                                        for rfiles=reshape(find(filescached),1,[]), conn_disp('fprintf','after editing this file use syntax ''conn cache push %s'' to push those changes to the server\n',remotefiles{rfiles}); end
+                                                        for rfiles=reshape(find(filescached),1,[]), conn_disp('__nolog','fprintf','after editing this file use syntax ''conn cache push %s'' to push those changes to the server\n',remotefiles{rfiles}); end
                                                         %conn_cache('push',remotefiles(filescached));
                                                     end
                                                 end
@@ -4195,7 +4223,7 @@ else
 								nsess=get(CONN_h.menus.m_setup_00{3},'value');
                                 if ~isempty(CONN_x.Setup.l1covariates.files{nsubs(1)}{nl1covariates(1)}{nsess(1)}{1})
                                     tempstr=cellstr(CONN_x.Setup.l1covariates.files{nsubs(1)}{nl1covariates(1)}{nsess(1)}{1});
-                                    conn_disp(char(tempstr));
+                                    conn_disp('__nolog',char(tempstr));
                                     [nill,tempstr_name,tempstr_ext]=cellfun(@spm_fileparts,tempstr,'uni',0);
                                     tempstr_name=cellfun(@(a,b)[a b],tempstr_name,tempstr_ext,'uni',0);
                                     set(CONN_h.menus.m_setup_00{4}.selectfile,'string',unique(tempstr_name));
@@ -4265,7 +4293,7 @@ else
                                                 for nset=nsets(:)'
                                                     Vsource=conn_get_functional(nsub,nses,nset);
                                                     if isempty(Vsource),
-                                                        conn_disp('fprintf','Dataset %d subject %d session %d data not found\n',nset,nsub,nses);
+                                                        conn_disp('__nolog','fprintf','Dataset %d subject %d session %d data not found\n',nset,nsub,nses);
                                                         dispdata{end+1}=nan(dim([2 1]));
                                                         displabel{end+1}=sprintf('Subject %d session %d',nsub,nses);
                                                     else
@@ -4304,7 +4332,7 @@ else
                                                         else 
                                                         end
                                                         if size(tdata,1)~=numel(files), 
-                                                            conn_disp('fprintf','warning: unexpected number of samples in subject %d session %d covariate (expected %d, observed %d)\n',nsub,nses,numel(files),size(tdata,1));
+                                                            conn_disp('__nolog','fprintf','warning: unexpected number of samples in subject %d session %d covariate (expected %d, observed %d)\n',nsub,nses,numel(files),size(tdata,1));
                                                         else
                                                             covdata{end+1}=tdata;
                                                         end
@@ -5059,7 +5087,7 @@ else
 
         case 'gui_setup_close'
             if ~CONN_x.isready(1), Answ='Proceed';
-            else Answ=conn_questdlg({'Proceeding will close the current project and loose any unsaved progress','Do you want to proceed with closing this project?'},'Close project','Close without saving','Save and Close','Cancel','Save and Close');
+            else Answ=conn_questdlg({'Proceeding will close the current project and lose any unsaved progress','Do you want to proceed with closing this project?'},'Close project','Close without saving','Save and Close','Cancel','Save and Close');
             end
             if strcmp(Answ,'Close without saving')
                 conn initfromgui;
@@ -5074,7 +5102,7 @@ else
             
         case 'gui_setup_new',
             if ~CONN_x.isready(1), Answ='Proceed';
-            else Answ=conn_questdlg({'Proceeding will close the current project and loose any unsaved progress','Do you want to proceed with creating a new project?'},'New project','Proceed','Cancel','Proceed');
+            else Answ=conn_questdlg({'Proceeding will close the current project and lose any unsaved progress','Do you want to proceed with creating a new project?'},'New project','Proceed','Cancel','Proceed');
             end
             if strcmp(Answ,'Proceed')
                 conn initfromgui;
@@ -5085,13 +5113,13 @@ else
             
         case 'gui_setup_wizard'
             if ~CONN_x.isready(1), Answ='Proceed';
-            else Answ=conn_questdlg({'Proceeding will close the current project and loose any unsaved progress','Do you want to proceed with creating a new project?'},'New project','Proceed','Cancel','Proceed');
+            else Answ=conn_questdlg({'Proceeding will close the current project and lose any unsaved progress','Do you want to proceed with creating a new project?'},'New project','Proceed','Cancel','Proceed');
             end
             if strcmp(Answ,'Proceed')
                 conn_setup_wizard;
                 conn gui_setup;
             end
-            %Answ=questdlg({'New project creation (note: proceeding will close the current project and loose any unsaved progress)',' ','Do you want to use a wizard to select and preprocess your new project data now (e.g. realignment/normalization/smoothing)?',' ','Choosing ''no'' will still allow you to preprocess your data at a later time (select your data on the main CONN gui Functional/Structural tabs, and then preprocess it if required using the ''Preprocessing'' button)'},'New project','Yes','No','Cancel','No');
+            %Answ=questdlg({'New project creation (note: proceeding will close the current project and lose any unsaved progress)',' ','Do you want to use a wizard to select and preprocess your new project data now (e.g. realignment/normalization/smoothing)?',' ','Choosing ''no'' will still allow you to preprocess your data at a later time (select your data on the main CONN gui Functional/Structural tabs, and then preprocess it if required using the ''Preprocessing'' button)'},'New project','Yes','No','Cancel','No');
 %             if strcmp(Answ,'Yes'),
 %                 conn_setup_wizard;
 %                 conn gui_setup;
@@ -5215,7 +5243,7 @@ else
                         nvols=get(CONN_h.menus.m_setup_00{1},'value');
                         if ~isempty(CONN_x.Setup.display{nvols(1)}{1})
                             tempstr=cellstr(CONN_x.Setup.display{nvols(1)}{1});
-                            conn_disp(char(tempstr));
+                            conn_disp('__nolog',char(tempstr));
                             [nill,tempstr_name,tempstr_ext]=cellfun(@spm_fileparts,tempstr,'uni',0);
                             tempstr_name=cellfun(@(a,b)[a b],tempstr_name,tempstr_ext,'uni',0);
                             set(CONN_h.menus.m_setup_00{3}.selectfile,'string',unique(tempstr_name));
@@ -5274,7 +5302,7 @@ else
                 elseif ~isempty(regexp(varargin{2},'^new')),
                     CONN_h.menus.m_setup_import_isnew=true; 
                     if ~CONN_x.isready(1), Answ='Proceed';
-                    else Answ=conn_questdlg({'Proceeding will close the current project and loose any unsaved progress','Do you want to proceed with creating a new project?'},'New project','Proceed','Cancel','Proceed');
+                    else Answ=conn_questdlg({'Proceeding will close the current project and lose any unsaved progress','Do you want to proceed with creating a new project?'},'New project','Proceed','Cancel','Proceed');
                     end
                     if strcmp(Answ,'Proceed')
                         conn initfromgui;
@@ -5367,7 +5395,7 @@ else
                                 nsubs=get(CONN_h.menus.m_setup_00{1}(1),'value');
                                 if ~isempty(CONN_x.Setup.spm{nsubs(1)}{1})
                                     tempstr=cellstr(CONN_x.Setup.spm{nsubs(1)}{1});
-                                    conn_disp(char(tempstr));
+                                    conn_disp('__nolog',char(tempstr));
                                     [nill,tempstr_name,tempstr_ext]=cellfun(@spm_fileparts,tempstr,'uni',0);
                                     tempstr_name=cellfun(@(a,b)[a b],tempstr_name,tempstr_ext,'uni',0);
                                     set(CONN_h.menus.m_setup_00{3}.selectfile,'string',unique(tempstr_name));
@@ -5490,7 +5518,7 @@ else
                                 nsubs=get(CONN_h.menus.m_setup_00{1}(1),'value');
                                 if ~isempty(CONN_x.Setup.dicom{nsubs(1)}{1})
                                     tempstr=cellstr(CONN_x.Setup.dicom{nsubs(1)}{1});
-                                    conn_disp(char(tempstr));
+                                    conn_disp('__nolog',char(tempstr));
                                     [nill,tempstr_name,tempstr_ext]=cellfun(@spm_fileparts,tempstr,'uni',0);
                                     tempstr_name=cellfun(@(a,b)[a b],tempstr_name,tempstr_ext,'uni',0);
                                     set(CONN_h.menus.m_setup_00{3}.selectfile,'string',unique(tempstr_name));
@@ -5780,7 +5808,7 @@ else
                                 nsubs=get(CONN_h.menus.m_setup_00{1}(1),'value');
                                 if ~isempty(CONN_x.Setup.bids{1})
                                     tempstr=cellstr(CONN_x.Setup.bids{1});
-                                    conn_disp(char(tempstr));
+                                    conn_disp('__nolog',char(tempstr));
                                     [nill,tempstr_name,tempstr_ext]=cellfun(@spm_fileparts,tempstr,'uni',0);
                                     tempstr_name=cellfun(@(a,b)[a b],tempstr_name,tempstr_ext,'uni',0);
                                     set(CONN_h.menus.m_setup_00{3}.selectfile,'string',unique(tempstr_name));
@@ -6045,7 +6073,7 @@ else
                     value0=CONN_x.Setup.nsubjects;
                     value=conn_merge(filenames);
                 case 2, 
-                    answ=conn_questdlg({'Proceeding will close the current project and loose any unsaved progress','Do you want to:'},'Warning','Continue','Cancel','Continue');
+                    answ=conn_questdlg({'Proceeding will close the current project and lose any unsaved progress','Do you want to:'},'Warning','Continue','Cancel','Continue');
                     if ~strcmp(answ,'Continue'), if ishandle(hm), close(hm); end; return; end
                     filename='conn_project01.mat'; [filename,pathname]=uiputfile('conn_*.mat','New project name',filename);
                     if ~ischar(filename)||isempty(filename), if ishandle(hm), close(hm); end; return; end
@@ -10989,7 +11017,7 @@ else
                              end
                              if numel(name)<=1, set(hax,'units','norm','position',[.2,.15,.6,.7]); set(hfig,'name',char(name),'position',[.2 .3 .4 .3]);
                              elseif showlegend, hl=legend(hpatches,name); set(hl,'box','off','units','norm','position',[.2,.1,.6,.2]);
-                             else set(hax,'units','norm','position',[.2,.15,.6,.7]); conn_disp('Effects displayed (in order)'); conn_disp(char(name));
+                             else set(hax,'units','norm','position',[.2,.15,.6,.7]); conn_disp('__nolog','Effects displayed (in order)'); conn_disp('__nolog',char(name));
                              end
                                  %CONN_h.menus.m_results.design.data
                                  %CONN_h.menus.m_results.design.subjects
@@ -11043,7 +11071,7 @@ else
                              ylabel('Effect size');
                              if numel(name)==1, set(hax,'units','norm','position',[.2,.15,.6,.7]); set(hfig,'name',char(name),'position',[.2 .3 .4 .3]);
                              elseif numel(name)<=10, hl=legend(hpatches(1,:),name); set(hl,'box','off','units','norm','position',[.2,.1,.6,.2]);
-                             else set(hax,'units','norm','position',[.2,.15,.6,.7]); conn_disp('Effects displayed (in order)'); conn_disp(char(name));
+                             else set(hax,'units','norm','position',[.2,.15,.6,.7]); conn_disp('__nolog','Effects displayed (in order)'); conn_disp('__nolog',char(name));
                              end
                              zoom(hax,'on');
                          end
@@ -12821,6 +12849,9 @@ if conn_menumanager('ison')
     h=conn_menu('pushbutton2',[.756,.0,.016,.02],'','','color theme: dark (default; light text on dark background)','conn(''gui_settings'',''dark'');'); set(h,'backgroundcolor',[.5 .5 .5]);
     h=conn_menu('pushbutton2',[.776,.0,.016,.02],'','A','font size: increase','conn(''gui_settings'',''font+'');'); set(h,'fontsize',10+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
     h=conn_menu('pushbutton2',[.792,.0,.016,.02],'','A','font size: decrease','conn(''gui_settings'',''font-'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
+    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, str=conn_menumanager(CONN_h.menus.m_setup_01a,'string'); str{end}='Disconnect from remote projects'; conn_menumanager(CONN_h.menus.m_setup_01a,'string',str);
+    else str=conn_menumanager(CONN_h.menus.m_setup_01a,'string'); str{end}='Connect to remote projects'; conn_menumanager(CONN_h.menus.m_setup_01a,'string',str);
+    end
     %h=conn_menu('pushbutton2',[.772,.0,.016,.02],'','','color theme: color (light text on random background)','conn(''gui_settings'',''color'');'); set(h,'backgroundcolor','k');
 end
 c2=zeros(36,62);
@@ -12851,8 +12882,8 @@ function conn_closerequestfcn(varargin)
 global CONN_gui CONN_x;
 if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, dohpcexit=true; else dohpcexit=false; end
 if isfield(CONN_x,'isready')&&any(CONN_x.isready)
-    if dohpcexit, answ=conn_questdlg({'Closing this figure will exit CONN and loose any unsaved progress','Do you want to:'},'Warning','Exit without saving/disconnecting','Save and Exit','Cancel','Save and Exit');
-    else answ=conn_questdlg({'Closing this figure will exit CONN and loose any unsaved progress','Do you want to:'},'Warning','Exit without saving','Save and Exit','Cancel','Save and Exit');
+    if 0, %dohpcexit, answ=conn_questdlg({'Closing this figure will exit CONN and lose any unsaved progress','Do you want to:'},'Warning','Exit without saving/disconnecting','Save and Exit','Cancel','Save and Exit');
+    else answ=conn_questdlg({'Closing this figure will exit CONN and lose any unsaved progress','Do you want to:'},'Warning','Exit without saving','Save and Exit','Cancel','Save and Exit');
     end
     if isempty(answ), answ='Cancel'; end
 else answ='Exit CONN'; 
@@ -12871,11 +12902,13 @@ switch(answ)
             if isfield(CONN_gui,'originalLAF'), javax.swing.UIManager.setLookAndFeel(CONN_gui.originalLAF); end
         end
         CONN_x.filename='';
-        if dohpcexit, CONN_gui.isremote=0; end
         %CONN_x=[];
         %CONN_gui=[];
         CONN_h=[];
-        if dohpcexit, try, conn_server('SSH_exit'); end; end
+        if dohpcexit, 
+            CONN_gui.isremote=0; 
+            try, conn_server('SSH_exit'); end; 
+        end
     otherwise
         conn gui_setup;
 end

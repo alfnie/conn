@@ -17,7 +17,7 @@ if ischar(x)
     if strcmp(get(hfig,'type'),'axes'), h=hfig;
     else h=axes('units','norm','position',pos,'parent',hfig);
     end
-    if ~SERIOUSNESS, cmap=[.2 .2 .6;.8 .8 .8]; cshape='o';
+    if ~SERIOUSNESS, cmap=[.6 .6 .2;.8 .8 .8]; cshape='o';
     else cmap=[.2 .2 .2;.8 .8 .8]; cshape='s';
     end
     axis(h,'equal','off');

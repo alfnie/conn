@@ -715,6 +715,7 @@ switch(lower(option)),
             [tfilename,tpathname]=uiputfile({'*.nii','NIFTI files (*.nii)'; '*',  'All Files (*)'},'Output data to file:',data.defaultfilepath);
             if ischar(tfilename)&&~isempty(tfilename),
                 tfilename=fullfile(tpathname,tfilename);
+            else return; 
             end
         end
         if isfield(data.results,'data'), Y=permute(data.results(1).data,[1,3,4,2]);

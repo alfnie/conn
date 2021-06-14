@@ -198,7 +198,7 @@ for isub=1:numel(options.subjects),
                 name=names{ncond};
                 if numel(data)>1&&iscell(onsets), error('multiple rows for condition %s subject %d session %d',name,nsub,nses); end
                 if options.breakconditionsbysession, name=sprintf('%s_Session%d',name,nses); end
-                idx=strmatch(name,CONN_x.Setup.conditions.names,'exact');
+                idx=strmatch(name,CONN_x.Setup.conditions.names(1:end-1),'exact');
                 if isempty(idx),
                     idx=length(CONN_x.Setup.conditions.names);
                     CONN_x.Setup.conditions.names{end+1}=' ';

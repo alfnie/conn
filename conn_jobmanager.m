@@ -1275,7 +1275,8 @@ if ~nogui, set(handles.order(2),'units','characters'); set(handles.order(2),'pos
 handles.order(3)=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.1,.90,.7,.05],'string','job id','userdata',0,'foregroundcolor','k','fontname','monospaced','horizontalalignment','left','callback',@(varargin)conn_jobmanager_update('order',3));
 if ~nogui, set(handles.order(3),'units','characters'); set(handles.order(3),'position',[temp(1)+2*13 temp(2) max(1,temp(3)-2*13) max(1,temp(4))],'units','norm'); end
 handles.jobs=uicontrol(handles.panel,'style','listbox','units','norm','position',[.1,.15,.7,.75],'string','','max',2,'backgroundcolor',.9*[1 1 1],'foregroundcolor','k','fontname','monospaced');
-handles.refresh=uicontrol(handles.panel,'style','checkbox','units','norm','position',[.825,.825,.15,.075],'string','Refresh','backgroundcolor',.9*[1 1 1],'callback',@(varargin)conn_jobmanager_update('togglerefresh',true),'tooltipstring','Refreshes node''s status information');
+%handles.refresh=uicontrol(handles.panel,'style','checkbox','units','norm','position',[.825,.825,.15,.075],'string','Refresh','backgroundcolor',.9*[1 1 1],'callback',@(varargin)conn_jobmanager_update('togglerefresh',true),'tooltipstring','Refreshes node''s status information');
+handles.refresh=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.825,.15,.075],'string','Refresh','callback',@(varargin)conn_jobmanager_update('refresh',true),'tooltipstring','Refreshes node''s status information');
 handles.details=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.75,.15,.075],'string','See logs','callback',@(varargin)conn_jobmanager_update('details'),'tooltipstring','See selected node(s) log files');
 handles.stop=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.65,.15,.075],'string','Stop','callback',@(varargin)conn_jobmanager_update('stop'),'tooltipstring','Stop selected node(s)');
 handles.restart=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.575,.15,.075],'string','Restart','callback',@(varargin)conn_jobmanager_update('restart'),'tooltipstring','Restart selected node(s)');
@@ -1289,7 +1290,7 @@ if ~numel(files)
     handles.cancel=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.400,.15,.075],'string','Background','callback','close(gcbf)','tooltipstring','<HTML>Close this jobmanager window and handle merging the results of this job later<br/> - processes will continue running in the background/cluster<br/> - visit Tools.Cluster/HPC.PendingJobs to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
     %set(handles.continue,'enable','off','visible','off');
     handles.timer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@(varargin)conn_jobmanager_update('refresh'));
-    set(handles.refresh,'value',1);
+    %%set(handles.refresh,'value',1);
     set(handles.hfig,'closerequestfcn',@(varargin)conn_jobmanager_update('end'));
     set(handles.enable,'value',0); 
     conn_jobmanager_update('enable');
@@ -1306,7 +1307,7 @@ else
     handles.continue=[];
     handles.cancel=[];
     handles.timer=[];
-    set(handles.refresh,'value',0);
+    %%set(handles.refresh,'value',0);
     %handles.timer=timer('name','jobmanager','period',1,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@(varargin)conn_jobmanager_update('refresh'));
     set(handles.hfig,'color',.9*[1 1 1],'closerequestfcn',@(varargin)conn_jobmanager_update('end'));
     set(handles.enable,'value',1,'visible','off');
@@ -1345,7 +1346,7 @@ ok=1+handles.finished;
 
             case 'refresh'
                 try
-                    if nargin==1||varargin{1}==1, info=conn_jobmanager('statusjob',info,[],varargin{:}); end
+                    if (nargin==1&&ishandle(handles.enable)&&get(handles.enable,'value')==0)||(nargin>1&&varargin{1}==1), info=conn_jobmanager('statusjob',info,[],varargin{:}); end
                     txt=cellfun(@(a,b,c)sprintf('%-13s%-13s%-32s',a(1:min(numel(a),9)),b(1:min(numel(b),12)),c(1:min(numel(c),32))),info.joblabel,info.tagmsg,info.statusmsg,'uni',0);
                     
                     sortedlabels={'finished','finishing','running','submitted','canceled','stopping','stopped','queued','error','failed','crashed'};

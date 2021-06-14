@@ -6,9 +6,10 @@ function out=conn_importspm(spmfiles,varargin)
 % CONN_IMPORTSPM(spmfiles,parameter1_name,parameter1_value,...);
 %  Valid parameter names are:
 %    'addfunctional'             : 1/0 add functinal data (from SPM.xY) to Setup.Functional [true]
-%    'addrestcondition'          : 1/0 add default 'rest' condition (entire functional data) to Setup.Conditions [true]
 %    'addconditions'             : 1/0 add condition information (from SPM.Sess(nses).U) to Setup.Conditions [true]
 %    'breakconditionsbysession'  : 1/0 creates session-specific conditions [false] 
+%    'addrestcondition'          : 1/0 add default 'rest' condition (entire functional data) to Setup.Conditions [true]
+%    'keeppreviousconditions'    : 1/0 keeps previously-defined conditions [true]
 %    'addcovariates'             : 1/0 add additional covariates (from SPM.Sess(nses).C) to Setup.CovariatesFirstLevel [true]
 %    'addrealignment'            : 1/0 add realignment covariates (from rp_<functional_filename>.txt) to Setup.CovariatesFirstLevel [false]
 %    'addartfiles'               : 1/0 add ART covariates (from art_regression_outliers_<functional_filename>.mat) to Setup.CovariatesFirstLevel [true]
@@ -22,6 +23,7 @@ options=struct('addfunctional',true,...
                'addrealignment',false,...
                'addartfiles',true,...
                'breakconditionsbysession',false,...
+               'keeppreviousconditions',true,...
                'localcopy',false,...
                'nset',0,...
                'bidsname','',...
@@ -44,6 +46,7 @@ end
 %CONN_x.Setup.nsessions=zeros(1,CONN_x.Setup.nsubjects);
 changed=0;err=0;
 importfunctional=options.addfunctional;
+if ~options.keeppreviousconditions, CONN_x.Setup.conditions.names={' '}; end
 for nsub=SUBJECTS,
     if ~isempty(CONN_x.Setup.spm{nsub}{1}),
         session_count=0;
@@ -173,7 +176,7 @@ for nsub=SUBJECTS,
                 % adds rest condition
                 if options.addconditions&&options.addrestcondition
                     name='rest';
-                    idx=strmatch(name,CONN_x.Setup.conditions.names,'exact');
+                    idx=strmatch(name,CONN_x.Setup.conditions.names(1:end-1),'exact');
                     if isempty(idx), idx=length(CONN_x.Setup.conditions.names); CONN_x.Setup.conditions.names{end+1}=' '; end
                     CONN_x.Setup.conditions.model{idx}=[];
                     CONN_x.Setup.conditions.param(idx)=0;

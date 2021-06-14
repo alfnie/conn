@@ -22,7 +22,7 @@ assert(M==size(data,2),'input matrix must be square');
 dims=[M,size(data,2),1];
 data=reshape(data,[dims,N]);
 a=struct('fname',filename,'mat',eye(4),'dim',dims,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32') spm_platform('bigend')]);
-spm_unlink(filename);
+try, spm_unlink(filename); end
 a=repmat(a,1,N); for n=1:N, a(n).n=[n,1]; end
 a=spm_create_vol(a);
 for n=1:N, a(n)=spm_write_vol(a(n),data(:,:,:,n)); end

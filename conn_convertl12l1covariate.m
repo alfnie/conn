@@ -130,7 +130,7 @@ switch(lower(option))
                 else 
                     out=conn_prepend([ocov,'_'],filename,'.mat');
                     R=e; conn_savematfile(out,'R');
-                    conn_disp('fprintf','created file %s\n',out);
+                    conn_disp('__nolog','fprintf','created file %s\n',out);
                 end
                 fout{nsub}{nses}=out;
             end
@@ -174,7 +174,7 @@ switch(lower(option))
                 else 
                     out=conn_prepend([ocov,'_'],filename,'.mat');
                     R=e; conn_savematfile(out,'R');
-                    conn_disp('fprintf','created file %s\n',out);
+                    conn_disp('__nolog','fprintf','created file %s\n',out);
                 end
                 fout{nsub}{nses}=out;
             end
@@ -212,7 +212,7 @@ switch(lower(option))
                 else 
                     out=conn_prepend([ocov,'_'],filename,'.mat');
                     R=e; conn_savematfile(out,'R');
-                    conn_disp('fprintf','created file %s\n',out);
+                    conn_disp('__nolog','fprintf','created file %s\n',out);
                 end
                 fout{nsub}{nses}=out;
             end
@@ -250,7 +250,7 @@ switch(lower(option))
                     %if isstruct(tdata), tempnames=fieldnames(tdata); tdata=tdata.(tempnames{1}); end
                     data=cat(2,data,tdata);
                 end
-                if isempty(data), conn_disp('fprintf','warning: missing %s data for subject %d session %d\n',sprintf('%s ',icov{:}),nsub,nses); data=zeros(1,numel(thr)); end
+                if isempty(data), conn_disp('__nolog','fprintf','warning: missing %s data for subject %d session %d\n',sprintf('%s ',icov{:}),nsub,nses); data=zeros(1,numel(thr)); end
                 idx=find(any(data>repmat(thr(:)',size(data,1),1),2));
                 if ext>0, idx=repmat(idx(:),1,2*ext)+repmat(-ext:ext-1,numel(idx),1); end
                 idx=unique(idx(idx>0&idx<=size(data,1)));
@@ -261,7 +261,7 @@ switch(lower(option))
                 else 
                     out=conn_prepend([ocov,'_'],filename,'.mat');
                     R=e; conn_savematfile(out,'R');
-                    conn_disp('fprintf','created file %s\n',out);
+                    conn_disp('__nolog','fprintf','created file %s\n',out);
                 end
                 fout{nsub}{nses}=out;
                 if RECOMPUTEL2 % note: this procedure uses "MEANSOVERVALIDONLY=true" setting
@@ -320,7 +320,7 @@ switch(lower(option))
                             else
                                 out=conn_prepend('',filename,sprintf('_%s.mat',unames{n1}));
                                 R=e; conn_savematfile(out,'R');
-                                conn_disp('fprintf','created file %s\n',out);
+                                conn_disp('__nolog','fprintf','created file %s\n',out);
                             end
                             fout{n1}{nsub}{nses}=out;
                             nout{n1}=sprintf('%s_%s',ocov,unames{n1});
@@ -333,7 +333,7 @@ switch(lower(option))
                             else
                                 out=conn_prepend('',filename,sprintf('_%d.mat',n1));
                                 R=e; conn_savematfile(out,'R');
-                                conn_disp('fprintf','created file %s\n',out);
+                                conn_disp('__nolog','fprintf','created file %s\n',out);
                             end
                             fout{n1}{nsub}{nses}=out;
                             nout{n1}=sprintf('%s_%d',ocov,n1);

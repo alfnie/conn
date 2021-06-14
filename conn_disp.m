@@ -70,6 +70,12 @@ if nargin>=1&&ischar(varargin{1})&&size(varargin{1},1)==1&&~isempty(regexp(varar
             conn_disp;
             conn_disp('__restart');
             return
+        case '__nolog'
+            savelog=SAVELOG;
+            SAVELOG=false;
+            conn_disp(varargin{2:end});
+            SAVELOG=savelog;
+            return
         case '__restart'
             try,
                 if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display)&&isfield(CONN_h,'screen')&&isfield(CONN_h.screen,'hfig')&&ishandle(CONN_h.screen.hfig)
@@ -99,7 +105,7 @@ if nargin>=1&&ischar(varargin{1})&&size(varargin{1},1)==1&&~isempty(regexp(varar
     end
 end
 savelog=SAVELOG;
-if isfield(CONN_gui,'isremote')&&~isempty(CONN_gui.isremote)&&CONN_gui.isremote>0, savelog=false; end
+%if isfield(CONN_gui,'isremote')&&~isempty(CONN_gui.isremote)&&CONN_gui.isremote>0, savelog=false; end
 if ~(isfield(CONN_x,'filename')&&~isempty(CONN_x.filename)&&ischar(CONN_x.filename)&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'isextended')&&~CONN_x.pobj.isextended), savelog=false; end
 if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display)&&isfield(CONN_h,'screen')&&isfield(CONN_h.screen,'hfig')&&ishandle(CONN_h.screen.hfig)
     mirrorscreen=true;

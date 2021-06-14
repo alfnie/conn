@@ -62,7 +62,7 @@ end
                         FILENAMES=[FILENAMES {txt}];
                         FILESTRUCTS=[FILESTRUCTS dir0(idx(n1))];
                     else return; end
-                    if DODISP,conn_disp(txt);end
+                    if DODISP,conn_disp('__nolog',txt);end
                 end
             end
             [filternow,filterrest]=strtok(filterrest,';');

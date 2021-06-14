@@ -58,3 +58,6 @@
 % If using CONN's batch processing options, simply enter the desired number of jobs/nodes in the 
 % batch.parallel.N field as part of your conn_batch fields. See help conn_batch for additional details
 %
+% SEE ALSO: www.conn-toolbox.org/resources/cluster-configuration
+%
+

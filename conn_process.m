@@ -200,8 +200,13 @@ if any(options==0),
                 end
                 for ncondition=validconditions,
                     if numel(CONN_x.Setup.conditions.values)<nsub||numel(CONN_x.Setup.conditions.values{nsub})<ncondition||numel(CONN_x.Setup.conditions.values{nsub}{ncondition})<nses||numel(CONN_x.Setup.conditions.values{nsub}{ncondition}{nses})<2, 
-                        conn_disp(['note: Subject ',num2str(nsub),' condition ',CONN_x.Setup.conditions.names{ncondition},' has not been defined for session ',num2str(nses),'. Assuming this condition is not present in this session']);
-                        CONN_x.Setup.conditions.values{nsub}{ncondition}{nses}={[],[]};
+                        if strcmp(CONN_x.Setup.conditions.names{ncondition},'rest')
+                            conn_disp(['note: Subject ',num2str(nsub),' condition ',CONN_x.Setup.conditions.names{ncondition},' has not been defined for session ',num2str(nses),'. Assuming this condition is present in this session']);
+                            CONN_x.Setup.conditions.values{nsub}{ncondition}{nses}={0,inf};
+                        else
+                            conn_disp(['note: Subject ',num2str(nsub),' condition ',CONN_x.Setup.conditions.names{ncondition},' has not been defined for session ',num2str(nses),'. Assuming this condition is not present in this session']);
+                            CONN_x.Setup.conditions.values{nsub}{ncondition}{nses}={[],[]};
+                        end
                     elseif ~isempty(CONN_x.Setup.conditions.model{ncondition})
                         okconditions(ncondition)=true;
                     else
@@ -2908,6 +2913,8 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
     Y1=conn_vol(filename_B1);
     if isfield(Y1,'issurface')&&Y1.issurface, issurface=true; else issurface=false; end
     REPLACERESULTS=true; 
+    dogrouplevel=any(options==13|options==13.1); if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'grouplevel')&&~ismember(CONN_x.gui.grouplevel,[0 1]),dogrouplevel=false; end 
+    dosubjectlevel=any(options==13|options==13.2); if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'grouplevel')&&~ismember(CONN_x.gui.grouplevel,[0 2]),dosubjectlevel=false; end 
     
     REDO=[]; 
     for nanalyses=1:length(analyses),
@@ -3151,8 +3158,8 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
         if nmeasures2>0 && ~isequal(validsubjects,1:CONN_x.Setup.nsubjects),
             if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'),
                 if isfield(CONN_x.pobj,'partition')&&isequal(CONN_x.pobj.partition,[1 1])
-                    conn_disp('NOTE: single-job, subset of subjects only');
-                elseif 0,%isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjectlevelonly')&&CONN_x.gui.subjectlevelonly
+                    conn_disp('fprintf','NOTE: single-job, subset of %d subjects only\n',numel(validsubjects));
+                elseif 0,%~dogrouplevel
                     conn_disp('NOTE: performing subject-level analyses only');
                 else
                     conn_disp('WARNING: group-level factorization analyses parallelization not yet available (run locally or as a single job instead). Skipping these analyses');
@@ -3213,7 +3220,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                 end
                 
                 NdimsIn=0; for nmeasure=nmeasures1+(1:nmeasures2), NdimsIn=max(NdimsIn,min(measures.dimensions_in{nmeasure},max(Y1Nt(:)))); end
-                if 1,%~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjectlevelonly')&&CONN_x.gui.subjectlevelonly), 
+                if 1,%dogrouplevel
                     h2=conn_waitbar(0,['computing subject x subject covariance (voxel-to-voxel analysis ',num2str(nanalyses),'/',num2str(length(analyses)),')']);
                     MAXMEM=2e9; % max allowed C matrix memory usage for direct storage (default 2Gb)
                     ismtxC=8*(numel(validsubjects)*numel(validconditions)*NdimsIn)^2>MAXMEM;
@@ -3257,7 +3264,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
 
                         thisNdimsIn=min(measures.dimensions_in{nmeasure},max(Y1Nt(:)));
                         NdimsOut=min(thisNdimsIn*numel(validsubjects)*numel(validconditions),measures.dimensions_out{nmeasure});
-                        if 1,%~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjectlevelonly')&&CONN_x.gui.subjectlevelonly),
+                        if 1,%dogrouplevel
                             filename=fullfile(filepathresults,['TEMPORAL1_Measure',num2str(imeasure(nmeasures1+1),'%03d'),'.mat']);
                             load(filename,'C');
                             if NdimsIn>thisNdimsIn, % placeholder (to do: break down MVPA into separable group- and subject- level processes)
@@ -3279,7 +3286,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                         %                     Dout=conn_init_vol(Dout);
                         
                         if measures.measuretype{nmeasure}==2 % group-MVPA
-                            if 1,%~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjectlevelonly')&&CONN_x.gui.subjectlevelonly),
+                            if 1,%dogrouplevel,
                                 h2=conn_waitbar(0,['computing MVPA components']);
                                 if ~ismtxC, C=permute(C,[1,4,2,3,5,6]); end
                                 clear filesout filesoutCov cache;
@@ -3436,7 +3443,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     end
                                 end
                             end
-                            if 1,%~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjectlevelonly')&&CONN_x.gui.subjectlevelonly),
+                            if 1,%dogrouplevel,
                                 h2=conn_waitbar(0,['computing group-level dimensionality reduction']);
                                 if ismtxC,
                                     randstate=randn('state');
@@ -3587,7 +3594,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 end
                             end
                             
-                            if 1,%~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'grouplevelonly')&&CONN_x.gui.grouplevelonly),
+                            if 1,% dosubjectlevel,
                                 h2=conn_waitbar(0,['computing subject-level components']);
                                 %WD=W*diag(D(1:NdimsOut));
                                 %WQ=W*Q0';

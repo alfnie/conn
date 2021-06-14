@@ -27,7 +27,7 @@ if nargin>1&&verbose
     tfiles=[{filename},files];
     str={'not ',''};
     for n=1:numel(tfiles)
-        conn_disp('fprintf','File %s %sfound\n',tfiles{n},str{existfiles(n)+1});
+        conn_disp('__nolog','fprintf','File %s %sfound\n',tfiles{n},str{existfiles(n)+1});
     end
     end
 end

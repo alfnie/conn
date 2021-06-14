@@ -187,7 +187,7 @@ switch option
                                 ttxt=[ttxt sprintf('\nWARNING!!!. File %s not found\n',temp2)];
                                 ko=ko+1;
                             end
-                            conn_disp('fprintf',ttxt);
+                            conn_disp('__nolog','fprintf',ttxt);
                         end
                     end
                     if ko, ok=false; conn_msgbox({sprintf('Filename convention results in several incorrect/non-existing filenames (%d)',ko),' See the command window for a full list, and modify the filename-rule if appropriate'},'ERROR!',true);

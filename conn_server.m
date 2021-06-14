@@ -98,7 +98,13 @@ if isempty(params)
     params=struct(...
         'isserver',false,...
         'info',struct(),...
+        'options',struct(),...
         'state','off');
+    filename=fullfile(conn_fileutils('homedir'),'connclientinfo.json');
+    if conn_existfile(filename), params.options=conn_jsonread(filename); else params.options=struct; end
+    if ~isfield(params.options,'use_ssh'), params.options.use_ssh=true; end
+    if ~isfield(params.options,'cmd_ssh'), params.options.cmd_ssh='ssh'; end
+    if ~isfield(params.options,'cmd_scp'), params.options.cmd_scp='scp'; end
 end
 if isempty(local_vars), local_vars=struct; end
 
@@ -428,8 +434,11 @@ switch(lower(option))
         end
         
     case 'ssh_save' % saves .json info
-        if numel(varargin)>=1, filename=varargin{1};
+        if numel(varargin)>=1&&~isempty(varargin{1}), filename=varargin{1};
         else filename=fullfile(conn_fileutils('homedir'),'connserverinfo.json');
+        end
+        if numel(varargin)>=2&&~isempty(varargin{2}), profilename=varargin{2};
+        else profilename=conn_jobmanager('getdefault');
         end
         if ispc, [nill,str1]=system('hostname');
         else [nill,str1]=system('hostname -f');
@@ -451,7 +460,6 @@ switch(lower(option))
         else cmd=sprintf('%s -nodesktop -noFigureWindows -nosplash -r "addpath ''%s''; addpath ''%s''; conn %s; exit"',...
                 fun_callback, whichfolders{1}, whichfolders{2},'%s');
         end
-        profilename=conn_jobmanager('getdefault');
         info = struct(...
             'host', regexprep(str1,'\n',''),...
             'CONNcmd',cmd,...
@@ -475,24 +483,37 @@ switch(lower(option))
             end
         else params.info.CONNcmd='';
         end
-        if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=input('Server address [none]: ','s');
+        if params.options.use_ssh, 
+            allthesame=true;
+            if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=input('Server address [none]: ','s'); allthesame=false;
+            else
+                temp=input(sprintf('Server address [%s]: ',params.info.host),'s');
+                if ~isempty(temp),
+                    temp=regexprep(temp,'\s+','');
+                    if ~isequal(params.info.host,temp), allthesame=false; end
+                    params.info.host=temp;
+                end
+            end
+            if strcmp(params.info.host,'none'), params.info.host=''; end
         else
-            temp=input(sprintf('Server address [%s]: ',params.info.host),'s');
-            if ~isempty(temp), params.info.host=regexprep(temp,'\s+',''); end
+            params.info.host=''; 
         end
-        if strcmp(params.info.host,'none'), params.info.host=''; end
         if numel(varargin)>=2&&~isempty(varargin{2}), params.info.local_port=varargin{2}; if ischar(params.info.local_port), params.info.local_port=str2double(params.info.local_port); end
         else params.info.local_port=[];
         end
-        if ~isfield(params.info,'user')||isempty(params.info.user), [nill,str2]=system('whoami'); params.info.user=regexprep(str2,'\n',''); end
+        if ~isfield(params.info,'user')||isempty(params.info.user), [nill,str2]=system('whoami'); params.info.user=regexprep(str2,'\n',''); allthesame=false; end
         if isempty(params.info.host),
             params.info.user='';
             params.info.login_ip='';
             params.info.CONNcmd='';
             params.info.filename_ctrl='';
+            allthesame=false;
         else
             temp=input(sprintf('Username [%s]: ',params.info.user),'s');
-            if ~isempty(temp), params.info.user=temp; end
+            if ~isempty(temp),
+                if ~isequal(params.info.user,temp), allthesame=false; end
+                params.info.user=temp;
+            end
             params.info.login_ip=sprintf('%s@%s',params.info.user,params.info.host);
             localcachefolder=conn_cache('private.local_folder');
         end
@@ -505,96 +526,126 @@ switch(lower(option))
                 try, conn_fileutils('deletefile',params.info.filename_ctrl); end
                 fprintf('Connecting to %s... ',params.info.login_ip);
                 % starts a shared SSH connection
-                system(sprintf('ssh -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.info.filename_ctrl,params.info.login_ip)); % starts a shared connection (note: use "sleep 600" instead of -N?)
-                [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' -O check %s', params.info.filename_ctrl,params.info.login_ip)); if ok~=0, error(msg); end
+                system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip)); % starts a shared connection (note: use "sleep 600" instead of -N?)
+                [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); if ok~=0, error(msg); end
                 if ~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
                     filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(mlreportgen.utils.hash(mat2str(now)))]);
                     conn_fileutils('deletefile',filename);
                     fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
-                    [ok,msg]=system(sprintf('scp -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
-                        params.info.filename_ctrl,params.info.login_ip,filename));
+                    [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
+                        params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
                     assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
                     tjson=conn_jsonread(filename);
                     params.info.CONNcmd=tjson.CONNcmd;
                     if isfield(tjson,'SERVERcmd'), params.info.SERVERcmd=tjson.SERVERcmd; end
                 end
             end
-            if strcmpi(option,'ssh_restart')
+            ntries=1;
+            startnewserver=false;
+            if allthesame ...
+                    &&isfield(params.info,'remote_ip')&&~isempty(params.info.remote_ip) ...
+                    &&isfield(params.info,'remote_port')&&~isempty(params.info.remote_port) ...
+                    &&isfield(params.info,'remote_id')&&~isempty(params.info.remote_id) ...
+                    &&isfield(params.info,'remote_log')&&~isempty(params.info.remote_log)
+                params.info.local_port=[];
+                ntries=2;
+                if ~isfield(params.info,'start_time')||isempty(params.info.start_time), params.info.start_time=datestr(now); end
+                fprintf('Attempting to reconnect to last remote CONN session\n');
+            elseif strcmpi(option,'ssh_restart')
                 if ~isfield(params.info,'remote_ip')||isempty(params.info.remote_ip), params.info.remote_ip=input('Remote session host address: ','s'); end
                 if ~isfield(params.info,'remote_port')||isempty(params.info.remote_port), params.info.remote_port=str2double(input('Remote session access port: ','s')); end
                 if ~isfield(params.info,'remote_id')||isempty(params.info.remote_id), params.info.remote_id=input('Remote session id: ','s'); end
                 if ~isfield(params.info,'remote_log')||isempty(params.info.remote_log), params.info.remote_log=input('Remote session log folder: ','s'); end
                 if ~isfield(params.info,'start_time')||isempty(params.info.start_time), params.info.start_time=datestr(now); end
                 params.info.local_port=[];
-                startnewserver=false;
             elseif isempty(params.info.host)
                 if ~isfield(params.info,'remote_ip'), params.info.remote_ip=''; end; if isempty(params.info.remote_ip), temp=input('Remote session host address: ','s'); else temp=input(sprintf('Remote session host address [%s]: ',params.info.remote_ip),'s'); end; if ~isempty(temp), params.info.remote_ip=temp; end
                 if ~isfield(params.info,'remote_port'), params.info.remote_port=[]; end; if isempty(params.info.remote_port), temp=input('Remote session access port: ','s'); else temp=input(sprintf('Remote session access port [%d]: ',params.info.remote_port),'s'); end; if ~isempty(temp), params.info.remote_port=str2double(temp); end
                 if ~isfield(params.info,'remote_id'), params.info.remote_id=''; end; if isempty(params.info.remote_id), temp=input('Remote session id: ','s'); else temp=input(sprintf('Remote session id [%s]: ',params.info.remote_id),'s'); end; if ~isempty(temp), params.info.remote_id=deblank(temp); end
-                if ~isfield(params.info,'remote_log'), params.info.remote_log=''; end; if isempty(params.info.remote_log), temp=input('Remote session log folder: ','s'); else temp=input(sprintf('Remote session log folder [%s]: ',params.info.remote_log),'s'); end; if ~isempty(temp), params.info.remote_log=deblank(temp); end
+                params.info.remote_log=''; %if ~isfield(params.info,'remote_log'), params.info.remote_log=''; end; if isempty(params.info.remote_log), temp=input('Remote session log folder: ','s'); else temp=input(sprintf('Remote session log folder [%s]: ',params.info.remote_log),'s'); end; if ~isempty(temp), params.info.remote_log=deblank(temp); end
                 if ~isfield(params.info,'start_time')||isempty(params.info.start_time), params.info.start_time=datestr(now); end
                 params.info.local_port=[];
-                startnewserver=false;
             else startnewserver=true;
             end
-            if startnewserver
-                fprintf('Requesting a new Matlab session in %s. This may take a few minutes, please be patient as your job currently sits in a queue. CONN will resume automatically when the new Matlab session becomes available\n',params.info.login_ip);
-                [keys_public,keys_private]=conn_tcpip('keypair');
-                % submit jobs to start server#2 in arbitrary remote node using HPC scheduler
-                if isfield(params.info,'SERVERcmd')&&~isempty(params.info.SERVERcmd), tstr=sprintf('server SSH_submitstart ''%s'' ''%s''',params.info.SERVERcmd, keys_public); 
-                else tstr=sprintf('server SSH_submitstart '''' ''%s''', keys_public);
+            while ntries>0
+                if startnewserver
+                    fprintf('Requesting a new Matlab session in %s. This may take a few minutes, please be patient as your job currently sits in a queue. CONN will resume automatically when the new Matlab session becomes available\n',params.info.login_ip);
+                    [keys_public,keys_private]=conn_tcpip('keypair');
+                    % submit jobs to start server#2 in arbitrary remote node using HPC scheduler
+                    if isfield(params.info,'SERVERcmd')&&~isempty(params.info.SERVERcmd), tstr=sprintf('server SSH_submitstart ''%s'' ''%s''',params.info.SERVERcmd, keys_public);
+                    else tstr=sprintf('server SSH_submitstart '''' ''%s''', keys_public);
+                    end
+                    [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
+                    if ~isempty(regexp(msg,'SSH_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
+                    else
+                        keys=regexp(msg,'HOST:([^\n]+)\nPORT:([^\n]+)\nID:([^\n]+)\nLOG:([^\n]+)\n','tokens','once');
+                        params.info.remote_ip=keys{1};
+                        params.info.remote_port=str2double(keys{2});
+                        params.info.remote_id=keys{3};
+                        params.info.remote_log=keys{4};
+                        params.info.start_time=datestr(now);
+                        fprintf('Remote session started:\n  Host address = %s\n  Access port = %d\n  ID = %s\n  Log folder = %s\n',params.info.remote_ip,params.info.remote_port,params.info.remote_id,params.info.remote_log);
+                        params.info.remote_id=keys_private;
+                    end
                 end
-                [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' %s "%s"', params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
-                if ~isempty(regexp(msg,'SSH_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
+                if isempty(params.info.host)
+                    if strcmpi(option,'ssh_restart'), conn_tcpip('open','client',params.info.remote_ip,params.info.remote_port,params.info.remote_id,0); params.state='on';
+                    else conn_server('connect',params.info.remote_ip,sprintf('%dCONN%s',params.info.remote_port,params.info.remote_id));
+                    end
                 else
-                    keys=regexp(msg,'HOST:([^\n]+)\nPORT:([^\n]+)\nID:([^\n]+)\nLOG:([^\n]+)\n','tokens','once');
-                    params.info.remote_ip=keys{1};
-                    params.info.remote_port=str2double(keys{2});
-                    params.info.remote_id=keys{3};
-                    params.info.remote_log=keys{4};
-                    params.info.start_time=datestr(now);
-                    fprintf('Remote session started:\n  Host address = %s\n  Access port = %d\n  ID = %s\n  Log folder = %s\n',params.info.remote_ip,params.info.remote_port,params.info.remote_id,params.info.remote_log);
-                    params.info.remote_id=keys_private;
+                    % stablishes port-forward link between this computer and server#2
+                    if isempty(params.info.local_port) % finds first available local port
+                        tsocket=java.net.ServerSocket(0);
+                        params.info.local_port=tsocket.getLocalPort;
+                        tsocket.close;
+                        clear tsocket
+                        pause(1);
+                    end
+                    
+                    fprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
+                    [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                    if ok~=0, 
+                        params.info.local_port=[]; 
+                    else
+                        %system(sprintf('ssh -f -N -T -o ExitOnForwardFailure=yes -o ControlPath=''%s'' -L%d:%s:%d %s', params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        %fprintf('Connecting to server\n');
+                        if strcmpi(option,'ssh_restart'), conn_tcpip('open','client','localhost',params.info.local_port,params.info.remote_id,0); params.state='on';
+                        else conn_server('connect','localhost',sprintf('%dCONN%s',params.info.local_port,params.info.remote_id));
+                        end
+                    end
+                end
+                ntries=max(0,ntries-1);
+                filename=fullfile(conn_fileutils('homedir'),'conn_recentservers.json');
+                spm_jsonwrite(filename,params.info,struct('indent',' '));
+                if isunix, try, system(sprintf('chmod 600 ''%s''',filename)); end; end
+                fprintf('Connection information saved in %s\n',filename);
+                if conn_server('isconnected'), 
+                    ntries=0; 
+                elseif ntries>0, 
+                    startnewserver=true; params.info.local_port=[]; 
+                    fprintf('No remote session found, starting a new session\n');
+                else
+                    fprintf('Unable to connect to remote CONN session\n',filename);
                 end
             end
-            if isempty(params.info.host)
-                if strcmpi(option,'ssh_restart'), conn_tcpip('open','client',params.info.remote_ip,params.info.remote_port,params.info.remote_id,0); params.state='on';
-                else conn_server('connect',params.info.remote_ip,sprintf('%dCONN%s',params.info.remote_port,params.info.remote_id));
-                end
-            else
-                % stablishes port-forward link between this computer and server#2
-                if isempty(params.info.local_port) % finds first available local port
-                    tsocket=java.net.ServerSocket(0);
-                    params.info.local_port=tsocket.getLocalPort;
-                    tsocket.close;
-                    clear tsocket
-                    pause(1);
-                end
-                
-                fprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
-                system(sprintf('ssh -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip)); 
-                %system(sprintf('ssh -f -N -T -o ExitOnForwardFailure=yes -o ControlPath=''%s'' -L%d:%s:%d %s', params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip)); 
-                 %fprintf('Connecting to server\n');
-                if strcmpi(option,'ssh_restart'), conn_tcpip('open','client','localhost',params.info.local_port,params.info.remote_id,0); params.state='on';
-                else conn_server('connect','localhost',sprintf('%dCONN%s',params.info.local_port,params.info.remote_id));
-                end
-            end
-            filename=fullfile(conn_fileutils('homedir'),'conn_recentservers.json');
-            spm_jsonwrite(filename,params.info,struct('indent',' ')); fprintf('Connection information saved in %s\n',filename); 
         end
         
-    case 'ssh_exit' % send exit signal to server to stop running (this will also cause the remote Matlab session to exit)
-        if conn_server('isconnected'), 
-            fprintf('Exiting remote CONN session and disconnecting\n');
-            conn_tcpip('write','exit');
-            try, [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' -O exit %s', params.info.filename_ctrl,params.info.login_ip)); end
+    case {'ssh_exit','ssh_softexit'} % send exit signal to server to stop running (this will also cause the remote Matlab session to exit)
+        if strcmpi(option,'ssh_softexit')||conn_server('isconnected'), 
+            if strcmpi(option,'ssh_exit')
+                fprintf('Exiting remote CONN session and disconnecting\n');
+                conn_tcpip('write','exit');
+            else
+                fprintf('Disconnecting from remote CONN session\n');
+            end
+            if ~isempty(params.info.host), try, [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end; end
             conn_tcpip('close');
             params.state='off';
             conn_cache clear;
             conn_jobmanager clear;
         else
             fprintf('unable to connect to server, please terminate the server manually or use "conn_server SSH_restart" to restart the connection with the server and try "conn_server SSH_exit" again\n');
-            system(sprintf('ssh -o ControlPath=''%s'' -O exit %s', params.info.filename_ctrl,params.info.login_ip));
+            if ~isempty(params.info.host), system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end
         end
         
     case 'ssh_exitforce' % run remotely a command to forcibly delete the server's job
@@ -603,21 +654,21 @@ switch(lower(option))
             params.info.filename_ctrl=fullfile(localcachefolder,sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user));
             fprintf('Connecting to %s... ',params.info.login_ip);
             % starts a shared SSH connection
-            [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' -O check %s', params.info.filename_ctrl,params.info.login_ip)); 
+            [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); 
             if ok~=0, 
                 try, conn_fileutils('deletefile',params.info.filename_ctrl); end
-                system(sprintf('ssh -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.info.filename_ctrl,params.info.login_ip));
+                system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip));
             end
             if ~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
                 filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(mlreportgen.utils.hash(mat2str(now)))]);
                 conn_fileutils('deletefile',filename);
                 fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
-                [ok,msg]=system(sprintf('scp -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
-                    params.info.filename_ctrl,params.info.login_ip,filename));
+                [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
+                    params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
                 assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
                 params.info.CONNcmd=conn_jsonread(filename,'CONNcmd');
             end            
-            [ok,msg]=system(sprintf('ssh -o ControlPath=''%s'' %s "%s"', params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server SSH_submitexit ''%s''',params.info.remote_log)),'"','\\"')));
+            [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server SSH_submitexit ''%s''',params.info.remote_log)),'"','\\"')));
             if ok~=0, disp(msg); 
             else fprintf('Remote CONN session deletion requested successfully\n');
             end
@@ -665,6 +716,14 @@ switch(lower(option))
         if numel(varargin)>=1, params.info=varargin{1}; end
         varargout={params.info};
         
+    case 'ssh_options'
+        if numel(varargin)>=1, 
+            params.options=varargin{1}; 
+            filename=fullfile(conn_fileutils('homedir'),'connclientinfo.json');
+            spm_jsonwrite(filename,params.options,struct('indent',' '));
+        end
+        varargout={params.options};
+        
     case 'ssh_details'
         clear h;
         info=struct; conn_loadmatfile(fullfile(conn_server('util_remotefile',params.info.remote_log),'info.mat'),'info');
@@ -691,16 +750,16 @@ switch(lower(option))
 %         uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.25],'callback','delete(gcbf)');
         filelocal=conn_server('util_localfile',varargin{1});
         fileremote=conn_server('util_localfile',varargin{2});
-        if strcmpi(option,'ssh_folderpush'), ok=system(sprintf('scp -C -r -o ControlPath=''%s'' ''%s'' %s:''%s''', params.info.filename_ctrl,regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
-        else ok=system(sprintf('scp -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
+        if strcmpi(option,'ssh_folderpush'), ok=system(sprintf('%s -C -r -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
+        else ok=system(sprintf('%s -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
         end
         varargout={isequal(ok,0)}; 
         
     case {'ssh_pull','ssh_folderpull'}
         fileremote=conn_server('util_localfile',varargin{1});
         filelocal=conn_server('util_localfile',varargin{2});
-        if strcmpi(option,'ssh_folderpull'), [ok,msg]=system(sprintf('scp -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0',filesep])));
-        else [ok,msg]=system(sprintf('scp -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
+        if strcmpi(option,'ssh_folderpull'), [ok,msg]=system(sprintf('%s -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0',filesep])));
+        else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
         end
         if ~isequal(ok,0), disp(msg); end
         varargout={isequal(ok,0)}; 
@@ -738,11 +797,11 @@ switch(lower(option))
             if ~ok, fprintf(' Restart failed. Please restart connection manually\n'); end
         else
             fprintf(' Restarting connection...\n');
-            if isfield(params.info,'filename_ctrl')&&~isempty(params.info.filename_ctrl)
+            if ~isempty(params.info.host)&&isfield(params.info,'filename_ctrl')&&~isempty(params.info.filename_ctrl)
                 try
-                    [tok,tmsg]=system(sprintf('ssh -o ControlPath=''%s'' -O check %s', params.info.filename_ctrl,params.info.login_ip));
-                    if tok~=0, system(sprintf('ssh -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.info.filename_ctrl,params.info.login_ip)); end
-                    system(sprintf('ssh -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                    [tok,tmsg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip));
+                    if tok~=0, system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end
+                    system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                 end
             end
             connection=conn_tcpip('private');
