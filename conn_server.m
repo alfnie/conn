@@ -3,13 +3,34 @@ function varargout = conn_server(option, varargin)
 %
 % commands from server side: (e.g. from a computer at work/university where the data lives)
 %   conn_server('start' [,PORT, PUBLICKEY])          : starts CONN server and prints out instructions for connecting to this server (only a single client connection will be permitted)
-%                                                     If a non-empty PUBLICKEY string is provided the server will reject any client connection that does not know the associated PRIVATEKEY
-%                                                     (note: use [PUBLICKEY,PRIVATEKEY]=conn_tcpip('keypair') to generate a one-time-use KEY pair)
-%
+%                                                     PORT : port number (default []). Leaving PORT empty will bind to first available port
+%                                                     PUBLICKEY : hashed password (default []). If a non-empty PUBLICKEY string is provided the server will reject any client connection that 
+%                                                       cannot provide the associated PRIVATEKEY (note: use [PUBLICKEY,PRIVATEKEY]=conn_tcpip('keypair') to generate a one-time-use KEY pair)
+%                                                     e.g.
+%                                                       >> [PUBLICKEY,PRIVATEKEY]=conn_tcpip('keypair')
+%                                                             PUBLICKEY =
+%                                                                   '137227a467c8e62c85e8f3d91767af1a'
+%                                                             PRIVATEKEY =
+%                                                                   'e5823002ac891dacbf3c48ae54d8f438'
+%                                                       >> conn_server('start', [], '137227a467c8e62c85e8f3d91767af1a');
+%                                                             Opening port 60039...
+%                                                             ******************************************************************************
+%                                                             To connect to this server, use the Matlab syntax:
+%                                                                conn_server connect mbp-2018.lan 60039CONNprivatekey
+% 
+%                                                             To connect to this server using ssh-tunneling, use the following syntax instead:
+%                                                                $(OS-command)     :   ssh -L 6111:alfonsosmbp2018.lan:60039 alfnie@YOUR-INSTITUTION-SSH-LOGIN-NODE
+%                                                                >(Matlab-command) :   conn_server connect localhost 6111CONNprivatekey
+%                                                             ******************************************************************************%
 % commands from client side: (e.g. from a computer at home/office where you live)
 %   conn_server('connect', IP , SERVER_ID)          : stablishes connection to CONN server 
-%                                                     IP : address of computer running conn_server (e.g. '127.0.0.1')
-%                                                     SERVER_ID: keyword of the form <PORTNUMBER>CONN<PRIVATEKEY> (e.g. '6111CONNe5823002ac891dacbf3c48ae54d8f438')
+%                                                     IP : address of computer running conn_server
+%                                                     SERVER_ID: keyword of the form <PORT>CONN<PRIVATEKEY>
+%                                                     e.g.
+%                                                       >> conn_server('connect', '127.0.0.1', '60039CONNe5823002ac891dacbf3c48ae54d8f438');
+%                                                            Connecting to 127.0.0.1:60039...
+%                                                            Succesfully established connection to server
+%
 %   conn_server('run', fcn, arg1, arg2, ...)        : runs on server the command fcn(arg1,arg2,...) and wait for its termination, e.g. 
 %                                                        >> tic; conn_server('run','pause',10); toc
 %                                                        Elapsed time is 10.019476 seconds.
@@ -102,9 +123,9 @@ if isempty(params)
         'state','off');
     filename=fullfile(conn_fileutils('homedir'),'connclientinfo.json');
     if conn_existfile(filename), params.options=conn_jsonread(filename); else params.options=struct; end
-    if ~isfield(params.options,'use_ssh'), params.options.use_ssh=true; end
-    if ~isfield(params.options,'cmd_ssh'), params.options.cmd_ssh='ssh'; end
-    if ~isfield(params.options,'cmd_scp'), params.options.cmd_scp='scp'; end
+    if ~isfield(params.options,'use_ssh'), params.options.use_ssh=~ispc; end
+    if ~isfield(params.options,'cmd_ssh'), if ispc, params.options.cmd_ssh=''; else params.options.cmd_ssh='ssh'; end; end
+    if ~isfield(params.options,'cmd_scp'), if ispc, params.options.cmd_scp=''; else params.options.cmd_scp='scp'; end; end
 end
 if isempty(local_vars), local_vars=struct; end
 
@@ -238,6 +259,7 @@ switch(lower(option))
             ntimedout=0; % minutes
             while 1
                 data=[];
+                drawnow;
                 try,
                     data=conn_tcpip('read');
                     ntimedout=0;
@@ -245,7 +267,14 @@ switch(lower(option))
                     if ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) %||ntimedout>15 % restart
                         dispstr='';
                         fprintf('\n Idle connection to client.');
-                        conn_server restart;
+                        if 0
+                            conn_server restart;
+                        else
+                            fprintf(' Closing server.\n');
+                            conn_tcpip('close');
+                            conn_disp('__portcomm',false);
+                            return
+                        end
                     elseif ~isempty(regexp(me.message,'SocketTimeoutException')) % timeout
                         fprintf(repmat('\b',[1,length(dispstr)]));
                         dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
@@ -518,8 +547,8 @@ switch(lower(option))
             localcachefolder=conn_cache('private.local_folder');
         end
         params.info.scp=false;
-        if ispc&&~isempty(params.info.host),
-            error('in development');
+        if isempty(params.options.cmd_ssh), 
+            error('No SSH client found (see Tools.RemoteOptions.Configuration)');
         else
             if ~isempty(params.info.host)
                 params.info.filename_ctrl=fullfile(localcachefolder,sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user));
@@ -772,14 +801,19 @@ switch(lower(option))
         conn_jobmanager clear;
         
     case 'exit' % disconnect & close server
-        fprintf('Exiting remote CONN session and disconnecting\n');
-        if conn_server('isconnected')
-            conn_tcpip('write','exit');
+        if params.isserver
+            conn_tcpip('close');
+            conn_disp('__portcomm',false);
+        else
+            fprintf('Exiting remote CONN session and disconnecting\n');
+            if conn_server('isconnected')
+                conn_tcpip('write','exit');
+            end
+            conn_tcpip('close');
+            params.state='off';
+            conn_cache clear;
+            conn_jobmanager clear;
         end
-        conn_tcpip('close');
-        params.state='off';
-        conn_cache clear;
-        conn_jobmanager clear;
         
     case 'restart'
         if params.isserver
