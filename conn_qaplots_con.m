@@ -81,7 +81,7 @@ if (isfield(SPM,'xCon')&&~isempty(SPM.xCon)) || (isfield(SPM,'xConOriginal')&&~i
             txt=arrayfun(@(a,b,c)sprintf('warning: scale = %s',mat2str(.1*round(10*setdiff(unique([a,b,c]),[0])))),Aall,Apos,Aneg,'uni',0);
             txtnill=ismember(round(Aall*1e3)/1e3,[0,1])&ismember(round(Apos*1e3)/1e3,[0,1])&ismember(round(-Aneg*1e3)/1e3,[0,1]);
             if any(txtnill), txt(txtnill)=repmat({''},1,nnz(txtnill)); end
-            hold on; h=text(mean(xtickval)*ones(1,size(A,1)),1:size(A,1),txt,'color','k','rotat',0,'horizontalalignment','center','interpreter','none','fontweight','bold'); hold off; set(h,'fontsize',ceil(get(h(1),'fontsize')*.8));
+            hold on; h=text(max(xtickval)+ones(1,size(A,1)),1:size(A,1),txt,'color','k','rotat',0,'horizontalalignment','left','interpreter','none','fontweight','bold'); hold off; set(h,'fontsize',ceil(get(h(1),'fontsize')*.8));
             grid on;
             hax=gca;
             h=colorbar; try, set(h,'color',.5*[1 1 1],'box','off'); end
@@ -169,6 +169,7 @@ if (isfield(SPM,'xCon')&&~isempty(SPM.xCon)) || (isfield(SPM,'xConOriginal')&&~i
             if all(estimablecols(iA)), fh{end+1}=sprintf('All Design Matrix columns are estimable\n');
             else fh{end+1}=sprintf('List of non-estimable effects:\n'); for nc=find(~estimablecols(iA)), fh{end+1}=sprintf('%s\n',SPM.xX.name{iA(nc)}); end
             end
+            %fh{end+1}=sprintf('List of all contrasts:\n'); for nc=numel(jA), fh{end+1}=sprintf('%s\n',connames{jA(nc)}); end
             %fclose(fh);
             conn_fileutils('filewrite_raw',conn_prepend('',fullfile(qafolder,fname),'.txt'),fh);
             info=struct('contrasts',{connames(jA)},'contrast_orthogonality',orthcons(jA),'contrast_estimability',sizecons(jA),...

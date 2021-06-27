@@ -6,7 +6,7 @@ function dataplot=conn_displaysubject(datafiles,consubjects)
 %   display individual-subject volumes
 
 global CONN_gui CONN_x;
-if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 if nargin<2, consubjects=[]; end
 datafiles_names={};

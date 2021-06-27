@@ -4,7 +4,7 @@ function conn_convertl12l2covariate(varargin)
 %  
 
 global CONN_x CONN_gui;
-if ~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 filepath=CONN_x.folders.data;
 filename=fullfile(filepath,['COND_Subject',num2str(1,'%03d'),'_Session',num2str(1,'%03d'),'.mat']);

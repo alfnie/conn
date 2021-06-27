@@ -12,7 +12,7 @@ end
 if nargin<4, filenamestotest=[]; end
 if nargin<5||isempty(namestring), namestring='functional'; end
 if nargin<6||isempty(asktochange), asktochange=false; end
-if ~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 ok=true;
 if nargin<2

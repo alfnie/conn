@@ -19,7 +19,7 @@ if isequal(options,'aminserver') % if running from server
 elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 17 17.5 19 34])) % note: list of processes which may be run from client
     hmsg=[];
     if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
-        info=conn_server('ssh_info');
+        info=conn_remotely('info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
         else tnameserver='none';
         end
@@ -492,6 +492,7 @@ if any(options==2),
 	%[ok,nill]=mkdir(fullfile(path,name),'data');
 	%filepath=fullfile(path,name,'data');
     filepath=CONN_x.folders.data;
+    try, conn_fileutils('mkdir',filepath); end
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 	h=conn_waitbar(0,['Step ',num2str(sum(options<=2)),'/',num2str(length(options)),': Importing conditions/covariates']);
@@ -623,6 +624,7 @@ end
 if any(options==3) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'steps')&&~any(CONN_x.gui.steps([2,3])))
 	[path,name,ext]=fileparts(CONN_x.filename);
     filepath=CONN_x.folders.data;
+    try, conn_fileutils('mkdir',filepath); end
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 	h=conn_waitbar(0,['Step ',num2str(sum(options<=3)),'/',num2str(length(options)),': Importing functional data']);
@@ -704,6 +706,7 @@ end
 if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'steps')&&~any(CONN_x.gui.steps([1,2,3]))),
 	[path,name,ext]=fileparts(CONN_x.filename);
     filepath=CONN_x.folders.data;
+    try, conn_fileutils('mkdir',filepath); end
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 	h=conn_waitbar(0,['Step ',num2str(sum(options<=4)),'/',num2str(length(options)),': Importing ROI data']);
@@ -2075,7 +2078,7 @@ if any(floor(options)==9),
         missingdata=~conn_existfile(conn_fullfile(filepath,arrayfun(@(n)['ROI_Subject',num2str(validsubjects(1),'%03d'),'_Condition',num2str(icondition(n),'%03d'),'.mat'],validconditions,'uni',0)));
         if any(missingdata), conn_disp(['Not ready to process step conn_process_9']); return; end
         filename1=fullfile(filepath,['ROI_Subject',num2str(validsubjects(1),'%03d'),'_Condition',num2str(icondition(validconditions(1)),'%03d'),'.mat']);
-        x1=conn_loadmatfile(filename1);        
+        x1=conn_fcnutils('loadnamesandsize',filename1); % x1=conn_loadmatfile(filename1);        
         CONN_x.Analysis_variables.names={};
         CONN_x.Analysis_variables.types={};
         CONN_x.Analysis_variables.deriv={};
@@ -2092,7 +2095,7 @@ if any(floor(options)==9),
                 CONN_x.Analysis_variables.types{end+1}='roi';
                 CONN_x.Analysis_variables.deriv{end+1}=0;
                 CONN_x.Analysis_variables.fbands{end+1}=1;
-                CONN_x.Analysis_variables.dimensions{end+1}=[size(x1.data{n1},2),size(x1.data{n1},2)];
+                CONN_x.Analysis_variables.dimensions{end+1}=[x1.dimensions{n1},x1.dimensions{n1}];
             end
         end
         analysisbak=CONN_x.Analysis;

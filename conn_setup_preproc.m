@@ -419,7 +419,7 @@ if ~nargin||isempty(STEPS)||dogui,
     end
     toptions=[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)];
     if CONN_gui.isremote
-        info=conn_server('SSH_info');
+        info=conn_remotely('info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
         else tnameserver='CONN server';
         end
@@ -1048,8 +1048,8 @@ for iSTEP=1:numel(STEPS)
                         lagidx=[];
                         lagmax=[];
                         if any(reg_filter), rt=conn_get_rt(nsubject,nses,sets); end
-                        X=[ones(numel(Vin),1)];
-                        if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; end
+                        X=[ones(numel(Vin),1)]; Xnames={'session'};
+                        if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; Xnames{end+1}='detrend'; end
                         entercovariates=X;
                         reg_done=false(size(reg_names));
                         for nl1covariate=1:numel(reg_names)
@@ -1071,7 +1071,7 @@ for iSTEP=1:numel(STEPS)
                                 if numel(reg_filter)>=nl1covariate&&reg_filter(nl1covariate)>0, data=conn_filter(rt,bp_filter,data); end
                                 if numel(reg_lag)>=nl1covariate&&reg_lag(nl1covariate)>0, lagidx=[lagidx, size(X,2)+(1:size(data,2))]; end
                                 if nnz(data~=0&data~=1), X=cat(2,X,data-repmat(mean(data,1),size(data,1),1)); % note: 0/1 covariates not centered
-                                else X=cat(2,X,data);
+                                else X=cat(2,X,data); Xnames{end+1}=sprintf('%s (%d)',reg_names{nl1covariate},size(data,2));
                                 end
                             end
                         end
@@ -1119,7 +1119,7 @@ for iSTEP=1:numel(STEPS)
                                 if numel(reg_deriv)>=nl1covariate&&reg_deriv(nl1covariate)>1, data=[data, convn(cat(1,ddata(1,:),ddata,ddata(end,:)),[1;0;-1],'valid')]; end
                                 if numel(reg_filter)>=nl1covariate&&reg_filter(nl1covariate)>0, data=conn_filter(rt,bp_filter,data); end
                                 if numel(reg_lag)>=nl1covariate&&reg_lag(nl1covariate)>0, lagidx=[lagidx, size(X,2)+(1:size(data,2))]; end
-                                X=cat(2,X,data-repmat(mean(data,1),size(data,1),1));
+                                X=cat(2,X,data-repmat(mean(data,1),size(data,1),1)); Xnames{end+1}=sprintf('%s (%d)',reg_names{nl1covariate},size(data,2));
                             end
                         end
                         if ~reg_skip
@@ -1153,6 +1153,7 @@ for iSTEP=1:numel(STEPS)
                             end
                         end
                         conn_savetextfile(conn_prepend('dp_',filein{1},'.txt'),X);
+                        conn_savematfile(conn_prepend('dp_',filein{1},'.mat'),'X','Xnames');
                         if ~reg_skip, outputfiles{isubject}{nses}{1}=char(fileout);
                         else outputfiles{isubject}{nses}{1}=char(filein);
                         end
@@ -3796,54 +3797,6 @@ end
 function conn_setup_preproc_filedelete(filename)
 if ispc, [ok,nill]=system(sprintf('del "%s"',filename));
 else [ok,nill]=system(sprintf('rm ''%s''',filename));
-end
-end
-
-function conn_setup_preproc_disp(matlabbatch,str)
-if nargin<2, str=''; end
-try
-    if isempty(matlabbatch),
-    elseif iscell(matlabbatch)&&ischar(matlabbatch{1})
-        if numel(matlabbatch)>4
-            conn_disp('fprintf','%s(%d) = %s\n',str,1,matlabbatch{1});
-            conn_disp('fprintf','%s(%d) = %s\n',str,2,matlabbatch{2});
-            conn_disp('fprintf','%s(%d) = %s\n',str,numel(matlabbatch)-1,matlabbatch{end-1});
-            conn_disp('fprintf','%s(%d) = %s\n',str,numel(matlabbatch),matlabbatch{end});
-        elseif numel(matlabbatch)>1
-            for n=1:numel(matlabbatch)
-                conn_disp('fprintf','%s(%d) = %s\n',str,n,matlabbatch{n});
-            end
-        else
-            conn_disp('fprintf','%s = %s\n',str,matlabbatch{1});
-        end
-    elseif iscell(matlabbatch)
-        if numel(matlabbatch)==1
-            conn_setup_preproc_disp(matlabbatch{1},str);
-        else
-            for n=1:numel(matlabbatch)
-                conn_setup_preproc_disp(matlabbatch{n},sprintf('%s(%d)',str,n));
-            end
-        end
-    elseif ~isempty(matlabbatch)&&isnumeric(matlabbatch)
-        if numel(matlabbatch)>100
-            conn_disp('fprintf','%s = [%s %s %s %s %s ... %s %s %s %s %s]\n',str,mat2str(matlabbatch(1)),mat2str(matlabbatch(2)),mat2str(matlabbatch(3)),mat2str(matlabbatch(4)),mat2str(matlabbatch(5)),mat2str(matlabbatch(end-4)),mat2str(matlabbatch(end-3)),mat2str(matlabbatch(end-2)),mat2str(matlabbatch(end-1)),mat2str(matlabbatch(end)));
-        else
-            conn_disp('fprintf','%s = %s\n',str,mat2str(matlabbatch));
-        end
-    elseif ~isempty(matlabbatch)&&ischar(matlabbatch)
-        if numel(matlabbatch)>200, conn_disp('fprintf','%s = %s...%s\n',str,1,matlabbatch(1:50),matlabbatch(end-50+1:end));
-        else conn_disp('fprintf','%s = %s\n',str,matlabbatch);
-        end
-    elseif numel(matlabbatch)>1
-        for n=1:numel(matlabbatch)
-            conn_setup_preproc_disp(matlabbatch(n),sprintf('%s(%d)',str,n));
-        end
-    elseif isstruct(matlabbatch)
-        names=fieldnames(matlabbatch);
-        for n=1:numel(names)
-            conn_setup_preproc_disp(matlabbatch.(names{n}),sprintf('%s.%s',str,names{n}));
-        end
-    end
 end
 end
 

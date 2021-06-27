@@ -1,7 +1,7 @@
 function Ok=conn_importl2covariate(name,y,dogui,validsubjects,descrip)
 global CONN_x CONN_gui;
 Ok=false;
-if ~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 %if ~isfield(CONN_x,'filename')||isempty(CONN_x.filename), conn_msgbox('No CONN toolbox project loaded','',2); end
 if numel(name)~=numel(y), error('Inconsistent number of names/values'); end
 if nargin<3||isempty(dogui), dogui=true; end

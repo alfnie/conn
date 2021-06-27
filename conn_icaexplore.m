@@ -1,7 +1,7 @@
 function fh=conn_icaexplore
 global CONN_x CONN_h CONN_gui;
 
-if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 filepathresults=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name);
 ICAPCA='ICA';
 if ~conn_existfile(fullfile(filepathresults,[ICAPCA,'.Timeseries.mat'])), ICAPCA='PCA'; end

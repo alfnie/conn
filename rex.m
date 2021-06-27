@@ -1357,7 +1357,6 @@ end
 % ESTIMATES CONTRAST IN SPM
 function [cbeta,CI,F_T,F_p,F_P,F_dof,F_statsname]=rex_test(xX,Y,c,effnames,roinames,s,ROIinfo,mstats,mcon,SPM,dogui)
 global CONN_gui
-if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
 SMPDISP=true; % simplified display
 F_c=c;
 idxc=find(any(c,1));
@@ -1407,7 +1406,10 @@ if dogui
         end
     end
     options=[];
-    try, rex_test_refresh([],[],'refresh'); end
+    try, 
+        if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
+        rex_test_refresh([],[],'refresh'); 
+    end
 end
 
     function rex_test_refresh(hObject,eventdata,opt,varargin)

@@ -2,7 +2,7 @@
 function h=conn_filesearchtool(varargin)
 persistent cwd;
 global CONN_gui CONN_h;
-if ~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 if ~isfield(CONN_gui,'parse_html'), CONN_gui.parse_html={'<HTML><FONT color=rgb(100,100,100)>','</FONT></HTML>'}; end
 if ~isfield(CONN_gui,'rightclick'), CONN_gui.rightclick='right'; end
 if ~isfield(CONN_gui,'backgroundcolor'), CONN_gui.backgroundcolor=[0.1400 0.1400 0.1400]; end

@@ -1,6 +1,6 @@
 function [h,h2] = conn_msgbox(txt,title,ok,lowerquarter)
 global CONN_gui;
-if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 if nargin<2||isempty(title), title=''; end
 if nargin<3||isempty(ok), ok=false; end

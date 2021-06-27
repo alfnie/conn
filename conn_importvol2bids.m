@@ -117,6 +117,7 @@ if keepnames
             newfilename=[fname,fext];
         end
     end
+    newfilename=regexprep(newfilename,'\.gz$','');
     out=fullfile(newfilepath,newfilename);
     [fpath,nill,nill]=fileparts(out);
     conn_fileutils('mkdir',fpath);
@@ -149,7 +150,8 @@ else
         end
     else newfilename=sprintf('%s%s.nii',frun,ftype);
     end
-    if dosinglesubjectreduce, [nill,subjectid,nill]=fileparts(CONN_x.filename); fsub=subjectid;
+    if dosinglesubjectreduce>1, subjectid=fmod; if isempty(subjectid), subjectid='data'; end; fsub=subjectid;
+    elseif dosinglesubjectreduce, [nill,subjectid,nill]=fileparts(CONN_x.filename); fsub=subjectid;
     elseif ~isempty(nsub),    fsub=sprintf('sub-%04d',nsub(1));
     else fsub='';
     end

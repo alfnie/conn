@@ -12,13 +12,22 @@ if nargin<1||isempty(conn_x),
     if ~isfield(CONN_x,'folders'),CONN_x.folders=struct('rois',[],'data',[],'preprocessing',[],'bids',[],'qa',[],'bookmarks',[],'firstlevel',[],'firstlevel_vv','firstlevel_dyn','secondlevel',[]);end
     if 1
         CONN_x.folders.rois=fullfile(fileparts(which(mfilename)),'rois');
-        CONN_x.folders.data=fullfile(path,name,'data'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
-        CONN_x.folders.bids=fullfile(path,name,'data','BIDS'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
-        CONN_x.folders.qa=fullfile(path,name,'results','qa'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
-        CONN_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
-        CONN_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
-        CONN_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end
-        CONN_x.folders.secondlevel=fullfile(path,name,'results','secondlevel'); if CONN_x.pobj.holdsdata&&~conn_existfile(CONN_x.folders.secondlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'secondlevel'); end
+        CONN_x.folders.data=fullfile(path,name,'data'); 
+        CONN_x.folders.bids=fullfile(path,name,'data','BIDS'); 
+        CONN_x.folders.qa=fullfile(path,name,'results','qa'); 
+        CONN_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); 
+        CONN_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); 
+        CONN_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); 
+        CONN_x.folders.secondlevel=fullfile(path,name,'results','secondlevel');
+        if CONN_x.pobj.holdsdata&&(~isfield(CONN_x,'isready')||numel(CONN_x.isready)<2||CONN_x.isready(2))
+            if ~conn_existfile(CONN_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
+            if ~conn_existfile(CONN_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
+            if ~conn_existfile(CONN_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
+            if ~conn_existfile(CONN_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
+            if ~conn_existfile(CONN_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
+            if ~conn_existfile(CONN_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end
+            if ~conn_existfile(CONN_x.folders.secondlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'secondlevel'); end
+        end
         if conn('checkver','15.h',CONN_x.ver)
             if isfield(CONN_x,'vvAnalyses')&&~isfield(CONN_x.vvAnalyses,'name'), 
                 [nill,CONN_x.vvAnalyses.name]=fileparts(CONN_x.folders.firstlevel_vv); 
@@ -191,56 +200,58 @@ if nargin<1||isempty(conn_x),
     end
     if ~isfield(CONN_x,'Results')||~isfield(CONN_x.Results,'saved')||isempty(CONN_x.Results.saved), CONN_x.Results.saved=struct('names',{{}},'labels',{{}},'descrip',{{}},'nsubjecteffects',{{}},'csubjecteffects',{{}},'nconditions',{{}},'cconditions',{{}}); end
     if ~isfield(CONN_x.Results.saved,'names'), CONN_x.Results.saved.names={}; end
-    for ianalysis=1:length(CONN_x.Analyses), 
-        if ~conn_existfile(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name),true), conn_fileutils('mkdir',CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name); end; 
-        filesourcenames=fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name,'_list_sources.mat');
-        filesourcenames=conn_projectmanager('projectfile',filesourcenames,CONN_x.pobj,'.mat');
-        if conn_existfile(filesourcenames),
-            sourcenames={}; conn_loadmatfile(filesourcenames,'sourcenames');
-            if numel(sourcenames)>=numel(CONN_x.Analyses(ianalysis).sourcenames), %~isempty(sourcenames)
-                if ~isequal(CONN_x.Analyses(ianalysis).sourcenames,sourcenames), fprintf('warning: mismatch list_sources info. Using automatic recovery from %s\n',filesourcenames); end
-                CONN_x.Analyses(ianalysis).sourcenames=sourcenames;
+    if ~isfield(CONN_x,'isready')||numel(CONN_x.isready)<2||CONN_x.isready(2)
+        for ianalysis=1:length(CONN_x.Analyses),
+            if ~conn_existfile(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name),true), conn_fileutils('mkdir',CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name); end;
+            filesourcenames=fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name,'_list_sources.mat');
+            filesourcenames=conn_projectmanager('projectfile',filesourcenames,CONN_x.pobj,'.mat');
+            if conn_existfile(filesourcenames),
+                sourcenames={}; conn_loadmatfile(filesourcenames,'sourcenames');
+                if numel(sourcenames)>=numel(CONN_x.Analyses(ianalysis).sourcenames), %~isempty(sourcenames)
+                    if ~isequal(CONN_x.Analyses(ianalysis).sourcenames,sourcenames), fprintf('warning: mismatch list_sources info. Using automatic recovery from %s\n',filesourcenames); end
+                    CONN_x.Analyses(ianalysis).sourcenames=sourcenames;
+                end
             end
         end
-    end
-    for ianalysis=1:length(CONN_x.vvAnalyses), 
-        if ~conn_existfile(fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name),true), conn_fileutils('mkdir',CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name); end; 
-        filemeasurenames=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name,'_list_measures.mat');
-        filemeasurenames=conn_projectmanager('projectfile',filemeasurenames,CONN_x.pobj,'.mat');
-        if conn_existfile(filemeasurenames),
-            measurenames={}; conn_loadmatfile(filemeasurenames,'measurenames');
-            if numel(measurenames)>=numel(CONN_x.vvAnalyses(ianalysis).measurenames), %~isempty(measurenames)
-                if ~isequal(CONN_x.vvAnalyses(ianalysis).measurenames,measurenames), fprintf('warning: mismatch list_measures info. Using automatic recovery from %s\n',filemeasurenames); end
-                CONN_x.vvAnalyses(ianalysis).measurenames=measurenames;
+        for ianalysis=1:length(CONN_x.vvAnalyses),
+            if ~conn_existfile(fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name),true), conn_fileutils('mkdir',CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name); end;
+            filemeasurenames=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(ianalysis).name,'_list_measures.mat');
+            filemeasurenames=conn_projectmanager('projectfile',filemeasurenames,CONN_x.pobj,'.mat');
+            if conn_existfile(filemeasurenames),
+                measurenames={}; conn_loadmatfile(filemeasurenames,'measurenames');
+                if numel(measurenames)>=numel(CONN_x.vvAnalyses(ianalysis).measurenames), %~isempty(measurenames)
+                    if ~isequal(CONN_x.vvAnalyses(ianalysis).measurenames,measurenames), fprintf('warning: mismatch list_measures info. Using automatic recovery from %s\n',filemeasurenames); end
+                    CONN_x.vvAnalyses(ianalysis).measurenames=measurenames;
+                end
             end
         end
-    end
-    for ianalysis=1:length(CONN_x.dynAnalyses), 
-        if ~conn_existfile(fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(ianalysis).name),true), conn_fileutils('mkdir',CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(ianalysis).name); end; 
-    end
-    fileconditionnames=fullfile(CONN_x.folders.preprocessing,'_list_conditions.mat');
-    fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,CONN_x.pobj,'.mat');
-    if conn_existfile(fileconditionnames),
-        allnames={}; conn_loadmatfile(fileconditionnames,'allnames');
-        if numel(allnames)>=numel(CONN_x.Setup.conditions.allnames), %~isempty(allnames)
-            if ~isequal(CONN_x.Setup.conditions.allnames,allnames), fprintf('warning: mismatch list_conditions info. Using automatic recovery from %s\n',fileconditionnames); end
-            CONN_x.Setup.conditions.allnames=allnames;
+        for ianalysis=1:length(CONN_x.dynAnalyses),
+            if ~conn_existfile(fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(ianalysis).name),true), conn_fileutils('mkdir',CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(ianalysis).name); end;
         end
-    end
-    fileresultsnames=fullfile(CONN_x.folders.secondlevel,'_list_results.mat');
-    if conn_existfile(fileresultsnames),
-        results=struct; conn_loadmatfile(fileresultsnames,'results');
-        if ~isequal(CONN_x.Results.saved,results), fprintf('warning: mismatch list_results info. Using automatic recovery from %s\n',fileresultsnames); end
-        if ~isempty(results)
-            CONN_x.Results.saved=results;
+        fileconditionnames=fullfile(CONN_x.folders.preprocessing,'_list_conditions.mat');
+        fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,CONN_x.pobj,'.mat');
+        if conn_existfile(fileconditionnames),
+            allnames={}; conn_loadmatfile(fileconditionnames,'allnames');
+            if numel(allnames)>=numel(CONN_x.Setup.conditions.allnames), %~isempty(allnames)
+                if ~isequal(CONN_x.Setup.conditions.allnames,allnames), fprintf('warning: mismatch list_conditions info. Using automatic recovery from %s\n',fileconditionnames); end
+                CONN_x.Setup.conditions.allnames=allnames;
+            end
         end
+        fileresultsnames=fullfile(CONN_x.folders.secondlevel,'_list_results.mat');
+        if conn_existfile(fileresultsnames),
+            results=struct; conn_loadmatfile(fileresultsnames,'results');
+            if ~isequal(CONN_x.Results.saved,results), fprintf('warning: mismatch list_results info. Using automatic recovery from %s\n',fileresultsnames); end
+            if ~isempty(results)
+                CONN_x.Results.saved=results;
+            end
+        end
+        if ~isfield(CONN_x.Results.saved,'labels'), CONN_x.Results.saved.labels=repmat({''},size(CONN_x.Results.saved.names)); end
+        if ~isfield(CONN_x.Results.saved,'nsubjecteffects'), CONN_x.Results.saved.nsubjecteffects=cell(size(CONN_x.Results.saved.names)); end
+        if ~isfield(CONN_x.Results.saved,'csubjecteffects'), CONN_x.Results.saved.csubjecteffects=cell(size(CONN_x.Results.saved.names)); end
+        if ~isfield(CONN_x.Results.saved,'nconditions'), CONN_x.Results.saved.nconditions=cell(size(CONN_x.Results.saved.names)); end
+        if ~isfield(CONN_x.Results.saved,'cconditions'), CONN_x.Results.saved.cconditions=cell(size(CONN_x.Results.saved.names)); end
+        if ~isfield(CONN_x.Results.saved,'descrip'), CONN_x.Results.saved.descrip=repmat({''},size(CONN_x.Results.saved.names)); end
     end
-    if ~isfield(CONN_x.Results.saved,'labels'), CONN_x.Results.saved.labels=repmat({''},size(CONN_x.Results.saved.names)); end
-    if ~isfield(CONN_x.Results.saved,'nsubjecteffects'), CONN_x.Results.saved.nsubjecteffects=cell(size(CONN_x.Results.saved.names)); end
-    if ~isfield(CONN_x.Results.saved,'csubjecteffects'), CONN_x.Results.saved.csubjecteffects=cell(size(CONN_x.Results.saved.names)); end
-    if ~isfield(CONN_x.Results.saved,'nconditions'), CONN_x.Results.saved.nconditions=cell(size(CONN_x.Results.saved.names)); end
-    if ~isfield(CONN_x.Results.saved,'cconditions'), CONN_x.Results.saved.cconditions=cell(size(CONN_x.Results.saved.names)); end
-    if ~isfield(CONN_x.Results.saved,'descrip'), CONN_x.Results.saved.descrip=repmat({''},size(CONN_x.Results.saved.names)); end
 
 else
     if ~isfield(conn_x,'opt'), conn_x.opt=[]; end
@@ -251,13 +262,22 @@ else
     if ~isfield(conn_x,'folders'),conn_x.folders=struct('rois',[],'data',[],'preprocessing',[],'bids',[],'qa',[],'bookmarks',[],'firstlevel',[],'firstlevel_vv','firstlevel_dyn','secondlevel',[]);end
     if 1
         conn_x.folders.rois=fullfile(fileparts(which(mfilename)),'rois');
-        conn_x.folders.data=fullfile(path,name,'data'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
-        conn_x.folders.bids=fullfile(path,name,'data','BIDS'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
-        conn_x.folders.qa=fullfile(path,name,'results','qa'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
-        conn_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
-        conn_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
-        conn_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end
-        conn_x.folders.secondlevel=fullfile(path,name,'results','secondlevel'); if conn_x.pobj.holdsdata&&~conn_existfile(conn_x.folders.secondlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'secondlevel'); end
+        conn_x.folders.data=fullfile(path,name,'data'); 
+        conn_x.folders.bids=fullfile(path,name,'data','BIDS'); 
+        conn_x.folders.qa=fullfile(path,name,'results','qa'); 
+        conn_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); 
+        conn_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); 
+        conn_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); 
+        conn_x.folders.secondlevel=fullfile(path,name,'results','secondlevel');
+        if conn_x.pobj.holdsdata&&(~isfield(conn_x,'isready')||numel(conn_x.isready)<2||conn_x.isready(2))
+            if ~conn_existfile(conn_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
+            if ~conn_existfile(conn_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
+            if ~conn_existfile(conn_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
+            if ~conn_existfile(conn_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
+            if ~conn_existfile(conn_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
+            if ~conn_existfile(conn_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end
+            if ~conn_existfile(conn_x.folders.secondlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'secondlevel'); end
+        end
         if conn('checkver','15.h',conn_x.ver)
             if isfield(conn_x,'vvAnalyses')&&~isfield(conn_x.vvAnalyses,'name'), [nill,conn_x.vvAnalyses.name]=fileparts(conn_x.folders.firstlevel_vv); end
             if isfield(conn_x,'dynAnalyses')&&~isfield(conn_x.dynAnalyses,'name'), [nill,conn_x.dynAnalyses.name]=fileparts(conn_x.folders.firstlevel_dyn); end
@@ -424,54 +444,56 @@ else
     end
     if ~isfield(conn_x,'Results')||~isfield(conn_x.Results,'saved')||isempty(conn_x.Results.saved), conn_x.Results.saved=struct('names',{{}},'labels',{{}},'descrip',{{}},'nsubjecteffects',{{}},'csubjecteffects',{{}},'nconditions',{{}},'cconditions',{{}}); end
     if ~isfield(conn_x.Results.saved,'names'), conn_x.Results.saved.names={}; end
-    for ianalysis=1:length(conn_x.Analyses), 
-        if ~conn_existfile(fullfile(conn_x.folders.firstlevel,conn_x.Analyses(ianalysis).name),true), conn_fileutils('mkdir',conn_x.folders.firstlevel,conn_x.Analyses(ianalysis).name); end; 
-        filesourcenames=fullfile(conn_x.folders.firstlevel,conn_x.Analyses(ianalysis).name,'_list_sources.mat');
-        filesourcenames=conn_projectmanager('projectfile',filesourcenames,conn_x.pobj,'.mat');
-        if conn_existfile(filesourcenames),
-            sourcenames={}; conn_loadmatfile(filesourcenames,'sourcenames');
-            if numel(sourcenames)>=numel(conn_x.Analyses(ianalysis).sourcenames), %~isempty(sourcenames)
-                if ~isequal(conn_x.Analyses(ianalysis).sourcenames,sourcenames), fprintf('warning: mismatch list_sources info. Using automatic recovery from %s\n',filesourcenames); end
-                conn_x.Analyses(ianalysis).sourcenames=sourcenames;
+    if ~isfield(conn_x,'isready')||numel(conn_x.isready)<2||conn_x.isready(2)
+        for ianalysis=1:length(conn_x.Analyses),
+            if ~conn_existfile(fullfile(conn_x.folders.firstlevel,conn_x.Analyses(ianalysis).name),true), conn_fileutils('mkdir',conn_x.folders.firstlevel,conn_x.Analyses(ianalysis).name); end;
+            filesourcenames=fullfile(conn_x.folders.firstlevel,conn_x.Analyses(ianalysis).name,'_list_sources.mat');
+            filesourcenames=conn_projectmanager('projectfile',filesourcenames,conn_x.pobj,'.mat');
+            if conn_existfile(filesourcenames),
+                sourcenames={}; conn_loadmatfile(filesourcenames,'sourcenames');
+                if numel(sourcenames)>=numel(conn_x.Analyses(ianalysis).sourcenames), %~isempty(sourcenames)
+                    if ~isequal(conn_x.Analyses(ianalysis).sourcenames,sourcenames), fprintf('warning: mismatch list_sources info. Using automatic recovery from %s\n',filesourcenames); end
+                    conn_x.Analyses(ianalysis).sourcenames=sourcenames;
+                end
             end
         end
-    end
-    for ianalysis=1:length(conn_x.vvAnalyses), 
-        if ~conn_existfile(fullfile(conn_x.folders.firstlevel_vv,conn_x.vvAnalyses(ianalysis).name),true), conn_fileutils('mkdir',conn_x.folders.firstlevel_vv,conn_x.vvAnalyses(ianalysis).name); end; 
-        filemeasurenames=fullfile(conn_x.folders.firstlevel_vv,conn_x.vvAnalyses(ianalysis).name,'_list_measures.mat');
-        filemeasurenames=conn_projectmanager('projectfile',filemeasurenames,conn_x.pobj,'.mat');
-        if conn_existfile(filemeasurenames),
-            measurenames={}; conn_loadmatfile(filemeasurenames,'measurenames');
-            if numel(measurenames)>=numel(conn_x.vvAnalyses(ianalysis).measurenames), %~isempty(measurenames)
-                if ~isequal(conn_x.vvAnalyses(ianalysis).measurenames,measurenames), fprintf('warning: mismatch list_measures info. Using automatic recovery from %s\n',filemeasurenames); end
-                conn_x.vvAnalyses(ianalysis).measurenames=measurenames;
+        for ianalysis=1:length(conn_x.vvAnalyses),
+            if ~conn_existfile(fullfile(conn_x.folders.firstlevel_vv,conn_x.vvAnalyses(ianalysis).name),true), conn_fileutils('mkdir',conn_x.folders.firstlevel_vv,conn_x.vvAnalyses(ianalysis).name); end;
+            filemeasurenames=fullfile(conn_x.folders.firstlevel_vv,conn_x.vvAnalyses(ianalysis).name,'_list_measures.mat');
+            filemeasurenames=conn_projectmanager('projectfile',filemeasurenames,conn_x.pobj,'.mat');
+            if conn_existfile(filemeasurenames),
+                measurenames={}; conn_loadmatfile(filemeasurenames,'measurenames');
+                if numel(measurenames)>=numel(conn_x.vvAnalyses(ianalysis).measurenames), %~isempty(measurenames)
+                    if ~isequal(conn_x.vvAnalyses(ianalysis).measurenames,measurenames), fprintf('warning: mismatch list_measures info. Using automatic recovery from %s\n',filemeasurenames); end
+                    conn_x.vvAnalyses(ianalysis).measurenames=measurenames;
+                end
             end
         end
-    end
-    for ianalysis=1:length(conn_x.dynAnalyses), 
-        if ~conn_existfile(fullfile(conn_x.folders.firstlevel_dyn,conn_x.dynAnalyses(ianalysis).name),true), conn_fileutils('mkdir',conn_x.folders.firstlevel_dyn,conn_x.dynAnalyses(ianalysis).name); end; 
-    end
-    fileconditionnames=fullfile(conn_x.folders.preprocessing,'_list_conditions.mat');
-    fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,conn_x.pobj,'.mat');
-    if conn_existfile(fileconditionnames),
-        allnames={}; conn_loadmatfile(fileconditionnames,'allnames');
-        if numel(allnames)>=numel(conn_x.Setup.conditions.allnames), %~isempty(allnames)
-            if ~isequal(conn_x.Setup.conditions.allnames,allnames), fprintf('warning: mismatch list_conditions info. Using automatic recovery from %s\n',fileconditionnames); end
-            conn_x.Setup.conditions.allnames=allnames;
+        for ianalysis=1:length(conn_x.dynAnalyses),
+            if ~conn_existfile(fullfile(conn_x.folders.firstlevel_dyn,conn_x.dynAnalyses(ianalysis).name),true), conn_fileutils('mkdir',conn_x.folders.firstlevel_dyn,conn_x.dynAnalyses(ianalysis).name); end;
         end
-    end
-    fileresultsnames=fullfile(conn_x.folders.secondlevel,'_list_results.mat');
-    if conn_existfile(fileresultsnames),
-        results={}; conn_loadmatfile(fileresultsnames,'results');
-        if ~isequal(conn_x.Results.saved,results), fprintf('warning: mismatch list_results info. Using automatic recovery from %s\n',fileresultsnames); end
-        if ~isempty(results)
-            conn_x.Results.saved=results;
+        fileconditionnames=fullfile(conn_x.folders.preprocessing,'_list_conditions.mat');
+        fileconditionnames=conn_projectmanager('projectfile',fileconditionnames,conn_x.pobj,'.mat');
+        if conn_existfile(fileconditionnames),
+            allnames={}; conn_loadmatfile(fileconditionnames,'allnames');
+            if numel(allnames)>=numel(conn_x.Setup.conditions.allnames), %~isempty(allnames)
+                if ~isequal(conn_x.Setup.conditions.allnames,allnames), fprintf('warning: mismatch list_conditions info. Using automatic recovery from %s\n',fileconditionnames); end
+                conn_x.Setup.conditions.allnames=allnames;
+            end
         end
+        fileresultsnames=fullfile(conn_x.folders.secondlevel,'_list_results.mat');
+        if conn_existfile(fileresultsnames),
+            results={}; conn_loadmatfile(fileresultsnames,'results');
+            if ~isequal(conn_x.Results.saved,results), fprintf('warning: mismatch list_results info. Using automatic recovery from %s\n',fileresultsnames); end
+            if ~isempty(results)
+                conn_x.Results.saved=results;
+            end
+        end
+        if ~isfield(conn_x.Results.saved,'labels'), conn_x.Results.saved.labels=repmat({''},size(conn_x.Results.saved.names)); end
+        if ~isfield(conn_x.Results.saved,'nsubjecteffects'), conn_x.Results.saved.nsubjecteffects=cell(size(conn_x.Results.saved.names)); end
+        if ~isfield(conn_x.Results.saved,'csubjecteffects'), conn_x.Results.saved.csubjecteffects=cell(size(conn_x.Results.saved.names)); end
+        if ~isfield(conn_x.Results.saved,'nconditions'), conn_x.Results.saved.nconditions=cell(size(conn_x.Results.saved.names)); end
+        if ~isfield(conn_x.Results.saved,'cconditions'), conn_x.Results.saved.cconditions=cell(size(conn_x.Results.saved.names)); end
+        if ~isfield(conn_x.Results.saved,'descrip'), conn_x.Results.saved.descrip=repmat({''},size(conn_x.Results.saved.names)); end
     end
-    if ~isfield(conn_x.Results.saved,'labels'), conn_x.Results.saved.labels=repmat({''},size(conn_x.Results.saved.names)); end
-    if ~isfield(conn_x.Results.saved,'nsubjecteffects'), conn_x.Results.saved.nsubjecteffects=cell(size(conn_x.Results.saved.names)); end
-    if ~isfield(conn_x.Results.saved,'csubjecteffects'), conn_x.Results.saved.csubjecteffects=cell(size(conn_x.Results.saved.names)); end
-    if ~isfield(conn_x.Results.saved,'nconditions'), conn_x.Results.saved.nconditions=cell(size(conn_x.Results.saved.names)); end
-    if ~isfield(conn_x.Results.saved,'cconditions'), conn_x.Results.saved.cconditions=cell(size(conn_x.Results.saved.names)); end
-    if ~isfield(conn_x.Results.saved,'descrip'), conn_x.Results.saved.descrip=repmat({''},size(conn_x.Results.saved.names)); end
 end

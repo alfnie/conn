@@ -145,7 +145,7 @@ function varargout=conn_remotely(option,varargin)
 %
 % CONNECTION
 %
-% conn_remotely on            : starts remote CONN server and connect to it (equivalent to running "conn remotely" but
+% conn_remotely on [IP]       : starts remote CONN server and connect to it (equivalent to running "conn remotely" but
 %                               without launching CONN GUI)
 % conn_remotely off           : disconnects from remote CONN server (equivalent to closing GUI when using "conn remotely"
 %                               syntax to start CONN)
@@ -208,29 +208,57 @@ function varargout=conn_remotely(option,varargin)
 %                                                               same as str=conn_remotely('cmd','conn_jobmanager','getprofile'))
 %
 
+% notes: development reference notes on use of conn_server and conn_cache in CONN internal functions:
+%
+%   usage model #1: (a function will run remotely if it needs to work with remote files) (optimal when the fcn call requires minimal transfer of information)
+%   function fileout = fcn(filein, varargin)
+%      if any(conn_server('util_isremotefile',filin)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),varargin{:})); return; end
+%      % the code below this point works with normal/local files
+%
+%   usage model #2: (a function will work on a local cache/copy of remote files) (optimal when working with mixture of local and remote files)
+%   function fileout = fcn(filein, varargin)
+%      isremotefile=conn_server('util_isremotefile',filein);
+%      if isremotefile, remotefilename=filename; filename=conn_cache('new',filename); end
+%      ...
+%      if isremotefile, conn_cache('push',remotefilename); end
+%   end
+%
+%   usage model #3: (a function will run remotely if it needs to work with remote variables) (optimal when working with large intermediate variables)
+%   function output = fcn(input, varargin)
+%      if conn_server('util_isremotevar',input), output=conn_server('run_keep',mfilename,input,varargin{:}); return; end
+%      % the code below this point works with normal/local variables
+%
+%   usage model #4: (a function that accesses files only through calls to functions that follow model #1 or model #2)
+%
+%
+
 global CONN_gui;
 if ~nargin||isempty(option), option='start'; end
 
 switch(option)
-    case {'start','restart','end','softend'}         % GUI interaction
+    case {'start','restart','end','softstart','softrestart','softend'}         % GUI interaction
+        if isfield(CONN_gui,'isremote'), isremote=CONN_gui.isremote;
+        else isremote=false; 
+        end
+        dosoft=~isempty(regexp(option,'^soft'));
+        option=regexprep(option,'^soft','');
         dorestart=strcmpi(option,'restart');
         doend=strcmpi(option,'end');
-        dosoftend=strcmpi(option,'softend');
         keepgui=conn('findgui');
         connversion={'CONN functional connectivity toolbox',' (',conn('ver'),') '};
         hfig=findobj('tag',connversion{1});
         if isempty(hfig), keepgui=false; end
         if keepgui
-            if ~conn('gui_isready'), Answ='Proceed';
-            elseif doend||dosoftend, Answ=conn_questdlg({'Proceeding will close the current project and lose any unsaved progress','Do you want to proceed with starting CONN_locally?'},'CONN locally','Proceed','Cancel','Proceed');
+            if ~conn('gui_isready')||(~doend&&dosoft), Answ='Proceed';
+            elseif doend, Answ=conn_questdlg({'Proceeding will close the current project and lose any unsaved progress','Do you want to proceed with starting CONN_locally?'},'CONN locally','Proceed','Cancel','Proceed');
             else Answ=conn_questdlg({'Proceeding will close the current project and lose any unsaved progress','Do you want to proceed with starting CONN_remotely?'},'CONN remotely','Proceed','Cancel','Proceed');
             end
         else Answ='Proceed';
         end
         if strcmp(Answ,'Proceed')
-            if doend||dosoftend
-                if doend, conn_server SSH_exit;
-                else conn_server SSH_softexit;
+            if doend
+                if dosoft, conn_server_ssh softexit; % note: softend does not stop server
+                else conn_server_ssh exit;
                 end
                 CONN_gui.isremote=false;
                 if keepgui
@@ -242,14 +270,16 @@ switch(option)
                     conn;
                 end
             else
-                if dorestart, conn_server SSH_restart recent;
-                else conn_server SSH_start recent; % note: change to "conn_server('SSH_start',varargin{:})" to allow user-defined .json files?
+                if dorestart, conn_server_ssh restart recent;
+                else conn_server_ssh start recent; % note: change to "conn_server_ssh('start',varargin{:})" to allow user-defined .json files?
                 end
                 CONN_gui.isremote=true;
                 conn gui_isconnected; % checks if connected
                 if keepgui
-                    conn initfromgui;
-                    conn importrois;
+                    if ~dosoft % note: softstart/softrestart does not close project
+                        conn initfromgui;
+                        conn importrois;
+                    end
                     conn gui_recent_init;
                     conn gui_setup;
                 else
@@ -257,48 +287,12 @@ switch(option)
                 end
             end
         end
-    case 'setup'
-        conn_server('SSH_save',varargin{:});
-    case 'on'
-        conn_server('SSH_start',varargin{:});
-        CONN_gui.isremote=true;
-    case {'offandon','off&on','offon'}
-        conn_server('SSH_restart',varargin{:});
-        CONN_gui.isremote=true;
-    case 'off'
-        conn_server('SSH_exit',varargin{:});
-        CONN_gui.isremote=false;
-    case {'push','pull','folderpush','folderpull'}
-        conn_server(['SSH_',option],varargin{:});
     case {'command','cmd'}
-        singlecommand=nargout>0|~isempty(varargin);
-        info=conn_server('SSH_info');
-        if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
-        else tnameserver='none';
-        end
-        while 1
-            if ~isempty(varargin), cmd=varargin{1}; opts=varargin(2:end);
-            else cmd=input([tnameserver,' >> '],'s'); opts={};
-            end
-            switch(lower(cmd))
-                case {'quit','exit'}, break;
-                otherwise
-                    try
-                        if singlecommand,
-                            [varargout{1:nargout}]=conn_server('run','conn','cmd',cmd,opts{:});
-                        else
-                            str=conn_server('run','conn','cmd_capture',cmd);
-                            disp(str);
-                        end
-                    catch me
-                        str=regexprep(char(getReport(me,'extended','hyperlinks','off')),'[\t ]+',' ');
-                        disp(str);
-                    end
-            end
-            if singlecommand, break; end
+        if nargout>0, [varargout{1:nargout}]=conn_server('cmd',varargin{:});
+        else conn_server('cmd',varargin{:});
         end
     case 'settings'
-        tjson1=conn_server('SSH_options');
+        tjson1=conn_server_ssh('options');
         filename2=fullfile(conn_fileutils('homedir'),'connserverinfo.json');
         if conn_existfile(filename2), use_ssh=true; tjson2=conn_jsonread(filename2); else use_ssh=false; tjson2=struct; end
         if ~isfield(tjson2,'SERVERcmd'), tjson2.SERVERcmd=conn_jobmanager('getdefault'); end
@@ -330,7 +324,7 @@ switch(option)
         handles.cmd_ssh=uicontrol(handles.hfig,'style','edit','units','norm','position',[.65,.70,.25,.075],'string',tjson1.cmd_ssh,'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>System command used to call SSH-client program (remote login)<br/>e.g. /usr/bin/ssh -i identity_file <br/> - note: this program command syntax must be compatible with OpenSSH SSH clients, including options for remote execution, control sockets for connection sharing, and TCP forwarding</HTML>');
         handles.cmd_scp_str=uicontrol(handles.hfig,'style','text','units','norm','position',[.15 .60 .5 .075],'string','Local command for remote file transfer :','backgroundcolor','w','horizontalalignment','left');
         handles.cmd_scp=uicontrol(handles.hfig,'style','edit','units','norm','position',[.65,.60,.25,.075],'string',tjson1.cmd_scp,'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>System command used to call SCP program (secure copy)<br/>e.g. /usr/bin/scp -i identity_file <br/> - note: this program command syntax must be compatible with OpenSSH SCP</HTML>');
-        handles.now_client=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.15,.70,.75,.075],'string','Manually connect to CONN server now','callback','set(gcbf,''userdata'',true); uiresume(gcbf)','tooltipstring','<HTML>Connect to an existing CONN server (note: without SSH secured/encrypted communications)</HTML>');
+        handles.now_client=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.15,.70,.75,.075],'string','Manually connect to CONN server now','callback','set(gcbf,''userdata'',true); uiresume(gcbf)','tooltipstring','<HTML>Connect to an existing CONN server over TCP/IP (note: without SSH secured/encrypted communications)</HTML>');
         hdls={[handles.cmd_ssh_str,handles.cmd_ssh,handles.cmd_scp_str,handles.cmd_scp], handles.now_client};
         if tjson1.use_ssh, set(hdls{1},'visible','on'); set(hdls{2},'visible','off'); else set(hdls{1},'visible','off'); set(hdls{2},'visible','on'); end
         set(handles.client,'callback','hdl=get(gcbo,''userdata''); if get(gcbo,''value''), set(hdl{1},''visible'',''on''); set(hdl{2},''visible'',''off''); else set(hdl{1},''visible'',''off''); set(hdl{2},''visible'',''on''); end','userdata',hdls);
@@ -356,7 +350,7 @@ switch(option)
             tjson1.cmd_ssh=get(handles.cmd_ssh,'string');
             tjson1.cmd_scp=get(handles.cmd_scp,'string');
             tjson1.use_ssh=get(handles.client,'value');
-            conn_server('SSH_options',tjson1); % client info
+            conn_server_ssh('options',tjson1); % client info
             if ~isempty(handles.server) 
                 if get(handles.server,'value')>0
                     dprofile=get(handles.cmd_server,'value');
@@ -390,6 +384,41 @@ switch(option)
         set(hmsg,'closerequestfcn','conn_server exit; delete(gcbf)');
         conn_server('start',portnumber,conn_tcpip('keypair',str));
         if ishandle(hmsg), delete(hmsg); end
+        
+    case 'on'
+        conn_server_ssh('start',varargin{:});
+        CONN_gui.isremote=true;
+    case {'offandon','off&on','offon'}
+        conn_server_ssh('restart',varargin{:});
+        CONN_gui.isremote=true;
+    case {'off','softoff','forceoff'}
+        conn_server_ssh(regexprep(option,'off$','exit'),varargin{:});
+        CONN_gui.isremote=false;
+    case {'push','pull','folderpush','folderpull','info','details','setup'}
+        if nargout>0, [varargout{1:nargout}]=conn_server_ssh(option,varargin{:});
+        else conn_server_ssh(option,varargin{:});
+        end
+    case 'speedtest'
+        figure;
+        ntest=60;
+        n=1e3; 
+        list=nan(ntest,2); 
+        for itest=1:ntest, 
+            fprintf('%d/%d\n',itest,ntest);
+            t1=clock; 
+            a=conn_server('run','randn',1,n); 
+            t=etime(clock,t1); 
+            list(itest,:)=[n*8*8/1024^2 t]; 
+            if t>1, n=ceil(n/(1+rand)); 
+            else n=ceil(n*(1+rand)); 
+            end
+            plot(list(:,1),list(:,2),'o'); xlabel('Mbits'); ylabel('seconds'); 
+            if itest>10, 
+                b=([1+0*list(1:itest,2) list(1:itest,2)]\list(1:itest,1));
+                title(sprintf('%.2f Mbps',b(2))); 
+            end
+            drawnow;
+        end
         
     otherwise
         error('unrecognized option %s',option);

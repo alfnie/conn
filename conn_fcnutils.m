@@ -15,6 +15,12 @@ switch(lower(option))
         y=y-x*B;
         varargout={y};
         
+    case 'loadnamesandsize'
+        if any(conn_server('util_isremotefile',varargin{1})), [varargout{1:nargout}]=conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),varargin{2:end}); return; end
+        x1=conn_loadmatfile(varargin{1},'names','data');
+        x1.dimensions=cellfun(@(x)size(x,2),x1.data,'uni',0);
+        varargout={rmfield(x1,'data')};
+        
     case 'zcorr' %                     [z0,z1,d0, tempA, tempB, dof0, dof1, dof2]=conn_fcnutils('zcorr', X1, xf, CONN_x.Preproc.despiking, CONN_x.Preproc.filter, maxrt); 
         if any(conn_server('util_isremotevar',varargin(1:2))), [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{:}); return; end
         [X1,xf,Preproc.despiking,Preproc.filter,maxrt]=deal(varargin{1:5});
@@ -86,4 +92,7 @@ switch(lower(option))
         z0=struct('mean',mean(z0(:)),'std',std(z0(:)));
         z1=struct('mean',mean(z1(:)),'std',std(z1(:)));
         varargout={scatterplotdata,a0,b0,a1,b1,z0,z1, temp,tempB,tempXYZ, dof0,dof1,dof2};
+        
+    otherwise
+        error('unknown option %s',option);
 end

@@ -1,7 +1,7 @@
 function ok=conn_dynexplore
 global CONN_x CONN_gui CONN_h;
 
-if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 filepathresults=fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name);
 [B,H,B0,H0,IDX_subject,IDX_session]=deal([]); [ROInames,names]=deal({}); conn_loadmatfile(fullfile(filepathresults,'dyn_Base.mat'),'B','H','B0','H0','IDX_subject','IDX_session','ROInames','names');
 if ~exist('ROInames','var'), conn_msgbox('Sorry, this option is not available until the first-level dynamic FC analyses have been re-run','',2); return; end

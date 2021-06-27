@@ -1,7 +1,7 @@
 function fh=conn_mvpaexplore
 global CONN_x CONN_h CONN_gui;
 
-if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 filepathresults=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name);
 [iroi,isnew,ncomp]=cellfun(@(x)conn_v2v('match_extended',x),CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures);
 if any(isnew), conn_msgbox('Sorry, this option is not available until the associated first-level MVPA analyses have been run','',2); return; end

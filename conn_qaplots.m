@@ -30,7 +30,7 @@ function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois,vali
 %   
 
 
-global CONN_x;
+global CONN_gui CONN_x;
 if nargin<1||isempty(qafolder), qafolder=fullfile(CONN_x.folders.qa,['QA_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]); end
 if nargin<2||isempty(procedures), procedures=[]; end
 if nargin<3||isempty(validsubjects), validsubjects=1:CONN_x.Setup.nsubjects; end
@@ -73,6 +73,7 @@ if iscell(procedures)
 end
 
 if ~usejava('awt'), conn_disp('fprintf','warning: unable to find Java AWT graphics framework (possibly missing graphic display capabilities)\n         if experiencing incomplete plots or unexpected crashes, please connect using VNC or some other graphic-capable method and try again\n'); end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), try, conn_font_init; end; end
 if ~nargout, ht=conn_waitbar(0,'Creating displays. Please wait...'); 
 else ht=[];
 end

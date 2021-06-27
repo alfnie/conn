@@ -787,7 +787,7 @@ else
                 CONN_x.Setup.rois.unsmoothedvolumes=[1,1,1];
                 CONN_x.Setup.rois.weighted=[0,0,0];
                 
-                if ~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+                if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
                 CONN_gui.parse_html={'<HTML><FONT color=rgb(128,128,128)>','</FONT></HTML>'};
                 %CONN_gui.parse_html={'',''};
             end
@@ -1533,7 +1533,7 @@ else
             end
             
         case 'gui_server',
-            info=conn_server('SSH_info');
+            info=conn_remotely('info');
             if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
             else tnameserver='none';
             end
@@ -1553,15 +1553,15 @@ else
             h.text1=uicontrol('style','text','units','norm','position',[.05,.80,.9,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',9+CONN_gui.font_offset,'string',sprintf('Connected to %s',tnameserver),'parent',thfig);
             h.text2=uicontrol('style','text','units','norm','position',[.05,.35,.9,.43],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string',str,'parent',thfig);
             h.text3=uicontrol('style','text','units','norm','position',[.05,.21,.55,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string','','parent',thfig);
-            h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.05,.11,.15,.10],'callback','conn_server(''SSH_details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
+            h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.05,.11,.15,.10],'callback','conn_remotely(''details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
             h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.20,.11,.15,.10],'callback','conn_server(''clear_cache'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears file temporal storage and communication buffer');
             h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','off','units','norm','position',[.50,.11,.15,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
             h.button7=uicontrol(thfig,'style','pushbutton','string','cmd','enable','off','units','norm','position',[.65,.11,.15,.10],'callback','disp(''TYPE quit TO FINISH''); conn_remotely(''cmd'')','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('Matlab command-line in %s',tnameserver));
             h.button8=uicontrol(thfig,'style','pushbutton','string','scp','enable','off','units','norm','position',[.80,.11,.15,.10],'callback','delete(gcbf); conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy/transfer entire folders between this computer and %s',tnameserver));
-            %h.button4=uicontrol(thfig,'visible','off','style','pushbutton','string','File transfer','units','norm','position',[.05,.01,.30,.10],'callback','conn_server(''SSH_filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
+            %h.button4=uicontrol(thfig,'visible','off','style','pushbutton','string','File transfer','units','norm','position',[.05,.01,.30,.10],'callback','conn_remotely(''filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
             h.button4=uicontrol(thfig,'style','pushbutton','string','Check connection','units','norm','position',[.05,.01,.30,.10],'callback','h=get(gcbf,''userdata'');  if conn(''gui_isconnected''), set(h.text3,''string'',''connection working correctly''); else set(h.text3,''string'',''connection failed''); end','fontsize',6+CONN_gui.font_offset,'tooltipstring','checks the connection with an existing/running remote CONN session');
-            h.button5=uicontrol(thfig,'style','pushbutton','string','Reset connection','units','norm','position',[.35,.01,.30,.10],'callback','close(gcbf); conn_remotely restart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
-            h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn_remotely start','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_server ssh_exitforce" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
+            h.button5=uicontrol(thfig,'style','pushbutton','string','Reset connection','units','norm','position',[.35,.01,.30,.10],'callback','close(gcbf); conn_remotely softrestart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
+            h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn_remotely softstart','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_remotely forceoff" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
             try, if ~isempty(info.remote_ip), set([h.button1 h.button7 h.button8],'enable','on'); end; end
             try, if ~isempty(info.remote_log), set(h.button2,'enable','on'); end; end
             set(thfig,'userdata',h);
@@ -1572,7 +1572,7 @@ else
                 while ~ok
                     try, ok=conn_server('isconnected'); end
                     if ~ok
-                        info=conn_server('SSH_info');
+                        info=conn_remotely('info');
                         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
                         else tnameserver='CONN server';
                         end
@@ -1639,8 +1639,8 @@ else
                         end
                         if strcmp(answ,'Proceed'),
                             hmsg=conn_msgbox('Copying files... please wait','');
-                            if value==1, conn_server('ssh_folderpush',CONN_h.menus.m_filetransfer.file_local,CONN_h.menus.m_filetransfer.file_remote);
-                            else         conn_server('ssh_folderpull',CONN_h.menus.m_filetransfer.file_remote,CONN_h.menus.m_filetransfer.file_local);
+                            if value==1, conn_remotely('folderpush',CONN_h.menus.m_filetransfer.file_local,CONN_h.menus.m_filetransfer.file_remote);
+                            else         conn_remotely('folderpull',CONN_h.menus.m_filetransfer.file_remote,CONN_h.menus.m_filetransfer.file_local);
                             end
                             if ishandle(hmsg), delete(hmsg); end
                             conn_disp('Done');
@@ -4481,7 +4481,7 @@ else
                         set(CONN_h.menus.m_setup_00{2},'max',1,'userdata',CONN_h.menus.m_setup_00{4},'keypressfcn','if isequal(get(gcbf,''currentcharacter''),13), uicontrol(get(gcbo,''userdata'')); uicontrol(gcbo); end');
                         set(CONN_h.menus.m_setup_00{6}.h1,'ColumnEditable',true,'data',nan(0,CONN_x.Setup.nsubjects), 'ColumnName',arrayfun(@(n)sprintf('Subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0));
                         %CONN_h.menus.m_setup_00{9}=uicontrol('style','pushbutton','units','norm','position',boffset+[.4,.45,.2,.04],'string','Orthogonalize covariate','tooltipstring','Make this covariate orthogonal to other covariate(s) (e.g. for centering or when interested in the unique variance associated with this effect)','callback','conn(''gui_setup'',9);','fontsize',8+CONN_gui.font_offset);
-                        CONN_h.menus.m_setup.showneffects_showall=false;
+                        if ~isfield(CONN_h.menus.m_setup,'showneffects_showall'), CONN_h.menus.m_setup.showneffects_showall=false; end
                         if CONN_h.menus.m_setup.showneffects_showall, CONN_h.menus.m_setup.showneffects=1:numel(CONN_x.Setup.l2covariates.names);
                         else CONN_h.menus.m_setup.showneffects=find(cellfun(@(x)isempty(regexp(x,'^_')),CONN_x.Setup.l2covariates.names));
                         end
@@ -4809,6 +4809,7 @@ else
                                     case 'top',  inl2covariates=1:numel(CONN_x.Setup.l2covariates.names)-1; inl2covariates(nl2covariates)=(1:numel(nl2covariates))-numel(nl2covariates); [nill,inl2covariates]=sort(inl2covariates); 
                                     case 'bottom',  inl2covariates=1:numel(CONN_x.Setup.l2covariates.names)-1; inl2covariates(nl2covariates)=numel(inl2covariates)+(1:numel(nl2covariates)); [nill,inl2covariates]=sort(inl2covariates); 
                                     case 'secondary', [nill,inl2covariates]=sort(cellfun('length',regexp(CONN_x.Setup.l2covariates.names(1:end-1),'^_|^QA_|^QC_')));
+                                    case 'hidden', inl2covariates=1:numel(CONN_x.Setup.l2covariates.names)-1; CONN_h.menus.m_setup.showneffects_showall=~CONN_h.menus.m_setup.showneffects_showall;
                                 end
                                 CONN_x.Setup.l2covariates.names(1:numel(inl2covariates))=CONN_x.Setup.l2covariates.names(inl2covariates);
                                 for n1=1:length(CONN_x.Setup.l2covariates.values), CONN_x.Setup.l2covariates.values{n1}=CONN_x.Setup.l2covariates.values{n1}(inl2covariates); end
@@ -6288,6 +6289,7 @@ else
                         CONN_h.menus.m_preproc.y.slice=max(1,min(4,CONN_h.menus.m_preproc.y.slice));
                     end
                 end
+                CONN_h.menus.m_preproc.X_input={};
 				conn_menumanager([CONN_h.menus.m_preproc_02],'on',1);
 				model=1;
 			else 
@@ -6507,7 +6509,12 @@ else
                 if CONN_x.Preproc.detrending>=2, confounds.types{end+1}='detrend2'; end
                 if CONN_x.Preproc.detrending>=3, confounds.types{end+1}='detrend3'; end
             end
-			[CONN_h.menus.m_preproc.X,CONN_h.menus.m_preproc.select]=conn_designmatrix(confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2,{nconfounds,nview,nfilter});
+            if isfield(CONN_h.menus.m_preproc,'X_input')&&isequal(CONN_h.menus.m_preproc.X_input,{confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2})
+                CONN_h.menus.m_preproc.select=conn_designmatrix(confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2,{nconfounds,nview,nfilter},true);
+            else
+                CONN_h.menus.m_preproc.X_input={confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2};
+                [CONN_h.menus.m_preproc.X,CONN_h.menus.m_preproc.select]=conn_designmatrix(confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2,{nconfounds,nview,nfilter});
+            end
 			if ~isempty(nconfounds)&&all(nconfounds>0), 
 				temp=cat(1,CONN_x.Preproc.confounds.deriv{nconfounds});
 				if length(temp)==1 || ~any(diff(temp)),set(CONN_h.menus.m_preproc_00{4},'visible','on','value',1+CONN_x.Preproc.confounds.deriv{nconfounds(1)}); 
@@ -6765,6 +6772,8 @@ else
             if ~isfield(CONN_x,'Analysis')||~CONN_x.Analysis, CONN_x.Analysis=1; end
             ianalysis=CONN_x.Analysis;
             SINGLECASE=true;
+            DOREM={{'run_keepas:y'},{'-run_keepas','x1'},{'-run_keepas','x2'}}; % remotely: keep some vars remotely
+            %DOREM={{},{'-cache'},{'-cache'}}; % remotely: bring all vars locally
             if 0,%ianalysis>numel(CONN_x.Analyses)||~isfield(CONN_x.Analyses(ianalysis),'name'),
                 txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['SBC_',num2str(ianalysis,'%02d')]});
                 if isempty(txt), return; end
@@ -7156,10 +7165,12 @@ else
                 CONN_h.menus.m_analyses.X1=[];
                 if state(1)==1
                     filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(1),'%03d'),'.mat']);
-                    if conn_existfile(filename), CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; 
+                    if conn_existfile(filename), 
+                        CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,DOREM{2}{:}); %CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; 
+                        if ~isfield(CONN_h.menus.m_analyses.X1,'names')&&conn_server('util_isremotevar',CONN_h.menus.m_analyses.X1), CONN_h.menus.m_analyses.X1.names=conn_server('run','getfield',CONN_h.menus.m_analyses.X1,'names'); end
                     else conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); 
                     end
-                end
+                end 
                     %CONN_h.menus.m_analyses.x.data=CONN_h.menus.m_analyses.X1.data
                     %                     CONN_h.menus.m_analyses.ConditionWeights={};
                     %                     for ncondition=1:nconditions,
@@ -7187,6 +7198,7 @@ else
                         CONN_h.menus.m_analyses.y.slice=max(1,min(4,CONN_h.menus.m_analyses.y.slice));
                     end
                 end
+                CONN_h.menus.m_analyses.X_input={};
             end
             if state(1)==1, %SEED-TO-VOXEL or ROI-TO-ROI
                 if isempty(CONN_x.Analyses), conn('gui_analysesgo',[]); return; end
@@ -7446,6 +7458,7 @@ else
                                     if numel(idx)==1, value=idx;
                                     elseif isempty(idx), value=1;
                                     else,
+                                        if ~isfield(CONN_h.menus.m_analyses.X1,'xyz')&&conn_server('util_isremotevar',CONN_h.menus.m_analyses.X1), CONN_h.menus.m_analyses.X1.xyz=conn_server('run','getfield',CONN_h.menus.m_analyses.X1,'xyz'); end
                                         idx=find(cellfun(@(x)all(isnan(x)),CONN_h.menus.m_analyses.X1.xyz));
                                         idx=idx(strcmp(CONN_x.Analyses(ianalysis).modulation,CONN_h.menus.m_analyses.X1.names(idx)));
                                         if numel(idx)==1, value=idx;
@@ -7495,7 +7508,8 @@ else
 								set(CONN_h.screen.hfig,'pointer','arrow');
                             end
                             filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
-                            CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; 
+                            CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,DOREM{2}{:}); %CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; 
+                            if ~isfield(CONN_h.menus.m_analyses.X1,'names')&&conn_server('util_isremotevar',CONN_h.menus.m_analyses.X1), CONN_h.menus.m_analyses.X1.names=conn_server('run','getfield',CONN_h.menus.m_analyses.X1,'names'); end
                             %filename=fullfile(filepath,['COV_Subject',num2str(nsubs,'%03d'),'_Session',num2str(nconditions,'%03d'),'.mat']);
                             %CONN_h.menus.m_analyses.X2=load(filename);
                             if any(CONN_x.Setup.steps([2,3]))&&isfield(CONN_h.menus.m_analyses,'Y')
@@ -7696,7 +7710,8 @@ else
                 nconditions=CONN_h.menus.m_analyses.listedconditions(get(CONN_h.menus.m_analyses_00{12},'value'));
                 set(CONN_h.menus.m_analyses_00{46},'string',CONN_x.Analyses(ianalysis).name);
                 if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0
-                    if ~isfield(CONN_h.menus.m_analyses,'X1')||~isfield(CONN_h.menus.m_analyses.X1,'crop')||CONN_h.menus.m_analyses.X1.crop||(any(CONN_x.Setup.steps([2,3]))&&(~isfield(CONN_h.menus.m_analyses,'Y')||~isfield(CONN_h.menus.m_analyses.Y,'crop')||CONN_h.menus.m_analyses.Y.crop)),
+                    %if ~isfield(CONN_h.menus.m_analyses,'X1')||~isfield(CONN_h.menus.m_analyses.X1,'crop')||CONN_h.menus.m_analyses.X1.crop||(any(CONN_x.Setup.steps([2,3]))&&(~isfield(CONN_h.menus.m_analyses,'Y')||~isfield(CONN_h.menus.m_analyses.Y,'crop')||CONN_h.menus.m_analyses.Y.crop)),
+                    if ~isfield(CONN_h.menus.m_analyses,'X1')||(any(CONN_x.Setup.steps([2,3]))&&(~isfield(CONN_h.menus.m_analyses,'Y')||~isfield(CONN_h.menus.m_analyses.Y,'crop')||CONN_h.menus.m_analyses.Y.crop)),
                         CONN_x.Analyses(ianalysis).modulation=0;
                         conn_msgbox({'Temporal-modulation analyses not ready for selected condition'},'',2); 
                     end
@@ -7733,20 +7748,26 @@ else
                     else  set(CONN_h.menus.m_analyses_00{6},'string','MULTIPLE VALUES'); end
                 end
                 if ~CONN_h.menus.m_analyses.isready, return; end
-                if any([CONN_x.Analyses(ianalysis).regressors.deriv{:}]>0)
-                    if ~isfield(CONN_h.menus.m_analyses.X1,'d1data'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'d1data'); CONN_h.menus.m_analyses.X1.d1data=temp.d1data; end; end
-                    if ~isfield(CONN_h.menus.m_analyses.X1,'d2data'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'d2data'); CONN_h.menus.m_analyses.X1.d2data=temp.d2data; end; end
+                %if any([CONN_x.Analyses(ianalysis).regressors.deriv{:}]>0)
+                %    if ~isfield(CONN_h.menus.m_analyses.X1,'d1data'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'d1data'); CONN_h.menus.m_analyses.X1.d1data=temp.d1data; end; end
+                %    if ~isfield(CONN_h.menus.m_analyses.X1,'d2data'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'d2data'); CONN_h.menus.m_analyses.X1.d2data=temp.d2data; end; end
+                %end
+                %if any([CONN_x.Analyses(ianalysis).regressors.fbands{:}]>1)
+                %    if ~isfield(CONN_h.menus.m_analyses.X1,'fbdata'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'fbdata'); CONN_h.menus.m_analyses.X1.fbdata=temp.fbdata; end; end
+                %end
+                if isfield(CONN_h.menus.m_analyses,'X_input')&&isequal(CONN_h.menus.m_analyses.X_input,{CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[]})
+                    CONN_h.menus.m_analyses.select=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[],{nregressors,nview},true);
+                else
+                    CONN_h.menus.m_analyses.X_input={CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[]};
+                    [CONN_h.menus.m_analyses.X,CONN_h.menus.m_analyses.select,CONN_h.menus.m_analyses.Xnames]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[],{nregressors,nview});
                 end
-                if any([CONN_x.Analyses(ianalysis).regressors.fbands{:}]>1)
-                    if ~isfield(CONN_h.menus.m_analyses.X1,'fbdata'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'fbdata'); CONN_h.menus.m_analyses.X1.fbdata=temp.fbdata; end; end
-                end
-                [CONN_h.menus.m_analyses.X,CONN_h.menus.m_analyses.select,names]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[],{nregressors,nview});
-                iroi=[];isnew=[];for nroi=1:numel(names),[iroi(nroi),isnew(nroi)]=conn_sourcenames(names{nroi});end; iroi(isnew>0)=nan;
+                iroi=[];isnew=[];for nroi=1:numel(CONN_h.menus.m_analyses.Xnames),[iroi(nroi),isnew(nroi)]=conn_sourcenames(CONN_h.menus.m_analyses.Xnames{nroi});end; iroi(isnew>0)=nan;
                 CONN_h.menus.m_analyses.iroi=iroi;
                 if model==1,
                     xf=CONN_h.menus.m_analyses.X;
                     nX=size(xf,2);
                     wx=ones(size(xf,1),1);
+                    if ~isfield(CONN_h.menus.m_analyses.X1,'conditionweights')&&conn_server('util_isremotevar',CONN_h.menus.m_analyses.X1), CONN_h.menus.m_analyses.X1.conditionweights=conn_server('run','getfield',CONN_h.menus.m_analyses.X1,'conditionweights'); end
                     switch(CONN_x.Analyses(ianalysis).weight),
                         case 1, wx=double(CONN_h.menus.m_analyses.X1.conditionweights{1}>0);
                         case 2, wx=CONN_h.menus.m_analyses.X1.conditionweights{1};
@@ -7809,12 +7830,19 @@ else
                                 if ~isempty(wx), wx=conn_bsxfun(@times,wx,CONN_h.menus.m_analyses.X1.conditionweights{1}>0); end
                             else
                                 idx=find(strcmp(CONN_x.Analyses(ianalysis).modulation,CONN_h.menus.m_analyses.X1.names));
-                                if numel(idx)==1, wx=CONN_h.menus.m_analyses.X1.data{idx};
+                                if numel(idx)==1, 
+                                    if ~isfield(CONN_h.menus.m_analyses.X1,'data')&&conn_server('util_isremotevar',CONN_h.menus.m_analyses.X1), wx=conn_server('run','getfield',CONN_h.menus.m_analyses.X1,{1},'data',{idx}); wx=[wx{:}];
+                                    else wx=CONN_h.menus.m_analyses.X1.data{idx};
+                                    end                                    
                                 elseif isempty(idx), error('Covariate not found. Please re-run dyn-ICA step');
                                 else, 
+                                    if ~isfield(CONN_h.menus.m_analyses.X1,'xyz')&&conn_server('util_isremotevar',CONN_h.menus.m_analyses.X1), CONN_h.menus.m_analyses.X1.xyz=conn_server('run','getfield',CONN_h.menus.m_analyses.X1,'xyz'); end
                                     idx=find(cellfun(@(x)all(isnan(x)),CONN_h.menus.m_analyses.X1.xyz));
                                     idx=idx(strcmp(CONN_x.Analyses(ianalysis).modulation,CONN_h.menus.m_analyses.X1.names(idx)));
-                                    if numel(idx)==1, wx=CONN_h.menus.m_analyses.X1.data{idx};
+                                    if numel(idx)==1, 
+                                        if ~isfield(CONN_h.menus.m_analyses.X1,'data')&&conn_server('util_isremotevar',CONN_h.menus.m_analyses.X1), wx=conn_server('run','getfield',CONN_h.menus.m_analyses.X1,{1},'data',{idx}); wx=[wx{:}];
+                                        else wx=CONN_h.menus.m_analyses.X1.data{idx};
+                                        end
                                     else error('Covariate not found');
                                     end
                                 end
@@ -11360,8 +11388,13 @@ else
                                 p=[];h=[];F=[];statsname=[];dof=[];
                                 if conn_existfile(fullfile(resultsfolder,'spmF_mv.nii'))&conn_existfile(fullfile(resultsfolder,'spmF_mv.json')), 
                                     tvol=conn_fileutils('spm_vol',fullfile(resultsfolder,'spmF_mv.nii'));
-                                    [tx,ty,tz]=ndgrid(1:CONN_h.menus.m_results.Y(1).dim(1),1:CONN_h.menus.m_results.Y(1).dim(2),1:CONN_h.menus.m_results.Y(1).dim(3)); txyz=[tx(:) ty(:) tz(:) ones(numel(tx),1)]';
-                                    SPM.xX_multivariate.F=reshape(conn_fileutils('spm_get_data',tvol,pinv(tvol(1).mat)*CONN_h.menus.m_results.Y(1).mat*txyz),[1,1,CONN_h.menus.m_results.Y(1).dim]);
+                                    if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim)
+                                        [tx,ty,tz]=ndgrid(1:CONN_h.menus.m_results.Y(1).dim(1),1:CONN_h.menus.m_results.Y(1).dim(2),1:CONN_h.menus.m_results.Y(1).dim(3)); txyz=[tx(:) ty(:) tz(:) ones(numel(tx),1)]';
+                                    else
+                                        if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
+                                        [tx,ty,tz]=ndgrid(1:CONN_h.menus.m_results.Y(1).dim(1),1:CONN_h.menus.m_results.Y(1).dim(2),CONN_h.menus.m_results.y.slice); txyz=[tx(:) ty(:) tz(:) ones(numel(tx),1)]';
+                                    end
+                                    SPM.xX_multivariate.F=reshape(conn_fileutils('spm_get_data',tvol,pinv(tvol(1).mat)*CONN_h.menus.m_results.Y(1).mat*txyz),[1,1,CONN_h.menus.m_results.Y(1).dim(1:2)]);
                                     SPM.xX_multivariate.h=SPM.xX_multivariate.F;
                                     info=conn_jsonread(fullfile(resultsfolder,'spmF_mv.json'));
                                     SPM.xX_multivariate.statsname=info.statsname;
@@ -11381,10 +11414,12 @@ else
                                             F=reshape(SPM.xX_multivariate.F(:,:,:,:,[1,conn_surf_dims(8)*[0;0;1]+1]),1,[]);
                                         end
                                     else
-                                        if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
-                                        %set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
-                                        h=reshape(SPM.xX_multivariate.h(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
-                                        F=reshape(SPM.xX_multivariate.F(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
+                                        %if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
+                                        %%set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
+                                        %h=reshape(SPM.xX_multivariate.h(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
+                                        %F=reshape(SPM.xX_multivariate.F(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
+                                        h=reshape(SPM.xX_multivariate.h,1,[]);
+                                        F=reshape(SPM.xX_multivariate.F,1,[]);
                                     end
                                     p=nan+zeros(size(F));idxvalid=find(~isnan(F)&F~=0);
                                     if ~isempty(idxvalid)
@@ -12162,7 +12197,7 @@ catch me
         else me.rethrow; 
         end
     else
-        if ~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+        if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
         if isfield(CONN_x,'filename'), filename=CONN_x.filename; else filename=[]; end
         if ~isfield(CONN_x,'ver'), CONN_x.ver='undetermined'; end
         [str,PrimaryMessage]=conn_errormessage(me,filename,0,{CONN_x.ver,connver});
@@ -12290,7 +12325,7 @@ if paroption,
     end
     toptions=[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)];
     if CONN_gui.isremote
-        info=conn_server('SSH_info');
+        info=conn_remotely('info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
         else tnameserver='CONN server';
         end
@@ -12836,7 +12871,7 @@ end
 if conn_menumanager('ison')&&isfield(CONN_gui,'isremote')&&CONN_gui.isremote, 
     try
         if conn('gui_isconnected');
-            info=conn_server('SSH_info');
+            info=conn_remotely('info');
             if isfield(info,'host')&&~isempty(info.host), set(hserver,'string',sprintf('@ %s',info.host));
             elseif isfield(info,'remote_ip'), set(hserver,'string',sprintf('@ %s',info.remote_ip));
             else set(hserver,'string',sprintf('@ unknown'));
@@ -12907,7 +12942,7 @@ switch(answ)
         CONN_h=[];
         if dohpcexit, 
             CONN_gui.isremote=0; 
-            try, conn_server('SSH_exit'); end; 
+            try, conn_remotely('off'); end; 
         end
     otherwise
         conn gui_setup;

@@ -1,7 +1,8 @@
 
-function [X,select,names,xyz,Xnames]=conn_designmatrix(confounds,X1,X2,nconfounds)
-if nargin<=3, nconfounds={}; end
-if any(conn_server('util_isremotevar',{X1,X2})), [X,select,names,xyz,Xnames]=conn_server('run',mfilename,confounds,X1,X2,nconfounds); return; end % note: returns expanded variables
+function varargout=conn_designmatrix(confounds,X1,X2,nconfounds,selectonly)
+if nargin<5||isempty(selectonly), selectonly=false; end
+if nargin<4||isempty(nconfounds), nconfounds={}; end
+if any(conn_server('util_isremotevar',{X1,X2})), [varargout{1:nargout}]=conn_server('run',mfilename,confounds,conn_server('util_cleanremotevar',X1),conn_server('util_cleanremotevar',X2),nconfounds,selectonly); return; end % note: returns expanded variables
 
 select=[];X=[];names={};xyz={}; Xnames={};
 if iscell(confounds),
@@ -179,3 +180,8 @@ end
 X=[ones(N,1),X];
 Xnames=[{'constant term'}, Xnames];
 if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[0,select{n0}];end; end
+if selectonly, varargout={select};
+else varargout={X,select,names,xyz,Xnames};
+end
+end
+

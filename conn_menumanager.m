@@ -36,7 +36,7 @@ function handle=conn_menumanager(handle,varargin)
 % alfnie@gmail.com 04/07
 
 global CONN_x CONN_MM CONN_gui;
-if ~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 if ~isfield(CONN_gui,'waiticon'), CONN_gui.waiticon='watch'; end
 if nargin<1, handle='on'; end
 %AVOIDTEXTBUG=CONN_gui.dounixGUIbugfix; % avoids issue with remote X display fonts not resizing correctly (note: disregards rotate field)
@@ -295,10 +295,10 @@ if ischar(handle),
                     [nill,hc]=conn_menu_plotmatrix('',CONN_MM.gcf,[2 1 8],[.91 .93 .07 .02]);
                     delete(hc(ishandle(hc)));
                 else
-                    %hax=axes('units','norm','position',[.78,.93,.20,.02],'parent',CONN_MM.gcf);
-                    %text(1,0,conn_msg(1),'horizontalalignment','right','color',CONN_gui.fontcolorB, 'fontsize',6+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
-                    hax=axes('units','norm','position',[.4,.05,.20,.025],'parent',CONN_MM.gcf);
-                    text(0,0,['GUI busy',conn_msg(1)],'horizontalalignment','center','color',CONN_gui.fontcolorB, 'fontsize',8+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
+                    hax=axes('units','norm','position',[.78,.93,.20,.02],'parent',CONN_MM.gcf);
+                    text(1,0,['GUI busy',conn_msg(1)],'horizontalalignment','right','color',CONN_gui.fontcolorB, 'fontsize',6+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
+                    %hax=axes('units','norm','position',[.4,.05,.20,.025],'parent',CONN_MM.gcf);
+                    %text(0,0,['GUI busy',conn_msg(1)],'horizontalalignment','center','color',CONN_gui.fontcolorB, 'fontsize',8+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
                     drawnow;
                 end
             end

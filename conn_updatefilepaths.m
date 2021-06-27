@@ -37,7 +37,7 @@ global CONN_x CONN_gui;
 persistent ht htcancel changed changes holdon silent remote local hcount;
 
 connfolder=fileparts(which(mfilename));
-if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 if isempty(changed),changed=0;end
 if isempty(holdon),holdon=0;end
 if isempty(silent),silent=0;end

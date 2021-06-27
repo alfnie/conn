@@ -99,9 +99,19 @@ function varargout=conn_module(option,varargin)
 %    Note: before using conn_module functionality with externally defined data it is recommended to close CONN's gui in order to avoid potentially loosing any unsaved changes
 %    
 
-persistent defaults;
+persistent defaults modules modulespath;
 
 if isempty(defaults), defaults=struct('mat_format','-v7.3'); end
+if isempty(modules), 
+    LETOVERLOAD=true; % true: allows module functions to be overloaded by same-name functions within folders higher in Matlab path
+    modulespath=conn_dir(fullfile(fileparts(which(mfilename)),'modules','*'),'^[^\.].*','-dir','-cell','-R'); 
+    modules=regexprep(modulespath,'^.*[\\\/]',''); 
+    for n=1:numel(modules), 
+        if LETOVERLOAD&&isempty(which(modules{n})), addpath(modulespath{n});
+        elseif ~LETOVERLOAD&&~isequal(which(modules{n}),modulespath{n}), addpath(modulespath{n});
+        end
+    end
+end
 if ~nargin, help(mfilename); return; end
 
 varargout={[]};
@@ -660,13 +670,18 @@ switch(lower(option))
         end
         
     otherwise
-        if ~isempty(which(sprintf('conn_module_%s',option))),
+        if ~isempty(which(sprintf('conn_module_%s',option))), % conn_module_* functions
             fh=eval(sprintf('@conn_module_%s',option));
             if nargout, [varargout{1:nargout}]=feval(fh,varargin{:});
             else feval(fh,varargin{:});
             end
+        elseif ismember(regexprep(option,'_.*$',''),modules) % conn/modules/[root]/[root_*] functions
+            fh=eval(sprintf('@%s',option));
+            if nargout, [varargout{1:nargout}]=feval(fh,varargin{:});
+            else feval(fh,varargin{:});
+            end
         else
-            disp(sprintf('unrecognized option %s or conn_module_%s function',option,option));
+            disp(sprintf('unrecognized conn_module option %s or function conn_module_%s or module %s',option,option,option));
         end
 end
 end

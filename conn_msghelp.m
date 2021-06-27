@@ -1,7 +1,7 @@
 function conn_msghelp(option,varargin)
 persistent dates dates_num titles msgs ids dlg titles_fmt selected keys sortby;
 global CONN_gui;
-if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 if isempty(titles)
     if conn_existfile(conn_prepend('',which(mfilename),'.mat')), load(conn_prepend('',which(mfilename),'.mat'),'strall','titles','msgs','ids','dates','dates_num','titles_fmt');

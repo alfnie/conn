@@ -57,7 +57,7 @@ for nsub=1:CONN_x.Setup.nsubjects,
     end
 end
 if conn_projectmanager('inserver'), 
-    ismissing=conn_server('run',mfilename,'missinglabel',list_tfilename);
+    ismissing=conn_server('run',mfilename,'missinglabel',conn_server('util_localfile',list_tfilename));
     for n=1:numel(ismissing), if ismissing(n), MD(list_MD(n))=false; end; end
 end
 end
@@ -68,6 +68,6 @@ try,
     try, a=nifti(tfilename);
     catch, a=spm_vol(tfilename);
     end
-    if isfield(a,'descrip')&&ischar(a.descrip)&&strcmp(a.descrip,'CONNlabel:MissingData'), ok=true; end
+    try, if isequal(a.descrip,'CONNlabel:MissingData'), ok=true; end; end
 end
 end

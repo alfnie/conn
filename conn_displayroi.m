@@ -4376,7 +4376,7 @@ function [filename_rois,filename_sources,viewrex]=conn_displayroi_selectfiles(fi
 global CONN_gui;
 if nargin<2||isempty(filename_sources), filename_sources=''; end
 if nargin<3||isempty(viewrex), viewrex=0; end
-if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 filename_rois0=filename_rois;
 filename_sources0=filename_sources;

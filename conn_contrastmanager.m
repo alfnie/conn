@@ -1,6 +1,6 @@
 function [ok,varargout]=conn_contrastmanager(str,varargin)
 global CONN_x CONN_gui;
-if ~isfield(CONN_gui,'font_offset'), CONN_gui.font_offset=0; end
+if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 ht1=[];
 forcesave=false;

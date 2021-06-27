@@ -8,8 +8,6 @@ if nargin<2||isempty(validrois), validrois=1:3; end
 if nargin<3||isempty(REDO), REDO='yes'; end
 if conn_projectmanager('inserver'), conn_process('maskserode',validsubjects,validrois,REDO); return; end
 
-[path,name,ext]=fileparts(CONN_x.filename);
-filepath=CONN_x.folders.data;
 clear Vmask;
 for nsub=validsubjects,
     nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
