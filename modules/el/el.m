@@ -56,6 +56,18 @@ function varargout=el(option,varargin)
 %                                   .cfg file defining additional first-level model estimation options
 %                                   Alternatively, a modelOPTIONS is just a shortcut to a .cfg file located in conn/modules/el/ and named "pipeline_model_<modelOPTIONS>.cfg"; e.g. 'Default' is a shortcut to the .cfg file named ..../modules/el/pipeline_model_Default.cfg)
 %                                   Alternatively, if unspecified or left empty, it takes the value 'Default' (conn/modules/el/pipeline_model_Default.cfg)
+%      e.g.
+%           >> el model 408_FED_20160617a_3T2 DefaultMNI_PlusStructural langlocSN
+%
+%   submitID = el('submit','model',...) runs first-level GLM model estimation step on remote node
+%
+%      e.g.  
+%           >> el submit preprocessing 408_FED_20160617a_3T2
+%
+%   el('model.plot',subjectID, pipelineID, designID) displays first-level effect-size estimates
+%   el('model.qa',subjectID, pipelineID, designID) creates QA plots on first-level GLM analyses
+%   el('qa.plot',subjectID, pipelineID) displays already-created QA plots
+%
 %
 % CONFIGURATION OPTIONS:
 %
@@ -357,6 +369,28 @@ switch(lower(option))
         end
         cd(pwd0);
 
+    case {'model.plot'}
+        assert(numel(varargin)>=3,'incorrect usage: please specify subject_id, pipeline_id, and firstlevel_id')
+        subject=char(varargin{1}); % subject id
+        if isempty(regexp(subject,'\.mat$'))
+            if numel(varargin)>=2&&~isempty(varargin{2}),
+                pipeline_id=char(varargin{2}); % pipeline id
+                dataset=fullfile(defaults.folder_subjects,subject,[pipeline_id,'.mat']);
+            else
+                subject_path=fullfile(defaults.folder_subjects,subject);
+                files=conn_dir(fullfile(subject_path,'*.mat'),'-ls');
+                assert(~isempty(files), 'unable to find any *.mat files in %s\n',subject_path);
+                if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
+                dataset=files{end};
+            end
+        else dataset=conn_fullfile(subject); 
+        end
+        expt=char(varargin{3}); % design
+        opts={dataset,expt,...
+            varargin{4:end}};
+        assert(conn_existfile(dataset),'file %s not found',dataset);
+        conn_module('evlab17','modelplots',opts{:});
+        
     case 'model.qa'
         if ~isempty(design_id), opts={'qa_plist',['firstlevel_',design_id],opts{:}};
         else opts={'qa_plist','preprocessing',opts{:}};
