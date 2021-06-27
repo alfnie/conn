@@ -330,6 +330,22 @@ else
         
         if isfield(options,'model_covariates')
             if ~iscell(options.model_covariates), options.model_covariates={options.model_covariates}; end
+            if any(strcmp(lower(options.model_covariates),'denoise'))
+                options.model_covariates=options.model_covariates(~strcmp(lower(options.model_covariates),'denoise'));
+                files=evlab17_module('get','l1covariates','QC_regressors');
+                if numel(files)<nsubject||isempty(files(nsubject))
+                    conn_disp('fprintf','WARNING: unable to load %s information. Skipping this covariate and using ''motion'' and ''art'' instead\n','denoise');
+                    options.model_covariates=unique([options.model_covariates(:)',{'motion','art'}]);
+                else
+                    files=files(nsubject);
+                    for nses=1:NSESSIONS
+                        if ~isfield(matlabbatch{1}.spm.stats.fmri_spec,'sess')||numel(matlabbatch{1}.spm.stats.fmri_spec.sess)<nses||~isfield(matlabbatch{1}.spm.stats.fmri_spec.sess(nses),'multi_reg')||isempty(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).multi_reg),
+                            matlabbatch{1}.spm.stats.fmri_spec.sess(nses).multi_reg={};
+                        end
+                        matlabbatch{1}.spm.stats.fmri_spec.sess(nses).multi_reg{end+1,1}=files{1}{RUNS(nses)};
+                    end
+                end
+            end
             if any(ismember(lower(options.model_covariates),{'motion','motion+deriv','motion+deriv+square','motion+square+deriv'}))
                 do12=any(ismember(lower(options.model_covariates),{'motion+deriv'}));
                 do24=any(ismember(lower(options.model_covariates),{'motion+deriv+square','motion+square+deriv'}));
@@ -552,7 +568,7 @@ else
     
     if skipmodeldefinition, load(fullfile(pwd1,'SPM.mat'),'SPM'); SPM.xY.Y={}; SPM.xY=rmfield(SPM.xY,'VY'); end
     if isempty(functional_label), files=evlab17_module('get','functionals');
-    else files=evlab17_module('get','functionals',functional_label);
+    else files=evlab17_module('get','functionals',char(functional_label));
     end
     files=files(nsubject);
     for nses=1:NSESSIONS

@@ -1048,8 +1048,8 @@ for iSTEP=1:numel(STEPS)
                         lagidx=[];
                         lagmax=[];
                         if any(reg_filter), rt=conn_get_rt(nsubject,nses,sets); end
-                        X=[ones(numel(Vin),1)]; Xnames={'session'};
-                        if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; Xnames{end+1}='detrend'; end
+                        X=[ones(numel(Vin),1)]; Xnames={'session (1)'};
+                        if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; Xnames{end+1}='detrend (1)'; end
                         entercovariates=X;
                         reg_done=false(size(reg_names));
                         for nl1covariate=1:numel(reg_names)
@@ -1070,7 +1070,7 @@ for iSTEP=1:numel(STEPS)
                                 if numel(reg_deriv)>=nl1covariate&&reg_deriv(nl1covariate)>1, data=[data, convn(cat(1,ddata(1,:),ddata,ddata(end,:)),[1;0;-1],'valid')]; end
                                 if numel(reg_filter)>=nl1covariate&&reg_filter(nl1covariate)>0, data=conn_filter(rt,bp_filter,data); end
                                 if numel(reg_lag)>=nl1covariate&&reg_lag(nl1covariate)>0, lagidx=[lagidx, size(X,2)+(1:size(data,2))]; end
-                                if nnz(data~=0&data~=1), X=cat(2,X,data-repmat(mean(data,1),size(data,1),1)); % note: 0/1 covariates not centered
+                                if nnz(data~=0&data~=1), X=cat(2,X,data-repmat(mean(data,1),size(data,1),1)); Xnames{end+1}=sprintf('%s (%d)',reg_names{nl1covariate},size(data,2)); % note: 0/1 covariates not centered
                                 else X=cat(2,X,data); Xnames{end+1}=sprintf('%s (%d)',reg_names{nl1covariate},size(data,2));
                                 end
                             end
@@ -1157,7 +1157,7 @@ for iSTEP=1:numel(STEPS)
                         if ~reg_skip, outputfiles{isubject}{nses}{1}=char(fileout);
                         else outputfiles{isubject}{nses}{1}=char(filein);
                         end
-                        outputfiles{isubject}{nses}{2}=X;
+                        outputfiles{isubject}{nses}{2}=conn_prepend('dp_',filein{1},'.txt');
                     end
                 end
             end
