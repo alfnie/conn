@@ -7,18 +7,18 @@ function varargout=conn_module(option,varargin)
 %    PREPROCESSING : runs CONN preprocessing pipeline on user-defined data
 %
 %       basic syntax: conn_module preprocessing
-%       advanced syntax: conn_module('preprocessing', fieldname1, fieldvalue1, fieldname2, fieldvalue2, ...)
+%       advanced syntax: conn_module('PREP', fieldname1, fieldvalue1, fieldname2, fieldvalue2, ...)
 %
 %                 Input data is specified with field name/value pairs as defined in batch.Setup documentation
 %                 Preprocessing options are specified with field name/value pairs as defined in batch.Setup.preprocessing documentation
 %                    functionals       : list of functional data files { { Sub1Ses1, Sub1Ses2, ...}, {Sub2Ses1, Sub2Ses2, ...}, ...}
 %                    structurals       : list of structural data files { Sub1, Sub2, ...}
-%                    steps             : list of preprocessing steps (tpye "conn_module preprocessing steps" for a list of valid preprocessing step names)
+%                    steps             : list of preprocessing steps (tpye "conn_module PREP steps" for a list of valid preprocessing step names)
 %
 %                 See "doc conn_batch" for a complete list of these options
 %                 See Nieto-Castanon, 2020 for details about these preprocessing steps and pipelines (www.conn-toolbox.org/fmri-methods)
 %
-%       e.g. conn_module('preprocessing',...
+%       e.g. conn_module('PREP',...
 %             'steps','default_mni',...
 %             'functionals',{'./func.nii'},...
 %             'structurals',{'./anat.nii'},...
@@ -26,7 +26,7 @@ function varargout=conn_module(option,varargin)
 %             'sliceorder','interleaved (Siemens)');
 %            runs default MNI-space preprocessing pipeline on the specified functional/structural data
 %
-%       alternative syntax: conn_module('preprocessing',optionsfile) 
+%       alternative syntax: conn_module('PREP',optionsfile) 
 %          input data and preprocessing options defined in .cfg (see conn_loadcfgfile/conn_savecfgfile) or .json (see spm_jsonread/spm_jsonwrite) structure text file 
 %
 %       alternative syntax: conn_module preprocessing steps
@@ -34,12 +34,13 @@ function varargout=conn_module(option,varargin)
 %
 %    GLM : runs CONN second-level analyses on user-defined data
 %
-%       basic syntax: conn_module glm
-%       advanced syntax: conn_module('glm', fieldname1, fieldvalue1, fieldname2, fieldvalue2, ...)
+%       basic syntax: conn_module GLM
+%       advanced syntax: conn_module('GLM', fieldname1, fieldvalue1, fieldname2, fieldvalue2, ...)
 %               with the following field name/value pairs
 %                  data            : list of nifti files entered into second-level analysis (Nsubjects x Nmeasures) defining one or multiple outcome / dependent measures 
 %                                       note: when entering multiple files per subject (e.g. repeated measures) enter first all files (one per subject) for measure#1, followed by all files for measure#2, etc.
 %                                       note: nifti files may contani 3d volume-level data, fsaverage surface-level data, or ROI-to-ROI data (see conn_surf_write and conn_mtx_write to create surface/matrix nifti files)
+%                                       note: enter a single 4d file or a filename with wildcards (e.g. vol_*.nii) to simplify the specification of multiple files 
 %                                    alternatively list of SPM.mat files containing first-level analyses (Nsubjects x 1, or Nsubjects x Nmeasures)
 %                                    alternatively list of folder names containing SPM.mat first-level analyses (Nsubjects x 1, or Nsubjects x Nmeasures)
 %                  design_matrix   : design matrix (Nsubjects x Neffects) defining different explanatory / independent measures or subject-effects 
@@ -56,28 +57,28 @@ function varargout=conn_module(option,varargin)
 %                  design_file     : (optional) (alternative to design_matrix field) file containing design_matrix data (.csv/.tsv/.txt/.json/.mat with Nsubjects x Neffects matrix of explanatory / independent measures)
 %                  design          : (optional) (alternative to design_matrix field) transpose of design_matrix (Neffects x Nsubjects); enter one row for each modeled effect (across subjects); each row should contain one value/number per subject
 %
-%         eg: conn_module('glm', ...
+%         eg: conn_module('GLM', ...
 %            'design_matrix',[1; 1; 1; 1] ,...
 %            'data',{'subject1.img'; 'subject2.img'; 'subject3.img'; 'subject4.img'} );
 %             performs a one-sample t-test and stores the analysis results in the current folder
 %
-%         eg: conn_module('glm', ...
+%         eg: conn_module('GLM', ...
 %            'design_matrix',[1 0; 1 0; 0 1; 0 1; 0 1],...
 %            'data', {'subject1_group1.img'; 'subject2_group1.img'; 'subject1_group2.img'; 'subject2_group2.img'; 'subject3_group2.img'},...
 %            'contrast_between',[1 -1]);
 %             performs a two-sample t-test and stores the analysis results in the current folder
 %
-%         eg: conn_module('glm', ...
+%         eg: conn_module('GLM', ...
 %            'design_matrix', [1; 1; 1; 1],...
 %            'data', {'subject1_time1.img', subject1_time2.img'; 'subject2_time1.img', subject2_time2.img'; 'subject3_time1.img', subject3_time2.img'; 'subject4_time1.img', subject4_time2.img'},...
 %            'contrast_beetween',1,...
 %            'contrast_within',[1 -1]);
 %             performs a paired t-test and stores the analysis results in the current folder
 %
-%       alternative syntax: conn_module('glm',optionsfile) 
+%       alternative syntax: conn_module('GLM',optionsfile) 
 %          input data and GLM options defined in .cfg (see conn_loadcfgfile/conn_savecfgfile) or .json (see spm_jsonread/spm_jsonwrite) structure text file 
 %
-%       alternative syntax: spmfolder=conn_module('glm',...) 
+%       alternative syntax: spmfolder=conn_module('GLM',...) 
 %          skips results display step (only computes second-level analysis, and returns folder where results are stored)
 %          use conn_display(spmfolder) syntax to then launch the results explorer window on previously computed analyses
 %
@@ -346,16 +347,16 @@ switch(lower(option))
                 end
         end
         
-    case 'preprocessing'
+    case {'prep','preprocessing'}
         options=struct;
         if isempty(varargin)
-            answ=inputdlg('Enter number of subjects','conn_module preprocessing',1,{'1'});
+            answ=inputdlg('Enter number of subjects','conn_module PREP',1,{'1'});
             if isempty(answ), return; end
             options.nsubjects=str2num(answ{1});
             options.functionals=cell(options.nsubjects,1);
             nsessions=ones(1,options.nsubjects);
             for nsubject=1:options.nsubjects,
-                temp=inputdlg(['Subject ',num2str(nsubject),': Enter number of runs/sessions'],'conn_module preprocessing',1,{num2str(nsessions(min(length(nsessions),nsubject)))});
+                temp=inputdlg(['Subject ',num2str(nsubject),': Enter number of runs/sessions'],'conn_module PREP',1,{num2str(nsessions(min(length(nsessions),nsubject)))});
                 if isempty(temp), return; end
                 temp=str2num(temp{1});
                 nsessions(nsubject)=temp;
@@ -373,7 +374,7 @@ switch(lower(option))
             options.steps='';
             options.multiplesteps=1;
         elseif isstruct(varargin{1})
-            % syntax: conn_module('preprocessing',struct('data',...),...)
+            % syntax: conn_module('PREP',struct('data',...),...)
             n=1;
             options=varargin{n};
         elseif nargin==2&&isequal(varargin{1},'steps')
@@ -384,7 +385,7 @@ switch(lower(option))
             end
             return
         elseif nargin==2
-            % syntax: conn_module preprocessing optionsfile.cfg
+            % syntax: conn_module PREP optionsfile.cfg
             n=1;
             if ~isempty(varargin{n}), 
                 filename=varargin{n};
@@ -414,7 +415,7 @@ switch(lower(option))
                 end
             end
         else
-            % syntax: conn_module preprocessing fieldname1 fieldvalue1 ...
+            % syntax: conn_module PREP fieldname1 fieldvalue1 ...
             n=0;
         end
         for n=n+1:2:numel(varargin)-1
@@ -479,12 +480,12 @@ switch(lower(option))
         % loads .cfg files
         options=struct;
         if nargin==1 
-            % syntax: conn_module glm
+            % syntax: conn_module GLM
             conn_module_glminternal;
             return            
         elseif nargin==2||(nargin>2&&rem(numel(varargin),2)>0&&(ischar(varargin{1})||isstruct(varargin{1})||isempty(varargin{1})))
-            % syntax: conn_module glm optionsfile.cfg
-            % syntax: conn_module glm optionsfile.cfg fieldname1 fieldvalue1 ...
+            % syntax: conn_module GLM optionsfile.cfg
+            % syntax: conn_module GLM optionsfile.cfg fieldname1 fieldvalue1 ...
             n=1;
             if ~isempty(varargin{n}), 
                 filename=varargin{n};
@@ -506,13 +507,13 @@ switch(lower(option))
                 end
             end
         elseif nargin>1&&~isempty(varargin{1})&&isnumeric(varargin{1}) 
-            % syntax: conn_module glm X,Y,... (for back-compatibility)
+            % syntax: conn_module GLM X,Y,... (for back-compatibility)
             if nargout>0, conn_module_glminternal(varargin{:});
             else [varargout{1:nargout}]=conn_module_glminternal(varargin{:});
             end
             return            
         else 
-            % syntax: conn_module glm fieldname1 fieldvalue1 ...
+            % syntax: conn_module GLM fieldname1 fieldvalue1 ...
             n=0;
         end
         for n=n+1:2:numel(varargin)-1
@@ -556,6 +557,7 @@ switch(lower(option))
         Y = options.data;
         options=rmfield(options,'data');
         if ischar(Y), Y=cellstr(Y); end
+        if numel(Y)==1&&any(Y{1}=='*'), Y=conn_dir(Y{1},'-ls'); end
         if numel(Y)==1, try, Y=conn_expandframe(Y); end; end
         assert(~rem(numel(Y),size(X,1)),'mismatch number of subjects in #design (%d subjects) and total number of entries in #data (%d)',size(X,1),numel(Y));
         Y = reshape(Y, size(X,1),[]);

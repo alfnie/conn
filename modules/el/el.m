@@ -5,8 +5,10 @@ function varargout=el(option,varargin)
 %
 %   el root.subjects <subjects_folder>   : defines root directory where subject folders are stored
 %                                    Altnernatively, this is defined by the symbolic link conn/modules/el/root.subjects if it exists
-%   el root.tasks <subjects_folder>      : defines root directory where experimental design files are stored
+%                                    (syntax "el root.subjects <subjects_folder> all" may be used to create this symbolic link)
+%   el root.tasks <tasks_folder>         : defines root directory where experimental design files are stored
 %                                    Altnernatively, this is defined by the symbolic link conn/modules/el/root.tasks if it exists
+%                                    (syntax "el root.tasks <tasks_folder> all" may be used to create this symbolic link)
 %
 % PREPROCESSING SYNTAX:
 %
@@ -100,10 +102,12 @@ varargout=cell(1,nargout);
 
 switch(lower(option))
     case 'root.subjects'
+        if numel(varargin)>1&&isequal(varargin{2},'all'), conn_fileutils('linkdir',varargin{1},fullfile(fileparts(which(mfilename)),'root.subjects')); end
         if numel(varargin)>0, defaults.folder_subjects=varargin{1};
         else varargout={defaults.folder_subjects};
         end
     case 'root.tasks'
+        if numel(varargin)>1&&isequal(varargin{2},'all'), conn_fileutils('linkdir',varargin{1},fullfile(fileparts(which(mfilename)),'root.tasks')); end
         if numel(varargin)>0, defaults.folder_tasks=varargin{1};
         else varargout={defaults.folder_tasks};
         end

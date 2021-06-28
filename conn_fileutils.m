@@ -12,6 +12,7 @@ function varargout=conn_fileutils(option,varargin)
 % conn_fileutils('emptyfile', filename)             : creates empty file
 % conn_fileutils('mkdir', dirname)                  : creates new folder
 % conn_fileutils('rmdir', dirname)                  : removes folder
+% conn_fileutils('linkdir', dirname, link)          : soft-link folders
 % conn_fileutils('dir', name)                       : lists files in folder
 % conn_fileutils('isdir', dirname)                  : returns true if dirname points to an existing directory
 % conn_fileutils('cd', dirname)                     : changes current working directory
@@ -78,6 +79,17 @@ switch(lower(option))
         elseif iscell(varargin{1}), cellfun(@(a,b)conn_fileutils(option,a,b),varargin{1},varargin{2},'uni',0);
         else
             [ok,nill]=system(['ln -fs ''',varargin{1},''' ''',varargin{2},'''']);
+            if ~isequal(ok,0), error('Error linking file %s to %s, missing file or invalid file permissions',varargin{1},varargin{2}); end
+        end
+        
+    case {'dirlink','linkdir'}
+        if any(conn_server('util_isremotefile',varargin{1})), 
+            conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),conn_server('util_localfile',varargin{2}));
+        elseif iscell(varargin{1}), cellfun(@(a,b)conn_fileutils(option,a,b),varargin{1},varargin{2},'uni',0);
+        else
+            if ispc, [ok,nill]=system(['mklink /d "',varargin{2},'" "',varargin{1},'"']);
+            else [ok,nill]=system(['ln -fs ''',varargin{1},''' ''',varargin{2},'''']);
+            end
             if ~isequal(ok,0), error('Error linking file %s to %s, missing file or invalid file permissions',varargin{1},varargin{2}); end
         end
         
