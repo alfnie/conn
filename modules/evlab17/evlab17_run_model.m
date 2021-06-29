@@ -51,7 +51,7 @@ function evlab17_run_model(varargin)
 %      functional_label: choose version of functional data to enter in first-level analysis: only when used in combination with "functional_label" preprocessing steps: enter Secondary Dataset label identifying the desired functional dataset (default: Primary Dataset, i.e. fully preprocessed functional data)
 %      functional_smoothinglevel: choose version of functional data to enter in first-level analysis: only when used in combination with preprocessing pipelines which implement multiple smoothing steps: enter 0/1/2 (0 unsmoothed data; 1 minimally-smoothed data; 2 fully-smoothed data) (default: 1)
 %      model_basis     : hrf / hrf+deriv / hrf+derivs / none : response function: enter hrf for hemodynamic response function only; hrf+deriv to add temporal derivative; hrf+derivs to add temporal and dispersion derivatives; none for no hrf convolution (default: hrf+deriv)
-%      model_covariates: list of additional covariates; possible values: motion, motion+deriv, motion+deriv+square, art (for scrubbing), linear (for detrending), denoise (for any functional_regression step), or <filename>.mat (one file per run) (default: motion / art)
+%      model_covariates: list of additional covariates; possible values: motion, motion+deriv, motion+deriv+square, art (for scrubbing), linear (for detrending), denoise (for any functional_regression step), any 1st-level covariate name, or <filename>.mat (one file per run) (default: motion / art)
 %      model_serial    : none / AR(1) : serial correlation modeling (default: AR(1))
 %      model_session   : 1/0 : estimates session-specific task effects (default value: 1; when set to 0 SPM estimates session-invariant task effects -it assumes same effect across all sessions-; alternatively set to cell array of task names in order to specify individual task effects that will be model as session-invariant)
 %      model_folder    : folder where model_name subfolder will be created (default '../'; relative to dataset file) 
@@ -393,6 +393,23 @@ else
                     if ~isfield(matlabbatch{1}.spm.stats.fmri_spec,'sess')||numel(matlabbatch{1}.spm.stats.fmri_spec.sess)<nses||~isfield(matlabbatch{1}.spm.stats.fmri_spec.sess(nses),'regress')||isempty(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).regress),
                         matlabbatch{1}.spm.stats.fmri_spec.sess(nses).regress=newregress;
                     else matlabbatch{1}.spm.stats.fmri_spec.sess(nses).regress(end+1)=newregress;
+                    end
+                end
+            end
+            while ~isempty(options.model_covariates) % 1st-level covariate names
+                cname=options.model_covariates{1};
+                files={}; try, files=evlab17_module('get','l1covariates',cname); end
+                if isempty(files), break; end
+                options.model_covariates=options.model_covariates(~strcmp(options.model_covariates,cname));
+                if numel(files)<nsubject||isempty(files(nsubject))
+                    conn_disp('fprintf','WARNING: unable to load %s information. Skipping this covariate\n',cname);
+                else
+                    files=files(nsubject);
+                    for nses=1:NSESSIONS
+                        if ~isfield(matlabbatch{1}.spm.stats.fmri_spec,'sess')||numel(matlabbatch{1}.spm.stats.fmri_spec.sess)<nses||~isfield(matlabbatch{1}.spm.stats.fmri_spec.sess(nses),'multi_reg')||isempty(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).multi_reg),
+                            matlabbatch{1}.spm.stats.fmri_spec.sess(nses).multi_reg={};
+                        end
+                        matlabbatch{1}.spm.stats.fmri_spec.sess(nses).multi_reg{end+1,1}=files{1}{RUNS(nses)};
                     end
                 end
             end
