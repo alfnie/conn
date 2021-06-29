@@ -214,9 +214,15 @@ if doinit
     conn_mesh_display_refresh([],[],'remap');
 end
 
-state.handles.hfig=figure('numbertitle','off','color',state.background,'units','norm','position',[.3 .4 .4 .4],'menubar','none','render','opengl','name','rendering, please wait...','colormap',state.colormap,'visible','off');
-figname='conn 3d display'; 
-axes('units','norm','position',[.95 .1 .04 .8]);
+hax0=findobj(0,'type','axes','tag','conn_mesh_display_axes');
+if isempty(hax0)
+    state.handles.hfig=figure('numbertitle','off','color',state.background,'units','norm','position',[.3 .4 .4 .4],'menubar','none','render','opengl','name','rendering, please wait...','colormap',state.colormap,'visible','off');
+    figname='conn 3d display';
+    axes('units','norm','position',[.95 .1 .04 .8]);
+else
+    phax0=get(hax0,'position');
+    axes('units','norm','position',[phax0(1)+phax0(3) phax0(2) .05*phax0(3) phax0(4)]);
+end
 if state.dotwosided,
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
     set(gca,'ydir','normal','ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on');
@@ -232,7 +238,9 @@ else
 end
 state.handles.colorbar=[gca temp];
 set(state.handles.colorbar,'visible','off');
-state.handles.hax=axes('parent',state.handles.hfig);
+if isempty(hax0), state.handles.hax=axes('parent',state.handles.hfig);
+else state.handles.hax=hax0;
+end
 state.selected_vertices={1:size(data.rend{1}(1).vertices,1), CONN_gui.refs.surf.default2reduced};
 state.selected_faces={data.rend{1}(1).faces, CONN_gui.refs.surf.spherereduced.faces};
 state.handles.patch(1)=patch(struct('vertices',data.rend{state.selectedsurface}(1).vertices(state.selected_vertices{state.reducedpatch},:),'faces',state.selected_faces{state.reducedpatch}),'parent',state.handles.hax,...

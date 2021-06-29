@@ -359,7 +359,8 @@ switch(lower(option))
             assert(numel(con)==1,'found %d matches to %s in %s',numel(con),expt,all_contrasts_files);
             cons=str(idx(con)+1:idx(con+1)-3);
         end
-        cat_file=conn_dir(fullfile(subject_path,['*_',expt,'.cat']),'-ls');
+        cat_file=conn_dir(fullfile(subject_path,[expt,'.cat']),'-ls');
+        if isempty(cat_file), cat_file=conn_dir(fullfile(subject_path,['*_',expt,'.cat']),'-ls'); end
         assert(numel(cat_file)==1,'%d %s files found',numel(cat_file),fullfile(subject_path,['*_',expt,'.cat']));
         cat_info=conn_loadcfgfile(char(cat_file),struct('path',defaults.folder_tasks));
         DOSAVECFG=false;
