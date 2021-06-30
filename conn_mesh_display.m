@@ -220,6 +220,8 @@ if isempty(hax0)
     figname='conn 3d display';
     axes('units','norm','position',[.95 .1 .04 .8]);
 else
+    state.handles.hfig=hax0; while ~isequal(get(state.handles.hfig,'type'),'figure'), state.handles.hfig=get(state.handles.hfig,'parent'); end
+    figname=get(state.handles.hfig,'name');
     phax0=get(hax0,'position');
     axes('units','norm','position',[phax0(1)+phax0(3) phax0(2) .05*phax0(3) phax0(4)]);
 end

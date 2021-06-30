@@ -104,12 +104,16 @@ persistent defaults modules modulespath;
 
 if isempty(defaults), defaults=struct('mat_format','-v7.3'); end
 if isempty(modules), 
-    LETOVERLOAD=true; % true: allows module functions to be overloaded by same-name functions within folders higher in Matlab path
+    LETOVERLOAD=false; % true: allows module functions to be overloaded by same-name functions within folders higher in Matlab path
+                       % (set to 'true' in multiuser environments where you would like a common CONN version but possibly user-specific versions of module functions)
     modulespath=conn_dir(fullfile(fileparts(which(mfilename)),'modules','*'),'^[^\.].*','-dir','-cell','-R'); 
     modules=regexprep(modulespath,'^.*[\\\/]',''); 
     for n=1:numel(modules), 
-        if LETOVERLOAD&&isempty(which(modules{n})), addpath(modulespath{n});
-        elseif ~LETOVERLOAD&&~isequal(which(modules{n}),modulespath{n}), addpath(modulespath{n});
+        wmodules=fileparts(which(modules{n}));
+        if LETOVERLOAD&&isempty(wmodules), addpath(modulespath{n});
+        elseif ~LETOVERLOAD&&~isequal(wmodules,modulespath{n}), 
+            if ~isempty(wmodules), fprintf('warning: there is an existing version of module %s in your path (%s), overloading with version in %s. Please remove original version from your Matlab path to stop seeing this message in the future\n',modules{n},wmodules,modulespath{n}); end
+            addpath(modulespath{n});
         end
     end
 end
@@ -677,8 +681,10 @@ switch(lower(option))
             if nargout, [varargout{1:nargout}]=feval(fh,varargin{:});
             else feval(fh,varargin{:});
             end
-        elseif ismember(regexprep(option,'_.*$',''),modules) % conn/modules/[root]/[root_*] functions
-            fh=eval(sprintf('@%s',option));
+        elseif ismember(regexprep(lower(option),'_.*$',''),modules) % conn/modules/[root]/[root_*] functions
+            if ismember(lower(option),modules), fh=eval(sprintf('@%s',lower(option)));
+            else fh=eval(sprintf('@%s',option));
+            end
             if nargout, [varargout{1:nargout}]=feval(fh,varargin{:});
             else feval(fh,varargin{:});
             end

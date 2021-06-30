@@ -53,7 +53,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     CONN_gui.waiticon='watch';                        % 'watch' 'arrow'
     
     conn_font_offset=0;                               % font size offset
-    conn_font_init=true;
+    conn_dofont_init=true;
     conn_background=[];
     conn_tooltips=true;                               % enable tool-tips when hovering over each element
     conn_domacGUIbugfix=ismac;                        % troubleshoot popupmenu behavior 
@@ -68,7 +68,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
         elseif isdeployed, filename=fullfile(matlabroot,'conn_font_default.dat');
         else filename=fullfile(fileparts(which(mfilename)),'conn_font_default.dat');
         end
-        if conn_existfile(filename), load('-mat',filename,'conn_font_offset','conn_backgroundcolor','conn_backgroundcolorA','conn_background','conn_tooltips','conn_domacGUIbugfix','conn_dounixGUIbugfix','conn_checkupdates'); conn_font_init=false; %fprintf('gui settings loaded from %s\n',filename);
+        if conn_existfile(filename), load('-mat',filename,'conn_font_offset','conn_backgroundcolor','conn_backgroundcolorA','conn_background','conn_tooltips','conn_domacGUIbugfix','conn_dounixGUIbugfix','conn_checkupdates'); conn_dofont_init=false; %fprintf('gui settings loaded from %s\n',filename);
         end
     end
     CONN_gui.font_offset=conn_font_offset; 
@@ -121,7 +121,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     %hax=axes('units','norm','position',[0 0 1 1],'parent',CONN_h.screen.hfig);
     %h=text(0,-2,conn_msg(1),'fontunits','norm','fontsize',1/60,'horizontalalignment','center','verticalalignment','bottom','color',.75*[1 1 1],'parent',hax);
     %set(hax,'units','norm','position',[0 0 1 1],'xlim',[-2 2],'ylim',[-2.5 2]); axis(hax,'off');
-    if conn_font_init,
+    if conn_dofont_init,
         drawnow;
         set(h,'fontunits','points');
         tfontsize=get(h,'fontsize');

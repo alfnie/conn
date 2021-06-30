@@ -127,8 +127,8 @@ switch(lower(option))
         if ~nargout, conn('submit',@el,varargin{:}); % e.g. el submit preprocessing 408_FED_20160617a_3T2
         else [varargout{1:nargout}]=conn('submit',@el,varargin{:});
         end
-            
-    case {'preprocessing','preprocessing.test'}
+
+    case 'preprocessing'
         % adapted from msieg preprocess_PL2017
         % el('preprocessing',subject_id [, preprocessing_pipeline_file])
         % e.g. el preprocessing 408_FED_20160617a_3T2
@@ -136,100 +136,49 @@ switch(lower(option))
         pwd0=pwd;
         subject=char(varargin{1}); % subject id
         subject_path=fullfile(defaults.folder_subjects,subject);
+        assert(conn_existfile(subject_path,2),'unable to find directory %s',subject_path);
         data_config_file=fullfile(subject_path,'data.cfg');
-        %subject_keys=regexp(subject,'_','split');
-        %subject_path_dicoms = fullfile(subject_path,strjoin([subject_keys(2:4),{'dicoms'}],'_')); % 268_FED_20170929a_3T2_PL2017_unsmoothed/FED_20170929a_3T2_dicoms, 268_KAN_EvDB_20150317a_PL2017/KAN_EvDB_20150317a_dicoms, 230_KAN_prodsemphon_12_PL2017/KAN_prodsemphon_12_dicoms, 183_POLY01_20160420_3T1/POLY01_20160420_3T1_dicoms
+        assert(conn_existfile(data_config_file),'unable to find data configuration file %s',data_config_file);
 
-        if strcmpi(option,'preprocessing.test')||~conn_existfile(data_config_file)
-            subject_path_dicoms = fullfile(subject_path,defaults.folder_dicoms);
-            if any(subject_path_dicoms=='*'), subject_path_dicoms = conn_dir(subject_path_dicoms ,'-dir','-R','-cell','-sort'); end
-            assert(~isempty(subject_path_dicoms),'unable to find dicom folder %s\n',fullfile(subject_path,defaults.folder_dicoms));
-            if iscell(subject_path_dicoms), subject_path_dicoms=subject_path_dicoms{1}; end
-            data_config_file='';
-            func_runs=[];
-            struct_run=[];
-
-            Series=conn_dcmdir(fullfile(subject_path_dicoms,'*-1.dcm'),false);
-            idx=find(cellfun('length',{Series.SeriesDescription})>0&cellfun('length',{Series.SeriesNumber})>0);
-            SeriesDescription={Series(idx).SeriesDescription};
-            SeriesNumber=[Series(idx).SeriesNumber];
-            struct_run = SeriesNumber(find(cellfun(@(x)~isempty(regexp(char(x),strjoin(defaults.dicom_isstructural,'|'))),SeriesDescription)>0,1,'first')); % keep first structural
-            func_runs = setdiff(SeriesNumber(find(cellfun(@(x)isempty(regexp(char(x),strjoin(defaults.dicom_disregard_functional,'|'))),SeriesDescription)>0)),struct_run); % keep all functionals
-            assert(~isempty(func_runs),'unable to find any functional runs in %s\n',subject_path_dicoms);
-            try,
-                fid=1; %fopen(fullfile(subject_path_dicoms,'runs.csv'),'wt');
-                fprintf(fid,'SeriesNumber,SeriesDescription\n');
-                for n=1:numel(SeriesNumber), fprintf(fid,'%s,%s\n',num2str(SeriesNumber(n)),SeriesDescription{n}); end
-                fclose(fid);
-                %fprintf('DICOM series information stored in %s\n',fullfile(subject_path_dicoms,'runs.csv'))
+        info=conn_loadcfgfile(data_config_file);
+        if isfield(info,'structurals'), struct_run=info.structurals;
+        else struct_run=[];
+        end
+        if numel(varargin)<2||isempty(varargin{2})
+            if isempty(struct_run), preproc_config_file = fullfile(fileparts(which(mfilename)),'pipeline_preproc_DefaultMNI.cfg');
+            else preproc_config_file = fullfile(fileparts(which(mfilename)),'pipeline_preproc_DefaultMNI_PlusStructural.cfg');
             end
-            
-            all_runs=[struct_run func_runs];
-            fid=fopen(fullfile(subject_path,'data.cfg'),'wt');
-            fprintf(fid,'\n#dicoms\n');
-            for n=1:numel(all_runs), fprintf(fid,'%s\n',fullfile(subject_path_dicoms,['*-' num2str(all_runs(n)) '-1.dcm'])); end
-            fprintf(fid,'\n#functionals\n');
-            fprintf(fid,'%s\n',num2str(func_runs));
-            if ~isempty(struct_run)
-                fprintf(fid,'\n#structurals\n');
-                fprintf(fid,'%s\n',num2str(struct_run));
-            end
-            fprintf(fid,'\n#RT nan\n'); % note: will read RT from .json files
-            fclose(fid);
-            data_config_file=fullfile(subject_path,'data.cfg');
-            fprintf('Created data configuration file %s\n',data_config_file);
-%             else % run numbers
-%                 if ischar(varargin{2})&&conn_existfile(varargin{2}), data_config_file=varargin{2};
-%                 elseif isstruct(varargin{2}), data_config_file=varargin{2};
-%                 elseif ischar(varargin{2})&&~isempty(str2num(varargin{2})), func_runs=str2num(varargin{2});
-%                 else error('unrecognized data descriptor argument');
-%                 end
-%             end
-            fprintf('Ready to run preprocessing\n');
-            varargout{1}=data_config_file;
+            assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',preproc_config_file);
         else
-            info=conn_loadcfgfile(data_config_file);
-            if isfield(info,'structurals'), struct_run=info.structurals;
-            else struct_run=[];
+            preproc_config_file = varargin{2};
+            preproc_config_file=conn_prepend('',preproc_config_file,'.cfg');
+            if isempty(fileparts(preproc_config_file)),
+                preproc_config_file=fullfile(fileparts(which(mfilename)),preproc_config_file);
+                if ~conn_existfile(preproc_config_file), preproc_config_file=conn_prepend('pipeline_preproc_',preproc_config_file,'.cfg'); end
             end
+            assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',varargin{2});
         end
-        if strcmpi(option,'preprocessing')
-            if numel(varargin)<2||isempty(varargin{2})
-                if isempty(struct_run), preproc_config_file = fullfile(fileparts(which(mfilename)),'pipeline_preproc_DefaultMNI.cfg');
-                else preproc_config_file = fullfile(fileparts(which(mfilename)),'pipeline_preproc_DefaultMNI_PlusStructural.cfg');
-                end
-                assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',preproc_config_file);
-            else
-                preproc_config_file = varargin{2};
-                preproc_config_file=conn_prepend('',preproc_config_file,'.cfg');
-                if isempty(fileparts(preproc_config_file)), 
-                    preproc_config_file=fullfile(fileparts(which(mfilename)),preproc_config_file); 
-                    if ~conn_existfile(preproc_config_file), preproc_config_file=conn_prepend('pipeline_preproc_',preproc_config_file,'.cfg'); end
-                end
-                assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',varargin{2});
-            end
-            
-            %run preproc
-            if strcmpi(option,'preprocessing.main') 
-                [ok,msg]=mkdir(fullfile(subject_path,'nii'));
-                cd(fullfile(subject_path,'nii'));
-                fileout=conn_module('evlab17','run_preproc',data_config_file,preproc_config_file,[],varargin(3:end));
-            else % copies data to pipeline-specific folder before preprocessing
-                [nill,tname]=fileparts(preproc_config_file);
-                tname=regexprep(tname,'^pipeline_preproc_','');
-                dataset=fullfile(subject_path,[tname,'.mat']);
-                [ok,msg]=mkdir(fileparts(dataset));
-                cd(fileparts(dataset));
-                fileout=conn_module('evlab17','run_preproc',data_config_file,[],'dataset',dataset);
-                conn_module('evlab17','save',dataset);
-                conn_module('evlab17','update'); % import
-                conn_importvol2bids(2);
-                conn save;
-                fileout=conn_module('evlab17','run_preproc',preproc_config_file,[],'dataset',dataset,varargin(3:end));
-            end
-            cd(pwd0);
-            varargout{1}=fileout;
+        
+        %run preproc
+        if strcmpi(option,'preprocessing.main')
+            [ok,msg]=mkdir(fullfile(subject_path,'nii'));
+            cd(fullfile(subject_path,'nii'));
+            fileout=conn_module('evlab17','run_preproc',data_config_file,preproc_config_file,[],varargin(3:end));
+        else % copies data to pipeline-specific folder before preprocessing
+            [nill,tname]=fileparts(preproc_config_file);
+            tname=regexprep(tname,'^pipeline_preproc_','');
+            dataset=fullfile(subject_path,[tname,'.mat']);
+            [ok,msg]=mkdir(fileparts(dataset));
+            cd(fileparts(dataset));
+            fileout=conn_module('evlab17','run_preproc',data_config_file,[],'dataset',dataset);
+            conn_module('evlab17','save',dataset);
+            conn_module('evlab17','update'); % import
+            conn_importvol2bids(2);
+            conn save;
+            fileout=conn_module('evlab17','run_preproc',preproc_config_file,[],'dataset',dataset,varargin(3:end));
         end
+        cd(pwd0);
+        varargout{1}=fileout;
     
     case 'preprocessing.append'
         % el('preprocessing.append',subject_id, preprocessing_pipeline_original, preprocessing_pipeline_append)
@@ -266,6 +215,60 @@ switch(lower(option))
         cd(pwd0);
         varargout{1}=fileout; 
     
+    case 'createdatacfg' % subject id
+        pwd0=pwd;
+        subject=char(varargin{1}); % subject id
+        subject_path=fullfile(defaults.folder_subjects,subject);
+        assert(conn_existfile(subject_path,2),'unable to find directory %s',subject_path);
+        data_config_file=fullfile(subject_path,'data.cfg');
+        assert(~conn_existfile(data_config_file),'data configuration file %s already exist. Please delete this file before proceeding',data_config_file);
+        
+        subject_path_dicoms = fullfile(subject_path,defaults.folder_dicoms);
+        if any(subject_path_dicoms=='*'), subject_path_dicoms = conn_dir(subject_path_dicoms ,'-dir','-R','-cell','-sort'); end
+        assert(~isempty(subject_path_dicoms),'unable to find dicom folder %s\n',fullfile(subject_path,defaults.folder_dicoms));
+        if iscell(subject_path_dicoms), subject_path_dicoms=subject_path_dicoms{1}; end
+        data_config_file='';
+        func_runs=[];
+        struct_run=[];
+        
+        Series=conn_dcmdir(fullfile(subject_path_dicoms,'*-1.dcm'),false);
+        idx=find(cellfun('length',{Series.SeriesDescription})>0&cellfun('length',{Series.SeriesNumber})>0);
+        SeriesDescription={Series(idx).SeriesDescription};
+        SeriesNumber=[Series(idx).SeriesNumber];
+        struct_run = SeriesNumber(find(cellfun(@(x)~isempty(regexp(char(x),strjoin(defaults.dicom_isstructural,'|'))),SeriesDescription)>0,1,'first')); % keep first structural
+        func_runs = setdiff(SeriesNumber(find(cellfun(@(x)isempty(regexp(char(x),strjoin(defaults.dicom_disregard_functional,'|'))),SeriesDescription)>0)),struct_run); % keep all functionals
+        assert(~isempty(func_runs),'unable to find any functional runs in %s\n',subject_path_dicoms);
+        try,
+            fid=1; %fopen(fullfile(subject_path_dicoms,'runs.csv'),'wt');
+            fprintf(fid,'SeriesNumber,SeriesDescription\n');
+            for n=1:numel(SeriesNumber), fprintf(fid,'%s,%s\n',num2str(SeriesNumber(n)),SeriesDescription{n}); end
+            fclose(fid);
+            %fprintf('DICOM series information stored in %s\n',fullfile(subject_path_dicoms,'runs.csv'))
+        end
+        
+        all_runs=[struct_run func_runs];
+        fid=fopen(fullfile(subject_path,'data.cfg'),'wt');
+        fprintf(fid,'\n#dicoms\n');
+        for n=1:numel(all_runs), fprintf(fid,'%s\n',fullfile(subject_path_dicoms,['*-' num2str(all_runs(n)) '-1.dcm'])); end
+        fprintf(fid,'\n#functionals\n');
+        fprintf(fid,'%s\n',num2str(func_runs));
+        if ~isempty(struct_run)
+            fprintf(fid,'\n#structurals\n');
+            fprintf(fid,'%s\n',num2str(struct_run));
+        end
+        fprintf(fid,'\n#RT nan\n'); % note: will read RT from .json files
+        fclose(fid);
+        data_config_file=fullfile(subject_path,'data.cfg');
+        fprintf('Created data configuration file %s\n',data_config_file);
+        %             else % run numbers
+        %                 if ischar(varargin{2})&&conn_existfile(varargin{2}), data_config_file=varargin{2};
+        %                 elseif isstruct(varargin{2}), data_config_file=varargin{2};
+        %                 elseif ischar(varargin{2})&&~isempty(str2num(varargin{2})), func_runs=str2num(varargin{2});
+        %                 else error('unrecognized data descriptor argument');
+        %                 end
+        %             end
+        varargout{1}=data_config_file;
+            
     case {'preprocessing.qa','model.qa','qa.preprocessing','qa.model'}
         subject=char(varargin{1}); % subject id
         if isempty(regexp(subject,'\.mat$'))
