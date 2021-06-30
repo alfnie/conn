@@ -49,11 +49,11 @@ function varargout=el(option,varargin)
 %
 % MODEL SYNTAX:
 %
-%   el('model',subjectID, pipelineID, designID [, modelOPTIONS]) runs first-level GLM model estimation step
+%   el('model',subjectID, pipelineID, experimentID [, modelOPTIONS]) runs first-level GLM model estimation step
 %      subjectID                : subject folder name (e.g. '408_FED_20160617a_3T2')
 %      pipelineID               : preprocessing pipeline that will be used as source of data in this analysis
-%      designID                  : .cfg file defining the experimental design associated with each functional run
-%                                   Alternatively, a designID is just a shortcut to a .cfg file located in the subject directory and named "*_<designID>.cfg"
+%      experimentID             : .cat file defining the experimental design associated with each functional run
+%                                   Alternatively, a experimentID is just a shortcut to a .cat file located in the subject directory and named "*_<experimentID>.cat"
 %      modelOPTIONS             : (optional) 
 %                                   .cfg file defining additional first-level model estimation options
 %                                   Alternatively, a modelOPTIONS is just a shortcut to a .cfg file located in conn/modules/el/ and named "pipeline_model_<modelOPTIONS>.cfg"; e.g. 'Default' is a shortcut to the .cfg file named ..../modules/el/pipeline_model_Default.cfg)
@@ -66,8 +66,8 @@ function varargout=el(option,varargin)
 %      e.g.  
 %           >> el submit preprocessing 408_FED_20160617a_3T2
 %
-%   el('model.plot',subjectID, pipelineID, designID) displays first-level effect-size estimates
-%   el('model.qa',subjectID, pipelineID, designID) creates QA plots on first-level GLM analyses
+%   el('model.plot',subjectID, pipelineID, experimentID) displays first-level effect-size estimates
+%   el('model.qa',subjectID, pipelineID, experimentID) creates QA plots on first-level GLM analyses
 %   el('qa.plot',subjectID, pipelineID) displays already-created QA plots
 %
 %
@@ -283,7 +283,7 @@ switch(lower(option))
             cons=reshape(str(cellfun('length',str)>0),1,[]);
         else % back-compatibility
             all_contrasts_files=fullfile(defaults.folder_tasks,'contrasts_by_expt.txt'); % single-file, all expt contrasts
-            if ~conn_existfile(all_contrasts_files), all_contrasts_files=fullfile(fileparts(defaults.folder_subjects),'ANALYSIS','contrasts_by_expt.txt'); end
+            if ~conn_existfile(all_contrasts_files), all_contrasts_files=fullfile(defaults.folder_subjects,'..','ANALYSIS','contrasts_by_expt.txt'); end
             str=conn_fileutils('fileread',all_contrasts_files);
             str=reshape(regexp(str,'\n','split'),1,[]);
             emptyspaces=cellfun('length',str)==0;
