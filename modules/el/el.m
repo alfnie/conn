@@ -93,7 +93,8 @@ if isempty(defaults),
         'folder_tasks',fullfile(fileparts(which(mfilename)),'root.tasks') ,...
         'folder_dicoms','*dicoms' ,...
         'dicom_isstructural',{{'^T1_MPRAGE_1iso'}} ,...
-        'dicom_disregard_functional',{{'^localizer','^AAScout','^AAHScout','^MoCoSeries','^T1_MPRAGE_1iso','^DIFFUSION_HighRes'}} );
+        'dicom_disregard_functional',{{'^localizer','^AAScout','^AAHScout','^MoCoSeries','^T1_MPRAGE_1iso','^DIFFUSION_HighRes'}},...
+        'create_model_cfg_files',false); % 1/0 specifying whether "el model *" commands create an associated .cfg file (for backwards compatibility) [false]
 end
 
 conn_module('evlab17','init','silent');
@@ -249,7 +250,7 @@ switch(lower(option))
         assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
         if ~isempty(regexp(lower(option),'model')), 
             if numel(varargin)<3, expt=''; else expt=varargin{3}; end
-            expt=el_readmodel(expt,dataset);
+            expt=el_readexpt(expt,dataset);
             opts={'qa_plist',['firstlevel_',expt]};
         else opts={'qa_plist','preprocessing'};
         end
@@ -268,7 +269,7 @@ switch(lower(option))
         if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
         dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
         if numel(varargin)<3, expt=''; else expt=varargin{3}; end
-        expt=el_readmodel(expt,dataset);
+        expt=el_readexpt(expt,dataset);
         if numel(varargin)<4, model_config_file=''; else model_config_file=varargin{4}; end
         model_config_file=el_readmodelconfig(model_config_file);
         assert(conn_existfile(model_config_file),'unable to find model estimation options %s',model_config_file);
@@ -295,7 +296,7 @@ switch(lower(option))
         if isempty(cat_file), cat_file=conn_dir(fullfile(subject_path,['*_',expt,'.cat']),'-ls'); end
         assert(numel(cat_file)==1,'%d %s files found',numel(cat_file),fullfile(subject_path,['*_',expt,'.cat']));
         cat_info=conn_loadcfgfile(char(cat_file),struct('path',defaults.folder_tasks));
-        DOSAVECFG=false;
+        DOSAVECFG=defaults.create_model_cfg_files;
         opts=struct('dataset',char(dataset),'design',char(cat_file),'model_name',expt,'contrasts',{cons});
         if DOSAVECFG
             model_definition_file=conn_prepend('',char(cat_file),'.cfg');
@@ -308,21 +309,11 @@ switch(lower(option))
 
     case {'model.plot'}
         assert(numel(varargin)>=3,'incorrect usage: please specify subject_id, pipeline_id, and firstlevel_id')
-        subject=char(varargin{1}); % subject id
-        if isempty(regexp(subject,'\.mat$'))
-            if numel(varargin)>=2&&~isempty(varargin{2}),
-                pipeline_id=char(varargin{2}); % pipeline id
-                dataset=fullfile(defaults.folder_subjects,subject,[pipeline_id,'.mat']);
-            else
-                subject_path=fullfile(defaults.folder_subjects,subject);
-                files=conn_dir(fullfile(subject_path,'*.mat'),'-ls');
-                assert(~isempty(files), 'unable to find any *.mat files in %s\n',subject_path);
-                if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
-                dataset=files{end};
-            end
-        else dataset=conn_fullfile(subject); 
-        end
-        expt=char(varargin{3}); % design
+        [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
+        if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
+        dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
+        if numel(varargin)<3, expt=''; else expt=varargin{3}; end
+        expt=el_readexpt(expt,dataset);
         opts={dataset,expt,...
             varargin{4:end}};
         assert(conn_existfile(dataset),'file %s not found',dataset);
@@ -386,12 +377,13 @@ else % pipeline id
 end
 end
 
-function expt=el_readmodel(expt,dataset);
+function expt=el_readexpt(expt,dataset);
 expt=char(expt);
 if isempty(expt),
     expt=conn_dir(fullfile(conn_prepend('',dataset,''),'results','firstlevel','*'),'^[^\.]*','-dir','-cell','-R');
     assert(~isempty(expt),'unable to find first-level analysis results in %s',fullfile(conn_prepend('',dataset,''),'results','firstlevel'));
     expt=expt{end};
+end
 end
 
 
