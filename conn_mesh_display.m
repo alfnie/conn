@@ -221,6 +221,7 @@ if isempty(hax0)
     axes('units','norm','position',[.95 .1 .04 .8]);
 else
     state.handles.hfig=hax0; while ~isequal(get(state.handles.hfig,'type'),'figure'), state.handles.hfig=get(state.handles.hfig,'parent'); end
+    figure(state.handles.hfig);
     figname=get(state.handles.hfig,'name');
     phax0=get(hax0,'position');
     axes('units','norm','position',[phax0(1)+phax0(3) phax0(2) .05*phax0(3) phax0(4)]);
@@ -241,7 +242,7 @@ end
 state.handles.colorbar=[gca temp];
 set(state.handles.colorbar,'visible','off');
 if isempty(hax0), state.handles.hax=axes('parent',state.handles.hfig);
-else state.handles.hax=hax0;
+else state.handles.hax=hax0; axes(state.handles.hax);
 end
 state.selected_vertices={1:size(data.rend{1}(1).vertices,1), CONN_gui.refs.surf.default2reduced};
 state.selected_faces={data.rend{1}(1).faces, CONN_gui.refs.surf.spherereduced.faces};
@@ -302,7 +303,7 @@ grid(state.handles.hax,'on');
 th1=xlabel(state.handles.hax,'X (mm)');th2=ylabel(state.handles.hax,'Y (mm)');th3=zlabel(state.handles.hax,'Z (mm)');set([th1,th2,th3],'fontsize',8);
 axis(state.handles.hax,'off');
 view(state.handles.hax,state.position);
-set(state.handles.hax,'units','norm','position',[0,0,1,1],'color',get(state.handles.hfig,'color'),'xcolor',.5*[1 1 1],'ycolor',.5*[1 1 1],'zcolor',.5*[1 1 1],'box','on');
+if isempty(hax0), set(state.handles.hax,'units','norm','position',[0,0,1,1],'color',get(state.handles.hfig,'color'),'xcolor',.5*[1 1 1],'ycolor',.5*[1 1 1],'zcolor',.5*[1 1 1],'box','on'); end
 state.handles.light=[light light];set(state.handles.light,'position',state.position,'visible','on','color',state.light_color);
 tgca=state.handles.hax;
 %axes(tgca);

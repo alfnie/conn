@@ -134,10 +134,7 @@ switch(lower(option))
         % e.g. el preprocessing 408_FED_20160617a_3T2
         
         pwd0=pwd;
-        subject=char(varargin{1}); % subject id
-        subject_path=fullfile(defaults.folder_subjects,subject);
-        assert(conn_existfile(subject_path,2),'unable to find directory %s',subject_path);
-        data_config_file=fullfile(subject_path,'data.cfg');
+        [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
         assert(conn_existfile(data_config_file),'unable to find data configuration file %s',data_config_file);
 
         info=conn_loadcfgfile(data_config_file);
@@ -150,12 +147,7 @@ switch(lower(option))
             end
             assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',preproc_config_file);
         else
-            preproc_config_file = varargin{2};
-            preproc_config_file=conn_prepend('',preproc_config_file,'.cfg');
-            if isempty(fileparts(preproc_config_file)),
-                preproc_config_file=fullfile(fileparts(which(mfilename)),preproc_config_file);
-                if ~conn_existfile(preproc_config_file), preproc_config_file=conn_prepend('pipeline_preproc_',preproc_config_file,'.cfg'); end
-            end
+            preproc_config_file = el_readconfig(varargin{2});
             assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',varargin{2});
         end
         
@@ -184,28 +176,12 @@ switch(lower(option))
         % el('preprocessing.append',subject_id, preprocessing_pipeline_original, preprocessing_pipeline_append)
         
         pwd0=pwd;
-        subject=char(varargin{1}); % subject id
-        if isempty(regexp(subject,'\.mat$'))
-            if numel(varargin)>=2&&~isempty(varargin{2}),
-                pipeline_id=char(varargin{2}); % pipeline id
-                dataset=fullfile(defaults.folder_subjects,subject,[pipeline_id,'.mat']);
-            else
-                subject_path=fullfile(defaults.folder_subjects,subject);
-                files=conn_dir(fullfile(subject_path,'*.mat'),'-ls');
-                assert(~isempty(files), 'unable to find any *.mat files in %s\n',subject_path);
-                if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
-                dataset=files{end};
-            end
-        else dataset=conn_fullfile(subject); 
-        end
+        [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
+        dataset=el_readpipeline(varargin{2},subject,subject_path,defaults);
+        assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
         conn_module('evlab17','load',dataset);
-        preproc_config_file = char(varargin{3}); % preprocessing pipeline
-        preproc_config_file=conn_prepend('',preproc_config_file,'.cfg');
-        if isempty(fileparts(preproc_config_file)),
-            preproc_config_file=fullfile(fileparts(which(mfilename)),preproc_config_file);
-            if ~conn_existfile(preproc_config_file), preproc_config_file=conn_prepend('pipeline_preproc_',preproc_config_file,'.cfg'); end
-        end
-        assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',varargin{2});
+        preproc_config_file = el_readconfig(varargin{3});
+        assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',varargin{3});
         if isempty(preproc_config_file), opts={[]};
         else opts={preproc_config_file, []};
         end
@@ -217,10 +193,7 @@ switch(lower(option))
     
     case 'createdatacfg' % subject id
         pwd0=pwd;
-        subject=char(varargin{1}); % subject id
-        subject_path=fullfile(defaults.folder_subjects,subject);
-        assert(conn_existfile(subject_path,2),'unable to find directory %s',subject_path);
-        data_config_file=fullfile(subject_path,'data.cfg');
+        [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
         assert(~conn_existfile(data_config_file),'data configuration file %s already exist. Please delete this file before proceeding',data_config_file);
         
         subject_path_dicoms = fullfile(subject_path,defaults.folder_dicoms);
@@ -270,79 +243,35 @@ switch(lower(option))
         varargout{1}=data_config_file;
             
     case {'preprocessing.qa','model.qa','qa.preprocessing','qa.model'}
-        subject=char(varargin{1}); % subject id
-        if isempty(regexp(subject,'\.mat$'))
-            if numel(varargin)>=2&&~isempty(varargin{2}),
-                pipeline_id=char(varargin{2}); % pipeline id
-                dataset=fullfile(defaults.folder_subjects,subject,[pipeline_id,'.mat']);
-            else
-                subject_path=fullfile(defaults.folder_subjects,subject);
-                files=conn_dir(fullfile(subject_path,'*.mat'),'-ls');
-                assert(~isempty(files), 'unable to find any *.mat files in %s\n',subject_path);
-                if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
-                dataset=files{end};
-            end
-        else dataset=conn_fullfile(subject); 
-        end
+        [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
+        if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
+        dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
+        assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
         if ~isempty(regexp(lower(option),'model')), 
-            if numel(varargin)<3||isempty(varargin{3}), 
-                expt=conn_dir(fullfile(fileparts(dataset),'results','firstlevel','*'),'^[^\.]*','-dir','-cell','-R');
-                assert(~isempty(expt),'unable to find first-level analysis results in %s',fullfile(fileparts(dataset),'results','firstlevel'));
-                expt=expt{end};
-            else expt=char(varargin{3}); % design
-            end
+            if numel(varargin)<3, expt=''; else expt=varargin{3}; end
+            expt=el_readmodel(expt,dataset);
             opts={'qa_plist',['firstlevel_',expt]};
         else opts={'qa_plist','preprocessing'};
         end
-        conn_module('evlab17','run_qa','dataset',dataset,opts{:},varargin(3:end));
+        conn_module('evlab17','run_qa','dataset',dataset,opts{:},varargin{4:end});
         
     case {'qa.plot','preprocessing.qa.plot','model.qa.plot'}
-        subject=char(varargin{1}); % subject id
-        if isempty(regexp(subject,'\.mat$'))
-            if numel(varargin)>=2&&~isempty(varargin{2}),
-                pipeline_id=char(varargin{2}); % pipeline id
-                dataset=fullfile(defaults.folder_subjects,subject,[pipeline_id,'.mat']);
-            else
-                subject_path=fullfile(defaults.folder_subjects,subject);
-                files=conn_dir(fullfile(subject_path,'*.mat'),'-ls');
-                assert(~isempty(files), 'unable to find any *.mat files in %s\n',subject_path);
-                if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
-                dataset=files{end};
-            end
-        else dataset=conn_fullfile(subject); 
-        end
-        conn_module('evlab17','qaplots',dataset,varargin(3:end));
+        [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
+        if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
+        dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
+        assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
+        conn_module('evlab17','qaplots',dataset,varargin{4:end});
         
     case {'model','firstlevel'}
         pwd0=pwd;
-        subject=char(varargin{1}); % subject id
-        if isempty(regexp(subject,'\.mat$'))
-            if numel(varargin)>=2&&~isempty(varargin{2}),
-                pipeline_id=char(varargin{2}); % pipeline id
-                dataset=fullfile(defaults.folder_subjects,subject,[pipeline_id,'.mat']);
-            else
-                subject_path=fullfile(defaults.folder_subjects,subject);
-                files=conn_dir(fullfile(subject_path,'*.mat'),'-ls');
-                assert(~isempty(files), 'unable to find any *.mat files in %s\n',subject_path);
-                if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
-                dataset=files{end};
-            end
-        else dataset=conn_fullfile(subject); 
-        end
-        subject_path=fileparts(dataset);
-        expt=char(varargin{3}); % design
-        if numel(varargin)<4||isempty(varargin{4})
-            model_config_file = fullfile(fileparts(which(mfilename)),'pipeline_model_Default.cfg');
-            assert(conn_existfile(model_config_file),'unable to find model estimation options %s',model_config_file);
-        else
-            model_config_file = varargin{4};
-            model_config_file=conn_prepend('',model_config_file,'.cfg');
-            if isempty(fileparts(model_config_file)),
-                model_config_file=fullfile(fileparts(which(mfilename)),model_config_file);
-                if ~conn_existfile(model_config_file), model_config_file=conn_prepend('pipeline_model_',model_config_file,'.cfg'); end
-            end
-            assert(conn_existfile(model_config_file),'unable to find preprocessing pipeline %s',varargin{4});
-        end
+        [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
+        if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
+        dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
+        if numel(varargin)<3, expt=''; else expt=varargin{3}; end
+        expt=el_readmodel(expt,dataset);
+        if numel(varargin)<4, model_config_file=''; else model_config_file=varargin{4}; end
+        model_config_file=el_readmodelconfig(model_config_file);
+        assert(conn_existfile(model_config_file),'unable to find model estimation options %s',model_config_file);
         
         % adapted from msieg firstlevel_PL2017
         contrasts_file=fullfile(subject_path,['contrasts_',expt,'.txt']);
@@ -409,3 +338,60 @@ switch(lower(option))
 end
 
 end
+
+function [subject,data_config_file,subject_path]=el_readsubject(subject,defaults)
+subject=char(subject); % subject id
+if ~isempty(regexp(subject,'\.cfg')) % old format
+    data_config_file=subject;
+    subject_path=filepath(subject);
+else
+    subject_path=fullfile(defaults.folder_subjects,subject);
+    assert(conn_existfile(subject_path,2),'unable to find directory %s',subject_path);
+    data_config_file=fullfile(subject_path,'data.cfg');
+end
+end
+
+function preproc_config_file = el_readconfig(preproc_config_file);
+preproc_config_file=conn_prepend('',char(preproc_config_file),'.cfg');
+if isempty(fileparts(preproc_config_file)),
+    preproc_config_file=fullfile(fileparts(which(mfilename)),preproc_config_file);
+    if ~conn_existfile(preproc_config_file), preproc_config_file=conn_prepend('pipeline_preproc_',preproc_config_file,'.cfg'); end
+end
+end
+
+function model_config_file = el_readmodelconfig(model_config_file);
+model_config_file=char(model_config_file);
+if isempty(model_config_file)
+    model_config_file = fullfile(fileparts(which(mfilename)),'pipeline_model_Default.cfg');
+else
+    model_config_file=conn_prepend('',model_config_file,'.cfg');
+    if isempty(fileparts(model_config_file)),
+        model_config_file=fullfile(fileparts(which(mfilename)),model_config_file);
+        if ~conn_existfile(model_config_file), model_config_file=conn_prepend('pipeline_model_',model_config_file,'.cfg'); end
+    end
+end
+end
+
+function dataset=el_readpipeline(dataset,subject,subject_path,defaults);
+dataset=char(dataset);
+if isempty(dataset)
+    files=conn_dir(fullfile(subject_path,'*.mat'),'-ls');
+    assert(~isempty(files), 'unable to find any *.mat files in %s\n',subject_path);
+    if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
+    dataset=files{end};
+elseif ~isempty(regexp(dataset,'\.mat$')) % .mat file
+    dataset=conn_fullfile(dataset);
+else % pipeline id
+    dataset=fullfile(defaults.folder_subjects,subject,[dataset,'.mat']);
+end
+end
+
+function expt=el_readmodel(expt,dataset);
+expt=char(expt);
+if isempty(expt),
+    expt=conn_dir(fullfile(conn_prepend('',dataset,''),'results','firstlevel','*'),'^[^\.]*','-dir','-cell','-R');
+    assert(~isempty(expt),'unable to find first-level analysis results in %s',fullfile(conn_prepend('',dataset,''),'results','firstlevel'));
+    expt=expt{end};
+end
+
+
