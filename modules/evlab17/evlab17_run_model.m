@@ -585,6 +585,7 @@ else
     
     if skipmodeldefinition, load(fullfile(pwd1,'SPM.mat'),'SPM'); SPM.xY.Y={}; SPM.xY=rmfield(SPM.xY,'VY'); end
     if isempty(functional_label), files=evlab17_module('get','functionals');
+    elseif isempty(conn_datasetlabel(char(functional_label))), conn_disp('fprintf','Warning: functional label %s not found in dataset. Using last preprocessed files\n',char(functional_label)); files=evlab17_module('get','functionals');
     else files=evlab17_module('get','functionals',char(functional_label));
     end
     files=files(nsubject);
