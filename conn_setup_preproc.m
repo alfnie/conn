@@ -594,9 +594,10 @@ if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     ht5=uicontrol('style','edit','units','norm','position',[.7,.4,.2,.1],'string',num2str(vdm_et2),'tooltipstring','defines Echo Time (in ms units) of second fieldmap acquisition (leave empty to import from .json / BIDS file)','enable','off');
     ht6a=uicontrol('style','text','units','norm','position',[.1,.3,.6,.1],'string','EPI Total Readout Time (in ms)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
     ht6=uicontrol('style','edit','units','norm','position',[.7,.3,.2,.1],'string',num2str(vdm_ert),'tooltipstring','defines EPI Total Readout Time (in ms units) of functional data (note: equal to 1000/BandwidthPerPixelPhaseEncode;  leave empty to import from .json / BIDS file)','enable','off');
-    ht7a=uicontrol('style','text','units','norm','position',[.1,.2,.6,.1],'string','Blip direction (+1 or -1)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
+    ht7a=uicontrol('style','text','units','norm','position',[.1,.2,.6,.1],'string','Blip direction (+1,-1,S,R)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
     if isempty(vdm_blip), tvdm_blip=-1; else tvdm_blip=vdm_blip; end
-    ht7=uicontrol('style','edit','units','norm','position',[.7,.2,.2,.1],'string',num2str(tvdm_blip),'tooltipstring','defines k-space traversal blip direction (+1 for positive direction, -1 for negative direction)','enable','off');
+    if ~ischar(tvdm_blip), tvdm_blip=num2str(tvdm_blip); end
+    ht7=uicontrol('style','edit','units','norm','position',[.7,.2,.2,.1],'string',tvdm_blip,'tooltipstring','defines k-space traversal blip direction (+1 for positive direction, -1 for negative direction, S for same as in .json/BIDS file, R for reverse of .json/BIDS file)','enable','off');
     uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.15],'callback','uiresume');
     uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.15],'callback','delete(gcbf)');
     onoff={'on','off'};
@@ -621,7 +622,7 @@ if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
         temp=get(ht4,'string'); if isempty(temp), vdm_et1=temp; elseif ~isempty(str2num(temp)), vdm_et1=str2num(temp); else error('unable to interpret vdm_et1 input %s',temp); end
         temp=get(ht5,'string'); if isempty(temp), vdm_et2=temp; elseif ~isempty(str2num(temp)), vdm_et2=str2num(temp); else error('unable to interpret vdm_et2 input %s',temp); end
         temp=get(ht6,'string'); if isempty(temp), vdm_ert=temp; elseif ~isempty(str2num(temp)), vdm_ert=str2num(temp); else error('unable to interpret vdm_ert input %s',temp); end
-        temp=get(ht7,'string'); if isempty(temp), vdm_blip=temp; elseif ~isempty(str2num(temp)), vdm_blip=str2num(temp); else error('unable to interpret vdm_blip input %s',temp); end
+        temp=get(ht7,'string'); if isempty(temp)||isequal(temp,'S')||isequal(temp,'S'), vdm_blip=[]; elseif ~isempty(str2num(temp)), vdm_blip=str2num(temp); elseif isequal(temp,'r')||isequal(temp,'R'), vdm_blip=0; else error('unable to interpret vdm_blip input %s',temp); end
     end
     delete(thfig);
     drawnow;
@@ -2803,6 +2804,7 @@ for iSTEP=1:numel(STEPS)
                             fmap=cellstr(fmap);
                             if numel(fmap)==1,fmap=cellstr(conn_expandframe(fmap{1})); end
                             ET1=vdm_et1; ET2=vdm_et2; ERT=vdm_ert; BLIP=vdm_blip;
+                            if isequal(BLIP,0)||isequal(BLIP,'R')||isequal(BLIP,'r'), reverseBLIP=true; BLIP=[]; else reverseBLIP=false; end
                             if isequal(vdm_type,1)||(isempty(vdm_type)&&(numel(fmap)==2||numel(fmap)==3)), % Magnitude1+PhaseDiff or Magnitude1+Magnitude2+PhaseDiff
                                 fmap=[fmap(end) fmap(1)]; % note: sorts as PhaseDiff+Magnitude for SPM FieldMap_create
                                 scphase=FieldMap('Scale',fmap{1});
@@ -2835,6 +2837,7 @@ for iSTEP=1:numel(STEPS)
                                     elseif isequal(BLIP,'j-'), BLIP=1;
                                     elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
                                     end
+                                    if reverseBLIP, BLIP=-BLIP; end
                                 end
                                 if nses==1&&isempty(BLIP), conn_disp('fprintf','warning: unable to find PhaseEncodingDirection information in %s\n',filename); end
                                 if ~isempty(ET1)&&~isempty(ET2)&&~isempty(ERT)&&~isempty(BLIP)
@@ -2883,6 +2886,7 @@ for iSTEP=1:numel(STEPS)
                                     elseif isequal(BLIP,'j-'), BLIP=1;
                                     elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
                                     end
+                                    if reverseBLIP, BLIP=-BLIP; end
                                 end
                                 if nses==1&&isempty(BLIP), conn_disp('fprintf','warning: unable to find PhaseEncodingDirection information in %s\n',filename); end
                                 if ~isempty(ERT)&&~isempty(BLIP)
@@ -2917,6 +2921,7 @@ for iSTEP=1:numel(STEPS)
                                     elseif isequal(BLIP,'j-'), BLIP=1;
                                     elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
                                     end
+                                    if reverseBLIP, BLIP=-BLIP; end
                                 end
                                 if nses==1&&isempty(BLIP), conn_disp('fprintf','warning: unable to find PhaseEncodingDirection information in %s\n',filename); end
                                 if ~isempty(ET1)&&~isempty(ET2)&&~isempty(ERT)&&~isempty(BLIP)

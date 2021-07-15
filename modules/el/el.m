@@ -124,14 +124,16 @@ switch(lower(option))
             else varargout={conn_module('evlab17','default',varargin{1})};
             end
         end
+        
     case 'submit'
         if ~nargout, conn('submit',@el,varargin{:}); % e.g. el submit preprocessing 408_FED_20160617a_3T2
         else [varargout{1:nargout}]=conn('submit',@el,varargin{:});
         end
-
+        
     case 'preprocessing'
+        assert(numel(varargin)>=1,'incorrect usage >> el preprocessing subject_id [, pipeline_id]');
         % adapted from msieg preprocess_PL2017
-        % el('preprocessing',subject_id [, preprocessing_pipeline_file])
+        % el('preprocessing',subject_id [, preprocessing_pipeline])
         % e.g. el preprocessing 408_FED_20160617a_3T2
         
         pwd0=pwd;
@@ -174,6 +176,7 @@ switch(lower(option))
         varargout{1}=fileout;
     
     case 'preprocessing.append'
+        assert(numel(varargin)>=3,'incorrect usage >> el preprocessing.append subject_id, original_pipeline_id, added_pipeline_id');
         % el('preprocessing.append',subject_id, preprocessing_pipeline_original, preprocessing_pipeline_append)
         
         pwd0=pwd;
@@ -193,6 +196,7 @@ switch(lower(option))
         varargout{1}=fileout; 
     
     case 'createdatacfg' % subject id
+        assert(numel(varargin)>=1,'incorrect usage >> el createdatacfg subject_id');
         pwd0=pwd;
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
         assert(~conn_existfile(data_config_file),'data configuration file %s already exist. Please delete this file before proceeding',data_config_file);
@@ -244,6 +248,7 @@ switch(lower(option))
         varargout{1}=data_config_file;
             
     case {'preprocessing.qa','model.qa','qa.preprocessing','qa.model'}
+        assert(numel(varargin)>=1,'incorrect usage >> el preprocessing.qa subject_id [,pipeline_id ,model_id]');
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
         if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
         dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
@@ -257,6 +262,7 @@ switch(lower(option))
         conn_module('evlab17','run_qa','dataset',dataset,opts{:},varargin{4:end});
         
     case {'qa.plot','preprocessing.qa.plot','model.qa.plot'}
+        assert(numel(varargin)>=1,'incorrect usage >> el qa.plot subject_id [,pipeline_id]');
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
         if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
         dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
@@ -264,6 +270,7 @@ switch(lower(option))
         conn_module('evlab17','qaplots',dataset,varargin{4:end});
         
     case {'model','firstlevel'}
+        assert(numel(varargin)>=2,'incorrect usage >> el model subject_id, pipeline_id, model_id [, modeloptions]');
         pwd0=pwd;
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
         if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
@@ -283,7 +290,7 @@ switch(lower(option))
             cons=reshape(str(cellfun('length',str)>0),1,[]);
         else % back-compatibility
             all_contrasts_files=fullfile(defaults.folder_tasks,'contrasts_by_expt.txt'); % single-file, all expt contrasts
-            if ~conn_existfile(all_contrasts_files), all_contrasts_files=fullfile(defaults.folder_subjects,'..','ANALYSIS','contrasts_by_expt.txt'); end
+            %if ~conn_existfile(all_contrasts_files), all_contrasts_files=fullfile(defaults.folder_subjects,'..','ANALYSIS','contrasts_by_expt.txt'); end
             str=conn_fileutils('fileread',all_contrasts_files);
             str=reshape(regexp(str,'\n','split'),1,[]);
             emptyspaces=cellfun('length',str)==0;
@@ -308,7 +315,7 @@ switch(lower(option))
         cd(pwd0);
 
     case {'model.plot'}
-        assert(numel(varargin)>=3,'incorrect usage: please specify subject_id, pipeline_id, and firstlevel_id')
+        assert(numel(varargin)>=3,'incorrect usage >> el model.plot subject_id, pipeline_id, and model_id')
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
         if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
         dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
@@ -318,11 +325,6 @@ switch(lower(option))
             varargin{4:end}};
         assert(conn_existfile(dataset),'file %s not found',dataset);
         conn_module('evlab17','modelplots',opts{:});
-        
-    case 'model.qa'
-        if ~isempty(design_id), opts={'qa_plist',['firstlevel_',design_id],opts{:}};
-        else opts={'qa_plist','preprocessing',opts{:}};
-        end
         
     otherwise
         [varargout{1:nargout}]=conn_module('evlab17',option,varargin{:});

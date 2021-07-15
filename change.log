@@ -307,7 +307,40 @@ ________________________________________________________________________________
      Updated fmriprep compatibility to fmriprep 20.2.0
      Added fmriprep options to import data to derivatives/conn folder and read event information from raw-data folders tsv files
      Added option to ROI-to-ROI results explorer GUI to display/import connectivity values from user-defined masks (e.g. those created using 'export mask' from other second-level analyses)
-     
+20.c (internal distribution only)     
+21.a Cumulative patch, bug fixes and improvements
+     fixed bug when displaying multivariate RRC second-level analyses computed using external data / conn_module('glm',...) commands
+     patch to keep DICOM manifest across CONN project saves
+     patch to read TOPUP fieldmap files
+     added submit_delay option to parallelization/HPC job submission (this can be used to reduce the load on the cluster job scheduler when handling multiple job requests)
+     added option to create .mtx.nii file output with estimated time-varying RRC matrix when running dynamic ICA
+     added -v7.3 version save as backup option if default project save fails
+     added script for cat12-to-Freesurfer conversion
+     added filter option to 'function_regression' preprocessing step (to allow filtered-regressor option when using conn_module('preprocessing',...) to run aCompCor denoising)
+     added 'view details' checkbox in 2nd-level GUIs to simplify threshold-setting options
+     added conn_tcpip for TCP/IP based communications and conn_server for client/server communication between two CONN sessions
+     added option to break single-variable .mat files into multiple-timeseries covariates
+     added option for using scrubbing based on thresholding external timeseries (including single-measure timeseries)
+     added conn_vol_read/write functions to complement conn_mtx_* and conn_surf_* functions (see www.conn-toolbox.org/resources/documentation for detailis)
+     added "conn_module EL" for using a combination of SPM and CONN functionality for task activation analyses of fMRI data (see www.conn-toolbox.org/resources/evlab for details)
+     added "conn_remotely" for working with CONN projects stored remotely (see "help conn_remotely" for details)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 note: the symbol (*) in any of the lists above indicates changes that users need to pay special attention to when upgrading mid-analysis, as they may produce different results compared to previous versions (users may want to hold update until analyses are finished or take special precautions to ensure continuity; instructions for exact replicability with previous-version analyses are described in each case)
 
 

@@ -68,6 +68,7 @@ for isub=1:numel(nsubs),
                     end
                     if ~options.nset, % search for fmriprep confound regressors file 
                         fname=conn_prepend('',regexprep(filename{n2},'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?_desc-[^\.\\\/]*\.nii(\.gz)?$',''),'_desc-confounds_timeseries.tsv');
+                        if ~conn_existfile(fname), fname=conn_prepend('',regexprep(filename{n2},'(_mod-[^\._\\\/]*)?(_echo-[^\._\\\/]*)?(_recording-[^\._\\\/]*)?(_proc-[^\._\\\/]*)?(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?_desc-[^\.\\\/]*\.nii(\.gz)?$',''),'_desc-confounds_timeseries.tsv'); end %
                         if ~conn_existfile(fname), fname=conn_prepend('',regexprep(filename{n2},'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?_desc-[^\.\\\/]*\.nii(\.gz)?$',''),'_desc-confounds_regressors.tsv'); end % back-compatibility
                         if conn_existfile(fname)
                             data=conn_loadtextfile(fname);
