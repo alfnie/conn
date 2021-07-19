@@ -421,6 +421,7 @@ if ~nargin||isempty(STEPS)||dogui,
     if CONN_gui.isremote
         info=conn_remotely('info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
+        elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
         else tnameserver='CONN server';
         end
         toptions=regexprep(toptions,'\<run on (this computer)?',['run on ',tnameserver,' ']);

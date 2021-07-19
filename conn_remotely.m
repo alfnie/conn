@@ -366,7 +366,7 @@ switch(option)
             delete(handles.hfig);
         end
         
-    case 'settings_runserver'
+    case {'settings_runserver','startserver'}
         str=char(mlreportgen.utils.hash(mat2str(now)));
         answ=inputdlg({'Create a one-time-use password to access this server:'},'',1,{str(1:8)},struct('Resize','on'));
         if numel(answ)~=1||isempty(answ{1}),return; end
@@ -380,9 +380,13 @@ switch(option)
         tsocket.close;
         clear tsocket
         pause(1);
-        hmsg=conn_msgbox({'CONN server started',' ','Perform the following steps to connect to this server from a client machine (before starting in Tools.Remote settings of your client machine', 'make sure the option ''this computer uses SSH for secure encrypted communications'' is unchecked)',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)',['Step 2: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 3: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 4: in prompt ''Remote session id'' enter ',str],' ','(note: closing this window will register this server to be closed as well)'},'',-1);
-        set(hmsg,'closerequestfcn','conn_server exit; delete(gcbf)');
-        conn_server('start',portnumber,conn_tcpip('keypair',str));
+        %hmsg=conn_msgbox({'CONN server started',' ','Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)','Step 2: if prompted to enter ''Server address'' enter none',['Step 3: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 4: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 5: in prompt ''Remote session id'' enter ',str],' ',' ',' '},'',-1, true);
+        [hmsg,hmsg2]=conn_msgbox([{'                        CONN server started                        '},repmat({' '},1,10)],'',-1, 2);
+        set(hmsg2(1),'style','edit','max',2,'string',{'Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)','Step 2: if prompted to enter ''Server address'' enter none',['Step 3: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 4: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 5: in prompt ''Remote session id'' enter ',str]});
+        set(hmsg2(2),'callback','if get(gcbo,''value''), conn_tcpip close; delete(gcbf); end');
+        set(hmsg,'closerequestfcn','conn_tcpip close; delete(gcbf)');
+        drawnow;
+        conn_server('start',portnumber,conn_tcpip('keypair',str),hmsg2);
         if ishandle(hmsg), delete(hmsg); end
         
     case 'on'

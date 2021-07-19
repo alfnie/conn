@@ -66,8 +66,9 @@ else
                     end
                 end
             elseif size(filename,1)==1
-                nfilename=conn_fileutils('nifti',filename);
-                nV=0; for n=1:numel(nfilename), tV=size(nfilename(n).dat,4); nV=nV+tV; end
+                nV=conn_fileutils('nifti_nvol',filename);
+                %nfilename=conn_fileutils('nifti',filename);
+                %nV=0; for n=1:numel(nfilename), tV=size(nfilename(n).dat,4); nV=nV+tV; end
                 try
                     if nV>10
                         V1=conn_fileutils('spm_vol',[deblank(filename),',1']);

@@ -39,7 +39,10 @@ else % do not wait for user confirmation
     hpos=get(h,'position');
     set(h,'position',[hpos(1)-hext2(1)/2,hpos(2)-hext2(2)/2,hext2(1),hext2(2)]);
     set(ha,'position',[30 30 hext(end-1:end)]);
-    if lowerquarter, 
+    if lowerquarter>1, 
+        h2=[uicontrol('style','text','units','norm','position',[.1 .25 .8 .55],'backgroundcolor',.9*bg,'horizontalalignment','left','string','','fontsize',ceil(.75*(6+CONN_gui.font_offset)),'foregroundcolor',.25*[1 1 1],'parent',h),...
+            uicontrol('style','togglebutton','units','norm','position',[.25 .05 .5 .15],'string','Stop','callback','if get(gcbo,''value''), set(gcbo,''string'', ''Stopping...''); else set(gcbo,''string'',''Stop''); end; drawnow;','parent',h)];
+    elseif lowerquarter
         h2=[uicontrol('style','text','units','norm','position',[.1 .25 .8 .15],'backgroundcolor',.9*bg,'horizontalalignment','left','string','','fontsize',ceil(.75*(6+CONN_gui.font_offset)),'foregroundcolor',.25*[1 1 1],'parent',h),...
             uicontrol('style','togglebutton','units','norm','position',[.25 .05 .5 .15],'string','Stop','callback','if get(gcbo,''value''), set(gcbo,''string'', ''Stopping...''); else set(gcbo,''string'',''Stop''); end; drawnow;','parent',h)];
     end

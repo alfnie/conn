@@ -241,6 +241,14 @@ switch(lower(option))
         else varargout{1}=struct(nifti(varargin{:}));
         end
         
+    case 'nifti_nvol'
+        if any(conn_server('util_isremotefile',varargin{1})), varargout{1}=conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),varargin{2:end});
+        else
+            nfilename=nifti(varargin{:});
+            nV=0; for n=1:numel(nfilename), tV=size(nfilename(n).dat,4); nV=nV+tV; end
+            varargout={nV};
+        end
+        
     case 'spm_vol'
         if any(conn_server('util_isremotefile',varargin{1})), 
             V=conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),varargin{2:end});

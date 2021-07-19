@@ -21,7 +21,8 @@ elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(option
     if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
         info=conn_remotely('info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
-        else tnameserver='none';
+        elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
+        else tnameserver='CONN server';
         end
         [hmsg,hstat]=conn_msgbox({sprintf('Process running remotely (%s)',tnameserver),'Please wait...',' ',' '},[],[],true);
     end

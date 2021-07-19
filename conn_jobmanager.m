@@ -1258,8 +1258,9 @@ set(handles.axes,'visible','off');
 hold(handles.axes,'on');
 handles.txt=text(.5,1,'','horizontalalignment','center','color','w','parent',handles.axes);
 hold(handles.axes,'off');
+handles.contall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.2,.075,.2,.05],'string','Continue','callback','close(gcbf)','tooltipstring','<HTML>Continue running this job in background <br/> - processes will continue running in the background/cluster<br/> - visit Tools.Cluster/HPC.PendingJobs to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
 handles.stopall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.4,.075,.2,.05],'string','Cancel job','callback',@(varargin)conn_jobmanager_update('cancelall'),'tooltipstring','Cancels all unfinished nodes and finishes this job pipeline');
-handles.enable=uicontrol(handles.hfig,'style','checkbox','value',1,'units','norm','position',[.7,.075,.3,.05],'string','Advanced options','backgroundcolor','w','callback',@(varargin)conn_jobmanager_update('enable'));
+handles.enable=uicontrol(handles.hfig,'style','checkbox','value',1,'units','norm','position',[.65,.075,.3,.05],'string','Advanced options','backgroundcolor','w','callback',@(varargin)conn_jobmanager_update('enable'));
 
 handles.panel=uipanel(handles.hfig,'units','norm','position',[0 .3 1 .7],'backgroundcolor',.9*[1 1 1]);
 handles.files=[];
@@ -1287,7 +1288,7 @@ order=[];
 
 if ~numel(files)
     handles.continue=[];%handles.continue=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.5,.025,.45,.05],'string','Continue (merge results now)','callback',@(varargin)conn_jobmanager_update('finish'));
-    handles.cancel=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.400,.15,.075],'string','Background','callback','close(gcbf)','tooltipstring','<HTML>Close this jobmanager window and handle merging the results of this job later<br/> - processes will continue running in the background/cluster<br/> - visit Tools.Cluster/HPC.PendingJobs to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
+    %handles.cancel=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.400,.15,.075],'string','Background','callback','close(gcbf)','tooltipstring','<HTML>Close this jobmanager window and handle merging the results of this job later<br/> - processes will continue running in the background/cluster<br/> - visit Tools.Cluster/HPC.PendingJobs to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
     %set(handles.continue,'enable','off','visible','off');
     handles.timer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@(varargin)conn_jobmanager_update('refresh'));
     %%set(handles.refresh,'value',1);
@@ -1463,6 +1464,7 @@ ok=1+handles.finished;
                 handles.finished=true;
                 if ~donotupdate
                     set(handles.stopall,'string','Finish','callback','close(gcbf)','tooltipstring','Close this window (results already imported)');
+                    try, set(handles.contall,'visible','off'); end
                     if strcmp(info.private{1}(1).type,'process')
                         filename=regexprep(info.private{1}(1).project,'\?.*$','');
                         [nill,fname]=fileparts(filename);
@@ -1473,6 +1475,7 @@ ok=1+handles.finished;
                     end
                 else
                     set(handles.stopall,'string','Finish','callback','close(gcbf)','tooltipstring','Close this window and import results');
+                    try, set(handles.contall,'visible','off'); end
                 end
                 if ~get(handles.enable,'value'), close(handles.hfig); end
                 

@@ -164,8 +164,10 @@ switch(lower(option))
                     connection.channel=connection.socket.accept;
                     ok=true;
                     connection.channel.setSoTimeout(1000*60);
-                catch
+                catch me
+                    if ~isempty(regexp(me.message,'EOFException|IOException|SocketException')), error('ERROR: connection may be down'); end
                     fprintf('.');
+                    drawnow; 
                 end
             end
             fprintf('\nClient connected...\n');

@@ -97,6 +97,7 @@ switch(lower(option))
         params.isserver=true;
         if numel(varargin)>=1&&~isempty(varargin{1}), port=varargin{1}; else port=0; end
         if numel(varargin)>=2&&~isempty(varargin{2}), id=char(varargin{2}); else id=[]; end
+        if numel(varargin)>=3&&~isempty(varargin{3}), disphdl=varargin{3}; else disphdl=[]; end
         ok=false;
         while ~ok
             try
@@ -107,11 +108,12 @@ switch(lower(option))
                 disp(me.message)
             end
             pause(rand);
+            if ~isempty(disphdl)&&(any(~ishandle(disphdl))||(numel(disphdl)>1&&get(disphdl(2),'value')>0)), return; end
         end
         conn_cache clear;
         conn_jobmanager clear;
         conn_disp('__portcomm',true);
-        conn_server('continue');
+        conn_server('continue',varargin{3:end});
         
     case 'connect' % init client
         if numel(varargin)>=1&&~isempty(varargin{1}), ip=varargin{1}; else ip=[]; end
@@ -217,8 +219,9 @@ switch(lower(option))
     case {'continue','test'}
         if params.isserver % server
             % listening
+            if numel(varargin)>=1&&~isempty(varargin{1}), disphdl=varargin{1}; else disphdl=[]; end
             dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
-            fprintf('%s',dispstr);
+            conn_server_fprintf(disphdl,'fprintf','%s',dispstr);
             ntimedout=0; % minutes
             while 1
                 data=[];
@@ -229,23 +232,23 @@ switch(lower(option))
                 catch me,
                     if ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) %||ntimedout>15 % restart
                         dispstr='';
-                        fprintf('\n Idle connection to client.');
+                        conn_server_fprintf(disphdl,'fprintf','\n Idle connection to client.');
 %                         if 0
 %                             conn_server restart;
 %                         else
-                            fprintf(' Closing server.\n');
+                            conn_server_fprintf(disphdl,'fprintf',' Closing server.\n');
                             conn_tcpip('close');
                             conn_disp('__portcomm',false);
                             return
 %                         end
                     elseif ~isempty(regexp(me.message,'SocketTimeoutException')) % timeout
-                        fprintf(repmat('\b',[1,length(dispstr)]));
+                        conn_server_fprintf(disphdl,'fprintf',repmat('\b',[1,length(dispstr)]));
                         dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
-                        fprintf(dispstr);
+                        conn_server_fprintf(disphdl,'fprintf',dispstr);
                         conn_tcpip('writekeepalive');
                         ntimedout=ntimedout+1;
                     else
-                        disp(me.message);
+                        conn_server_fprintf(disphdl,me.message);
                         pause(rand);
                     end
                 end
@@ -257,15 +260,20 @@ switch(lower(option))
                     conn_tcpip('close');
                     conn_disp('__portcomm',false);
                     return
+                elseif ~isempty(disphdl)&&(any(~ishandle(disphdl))||(numel(disphdl)>1&&get(disphdl(2),'value')>0))
+                    fprintf('\n Server closed\n'); dispstr='';
+                    conn_tcpip('close');
+                    conn_disp('__portcomm',false);
+                    return
                 elseif isequal(data,'ping')
                     conn_tcpip('write','ok');
                 elseif isstruct(data)&&numel(data)==1&&isfield(data,'cmd') % run command
                     if ischar(data.cmd), data.cmd={data.cmd}; end
                     try, data.cmd{1}=regexprep(data.cmd{1},'\.m$',''); end
                     if ischar(data.cmd{1})||conn_server('util_isremotevar',data.cmd{1}), %isequal(data.cmd{1},'conn')||~isempty(regexp(data.cmd{1},'^conn_'))||isequal(data.cmd{1},'spm')||~isempty(regexp(data.cmd{1},'^spm_')) % run only conn or spm commands
-                        fprintf('\n -'); dispstr=''; timer=[];
+                        conn_server_fprintf(disphdl,'fprintf','\n -'); dispstr=''; timer=[];
                         try
-                            disp(data.cmd);
+                            conn_server_fprintf(disphdl,data.cmd);
                             if conn_server('util_isremotevar',data.cmd{1}), fh=@(x)x; data.cmd=[{''},data.cmd];
                             elseif isempty(data.cmd{1}), fh=@(x)x;
                             else fh=eval(sprintf('@%s',data.cmd{1}));
@@ -302,7 +310,7 @@ switch(lower(option))
                                         argout=struct('type','ko','id',data.id,'msg',str);
                                     end
                                 end
-                                disp(argout);
+                                conn_server_fprintf(disphdl,argout);
                                 if isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'keeplocal')&&all(data.keeplocal>0)
                                     for nvar=1:numel(argout.msg)
                                         if ischar(data.keeplocal), varname=['labeled_',data.keeplocal,'_',num2str(nvar)];
@@ -344,7 +352,7 @@ switch(lower(option))
                         conn_tcpip('write',argout);
                     end
                 else % testing (obsolete)
-                    fprintf('\n received test data:\n');  dispstr='';
+                    conn_server_fprintf(disphdl,'fprintf','\n received test data:\n');  dispstr='';
                     disp(data)
                 end
             end
@@ -618,4 +626,25 @@ function varargout=conn_server_cmd_capture(varargin)
 disp(varargout{1});
 end
 
-
+function endnow=conn_server_fprintf(disphdl, varargin)
+endnow=false;
+try
+    if ~isequal(varargin{1},'fprintf'), newstr=regexp(evalc('disp(varargin{1})'),'[\r\n]+','split');
+    else newstr=regexp(sprintf(varargin{2:end}),'[\r\n]+','split');
+    end
+    newstr=newstr(cellfun('length',newstr)>0);
+    if isempty(disphdl)
+        disp(char(newstr));
+    else
+        if any(~ishandle(disphdl)), endnow=true;
+        else
+            str=cellstr(get(disphdl(1),'string'));
+            str=[str(:);newstr(:)];
+            str=str(max(1,numel(str)-10):end);
+            set(disphdl(1),'string',str);
+            if numel(disphdl)>1, endnow=get(disphdl(2),'value'); end
+        end
+    end
+catch
+end
+end

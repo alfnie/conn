@@ -1535,7 +1535,8 @@ else
         case 'gui_server',
             info=conn_remotely('info');
             if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
-            else tnameserver='none';
+            elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
+            else tnameserver='CONN server';
             end
             thfig=figure('units','norm','position',[.3,.4,.5,.4],'menubar','none','numbertitle','off','name','CONN remotely','color','w');
             str={}; 
@@ -1553,17 +1554,18 @@ else
             h.text1=uicontrol('style','text','units','norm','position',[.05,.80,.9,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',9+CONN_gui.font_offset,'string',sprintf('Connected to %s',tnameserver),'parent',thfig);
             h.text2=uicontrol('style','text','units','norm','position',[.05,.35,.9,.43],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string',str,'parent',thfig);
             h.text3=uicontrol('style','text','units','norm','position',[.05,.21,.55,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string','','parent',thfig);
-            h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','off','units','norm','position',[.05,.11,.15,.10],'callback','conn_remotely(''details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
+            h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','on','units','norm','position',[.05,.11,.15,.10],'callback','conn_remotely(''details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
             h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.20,.11,.15,.10],'callback','conn_server(''clear_cache'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears file temporal storage and communication buffer');
-            h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','off','units','norm','position',[.50,.11,.15,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
-            h.button7=uicontrol(thfig,'style','pushbutton','string','cmd','enable','off','units','norm','position',[.65,.11,.15,.10],'callback','disp(''TYPE quit TO FINISH''); conn_remotely(''cmd'')','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('Matlab command-line in %s',tnameserver));
-            h.button8=uicontrol(thfig,'style','pushbutton','string','scp','enable','off','units','norm','position',[.80,.11,.15,.10],'callback','delete(gcbf); conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy/transfer entire folders between this computer and %s',tnameserver));
+            h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','on','units','norm','position',[.50,.11,.15,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
+            h.button7=uicontrol(thfig,'style','pushbutton','string','cmd','enable','on','units','norm','position',[.65,.11,.15,.10],'callback','disp(''TYPE quit TO FINISH''); conn_remotely(''cmd'')','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('Matlab command-line in %s',tnameserver));
+            h.button8=uicontrol(thfig,'style','pushbutton','string','scp','enable','on','units','norm','position',[.80,.11,.15,.10],'callback','delete(gcbf); conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy/transfer entire folders between this computer and %s',tnameserver));
             %h.button4=uicontrol(thfig,'visible','off','style','pushbutton','string','File transfer','units','norm','position',[.05,.01,.30,.10],'callback','conn_remotely(''filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
             h.button4=uicontrol(thfig,'style','pushbutton','string','Check connection','units','norm','position',[.05,.01,.30,.10],'callback','h=get(gcbf,''userdata'');  if conn(''gui_isconnected''), set(h.text3,''string'',''connection working correctly''); else set(h.text3,''string'',''connection failed''); end','fontsize',6+CONN_gui.font_offset,'tooltipstring','checks the connection with an existing/running remote CONN session');
             h.button5=uicontrol(thfig,'style','pushbutton','string','Reset connection','units','norm','position',[.35,.01,.30,.10],'callback','close(gcbf); conn_remotely softrestart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
             h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn_remotely softstart','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_remotely forceoff" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
-            try, if ~isempty(info.remote_ip), set([h.button1 h.button7 h.button8],'enable','on'); end; end
-            try, if ~isempty(info.remote_log), set(h.button2,'enable','on'); end; end
+            try, if isempty(info.remote_ip), set([h.button1 h.button7 h.button8],'enable','off'); end; end
+            try, if isempty(info.remote_log), set(h.button2,'enable','off'); end; end
+            try, if isempty(info.host), set([h.button2 h.button6 h.button8],'enable','off'); end; end
             set(thfig,'userdata',h);
             
         case 'gui_isconnected'
@@ -1574,6 +1576,7 @@ else
                     if ~ok
                         info=conn_remotely('info');
                         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
+                        elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
                         else tnameserver='CONN server';
                         end
                         answ=conn_questdlg('',sprintf('lost connection to %s',tnameserver),'Retry','Reset connection and retry','Start new remote session','Cancel','Retry');
@@ -2856,7 +2859,7 @@ else
                         str=[{'from primary functional dataset'},arrayfun(@(n)sprintf('from secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:max(numel(CONN_x.Setup.secondarydataset),max(CONN_x.Setup.rois.unsmoothedvolumes)),'uni',0)];
 						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.482,.56,.19,.03],'',str,'<HTML>source of functional data for ROI timeseries extraction<br/> - Select <b>secondary datasets</b> to extract ROI BOLD timeseries from any of the secondary datasets defined in <i>Setup.Functional</i> (default behavior; e.g. non-smoothed volumes)<br/> - Select <b>primary dataset</b> to extract ROI BOLD timeseries from the primary dataset defined in <i>Setup.Functional</i> (e.g. smoothed volumes)</HTML>','conn(''gui_setup'',13);');
 						%CONN_h.menus.m_setup_00{7}=conn_menu('edit',boffset+[.49,.71,.06,.04],'Dimensions','','<HTML>number of dimensions characterizing the ROI activation <br/> - use <b>1</b> to extract only the mean BOLD timeseries within the ROI <br/> - use <b>2</b> or above to extract one or several PCA components as well</HTML>','conn(''gui_setup'',7);');
-                        CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.14,.01,.25,.05],'',{'<HTML><i> - ROI tools -</i></HTML>','Display slice viewer','Display slice viewer with functional overlay (QA_REG)','Display slice viewer with structural overlay (QA_REG)','Display slice viewer with MNI reference template overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display 3d-volume viewer','Display 3d-surface-projection viewer','Display ROI/functional coregistration (SPM)','Display ROI/anatomical coregistration (SPM)','Display single-slice for all subjects (montage)','Display ROI labels','Create new ROI(s) from MNI coordinates','Create new ROI(s) from ICA results','Reassign all ROI files simultaneously','Update changes from Setup to Denoising tab'},'<HTML> - <i>slice viewer</i> displays ROI slices<br/> - <i>slice viewer with functional/structural overlay</i> displays ROI contours overlaid with mean functional or same-subject anatomical volume<br/> - <i>slice viewer with MNI reference template overlay</i> displays ROI contours overlaid with reference MNI-space structural template<br/> - <i>slice viewer with MNI boundaries</i> displays ROI slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/>  - <i>3d viewer</i> displays ROI file on the volume or projected to the cortical surface<br/> - <i>display registration</i> checks the coregistration of the selected subject ROI and anatomical/functional files<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space) for the selected ROI<br/> - <i>display ROI labels</i> displays ROI labels for ROI atlas files and allows editing the associated labels file<br/> - <i>create new ROI from MNI coordinates</i> creates a new spherical-ROI file from a set of user-defined MNI coordinates<br/>  - <i>Add ICA network-ROIs</i> adds ICA networks (spatial components from group-ICA analysis results) as a new ROI atlas<br/> - <i>reassign all ROI files simultaneously</i> reassigns files associated with the selected ROI using a user-generated search/replace filename rule<br/> - <i>update changes</i> updates the Denoising tab information to reflect any modifications in ROI definitions or options performed here in the Setup tab</HTML>','conn(''gui_setup'',14);');
+                        CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.14,.01,.25,.05],'',{'<HTML><i> - ROI tools -</i></HTML>','Display slice viewer','Display slice viewer with functional overlay (QA_REG)','Display slice viewer with structural overlay (QA_REG)','Display slice viewer with MNI reference template overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display 3d-volume viewer','Display 3d-surface-projection viewer','Display ROI/functional coregistration (SPM)','Display ROI/anatomical coregistration (SPM)','Display single-slice for all subjects (montage)','Display ROI labels','Create new ROI(s) from MNI coordinates','Create new ROI(s) from ICA results','Create new single-voxel-ROI(s) from mask','Reassign all ROI files simultaneously','Update changes from Setup to Denoising tab'},'<HTML> - <i>slice viewer</i> displays ROI slices<br/> - <i>slice viewer with functional/structural overlay</i> displays ROI contours overlaid with mean functional or same-subject anatomical volume<br/> - <i>slice viewer with MNI reference template overlay</i> displays ROI contours overlaid with reference MNI-space structural template<br/> - <i>slice viewer with MNI boundaries</i> displays ROI slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/>  - <i>3d viewer</i> displays ROI file on the volume or projected to the cortical surface<br/> - <i>display registration</i> checks the coregistration of the selected subject ROI and anatomical/functional files<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space) for the selected ROI<br/> - <i>display ROI labels</i> displays ROI labels for ROI atlas files and allows editing the associated labels file<br/> - <i>create new ROI from MNI coordinates</i> creates a new spherical-ROI file from a set of user-defined MNI coordinates<br/>  - <i>Create new ROI(s) from ICA results</i> adds ICA networks (spatial components from group-ICA analysis results) as a new ROI atlas<br/> - <i>Create new single-voxel-ROI(s) from mask</i> creates a new set of individual-voxel-ROIs from all voxels within a user-defined mask<br/> - <i>reassign all ROI files simultaneously</i> reassigns files associated with the selected ROI using a user-generated search/replace filename rule<br/> - <i>update changes</i> updates the Denoising tab information to reflect any modifications in ROI definitions or options performed here in the Setup tab</HTML>','conn(''gui_setup'',14);');
 						%conn_menu('frame',boffset+[.38,.03,.30,.12]);
 						tmp=conn_menu('text',boffset+[.40,.105,.20,.04],'','Advanced options:');
                         set(tmp,'horizontalalignment','left','fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA);
@@ -3486,11 +3489,40 @@ else
                                                 end
                                             end
                                         end
-                                    case 15, % reassign
+                                    case 15, % new ROI from voxels within mask
+                                        set(CONN_h.menus.m_setup_00{14},'value',1);
+                                        [tfilename,tpathname]=uigetfile('*.nii; *.img','Select explicit mask');
+                                        if ischar(tfilename),
+                                            fname=fullfile(tpathname,tfilename);
+                                            [nill,fname_name]=fileparts(fname);
+                                            if isempty(fname_name), fname_name='newroi'; end
+                                            [filename,isext]=conn_createvoxelroi(fname,conn_prepend('',fname,'.ROI.nii'));
+                                            nrois=numel(CONN_x.Setup.rois.names);
+                                            if any(strcmp(CONN_x.Setup.rois.names,fname_name))
+                                                nrois=find(strcmp(CONN_x.Setup.rois.names,fname_name),1);
+                                                set(CONN_h.menus.m_setup_00{1},'value',nrois);
+                                            else
+                                                CONN_x.Setup.rois.names{nrois}=fname_name;
+                                                CONN_x.Setup.rois.names{nrois+1}=' ';
+                                                set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.rois.names(1:nrois+1),'value',nrois);
+                                                CONN_x.Setup.rois.dimensions{nrois}=1;
+                                            end
+                                            CONN_x.Setup.rois.multiplelabels(nrois)=(isext>1);
+                                            CONN_x.Setup.rois.subjectspecific(nrois)=0;
+                                            CONN_x.Setup.rois.sessionspecific(nrois)=0;
+                                            fileinfo=conn_file(filename);
+                                            for nsub=1:CONN_x.Setup.nsubjects,
+                                                for nses=1:CONN_x.Setup.nsessions(min(nsub,numel(CONN_x.Setup.nsessions)))
+                                                    CONN_x.Setup.rois.files{nsub}{nrois}{nses}=fileinfo;
+                                                end
+                                            end
+                                        else return;
+                                        end
+                                    case 16, % reassign
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
                                         nrois=get(CONN_h.menus.m_setup_00{1},'value');
                                         conn_rulebasedfilename(sprintf('roi%d',nrois(1)));
-                                    case 16, % propagate
+                                    case 17, % propagate
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
                                         nrois=get(CONN_h.menus.m_setup_00{1},'value');
                                         if CONN_x.isready(2)
@@ -12327,6 +12359,7 @@ if paroption,
     if CONN_gui.isremote
         info=conn_remotely('info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
+        elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
         else tnameserver='CONN server';
         end
         toptions=regexprep(toptions,'\<run on (this computer)?',['run on ',tnameserver,' ']);
