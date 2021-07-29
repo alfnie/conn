@@ -143,7 +143,7 @@ switch(lower(option))
         
     case {'run','run_immediatereturn','run_withwaitbar','run_keep','run_keepas'}
         data.type='run';
-        data.id=char(mlreportgen.utils.hash(mat2str(now)));
+        data.id=char(conn_tcpip('hash',mat2str(now)));
         if strcmpi(option,'run_withwaitbar'), statushandle=varargin{1}; data.cmd=varargin(2:end); data.withwaitbar=true; data.keeplocal=false;
         elseif strcmpi(option,'run_keepas'), statushandle=[]; data.cmd=varargin(2:end); data.withwaitbar=true; data.keeplocal=varargin{1};
         else statushandle=[]; data.cmd=varargin; data.withwaitbar=false; data.keeplocal=strcmpi(option,'run_keep');
@@ -193,7 +193,7 @@ switch(lower(option))
                     fprintf('WARNING: unexpected response\n');
                 else
                     %                     if isequal(var.type,'ok_hasattachment') % server is waiting for us to scp its response
-                    %                         tmpfile1=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
+                    %                         tmpfile1=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(conn_tcpip('hash',mat2str(now))),'.mat']);
                     %                         tmpfile2=var.msg;
                     %                         if conn_server_ssh('pull',tmpfile2,tmpfile1), var=load(tmpfile1,'arg'); var=var.arg;
                     %                         else var=struct('type','ko','id',var.id,'msg','unable to run SSH_pull to read response from server');
@@ -314,14 +314,14 @@ switch(lower(option))
                                 if isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'keeplocal')&&all(data.keeplocal>0)
                                     for nvar=1:numel(argout.msg)
                                         if ischar(data.keeplocal), varname=['labeled_',data.keeplocal,'_',num2str(nvar)];
-                                        else varname=['var_',char(mlreportgen.utils.hash(mat2str(now))),'_',num2str(nvar)];
+                                        else varname=['var_',char(conn_tcpip('hash',mat2str(now))),'_',num2str(nvar)];
                                         end
                                         local_vars.(varname)=argout.msg{nvar};
                                         argout.msg{nvar}=struct('conn_server_variable',varname);
                                     end
                                     conn_tcpip('write',argout);
                                     %                                 elseif isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'hpc')&&data.hpc>0&&getfield(whos('argout'),'bytes')>1e6, % send response using ssh/scp?
-                                    %                                     tmpfile=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
+                                    %                                     tmpfile=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(conn_tcpip('hash',mat2str(now))),'.mat']);
                                     %                                     arg=argout; save(tmpfile,'arg');
                                     %                                     argout=struct('type','ok_hasattachment','id',data.id,'msg',tmpfile);
                                     %                                     conn_tcpip('write',argout);

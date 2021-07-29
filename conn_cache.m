@@ -79,7 +79,7 @@ switch(lower(option))
             filename_remote=conn_fullfile(filename_remote);
             [fext,fexts]=conn_cache_exts(filename_remote);
             idx=find(strcmp(filename_remote,params.remote_files),1,'last');
-            if isempty(idx), filename_local=conn_fullfile(params.local_folder, ['conncache_', char(mlreportgen.utils.hash([filename_remote, mat2str(now)])), fext]);
+            if isempty(idx), filename_local=conn_fullfile(params.local_folder, ['conncache_', char(conn_tcpip('hash',[filename_remote, mat2str(now)])), fext]);
             else filename_local=params.local_files{idx};
             end
             if isempty(idx), idx=numel(params.remote_files)+1; end

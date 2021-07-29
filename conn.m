@@ -681,7 +681,17 @@ else
                 catch
                     if isempty(which('spm')), dodebug=true; error('INSTALLATION PROBLEM. Please re-install SPM and try again');
                     elseif isempty(which('conn_existfile')), dodebug=true; error('INSTALLATION PROBLEM. Please re-install CONN and try again');
-                    elseif conn_existfile(filename), dodebug=true; error('INSTALLATION PROBLEM. Please re-install SPM and CONN and try again');
+                    elseif conn_existfile(filename), 
+                        if ismac, 
+                            try
+                                conn bugfix_catalina2019;
+                                infomask=conn_file(filename);
+                            catch
+                                dodebug=true; error('INSTALLATION PROBLEM. Please re-install SPM and CONN and try again');
+                            end
+                        else
+                            dodebug=true; error('INSTALLATION PROBLEM. Please re-install SPM and CONN and try again');
+                        end
                     else dodebug=true; error('INSTALLATION PROBLEM. Please re-install CONN and try again');
                     end
                 end
@@ -2867,7 +2877,7 @@ else
 						CONN_h.menus.m_setup_00{18}=conn_menu('checkbox',boffset+[.40,.045,.02,.025],'Subject-specific ROI','','Use subject-specific ROI files (one file per subject)','conn(''gui_setup'',18);');
 						[CONN_h.menus.m_setup_00{11},CONN_h.menus.m_setup_00{17}]=conn_menu('checkbox',boffset+[.40,.010,.02,.025],'Session-specific ROI','','Use sesion-specific ROI files (one file per session)','conn(''gui_setup'',11);');
 						CONN_h.menus.m_setup_00{9}=conn_menu('checkbox',boffset+[.52,.080,.02,.025],'Mask with Grey Matter','','extract only from grey matter voxels (intersects this ROI with each subject''s thresholded grey matter mask)','conn(''gui_setup'',9);');
-						[CONN_h.menus.m_setup_00{12},CONN_h.menus.m_setup_00{20}]=conn_menu('checkbox',boffset+[.52,.045,.02,.025],'Regress-out covariates','','<HTML>regress out covariates before performing PCA decomposition of BOLD signal within ROI<br/> - this field only applies when extracting more than 1 dimension (<i>compute PCA decomposition</i> option) from an ROI</HTML>','conn(''gui_setup'',12);');
+						[CONN_h.menus.m_setup_00{12},CONN_h.menus.m_setup_00{20}]=conn_menu('checkbox',boffset+[.52,.045,.02,.025],'Regress-out covariates','','<HTML>regress out covariates before performing PCA decomposition of BOLD signal within ROI<br/> - this field only applies when extracting more than 1 dimension (<i>compute PCA decomposition</i> option) from an ROI <br/> - when selected, all 1st-level covariates (with the exception of those with names starting by QC_) will be temporally regressed out from the BOLD timeseries before computing Principal Component Analyses</HTML>','conn(''gui_setup'',12);');
                         CONN_h.menus.m_setup_00{21}=conn_menu('pushbutton', boffset+[.525,.010,.10,.03],'','Erosion settings','<HTML>thresholding and erosion settings for tissue probability maps (Grey/White/CSF masks)<br/> - note: erosion helps minimize potential partial-volume effects when extracting signals from noise ROIs</HTML>','conn(''gui_setup'',21);');
 						%CONN_h.menus.m_setup_00{13}=conn_menu('checkbox',boffset+[.50,.045,.02,.03],'Use ROI source data','','<HTML>source of functional data for ROI timeseries extraction<br/> - when checked CONN extracts ROI BOLD timeseries from the funcional volumes defined in the field "<i>Setup.Functional.Functional data for <b>ROI</b>-level analyses: </i>" (default behavior; e.g. non-smoothed volumes)<br/> - when unchecked CONN extracts ROI BOLD timeseries from the functional volumes defined in the field "<i>Setup.Functional.Functional data for <b>voxel</b>-level analyses: </i>" (non-default behavior; e.g. smoothed volumes)</HTML>','conn(''gui_setup'',13);');
                         %CONN_h.menus.m_setup_00{14}=uicontrol('style','popupmenu','units','norm','position',boffset+[.37,.08,.15,.04],'string',{'<HTML><i> - options:</i></HTML>','check registration'},'foregroundcolor','w','backgroundcolor',CONN_gui.backgroundcolorA,'fontsize',8+CONN_gui.font_offset,'callback','conn(''gui_setup'',14);','tooltipstring','ROIs additional options');

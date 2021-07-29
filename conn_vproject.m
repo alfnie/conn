@@ -1240,7 +1240,7 @@ if strcmp(views,'full'),
         end
         %backmask=find(all(temp==1,3));for n=1:3,temp(backmask+(n-1)*size(temp,1)*size(temp,2))=backgroundcolor(n); end
         hi=image(1:pres:size(tplot,2),1:pres:size(tplot,1),temp,'parent',h);axis(h,'equal','off');
-        hold(h,'on'); hf=text(.95*size(tplot,2),.95*size(tplot,1),titleclusternames,'color','k','horizontalalignment','right','fontsize',4+CONN_gui.font_offset,'parent',h); hold(h,'off');
+        hold(h,'on'); hf=text(.95*size(tplot,2),.95*size(tplot,1),titleclusternames,'color','k','horizontalalignment','right','fontsize',5+CONN_gui.font_offset,'parent',h); hold(h,'off');
         set([hi,hf],'buttondownfcn',@conn_vproject_imcallback);
         %image(round(convn(convn(tplot(round(1:.5:end),round(1:.5:end),:),conn_hanning(3)/2,'same'),conn_hanning(3)'/2,'same')));axis equal; axis off;
         %image(tplot);axis equal; axis off;

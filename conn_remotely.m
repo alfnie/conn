@@ -367,7 +367,7 @@ switch(option)
         end
         
     case {'settings_runserver','startserver'}
-        str=char(mlreportgen.utils.hash(mat2str(now)));
+        str=char(conn_tcpip('hash',mat2str(now)));
         answ=inputdlg({'Create a one-time-use password to access this server:'},'',1,{str(1:8)},struct('Resize','on'));
         if numel(answ)~=1||isempty(answ{1}),return; end
         str=answ{1};

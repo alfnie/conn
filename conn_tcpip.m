@@ -254,7 +254,7 @@ switch(lower(option))
         elseif readword % read to var directly
             filename=[];
         else % read to file then load var
-            filename=fullfile(connection.cache,['conntcpipread_',char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
+            filename=fullfile(connection.cache,['conntcpipread_',char(conn_tcpip('hash',mat2str(now))),'.mat']);
         end
         filehandle=[];
         bored=false;
@@ -423,7 +423,7 @@ switch(lower(option))
                 fprintf('Unable to send TCP packet (possibly unresponsive server). Disregarding\n');
             end
         else % save to file then send file
-            filename=fullfile(connection.cache,['conntcpipwrite_',char(mlreportgen.utils.hash(mat2str(now))),'.mat']);
+            filename=fullfile(connection.cache,['conntcpipwrite_',char(conn_tcpip('hash',mat2str(now))),'.mat']);
             if info.bytes>2e9, save(filename,'msg','-v7.3'); 
             else save(filename,'msg','-v7'); 
             end
@@ -507,15 +507,20 @@ switch(lower(option))
         connection.maxlength=varargin{1};
         if ischar(connection.maxlength), connection.maxlength=str2double(connection.maxlength); end
         
+    case 'hash' % mlreportgen.utils.hash
+        hash=java.security.MessageDigest.getInstance('md5');
+        hash.update(uint8(varargin{1}));
+        varargout={sprintf('%.2x', reshape(typecast(hash.digest,'uint8'),1,[]))};
+        
     case 'keypair'
         persistent count
         if isempty(count), count=0; 
         else count=count+1; 
         end
-        if numel(varargin)>=1 && ~isempty(varargin{1}), keyprivate=reshape(varargin{1},1,[]); else keyprivate=char(mlreportgen.utils.hash(mat2str(now+count))); end
+        if numel(varargin)>=1 && ~isempty(varargin{1}), keyprivate=reshape(varargin{1},1,[]); else keyprivate=char(conn_tcpip('hash',mat2str(now+count))); end
         hash=java.security.MessageDigest.getInstance('sha-256');
         for n=1:1024,hash.update(uint8(keyprivate));end
-        keypublic=char(mlreportgen.utils.hash(char(reshape(typecast(hash.digest,'uint8'),1,[]))));
+        keypublic=char(conn_tcpip('hash',char(reshape(typecast(hash.digest,'uint8'),1,[]))));
         varargout={keypublic,keyprivate};
         
     case 'private.ip',

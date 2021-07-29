@@ -57,7 +57,9 @@ end
             for n1=1:length(dir0),
                 if DIRSONLY==dir0(idx(n1)).isdir&&(isempty(filter2)||~isempty(regexp(dir0(idx(n1)).name,filter2)))&&(~DOSKIPDOT||~all(dir0(idx(n1)).name=='.')),
                     %if ~dir0(idx(n1)).isdir,
-                    txt=fullfile(pathname,dir0(idx(n1)).name);
+                    if isfield(dir0,'folder'), txt=fullfile(dir0(idx(n1)).folder,dir0(idx(n1)).name);
+                    else txt=fullfile(pathname,dir0(idx(n1)).name);
+                    end
                     if DOINF||size(FILENAMES,1)<1e6, % Change this value to increase the maximum number of FILENAMES displayed
                         FILENAMES=[FILENAMES {txt}];
                         FILESTRUCTS=[FILESTRUCTS dir0(idx(n1))];
