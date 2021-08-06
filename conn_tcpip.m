@@ -507,7 +507,7 @@ switch(lower(option))
         connection.maxlength=varargin{1};
         if ischar(connection.maxlength), connection.maxlength=str2double(connection.maxlength); end
         
-    case 'hash' % mlreportgen.utils.hash
+    case 'hash' % md5 hash (mlreportgen.utils.hash)
         hash=java.security.MessageDigest.getInstance('md5');
         hash.update(uint8(varargin{1}));
         varargout={sprintf('%.2x', reshape(typecast(hash.digest,'uint8'),1,[]))};
@@ -517,7 +517,7 @@ switch(lower(option))
         if isempty(count), count=0; 
         else count=count+1; 
         end
-        if numel(varargin)>=1 && ~isempty(varargin{1}), keyprivate=reshape(varargin{1},1,[]); else keyprivate=char(conn_tcpip('hash',mat2str(now+count))); end
+        if numel(varargin)>=1 && ~isempty(varargin{1}), keyprivate=reshape(varargin{1},1,[]); else keyprivate=char(conn_tcpip('hash',mat2str(now+count,100))); end
         hash=java.security.MessageDigest.getInstance('sha-256');
         for n=1:1024,hash.update(uint8(keyprivate));end
         keypublic=char(conn_tcpip('hash',char(reshape(typecast(hash.digest,'uint8'),1,[]))));

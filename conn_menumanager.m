@@ -296,7 +296,7 @@ if ischar(handle),
                     delete(hc(ishandle(hc)));
                 else
                     hax=axes('units','norm','position',[.78,.93,.20,.02],'parent',CONN_MM.gcf);
-                    text(1,0,sprintf('GUI busy\\fontsize{%d} (possibly%s)\\fontsize{%d} please wait',4+CONN_gui.font_offset,regexprep(conn_msg(1),', please wait.*$',''),6+CONN_gui.font_offset),'horizontalalignment','right','interpreter','tex','color',CONN_gui.fontcolorB, 'fontsize',6+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
+                    text(1,0,sprintf('GUI busy\\fontsize{%d} (possibly%s)\\fontsize{%d} please wait',5+CONN_gui.font_offset,regexprep(conn_msg(1),', please wait.*$',''),6+CONN_gui.font_offset),'horizontalalignment','right','interpreter','tex','color',CONN_gui.fontcolorB, 'fontsize',6+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
                     %hax=axes('units','norm','position',[.4,.05,.20,.025],'parent',CONN_MM.gcf);
                     %text(0,0,['GUI busy',conn_msg(1)],'horizontalalignment','center','color',CONN_gui.fontcolorB, 'fontsize',8+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
                     drawnow;
