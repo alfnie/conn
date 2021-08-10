@@ -53,7 +53,7 @@ switch(lower(option))
         end
         if params.options.use_ssh, 
             allthesame=true;
-            if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=input('Server address [none]: ','s'); allthesame=false;
+            if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=input('Server address [local]: ','s'); allthesame=false;
             else
                 temp=input(sprintf('Server address [%s]: ',params.info.host),'s');
                 if ~isempty(temp),
@@ -62,7 +62,7 @@ switch(lower(option))
                     params.info.host=temp;
                 end
             end
-            if strcmp(params.info.host,'none'), params.info.host=''; end
+            if strcmp(params.info.host,'local')||strcmp(params.info.host,'none'), params.info.host=''; end
         else
             params.info.host=''; 
         end

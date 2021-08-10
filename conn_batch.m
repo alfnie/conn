@@ -46,215 +46,215 @@ function varargout=conn_batch(varargin)
 % 
 % 
 % BATCH.parallel DEFINES PARALLELIZATION OPTIONS (applies to any Setup/Setup.preprocessing/Denoising/Analysis/QA steps) %!
-%  parallel            
 % 
-%    N               : Number of parallel jobs; 0 to run locally ([0])
-%    profile                    : (optional) Name of parallelization profile 
-%                                   if undefined CONN uses the default parallelization profile defined in GUI.Tools.GridSettings
-%                                   see "conn_jobmanager profiles" for a list of all available profiles
-%                                   see GUI Tools.GridSettings for additional information and to add/edit profiles
-%                                   use the profile name 'Null profile' to queue this job (queued/scripted jobs are prepared but
-%                                    not submitted; see GUI.Tools.SeePendingJobs to submit next queued job)
-%    cmd_submitoptions          : (optional) alternative value for parallelization profile 'in-line' additional submit-settings 
-%                                   defaults to the chosen parallelization profile value for this field
-%    cmd_submitoptions_infile   : (optional) alternative value for parallelization profile 'in-file' additional submit-settings
-%                                   defaults to the chosen parallelization profile value for this field
-%    cmd_rundeployed            : (optional) aternative value for profile 'nodes use pre-compiled CONN only' setting
-%                                   defaults to the chosen parallelization profile value for this field
-%    cmd_checkstatus_automatic  : (optional) aternative value for profile 'check jobs status automatically' setting
-%                                   defaults to the chosen parallelization profile value for this field
-%    immediatereturn            : (optional) 1/0 : 1 returns control to Matlab without waiting for parallel job to finish ([0])
+%    parallel.N                         : number of parallel jobs; 0 to run locally ([0])
+%    parallel.profile                   : (optional) name of parallelization profile 
+%                                           if undefined CONN uses the default parallelization profile defined in GUI.Tools.GridSettings
+%                                           see "conn_jobmanager profiles" for a list of all available profiles
+%                                           see GUI Tools.GridSettings for additional information and to add/edit profiles
+%                                           use the profile name 'Null profile' to queue this job (queued/scripted jobs are prepared but
+%                                            not submitted; see GUI.Tools.SeePendingJobs to submit next queued job)
+%    parallel.cmd_submitoptions         : (optional) alternative value for parallelization profile 'in-line' additional submit-settings 
+%                                           defaults to the chosen parallelization profile value for this field
+%    parallel.cmd_submitoptions_infile   : (optional) alternative value for parallelization profile 'in-file' additional submit-settings
+%                                           defaults to the chosen parallelization profile value for this field
+%    parallel.cmd_rundeployed            : (optional) aternative value for profile 'nodes use pre-compiled CONN only' setting
+%                                           defaults to the chosen parallelization profile value for this field
+%    parallel.cmd_checkstatus_automatic  : (optional) aternative value for profile 'check jobs status automatically' setting
+%                                           defaults to the chosen parallelization profile value for this field
+%    parallel.immediatereturn            : (optional) 1/0 : 1 returns control to Matlab without waiting for parallel job to finish ([0])
 % 
 % BATCH.Setup DEFINES EXPERIMENT SETUP AND PERFORMS INITIAL DATA EXTRACTION AND/OR PREPROCESSING STEPS %!
-%  Setup               
 % 
-%    isnew           : 1/0 is this a new conn project [0]
-%    done            : 1/0: 0 defines fields only; 1 runs SETUP processing steps [0]
-%    overwrite       : (for done=1) 1/0 overwrites target files if they exist [1]
+%    Setup.isnew                        : 1/0 set to 1 when defining a new conn project in order to initialize it, disregarding any
+%                                         previous information stored in this project [0]
+%    Setup.done                         : 1/0: 0 defines fields only; 1 defines fields and runs SETUP processing steps afterwards [0]
+%    Setup.overwrite                    : (for done=1) 1/0 overwrites target files if they exist [1]
 % 
-%    nsubjects       : Number of subjects
-%    RT              : Repetition time (seconds) [NaN: read from sidecar json file if available]
-%    acquisitiontype : 1/0: Continuous acquisition of functional volumes [1] 
+%    Setup.nsubjects                    : Number of subjects
+%    Setup.RT                           : Repetition time (seconds) [NaN: read from sidecar json file if available]
+%    Setup.acquisitiontype              : 1/0: Continuous acquisition of functional volumes [1] 
 % 
-%    functionals     : functionals{nsub}{nses} char array of functional volume files (dataset-0; for voxel-level analyses; 
-%                       see secondarydatasets below) 
-%    structurals     : structurals{nsub} char array of structural volume files 
-%                      OR structurals{nsub}{nses} char array of anatomical session-specific volume files 
-%    secondarydatasets  : (for Setup.rois.dataset>0) cell array identifying one or several additional functional 
-%                       datasets (e.g. vdm files for susceptibility distorition, alternative functional files for
-%                       ROI-level timeseries extraction, etc.) (secondary dataset-1 and above); default secondarydatasets
-%                       equal to struct('functionals_type',2)
-%       functionals_label      : (optional) label of secondary functional dataset
-%       functionals_type       : Files in secondary functional dataset (1-4) [2]: 
-%                                 1: same files as Primary dataset
-%                                 2: same files as Primary dataset field after removing leading 's' from filename
-%                                 3: other (same as Primary dataset field but using alternative filename-change rule; 
-%                                       see functionals_rule above and help conn_rulebasedfilename); 
-%                                 4: other (explicitly specify the functional volume files; see functionals_explicit below)
-%       functionals_rule       : (only for functionals_type==3 only) regexprep(filename,functionals_rule{2},functionals_rule{3}) converts 
-%                               filenames in 'Setup.functionals' field to filenames that will be used when extracting BOLD 
-%                               signal ROI timeseries (if functionals_rule{1}==2 filename is interpreted as a full path; if 
-%                               functionals_rule{1}==1 filename is interpreted as only the file *name* -no file path, no 
-%                               file extension-)    
-%       functionals_explicit   : (only for functionals_type==4 only) functionals_explicit{nsub}{nses} char array of volume files
-%    add             : 1/0; use 0 (default) to define the full set of subjects in your experiment; use 1 to define an 
-%                       additional set of subjects (to be added to any already-existing subjects in your project) [0]
-%                      When using Setup.add=1, the following fields are expected to contain the information for the new
-%                       /added subjects *only*: Setup.functionals, Setup.structurals, Setup.functionals_explicit, 
-%                       Setup.vdm_functionals, Setup.fmap_functionals, Setup.coregsource_functionals, Setup.spmfiles, 
-%                       Setup.masks.Grey/White/CSF, Setup.rois.files, Setup.conditions.onsets/durations, Setup.covariates.files
-%                      When using Setup.add=1 in combination with Setup.done, Setup.preprocessing, Denoising.done, and/or 
-%                       Analysis.done only the new/added subjects will be processed
-%                      When using Setup.add=1 the BATCH.subjects field is disregarded/overwritten to point to the new/added 
-%                       subjects only
-%                      note: Setup.add cannot be used in combination with any of the Setup.rois.add, Setup.conditions.add, or 
-%                       Setup.covariates.add options within the same batch structure
+%    Setup.functionals                  : functionals{nsub}{nses} char array of functional volume files (dataset-0; for voxel-level analyses; 
+%                                         see secondarydatasets below) 
+%    Setup.structurals                  : structurals{nsub} char array of structural volume files 
+%                                         OR structurals{nsub}{nses} char array of anatomical session-specific volume files 
+%    Setup.secondarydatasets            : define one or several additional functional datasets (e.g. fmap or vdm files for susceptibility 
+%                                         distorition, alternative functional files for ROI-level timeseries extraction, etc.) 
+%                                         [default secondarydatasets equal to struct('functionals_type',2)]
+%       Setup.secondarydatasets.functionals_label : label of secondary functional dataset (e.g. 'fmap', 'vdm', ...)
+%       Setup.secondarydatasets.functionals_explicit : functionals_explicit{nsub}{nses} char array of volume files (only for functionals_type==4 only) 
+%       Setup.secondarydatasets.functionals_type : alternative option for defining files in secondary functional dataset (1-4) [2]: 
+%                                          1: same files as Primary dataset
+%                                          2: same files as Primary dataset field after removing leading 's' from filename
+%                                          3: other (same as Primary dataset field but using alternative filename-change rule; 
+%                                             see functionals_rule above and help conn_rulebasedfilename); 
+%                                          4: other (explicitly specify the functional volume files using functionals_explicit field above)
+%       Setup.secondarydatasets.functionals_rule : (only for functionals_type==3 only) regexprep(filename,functionals_rule{2},functionals_rule{3})  
+%                                         converts filenames in 'Setup.functionals' field to filenames that will be used when extracting
+%                                          BOLD signal ROI timeseries (if functionals_rule{1}==2 filename is interpreted as a full path;  
+%                                         if functionals_rule{1}==1 filename is interpreted as only the file *name* -no file path, no 
+%                                         file extension-)    
+%    Setup.add                          : 1/0; use 0 (default) to define the full set of subjects in your experiment; use 1 to define an 
+%                                         additional set of subjects (to be added to any already-existing subjects in your project) [0]
+%                                         When using Setup.add=1, the following fields are expected to contain the information for the new
+%                                          /added subjects *only*: Setup.functionals, Setup.structurals, Setup.functionals_explicit, 
+%                                          Setup.vdm_functionals, Setup.fmap_functionals, Setup.coregsource_functionals, Setup.spmfiles, 
+%                                          Setup.masks.Grey/White/CSF, Setup.rois.files, Setup.conditions.onsets/durations, Setup.covariates.files
+%                                         When using Setup.add=1 in combination with Setup.done, Setup.preprocessing, Denoising.done, and/or 
+%                                          Analysis.done only the new/added subjects will be processed
+%                                         When using Setup.add=1 the BATCH.subjects field is disregarded/overwritten to point to the new/added 
+%                                          subjects only
+%                                         note: Setup.add cannot be used in combination with any of the Setup.rois.add, Setup.conditions.add, or 
+%                                          Setup.covariates.add options within the same batch structure
 % 
-%    masks
-%      Grey          : masks.Grey{nsub} char array of grey matter mask volume file [defaults to Grey mask from structural] 
-%      White         : masks.White{nsub} char array of white matter mask volume file [defaults to White mask from structural] 
-%      CSF           : masks.CSF{nsub} char array of CSF mask volume file [defaults to CSF mask from structural] 
-%                    : each of these fields can also be defined as a double cell array for session-specific files (e.g. 
-%                       mask.Grey{nsub}{nses} grey matter file for subject nsub and session nses)
-%                    : each of these fields can also be defined as a structure with fields files/dimensions/etc. 
-%                       (same as 'Setup.rois' below).
-%    rois
-%      names         : rois.names{nroi} char array of ROI name [defaults to ROI filename]
-%      files         : rois.files{nroi}{nsub}{nses} char array of roi file (rois.files{nroi}{nsub} char array of roi file, 
-%                       to use the same roi for all sessions; or rois.files{nroi} char array of roi file, to use the same 
-%                       roi for all subjects)
-%      dimensions    : rois.dimensions{nroi} number of ROI dimensions - # temporal components to extract from ROI [1] (set 
-%                       to 1 to extract the average timeseries within ROI voxels; set to a number greater than 1 to extract 
-%                       additional PCA timeseries within ROI voxels 
-%      weighted      : rois.weighted(nroi) 1/0 to use weighted average/PCA computation when extracting temporal components 
-%                       from each ROI (BOLD signals are weighted by the ROI mask value at each voxel)
-%      multiplelabels: rois.multiplelabels(nroi) 1/0 to indicate roi file contains multiple labels/ROIs (default: set to 
-%                       1 if there exist an associated .txt or .xls file with the same filename and in the same folder as 
-%                       the roi file)
-%      mask          : rois.mask(nroi) 1/0 to mask with grey matter voxels [0] 
-%      regresscovariates: rois.regresscovariates(nroi) 1/0 to regress known first-level covariates before computing PCA 
-%                       decomposition of BOLD signal within ROI [1 if dimensions>1; 0 otherwise] 
-%      dataset       : rois.dataset(nroi) index n to Secondary Dataset #n identifying the version of functional data 
-%                       coregistered  to this ROI to extract BOLD timeseries from [1] (set to 0 to extract BOLD signal 
-%                       from Primary Dataset instead; secondary datasets may be identified by their index or by their 
-%                       label -see 'functional_label' preprocessing step)
-%      add           : 1/0; use 0 (default) to define the full set of ROIs to be used in your analyses; use 1 to define 
-%                       an additional set of ROIs (to be added to any already-existing ROIs in your project) [0]
+%    Setup.masks                        : defines gray/white/CSF masks for each subject
+%      Setup.masks.Grey                 : masks.Grey{nsub} char array of grey matter mask volume file [defaults to Grey mask from structural] 
+%      Setup.masks.White                : masks.White{nsub} char array of white matter mask volume file [defaults to White mask from structural] 
+%      Setup.masks.CSF                  : masks.CSF{nsub} char array of CSF mask volume file [defaults to CSF mask from structural] 
+%                                       : each of these fields can also be defined as a double cell array for session-specific files (e.g. 
+%                                          mask.Grey{nsub}{nses} grey matter file for subject nsub and session nses)
+%                                       : each of these fields can also be defined as a structure with fields files/dimensions/etc. 
+%                                         (same as 'Setup.rois' below).
+%    Setup.rois                         : defines arbitrary ROIs
+%      Setup.rois.names                 : rois.names{nroi} char array of ROI name [defaults to ROI filename]
+%      Setup.rois.files                 : rois.files{nroi}{nsub}{nses} char array of roi file (rois.files{nroi}{nsub} char array of roi file, 
+%                                         to use the same roi for all sessions; or rois.files{nroi} char array of roi file, to use the same 
+%                                         roi for all subjects)
+%      Setup.rois.dimensions            : rois.dimensions{nroi} number of ROI dimensions - # temporal components to extract from ROI [1] (set 
+%                                         to 1 to extract the average timeseries within ROI voxels; set to a number greater than 1 to extract 
+%                                         additional PCA timeseries within ROI voxels 
+%      Setup.rois.weighted              : rois.weighted(nroi) 1/0 to use weighted average/PCA computation when extracting temporal components 
+%                                         from each ROI (BOLD signals are weighted by the ROI mask value at each voxel)
+%      Setup.rois.multiplelabels        : rois.multiplelabels(nroi) 1/0 to indicate roi file contains multiple labels/ROIs (default: set to 
+%                                         1 if there exist an associated .txt or .xls file with the same filename and in the same folder as 
+%                                         the roi file)
+%      Setup.rois.mask                  : rois.mask(nroi) 1/0 to mask with grey matter voxels [0] 
+%      Setup.rois.regresscovariates     : rois.regresscovariates(nroi) 1/0 to regress known first-level covariates before computing PCA 
+%                                         decomposition of BOLD signal within ROI [1 if dimensions>1; 0 otherwise] 
+%      Setup.rois.dataset               : rois.dataset(nroi) index n to Secondary Dataset #n identifying the version of functional data 
+%                                         coregistered  to this ROI to extract BOLD timeseries from [1] (set to 0 to extract BOLD signal 
+%                                         from Primary Dataset instead; secondary datasets may be identified by their index or by their 
+%                                         label -see 'functional_label' preprocessing step)
+%      Setup.rois.add                   : 1/0; use 0 (default) to define the full set of ROIs to be used in your analyses; use 1 to define 
+%                                         an additional set of ROIs (to be added to any already-existing ROIs in your project) [0]
 %  
-%    conditions
-%      names         : conditions.names{ncondition} char array of condition name
-%      onsets        : conditions.onsets{ncondition}{nsub}{nses} vector of condition onsets (in seconds)
-%      durations     : conditions.durations{ncondition}{nsub}{nses} vector of condition durations (in seconds)
-%      param         : conditions.param(ncondition) temporal modulation (0 for no temporal modulation; positive index to 
-%                       first-level covariate for other temporal interactions) 
-%      filter        : conditions.filter{ncondition} temporal/frequency decomposition ([] for no decomposition; [low high] 
-%                       for fixed band-pass frequency filter; [N] for filter bank decompositoin with N frequency filters; 
-%                       [Duration Onsets] in seconds for sliding-window decomposition where Duration is a scalar and Onsets 
-%                       is a vector of two or more sliding-window onset values) 
-%      missingdata   : 1/0 Allow subjects with missing condition data (empty onset/duration fields in *all* of the
-%                       sessions) [0] 
-%      model         : (optional) conditions.model{ncondition} cell array characterizing definition of secondary conditions, 
-%                       as a function of other regular conditions. Format {@fun, condition_name1, condition_name2, ...}
-%                       where @fun is a function handle characterizing a function fun(x) with x a matrix of functional 
-%                       connectivity values for one or multiple conditions (rows) and one or multiple datapoints (columns)
-%                       Example {@(x)mean(x,1),'Time1','Time2','Time3'} will compute the mean of the three Time# conditions
-%                       Alternative forms of conditions.model{ncondition}{1} values (functional definition)
-%                           'avg','std','min','max'   : to compute average/standard-deviation/minimum/maximum across selected conditions
-%                           'lin',G : to compute regressor coefficients in linear model X=G*B fitting all selected conditions
-%                                where G is a [conditions x regressors] design matrix (note: for subject-specific values define
-%                                G as a char array using Matlab notation and enter second-level covariate names as values). When
-%                                G contains multiple columns the first column defines the effect of interest (the rest are
-%                                estimated but simply disregarded; not taken into second-level analyses)
-%                           @fun    : (single argument function) to compute an arbitrary function fun(X) of condition 
-%                               values X (conditions x datapoints matrix) for each subject
-%                           @fun    : (two or three arguments function for subject-specific functions) to compute an 
-%                               arbitrary function fun(X,c,cnames) as a function of not only the condition values X but also
-%                               of second-level covariate values C (1 x covariates vector) for all second-level covariates 
-%                               in your project (covariate names will be listed as the third argument of fun for reference)
-%      importfile    : (optional) Alternatively, importfile is a char or cell array pointing to a '*.txt','*.csv', or 
-%                       BIDS- '*.tsv' file containing conditions names/onsets/durations information (see help 
-%                       conn_importcondition)
-%      importfile_options: (for conditions.importfile procedure only) cell array containing additional options to pass 
-%                       to conn_importcondition when importing condition info (see help conn_importcondition)
-%      add           : 1/0; use 0 (default) to define the full set of conditions to be used in your analyses; use 1 to 
-%                       define an additional set of conditions (to be added to any already-existing conditions in your 
-%                       project) [0]
+%    Setup.conditions                   : defines analysis conditions (all functional connectivity measures will be computed separately for
+%                                         each defined condition)
+%      Setup.conditions.names           : conditions.names{ncondition} char array condition name
+%      Setup.conditions.onsets          : conditions.onsets{ncondition}{nsub}{nses} vector of condition onsets (in seconds)
+%      Setup.conditions.durations       : conditions.durations{ncondition}{nsub}{nses} vector of condition durations (in seconds)
+%      Setup.conditions.param           : conditions.param(ncondition) temporal modulation (0 for no temporal modulation; positive index to 
+%                                         first-level covariate for other temporal interactions) 
+%      Setup.conditions.filter          : conditions.filter{ncondition} temporal/frequency decomposition ([] for no decomposition; [low high] 
+%                                         for fixed band-pass frequency filter; [N] for filter bank decompositoin with N frequency filters; 
+%                                         [Duration Onsets] in seconds for sliding-window decomposition where Duration is a scalar and Onsets 
+%                                         is a vector of two or more sliding-window onset values) 
+%      Setup.conditions.missingdata     : 1/0 Allow subjects with missing condition data (empty onset/duration fields in *all* of the
+%                                         sessions) [0] 
+%      Setup.conditions.model           : (optional) conditions.model{ncondition} cell array characterizing definition of secondary conditions, 
+%                                         as a function of other regular conditions. Format {@fun, condition_name1, condition_name2, ...}
+%                                         where @fun is a function handle characterizing a function fun(x) with x a matrix of functional
+%                                         connectivity values for one or multiple conditions (rows) and one or multiple datapoints (columns)
+%                                         Example {@(x)mean(x,1),'Time1','Time2','Time3'} will compute the mean of the three Time# conditions
+%                                         Alternative forms of conditions.model{ncondition}{1} values (functional definition)
+%                                          'avg','std','min','max'   : to compute average/standard-deviation/minimum/maximum across selected conditions
+%                                          'lin',G       : to compute regressor coefficients in linear model X=G*B fitting all selected conditions
+%                                             where G is a [conditions x regressors] design matrix (note: for subject-specific values define
+%                                             G as a char array using Matlab notation and enter second-level covariate names as values). When
+%                                             G contains multiple columns the first column defines the effect of interest (the rest are
+%                                             estimated but simply disregarded; not taken into second-level analyses)
+%                                          @fun    : (single argument function) to compute an arbitrary function fun(X) of condition 
+%                                             values X (conditions x datapoints matrix) for each subject
+%                                          @fun    : (two or three arguments function for subject-specific functions) to compute an 
+%                                             arbitrary function fun(X,c,cnames) as a function of not only the condition values X but also
+%                                             of second-level covariate values C (1 x covariates vector) for all second-level covariates 
+%                                             in your project (covariate names will be listed as the third argument of fun for reference)
+%      Setup.conditions.importfile      : (optional) Alternatively, importfile is a char or cell array pointing to a '*.txt','*.csv', or 
+%                                         BIDS- '*.tsv' file containing conditions names/onsets/durations information (see help 
+%                                         conn_importcondition)
+%      Setup.conditions.importfile_options : (for conditions.importfile procedure only) cell array containing additional options to pass 
+%                                            to conn_importcondition when importing condition info (see help conn_importcondition)
+%      Setup.conditions.add             : 1/0; use 0 (default) to define the full set of conditions to be used in your analyses; use 1 to 
+%                                         define an additional set of conditions (to be added to any already-existing conditions in your 
+%                                         project) [0]
 %
-%    covariates
-%      names         : covariates.names{ncovariate} char array of first-level covariate name
-%      files         : covariates.files{ncovariate}{nsub}{nses} char array of covariate file 
-%      add           : 1/0; use 0 (default) to define the full set of covariates to be used in your analyses; use 1 to 
-%                       define an additional set of covariates (to be added to any already-existing covariates in your 
-%                       project) [0]
+%    Setup.covariates                   : defines 1st-level covariates (timeseries for each subject/session; these may be later used as potential
+%                                         factors during denoising, as seed timeseries for 1st-level analyses, as modulatory terms, etc.)
+%      Setup.covariates.names           : covariates.names{ncovariate} char array of first-level covariate name
+%      Setup.covariates.files           : covariates.files{ncovariate}{nsub}{nses} char array of covariate file 
+%      Setup.covariates.add             : 1/0; use 0 (default) to define the full set of covariates to be used in your analyses; use 1 to 
+%                                         define an additional set of covariates (to be added to any already-existing covariates in your 
+%                                         project) [0]
 %  
-%    subjects
-%      effects       : subjects.effects{neffect} vector of size [nsubjects,1] defining second-level effects
-%      effect_names  : subjects.effect_names{neffect} char array of second-level covariate name
-%      effect_descrip: (optional) subjects.effect_descrip{neffect} char array of effect description (long name; for  
-%                       display purposes only)
-%      add           : 1/0; use 0 (default) to define the full set of covariates to be used in your analyses; use 1 to 
-%                       define an additional set of covariates (to be added to any already-existing covariates in your 
-%                       project) [0]
+%    Setup.subjects                     : defines 2nd-level covariates (arbitrary continuous/categorical/ordinal data for each subject)
+%      Setup.subjects.effects           : subjects.effects{neffect} vector of size [nsubjects,1] defining second-level effects
+%      Setup.subjects.effect_names      : subjects.effect_names{neffect} char array of second-level covariate name
+%      Setup.subjects.effect_descrip    : (optional) subjects.effect_descrip{neffect} char array of effect description (long name; for  
+%                                         display purposes only)
+%      Setup.subjects.add               : 1/0; use 0 (default) to define the full set of covariates to be used in your analyses; use 1 to 
+%                                         define an additional set of covariates (to be added to any already-existing covariates in your 
+%                                         project) [0]
 %  
-%    subjects
-%      groups        : subjects.group vector of size [nsubjects,1] (with values from 1 to ngroup) defining subject groups
-%      group_names   : subjects.group_names{ngroup} char array of second-level group name
-%      group_descrip : (optional) subjects.group_descrip{neffect} char array of group description (long name; for display 
-%                       purposes only)
-%      add           : 1/0; use 0 (default) to define the full set of covariates to be used in your analyses; use 1 to 
-%                       define an additional set of covariates (to be added to any already-existing covariates in your 
-%                       project) [0]
+%    Setup.subjects                     : alternative way of defining 2nd-level covariates (subject groups only)
+%      Setup.subjects.groups            : subjects.group vector of size [nsubjects,1] (with values from 1 to ngroup) defining subject groups
+%      Setup.subjects.group_names       : subjects.group_names{ngroup} char array of second-level group name
+%      Setup.subjects.group_descrip     : (optional) subjects.group_descrip{neffect} char array of group description (long name; for display 
+%                                         purposes only)
+%      Setup.subjects.add               : 1/0; use 0 (default) to define the full set of covariates to be used in your analyses; use 1 to 
+%                                         define an additional set of covariates (to be added to any already-existing covariates in your 
+%                                         project) [0]
 %  
-%    analyses        : Vector of index to analysis types (1: ROI-to-ROI; 2: Seed-to-voxel; 3: Voxel-to-voxel; 4: Dynamic 
-%                       FC) Defaults to vector [1,2,3,4] (all analyses)
-%    voxelmask       : Analysis mask (voxel-level analyses): 1: Explicit mask (brainmask.nii); 2: Implicit mask 
-%                       (subject-specific) [1] 
-%    voxelmaskfile   : Explicit mask file (only when voxelmask=1) [fullfile(fileparts(which('spm')),'apriori',
-%                       'brainmask.nii')] 
-%    voxelresolution : Analysis space (voxel-level analyses): 1: Volume-based template (SPM; default 2mm isotropic 
-%                       or same as explicit mask if specified); 2: Same as structurals; 3: Same as functionals; 
-%                       4: Surface-based template (Freesurfer) [1] 
-%    analysisunits   : BOLD signal units: 1: PSC units (percent signal change); 2: raw units [1] 
-%    outputfiles     : Optional output files (outputfiles(1): 1/0 creates confound beta-maps; outputfiles(2): 1/0 creates 
-%                       confound-corrected timeseries; outputfiles(3): 1/0 creates seed-to-voxel r-maps) ;outputfiles(4): 
-%                       1/0 creates seed-to-voxel p-maps) ;outputfiles(5): 1/0 creates seed-to-voxel FDR-p-maps); 
-%                       outputfiles(6): 1/0 creates ROI-extraction REX files; [0,0,0,0,0,0] 
-%    spmfiles        : Optionally, spmfiles{nsub} is a char array pointing to the 'SPM.mat' source file to extract Setup 
-%                       information from for each subject (use alternatively spmfiles{nsub}{nses} for session-specific 
-%                       SPM.mat files) 
-%    spmfiles_options: (for Setup.spmfiles procedure) Cell array containing additional options to pass to conn_importspm 
-%                       when importing experiment info from spmfiles (see help conn_importspm)
-%    vdm_functionals : (for Setup.preprocessing.steps=='realign&unwarp&fieldmap') vdm_functionals{nsub}{nses} char 
-%                       array of voxel-displacement volumes (vdm* file; explicitly entering these volumes here superceeds CONN's 
-%                       default option to search for/use vdm* files in same directory as functional data) 
-%    fmap_functionals: (for Setup.preprocessing.steps=='vdm_create') fmap_functionals{nsub}{nses} char 
-%                       array of fieldmap sequence files (magnitude1+phasediff or real1+imag1+real2+imag2 or fieldmap (Hz) volumes)
-%    coregsource_functionals: (for Setup.preprocessing.steps=='functional_coregister/segment/normalize') 
-%                       coregsource_functionals{nsub} char array of source volume for coregistration/normalization/
-%                       segmentation (used only when preprocessing "coregtomean" field is set to 2, user-defined source 
-%                       volumes are used in this case instead of either the first functional volume (coregtomean=0) or the 
-%                       mean functional volume (coregtomean=1) for coregistration/normalization/segmentation) 
-%    localcopy       : (for Setup.structural, Setup.functional, Setup.secondarydatasets, and Setup.rois) 1/0 : copies structural/
-%                       functional files into conn_*/data/BIDS folder before importing into CONN [0]
-%    binary_threshold: (for BOLD extraction from Grey/White/CSF ROIs) Threshold value # for binarizing Grey/White/CSF 
-%                       masks [.5 .5 .5] 
-%    binary_threshold_type: (for BOLD extraction from Grey/White/CSF ROIs) 1: absolute threshold (keep voxels with values
-%                       above x); 2: percentile threshold (keep x% of voxels with the highest values) [1 1 1] 
-%    exclude_grey_matter : (for BOLD extration from White/CSF ROIs) threhsold for excluding Grey matter voxels (nan for no threshold) [nan nan nan]
-%    erosion_steps   : (for BOLD extraction from Grey/White/CSF ROIs) integer numbers are interpreted as erosion kernel 
-%                       size for Grey/White/CSF mask erosion after binarization; non-integer numbers are interpreted as 
-%                       percentile voxels kept after erosion [0 1 1]
-%    erosion_neighb  : (for BOLD extraction from Grey/White/CSF ROIs; only when using integer erosion_steps/ kernel sizes, 
-%                       this field is disregarded otherwise) Neighborhood size for Grey/White/CSF mask erosion after
-%                       binarization (a voxel is eroded if there are more than masks_erosion_neighb zeros within the 
-%                       (2*masks_erosionsteps+1)^3-neighborhood of each voxel) [1 1 1]
+%    Setup.analyses                     : Vector of index to analysis types (1: ROI-to-ROI; 2: Seed-to-voxel; 3: Voxel-to-voxel; 4: Dynamic 
+%                                         FC) Defaults to vector [1,2,3,4] (all analyses)
+%    Setup.voxelmask                    : Analysis mask (voxel-level analyses): 1: Explicit mask (brainmask.nii); 2: Implicit mask 
+%                                         (subject-specific) [1] 
+%    Setup.voxelmaskfile                : Explicit mask file (only when voxelmask=1) [fullfile(fileparts(which('spm')),'apriori',
+%                                        'brainmask.nii')] 
+%    Setup.voxelresolution              : Analysis space (voxel-level analyses): 1: Volume-based template (SPM; default 2mm isotropic 
+%                                         or same as explicit mask if specified); 2: Same as structurals; 3: Same as functionals; 
+%                                         4: Surface-based template (Freesurfer) [1] 
+%    Setup.analysisunits                : BOLD signal units: 1: PSC units (percent signal change); 2: raw units [1] 
+%    Setup.outputfiles                  : Optional output files (outputfiles(1): 1/0 creates confound beta-maps; outputfiles(2): 1/0 creates 
+%                                         confound-corrected timeseries; outputfiles(3): 1/0 creates seed-to-voxel r-maps) ;outputfiles(4): 
+%                                         1/0 creates seed-to-voxel p-maps) ;outputfiles(5): 1/0 creates seed-to-voxel FDR-p-maps); 
+%                                         outputfiles(6): 1/0 creates ROI-extraction REX files; [0,0,0,0,0,0] 
+%    Setup.spmfiles                     : Optionally, spmfiles{nsub} is a char array pointing to the 'SPM.mat' source file to extract Setup 
+%                                         information from for each subject (use alternatively spmfiles{nsub}{nses} for session-specific 
+%                                         SPM.mat files) 
+%    Setup.spmfiles_options             : (for Setup.spmfiles procedure) Cell array containing additional options to pass to conn_importspm 
+%                                          when importing experiment info from spmfiles (see help conn_importspm)
+%    Setup.vdm_functionals              : (for Setup.preprocessing.steps=='realign&unwarp&fieldmap') vdm_functionals{nsub}{nses} char 
+%                                         array of voxel-displacement volumes (vdm* file; explicitly entering these volumes here superceeds CONN's 
+%                                         default option to search for/use vdm* files in same directory as functional data) 
+%    Setup.fmap_functionals             : (for Setup.preprocessing.steps=='vdm_create') fmap_functionals{nsub}{nses} char 
+%                                         array of fieldmap sequence files (magnitude1+phasediff or real1+imag1+real2+imag2 or fieldmap (Hz) volumes)
+%    Setup.coregsource_functionals      : (for Setup.preprocessing.steps=='functional_coregister/segment/normalize') 
+%                                         coregsource_functionals{nsub} char array of source volume for coregistration/normalization/
+%                                         segmentation (used only when preprocessing "coregtomean" field is set to 2, user-defined source 
+%                                         volumes are used in this case instead of either the first functional volume (coregtomean=0) or the 
+%                                         mean functional volume (coregtomean=1) for coregistration/normalization/segmentation) 
+%    Setup.localcopy                    : (for Setup.structural, Setup.functional, Setup.secondarydatasets, and Setup.rois) 1/0 : copies structural/
+%                                         functional files into conn_*/data/BIDS folder before importing into CONN [0]
+%    Setup.binary_threshold             : (for BOLD extraction from Grey/White/CSF ROIs) Threshold value # for binarizing Grey/White/CSF 
+%                                         masks [.5 .5 .5] 
+%    Setup.binary_threshold_type        : (for BOLD extraction from Grey/White/CSF ROIs) 1: absolute threshold (keep voxels with values
+%                                         above x); 2: percentile threshold (keep x% of voxels with the highest values) [1 1 1] 
+%    Setup.exclude_grey_matter          : (for BOLD extration from White/CSF ROIs) threhsold for excluding Grey matter voxels (nan for no 
+%                                         threshold) [nan nan nan]
+%    Setup.erosion_steps                : (for BOLD extraction from Grey/White/CSF ROIs) integer numbers are interpreted as erosion kernel 
+%                                         size for Grey/White/CSF mask erosion after binarization; non-integer numbers are interpreted as 
+%                                         percentile voxels kept after erosion [0 1 1]
+%    Setup.erosion_neighb               : (for BOLD extraction from Grey/White/CSF ROIs; only when using integer erosion_steps/ kernel sizes, 
+%                                         this field is disregarded otherwise) Neighborhood size for Grey/White/CSF mask erosion after
+%                                         binarization (a voxel is eroded if there are more than masks_erosion_neighb zeros within the 
+%                                         (2*masks_erosionsteps+1)^3-neighborhood of each voxel) [1 1 1]
 % 
 %  
 % BATCH.Setup.preprocessing PERFORMS DATA PREPROCESSING STEPS (realignment/slicetiming/coregistration/segmentation/normalization/smoothing) %!
-%  Setup
-%    preprocessing     
-%      steps         : List of data preprocessing steps (cell array containing a subset of the following step names, in 
-%                       the desired order; e.g. {'functional_realign','functional_art'}):
+%
+%  Setup.preprocessing.steps         : List of data preprocessing steps (cell array containing a subset of the following step names, in 
+%                                     the desired order; e.g. {'functional_realign','functional_art'}):
 %                      PIPELINES:
 %                        'default_mni'                           : default MNI-space preprocessing pipeline
 %                        'default_mnifield'                      : same as default_mni but with vdm/fieldmap information and indirect normalization
@@ -323,11 +323,12 @@ function varargout=conn_batch(varargin)
 %                      If steps points to an existing preprocessing-pipeline file (e.g. saved from GUI) the corresponding 
 %                       preprocessing-pipeline will be run
 %   
-%      affreg          : (normalization) affine registration before normalization ['mni']
-%      art_thresholds  : (functional_art) ART thresholds for identifying outlier scans 
+%      Setup.preprocessing.affreg          : (normalization) affine registration before normalization ['mni']
+%      Setup.preprocessing.art_thresholds  : (functional_art) ART thresholds for identifying outlier scans 
 %                                            art_thresholds(1): threshold value for global-signal (z-value; default 5) 
 %                                            art_thresholds(2): threshold value for subject-motion (mm; default .9) 
-%                        additional options: art_thresholds(3): 1/0 global-signal threshold based on scan-to-scan changes
+%                                           additional options: 
+%                                            art_thresholds(3): 1/0 global-signal threshold based on scan-to-scan changes
 %                                                               in global-BOLD measure (default 1) 
 %                                            art_thresholds(4): 1/0 subject-motion threshold based on scan-to-scan changes 
 %                                                               in subject-motion measure (default 1) 
@@ -338,157 +339,166 @@ function varargout=conn_batch(varargin)
 %                                                               based on rotation measure 
 %                                            art_thresholds(8): N number of initial scans to be flagged for removal 
 %                                                               (default 0)
-%                            note: when art_threshold(5)=0, art_threshold(2) defines the threshold based on the translation 
-%                             measure, and art_threhsold(7) defines the threshold based on the rotation measure; otherwise 
-%                             art_threshold(2) defines the (single) threshold based on the composite-motion measure 
-%                            note: the default art_thresholds(1:2) [5 .9] values correspond to the "intermediate" 
-%                             (97th percentile) settings; to use the "conservative" (95th percentile) settings use 
-%                             [3 .5]; to use the "liberal" (99th percentile) settings use [9 2] values instead
-%                            note: art needs subject-motion files to estimate possible outliers. If a 'realignment' 
-%                             first-level covariate exists it will load the subject-motion parameters from that first-
-%                             level covariate; otherwise it will look for a rp_*.txt file (SPM format) in the same 
-%                             folder as the functional data
-%                            note: subject-motion files can be in any of the following formats: a) *.txt file (SPM 
-%                             format; three translation parameters in mm followed by pitch/roll/yaw in radians); 
-%                             b) *.par (FSL format; three Euler angles in radians followed by translation parameters 
-%                             in mm); c) *.siemens.txt (Siemens MotionDetectionParameter.txt format); d) *.deg.txt (same 
-%                             as SPM format but rotations in degrees instead of radians)
-%      boundingbox     : (normalization) target bounding box for resliced volumes (mm) [-90,-126,-72;90,90,108] 
-%      bp_filter       : (functional_bandpass, functional_regression) Low- and High- frequency thresholds (in Hz)
-%      bp_keep0        : (functional_bandpass) 0: removes average BOLD signal (freq=0Hz component); 1: keeps average BOLD signal in output 
-%                           independent of band-pass filter values; [1]
-%      coregtomean     : (functional_coregister/segment/normalize) 0: use first volume; 1: use mean volume (computed during 
-%                         realignment); 2: use user-defined source volume (see Setup.coregsource_functionals field) [1]
-%      diffusionsteps  : (surface_smooth) number of diffusion steps
-%      fwhm            : (functional_smooth) Smoothing factor (mm) [8]
-%      interp          : (normalization) target voxel interpolation method (0:nearest neighbor; 1:trilinear; 2 or higher:n-order spline) [4]
-%      label           : (functional_label) label of secondary dataset (note: the following functional step names do not require an 
-%                           explicit label field: 'functional_label_as_original', 'functional_label_as_subjectspace', 
-%                           'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed')
-%      load_label      : (functional_load) label of secondary dataset (note: the following functional step names do not require an 
-%                           explicit continue field: 'functional_load_from_original', 'functional_load_from_subjectspace', 
-%                           'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed')
-%      reg_names       : (functional_regression) list of first-level covariates to use as model regressors / design matrix (valid entries are 
-%                           first-level covariate names or ROI names)
-%      reg_dimensions  : (functional_regression) list of maximum number of dimensions (one value for each model regressor in reg_names)
-%      reg_deriv       : (functional_regression) list of 0/1/2 values (one value for each model regressor in reg_names): add first- or 
-%                           second- order derivatives to each model regressor
-%      reg_filter       : (functional_regression) list of 0/1 values (one value for each model regressor in reg_names): band-pass filter 
-%                           individual model regressors (filter specified in bp_filter field)
-%      reg_detrend     : (functional_regression) 1: adds a linear/detrending term to model regressors [1]
-%      reg_skip        : (functional_regression) 1: does not create output functional files, only creates session-specific dp_*.txt files 
-%                           with covariate timeseries to be included later in an arbitrary first-level model [0]
-%      removescans     : (functional_removescans) number of initial scans to remove
-%      reorient        : (functional/structural_manualorient) 3x3 or 4x4 transformation matrix or filename containing corresponding matrix
-%      respatialdef    : (functional/structural_manualspatialdef) nifti deformation file (e.g. y_*.nii or *seg_sn.mat files)
-%      rtm             : (functional_realign) 0: use first volume; 1: use mean volume [0]
-%      sliceorder      : (functional_slicetime) acquisition order (vector of indexes; 1=first slice in image; note: use cell
-%                         array for subject-specific vectors)
-%                         alternatively sliceorder may also be defined as one of the following strings: 'ascending',
-%                         'descending','interleaved (middle-top)','interleaved (bottom-up)','interleaved (top-down)',
-%                         'interleaved (Siemens)','interleaved (Philips)','BIDS' (this option reads slice timing information from .json files)
-%                         alternatively sliceorder may also be defined as a vector containing the acquisition time in 
-%                         milliseconds for each slice (e.g. for multi-band sequences) 
-%      ta              : (functional_slicetime) acquisition time (TA) in seconds (used to determine slice times when 
-%                         sliceorder is defined by a vector of slice indexes; note: use vector for subject-specific 
-%                         values). Defaults to (1-1/nslices)*TR where nslices is the number of slices
-%      template_structural: (structural_normalize SPM8 only) anatomical template file for approximate coregistration 
-%                         [spm/template/T1.nii]
-%      template_functional: (functional_normalize SPM8 only) functional template file for normalization 
-%                         [spm/template/EPI.nii]
-%      tpm_template    : (any segment/normalize option in SPM12) tissue probability map [spm/tpm/TPM.nii]
-%                         alternatively, location of subject-specific TPM files (secondary functional dataset number or name ['tpm'])
-%      tpm_ngaus       : (structural_segment, structural_segment&normalize in SPM8&SPM12) number of gaussians for each 
-%                         tissue probability map
-%      vdm_et1         : (functional_vdm_create) ET1 (Echo Time first echo in fieldmap sequence) (default [] : read from .json file / BIDS)
-%      vdm_et2         : (functional_vdm_create) ET2 (Echo Time second echo in fieldmap sequence) (default [] : read from .json file / BIDS)
-%      vdm_ert         : (functional_vdm_create) ERT (Effective Readout Time in funcional data) (default [] : read from .json file / BIDS)
-%      vdm_blip        : (functional_vdm_create) k-space traversal blip direction along the y-axis following SPM convention (posterior to anterior)
-%                           use +1 or -1 to specify this value explicitly
-%                           leave empty to read from .json file /BIDS PhaseEncodingDirection field and using the formula 
-%                               ve=sign([0 1 0 0]*vol.mat*[i j k 0]'; 
-%                               e.g. PhaseEncodingDirection='j+', mat=[-1 0 0;0 1 0;0 0 1] => ve=sign([0 1 0 0]*mat*[0 1 0 0])=+1
-%                           use 0 to reverse the sign from the above formula
-%      vdm_type        : (functional_vdm_create only) type of fieldmap sequence files ([]: automatically detect; 1: magnitude+phasediff (or 
-%                           magnitude1+magnitude2+phasediff); 2: real1+imag1+real2+imag2; 3: fieldmapHz)
-%      vdm_fmap        : (functional_vdm_create only) location of fieldmap sequence files (secondary functional dataset number or label 
-%                           containing fieldmap sequence files) ['fmap']
-%      voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [1]
-%      voxelsize_func  : (functional normalization) target voxel size for resliced volumes (mm) [2]
-%      sets            : defines functional dataset to preprocess (0 for Primary Dataset; [1-N] or labels for Secondary Datasets) [0]
+%                                          note: when art_threshold(5)=0, art_threshold(2) defines the threshold based on the translation 
+%                                           measure, and art_threhsold(7) defines the threshold based on the rotation measure; otherwise 
+%                                           art_threshold(2) defines the (single) threshold based on the composite-motion measure 
+%                                          note: the default art_thresholds(1:2) [5 .9] values correspond to the "intermediate" 
+%                                           (97th percentile) settings; to use the "conservative" (95th percentile) settings use 
+%                                           [3 .5]; to use the "liberal" (99th percentile) settings use [9 2] values instead
+%                                          note: art needs subject-motion files to estimate possible outliers. If a 'realignment' 
+%                                           first-level covariate exists it will load the subject-motion parameters from that first-
+%                                           level covariate; otherwise it will look for a rp_*.txt file (SPM format) in the same 
+%                                           folder as the functional data
+%                                          note: subject-motion files can be in any of the following formats: a) *.txt file (SPM 
+%                                           format; three translation parameters in mm followed by pitch/roll/yaw in radians); 
+%                                           b) *.par (FSL format; three Euler angles in radians followed by translation parameters 
+%                                           in mm); c) *.siemens.txt (Siemens MotionDetectionParameter.txt format); d) *.deg.txt (same 
+%                                           as SPM format but rotations in degrees instead of radians)
+%      Setup.preprocessing.boundingbox     : (normalization) target bounding box for resliced volumes (mm) [-90,-126,-72;90,90,108] 
+%      Setup.preprocessing.bp_filter       : (functional_bandpass, functional_regression) Low- and High- frequency thresholds (in Hz)
+%      Setup.preprocessing.bp_keep0        : (functional_bandpass) 0: removes average BOLD signal (freq=0Hz component); 1: keeps average BOLD signal 
+%                                            in output independent of band-pass filter values; [1]
+%      Setup.preprocessing.coregtomean     : (functional_coregister/segment/normalize) 0: use first volume; 1: use mean volume (computed during 
+%                                            realignment); 2: use user-defined source volume (see Setup.coregsource_functionals field) [1]
+%      Setup.preprocessing.diffusionsteps  : (surface_smooth) number of diffusion steps
+%      Setup.preprocessing.fwhm            : (functional_smooth) Smoothing factor (mm) [8]
+%      Setup.preprocessing.interp          : (normalization) target voxel interpolation method (0:nearest neighbor; 1:trilinear; 2 or higher:n-order 
+%                                            spline) [4]
+%      Setup.preprocessing.label           : (functional_label) label of secondary dataset (note: the following functional step names do not require an 
+%                                            explicit label field: 'functional_label_as_original', 'functional_label_as_subjectspace', 
+%                                            'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed')
+%      Setup.preprocessing.load_label      : (functional_load) label of secondary dataset (note: the following functional step names do not require an 
+%                                            explicit continue field: 'functional_load_from_original', 'functional_load_from_subjectspace', 
+%                                            'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed')
+%      Setup.preprocessing.reg_names       : (functional_regression) list of first-level covariates to use as model regressors / design matrix (valid 
+%                                            entries are first-level covariate names or ROI names)
+%      Setup.preprocessing.reg_dimensions  : (functional_regression) list of maximum number of dimensions (one value for each model regressor in 
+%                                            reg_names)
+%      Setup.preprocessing.reg_deriv       : (functional_regression) list of 0/1/2 values (one value for each model regressor in reg_names): add 
+%                                            first- or second- order derivatives to each model regressor
+%      Setup.preprocessing.reg_filter       : (functional_regression) list of 0/1 values (one value for each model regressor in reg_names):  
+%                                            band-pass filter individual model regressors (filter specified in bp_filter field)
+%      Setup.preprocessing.reg_detrend     : (functional_regression) 1: adds a linear/detrending term to model regressors [1]
+%      Setup.preprocessing.reg_skip        : (functional_regression) 1: does not create output functional files, only creates session-specific 
+%                                            dp_*.txt files with covariate timeseries to be included later in an arbitrary first-level model [0]
+%      Setup.preprocessing.removescans     : (functional_removescans) number of initial scans to remove
+%      Setup.preprocessing.reorient        : (functional/structural_manualorient) 3x3 or 4x4 transformation matrix or filename containing
+%                                            corresponding matrix
+%      Setup.preprocessing.respatialdef    : (functional/structural_manualspatialdef) nifti deformation file (e.g. y_*.nii or *seg_sn.mat files)
+%      Setup.preprocessing.rtm             : (functional_realign) 0: use first volume; 1: use mean volume [0]
+%      Setup.preprocessing.sliceorder      : (functional_slicetime) acquisition order (vector of indexes; 1=first slice in image; note: use cell
+%                                             array for subject-specific vectors)
+%                                            alternatively sliceorder may also be defined as one of the following strings: 'ascending',
+%                                             'descending','interleaved (middle-top)','interleaved (bottom-up)','interleaved (top-down)',
+%                                             'interleaved (Siemens)','interleaved (Philips)','BIDS' (this option reads slice timing information 
+%                                             from .json files)
+%                                            alternatively sliceorder may also be defined as a vector containing the acquisition time in 
+%                                             milliseconds for each slice (e.g. for multi-band sequences) 
+%      Setup.preprocessing.ta              : (functional_slicetime) acquisition time (TA) in seconds (used to determine slice times when 
+%                                             sliceorder is defined by a vector of slice indexes; note: use vector for subject-specific 
+%                                             values). Defaults to (1-1/nslices)*TR where nslices is the number of slices
+%      Setup.preprocessing.template_structural: (structural_normalize SPM8 only) anatomical template file for approximate coregistration 
+%                                             [spm/template/T1.nii]
+%      Setup.preprocessing.template_functional: (functional_normalize SPM8 only) functional template file for normalization 
+%                                             [spm/template/EPI.nii]
+%      Setup.preprocessing.tpm_template    : (any segment/normalize option in SPM12) tissue probability map [spm/tpm/TPM.nii]
+%                                            alternatively, location of subject-specific TPM files (secondary functional dataset number or name ['tpm'])
+%      Setup.preprocessing.tpm_ngaus       : (structural_segment, structural_segment&normalize in SPM8&SPM12) number of gaussians for each 
+%                                             tissue probability map
+%      Setup.preprocessing.vdm_et1         : (functional_vdm_create) ET1 (Echo Time first echo in fieldmap sequence) 
+%                                             (default [] : read from .json file / BIDS)
+%      Setup.preprocessing.vdm_et2         : (functional_vdm_create) ET2 (Echo Time second echo in fieldmap sequence)
+%                                             (default [] : read from .json file / BIDS)
+%      Setup.preprocessing.vdm_ert         : (functional_vdm_create) ERT (Effective Readout Time in funcional data)
+%                                             (default [] : read from .json file / BIDS)
+%      Setup.preprocessing.vdm_blip        : (functional_vdm_create) k-space traversal blip direction along the y-axis following SPM convention 
+%                                             (i.e. positive for P>A, negative for A>P)
+%                                            use +1 or -1 to specify this value explicitly
+%                                            leave empty to read from .json file /BIDS PhaseEncodingDirection field and use the formula 
+%                                               BLIP = sign([0 1 0 0]*vol.mat*[i j k 0]'; 
+%                                               e.g. PhaseEncodingDirection='j+', mat=[-1 0 0;0 1 0;0 0 1] => BLIP=sign([0 1 0 0]*mat*[0 1 0 0])=+1
+%                                            use 0 to reverse the sign from the above formula
+%      Setup.preprocessing.vdm_type        : (functional_vdm_create only) type of fieldmap sequence files 
+%                                               []  : automatically detect
+%                                               1   : magnitude+phasediff (or magnitude1+magnitude2+phasediff)
+%                                               2   : real1+imag1+real2+imag2
+%                                               3   : fieldmapHz (e.g. --fout output from TOPUP)
+%      Setup.preprocessing.vdm_fmap        : (functional_vdm_create only) location of fieldmap sequence files (secondary functional dataset number
+%                                             or label containing fieldmap sequence files) ['fmap']
+%      Setup.preprocessing.voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [1]
+%      Setup.preprocessing.voxelsize_func  : (functional normalization) target voxel size for resliced volumes (mm) [2]
+%      Setup.preprocessing.sets            : defines functional dataset to preprocess (0 for Primary Dataset; [1-N] or labels for Secondary 
+%                                             Datasets) [0]
 %  
 %  
 % BATCH.Denoising PERFORMS DENOISING STEPS (confound removal & filtering) %!
-%  Denoising       
 % 
-%    done            : 1/0: 0 defines fields only; 1 runs DENOISING processing steps [0]
-%    overwrite       : (for done=1) 1/0: overwrites target files if they exist [1]
-%    filter          : vector with two elements specifying band pass filter: low-frequency & high-frequency cutoffs (Hz)
-%    detrending      : 0/1/2/3: BOLD times-series polynomial detrending order (0: no detrending; 1: linear detrending; 
-%                       ... 3: cubic detrending) 
-%    despiking       : 0/1/2: temporal despiking with a hyperbolic tangent squashing function (1:before regression; 
-%                       2:after regression) [0] 
-%    regbp           : 1/2: order of band-pass filtering step (1 = RegBP: regression followed by band-pass; 2 = Simult: 
-%                       simultaneous regression&band-pass) [1] 
-%    confounds       : Cell array of confound names (alternatively see 'confounds.names' below)
+%    Denoising.done                 : 1/0: 0 defines fields only; 1 runs DENOISING processing steps [0]
+%    Denoising.overwrite            : (for done=1) 1/0: overwrites target files if they exist [1]
+%    Denoising.filter               : vector with two elements specifying band pass filter: low-frequency & high-frequency cutoffs (Hz)
+%    Denoising.detrending           : 0/1/2/3: BOLD times-series polynomial detrending order (0: no detrending; 1: linear detrending; 
+%                                     ... 3: cubic detrending) 
+%    Denoising.despiking            : 0/1/2: temporal despiking with a hyperbolic tangent squashing function (1:before regression; 
+%                                     2:after regression) [0] 
+%    Denoising.regbp                : 1/2: order of band-pass filtering step (1 = RegBP: regression followed by band-pass; 2 = Simult: 
+%                                     simultaneous regression&band-pass) [1] 
+%    Denoising.confounds            : Cell array of confound names (alternatively see 'confounds.names' below)
 % 
-%    confounds       : alternatively confounds can be a structure with fields
-%      names         : confounds.names{nconfound} char array of confound name (confound names can be: 'Grey Matter',
-%                       'White Matter','CSF',any ROI name, any covariate name, or 'Effect of *' where * represents 
-%                       any condition name])
-%                       note: use confounds.names={} to specify CONN's default set of confounds, or confounds.names={''}
-%                       to indicate no confounds at all
-%      dimensions    : confounds.dimensions{nconfound} number of confound dimensions [defaults to using all dimensions 
-%                       available for each confound variable]
-%      deriv         : confounds.deriv{nconfound} include temporal derivatives up to n-th order of each effect (0 for 
-%                       raw timeseries, 1 for raw+firstderivative timeseries, etc.) [0|1]
-%      power         : confounds.power{nconfound} include powers up to n-th order of each effect (1 for linear effects, 
-%                       2 for linear+quadratic effect, etc.) [1]
-%      filter        : (for regbp==1) confounds.filter{nconfound} band-pass filter confound regressors before entering 
-%                       in regression equation [0]
+%    Denoising.confounds            : alternatively confounds can be a structure with fields
+%      Denoising.confounds.names    : confounds.names{nconfound} char array of confound name (confound names can be: 'Grey Matter',
+%                                     'White Matter','CSF',any ROI name, any covariate name, or 'Effect of *' where * represents 
+%                                      any condition name])
+%                                     note: use confounds.names={} to specify CONN's default set of confounds, or confounds.names={''}
+%                                      to indicate no confounds at all
+%      Denoising.confounds.dimensions : confounds.dimensions{nconfound} number of confound dimensions [defaults to using all dimensions 
+%                                     available for each confound variable]
+%      Denoising.confounds.deriv    : confounds.deriv{nconfound} include temporal derivatives up to n-th order of each effect (0 for 
+%                                     raw timeseries, 1 for raw+firstderivative timeseries, etc.) [0|1]
+%      Denoising.confounds.power    : confounds.power{nconfound} include powers up to n-th order of each effect (1 for linear effects, 
+%                                     2 for linear+quadratic effect, etc.) [1]
+%      Denoising.confounds.filter   : (for regbp==1) confounds.filter{nconfound} band-pass filter confound regressors before entering 
+%                                     in regression equation [0]
 %  
 %  
 % BATCH.Analysis PERFORMS FIRST-LEVEL ANALYSES (ROI-to-ROI and seed-to-voxel) %!
-%  Analysis            
 % 
-%    done            : 1/0: 0 defines fields only; 1 runs ANALYSIS processing steps [0]
-%    overwrite       : (for done=1) 1/0: overwrites target files if they exist [1]
-%    name            : analysis name (identifying each set of independent analysis)
-%                       (alternatively sequential index identifying each set of independent analyses [1])
+%    Analysis.done                  : 1/0: 0 defines fields only; 1 runs ANALYSIS processing steps [0]
+%    Analysis.overwrite             : (for done=1) 1/0: overwrites target files if they exist [1]
+%    Analysis.name                  : analysis name (identifying each set of independent analysis)
+%                                     (alternatively sequential index identifying each set of independent analyses [1])
 %                      
-%    measure         : connectivity measure used, 1 = 'correlation (bivariate)', 2 = 'correlation (semipartial)', 3 = 
-%                       'regression (bivariate)', 4 = 'regression (multivariate)'; [1] 
-%    weight          : within-condition weight, 1 = 'none', 2 = 'hrf', 3 = 'hanning'; [2] 
-%    modulation      : temporal modulation, 0 = standard weighted GLM analyses; 1 = gPPI analyses of condition-specific 
-%                       temporal modulation factor, or a string for PPI analyses of other temporal modulation factor 
-%                       (same for all conditions; valid strings are ROI names and 1st-level covariate names)'; [0] 
-%    conditions      : (for modulation==1 only) list of task condition names to be simultaneously entered in gPPI 
-%                       model (leave empty for default 'all existing conditions') [] 
-%    type            : analysis type, 1 = 'ROI-to-ROI', 2 = 'Seed-to-Voxel', 3 = 'all'; [3] 
-%    sources         : Cell array of sources names (seeds) (source names can be: any ROI name) (if this variable does 
-%                       not exist the toolbox will perform the analyses for all of the existing ROIs which are not 
-%                       defined as confounds in the Denoising step) 
-%                       note: partial ROI name matches are accepted (e.g. using 'networks.Language' will match all
-%                       ROIs starting with that token)
+%    Analysis.measure               : connectivity measure used, 1 = 'correlation (bivariate)', 2 = 'correlation (semipartial)', 3 = 
+%                                     'regression (bivariate)', 4 = 'regression (multivariate)'; [1] 
+%    Analysis.weight                : within-condition weight, 1 = 'none', 2 = 'hrf', 3 = 'hanning'; [2] 
+%    Analysis.modulation            : temporal modulation, 0 = standard weighted GLM analyses; 1 = gPPI analyses of condition-specific 
+%                                     temporal modulation factor, or a string for PPI analyses of other temporal modulation factor 
+%                                     (same for all conditions; valid strings are ROI names and 1st-level covariate names)'; [0] 
+%    Analysis.conditions            : (for modulation==1 only) list of task condition names to be simultaneously entered in gPPI 
+%                                     model (leave empty for default 'all existing conditions') [] 
+%    Analysis.type                  : analysis type, 1 = 'ROI-to-ROI', 2 = 'Seed-to-Voxel', 3 = 'all'; [3] 
+%    Analysis.sources               : Cell array of sources names (seeds) (source names can be: any ROI name) (if this variable does 
+%                                     not exist the toolbox will perform the analyses for all of the existing ROIs which are not 
+%                                     defined as confounds in the Denoising step) 
+%                                     note: partial ROI name matches are accepted (e.g. using 'networks.Language' will match all
+%                                     ROIs starting with that token)
 % 
-%    sources         : alternatively sources can be a structure with fields
-%      names         : sources.names{nsource} char array of source names (seeds)
-%      dimensions    : sources.dimensions{nsource} number of source dimensions [1]
-%      deriv         : sources.deriv{nsource} number of derivatives for each dimension [0]
-%      fbands        : sources.fbands{nsource} number of frequency bands for each dimension [1]
+%    Analysis.sources               : alternatively sources can be a structure with fields
+%      Analysis.sources.names       : sources.names{nsource} char array of source names (seeds)
+%      Analysis.sources.dimensions  : sources.dimensions{nsource} number of source dimensions [1]
+%      Analysis.sources.deriv       : sources.deriv{nsource} number of derivatives for each dimension [0]
+%      Analysis.sources.fbands      : sources.fbands{nsource} number of frequency bands for each dimension [1]
 % 
 % 
 % BATCH.vvAnalysis PERFORMS FIRST-LEVEL ANALYSES (voxel-to-voxel) %!
-%  vvAnalysis            
 %
-%    done            : 1/0: 0 defines fields only; 1 runs ANALYSIS processing steps [0]
-%    overwrite       : (for done=1) 1/0: overwrites target files if they exist [1]
-%    name            : analysis name (identifying each set of independent analysis)
-%                       (alternatively sequential index identifying each set of independent analyses [1])
+%    vvAnalysis.done                : 1/0: 0 defines fields only; 1 runs ANALYSIS processing steps [0]
+%    vvAnalysis.overwrite           : (for done=1) 1/0: overwrites target files if they exist [1]
+%    vvAnalysis.name                : analysis name (identifying each set of independent analysis)
+%                                    (alternatively sequential index identifying each set of independent analyses [1])
 %  
-%    measures        : voxel-to-voxel measure name (type 'conn_v2v measurenames' for a list of default measures) (if 
-%                       this variable does not exist the toolbox will perform the analyses for all of the default 
-%                       voxel-to-voxel measures) 
+%    vvAnalysis.measures            : voxel-to-voxel measure name (type 'conn_v2v measurenames' for a list of default measures) (if 
+%                                     this variable does not exist the toolbox will perform the analyses for all of the default 
+%                                     voxel-to-voxel measures) 
 %                           'group-PCA'             : Principal Component Analysis of BOLD timeseries
 %                           'group-ICA'             : Independent Component Analysis of BOLD timeseries
 %                           'group-MVPA'/'MCOR'     : MultiVoxel Pattern Analysis of connectivity patterns (MCOR)
@@ -500,112 +510,90 @@ function varargout=conn_batch(varargin)
 %                           'ALFF'                  : Amplitude of Low Frequency Fluctuations
 %                           'fALFF'                 : fractional ALFF
 %
-%    measures        : alternatively voxel-to-voxel measures can be a structure with fields
-%      names         : measures.names voxel-to-voxel measure name (see 'conn_v2v measurenames' for a list of valid 
-%                       measure names)
-%      factors       : (for group-PCA, group-ICA, group-MVPA) number of group-level components to estimate
-%      kernelsupport : (for ILC, RCC) local support (FWHM mm) of smoothing kernel [8]
-%      norm          : (for ILC,ICC,RCC,RSC,ALFF,fALFF) 0/1 normalize values to z-scores [1]
-%      mask          : (for group-PCA, group-ICA, group-MVPA) optional mask for group-level component estimation 
-%                       (e.g. masked ICA)
-%      options       : (for group-ICA) optional ICA method : string containing 'GICA1' or 'GICA3' for choice of ICA back-
-%                       projection method; string containing 'tanh','gauss', or 'pow3' for ICA estimation method (G1/G2/G3)
-%      dimensions    : number of subject-level dimensions to retain (subject-level dimensionality reduction) [64]
+%    vvAnalysis.measures            : alternatively voxel-to-voxel measures can be a structure with fields
+%      vvAnalysis.measures.names: measures.names voxel-to-voxel measure name (see 'conn_v2v measurenames' for a list of valid 
+%                                     measure names)
+%      vvAnalysis.measures.factors  : (for group-PCA, group-ICA, group-MVPA) number of group-level components to estimate
+%      vvAnalysis.measures.kernelsupport : (for ILC, RCC) local support (FWHM mm) of smoothing kernel [8]
+%      vvAnalysis.measures.norm     : (for ILC,ICC,RCC,RSC,ALFF,fALFF) 0/1 normalize values to z-scores [1]
+%      vvAnalysis.measures.mask     : (for group-PCA, group-ICA, group-MVPA) optional mask for group-level component estimation 
+%                                     (e.g. masked ICA)
+%      vvAnalysis.measures.options  : (for group-ICA) optional ICA method : string containing 'GICA1' or 'GICA3' for choice of ICA back-
+%                                     projection method; string containing 'tanh','gauss', or 'pow3' for ICA estimation method (G1/G2/G3)
+%      vvAnalysis.measures.dimensions : number of subject-level dimensions to retain (subject-level dimensionality reduction) [64]
 %  
 %  
 % BATCH.dynAnalysis PERFORMS FIRST-LEVEL ANALYSES (dynamic connectivity) %!
-%  dynAnalysis            
 %
-%    done            : 1/0: 0 defines fields only; 1 runs ANALYSIS processing steps [0]
-%    overwrite       : (for done=1) 1/0: overwrites target files if they exist [1]
-%    name            : analysis name (identifying each set of independent analysis)
-%                       (alternatively sequential index identifying each set of independent analyses [1])
+%    dynAnalysis.done               : 1/0: 0 defines fields only; 1 runs ANALYSIS processing steps [0]
+%    dynAnalysis.overwrite          : (for done=1) 1/0: overwrites target files if they exist [1]
+%    dynAnalysis.name               : analysis name (identifying each set of independent analysis)
+%                                     (alternatively sequential index identifying each set of independent analyses [1])
 %  
-%    sources         : Cell array of sources names (seeds) (source names can be: any ROI name) (if this variable does 
-%                       not exist the toolbox will perform the analyses for all of the existing ROIs which are not 
-%                       defined as confounds in the Denoising step) 
-%    factors         : Number of group-level dynamic components to estimate [20]
-%    window          : Length of temporal windows (FWHM in seconds) [30]
+%    dynAnalysis.sources            : Cell array of sources names (seeds) (source names can be: any ROI name) (if this variable does 
+%                                     not exist the toolbox will perform the analyses for all of the existing ROIs which are not 
+%                                     defined as confounds in the Denoising step) 
+%    dynAnalysis.factors            : Number of group-level dynamic components to estimate [20]
+%    dynAnalysis.window             : Length of temporal windows (FWHM in seconds) [30]
 %  
 %  
-% BATCH.Results PERFORMS SECOND-LEVEL ANALYSES (ROI-to-ROI and Seed-to-Voxel analyses) %!
-%  Results             
+% BATCH.Results PERFORMS SECOND-LEVEL ANALYSES (ROI-to-ROI, Seed-to-Voxel, Voxel-to-Voxel analyses) %!
 % 
-%    name            : analysis name (identifying each set of first-level independent analysis)
-%                       (alternatively sequential index identifying each set of first-level independent analyses [1])
-%    display         : 1/0 display results [1]
-%    saveas          : (optional) name to save between-subjects/between_conditions contrast
-%    foldername      : (optional) alternative folder name to store the results
+%    Results.name                   : analysis name (identifying each set of first-level independent analysis)
+%                                     (alternatively sequential index identifying each set of first-level independent analyses [1])
+%    Results.display                : 1/0 display results [1]
+%    Results.saveas                 : (optional) name to save between-subjects/between_conditions contrast
+%    Results.foldername             : (optional) alternative folder name to store the results
 % 
-%    between_subjects
-%      effect_names  : cell array of second-level effect names
-%      contrast      : contrast vector (same size as effect_names)
+%    Results.between_subjects
+%      Results.between_subjects.effect_names : cell array of second-level effect names
+%      Results.between_subjects.contrast : contrast vector (same size as effect_names)
 %  
-%    between_conditions [defaults to multiple analyses, one per condition]
-%      effect_names  : cell array of condition names (as in Setup.conditions.names)
-%      contrast      : contrast vector (same size as effect_names)
+%    Results.between_conditions [defaults to multiple analyses, one per condition]
+%      Results.between_conditionseffect_names : cell array of condition names (as in Setup.conditions.names)
+%      Results.between_conditionscontrast : contrast vector (same size as effect_names)
 %  
-%    between_sources    [defaults to multiple analyses, one per source]
-%      effect_names  : cell array of source names (as in Analysis.regressors, typically appended with _1_1; generally 
-%                       they are appended with _N_M -where N is an index ranging from 1 to 1+derivative order, and M 
-%                       is an index ranging from 1 to the number of dimensions specified for each ROI; for example 
-%                       ROINAME_2_3 corresponds to the first derivative of the third PCA component extracted from the 
-%                       roi ROINAME) 
-%      contrast      : contrast vector (same size as effect_names)
+%    Results.between_sources  [if analysis includes multiple sources or multiple measures defaults to one analysis per source/measure]
+%      Results.between_sourceseffect_names : cell array of source names 
+%                                     (as in Analysis.regressors for seed-to-voxel analyses), for multivariate sources 
+%                                     they are appended with _N_M -where N is an index ranging from 1 to 1+derivative order, and M 
+%                                     is an index ranging from 1 to the number of dimensions specified for each ROI; for example 
+%                                     ROINAME_2_3 corresponds to the first derivative of the third PCA component extracted from the 
+%                                     roi ROINAME) 
+%                                     (as in Analysis.measures for voxel-to-voxel analyses)
+%      Results.between_sourcescontrast : contrast vector (same size as effect_names)
 %  
-%  
-% BATCH.vvResults PERFORMS SECOND-LEVEL ANALYSES (Voxel-to-Voxel analyses) %!
-%  vvResults             
-% 
-%    name            : analysis name (identifying each set of independent analysis)
-%                       (alternatively sequential index identifying each set of independent analyses [1])
-%    foldername      : folder to store the results
-%    display         : 1/0 display results [1]
-%    saveas          : optional name to save between-subjects/between_conditions contrast
-%  
-%    between_subjects
-%      effect_names  : cell array of second-level effect names
-%      contrast      : contrast vector (same size as effect_names)
-%  
-%    between_conditions [defaults to multiple analyses, one per condition]
-%      effect_names  : cell array of condition names (as in Setup.conditions.names)
-%      contrast      : contrast vector (same size as effect_names)
-%  
-%    between_measures [defaults to multiple analyses, one per measure]
-%      effect_names  : cell array of measure names (as in Analysis.measures) 
-%      contrast      : contrast vector (same size as effect_names)
 %  
 %
 % BATCH.QA PERFORMS QUALITY ASSURANCE PLOTS %!
-%  QA             
 % 
-%    foldername      : output folder where QA plots will be stored [results/qa/QA_#date#]
-%    plots           : list of QA plots to create (cell array of labels below)
-%       QA_NORM structural     (1) : structural data + outline of MNI TPM template
-%       QA_NORM functional     (2) : mean functional data + outline of MNI TPM template
-%       QA_NORM rois           (3) : ROI data + outline of MNI TPM template  
-%       QA_REG functional      (10): display mean functional data + structural data overlay
-%       QA_REG structural      (4) : structural data + outline of ROI
-%       QA_REG functional      (5) : mean functional data + outline of ROI
-%       QA_REG mni             (6) : reference MNI structural template + outline of ROI
-%       QA_COREG functional    (7) : display same single-slice (z=0) across multiple sessions/datasets
-%       QA_TIME functional     (8) : display same single-slice (z=0) across all timepoints within each session
-%       QA_TIMEART functional  (9) : display same single-slice (z=0) across all timepoints within each session together with 
-%                                       ART timeseries (global signal changes and framewise displacement)
-%       QA_DENOISE histogram  (11) : histogram of voxel-to-voxel correlation values (before and after denoising)
-%       QA_DENOISE timeseries (12) : BOLD signal traces before and after denoising
-%       QA_DENOISE FC-QC      (13) : histogram of FC-QC associations; between-subject correlation between QC (Quality Control) 
-%                                       and FC (Functional Connectivity) measures
-%       QA_DENOISE scatterplot(14) : scatterplot of FC (Functional Connectivity r coeff) vs. distance (mm)
-%       QA_SPM design         (21) : SPM review design matrix (from SPM.mat files only)
-%       QA_SPM contrasts      (22) : SPM review contrast specification (from SPM.mat files only)
-%       QA_SPM results        (23) : SPM review contrast effect-size (from SPM.mat files only)
-%       QA_COV                (31) : histogram display of second-level variables
+%    QA.foldername                  : output folder where QA plots will be stored [results/qa/QA_#date#]
+%    QA.plots                       : list of QA plots to create (cell array of labels below)
+%                        QA_NORM structural     (1) : structural data + outline of MNI TPM template
+%                        QA_NORM functional     (2) : mean functional data + outline of MNI TPM template
+%                        QA_NORM rois           (3) : ROI data + outline of MNI TPM template  
+%                        QA_REG functional      (10): display mean functional data + structural data overlay
+%                        QA_REG structural      (4) : structural data + outline of ROI
+%                        QA_REG functional      (5) : mean functional data + outline of ROI
+%                        QA_REG mni             (6) : reference MNI structural template + outline of ROI
+%                        QA_COREG functional    (7) : display same single-slice (z=0) across multiple sessions/datasets
+%                        QA_TIME functional     (8) : display same single-slice (z=0) across all timepoints within each session
+%                        QA_TIMEART functional  (9) : display same single-slice (z=0) across all timepoints within each session together with 
+%                                                     ART timeseries (global signal changes and framewise displacement)
+%                        QA_DENOISE histogram  (11) : histogram of voxel-to-voxel correlation values (before and after denoising)
+%                        QA_DENOISE timeseries (12) : BOLD signal traces before and after denoising
+%                        QA_DENOISE FC-QC      (13) : histogram of FC-QC associations; between-subject correlation between QC (Quality Control) 
+%                                                     and FC (Functional Connectivity) measures
+%                        QA_DENOISE scatterplot(14) : scatterplot of FC (Functional Connectivity r coeff) vs. distance (mm)
+%                        QA_SPM design         (21) : SPM review design matrix (from SPM.mat files only)
+%                        QA_SPM contrasts      (22) : SPM review contrast specification (from SPM.mat files only)
+%                        QA_SPM results        (23) : SPM review contrast effect-size (from SPM.mat files only)
+%                        QA_COV                (31) : histogram display of second-level variables
 %
-%   rois            : (only for plots==3,4,5,6) ROI numbers to include (defaults to WM -roi#2-)
-%   sets            : (only for plots==2,7,8,9,10) functional dataset number (defaults to dataset-0)
-%   l2covariates    : (only for plots==13,31) l2 covariate names (defaults to all QC_*)
-%   l1contrasts     : (only for plots==23) l1 contrast name (defaults to first contrast)
+%   QA.rois                         : (only for plots==3,4,5,6) ROI numbers to include (defaults to WM -roi#2-)
+%   QA.sets                         : (only for plots==2,7,8,9,10) functional dataset number (defaults to dataset-0)
+%   QA.l2covariates                 : (only for plots==13,31) l2 covariate names (defaults to all QC_*)
+%   QA.l1contrasts                  : (only for plots==23) l1 contrast name (defaults to first contrast)
 %__________________________________________________________________________________________________________________
 % 
 % See 

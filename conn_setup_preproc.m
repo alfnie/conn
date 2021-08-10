@@ -1059,6 +1059,7 @@ for iSTEP=1:numel(STEPS)
                             if ~isempty(icov) % first-level covariates
                                 reg_done(nl1covariate)=true;
                                 cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
+                                assert(~isempty(cfilename),'covariate %s has not been defined for subject %d sessions %d',reg_names{nl1covariate},nsubject,nses);
                                 switch(cfilename),
                                     case '[raw values]',
                                         data=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{3};
@@ -2312,6 +2313,7 @@ for iSTEP=1:numel(STEPS)
                         else
                             matlabbatch{end}.art.motion_file_type=0;
                             cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
+                            assert(~isempty(cfilename),'covariate %s has not been defined for subject %d sessions %d',CONN_x.Setup.l1covariates.names{icov},nsubject,nses);
                             switch(cfilename),
                                 case '[raw values]',
                                     matlabbatch{end}.art.M{end+1}=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{3};

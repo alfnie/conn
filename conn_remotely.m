@@ -380,9 +380,8 @@ switch(option)
         tsocket.close;
         clear tsocket
         pause(1);
-        %hmsg=conn_msgbox({'CONN server started',' ','Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)','Step 2: if prompted to enter ''Server address'' enter none',['Step 3: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 4: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 5: in prompt ''Remote session id'' enter ',str],' ',' ',' '},'',-1, true);
-        [hmsg,hmsg2]=conn_msgbox([{'                        CONN server started                        '},repmat({' '},1,10)],'',-1, 2);
-        set(hmsg2(1),'style','edit','max',2,'string',{'Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)','Step 2: if prompted to enter ''Server address'' enter none',['Step 3: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 4: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 5: in prompt ''Remote session id'' enter ',str]});
+        [hmsg,hmsg2]=conn_msgbox([{'                                  CONN server running                                  '},repmat({' '},1,10)],'',-1, 2);
+        set(hmsg2(1),'style','edit','max',2,'string',{'Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)','(note: if prompted to enter ''Server address'' enter local)',['Step 2: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 3: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 4: in prompt ''Remote session id'' enter ',str]});
         set(hmsg2(2),'callback','if get(gcbo,''value''), conn_tcpip close; delete(gcbf); end');
         set(hmsg,'closerequestfcn','conn_tcpip close; delete(gcbf)');
         drawnow;
