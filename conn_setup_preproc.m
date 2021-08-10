@@ -598,7 +598,7 @@ if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     ht7a=uicontrol('style','text','units','norm','position',[.1,.2,.6,.1],'string','Blip direction (+1,-1,S,R)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
     if isempty(vdm_blip), tvdm_blip=-1; else tvdm_blip=vdm_blip; end
     if ~ischar(tvdm_blip), tvdm_blip=num2str(tvdm_blip); end
-    ht7=uicontrol('style','edit','units','norm','position',[.7,.2,.2,.1],'string',tvdm_blip,'tooltipstring','defines k-space traversal blip direction (+1 for positive direction, -1 for negative direction, S for same as in .json/BIDS file, R for reverse of .json/BIDS file)','enable','off');
+    ht7=uicontrol('style','edit','units','norm','position',[.7,.2,.2,.1],'string',tvdm_blip,'tooltipstring','defines k-space traversal blip direction: +1 for positive direction, -1 for negative direction, leave empty to derive this information from the PhaseEncodingDirection field in .json/BIDS file, set to ''R'' to use the reverse of what would be implied from the PhaseEncodingDirection field','enable','off');
     uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.15],'callback','uiresume');
     uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.15],'callback','delete(gcbf)');
     onoff={'on','off'};
@@ -2793,6 +2793,7 @@ for iSTEP=1:numel(STEPS)
                             newfilename=regexprep(conn_prepend('ref_',filename),'\,\d+$','');
                             vol=spm_vol(filename);
                             val=spm_read_vols(vol(1));
+                            mat0=vol(1).mat;
                             newvol=struct('mat',vol(1).mat,'dim',vol(1).dim,'fname',newfilename,'pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')],'descrip','');
                             try, conn_setup_preproc_filedelete(newfilename); end
                             spm_write_vol(newvol,val);
@@ -2834,8 +2835,12 @@ for iSTEP=1:numel(STEPS)
                                 if isempty(BLIP),
                                     BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false);
                                     if iscell(BLIP), BLIP=char(BLIP); end
-                                    if isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=-1;
-                                    elseif isequal(BLIP,'j-'), BLIP=1;
+                                    if isequal(BLIP,'i+')||isequal(BLIP,'i'), BLIP=sign([0 1 0 0]*mat0*[1 0 0 0]');
+                                    elseif isequal(BLIP,'i-'), BLIP=sign([0 1 0 0]*mat0*[-1 0 0 0]');
+                                    elseif isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=sign([0 1 0 0]*mat0*[0 1 0 0]');
+                                    elseif isequal(BLIP,'j-'), BLIP=sign([0 1 0 0]*mat0*[0 -1 0 0]');
+                                    elseif isequal(BLIP,'k+')||isequal(BLIP,'k'), BLIP=sign([0 1 0 0]*mat0*[0 0 1 0]');
+                                    elseif isequal(BLIP,'k-'), BLIP=sign([0 1 0 0]*mat0*[0 0 -1 0]');
                                     elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
                                     end
                                     if reverseBLIP, BLIP=-BLIP; end
@@ -2860,31 +2865,39 @@ for iSTEP=1:numel(STEPS)
                                 end
                             elseif isequal(vdm_type,3)||(isempty(vdm_type)&&numel(fmap)==1), % FieldMap [note: work in progress; needs further testing]
                                 units=conn_jsonread(fmap{1},'Units',false); 
-                                if ~isempty(units)&&ischar(units),
+                                newfmap1=conn_prepend('',fmap{1},['_session',num2str(nses),'.nii']);
+                                if isempty(units)||~ischar(units),
+                                    conn_disp('fprintf','units of FieldMap %s not found, assuming Hz\n',filename);
+                                    ct=1;
+                                else
                                     switch(lower(units))
                                         case 'hz', ct=1;
                                         case 'rad/s', ct=1/2/pi;
                                         case 'tesla', ct=2.6752219e8/2/pi;
                                         otherwise, error('unrecognized units %s found in FieldMap %s (expected Hz, rad/s, or Tesla)',units,filename);
                                     end
-                                    if ct~=1
-                                        vol=spm_vol(fmap{1});
-                                        val=ct*spm_read_vols(vol);
-                                        fmap{1}=conn_prepend('sc',fmap{1});
-                                        newvol=struct('mat',vol(1).mat,'dim',vol(1).dim,'fname',fmap{1},'pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')],'descrip','');
-                                        try, conn_setup_preproc_filedelete(fmap{1}); end
-                                        spm_write_vol(newvol,val);
-                                    end
-                                else conn_disp('fprintf','units of FieldMap %s not found, assuming Hz\n',filename);
                                 end
+                                if 1
+                                    vol=spm_vol(fmap{1});
+                                    val=ct*spm_read_vols(vol);
+                                    fmap{1}=conn_prepend('sc',fmap{1});
+                                    newvol=struct('mat',vol(1).mat,'dim',vol(1).dim,'fname',newfmap1,'pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')],'descrip','');
+                                    try, conn_setup_preproc_filedelete(newfmap1); end
+                                    spm_write_vol(newvol,val);
+                                end
+                                fmap{1}=newfmap1; % avoids potential issues when using the same file across different sessions
                                 if isempty(ERT), ERT=1000*conn_jsonread(filename,'TotalReadoutTime'); end
                                 if isempty(ERT), ERT=1000./conn_jsonread(filename,'BandwidthPerPixelPhaseEncode'); end
                                 if nses==1&&isempty(ERT), conn_disp('fprintf','warning: unable to find TotalReadoutTime or BandwidthPerPixelPhaseEncode information in %s\n',filename); end
                                 if isempty(BLIP),
                                     BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false);
                                     if iscell(BLIP), BLIP=char(BLIP); end
-                                    if isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=-1;
-                                    elseif isequal(BLIP,'j-'), BLIP=1;
+                                    if isequal(BLIP,'i+')||isequal(BLIP,'i'), BLIP=sign([0 1 0 0]*mat0*[1 0 0 0]');
+                                    elseif isequal(BLIP,'i-'), BLIP=sign([0 1 0 0]*mat0*[-1 0 0 0]');
+                                    elseif isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=sign([0 1 0 0]*mat0*[0 1 0 0]');
+                                    elseif isequal(BLIP,'j-'), BLIP=sign([0 1 0 0]*mat0*[0 -1 0 0]');
+                                    elseif isequal(BLIP,'k+')||isequal(BLIP,'k'), BLIP=sign([0 1 0 0]*mat0*[0 0 1 0]');
+                                    elseif isequal(BLIP,'k-'), BLIP=sign([0 1 0 0]*mat0*[0 0 -1 0]');
                                     elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
                                     end
                                     if reverseBLIP, BLIP=-BLIP; end
@@ -2918,8 +2931,12 @@ for iSTEP=1:numel(STEPS)
                                 if isempty(BLIP),
                                     BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false);
                                     if iscell(BLIP), BLIP=char(BLIP); end
-                                    if isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=-1;
-                                    elseif isequal(BLIP,'j-'), BLIP=1;
+                                    if isequal(BLIP,'i+')||isequal(BLIP,'i'), BLIP=sign([0 1 0 0]*mat0*[1 0 0 0]');
+                                    elseif isequal(BLIP,'i-'), BLIP=sign([0 1 0 0]*mat0*[-1 0 0 0]');
+                                    elseif isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=sign([0 1 0 0]*mat0*[0 1 0 0]');
+                                    elseif isequal(BLIP,'j-'), BLIP=sign([0 1 0 0]*mat0*[0 -1 0 0]');
+                                    elseif isequal(BLIP,'k+')||isequal(BLIP,'k'), BLIP=sign([0 1 0 0]*mat0*[0 0 1 0]');
+                                    elseif isequal(BLIP,'k-'), BLIP=sign([0 1 0 0]*mat0*[0 0 -1 0]');
                                     elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
                                     end
                                     if reverseBLIP, BLIP=-BLIP; end

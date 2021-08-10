@@ -487,7 +487,12 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                                 y=reshape(y,CONN_x.Setup.nsubjects,[],size(y,2));
                             end
                         end
-                        conn_importl2covariate(name,num2cell(y,1));
+                        if ~isfield(CONN_x,'filename')||isempty(CONN_x.filename)||~isfield(CONN_x,'Setup')||~isfield(CONN_x.Setup,'nsubjects')||isempty(CONN_x.Setup.nsubjects)||any(rem(size(y,1),CONN_x.Setup.nsubjects)), % not conn project loaded
+                            [tfilename,tfilepath]=uiputfile('*.mat','Save data as',fileparts(tspmfile));
+                            if ischar(tfilename), conn_savematfile(fullfile(tfilepath,tfilename),'name','y'); fprintf('data saved to file %s\n',fullfile(tfilepath,tfilename)); end
+                        else
+                            conn_importl2covariate(name,num2cell(y,1));
+                        end
                     else
                         s=1:length(info.ROInames);
                         cname={};mcon=[]; if isfield(info,'mstats'), mstats=info.mstats; else mstats=true; end

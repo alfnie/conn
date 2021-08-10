@@ -2,7 +2,7 @@ function hfig=conn_displayroi(option,varargin)
 % internal function ROI-to-ROI results display
 %
 
-global CONN_gui;
+global CONN_x CONN_gui;
 if ~nargin, option='init'; end
 hfig=[];
 if ~ischar(option), % gui-callback
@@ -692,7 +692,12 @@ switch(lower(option)),
         end
         if isempty(y3)
         elseif strcmpi(option,'import_values')
-            conn_importl2covariate(name,y);
+            if ~isfield(CONN_x,'filename')||isempty(CONN_x.filename)||~isfield(CONN_x,'Setup')||~isfield(CONN_x.Setup,'nsubjects')||isempty(CONN_x.Setup.nsubjects)||any(rem(cellfun(@numel,y),CONN_x.Setup.nsubjects)), % no conn project loaded
+                [tfilename,tfilepath]=uiputfile('*.mat','Save data as',fileparts(tfilename));
+                if ischar(tfilename), conn_savematfile(fullfile(tfilepath,tfilename),'name','y'); fprintf('data saved to file %s\n',fullfile(tfilepath,tfilename)); end
+            else
+                conn_importl2covariate(name,y);
+            end
         else
             if get(data.handles(9),'value'), % one plot per connection
                 conn_rex('test',data.results(1).xX,reshape(y3,[size(y3,1)*size(y3,2),size(y3,3)]),data.results(1).c,names_conditions,name3,[],[],true,data.results(1).c2,[],true);

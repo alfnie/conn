@@ -403,10 +403,12 @@ function varargout=conn_batch(varargin)
 %      vdm_et1         : (functional_vdm_create) ET1 (Echo Time first echo in fieldmap sequence) (default [] : read from .json file / BIDS)
 %      vdm_et2         : (functional_vdm_create) ET2 (Echo Time second echo in fieldmap sequence) (default [] : read from .json file / BIDS)
 %      vdm_ert         : (functional_vdm_create) ERT (Effective Readout Time in funcional data) (default [] : read from .json file / BIDS)
-%      vdm_blip        : (functional_vdm_create) k-space traversal blip direction 
+%      vdm_blip        : (functional_vdm_create) k-space traversal blip direction along the y-axis following SPM convention (posterior to anterior)
 %                           use +1 or -1 to specify this value explicitly
-%                           leave empty to read from .json file /BIDS (PhaseEncodingDirection=j+ => vdm_blip=-1); 
-%                           use 0 to reverse info from .json file /BIDS (PhaseEncodingDirection=j+ => vdm_blip=+1);
+%                           leave empty to read from .json file /BIDS PhaseEncodingDirection field and using the formula 
+%                               ve=sign([0 1 0 0]*vol.mat*[i j k 0]'; 
+%                               e.g. PhaseEncodingDirection='j+', mat=[-1 0 0;0 1 0;0 0 1] => ve=sign([0 1 0 0]*mat*[0 1 0 0])=+1
+%                           use 0 to reverse the sign from the above formula
 %      vdm_type        : (functional_vdm_create only) type of fieldmap sequence files ([]: automatically detect; 1: magnitude+phasediff (or 
 %                           magnitude1+magnitude2+phasediff); 2: real1+imag1+real2+imag2; 3: fieldmapHz)
 %      vdm_fmap        : (functional_vdm_create only) location of fieldmap sequence files (secondary functional dataset number or label 

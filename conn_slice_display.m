@@ -74,9 +74,23 @@ elseif ~isempty(data) % conn_slice_display(datafile [,structural_file])
         if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=conn_fileutils('spm_vol',fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
     end
     %V=V(1);
-    state.supra=conn_fileutils('spm_read_vols',V);
-    state.mat=V(1).mat;
-    state.size=size(state.supra);
+    if 0 % resample to reference grid?
+        temp=spm_vol(fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii'));
+        state.mat=temp.mat;
+        state.size=temp.dim;
+        [x,y,z]=ndgrid(1:state.size(1),1:state.size(2),1:state.size(3));
+        xyz=state.mat*[x(:) y(:) z(:) ones(numel(x),1)]';
+        if numel(V)==1, 
+            txyz=pinv(V(1).mat)*xyz;
+            state.supra=reshape(conn_fileutils('spm_sample_vol',V,txyz(1,:),txyz(2,:),txyz(3,:),1),state.size(1),state.size(2),state.size(3));
+        else
+            state.supra=reshape(conn_fileutils('spm_get_data',V,pinv(V(1).mat)*xyz)',state.size(1),state.size(2),state.size(3),[]);
+        end
+    else
+        state.supra=conn_fileutils('spm_read_vols',V);
+        state.mat=V(1).mat;
+        state.size=size(state.supra);
+    end
     state.info.structural='none';
     state.info.vol=char(data);
     state.T=state.supra;
@@ -1190,9 +1204,11 @@ if any(opts==2)
             else data=varargin{n}; thr=.5;
             end
             for m=1:size(data,3)
-                tdata=double(data(:,:,m));
+                tdata=zeros(size(data,1)+2,size(data,2)+2);
+                tdata(2:end-1,2:end-1)=double(data(:,:,m));
+                %tdata=double(data(:,:,m));
                 tdata(isnan(tdata))=0;
-                ct=contourc(tdata,thr*[1 1]); %tmin+(tmax-tmin)*[.10 .10]); %[.5 .5]);
+                ct=contourc(0:size(data,2)+1,0:size(data,1)+1,tdata,thr*[1 1]); %tmin+(tmax-tmin)*[.10 .10]); %[.5 .5]);
                 if ~isempty(ct), c1=[c1 [ct;m+zeros(1,size(ct,2))]]; end
             end
         end
