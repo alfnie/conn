@@ -2,9 +2,10 @@ function varargout=conn_module(option,varargin)
 % CONN_MODULE provides access to independent CONN modules 
 %
 % conn_module(module_name, ...) runs individual CONN's module "module_name" on user-defined data
-% Current module names:
 %
-%    PREPROCESSING : runs CONN preprocessing pipeline on user-defined data
+% Current module names: PREP, GLM, EL, FL
+%
+%    PREP : runs CONN preprocessing pipeline on user-defined data (see www.conn-toolbox.org/resources/prep for details)
 %
 %       basic syntax: conn_module preprocessing
 %       advanced syntax: conn_module('PREP', fieldname1, fieldvalue1, fieldname2, fieldvalue2, ...)
@@ -32,7 +33,7 @@ function varargout=conn_module(option,varargin)
 %       alternative syntax: conn_module preprocessing steps
 %          returns the list of valid preprocessing steps
 %
-%    GLM : runs CONN second-level analyses on user-defined data
+%    GLM : runs CONN second-level analyses on user-defined data (see www.conn-toolbox.org/resources/glm for details)
 %
 %       basic syntax: conn_module GLM
 %       advanced syntax: conn_module('GLM', fieldname1, fieldvalue1, fieldname2, fieldvalue2, ...)
@@ -85,6 +86,10 @@ function varargout=conn_module(option,varargin)
 %       See also CONN_DISPLAY for displaying GLM results
 %       See Nieto-Castanon, 2020 for details about General Linear Model analyses (www.conn-toolbox.org/fmri-methods)
 %
+%    EL : runs EvLab (evlab.mit.edu) fMRI pipeline for subject-centric task-activation analyses (see www.conn-toolbox.org/resources/evlab for details)
+% 
+%    FL : runs FrankLab (sites.bu.edu/guentherlab) fMRI pipeline for group-centric task-activation analyses (see www.conn-toolbox.org/resources/franklab for details)
+% 
 %    Additional functionality: conn_module('get',...)
 %          conn_module('get','structurals');             outputs current structural files (e.g. output of structural preprocessing steps)
 %          conn_module('get','functionals' [,setlabel]); outputs current functional files (e.g. output of functional preprocessing steps)

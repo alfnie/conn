@@ -1,18 +1,99 @@
 function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplots,thr,facealpha,position,defaultcolors,defaultfilepath,Vrange,domask,dosub)
 % CONN_MESH_DISPLAY surface display in CONN
 %
-% CONN_MESH_DISPLAY(fileSURF) displays surface- or volume-level data in fileSURF (projected to cortical surface)
-% CONN_MESH_DISPLAY('',fileVOL) displays volume-level data in fileVOL
-% CONN_MESH_DISPLAY(fileSURF,fileVOL,dirFS,rois,connections) 
-%      dirFS:  directory containing freesurfer-generated surfaces for display (default conn/utils/surf/)
-%      rois:   structure defining rois to be displayed
-%           rois.sph_xyz : (nx3) coordinates XYZ values
-%           rois.sph_c   : (nx3) color RGB values
-%           rois.sph_r   : (nx1) sphere radius
-%      connections: (nxn) matrix of ROI-to-ROI connections to be displayed (values represent connection
-%                         strength (with 0 or NaN for connections not to be displayed)
+% CONN_MESH_DISPLAY(fileSURF) displays surface- or volume-level data in fileSURF projected to reference cortical surface
+%      fileSURF         : surface- or volume- level 3D NIFTI file (values in this file will be projected and displayed on the 
+%                       reference cortical surface -surfaces derived from the ICBM MNI 2009b NLIN asymmetric template-)
 %
-%  h=CONN_MESH_DISPLAY(...) returns function handle implementing GUI functionality
+% CONN_MESH_DISPLAY(fileSURF [,fileVOL, dirFS, rois, connections]) 
+%      fileVOL          : volume-level 3D NIFTI mask file (display clusters of non-zero values as custom masks)
+%      dirFS            : directory containing reference freesurfer-generated reference surfaces (leave empty for default conn/utils/surf/)
+%      rois             : structure defining ROIs to be displayed
+%                           rois.sph_xyz : (nx3) coordinates XYZ values
+%                           rois.sph_c   : (nx3) color RGB values
+%                           rois.sph_r   : (nx1) sphere radius
+%      connections      : (nxn) matrix of ROI-to-ROI connections to be displayed (values represent connection
+%                         strength, with 0 or NaN for connections not to be displayed)
+%
+%  fh = CONN_MESH_DISPLAY(...) returns function handle for additional options
+%
+% VIEW OPTIONS
+%  fh('view',viewdir [,viewpos,side])    : controls camera view
+%                                           viewdir : camera direction (e.g. [1 0 0])
+%                                           viewpos : camera-up vector []
+%                                           side    : 0 both hemispheres; -1 left-hemisphere only; +1 right-hemisphere only
+%  fh('copy')                            : copies current camera view
+%  fh('paste')                           : paste camera view
+%  fh('zoomin')                          : zoom-in display
+%  fh('zoomout')                         : zoom-out display
+%  fh('info')                            : shows details of fileSURF/fileVOL data being displayed 
+%
+% REFERENCE SURFACE OPTIONS
+%   fh('brain',type);                    : chooses reference brain surface
+%                                           type=1: White Matter
+%                                           type=2: Grey Matter 
+%                                           type=3: Semi-inflated WM
+%                                           type=4: Inflated WM
+%  fh('brain_transparency',val)          : set reference brain surface transparency level (val: 0-1)
+%  fh('brain_color')                     : set reference brain surface color
+%  fh('repaint',filename)                : change reference brain surface activation file (filename: NIFTI file) (fileSURF) 
+%  fh('mask',state)                      : displays reference brain surface medial mask (state: 'on' 'off')
+%  fh('act_transparency',val)            : set reference brain surface activation transparency level (val: 0-1)
+%  fh('act_pos')                         : reference brain surface activation displays only positive acitivation values
+%  fh('act_neg')                         : reference brain surface activation displays only negative acitivation values
+%  fh('act_posneg')                      : reference brain surface activation displays both positive/negative acitivation values
+%  fh('act_color',color)                 : reference brain surface activation colormap (color: [Mx3] RGB values)
+%  fh('sub',state)                       : displays reference subcortical surface (state: 'on' 'off')
+%  fh('sub_transparency',val)            : set subcortical surface transparency level (val: 0-1)
+%  fh('sub_color',color)                 : set subcortical surface color (color: [1x3] RGB values)
+%  fh('brainmask_transparency',val)      : set brainmask surface transparency level (val: 0-1)
+%  fh('brainmask_color',color)           : brainmask surface activation color (color: [1x3] RGB values)
+%  fh('ref_sag',state)                   : displays reference sagittal slice (state: 'on' 'off')
+%  fh('ref_cor',state)                   : displays reference coronal slice (state: 'on' 'off')
+%  fh('ref_ax',state)                    : displays reference axial slice (state: 'on' 'off')
+%  fh('ref_transparency',val)            : set reference slices transparency level (val: 0-1)
+%  fh('ref_pos',pos)                     : set reference slices position (pos: [1x3] vector of x/y/z coordinates)
+%  fh('ud_select',filename)              : adds custom reference surface (filename: NIFTI mask file)
+%  fh('ud_delete')                       : removes last custom reference surface
+%  fh('ud_transparency',val)             : set custom reference surface transparency level (val: 0-1)
+%  fh('ud_color',color)                  : set custom reference surface color (color: [1x3] RGB values)
+%
+% ROI OPTIONS
+%  fh('roi_transparency',val)            : set ROIs surface transparency level (val: 0-1)
+%  fh('roi_color',color)                 : set ROIs surface color (color: [Mx3] RGB values)
+%  fh('sphereshape',type)                : set ROI shape (type: 'sphere' 'cube' 'star')
+%  fh('spheres',scale)                   : increases/decreases all ROIs size (scale 0-inf)
+%  fh('labels',state)                    : displays ROI labels (state: 'on' 'off')
+%  fh('labels_font',scale)               : increases/decreases all ROI-labels font (scale 0-inf)
+%  fh('labels_edit',labels)              : changes ROI labels (labels: cellstring array)
+%  fh('con_transparency',val)            : set connectivity-lines transparency level (val: 0-1)
+%  fh('con_color',color)                 : set connectivity-lines color (color: [1x3] RGB values)
+%  fh('con_bundling',level)              : set connectivity-lines bundling level (level: integers 0-inf)
+%  fh('con_width',scale)                 : increases/decreases all connectivity-lines width (scale 0-inf)
+%
+% EFFECTS OPTIONS
+%  fh('material',option)                 : sets material reflectance mode (option: 'dull' 'shiny' 'metal' [1x5]; see "help material")
+%  fh('light',level)                     : sets lighting strength (level: 0-1)
+%  fh('background',color)                : sets background color (color: [1x3] RGB values)
+%  fh('colorbar',state)                  : displays reference colorbar (state: 'on' 'off')
+%  fh('colorbar','rescale',lim)          : changes colorbar limits (lim: [1x2] values in fileSURF NIFTI file)
+%  fh('colormap',type)                   : changes colormap (type: 'normal','red','jet','hot','gray','bone','cool','hsv','spring',
+%                                           'summer','autumn','winter','random','brighter','darker','manual','color')
+%  fh('smoother',state)                  : 'on' for smoother display (interpolates values in fileSURF NIFTI file when displaying on 
+%                                           surface); 'off' for raw-data display
+%  fh('axis',state)                      : display reference axis lines (state: 'on' 'off')
+%  fh('menubar',state)                   : display menubar (state: 'on' 'off')
+%
+% PRINT OPTIONS
+%  fh('print',type,filename)             : prints display to high-resolution .jpg file
+%                                           type=1: prints current view
+%                                           type=2: prints 2-view row display (left&right exterior views)
+%                                           type=3: prints 3-view mosaic display (superior,right,posterior views; e.g. glass-displays)
+%                                           type=4: prints 4-view mosaic display (left, right, medial-left, medial-right views)
+%                                           type=5: prints 4-view column display (same as above all views in a single column)
+%                                           type=6: prints 4-view row display (same as above all views in a single row)
+%                                           type=7: prints 8-view mosaic display (left, right, medial-left, medial-right, superior, 
+%                                                   inferior, anterior, posterior views)
 %
 
 global CONN_x CONN_gui;
@@ -749,7 +830,7 @@ if ishandle(hmsg), delete(hmsg); end
             case 'info',
                 conn_msgbox([{'Volume:'},cellstr(state.info.vol),{' ','Activation surface:'},cellstr(state.info.surf)],'3d display info');
                 return;
-            case {'mask','remap','remap&draw','colormap','black_transparency'}
+            case {'mask','remap','remap&draw','colormap','black_transparency','smoother'}
                 if ~strcmp(option,'remap'), set(state.handles.hfig,'name','rendering, please wait...');drawnow; end
                 if strcmp(option,'colormap')
                     cmap=varargin{1};
@@ -784,7 +865,7 @@ if ishandle(hmsg), delete(hmsg); end
                     if size(cmap,1)~=2*96, cmap=[flipud(cmap(:,[2,3,1]));cmap]; end
                     state.colormap=cmap;
                     set(state.handles.hfig,'colormap',cmap);
-                elseif strcmp(option,'black_transparency')
+                elseif strcmp(option,'black_transparency')||strcmp(option,'smoother')
                     str=varargin{1};
                     if strcmp(str,'on'), state.smoother=true;
                     else state.smoother=false;
@@ -874,7 +955,7 @@ if ishandle(hmsg), delete(hmsg); end
                 set(state.handles.connplots(state.handles.connplots~=0),'visible','off');
                 set([state.handles.patchblob1 state.handles.patchblob2 state.handles.patchblob3 state.handles.patchblob4],'visible','off');
                 set(state.handles.patchblobother,'visible','off');
-                if side<=0, 
+                if side<=0, %left
                     set(state.handles.patch(1),'visible','on'); 
                     set(state.handles.subpatch(1),'visible','on');
                     set(state.handles.maskpatch(1),'visible','on'); 
@@ -886,7 +967,7 @@ if ishandle(hmsg), delete(hmsg); end
                     set([state.handles.patchblob1 state.handles.patchblob3],'visible','on');
                     set(state.handles.patchblobother(state.patchblobother_x<=5),'visible','on');
                 end
-                if side>=0, 
+                if side>=0, %right
                     set(state.handles.patch(2),'visible','on'); 
                     set(state.handles.subpatch(2),'visible','on');
                     set(state.handles.maskpatch(2),'visible','on'); 
@@ -961,39 +1042,45 @@ if ishandle(hmsg), delete(hmsg); end
                 if ischar(varargin{1}), varargin{1}=strcmpi(varargin{1},'on'); end 
                 if varargin{1}, str='on'; state.facealphatxt=1; else str='off'; state.facealphatxt=0; end
                 set(state.handles.sphplots_txt,'visible',str);
-            case 'labelsfont',
+            case {'labels_font','labelsfont'},
                 state.fontsize=state.fontsize*varargin{1};
                 set(state.handles.sphplots_txt,'fontsize',max(1,round(state.fontsize)));
-            case 'labelscloser',
+            case {'labels_closer','labelscloser'},
                 if isempty(varargin{1}), state.fontclose=1;
                 else state.fontclose=state.fontclose*varargin{1};
                 end
                 for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
-            case 'labelsedit',
-                name=state.sphplots.sph_names;
-                %name=get(state.handles.sphplots_txt,'string');
-                ok=true;
-                thfig=dialog('units','norm','position',[.3,.4,.6,.4],'windowstyle','normal','name','ROI labels','color','w','resize','on');
-                uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string',sprintf('New ROI label names (%d)',numel(name)),'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
-                ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.30,.8,.55],'max',2,'string',name,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','manually edit the ROI labels');
-                ht2=uicontrol(thfig,'style','edit','units','norm','position',[.1,.20,.8,.1],'max',1,'string','','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','enter Matlab command for fast-editing all ROIs simultaneously (str is input variable cell array; ouput is cell array; e.g. "lower(str)")','callback','ht1=get(gcbo,''userdata''); set(ht1,''string'',feval(inline(get(gcbo,''string''),''str''),get(ht1,''string'')))','userdata',ht1);
-                uicontrol(thfig,'style','pushbutton','string','Apply','units','norm','position',[.1,.01,.38,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset);
-                uicontrol(thfig,'style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.10],'callback','delete(gcbf)','fontsize',8+CONN_gui.font_offset);
-                while ok
-                    uiwait(thfig);
-                    ok=ishandle(thfig);
-                    if ok,
-                        newname=get(ht1,'string');
-                        if numel(newname)~=numel(name), conn_msgbox(sprintf('Number of labels entered (%d) does not match expected value (%d)',numel(newname),numel(name)),'',2);
-                        else
-                            delete(thfig);
-                            for n=1:numel(newname), set(state.handles.sphplots_txt(n),'string',newname{n}); end
-                            state.sphplots.sph_names=newname;
-                            ok=false;
+            case {'labels_edit','labelsedit'},
+                if numel(varargin)>0&&~isempty(varargin{1}), 
+                    newname=varargin{1}; 
+                    for n=1:numel(newname), set(state.handles.sphplots_txt(n),'string',newname{n}); end
+                    state.sphplots.sph_names=newname;
+                else
+                    name=state.sphplots.sph_names;
+                    %name=get(state.handles.sphplots_txt,'string');
+                    ok=true;
+                    thfig=dialog('units','norm','position',[.3,.4,.6,.4],'windowstyle','normal','name','ROI labels','color','w','resize','on');
+                    uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string',sprintf('New ROI label names (%d)',numel(name)),'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
+                    ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.30,.8,.55],'max',2,'string',name,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','manually edit the ROI labels');
+                    ht2=uicontrol(thfig,'style','edit','units','norm','position',[.1,.20,.8,.1],'max',1,'string','','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','enter Matlab command for fast-editing all ROIs simultaneously (str is input variable cell array; ouput is cell array; e.g. "lower(str)")','callback','ht1=get(gcbo,''userdata''); set(ht1,''string'',feval(inline(get(gcbo,''string''),''str''),get(ht1,''string'')))','userdata',ht1);
+                    uicontrol(thfig,'style','pushbutton','string','Apply','units','norm','position',[.1,.01,.38,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset);
+                    uicontrol(thfig,'style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.10],'callback','delete(gcbf)','fontsize',8+CONN_gui.font_offset);
+                    while ok
+                        uiwait(thfig);
+                        ok=ishandle(thfig);
+                        if ok,
+                            newname=get(ht1,'string');
+                            if numel(newname)~=numel(name), conn_msgbox(sprintf('Number of labels entered (%d) does not match expected value (%d)',numel(newname),numel(name)),'',2);
+                            else
+                                delete(thfig);
+                                for n=1:numel(newname), set(state.handles.sphplots_txt(n),'string',newname{n}); end
+                                state.sphplots.sph_names=newname;
+                                ok=false;
+                            end
                         end
                     end
                 end
-            case 'lines'
+            case {'con_width','lines'}
                 scale=varargin{1};
                 state.WidthLines=state.WidthLines*scale;
                 for n=find(state.handles.connplots(:)'~=0),
@@ -1008,7 +1095,7 @@ if ishandle(hmsg), delete(hmsg); end
 %                     xyz2=conn_bsxfun(@plus,mean(xyz2,1),conn_bsxfun(@minus,xyz2,mean(xyz2,1))*B*diag([scale scale 1])*B'); 
 %                     set(state.handles.connplots(n),{'xdata','ydata','zdata'},cellfun(@(x)reshape(x,size(xyz{1})),num2cell(xyz2,1),'uni',0)); 
 %                 end
-            case 'bundling'
+            case {'con_bundling','bundling'}
                 if numel(varargin)>=1, str=varargin{1};
                 else
                     answer=inputdlg({'Bundling level?'},'',1,{num2str(max([0,state.bundling]))});
@@ -1105,11 +1192,11 @@ if ishandle(hmsg), delete(hmsg); end
                 end
                 set(state.handles.subpatch,'facecolor',color); 
                 state.sub_color=color;
-            case 'mask_transparency'
+            case {'brainmask_transparency','mask_transparency'}
                 scale=varargin{1};
                 state.facealphamask=max(eps,scale);
                 set([state.handles.maskpatch],'facealpha',state.facealphamask); 
-            case 'mask_color'
+            case {'brainmask_color','mask_color'}
                 if numel(varargin)>0, color=varargin{1};
                 else color=uisetcolor([],'Select color'); if isempty(color)||isequal(color,0), return; end; 
                 end
@@ -1185,9 +1272,12 @@ if ishandle(hmsg), delete(hmsg); end
             case 'ud_select'
                 %otherVOL=spm_select(inf,'image','Select a file');
                 %if isempty(otherVOL), return; end
-                [tfilename,tpathname]=uigetfile('*.nii; *.img','Select file',fullfile(fileparts(which(mfilename)),'rois'));
-                if ischar(tfilename), totherVOL=fullfile(tpathname,tfilename); 
-                else return; 
+                if numel(varargin)>0, totherVOL=varargin{1};
+                else
+                    [tfilename,tpathname]=uigetfile('*.nii; *.img','Select file',fullfile(fileparts(which(mfilename)),'rois'));
+                    if ischar(tfilename), totherVOL=fullfile(tpathname,tfilename);
+                    else return;
+                    end
                 end
                 tpVOLother=conn_surf_volume(totherVOL);
                 if isempty(tpVOLother), return; end
@@ -1204,18 +1294,18 @@ if ishandle(hmsg), delete(hmsg); end
                         state.pVOLother=[state.pVOLother tpVOLother(np)];
                     end
                 end
-            case {'ax_ref', 'sag_ref', 'cor_ref'}
+            case {'ax_ref', 'sag_ref', 'cor_ref', 'ref_ax', 'ref_sag', 'ref_cor'}
                 switch(option)
-                    case 'sag_ref', nref=1;
-                    case 'cor_ref', nref=2;
-                    case 'ax_ref',  nref=3;
+                    case {'ref_sag','sag_ref'}, nref=1;
+                    case {'ref_cor','cor_ref'}, nref=2;
+                    case {'ref_ax','ax_ref'},  nref=3;
                 end
                 axtemp=varargin{1};
                 if ischar(axtemp), axtemp=strcmp(axtemp,'on'); end
                 if axtemp, dosubstr='on'; else dosubstr='off'; end
                 state.showaxref(nref)=axtemp;
                 set(state.handles.patchref(nref),'visible',dosubstr);
-            case 'file_ref'
+            case {'ref_file','file_ref'}
                 if isempty(varargin)
                     [tfilename,tpathname]=uigetfile('*.nii; *.img','Select reference file');
                     if ischar(tfilename), state.structural=fullfile(tpathname,tfilename);
@@ -1230,7 +1320,7 @@ if ishandle(hmsg), delete(hmsg); end
                 for tnview=1:3
                     set(state.handles.patchref(tnview),'faces',thpatch(tnview).faces,'vertices',thpatch(tnview).vertices,'facevertexcdata',thpatch(tnview).facevertexcdata,'facevertexalpha',state.facealpharef*thpatch(tnview).facevertexalpha,'userdata',thpatch(tnview).facevertexalpha,'facecolor','flat');
                 end
-            case 'pos_ref'
+            case {'ref_pos','pos_ref'}
                 if isempty(varargin)
                     answer={''};
                     while numel(str2num(answer{1}))~=3
@@ -1238,8 +1328,8 @@ if ishandle(hmsg), delete(hmsg); end
                         if isempty(answer), return; end
                     end
                     state.pointer_mm=str2num(answer{1});
-                else
-                    switch(varargin)
+                elseif ischar(varargin{1})
+                    switch(varargin{1})
                         case 'x+', state.pointer_mm(1)=state.pointer_mm(1)+5;
                         case 'x-', state.pointer_mm(1)=state.pointer_mm(1)-5;
                         case 'y+', state.pointer_mm(2)=state.pointer_mm(2)+5;
@@ -1247,6 +1337,7 @@ if ishandle(hmsg), delete(hmsg); end
                         case 'z+', state.pointer_mm(3)=state.pointer_mm(3)+5;
                         case 'z-', state.pointer_mm(3)=state.pointer_mm(3)-5;
                     end
+                else state.pointer_mm=varargin{1};
                 end
                 thpatch=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm);
                 for tnview=1:3

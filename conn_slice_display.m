@@ -1,7 +1,7 @@
 function fh=conn_slice_display(data,structural,defaultfilepath,actthr,titlestr)
 % CONN_SLICE_DISPLAY slice display in CONN
 %
-% CONN_SLICE_DISPLAY(fileDATA) displays volume-level data in fileDATA (overlaid on default reference structural image)
+% CONN_SLICE_DISPLAY(fileDATA) displays volume-level data in fileDATA (overlaid on default reference structural image -ICBM MNI 2009b NLIN asymmetric template-)
 % CONN_SLICE_DISPLAY(fileDATA,fileSTRUCT) displays volume-level data in fileDATA overlaid on structural image fileSTRUCT
 % CONN_SLICE_DISPLAY('',fileSTRUCT) displays structural image fileSTRUCT
 %

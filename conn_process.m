@@ -58,7 +58,7 @@ if ischar(options),
             case 'setup_skipchecks', conn_disp(['CONN: RUNNING SETUP STEP (skipping project integrity checks)']); conn_process([1:4,4.5,5]);
             case 'setup_skipmasks', conn_disp(['CONN: RUNNING SETUP STEP (skipping Grey/White/Mask processing)']); conn_process([2:4,4.5,5]);
             case 'setup_update',    conn_disp(['CONN: RUNNING SETUP STEP (update)']); conn_process([4.5 5]);
-            case 'setup_preprocessing', conn_disp(['CONN: RUNNING SETUP.PREPROCESSING STEP']); conn_setup_preproc(varargin{:});
+            case 'setup_preprocessing', conn_disp(['CONN: RUNNING SETUP.PREPROCESSING STEP']); conn_process(35,varargin{:});
             case 'setup_updatedenoising',    conn_disp(['CONN: RUNNING SETUP STEP (update)']); conn_process([5]);
             case {'preprocessing','denoising'},   conn_disp(['CONN: RUNNING DENOISING STEP']); conn_process([1.5,2,5:9],varargin{:});
             case {'preprocessing_gui','denoising_gui'}, conn_disp(['CONN: RUNNING DENOISING STEP']); conn_process([1.5,2,6:9],varargin{:});
@@ -5823,6 +5823,13 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if any(options==34)
     conn_batch_workshop_nyudataset(varargin{:});
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CONN_SETUP_PREPROC
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if any(options==35)
+    conn_setup_preproc(varargin{:});
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
