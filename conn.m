@@ -7797,10 +7797,10 @@ else
                 %if any([CONN_x.Analyses(ianalysis).regressors.fbands{:}]>1)
                 %    if ~isfield(CONN_h.menus.m_analyses.X1,'fbdata'), try, temp=conn_loadmatfile(CONN_h.menus.m_analyses.X1.filename,'fbdata'); CONN_h.menus.m_analyses.X1.fbdata=temp.fbdata; end; end
                 %end
-                if isfield(CONN_h.menus.m_analyses,'X_input')&&isequal(CONN_h.menus.m_analyses.X_input,{CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[]})
+                if isfield(CONN_h.menus.m_analyses,'X_input')&&isequal(CONN_h.menus.m_analyses.X_input,{CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[],nsubs,nconditions})
                     CONN_h.menus.m_analyses.select=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[],{nregressors,nview},true);
                 else
-                    CONN_h.menus.m_analyses.X_input={CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[]};
+                    CONN_h.menus.m_analyses.X_input={CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[],nsubs,nconditions};
                     [CONN_h.menus.m_analyses.X,CONN_h.menus.m_analyses.select,CONN_h.menus.m_analyses.Xnames]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,CONN_h.menus.m_analyses.X1,[],{nregressors,nview});
                 end
                 iroi=[];isnew=[];for nroi=1:numel(CONN_h.menus.m_analyses.Xnames),[iroi(nroi),isnew(nroi)]=conn_sourcenames(CONN_h.menus.m_analyses.Xnames{nroi});end; iroi(isnew>0)=nan;

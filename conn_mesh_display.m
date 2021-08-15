@@ -7,7 +7,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %
 % CONN_MESH_DISPLAY(fileSURF [,fileVOL, dirFS, rois, connections]) 
 %      fileVOL          : volume-level 3D NIFTI mask file (display clusters of non-zero values as custom masks)
-%      dirFS            : directory containing reference freesurfer-generated reference surfaces (leave empty for default conn/utils/surf/)
+%      dirFS            : directory containing reference freesurfer-generated surfaces (leave empty for default conn/utils/surf/)
 %      rois             : structure defining ROIs to be displayed
 %                           rois.sph_xyz : (nx3) coordinates XYZ values
 %                           rois.sph_c   : (nx3) color RGB values

@@ -507,7 +507,7 @@ if ~nargin||isempty(STEPS)||dogui,
             end
         end
         if numel(subjects)>1,
-            answer=inputdlg(sprintf('Number of parallel jobs? (1-%d)',numel(subjects)),'',1,{num2str(numel(subjects))});
+            answer=inputdlg(sprintf('Number of parallel jobs? (1-%d)',numel(subjects)),'',1,{num2str(1)});
             if isempty(answer)||isempty(str2num(answer{1})), return; end
             parallel_N=str2num(answer{1});
         else parallel_N=1;
@@ -907,7 +907,15 @@ if parallel_N>0,
         end
     end
     return;
-elseif conn_projectmanager('inserver'), error('inserver error');
+elseif conn_projectmanager('inserver'), 
+    if isempty(sliceorder)&&~isempty(sliceorder_select), sliceorder=sliceorder_select_options{sliceorder_select}; end
+    conn_process('setup_preprocessing',...
+        STEPS,...
+        'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
+        'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
+        'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
+        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip);
+    return;
 else
     if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log'), CONN_x.SetupPreproc.log={}; end
     try, spmver=spm('version'); catch, spmver=spm('ver'); end
