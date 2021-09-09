@@ -209,6 +209,7 @@ switch(lower(option))
         varargout={false};
         filename=conn_prepend('',conn_fullfile(varargin{1}),'.mat');
         load(filename,'CONN_x');
+        conn_updatefolders;
         if isfield(CONN_x,'info'), EVLAB17_info=CONN_x.info;
         else EVLAB17_info=[];
         end

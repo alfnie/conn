@@ -25,7 +25,7 @@ function varargout=conn(varargin)
 % alfnie@gmail.com
 %
 
-connver='20.c';
+connver='21.a';
 dodebug=false;
 
 global CONN_h CONN_x CONN_gui;

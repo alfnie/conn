@@ -152,6 +152,8 @@ function varargout=conn_remotely(option,varargin)
 % conn_remotely offandon      : restarts communication with remote CONN server after dropped connection (equivalent
 %                               to running "conn remotely restart" but without launching CONN GUI)
 %
+% conn_remotely startserver   : manually start conn server (like "conn_server start ..." but with graphical interface)
+%
 % REMOTE EXECUTION
 %
 % conn_remotely cmd                : interactive command-line execution in remote CONN server

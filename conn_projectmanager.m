@@ -318,3 +318,35 @@ switch(lower(option))
 end
 end
 
+function [isdep_callback,isdep_folder]=conn_jobmanager_checkdeployedname(varargin)
+
+idx=1;
+cfg.machinetype.ispc=ispc;
+cfg.osquotes=char('"'*cfg.machinetype.ispc+''''*~cfg.machinetype.ispc);
+isdep_folder='';
+isdep_callback={'%s','%s function conn','%s function conn'};
+isdep_checkexists={'conn','spm','spm12'};
+if ~cfg.machinetype.ispc
+    if isdeployed, mcrroot=matlabroot;
+    else mcrroot=conn_projectmanager('getenv','MCRROOT'); if isempty(mcrroot), mcrroot=conn_projectmanager('getenv','MCR'); end
+    end
+    if isempty(mcrroot), mcrroot='$MCRROOT'; end
+    isdep_callback=[{sprintf('%s %s','%s',mcrroot),sprintf('%s %s function conn','%s',mcrroot),sprintf('%s %s function conn','%s',mcrroot)} isdep_callback];
+    isdep_checkexists=[{'run_conn.sh','run_spm.sh','run_spm12.sh'} isdep_checkexists];
+end
+try,
+    [ko,nill]=cellfun(@(x)conn_projectmanager('system',sprintf('which %s',x)),isdep_checkexists,'uni',0);
+    ko=[ko{:}];
+    ko=find(~ko,1);
+    if ~isempty(ko), idx=ko; end
+end
+[ok,msg]=conn_projectmanager('system',sprintf('which %s',isdep_checkexists{idx}));
+if ~ok&&conn_existfile(msg(msg>=32)), 
+    isdep_callback=sprintf(isdep_callback{idx},[cfg.osquotes msg(msg>=32) cfg.osquotes]); % full-path to executable
+    isdep_folder=[cfg.osquotes fileparts(msg(msg>=32)) cfg.osquotes];
+else
+    isdep_callback=sprintf(isdep_callback{idx},isdep_checkexists{idx});
+end
+end
+
+

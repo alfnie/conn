@@ -319,12 +319,12 @@ ________________________________________________________________________________
      added script for cat12-to-Freesurfer conversion
      added filter option to 'function_regression' preprocessing step (to allow filtered-regressor option when using conn_module('preprocessing',...) to run aCompCor denoising)
      added 'view details' checkbox in 2nd-level GUIs to simplify threshold-setting options
-     added conn_tcpip for TCP/IP based communications and conn_server for client/server communication between two CONN sessions
      added option to break single-variable .mat files into multiple-timeseries covariates
      added option for using scrubbing based on thresholding external timeseries (including single-measure timeseries)
      added option to create single-voxel-ROIs from mask (see Setup.ROIs tab)
      added 'import values' functionality to conn_display when run outside of any CONN project
      added conn_vol_read/write functions to complement conn_mtx_* and conn_surf_* functions (see www.conn-toolbox.org/resources/documentation for detailis)
+     added conn_tcpip for TCP/IP based communications and conn_server for client/server communication between two CONN sessions
      added "conn_module EL" for using a combination of SPM and CONN functionality for task activation analyses of fMRI data (see www.conn-toolbox.org/resources/evlab for details)
      added "conn_remotely" for working with CONN projects stored remotely (see "help conn_remotely" for details)
 
