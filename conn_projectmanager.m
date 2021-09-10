@@ -118,6 +118,14 @@ switch(lower(option))
         end
         varargout={out};
         
+    case 'isdeployed'
+        if conn_projectmanager('inserver'), out=conn_server('run',mfilename,option,varargin{:}); 
+        else 
+            out=false;
+            try, out=isdeployed; end
+        end
+        varargout={out};
+        
     case 'matlabroot'
         if conn_projectmanager('inserver'), out=conn_server('util_remotefile',conn_server('run',mfilename,option,varargin{:}));
         else out=matlabroot;
@@ -327,7 +335,7 @@ isdep_folder='';
 isdep_callback={'%s','%s function conn','%s function conn'};
 isdep_checkexists={'conn','spm','spm12'};
 if ~cfg.machinetype.ispc
-    if isdeployed, mcrroot=matlabroot;
+    if conn_projectmanager('isdeployed'), mcrroot=conn_projectmanager('matlabroot');
     else mcrroot=conn_projectmanager('getenv','MCRROOT'); if isempty(mcrroot), mcrroot=conn_projectmanager('getenv','MCR'); end
     end
     if isempty(mcrroot), mcrroot='$MCRROOT'; end

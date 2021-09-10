@@ -943,7 +943,7 @@ else
             else submitPROFILE=CFG;
             end
             isdep=false;
-            try, isdep=isdeployed; end
+            try, isdep=conn_projectmanager('isdeployed'); end
             if submitPROFILE.cmd_rundeployed, isdep=true; end
             if isdep&&~isempty(submitPROFILE.cmd_deployedfile), fun_callback=submitPROFILE.cmd_deployedfile;
             elseif isdep,                             fun_callback=conn_jobmanager_checkdeployedname(CFG); 
@@ -1133,11 +1133,10 @@ waitfor(handles.hfig);
                 set(handles.name,'tooltipstring',profiles{iprofile}.comments);
                 set(handles.isdefault,'value',iprofile==default);
                 if numel(profiles)>1, set(handles.delete,'enable','on'); else set(handles.delete,'enable','off'); end
-                isdep=false;
-                try, isdep=isdeployed; end
+                isdep=conn_projectmanager('isdeployed'); isdep0=isdep;
                 if profiles{iprofile}.cmd_rundeployed, isdep=true; end
                 if isdep, set(handles.cmd_deployedfile,'visible','on'); else set(handles.cmd_deployedfile,'visible','off'); end
-                if isdeployed, set(handles.cmd_rundeployed,'enable','off'); else set(handles.cmd_rundeployed,'enable','on'); end
+                if isdep0, set(handles.cmd_rundeployed,'enable','off'); else set(handles.cmd_rundeployed,'enable','on'); end
                 if strcmp(profiles{iprofile}.name,'Null profile'), set([handles.delete handles.name handles.cmd_submit handles.cmd_submitoptions handles.cmd_submitoptions_infile handles.cmd_deletejob handles.cmd_checkstatus handles.cmd_checkstatus_automatic handles.cmd_submit_delay handles.isdefault handles.cmd_rundeployed handles.cmd_deployedfile],'enable','off'); 
                 else set([handles.name handles.cmd_submit handles.cmd_submitoptions handles.cmd_submitoptions_infile handles.cmd_deletejob handles.cmd_checkstatus handles.cmd_checkstatus_automatic handles.cmd_submit_delay handles.isdefault handles.cmd_rundeployed handles.cmd_deployedfile],'enable','on'); 
                 end
@@ -1557,7 +1556,7 @@ isdep_folder='';
 isdep_callback={'%s','%s function conn','%s function conn'};
 isdep_checkexists={'conn','spm','spm12'};
 if ~cfg.machinetype.ispc
-    if isdeployed, mcrroot=matlabroot;
+    if conn_projectmanager('isdeployed'), mcrroot=conn_projectmanager('matlabroot');
     else mcrroot=conn_projectmanager('getenv','MCRROOT'); if isempty(mcrroot), mcrroot=conn_projectmanager('getenv','MCR'); end
     end
     if isempty(mcrroot), mcrroot='$MCRROOT'; end

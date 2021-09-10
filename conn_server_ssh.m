@@ -53,9 +53,9 @@ switch(lower(option))
         end
         if params.options.use_ssh, 
             allthesame=true;
-            if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=input('Server address [local]: ','s'); allthesame=false;
+            if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=conn_server_ssh_input('Server address [local]: ','s'); allthesame=false;
             else
-                temp=input(sprintf('Server address [%s]: ',params.info.host),'s');
+                temp=conn_server_ssh_input(sprintf('Server address [%s]: ',params.info.host),'s');
                 if ~isempty(temp),
                     temp=regexprep(temp,'\s+','');
                     if ~isequal(params.info.host,temp), allthesame=false; end
@@ -77,7 +77,7 @@ switch(lower(option))
             params.info.filename_ctrl='';
             allthesame=false;
         else
-            temp=input(sprintf('Username [%s]: ',params.info.user),'s');
+            temp=conn_server_ssh_input(sprintf('Username [%s]: ',params.info.user),'s');
             if ~isempty(temp),
                 if ~isequal(params.info.user,temp), allthesame=false; end
                 params.info.user=temp;
@@ -94,7 +94,7 @@ switch(lower(option))
                 try, conn_fileutils('deletefile',params.info.filename_ctrl); end
                 fprintf('Connecting to %s... ',params.info.login_ip);
                 % starts a shared SSH connection
-                system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip)); % starts a shared connection (note: use "sleep 600" instead of -N?)
+                system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection (note: use "sleep 600" instead of -N?)
                 [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); if ok~=0, error(msg); end
                 if ~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
                     filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
@@ -120,17 +120,17 @@ switch(lower(option))
                 if ~isfield(params.info,'start_time')||isempty(params.info.start_time), params.info.start_time=datestr(now); end
                 fprintf('Attempting to reconnect to last remote CONN session\n');
             elseif strcmpi(option,'restart')
-                if ~isfield(params.info,'remote_ip')||isempty(params.info.remote_ip), params.info.remote_ip=input('Remote session host address: ','s'); end
-                if ~isfield(params.info,'remote_port')||isempty(params.info.remote_port), params.info.remote_port=str2double(input('Remote session access port: ','s')); end
-                if ~isfield(params.info,'remote_id')||isempty(params.info.remote_id), params.info.remote_id=input('Remote session id: ','s'); end
-                if ~isfield(params.info,'remote_log')||isempty(params.info.remote_log), params.info.remote_log=input('Remote session log folder: ','s'); end
+                if ~isfield(params.info,'remote_ip')||isempty(params.info.remote_ip), params.info.remote_ip=conn_server_ssh_input('Remote session host address: ','s'); end
+                if ~isfield(params.info,'remote_port')||isempty(params.info.remote_port), params.info.remote_port=str2double(conn_server_ssh_input('Remote session access port: ','s')); end
+                if ~isfield(params.info,'remote_id')||isempty(params.info.remote_id), params.info.remote_id=conn_server_ssh_input('Remote session id: ','s'); end
+                if ~isfield(params.info,'remote_log')||isempty(params.info.remote_log), params.info.remote_log=conn_server_ssh_input('Remote session log folder: ','s'); end
                 if ~isfield(params.info,'start_time')||isempty(params.info.start_time), params.info.start_time=datestr(now); end
                 params.info.local_port=[];
             elseif isempty(params.info.host)
-                if ~isfield(params.info,'remote_ip'), params.info.remote_ip=''; end; if isempty(params.info.remote_ip), temp=input('Remote session host address: ','s'); else temp=input(sprintf('Remote session host address [%s]: ',params.info.remote_ip),'s'); end; if ~isempty(temp), params.info.remote_ip=temp; end
-                if ~isfield(params.info,'remote_port'), params.info.remote_port=[]; end; if isempty(params.info.remote_port), temp=input('Remote session access port: ','s'); else temp=input(sprintf('Remote session access port [%d]: ',params.info.remote_port),'s'); end; if ~isempty(temp), params.info.remote_port=str2double(temp); end
-                if ~isfield(params.info,'remote_id'), params.info.remote_id=''; end; if isempty(params.info.remote_id), temp=input('Remote session id: ','s'); else temp=input(sprintf('Remote session id [%s]: ',params.info.remote_id),'s'); end; if ~isempty(temp), params.info.remote_id=deblank(temp); end
-                params.info.remote_log=''; %if ~isfield(params.info,'remote_log'), params.info.remote_log=''; end; if isempty(params.info.remote_log), temp=input('Remote session log folder: ','s'); else temp=input(sprintf('Remote session log folder [%s]: ',params.info.remote_log),'s'); end; if ~isempty(temp), params.info.remote_log=deblank(temp); end
+                if ~isfield(params.info,'remote_ip'), params.info.remote_ip=''; end; if isempty(params.info.remote_ip), temp=conn_server_ssh_input('Remote session host address: ','s'); else temp=conn_server_ssh_input(sprintf('Remote session host address [%s]: ',params.info.remote_ip),'s'); end; if ~isempty(temp), params.info.remote_ip=temp; end
+                if ~isfield(params.info,'remote_port'), params.info.remote_port=[]; end; if isempty(params.info.remote_port), temp=conn_server_ssh_input('Remote session access port: ','s'); else temp=conn_server_ssh_input(sprintf('Remote session access port [%d]: ',params.info.remote_port),'s'); end; if ~isempty(temp), params.info.remote_port=str2double(temp); end
+                if ~isfield(params.info,'remote_id'), params.info.remote_id=''; end; if isempty(params.info.remote_id), temp=conn_server_ssh_input('Remote session id: ','s'); else temp=conn_server_ssh_input(sprintf('Remote session id [%s]: ',params.info.remote_id),'s'); end; if ~isempty(temp), params.info.remote_id=deblank(temp); end
+                params.info.remote_log=''; %if ~isfield(params.info,'remote_log'), params.info.remote_log=''; end; if isempty(params.info.remote_log), temp=conn_server_ssh_input('Remote session log folder: ','s'); else temp=conn_server_ssh_input(sprintf('Remote session log folder [%s]: ',params.info.remote_log),'s'); end; if ~isempty(temp), params.info.remote_log=deblank(temp); end
                 if ~isfield(params.info,'start_time')||isempty(params.info.start_time), params.info.start_time=datestr(now); end
                 params.info.local_port=[];
             else startnewserver=true;
@@ -406,5 +406,21 @@ switch(j)
 end
 set(h.str,'string',str,'value',numel(str),'listboxtop',numel(str));
 %uiwait(h.hfig);
+end
+
+function y = conn_server_ssh_input(x,opt,varargin)
+try
+    y = input(x, opt, varargin{:});
+catch
+    if isempty(regexp(x,'\s+\[[^\]]+\]\:\s*$'))
+        y = inputdlg(x,'');
+    else
+        y = inputdlg(regexprep(x,'\s+\[[^\]]+\]\:\s*$',' :'),'',1,regexp(x,'\s+\[([^\]]+)\]\:\s*$','tokens','once'));
+    end
+    if isempty(y), error('user-input canceled');
+    elseif nargin>1&&isequal(opt,'s'), y = y{1}; 
+    else y = str2num(y{1});
+    end
+end
 end
 

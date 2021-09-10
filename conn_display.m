@@ -248,7 +248,9 @@ else % voxel-based
             else ncon=1;
             end
             statsname=SPM.xCon(ncon).STAT;
-            tvol=SPM.xCon(ncon).Vspm;
+            [nill,tfname,tfext]=fileparts(SPM.xCon(ncon).Vspm.fname);
+            tvol=conn_fileutils('spm_vol',fullfile(filepath,[tfname,tfext]));
+            %tvol=SPM.xCon(ncon).Vspm;
             if length(tvol.dim)>3,tvol.dim=tvol.dim(1:3); end;
             if ~isfield(tvol,'dt'), tvol.dt=[spm_type('float32') spm_platform('bigend')]; end
             try
@@ -277,7 +279,10 @@ else % voxel-based
                 SPM.xX_multivariate.statsname=statsname;
                 SPM.xX_multivariate.dof=df;
                 SPM.xX_multivariate.F=permute(T,[4,5,1,2,3]);
-                SPM.xX_multivariate.h=permute(conn_fileutils('spm_read_vols',SPM.xCon(ncon).Vcon),[4,5,1,2,3]);
+                [nill,tfname,tfext]=fileparts(SPM.xCon(ncon).Vcon.fname);
+                tvol=conn_fileutils('spm_vol',fullfile(filepath,[tfname,tfext]));
+                SPM.xX_multivariate.h=permute(conn_fileutils('spm_read_vols',tvol),[4,5,1,2,3]);
+                %SPM.xX_multivariate.h=permute(conn_fileutils('spm_read_vols',SPM.xCon(ncon).Vcon),[4,5,1,2,3]);
                 SPM.xX_multivariate.derivedfromspm=true;
                 conn_savematfile(SPMfilename,'SPM','-v7.3');
             end
