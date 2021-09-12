@@ -152,7 +152,7 @@ function varargout=conn_remotely(option,varargin)
 % conn_remotely offandon      : restarts communication with remote CONN server after dropped connection (equivalent
 %                               to running "conn remotely restart" but without launching CONN GUI)
 %
-% conn_remotely startserver   : manually start conn server (like "conn_server start ..." but with graphical interface)
+% conn_remotely startserver   : manually start conn server (wrapper to "conn_server start ...")
 %
 % REMOTE EXECUTION
 %
@@ -342,7 +342,7 @@ switch(option)
             handles.server=uicontrol(handles.hfig,'style','checkbox','units','norm','position',[.15,.30,.75,.075],'string','Connect using SSH (secure/encrypted communications, servers are automatically started)','value',use_ssh,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>When this option is checked this computer uses secure/encrypted communications and servers are automatically started<br/>When this option is unchecked this computer uses unsecure/unencrypted communications and servers are manually started</HTML>');
             uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.10,.30,.025,.075],'string','?','backgroundcolor','w','callback',@(varargin)conn_msgbox(strserver{1+get(handles.server,'value')},'',-1),'tooltipstring','<HTML>help / how-to connect to remote servers</HTML>','userdata',handles.server);
             handles.cmd_server=uicontrol(handles.hfig,'style','popupmenu','units','norm','position',[.15,.20,.75,.075],'string',toptions,'value',dprofile,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>HPC profile to use when starting a CONN server</HTML>');
-            handles.now_server=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.15,.20,.75,.075],'string','Manually start CONN server now','callback','close(gcbf);conn_remotely(''settings_runserver'');','tooltipstring','<HTML>Starts a CONN server on this computer and waits for client to connect over TCP/IP (note: without SSH secured/encrypted communications)</HTML>');
+            handles.now_server=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.15,.20,.75,.075],'string','Manually start CONN server now','callback','close(gcbf);conn_remotely(''startserverwithgui'');','tooltipstring','<HTML>Starts a CONN server on this computer and waits for client to connect over TCP/IP (note: without SSH secured/encrypted communications)</HTML>');
             hdls={handles.cmd_server handles.now_server};
             if use_ssh, set(hdls{1},'visible','on'); set(hdls{2},'visible','off'); else set(hdls{1},'visible','off'); set(hdls{2},'visible','on'); end
             set(handles.server,'callback','hdl=get(gcbo,''userdata''); if get(gcbo,''value''), set(hdl{1},''visible'',''on''); set(hdl{2},''visible'',''off''); else set(hdl{1},''visible'',''off''); set(hdl{2},''visible'',''on''); end','userdata',hdls);
@@ -368,11 +368,17 @@ switch(option)
             delete(handles.hfig);
         end
         
-    case {'settings_runserver','startserver'}
-        str=char(conn_tcpip('hash',mat2str(now)));
-        answ=inputdlg({'Create a one-time-use password to access this server:'},'',1,{str(1:8)},struct('Resize','on'));
-        if numel(answ)~=1||isempty(answ{1}),return; end
-        str=answ{1};
+    case {'settings_runserver','startserver','startserverwithgui'}
+        str=char(conn_tcpip('hash',mat2str(now))); str=str(1:8);
+        isgui=usejava('desktop')&strcmp(lower(option),'startserverwithgui');
+        if isgui, 
+            answ=inputdlg({'Create a one-time-use password to access this server:'},'',1,{str},struct('Resize','on'));
+            if numel(answ)~=1||isempty(answ{1}),return; end
+            str=answ{1};
+        else 
+            str2=input(sprintf('Create a one-time-use password to access this server [%s]: ',str),'s');
+            if ~isempty(str2), str=str2; end
+        end
         if ispc, [nill,str1]=system('hostname');
         else [nill,str1]=system('hostname -f');
         end
@@ -382,13 +388,19 @@ switch(option)
         tsocket.close;
         clear tsocket
         pause(1);
-        [hmsg,hmsg2]=conn_msgbox([{'                                  CONN server running                                  '},repmat({' '},1,10)],'',-1, 2);
-        set(hmsg2(1),'style','edit','max',2,'string',{'Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)','(note: if prompted to enter ''Server address'' enter local)',['Step 2: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 3: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 4: in prompt ''Remote session id'' enter ',str]});
-        set(hmsg2(2),'callback','if get(gcbo,''value''), conn_tcpip close; delete(gcbf); end');
-        set(hmsg,'closerequestfcn','conn_tcpip close; delete(gcbf)');
-        drawnow;
-        conn_server('start',portnumber,conn_tcpip('keypair',str),hmsg2);
-        if ishandle(hmsg), delete(hmsg); end
+        strdisp={'Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)','(note: if prompted to enter ''Server address'' enter local)',['Step 2: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 3: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 4: in prompt ''Remote session id'' enter ',str]};
+        if isgui
+            [hmsg,hmsg2]=conn_msgbox([{'                                  CONN server running                                  '},repmat({' '},1,10)],'',-1, 2);
+            set(hmsg2(1),'style','edit','max',2,'string',strdisp);
+            set(hmsg2(2),'callback','if get(gcbo,''value''), conn_tcpip close; delete(gcbf); end');
+            set(hmsg,'closerequestfcn','conn_tcpip close; delete(gcbf)');
+            drawnow;
+            conn_server('start',portnumber,conn_tcpip('keypair',str),hmsg2);
+            if ishandle(hmsg), delete(hmsg); end
+        else
+            disp(char(strdisp));
+            conn_server('start',portnumber,conn_tcpip('keypair',str),'silent');
+        end
         
     case 'on'
         conn_server_ssh('start',varargin{:});

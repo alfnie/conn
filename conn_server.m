@@ -95,13 +95,15 @@ if isempty(local_vars), local_vars=struct; end
 switch(lower(option))
     case 'start' % init server
         params.isserver=true;
+        disphelp=2;
         if numel(varargin)>=1&&~isempty(varargin{1}), port=varargin{1}; else port=0; end
         if numel(varargin)>=2&&~isempty(varargin{2}), id=char(varargin{2}); else id=[]; end
+        if numel(varargin)>=3&&isequal(varargin{3},'silent'), varargin{3}=[]; disphelp=0; end
         if numel(varargin)>=3&&~isempty(varargin{3}), disphdl=varargin{3}; else disphdl=[]; end
         ok=false;
         while ~ok
             try
-                conn_tcpip('open','server',port,id,2);
+                conn_tcpip('open','server',port,id,disphelp);
                 params.state='on';
                 ok=true;
             catch me

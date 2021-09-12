@@ -408,17 +408,17 @@ set(h.str,'string',str,'value',numel(str),'listboxtop',numel(str));
 %uiwait(h.hfig);
 end
 
-function y = conn_server_ssh_input(x,opt,varargin)
+function y = conn_server_ssh_input(x,varargin)
 try
-    y = input(x, opt, varargin{:});
+    y = input(x, varargin{:});
 catch
     if isempty(regexp(x,'\s+\[[^\]]+\]\:\s*$'))
-        y = inputdlg(x,'');
+        y = inputdlg(x);
     else
         y = inputdlg(regexprep(x,'\s+\[[^\]]+\]\:\s*$',' :'),'',1,regexp(x,'\s+\[([^\]]+)\]\:\s*$','tokens','once'));
     end
     if isempty(y), error('user-input canceled');
-    elseif nargin>1&&isequal(opt,'s'), y = y{1}; 
+    elseif numel(varargin)>0&&isequal(varargin{1},'s'), y = y{1}; 
     else y = str2num(y{1});
     end
 end
