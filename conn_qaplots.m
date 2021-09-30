@@ -125,10 +125,13 @@ if any(procedures==Iprocedure) % QA_NORM functional
         %conn('gui_setupgo',3);
         %if ~nargout, conn_waitbar('redraw',ht); end
         nsubs=validsubjects;
+        sessionspecific=CONN_x.Setup.structural_sessionspecific;
         for isub=1:numel(nsubs)
             nsub=nsubs(isub);
             try
-                nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
+                nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
+                if ~sessionspecific, nsess=1; end
+                %nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
                 for nses=1:nsess,
                     fhset=conn('gui_setupgo',3,14,4,nsub,nses,validsets);
                     for nset=1:numel(fhset)
@@ -456,10 +459,13 @@ if any(procedures==Iprocedure) % QA_REG functional-structural
         %conn('gui_setupgo',3);
         %if ~nargout, conn_waitbar('redraw',ht); end
         nsubs=validsubjects;
+        sessionspecific=CONN_x.Setup.structural_sessionspecific;
         for isub=1:numel(nsubs)
             nsub=nsubs(isub);
             try
-                nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
+                nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
+                if ~sessionspecific, nsess=1; end
+                %nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
                 for nses=1:nsess,
                     fhset=conn('gui_setupgo',3,14,3,nsub,nses,validsets);
                     for nset=1:numel(fhset)

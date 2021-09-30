@@ -224,6 +224,41 @@ switch(lower(option))
         else [varargout{1:nargout}]=imread(varargin{:});
         end
         
+    case 'uigetfile'
+        if conn_projectmanager('inserver')
+            if 1 % type-in remote file
+                if numel(varargin)<1||isempty(varargin{1}), varargin{1}=''; end
+                if numel(varargin)<2||isempty(varargin{2}), varargin{2}=''; end
+                if numel(varargin)<3||isempty(varargin{3}), varargin{3}='/CONNSERVER/';
+                else varargin{3}=conn_server('util_remotefile',varargin{3});
+                end           
+                answ=inputdlg(sprintf('%s (%s)',varargin{2},varargin{1}),'',1,varargin(3),struct('Resize','on'));
+                if numel(answ)==1&&~isempty(answ{1}),
+                    [tfilepath,t1,t2]=fileparts(answ{1});
+                    new_tpathname=conn_projectmanager('homedir');
+                    if any(conn_server('util_isremotefile',answ{1}))
+                        varargout={[t1,t2],tfilepath};
+                    else % if selected local file push to remote
+                        new_tfilename=[t1,'_',char(conn_tcpip('hash',[t1, mat2str(now)])),t2];
+                        conn_server('push',answ{1},fullfile(new_tpathname,new_tfilename));
+                        varargout={new_tfilename,new_tpathname};
+                    end
+                else varargout={0,0};
+                end                    
+            else % select local file and push to remote
+                [tfilename,tpathname]=uigetfile(varargin{1},varargin{2},conn_server('util_localfile',varargin{3}),varargin{4:end});
+                varargout={tfilename,tpathname};
+                if ischar(tfilename),
+                    [nill,t1,t2]=fileparts(tfilename);
+                    new_tfilename=[t1,'_',char(conn_tcpip('hash',[t1, mat2str(now)])),t2];
+                    new_tpathname=CONN_x.folders.data;
+                    conn_server('push',fullfile(tpathname,tfilename),fullfile(new_tpathname,new_tfilename));
+                    varargout={new_tfilename,new_tpathname};
+                end
+            end
+        else [varargout{1:nargout}]=uigetfile(varargin{:});
+        end        
+        
     case 'spm_unlink'
         if any(conn_server('util_isremotefile',varargin)), 
             files=conn_server('util_localfile',varargin); 

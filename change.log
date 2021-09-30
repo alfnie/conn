@@ -309,24 +309,26 @@ ________________________________________________________________________________
      Added option to ROI-to-ROI results explorer GUI to display/import connectivity values from user-defined masks (e.g. those created using 'export mask' from other second-level analyses)
 20.c (internal distribution only)     
 21.a Cumulative patch, bug fixes and improvements
-     fixed bug when displaying multivariate RRC second-level analyses computed using external data / conn_module('glm',...) commands
+     Fixed bug when displaying multivariate RRC second-level analyses computed using external data / conn_module('glm',...) commands
      patch to keep DICOM manifest across CONN project saves
      patch to read TOPUP fieldmap files
-     added support in 'functional creation of Voxel-Displacement Maps' preprocessing step for importing BLIP polarity from PhaseEncodingDirection field for non-axial acquisitions (i/j/k signs are now interpreted as BLIP=sign([0 1 0 0]*vol.mat*[i j k 0]')
-     added submit_delay option to parallelization/HPC job submission (this can be used to reduce the load on the cluster job scheduler when handling multiple job requests)
-     added option to create .mtx.nii file output with estimated time-varying RRC matrix when running dynamic ICA
-     added -v7.3 version save as backup option if default project save fails
-     added script for cat12-to-Freesurfer conversion
-     added filter option to 'function_regression' preprocessing step (to allow filtered-regressor option when using conn_module('preprocessing',...) to run aCompCor denoising)
-     added 'view details' checkbox in 2nd-level GUIs to simplify threshold-setting options
-     added option to break single-variable .mat files into multiple-timeseries covariates
-     added option for using scrubbing based on thresholding external timeseries (including single-measure timeseries)
-     added option to create single-voxel-ROIs from mask (see Setup.ROIs tab)
-     added 'import values' functionality to conn_display when run outside of any CONN project
-     added conn_vol_read/write functions to complement conn_mtx_* and conn_surf_* functions (see www.conn-toolbox.org/resources/documentation for detailis)
-     added conn_tcpip for TCP/IP based communications and conn_server for client/server communication between two CONN sessions
-     added "conn_module EL" for using a combination of SPM and CONN functionality for task activation analyses of fMRI data (see www.conn-toolbox.org/resources/evlab for details)
-     added "conn_remotely" for working with CONN projects stored remotely (see "help conn_remotely" for details)
+     (*) added support in 'functional creation of Voxel-Displacement Maps' preprocessing step for importing BLIP polarity from PhaseEncodingDirection field for non-axial acquisitions (i/j/k signs are now interpreted as BLIP=sign([0 1 0 0]*vol.mat*[i j k 0]')
+         For back-compatibility or mid-analysis updates: if your analyses were running the preprocessing step 'functional Creation of voxel-displacement map (VDM) for Susceptibility Distortion Correction' and the field 'BLIP direction' was left empty (so that information was read from .json files) and you prefer to continue using the old/previous convention, then set the BLIP direction manually by entering in the 'BLIP direction' field the value -1 if the .json files PhaseEncodingDirection field is 'j+' and the value +1 if the .json files PhaseEncodingDirection field is 'j-' (note: this assumed top-to-bottom sorting)
+     Added submit_delay option to parallelization/HPC job submission (this can be used to reduce the load on the cluster job scheduler when handling multiple job requests)
+     Added option to create .mtx.nii file output with estimated time-varying RRC matrix when running dynamic ICA
+     Added -v7.3 version save as backup option if default project save fails
+     Added script for cat12-to-Freesurfer conversion
+     Added filter option to 'function_regression' preprocessing step (to allow filtered-regressor option when using conn_module('preprocessing',...) to run aCompCor denoising)
+     Added 'view details' checkbox in 2nd-level GUIs to simplify threshold-setting options
+     Added option to break single-variable .mat files into multiple-timeseries covariates
+     Added option for using scrubbing based on thresholding external timeseries (including single-measure timeseries)
+     Added option to create single-voxel-ROIs from mask (see Setup.ROIs tab)
+     Added 'import values' functionality to conn_display when run outside of any CONN project
+     Added conn_vol_read/write functions to complement conn_mtx_* and conn_surf_* functions (see www.conn-toolbox.org/resources/documentation for detailis)
+     Added QC_DOF_Session# quality control 2nd-level covariate computing effective degrees of freedom for each subject/session after denoising
+     Added conn_tcpip for TCP/IP based communications and conn_server for client/server communication between two CONN sessions
+     Added "conn_module EL" for using a combination of SPM and CONN functionality for task activation analyses of fMRI data (see www.conn-toolbox.org/resources/evlab for details)
+     Added "conn_remotely" for working with CONN projects stored remotely (see "help conn_remotely" for details)
 
 
 

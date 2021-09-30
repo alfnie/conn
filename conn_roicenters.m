@@ -26,7 +26,7 @@ else
             ROIdata=arrayfun(@(n)b==n,ROIidx,'uni',0);
         end
     elseif numel(ROInames)>1 && numel(ROInames)==numel(tfilename), %4d-atlas
-        ROIdata=num2cell(b(:,:,:,ROIidx)>0,4);
+        ROIdata=num2cell(b(:,:,:,ROIidx)>0,1:3);
     else ROIdata={b>0};
     end
     if isempty(ROIdata), fprintf('warning: unable to interpret data in roi file %s\n',filename);

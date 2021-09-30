@@ -700,14 +700,14 @@ switch(lower(option)),
             end
         else
             if get(data.handles(9),'value'), % one plot per connection
-                conn_rex('test',data.results(1).xX,reshape(y3,[size(y3,1)*size(y3,2),size(y3,3)]),data.results(1).c,names_conditions,name3,[],[],true,data.results(1).c2,[],true);
+                conn_rex('test',data.results(1).xX,reshape(y3(selectedsubjects,:,:),[nnz(selectedsubjects)*size(y3,2),size(y3,3)]),data.results(1).c,names_conditions,name3,[],[],true,data.results(1).c2,[],true);
             else % one plot per cluster
                 breaks=[y2,size(y3,3)];
                 y2=zeros([size(y3,1),size(y3,2),numel(breaks)-1]);
                 for n=1:numel(breaks)-1,
                     y2(:,:,n)=mean(y3(:,:,breaks(n)+1:breaks(n+1)),3);
                 end
-                conn_rex('test',data.results(1).xX,reshape(y2,[size(y2,1)*size(y2,2),size(y2,3)]),data.results(1).c,names_conditions,name2,[],[],true,data.results(1).c2,[],true);
+                conn_rex('test',data.results(1).xX,reshape(y2(selectedsubjects,:,:),[nnz(selectedsubjects)*size(y2,2),size(y2,3)]),data.results(1).c,names_conditions,name2,[],[],true,data.results(1).c2,[],true);
             end
         end
         if ishandle(hmsginit), delete(hmsginit); end

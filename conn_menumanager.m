@@ -296,7 +296,7 @@ if ischar(handle),
                     delete(hc(ishandle(hc)));
                 else
                     hax=axes('units','norm','position',[.78,.93,.20,.02],'parent',CONN_MM.gcf);
-                    text(1,0,sprintf('GUI busy\\fontsize{%d} (possibly%s)\\fontsize{%d} please wait',5+CONN_gui.font_offset,regexprep(conn_msg(1),', please wait.*$',''),6+CONN_gui.font_offset),'horizontalalignment','right','interpreter','tex','color',CONN_gui.fontcolorB, 'fontsize',6+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
+                    text(1,0,sprintf('GUI busy\\fontsize{%d} (perhaps%s)\\fontsize{%d} please wait',5+CONN_gui.font_offset,regexprep(conn_msg(1),', please wait.*$',''),6+CONN_gui.font_offset),'horizontalalignment','right','interpreter','tex','color',CONN_gui.fontcolorB, 'fontsize',6+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
                     %hax=axes('units','norm','position',[.4,.05,.20,.025],'parent',CONN_MM.gcf);
                     %text(0,0,['GUI busy',conn_msg(1)],'horizontalalignment','center','color',CONN_gui.fontcolorB, 'fontsize',8+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
                     drawnow;
@@ -480,7 +480,7 @@ else
                 ximage=CONN_MM.CDATA{thishandle}{n1}{x};
                 if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, 
                     ximage0=round(ximage);
-                    ximage=max(0,min(1,ximage*3.5)); ximage=ximage.*repmat(.6+.3*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
+                    ximage=max(0,min(1,ximage*1.5)); ximage=ximage.*repmat(.6+.3*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
                     if 0,%CONN_MM.MENU{thishandle}.order(1)~='h'
                         ximagei=1;
                         ximage(:,ximagei,:)=ximage0(:,ximagei,:); % left

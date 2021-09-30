@@ -1322,6 +1322,20 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                         Voutputfiles{nses}=[];
                     end
                 end
+                if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,CONN_x.Setup.nscans{nsub}{nses}*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0-size(X{nses},2));
+                elseif nnz(ifilter{1}), dof2=max(0,(CONN_x.Setup.nscans{nsub}{nses}-size(X{nses},2)+nnz(ifilter{1}))*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0-nnz(ifilter{1}));
+                else dof2=max(0,(CONN_x.Setup.nscans{nsub}{nses}-size(X{nses},2))*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0);
+                end
+                edof_name=sprintf('QC_DOF_session%d',nses);
+                edof_icov=find(strcmp(edof_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                if isempty(edof_icov),
+                    edof_icov=numel(CONN_x.Setup.l2covariates.names);
+                    CONN_x.Setup.l2covariates.names{edof_icov}=edof_name;
+                    CONN_x.Setup.l2covariates.descrip{edof_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising)';
+                    CONN_x.Setup.l2covariates.names{edof_icov+1}=' ';
+                    for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{edof_icov}=nan; end
+                end
+                CONN_x.Setup.l2covariates.values{nsub}{edof_icov}=dof2;
             end
             clear nsamples time0 dataroi conditionsweights;
             crop=0;
@@ -5861,7 +5875,12 @@ if isstruct(in)
     end
     filename=cache.filename_original;
 else
-    cache=struct('filename_original',in,'filename_cached',conn_prepend('cachetmp_',in));
+    if 1 % same folder as target
+        cache=struct('filename_original',in,'filename_cached',conn_prepend('cachetmp_',in));
+    else % in conn_cache folder (e.g. scratch folder) %cache=struct('filename_original',in,'filename_cached',conn_cache('pull',in));
+        [fpath,fname,fext]=fileparts(in);
+        cache=struct('filename_original',in,'filename_cached',fullfile(conn_cache('getlocal'),['cachetmp_',fname,fext]));
+    end
     filename=cache.filename_cached;
 end
 end

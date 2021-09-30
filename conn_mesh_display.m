@@ -5,15 +5,17 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %      fileSURF         : surface- or volume- level 3D NIFTI file (values in this file will be projected and displayed on the 
 %                       reference cortical surface -surfaces derived from the ICBM MNI 2009b NLIN asymmetric template-)
 %
-% CONN_MESH_DISPLAY(fileSURF [,fileVOL, dirFS, rois, connections]) 
-%      fileVOL          : volume-level 3D NIFTI mask file (display clusters of non-zero values as custom masks)
+% CONN_MESH_DISPLAY(fileSURF [,fileVOL, dirFS, rois, connections, threshold]) 
+%      fileVOL          : volume-level 3D NIFTI mask file (display clusters of non-zero values as custom masks) (default [])
 %      dirFS            : directory containing reference freesurfer-generated surfaces (leave empty for default conn/utils/surf/)
-%      rois             : structure defining ROIs to be displayed
+%      rois             : structure defining ROIs to be displayed (default [])
 %                           rois.sph_xyz : (nx3) coordinates XYZ values
 %                           rois.sph_c   : (nx3) color RGB values
 %                           rois.sph_r   : (nx1) sphere radius
 %      connections      : (nxn) matrix of ROI-to-ROI connections to be displayed (values represent connection
-%                         strength, with 0 or NaN for connections not to be displayed)
+%                         strength, with 0 or NaN for connections not to be displayed) (default [])
+%      threshold        : only display voxels in 'fileSURF' above 'threshold' (default 0)
+%                           set to NaN for automatic threshold (90% percentile absolute values)
 %
 %  fh = CONN_MESH_DISPLAY(...) returns function handle for additional options
 %
@@ -36,7 +38,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %                                           type=4: Inflated WM
 %  fh('brain_transparency',val)          : set reference brain surface transparency level (val: 0-1)
 %  fh('brain_color')                     : set reference brain surface color
-%  fh('repaint',filename)                : change reference brain surface activation file (filename: NIFTI file) (fileSURF) 
+%  fh('repaint',fileSURF [,threshold])   : change reference brain surface activation file (fileSURF: NIFTI file)
 %  fh('mask',state)                      : displays reference brain surface medial mask (state: 'on' 'off')
 %  fh('act_transparency',val)            : set reference brain surface activation transparency level (val: 0-1)
 %  fh('act_pos')                         : reference brain surface activation displays only positive acitivation values
@@ -1359,8 +1361,9 @@ if ishandle(hmsg), delete(hmsg); end
                 end
                 redrawnowcolorbar=true;
             case 'repaint'
-                if numel(varargin)>1&&~isempty(varargin{1})
+                if numel(varargin)>=1&&~isempty(varargin{1})
                     filenameSURF=varargin{1};
+                    if numel(varargin)>=2&&~isempty(varargin{2}), THR=varargin{2}; end
                 else
                     [tfilename,tpathname]=uigetfile('*.nii; *.img','Select file');
                     if ischar(tfilename), filenameSURF=fullfile(tpathname,tfilename);

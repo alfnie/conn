@@ -153,6 +153,7 @@ function varargout=conn_remotely(option,varargin)
 %                               to running "conn remotely restart" but without launching CONN GUI)
 %
 % conn_remotely startserver   : manually start conn server (wrapper to "conn_server start ...")
+% conn_remotely startserverwithgui
 %
 % REMOTE EXECUTION
 %
@@ -371,22 +372,30 @@ switch(option)
     case {'settings_runserver','startserver','startserverwithgui'}
         str=char(conn_tcpip('hash',mat2str(now))); str=str(1:8);
         isgui=usejava('desktop')&strcmp(lower(option),'startserverwithgui');
+        port='';
         if isgui, 
-            answ=inputdlg({'Create a one-time-use password to access this server:'},'',1,{str},struct('Resize','on'));
-            if numel(answ)~=1||isempty(answ{1}),return; end
+            answ=inputdlg({'Create a one-time-use password to access this server:','Specify local TCP port: (leave empty for automatic selection)'},'',1,{str,port},struct('Resize','on'));
+            if numel(answ)~=2||isempty(answ{1}),return; end
             str=answ{1};
+            port=answ{2};
         else 
             str2=input(sprintf('Create a one-time-use password to access this server [%s]: ',str),'s');
             if ~isempty(str2), str=str2; end
+            port=input('Specify local TCP port [auto]: ','s');
         end
         if ispc, [nill,str1]=system('hostname');
         else [nill,str1]=system('hostname -f');
         end
         hotsname=regexprep(str1,'\n','');
-        tsocket=java.net.ServerSocket(0);
-        portnumber=tsocket.getLocalPort;
-        tsocket.close;
-        clear tsocket
+        if isempty(port)||isequal(port,'auto')
+            tsocket=java.net.ServerSocket(0);
+            portnumber=tsocket.getLocalPort;
+            tsocket.close;
+            clear tsocket
+        else
+            portnumber=str2double(port);
+            assert(numel(portnumber)==1&isfinite(portnumber), 'unrecognized port number');
+        end
         pause(1);
         strdisp={'Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)','(note: if prompted to enter ''Server address'' enter local)',['Step 2: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 3: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 4: in prompt ''Remote session id'' enter ',str]};
         if isgui

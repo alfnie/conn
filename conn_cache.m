@@ -230,11 +230,11 @@ switch(lower(option))
     case 'hash' % conn cache has filename
         varargout={conn_cache_hash(varargin{:},params.hash)};
         
-    case 'clearhash'  % conn drive clearhash
+    case 'clearhash'  % conn cache clearhash
         params.local_hashes=cell(size(params.local_hashes));
         params.remote_hashes=cell(size(params.remote_hashes));
         
-    case 'setlocal'  % conn drive setlocal <path>
+    case 'setlocal'  % conn cache setlocal <path>
         params.local_folder=varargin{1};
         
     case 'cachedserver',
@@ -245,7 +245,7 @@ switch(lower(option))
         params.hash=varargin{1};
         conn_tcpip('sethash',varargin{1});
         
-    case 'private.local_folder'
+    case {'getlocal','private.local_folder'}
         varargout={params.local_folder};
     case 'private',
         varargout={params};

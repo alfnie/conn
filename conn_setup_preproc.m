@@ -598,7 +598,7 @@ if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     ht7a=uicontrol('style','text','units','norm','position',[.1,.2,.6,.1],'string','Blip direction (+1,-1,S,R)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
     if isempty(vdm_blip), tvdm_blip=-1; else tvdm_blip=vdm_blip; end
     if ~ischar(tvdm_blip), tvdm_blip=num2str(tvdm_blip); end
-    ht7=uicontrol('style','edit','units','norm','position',[.7,.2,.2,.1],'string',tvdm_blip,'tooltipstring','defines k-space traversal blip direction: +1 for positive direction, -1 for negative direction, leave empty to derive this information from the PhaseEncodingDirection field in .json/BIDS file, set to ''R'' to use the reverse of what would be implied from the PhaseEncodingDirection field','enable','off');
+    ht7=uicontrol('style','edit','units','norm','position',[.7,.2,.2,.1],'string',tvdm_blip,'tooltipstring','defines k-space traversal blip direction: +1 for positive direction, -1 for negative direction, leave empty or set to ''S'' to derive this information from the PhaseEncodingDirection field in .json/BIDS file, set to ''R'' to try the reverse direction of ''S''','enable','off');
     uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.15],'callback','uiresume');
     uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.15],'callback','delete(gcbf)');
     onoff={'on','off'};
@@ -623,7 +623,7 @@ if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
         temp=get(ht4,'string'); if isempty(temp), vdm_et1=temp; elseif ~isempty(str2num(temp)), vdm_et1=str2num(temp); else error('unable to interpret vdm_et1 input %s',temp); end
         temp=get(ht5,'string'); if isempty(temp), vdm_et2=temp; elseif ~isempty(str2num(temp)), vdm_et2=str2num(temp); else error('unable to interpret vdm_et2 input %s',temp); end
         temp=get(ht6,'string'); if isempty(temp), vdm_ert=temp; elseif ~isempty(str2num(temp)), vdm_ert=str2num(temp); else error('unable to interpret vdm_ert input %s',temp); end
-        temp=get(ht7,'string'); if isempty(temp)||isequal(temp,'S')||isequal(temp,'S'), vdm_blip=[]; elseif ~isempty(str2num(temp)), vdm_blip=str2num(temp); elseif isequal(temp,'r')||isequal(temp,'R'), vdm_blip=0; else error('unable to interpret vdm_blip input %s',temp); end
+        temp=get(ht7,'string'); if isempty(temp)||isequal(temp,'s')||isequal(temp,'S'), vdm_blip=[]; elseif ~isempty(str2num(temp)), vdm_blip=str2num(temp); elseif isequal(temp,'r')||isequal(temp,'R'), vdm_blip=0; else error('unable to interpret vdm_blip input %s',temp); end
     end
     delete(thfig);
     drawnow;
@@ -2804,6 +2804,7 @@ for iSTEP=1:numel(STEPS)
                             vol=spm_vol(filename);
                             val=spm_read_vols(vol(1));
                             mat0=vol(1).mat;
+                            dim0=vol(1).dim;
                             newvol=struct('mat',vol(1).mat,'dim',vol(1).dim,'fname',newfilename,'pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')],'descrip','');
                             try, conn_setup_preproc_filedelete(newfilename); end
                             spm_write_vol(newvol,val);
@@ -2877,14 +2878,14 @@ for iSTEP=1:numel(STEPS)
                                 units=conn_jsonread(fmap{1},'Units',false); 
                                 newfmap1=conn_prepend('',fmap{1},['_session',num2str(nses),'.nii']);
                                 if isempty(units)||~ischar(units),
-                                    conn_disp('fprintf','units of FieldMap %s not found, assuming Hz\n',filename);
+                                    conn_disp('fprintf','units of FieldMap %s not found, assuming Hz\n',fmap{1});
                                     ct=1;
                                 else
                                     switch(lower(units))
                                         case 'hz', ct=1;
                                         case 'rad/s', ct=1/2/pi;
                                         case 'tesla', ct=2.6752219e8/2/pi;
-                                        otherwise, error('unrecognized units %s found in FieldMap %s (expected Hz, rad/s, or Tesla)',units,filename);
+                                        otherwise, error('unrecognized units %s found in FieldMap %s (expected Hz, rad/s, or Tesla)',units,fmap{1});
                                     end
                                 end
                                 if 1
@@ -2898,17 +2899,23 @@ for iSTEP=1:numel(STEPS)
                                 fmap{1}=newfmap1; % avoids potential issues when using the same file across different sessions
                                 if isempty(ERT), ERT=1000*conn_jsonread(filename,'TotalReadoutTime'); end
                                 if isempty(ERT), ERT=1000./conn_jsonread(filename,'BandwidthPerPixelPhaseEncode'); end
-                                if nses==1&&isempty(ERT), conn_disp('fprintf','warning: unable to find TotalReadoutTime or BandwidthPerPixelPhaseEncode information in %s\n',filename); end
+                                if isempty(ERT), 
+                                    PED=conn_jsonread(filename,'PhaseEncodingDirection',false); 
+                                    if iscell(PED), PED=char(PED); end
+                                    if ~isempty(PED)&&ischar(PED)&&any(PED(1)=='ijk'), ERT=1000*conn_jsonread(filename,'EffectiveEchoSpacing')*dim0(PED(1)-'h'); end
+                                end
+                                if nses==1&&isempty(ERT), conn_disp('fprintf','warning: unable to find TotalReadoutTime information (or BandwidthPerPixelPhaseEncode or EffectiveEchoSpacing) in %s\n',filename); end
                                 if isempty(BLIP),
-                                    BLIP=conn_jsonread(filename,'PhaseEncodingDirection',false);
-                                    if iscell(BLIP), BLIP=char(BLIP); end
-                                    if isequal(BLIP,'i+')||isequal(BLIP,'i'), BLIP=sign([0 1 0 0]*mat0*[1 0 0 0]');
-                                    elseif isequal(BLIP,'i-'), BLIP=sign([0 1 0 0]*mat0*[-1 0 0 0]');
-                                    elseif isequal(BLIP,'j+')||isequal(BLIP,'j'), BLIP=sign([0 1 0 0]*mat0*[0 1 0 0]');
-                                    elseif isequal(BLIP,'j-'), BLIP=sign([0 1 0 0]*mat0*[0 -1 0 0]');
-                                    elseif isequal(BLIP,'k+')||isequal(BLIP,'k'), BLIP=sign([0 1 0 0]*mat0*[0 0 1 0]');
-                                    elseif isequal(BLIP,'k-'), BLIP=sign([0 1 0 0]*mat0*[0 0 -1 0]');
-                                    elseif ~isempty(BLIP), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',BLIP);
+                                    PED=conn_jsonread(filename,'PhaseEncodingDirection',false);
+                                    if iscell(PED), PED=char(PED); end
+                                    if isequal(PED,'i+')||isequal(PED,'i'), BLIP=sign([0 1 0 0]*mat0*[1 0 0 0]');
+                                    elseif isequal(PED,'i-'), BLIP=sign([0 1 0 0]*mat0*[-1 0 0 0]');
+                                    elseif isequal(PED,'j+')||isequal(PED,'j'), BLIP=sign([0 1 0 0]*mat0*[0 1 0 0]');
+                                    elseif isequal(PED,'j-'), BLIP=sign([0 1 0 0]*mat0*[0 -1 0 0]');
+                                    elseif isequal(PED,'k+')||isequal(PED,'k'), BLIP=sign([0 1 0 0]*mat0*[0 0 1 0]');
+                                    elseif isequal(PED,'k-'), BLIP=sign([0 1 0 0]*mat0*[0 0 -1 0]');
+                                    elseif ~isempty(PED), error('unable to interpret PhaseEncodingDirection %s (expected ''j+'' or ''j-'' directions)',PED);
+                                    else BLIP=[];
                                     end
                                     if reverseBLIP, BLIP=-BLIP; end
                                 end
