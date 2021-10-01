@@ -224,7 +224,7 @@ switch(lower(option))
         if params.isserver % server
             % listening
             if numel(varargin)>=1&&~isempty(varargin{1}), disphdl=varargin{1}; else disphdl=[]; end
-            continueonexit=strmpci(option,'continuepersistent');
+            continueonexit=strcmpi(option,'continuepersistent');
             dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
             conn_server_fprintf(disphdl,'fprintf','%s',dispstr);
             ntimedout=0; % minutes
