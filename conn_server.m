@@ -93,7 +93,7 @@ end
 if isempty(local_vars), local_vars=struct; end
 
 switch(lower(option))
-    case 'start' % init server
+    case {'start','startpersistent'} % init server
         params.isserver=true;
         disphelp=2;
         if numel(varargin)>=1&&~isempty(varargin{1}), port=varargin{1}; else port=0; end
@@ -115,7 +115,9 @@ switch(lower(option))
         conn_cache clear;
         conn_jobmanager clear;
         conn_disp('__portcomm',true);
-        conn_server('continue',varargin{3:end});
+        if strcmpi(option,'startpersistent'), conn_server('continuepersistent',varargin{3:end});
+        else conn_server('continue',varargin{3:end});
+        end
         
     case 'connect' % init client
         if numel(varargin)>=1&&~isempty(varargin{1}), ip=varargin{1}; else ip=[]; end
@@ -218,10 +220,11 @@ switch(lower(option))
             end
         end
         
-    case {'continue','test'}
+    case {'continue','continuepersistent','test'}
         if params.isserver % server
             % listening
             if numel(varargin)>=1&&~isempty(varargin{1}), disphdl=varargin{1}; else disphdl=[]; end
+            continueonexit=strmpci(option,'continuepersistent');
             dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
             conn_server_fprintf(disphdl,'fprintf','%s',dispstr);
             ntimedout=0; % minutes
@@ -235,14 +238,14 @@ switch(lower(option))
                     if ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) %||ntimedout>15 % restart
                         dispstr='';
                         conn_server_fprintf(disphdl,'fprintf','\n Idle connection to client.');
-%                         if 0
-%                             conn_server restart;
-%                         else
+                        if continueonexit
+                            conn_server restart;
+                        else
                             conn_server_fprintf(disphdl,'fprintf',' Closing server.\n');
                             conn_tcpip('close');
                             conn_disp('__portcomm',false);
                             return
-%                         end
+                        end
                     elseif ~isempty(regexp(me.message,'SocketTimeoutException')) % timeout
                         conn_server_fprintf(disphdl,'fprintf',repmat('\b',[1,length(dispstr)]));
                         dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
@@ -255,9 +258,9 @@ switch(lower(option))
                     end
                 end
                 if isempty(data)
-                elseif isequal(data,'handshake')||isequal(data,'restart')
+                elseif isequal(data,'handshake')||isequal(data,'restart')||(isequal(data,'exit')&&continueonexit)
                     conn_server restart;
-                elseif isequal(data,'exit')
+                elseif isequal(data,'exit')||isequal(data,'exitforce')
                     fprintf('\n Server closed by client\n'); dispstr='';
                     conn_tcpip('close');
                     conn_disp('__portcomm',false);

@@ -64,7 +64,7 @@ else
     if a-atick>=.01, 
         atick=a;
         hax=findobj(b,'tag','conn_timedwaitbar_plotmatrix');
-        if ~isempty(hax), conn_menu_plotmatrix('',hax(1),[1 1 10 1+9*a]); end %,[],'colormap',[.95 .95 .95; (1-a)*[.8 .2 .2]+a*[.8 .8 .2]]); %(1-a)*[5/6,2/6,1.5/6]+a*[1.5/6,5/6,2/6]]);
+        if ~isempty(hax), conn_menu_plotmatrix('',hax(1),[1 1 11 1+10*a]); end %,[],'colormap',[.95 .95 .95; (1-a)*[.8 .2 .2]+a*[.8 .8 .2]]); %(1-a)*[5/6,2/6,1.5/6]+a*[1.5/6,5/6,2/6]]);
     end
     h=b;
 end

@@ -1345,7 +1345,7 @@ else
             
         case 'gui_workshop',
             place='Boston MGH/HST';
-            dates={'April 16 2021','May 14 2021','April 16 - May 14 2021 (5 weeks, one day per week)'};
+            dates={'Nov 22 2021','Dec 20 2021','Nov 22 - Dec 20 2021 (5 weeks, one day per week)'};
             passed=false;
             try, dates(1:2)=cellfun(@datenum,dates(1:2),'uni',0); end
             if now>=dates{1}

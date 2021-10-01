@@ -18,14 +18,15 @@ if ischar(x)
     else h=axes('units','norm','position',pos,'parent',hfig);
     end
     if ~SERIOUSNESS, cmap=[.6 .6 .2;.8 .8 .8]; cshape='o';
-    else cmap=[.2 .2 .2;.8 .8 .8]; cshape='s';
+    else cmap=[.6 .6 .2;.8 .8 .8]; cshape='s';
     end
     axis(h,'equal','off');
     if SERIOUSNESS<2
         for n=1:abs(nr)+0,
             if n>0&&nr>0, pause(.01); drawnow; end
             if isnan(nv), tnv=n; else tnv=nv; end
-            conn_menu_plotmatrix(.5*rand(np),'dogray',tnv,'colormap',cmap,'colormapcdata',ceil(2*rand(np)),'shape',cshape,'parent',h,varargin{4:end});
+            %conn_menu_plotmatrix(.65*rand(np),'dogray',tnv,'colormap',cmap,'colormapcdata',ceil(size(cmap,1)*rand(np)),'shape',cshape,'parent',h,varargin{4:end});
+            conn_menu_plotmatrix(.6*rand(np).*reshape(conn_hanning(prod(np)),np),'dogray',tnv,'colormap',cmap,'colormapcdata',ceil(size(cmap,1)*rand(np)),'shape',cshape,'parent',h,varargin{4:end});
             %hstruct=conn_menu_plotmatrix(1*(n/(abs(nr)+0))^2*ones(np),'colormap',[.2 .2 .2;.8 .8 .8],'colormapcdata',ceil(2*rand(np)));
             %hstruct.vertices(:,3)=n/100;
             %patch(hstruct,'facecolor','flat','edgecolor','none','parent',h,varargin{3:end});
@@ -100,6 +101,11 @@ switch(shape)
         sqx=shiftdim([0 -.5 -.5 .5 .5],-1);
         sqy=shiftdim([0 -.5 .5 .5 -.5],-1);
         sqi=shiftdim([1 2 3; 1 3 4; 1 4 5; 1 5 2],-1);
+    case 'h'
+        n=6;
+        sqx=shiftdim([0 .6*cos(2*pi*(0:n-1)/n)],-1);
+        sqy=shiftdim([0 .6*sin(2*pi*(0:n-1)/n)],-1);
+        sqi=shiftdim([ones(n,1),(2:n+1)',[(3:n+1) 2]'],-1);
     case 'o'
         n=16;
         sqx=shiftdim([0 .6*cos(2*pi*(0:n-1)/n)],-1);

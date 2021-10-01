@@ -106,6 +106,7 @@ switch(lower(option))
                     tjson=conn_jsonread(filename);
                     params.info.CONNcmd=tjson.CONNcmd;
                     if isfield(tjson,'SERVERcmd'), params.info.SERVERcmd=tjson.SERVERcmd; end
+                    if isfield(tjson,'SERVERpersistent'), params.info.SERVERpersistent=tjson.SERVERpersistent; end
                 end
             end
             ntries=1;
@@ -140,8 +141,9 @@ switch(lower(option))
                     fprintf('Requesting a new Matlab session in %s. This may take a few minutes, please be patient as your job currently sits in a queue. CONN will resume automatically when the new Matlab session becomes available\n',params.info.login_ip);
                     [keys_public,keys_private]=conn_tcpip('keypair');
                     % submit jobs to start server#2 in arbitrary remote node using HPC scheduler
-                    if isfield(params.info,'SERVERcmd')&&~isempty(params.info.SERVERcmd), tstr=sprintf('server_ssh submitstart ''%s'' ''%s''',params.info.SERVERcmd, keys_public);
-                    else tstr=sprintf('server_ssh submitstart '''' ''%s''', keys_public);
+                    if isfield(params.info,'SERVERpersistent')&&all(params.info.SERVERpersistent>0), sbc='submitstartpersistent'; else sbc='submitstart'; end
+                    if isfield(params.info,'SERVERcmd')&&~isempty(params.info.SERVERcmd), tstr=sprintf('server_ssh %s ''%s'' ''%s''',sbc,params.info.SERVERcmd, keys_public);
+                    else tstr=sprintf('server_ssh %s '''' ''%s''', sbc,keys_public);
                     end
                     [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
                     if ~isempty(regexp(msg,'SSH_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
@@ -205,6 +207,9 @@ switch(lower(option))
         if numel(varargin)>=2&&~isempty(varargin{2}), profilename=varargin{2};
         else profilename=conn_jobmanager('getdefault');
         end
+        if numel(varargin)>=3&&~isempty(varargin{3}), ispersistent=varargin{3};
+        else ispersistent=false;
+        end
         if ispc, [nill,str1]=system('hostname');
         else [nill,str1]=system('hostname -f');
         end
@@ -228,7 +233,8 @@ switch(lower(option))
         info = struct(...
             'host', regexprep(str1,'\n',''),...
             'CONNcmd',cmd,...
-            'SERVERcmd',profilename);
+            'SERVERcmd',profilename,...
+            'SERVERpersistent',ispersistent);
         if ~isempty(filename), spm_jsonwrite(filename,info); fprintf('Host information saved in %s\n',filename); end
         if nargout>0, varargout={info}; end
         if ~nargout&&isempty(filename), disp(info); end
@@ -277,10 +283,10 @@ switch(lower(option))
             end
         end
         
-    case 'submitstart'
+    case {'submitstart','submitstartpersistent'}
         if ~isempty(varargin)&&~isempty(varargin{1}), conn_jobmanager('setprofile',varargin{1}); end
         if ~isempty(varargin)&&~isempty(varargin{2}), id=char(varargin{2}); else id=[]; end
-        info=conn_jobmanager('submit','orphan_conn',[],1,[],'server','start',[],id); 
+        info=conn_jobmanager('submit','orphan_conn',[],1,[],'server',regexprep(lower(option),'^submit',''),[],id); 
         fprintf('SSH_log in %s\n',info.pathname);
         fprintf('waiting for job to start...\n')
         for n=1:600
