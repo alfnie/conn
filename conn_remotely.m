@@ -334,7 +334,7 @@ switch(option)
         if tjson1.use_ssh, set(hdls{1},'visible','on'); set(hdls{2},'visible','off'); else set(hdls{1},'visible','off'); set(hdls{2},'visible','on'); end
         set(handles.client,'callback','hdl=get(gcbo,''userdata''); if get(gcbo,''value''), set(hdl{1},''visible'',''on''); set(hdl{2},''visible'',''off''); else set(hdl{1},''visible'',''off''); set(hdl{2},''visible'',''on''); end','userdata',hdls);
         
-        if CONN_gui.isremote, % note: when connected to remote session list of profiles in this gui may not be representative of local profiles available
+        if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, % note: when connected to remote session list of profiles in this gui may not be representative of local profiles available
             handles.server=[];
             handles.cmd_server=[];
             handles.now_server=[];

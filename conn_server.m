@@ -238,13 +238,13 @@ switch(lower(option))
                     if ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) %||ntimedout>15 % restart
                         dispstr='';
                         conn_server_fprintf(disphdl,'fprintf','\n Idle connection to client.');
-                        if continueonexit
-                            conn_server restart;
-                        else
+                        if (~isempty(disphdl)&&(any(~ishandle(disphdl))||(numel(disphdl)>1&&get(disphdl(2),'value')>0)))||~continueonexit
                             conn_server_fprintf(disphdl,'fprintf',' Closing server.\n');
                             conn_tcpip('close');
                             conn_disp('__portcomm',false);
                             return
+                        else
+                            conn_server('restart',disphdl);
                         end
                     elseif ~isempty(regexp(me.message,'SocketTimeoutException')) % timeout
                         conn_server_fprintf(disphdl,'fprintf',repmat('\b',[1,length(dispstr)]));
@@ -259,7 +259,7 @@ switch(lower(option))
                 end
                 if isempty(data)
                 elseif isequal(data,'handshake')||isequal(data,'restart')||(isequal(data,'exit')&&continueonexit)
-                    conn_server restart;
+                    conn_server('restart',disphdl);
                 elseif isequal(data,'exit')||isequal(data,'exitforce')
                     fprintf('\n Server closed by client\n'); dispstr='';
                     conn_tcpip('close');
@@ -486,6 +486,7 @@ switch(lower(option))
         
     case 'restart'
         if params.isserver
+            if numel(varargin)>=1&&~isempty(varargin{1}), disphdl=varargin{1}; else disphdl=[]; end
             fprintf(' Restarting connection...\n');
             connection=conn_tcpip('private');
             ok=false;
@@ -495,6 +496,7 @@ switch(lower(option))
                     ok=true;
                     break;
                 end
+                if ~isempty(disphdl)&&(any(~ishandle(disphdl))||(numel(disphdl)>1&&get(disphdl(2),'value')>0)), return; end
                 pause(10+rand);
             end
             if ~ok, fprintf(' Restart failed. Please restart connection manually\n'); end
