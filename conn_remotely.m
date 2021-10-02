@@ -115,22 +115,20 @@ function varargout=conn_remotely(option,varargin)
 % If the 'host' computer is NOT SSH-accessible (e.g. another computer in your home/office network), the
 % following workaround allows you to still use CONN_REMOTELY functionality while setting up the server and the
 % connection manually. Note that this will skip SSH entirely, so in this case your communication data will not be
-% tunneled nor encrypted:
+% tunneled nor encrypted (this is recommended only for communications within a local/secured network):
 %
-%   step 1) in the 'client' computer, run the following Matlab command and write-down/store the contents of the
-%           resulting public and private keys:
-%               [PUBLICKEY, PRIVATEKEY] = conn_tcpip('keypair')
+%   step 1) in the 'host/server' computer, run the Matlab command below to launch a CONN server process:
 %
-%   step 2) in the 'host/server' computer, run the Matlab command below to launch a CONN server process:
-%               conn_server('start',[],'enter-your-public-key-here');
-%           From the output printed by this command, note the first occurrence of a keyphrase of the form:
-%               conn_server connect <IP_address> <port_number>CONNprivatekey
+%               conn_remotely start server;
 %
-%   step 3) in the 'client' computer, run the commands:
-%               conn_server connect <IP_address> <port_number>CONN<privatekey>
-%               conn isremotely;
-%           changing the <IP_address> and <port_number> fields to the appropriate values as reported in step (2)
-%           and changing <privatekey> to the appropriate vale as returned in step (1)
+%           and then enter when prompted the desired one-time-use password and TCP-port number (leave empty to 
+%           use the automatically search for an available port)
+%
+%   step 2) in the 'client' computer, close any active CONN windows and run the command:
+%
+%               conn_remotely start local;
+%
+%           and then enter when prompted the host/server IP address, port number, and password (as defined above)
 %
 %   Alternative (non-SSH) structure of CONN REMOTELY components:
 %      -------------------------------------------------------
@@ -241,6 +239,7 @@ if ~nargin||isempty(option), option='start'; end
 
 switch(option)
     case {'start','restart','end','softstart','softrestart','softend'}         % GUI interaction
+        if isequal(varargin,{'server'}), conn_remotely('startserver',varargin{2:end}); return; end
         if isfield(CONN_gui,'isremote'), isremote=CONN_gui.isremote;
         else isremote=false; 
         end
@@ -275,6 +274,7 @@ switch(option)
                 end
             else
                 if dorestart, conn_server_ssh restart recent;
+                elseif isequal(varargin,{'local'}), conn_server_ssh start local;
                 else conn_server_ssh start recent; % note: change to "conn_server_ssh('start',varargin{:})" to allow user-defined .json files?
                 end
                 CONN_gui.isremote=true;
@@ -401,7 +401,7 @@ switch(option)
             assert(numel(portnumber)==1&isfinite(portnumber), 'unrecognized port number');
         end
         pause(1);
-        strdisp={'Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely" (without quotes)','(note: if prompted to enter ''Server address'' enter local)',['Step 2: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 3: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 4: in prompt ''Remote session id'' enter ',str]};
+        strdisp={'Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely start local" (without quotes)',['Step 2: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 3: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 4: in prompt ''Remote session id'' enter ',str]};
         if isgui
             [hmsg,hmsg2]=conn_msgbox([{'                                  CONN server running                                  '},repmat({' '},1,10)],'',-1, 2);
             set(hmsg2(1),'style','edit','max',2,'string',strdisp);

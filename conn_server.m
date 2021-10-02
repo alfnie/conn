@@ -114,7 +114,6 @@ switch(lower(option))
         end
         conn_cache clear;
         conn_jobmanager clear;
-        conn_disp('__portcomm',true);
         if strcmpi(option,'startpersistent'), conn_server('continuepersistent',varargin{3:end});
         else conn_server('continue',varargin{3:end});
         end
@@ -222,145 +221,154 @@ switch(lower(option))
         
     case {'continue','continuepersistent','test'}
         if params.isserver % server
-            % listening
-            if numel(varargin)>=1&&~isempty(varargin{1}), disphdl=varargin{1}; else disphdl=[]; end
-            continueonexit=strcmpi(option,'continuepersistent');
-            dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
-            conn_server_fprintf(disphdl,'fprintf','%s',dispstr);
-            ntimedout=0; % minutes
-            while 1
-                data=[];
-                drawnow;
-                try,
-                    data=conn_tcpip('read');
-                    ntimedout=0;
-                catch me,
-                    if ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) %||ntimedout>15 % restart
-                        dispstr='';
-                        conn_server_fprintf(disphdl,'fprintf','\n Idle connection to client.');
-                        if (~isempty(disphdl)&&(any(~ishandle(disphdl))||(numel(disphdl)>1&&get(disphdl(2),'value')>0)))||~continueonexit
-                            conn_server_fprintf(disphdl,'fprintf',' Closing server.\n');
-                            conn_tcpip('close');
-                            conn_disp('__portcomm',false);
-                            return
+            conn_disp('__portcomm',true);
+            try
+                % listening
+                if numel(varargin)>=1&&~isempty(varargin{1}), disphdl=varargin{1}; else disphdl=[]; end
+                continueonexit=strcmpi(option,'continuepersistent');
+                dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
+                conn_server_fprintf(disphdl,'fprintf','%s',dispstr);
+                ntimedout=0; % minutes
+                while 1
+                    data=[];
+                    drawnow;
+                    try,
+                        data=conn_tcpip('read');
+                        ntimedout=0;
+                    catch me,
+                        if ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) %||ntimedout>15 % restart
+                            dispstr='';
+                            conn_server_fprintf(disphdl,'fprintf','\n Idle connection to client.');
+                            if (~isempty(disphdl)&&(any(~ishandle(disphdl))||(numel(disphdl)>1&&get(disphdl(2),'value')>0)))||~continueonexit
+                                conn_server_fprintf(disphdl,'fprintf',' Closing server.\n');
+                                conn_tcpip('close');
+                                conn_disp('__portcomm',false);
+                                return
+                            else
+                                conn_server('restart',disphdl);
+                            end
+                        elseif ~isempty(regexp(me.message,'SocketTimeoutException')) % timeout
+                            conn_server_fprintf(disphdl,'fprintf',repmat('\b',[1,length(dispstr)]));
+                            dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
+                            conn_server_fprintf(disphdl,'fprintf',dispstr);
+                            conn_tcpip('writekeepalive');
+                            ntimedout=ntimedout+1;
                         else
-                            conn_server('restart',disphdl);
+                            conn_server_fprintf(disphdl,me.message);
+                            pause(rand);
                         end
-                    elseif ~isempty(regexp(me.message,'SocketTimeoutException')) % timeout
-                        conn_server_fprintf(disphdl,'fprintf',repmat('\b',[1,length(dispstr)]));
-                        dispstr=sprintf(' CONN SERVER ACTIVE %s',datestr(now));
-                        conn_server_fprintf(disphdl,'fprintf',dispstr);
-                        conn_tcpip('writekeepalive');
-                        ntimedout=ntimedout+1;
-                    else
-                        conn_server_fprintf(disphdl,me.message);
-                        pause(rand);
                     end
-                end
-                if isempty(data)
-                elseif isequal(data,'handshake')||isequal(data,'restart')||(isequal(data,'exit')&&continueonexit)
-                    conn_server('restart',disphdl);
-                elseif isequal(data,'exit')||isequal(data,'exitforce')
-                    fprintf('\n Server closed by client\n'); dispstr='';
-                    conn_tcpip('close');
-                    conn_disp('__portcomm',false);
-                    return
-                elseif ~isempty(disphdl)&&(any(~ishandle(disphdl))||(numel(disphdl)>1&&get(disphdl(2),'value')>0))
-                    fprintf('\n Server closed\n'); dispstr='';
-                    conn_tcpip('close');
-                    conn_disp('__portcomm',false);
-                    return
-                elseif isequal(data,'ping')
-                    conn_tcpip('write','ok');
-                elseif isstruct(data)&&numel(data)==1&&isfield(data,'cmd') % run command
-                    if ischar(data.cmd), data.cmd={data.cmd}; end
-                    try, data.cmd{1}=regexprep(data.cmd{1},'\.m$',''); end
-                    if ischar(data.cmd{1})||conn_server('util_isremotevar',data.cmd{1}), %isequal(data.cmd{1},'conn')||~isempty(regexp(data.cmd{1},'^conn_'))||isequal(data.cmd{1},'spm')||~isempty(regexp(data.cmd{1},'^spm_')) % run only conn or spm commands
-                        conn_server_fprintf(disphdl,'fprintf','\n -'); dispstr=''; timer=[];
-                        try
-                            conn_server_fprintf(disphdl,data.cmd);
-                            if conn_server('util_isremotevar',data.cmd{1}), fh=@(x)x; data.cmd=[{''},data.cmd];
-                            elseif isempty(data.cmd{1}), fh=@(x)x;
-                            else fh=eval(sprintf('@%s',data.cmd{1}));
-                            end
-                            is_server_variable=find(conn_server('util_isremotevar',data.cmd(2:end)));
-                            for nvar=reshape(is_server_variable,1,[]) % use variables defined using run_keep
-                                if numel(data.cmd)>2&&isequal(data.cmd{1},'conn_server')&&isequal(data.cmd{2},'clear'), data.cmd{1+nvar}=data.cmd{1+nvar}.conn_server_variable;
-                                elseif isfield(local_vars,data.cmd{1+nvar}.conn_server_variable), data.cmd{1+nvar}=local_vars.(data.cmd{1+nvar}.conn_server_variable);
-                                else data.cmd{1+nvar}=[]; % error, variable does not exist
+                    if isempty(data)
+                    elseif isequal(data,'handshake')||isequal(data,'restart')||(isequal(data,'exit')&&continueonexit)
+                        conn_server('restart',disphdl);
+                    elseif isequal(data,'exit')||isequal(data,'exitforce')
+                        fprintf('\n Server closed by client\n'); dispstr='';
+                        conn_tcpip('close');
+                        conn_disp('__portcomm',false);
+                        return
+                    elseif ~isempty(disphdl)&&(any(~ishandle(disphdl))||(numel(disphdl)>1&&get(disphdl(2),'value')>0))
+                        fprintf('\n Server closed\n'); dispstr='';
+                        conn_tcpip('close');
+                        conn_disp('__portcomm',false);
+                        return
+                    elseif isequal(data,'ping')
+                        conn_tcpip('write','ok');
+                    elseif isstruct(data)&&numel(data)==1&&isfield(data,'cmd') % run command
+                        if ischar(data.cmd), data.cmd={data.cmd}; end
+                        try, data.cmd{1}=regexprep(data.cmd{1},'\.m$',''); end
+                        if ischar(data.cmd{1})||conn_server('util_isremotevar',data.cmd{1}), %isequal(data.cmd{1},'conn')||~isempty(regexp(data.cmd{1},'^conn_'))||isequal(data.cmd{1},'spm')||~isempty(regexp(data.cmd{1},'^spm_')) % run only conn or spm commands
+                            conn_server_fprintf(disphdl,'fprintf','\n -'); dispstr=''; timer=[];
+                            try
+                                conn_server_fprintf(disphdl,data.cmd);
+                                if conn_server('util_isremotevar',data.cmd{1}), fh=@(x)x; data.cmd=[{''},data.cmd];
+                                elseif isempty(data.cmd{1}), fh=@(x)x;
+                                else fh=eval(sprintf('@%s',data.cmd{1}));
                                 end
-                            end
-                            %                             if isfield(data,'displaystatus')&&data.displaystatus,
-                            %                                 htimer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@conn_server_update);
-                            %                                 start(htimer);
-                            %                             end
-                            if ~isfield(data,'immediatereturn')||~data.immediatereturn
-                                if isfield(data,'nargout')&&data.nargout>0,
-                                    varout=cell(1,data.nargout);
-                                    try
-                                        [varout{1:data.nargout}]=feval(fh,data.cmd{2:end});
-                                        argout=struct('type','ok','id',data.id,'msg',{varout});
-                                    catch me
-                                        str=conn_errormessage(me);
-                                        str=sprintf('%s\n',str{:});
-                                        argout=struct('type','ko','id',data.id,'msg',str);
+                                is_server_variable=find(conn_server('util_isremotevar',data.cmd(2:end)));
+                                for nvar=reshape(is_server_variable,1,[]) % use variables defined using run_keep
+                                    if numel(data.cmd)>2&&isequal(data.cmd{1},'conn_server')&&isequal(data.cmd{2},'clear'), data.cmd{1+nvar}=data.cmd{1+nvar}.conn_server_variable;
+                                    elseif isfield(local_vars,data.cmd{1+nvar}.conn_server_variable), data.cmd{1+nvar}=local_vars.(data.cmd{1+nvar}.conn_server_variable);
+                                    else data.cmd{1+nvar}=[]; % error, variable does not exist
+                                    end
+                                end
+                                %                             if isfield(data,'displaystatus')&&data.displaystatus,
+                                %                                 htimer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@conn_server_update);
+                                %                                 start(htimer);
+                                %                             end
+                                if ~isfield(data,'immediatereturn')||~data.immediatereturn
+                                    if isfield(data,'nargout')&&data.nargout>0,
+                                        varout=cell(1,data.nargout);
+                                        try
+                                            [varout{1:data.nargout}]=feval(fh,data.cmd{2:end});
+                                            argout=struct('type','ok','id',data.id,'msg',{varout});
+                                        catch me
+                                            str=conn_errormessage(me);
+                                            str=sprintf('%s\n',str{:});
+                                            argout=struct('type','ko','id',data.id,'msg',str);
+                                        end
+                                    else
+                                        try
+                                            feval(fh,data.cmd{2:end});
+                                            argout=struct('type','ok','id',data.id);
+                                        catch me
+                                            str=conn_errormessage(me);
+                                            str=sprintf('%s\n',str{:});
+                                            argout=struct('type','ko','id',data.id,'msg',str);
+                                        end
+                                    end
+                                    conn_server_fprintf(disphdl,argout);
+                                    if isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'keeplocal')&&all(data.keeplocal>0)
+                                        for nvar=1:numel(argout.msg)
+                                            if ischar(data.keeplocal), varname=['labeled_',data.keeplocal,'_',num2str(nvar)];
+                                            else varname=['var_',char(conn_tcpip('hash',mat2str(now))),'_',num2str(nvar)];
+                                            end
+                                            local_vars.(varname)=argout.msg{nvar};
+                                            argout.msg{nvar}=struct('conn_server_variable',varname);
+                                        end
+                                        conn_tcpip('write',argout);
+                                        %                                 elseif isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'hpc')&&data.hpc>0&&getfield(whos('argout'),'bytes')>1e6, % send response using ssh/scp?
+                                        %                                     tmpfile=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(conn_tcpip('hash',mat2str(now))),'.mat']);
+                                        %                                     arg=argout; save(tmpfile,'arg');
+                                        %                                     argout=struct('type','ok_hasattachment','id',data.id,'msg',tmpfile);
+                                        %                                     conn_tcpip('write',argout);
+                                        %                                     while 1,
+                                        %                                         rsp=[];
+                                        %                                         try, rsp=conn_tcpip('read'); end % wait for client to finish
+                                        %                                         if isfield(rsp,'id')&&isequal(rsp.id,data.id)&&isfield(rsp,'type')&&isequal(rsp.type,'ack_hasattachment'), break; end
+                                        %                                         fprintf('.'); pause(rand);
+                                        %                                     end
+                                        %                                     conn_fileutils('deletefile',tmpfile);
+                                    else % send response through communication socket
+                                        conn_tcpip('write',argout);
                                     end
                                 else
                                     try
                                         feval(fh,data.cmd{2:end});
-                                        argout=struct('type','ok','id',data.id);
-                                    catch me
-                                        str=conn_errormessage(me);
-                                        str=sprintf('%s\n',str{:});
-                                        argout=struct('type','ko','id',data.id,'msg',str);
                                     end
                                 end
-                                conn_server_fprintf(disphdl,argout);
-                                if isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'keeplocal')&&all(data.keeplocal>0)
-                                    for nvar=1:numel(argout.msg)
-                                        if ischar(data.keeplocal), varname=['labeled_',data.keeplocal,'_',num2str(nvar)];
-                                        else varname=['var_',char(conn_tcpip('hash',mat2str(now))),'_',num2str(nvar)];
-                                        end
-                                        local_vars.(varname)=argout.msg{nvar};
-                                        argout.msg{nvar}=struct('conn_server_variable',varname);
-                                    end
-                                    conn_tcpip('write',argout);
-                                    %                                 elseif isequal(argout.type,'ok')&&isfield(argout,'msg')&&isfield(data,'hpc')&&data.hpc>0&&getfield(whos('argout'),'bytes')>1e6, % send response using ssh/scp?
-                                    %                                     tmpfile=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(conn_tcpip('hash',mat2str(now))),'.mat']);
-                                    %                                     arg=argout; save(tmpfile,'arg');
-                                    %                                     argout=struct('type','ok_hasattachment','id',data.id,'msg',tmpfile);
-                                    %                                     conn_tcpip('write',argout);
-                                    %                                     while 1,
-                                    %                                         rsp=[];
-                                    %                                         try, rsp=conn_tcpip('read'); end % wait for client to finish
-                                    %                                         if isfield(rsp,'id')&&isequal(rsp.id,data.id)&&isfield(rsp,'type')&&isequal(rsp.type,'ack_hasattachment'), break; end
-                                    %                                         fprintf('.'); pause(rand);
-                                    %                                     end
-                                    %                                     conn_fileutils('deletefile',tmpfile);
-                                else % send response through communication socket
-                                    conn_tcpip('write',argout);
-                                end
-                            else
-                                try
-                                    feval(fh,data.cmd{2:end});
-                                end
+                            catch me
+                                str=conn_errormessage(me);
+                                str=sprintf('%s\n',str{:});
+                                argout=struct('type','ko','id',data.id,'msg',str);
                             end
-                        catch me
-                            str=conn_errormessage(me);
-                            str=sprintf('%s\n',str{:});
-                            argout=struct('type','ko','id',data.id,'msg',str);
+                            %                         if ~isempty(htimer), try, stop(htimer); delete(htimer); end; end
+                            
+                        elseif ~isfield(data,'immediatereturn')||~data.immediatereturn
+                            argout=struct('type','ko', 'id', data.id, 'msg', sprintf('unrecognized option %s ',data.cmd{1}));
+                            conn_tcpip('write',argout);
                         end
-                        %                         if ~isempty(htimer), try, stop(htimer); delete(htimer); end; end
-                        
-                    elseif ~isfield(data,'immediatereturn')||~data.immediatereturn
-                        argout=struct('type','ko', 'id', data.id, 'msg', sprintf('unrecognized option %s ',data.cmd{1}));
-                        conn_tcpip('write',argout);
+                    else % testing (obsolete)
+                        conn_server_fprintf(disphdl,'fprintf','\n received test data:\n');  dispstr='';
+                        disp(data)
                     end
-                else % testing (obsolete)
-                    conn_server_fprintf(disphdl,'fprintf','\n received test data:\n');  dispstr='';
-                    disp(data)
                 end
+            catch me
+                conn_disp('__portcomm',false);
+                str=regexprep(char(getReport(me,'extended','hyperlinks','off')),'[\t ]+',' ');
+                conn_server_fprintf(disphdl,'fprintf','\nERROR (terminating server)\n%s',str);
             end
+            conn_disp('__portcomm',false);
+            
         else % client testing (obsolete)
             % sending rand
             for niter=1:1
