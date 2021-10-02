@@ -49,10 +49,10 @@ function varargout=conn_remotely(option,varargin)
 % After this CONN will launch the standard CONN GUI and allow you to load and work with any CONN projects that may be
 % accessible from the 'host' computer.
 %
-% Options: %!
+% Additional options: %!
 %
-%    conn remotely setup       : (run in 'host' computer just once) creates file ~/connserverinfo.json with the
-%                                following information:
+%    conn remotely setup       : (run in 'host' computer just once to configure this host to accept incoming requests)
+%                                This step simply creates a file ~/connserverinfo.json with the following information:
 %                                 CONNcmd     : OS-level command used to start/run CONN on 'host' computer
 %                                 host        : name of 'host' computer (or login-node for HPC/cluster environments)
 %                                 SERVERcmd   : name of HPC profile to use when starting a CONN 'server'
@@ -63,11 +63,14 @@ function varargout=conn_remotely(option,varargin)
 %                                    run CONN server process in a different computer which will be requested using
 %                                    the options defined in the HPC.configuration 'Slurm' profile)
 %                                 SERVERpersistent : 1/0 to restart server after connection with client ends
+%                                When conn_remotely connects to a host it will try to first download this file from
+%                                ~/connserverinfo.json for information on how to proceed
 %
-%    conn remotely             : starts CONN from the 'client' computer (this will attempt first to create a new
-%                                connection to the same CONN server used in our last connection to this host, and if
-%                                that fails it will ask the host computer to start a new CONN server and then it will
-%                                connect to it)
+%    conn remotely start <IP>  : Same as 'conn remotely' but specfying the host IP address.
+%                                This step starts CONN from the 'client' computer (this will attempt first to create a 
+%                                new connection to the same CONN server used in our last connection to this host, and 
+%                                if that fails it will ask the host computer to start a new CONN server and then it 
+%                                will connect to it)
 %
 %    conn remotely restart     : re-starts CONN GUI after a dropped connection (this will not start a new CONN server
 %                                but it will only attempt to create a new connection to the CONN server used in our
@@ -75,6 +78,14 @@ function varargout=conn_remotely(option,varargin)
 %
 %    conn isremotely           : re-starts CONN GUI (this will not start a new CONN server and it will not create a
 %                                new connection)
+%
+%    conn remotely start local : Manually start conn client without SSH communications framework (see information
+%                                below in "Alternative (non-SSH) structure)" section)
+%
+%    conn remotely start server : Manually start conn server without SSH communications framework (see information 
+%                                below in "Alternative (non-SSH) structure)" section)
+%
+%    conn remotely settings    : Launches GUI for defining default client/server communication options
 %
 % Additional information: %!
 %
@@ -115,7 +126,7 @@ function varargout=conn_remotely(option,varargin)
 % If the 'host' computer is NOT SSH-accessible (e.g. another computer in your home/office network), the
 % following workaround allows you to still use CONN_REMOTELY functionality while setting up the server and the
 % connection manually. Note that this will skip SSH entirely, so in this case your communication data will not be
-% tunneled nor encrypted (this is recommended only for communications within a local/secured network):
+% tunneled nor encrypted. This procedure is only recommended for communications WITHIN a local/secured network:
 %
 %   step 1) in the 'host/server' computer, run the Matlab command below to launch a CONN server process:
 %
@@ -128,12 +139,12 @@ function varargout=conn_remotely(option,varargin)
 %
 %               conn_remotely start local;
 %
-%           and then enter when prompted the host/server IP address, port number, and password (as defined above)
+%           and then enter when prompted the host/server IP address, port number, and password as defined above
 %
 %   Alternative (non-SSH) structure of CONN REMOTELY components:
 %      -------------------------------------------------------
 %     |      --------                      ---------------    |
-%     |     | Client | COMM: <---TCP--->  | Host/Server   |   |
+%     |     | Client | <------TCP------>  | Host/Server   |   |
 %     |     |________|                    |_______________|   |
 %     |(local CONN session)             (remote CONN session) |
 %     |_______________________________________________________|
@@ -150,9 +161,6 @@ function varargout=conn_remotely(option,varargin)
 %                               syntax to start CONN)
 % conn_remotely offandon      : restarts communication with remote CONN server after dropped connection (equivalent
 %                               to running "conn remotely restart" but without launching CONN GUI)
-%
-% conn_remotely startserver   : manually start conn server (wrapper to "conn_server start ...")
-% conn_remotely startserverwithgui
 %
 % REMOTE EXECUTION
 %
@@ -240,6 +248,7 @@ if ~nargin||isempty(option), option='start'; end
 switch(option)
     case {'start','restart','end','softstart','softrestart','softend'}         % GUI interaction
         if isequal(varargin,{'server'}), conn_remotely('startserver',varargin{2:end}); return; end
+        if isequal(varargin,{'serverwithgui'}), conn_remotely('startserverwithgui',varargin{2:end}); return; end
         if isfield(CONN_gui,'isremote'), isremote=CONN_gui.isremote;
         else isremote=false; 
         end

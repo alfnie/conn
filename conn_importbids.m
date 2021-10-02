@@ -56,12 +56,13 @@ for isub=1:numel(nsubs),
                 for n2=1:numel(nsesstemp)
                     nses=nsesstemp(n2);
                     if options.copytoderiv
-                        [nill,nill,nV]=conn_importvol2bids(filename{n2},nsub,nses,'func',[],[],[],[],[],true);
+                        [out,nill,nV]=conn_importvol2bids(filename{n2},nsub,nses,'func',[],[],[],[],[],true);
                     elseif options.localcopy,
-                        [nill,nill,nV]=conn_importvol2bids(filename{n2},nsub,nses,bidsname);
+                        [out,nill,nV]=conn_importvol2bids(filename{n2},nsub,nses,bidsname);
                         %if ~options.nset, CONN_x.Setup.nscans{nsub}{nses}=nV; end
                     else
-                        nV=conn_set_functional(nsub,nses,options.nset,filename{n2});
+                        out=filename{n2};
+                        nV=conn_set_functional(nsub,nses,options.nset,out);
                     end
                     conn_disp('fprintf','functional %s imported to subject %d session %d\n',filename{n2},nsub,nses);
                     if ~options.nset, % create task-* condition names
@@ -83,7 +84,8 @@ for isub=1:numel(nsubs),
                                     tname=unames{tn1};
                                     R=[]; for tn2=reshape(unique(1+rem(find(uidx==tn1)-1,numel(names))),1,[]), R=cat(2,R,data.(names{tn2})); end; 
                                     idx=strmatch(tname,CONN_x.Setup.l1covariates.names,'exact');
-                                    if isempty(idx), idx=length(CONN_x.Setup.l1covariates.names); CONN_x.Setup.l1covariates.names{end+1}=' '; end
+                                    if isempty(idx), idx=length(CONN_x.Setup.l1covariates.names); CONN_x.Setup.l1covariates.names{end+1}=' '; end                                    
+                                    try, if size(R,2)>1, out2=conn_prepend('',out,sprintf('.%s.mat',tname)); conn_savematfile(out2,'R'); R=out2; end; end % note: saves multivariate timeseries to files (to keep conn_*.mat filesize small)
                                     CONN_x.Setup.l1covariates.names{idx}=tname;
                                     CONN_x.Setup.l1covariates.files{nsub}{idx}{nses}=conn_file(R);
                                 end

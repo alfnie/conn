@@ -493,7 +493,7 @@ switch(lower(type)),
                 if strcmpi(type,'frame')&&~isempty(deblank(title)), bg2=bgcolor;%CONN_gui.backgroundcolorE; 
                 else bg2=bgcolor;
                 end
-                if strcmpi(type,'frame'), temp=(position+[position(3)*.05,position(4),0,0]).*[1,1,.9,0]+[.001,.001,0,.058];
+                if strcmpi(type,'frame'), temp=(position+[position(3)*.05,position(4),0,0]).*[1,1,.9,0]+[.001,.005,0,.054];
                 %if strcmpi(type,'frame'), temp=(position+[0,position(4),0,0]).*[1,1,1,0]+[.005,0,-.010,.039];
                 else temp=(position+[position(3)*0,position(4),0,0]).*[1,1,1,0]+[1*.001,0,1*-.002,.049];
                 end

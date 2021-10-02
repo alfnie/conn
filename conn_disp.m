@@ -211,7 +211,10 @@ if nargin>=1
             end
             if PORTCOMM&&~isempty(str) % from server
                 conn_tcpip('write',struct('type','status','id','unknown','msg',{str}));
-                tcodes=conn_tcpip('peek'); if ~isempty(tcodes)&&ismember('STOP',tcodes), error('<DisregardMessage>Process stopped by user'); end
+                try, tcodes=conn_tcpip('peek'); 
+                catch, fprintf('warning: communications failure; disconnecting conn_disp tunneling\n'); PORTCOMM=false; tcodes=[];
+                end
+                if ~isempty(tcodes)&&ismember('STOP',tcodes), error('<DisregardMessage>Process stopped by user'); end
             end
             if nargout>0&&~isempty(newstr), varargout={newstr}; end
         end

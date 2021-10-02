@@ -44,10 +44,16 @@ function ocov=conn_convertl12l1covariate(option,varargin)
 %           icov:  name of original covariate ['QC_timeseries']
 %           ocov:  name of output covariate ['QC_timeseries_##']
 %
+%  conn_convertl12l1covariate('save' [,icov,ocov])
+%    Saves 'raw-data' covariate to file
+%    Parameters:
+%           icov:  name of original 'raw-data' covariate ['QC_timeseries']
+%           ocov:  name of output covariate ['QC_timeseries']
+%
 
 ocov='';
 if ~nargin||isequal(option,'?')
-    opts={'Compute ''FD_conn'': Framewise Displacement (ART/CONN definition)','Compute ''FD_jenkinson'': Framewise Displacement (FSL definition)','Compute ''FD_power'': Framewise Displacement (Power 2012 definition)','Compute ''scrubbing'': thresholded list-of-outliers covariate','Split multiple-dimension covariate into multiple individual-dimension covariates'};
+    opts={'Compute ''FD_conn'': Framewise Displacement (ART/CONN definition)','Compute ''FD_jenkinson'': Framewise Displacement (FSL definition)','Compute ''FD_power'': Framewise Displacement (Power 2012 definition)','Compute ''scrubbing'': thresholded list-of-outliers covariate','Split multiple-dimension covariate into multiple individual-dimension covariates','Convert raw-data covariate to in-file covariate'};
     answ=conn_questdlg('','Available first-level covariate transformations:',opts{[1:numel(opts),1]});
     if isempty(answ), return; end
     switch(answ)
@@ -87,6 +93,14 @@ if ~nargin||isequal(option,'?')
             answ=inputdlg(fields,'split options',1,values,struct('Resize','on'));
             if numel(answ)~=numel(fields)||isempty(answ{1}),return; end
             ocov=conn_convertl12l1covariate('split',answ{:});
+        case opts{6} % save
+            fields={'Name of input first-level covariate(s)','Name of output first-level covariate(s)'};
+            if numel(varargin)==numel(fields), values=varargin;
+            else values={'QC_timeseries','QC_timeseries'}; 
+            end
+            answ=inputdlg(fields,'save options',1,values,struct('Resize','on'));
+            if numel(answ)~=numel(fields)||isempty(answ{1}),return; end
+            ocov=conn_convertl12l1covariate('save',answ{:});
     end
     return
 end
@@ -345,5 +359,38 @@ switch(lower(option))
                 conn_module('set','l1covariates',fout{n1},nout{n1},'add');
             end
         end
-                
+           
+    case {'save'}
+        if numel(varargin)<1||isempty(varargin{1}), icov='QC_timeseries'; else icov=varargin{1}; end
+        if numel(varargin)<2||isempty(varargin{2}), ocov='QC_timeseries'; else ocov=varargin{2}; end
+
+        conn_disp('fprintf','save Input=%s\n Output=%s\n',icov,ocov);
+        if ~isempty(regexp(icov,',')), 
+            icov=regexp(icov,'\s*,\s*','split'); 
+        else icov={icov};
+        end
+        if ~isempty(regexp(ocov,',')), 
+            ocov=regexp(ocov,'\s*,\s*','split'); 
+        else ocov={ocov};
+        end
+        assert(numel(icov)==numel(ocov),'mismatched number of input&output covariates');
+        g=conn_module('get','functionals');
+        for ncov=1:numel(icov)
+            f=conn_module('get','l1covariates',icov{ncov});
+            assert(~isempty(f),'missing first-level covariate ''%s''',icov{ncov});
+            fout=f;
+            for nsub=1:numel(f)
+                for nses=1:numel(f{nsub})
+                    if isnumeric(f{nsub}{nses}), 
+                        R=f{nsub}{nses}; 
+                        filename=g{nsub}{nses};
+                        filename=conn_prepend('',filename(1,:),sprintf('_%s.mat',ocov{ncov}));
+                        conn_savematfile(filename,'R');
+                        conn_disp('__nolog','fprintf','created file %s\n',filename);
+                        fout{nsub}{nses}=filename;
+                    end
+                end
+            end
+            conn_module('set','l1covariates',fout,ocov{ncov},'add');
+        end        
 end
