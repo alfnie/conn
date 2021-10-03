@@ -120,9 +120,9 @@ switch(lower(type)),
         h=struct('h1',h,'h2',htc,'h3',h3,'pos',position);
 	case {'listbox','listbox2','listboxbigblue'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
+        if strcmpi(type,'listboxbigblue'), bgcolor=CONN_gui.backgroundcolorE; end %.75*bgcolor+.25*(1/6*.25+.75*[2/6,2/6,4/6]); end
 		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,position(4),0,.04-position(4)],'string',title,'backgroundcolor',bgcolor,titleopts{:},'fontunits','norm','horizontalalignment','left','parent',CONN_h.screen.hfig); end
         if isempty(string), string=' '; end
-        if strcmpi(type,'listboxbigblue'), bgcolor=.75*bgcolor+.25*(1/6*.25+.75*[2/6,2/6,4/6]); end
 		h=uicontrol('style','listbox','units','norm','position',position,'foregroundcolor',.0+1.0*([0 0 0]+(mean(bgcolor)<.5)),'backgroundcolor',bgcolor,'string',string,'max',1,'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,'keypressfcn',@conn_menu_search,contropts{:},'parent',CONN_h.screen.hfig);
         if strcmpi(type,'listboxbigblue'), set(h,'fontsize',11+CONN_gui.font_offset); end
         set(h,'units','pixels');
@@ -143,12 +143,12 @@ switch(lower(type)),
         conn_menumanager('onregion',ht,-1,get(h,'position'));
         if ~isempty(callback2), 
             if ~iscell(callback2), callback2={['h=get(gcbo,''userdata''); set(h,''value'',numel(cellstr(get(h,''string'')))); ',callback],callback2}; end
-            ht=[conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[0 -.03 max(.02,position(3)-.02)-position(3) .03-position(4)],'','new',['Adds new ',lower(title)],callback2{1}),...
-                conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[max(.02,position(3)-.02) -.03 .02-position(3) .03-position(4)],'','-',['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
+            ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 max(.02,position(3)-.02)-position(3) .03-position(4)],'','new',['Adds new ',lower(title)],callback2{1}),...
+                conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[max(.02,position(3)-.02) -.03 .02-position(3) .03-position(4)],'','-',['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
             %ht=[conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[0 -.04 .02-position(3) .04-position(4)],'','+',['Adds new ',lower(title)],callback2{1}),...
             %    conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[.02 -.04 .02-position(3) .04-position(4)],'','-',['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
             set(ht,'userdata',h,'fontweight','bold','visible','off');
-            conn_menumanager('onregion',ht,1,get(h,'position')+[0 -.04 0 0],h);
+            conn_menumanager('onregion',ht,1,get(h,'position')+[0 -.04 0 .04],h);
         end
         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
 	case 'listbox0',
