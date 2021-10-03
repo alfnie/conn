@@ -5819,7 +5819,7 @@ if any(options==32)
             end
         end
     end    
-    varargout{1}=conn_qaplots(opts{:});
+    [varargout{1:nargout}]=conn_qaplots(opts{:});
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -151,6 +151,7 @@ switch(lower(option))
                 tag=regexp(cellstr(allfiles),'\d{4}(\d+)\.dmat$','tokens','once');
                 [utag,nill,itag]=unique([tag{:}]);
                 vtag=true(size(utag));
+                alllogs=cell(1,numel(utag));
                 for n=1:numel(utag)
                     pathname=fullfile(conn_prepend('',CONN_x.filename,'.qlog'),utag{n});
                     if conn_existfile(pathname,2)&&conn_existfile(fullfile(pathname,'info.mat'))
@@ -234,7 +235,7 @@ switch(lower(option))
                 end
                 if ~isempty(alllogs)&&iscell(alllogs)
                     for n=1:numel(alllogs)
-                        if ischar(alllogs{n})
+                        if ischar(alllogs{n})&&~isempty(alllogs{n})
                             flog=alllogs{n};
                             if ~conn_existfile(flog), flog=regexprep(flog,'\.stdlog$','.stdout'); end % fix for PC/Mac background Matlab-based jobs
                             if conn_existfile(flog)

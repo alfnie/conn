@@ -2319,7 +2319,7 @@ for iSTEP=1:numel(STEPS)
                             matlabbatch{end}.art.M{end+1}=conn_prepend('rp_',conn_prepend(-remov,temp1),'.txt');
                             matlabbatch{end}.art.motion_file_type=0;
                         else
-                            matlabbatch{end}.art.motion_file_type=0;
+                            matlabbatch{end}.art.motion_file_type=0; % SPM-convention
                             cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
                             assert(~isempty(cfilename),'covariate %s has not been defined for subject %d sessions %d',CONN_x.Setup.l1covariates.names{icov},nsubject,nses);
                             switch(cfilename),
@@ -2328,7 +2328,8 @@ for iSTEP=1:numel(STEPS)
                                 otherwise,
                                     matlabbatch{end}.art.M{end+1}=cfilename;
                                     [nill,fname,fext]=fileparts(matlabbatch{end}.art.M{end});
-                                    if isequal(lower(fext),'.par'), matlabbatch{end}.art.motion_file_type=1;
+                                    if isequal(lower(fext),'.mat'), temp=load(cfilename); if isstruct(temp), tempfieldname=fieldnames(temp); temp=temp.(tempfieldname{1}); end; matlabbatch{end}.art.M{end}=temp;
+                                    elseif isequal(lower(fext),'.par'), matlabbatch{end}.art.motion_file_type=1;
                                     elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.siemens$')), matlabbatch{end}.art.motion_file_type=2;
                                     elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.deg$')), matlabbatch{end}.art.motion_file_type=3;
                                     end
