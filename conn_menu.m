@@ -124,7 +124,7 @@ switch(lower(type)),
 		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,position(4),0,.04-position(4)],'string',title,'backgroundcolor',bgcolor,titleopts{:},'fontunits','norm','horizontalalignment','left','parent',CONN_h.screen.hfig); end
         if isempty(string), string=' '; end
 		h=uicontrol('style','listbox','units','norm','position',position,'foregroundcolor',.0+1.0*([0 0 0]+(mean(bgcolor)<.5)),'backgroundcolor',bgcolor,'string',string,'max',1,'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,'keypressfcn',@conn_menu_search,contropts{:},'parent',CONN_h.screen.hfig);
-        if strcmpi(type,'listboxbigblue'), set(h,'fontsize',11+CONN_gui.font_offset); end
+        if strcmpi(type,'listboxbigblue'), set(h,'fontsize',10+CONN_gui.font_offset); end
         set(h,'units','pixels');
         tpos=get(h,'position');
         tpos2=get(h,'extent');
