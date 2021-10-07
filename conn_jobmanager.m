@@ -1259,7 +1259,7 @@ handles.txt=text(.5,1,'','horizontalalignment','center','color','w','parent',han
 hold(handles.axes,'off');
 handles.contall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.2,.075,.2,.05],'string','Continue','callback','close(gcbf)','tooltipstring','<HTML>Close this GUI but continue running this job in the background <br/> - processes will continue running in their current location (as background processes or in the cluster)<br/> - visit Tools.Cluster/HPC.PendingJobs at any time to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
 handles.stopall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.4,.075,.2,.05],'string','Cancel job','callback',@(varargin)conn_jobmanager_update('cancelall'),'tooltipstring','Cancels all unfinished nodes and finishes this job pipeline');
-handles.enable=uicontrol(handles.hfig,'style','checkbox','value',1,'units','norm','position',[.65,.075,.3,.05],'string','Advanced options','backgroundcolor','w','callback',@(varargin)conn_jobmanager_update('enable'));
+handles.enable=uicontrol(handles.hfig,'style','checkbox','value',0,'units','norm','position',[.65,.075,.3,.05],'string','Advanced options','backgroundcolor','w','callback',@(varargin)conn_jobmanager_update('enable'));
 
 handles.panel=uipanel(handles.hfig,'units','norm','position',[0 .3 1 .7],'backgroundcolor',.9*[1 1 1]);
 handles.files=[];
@@ -1289,18 +1289,18 @@ if ~numel(files)
     handles.continue=[];%handles.continue=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.5,.025,.45,.05],'string','Continue (merge results now)','callback',@(varargin)conn_jobmanager_update('finish'));
     %handles.cancel=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.400,.15,.075],'string','Background','callback','close(gcbf)','tooltipstring','<HTML>Close this jobmanager window and handle merging the results of this job later<br/> - processes will continue running in the background/cluster<br/> - visit Tools.Cluster/HPC.PendingJobs to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
     %set(handles.continue,'enable','off','visible','off');
-    handles.timer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedspacing','taskstoexecute',inf,'busymode','drop','timerfcn',@(varargin)conn_jobmanager_update('refresh'));
+    handles.timer=timer('name','jobmanager','startdelay',1,'period',10,'executionmode','fixedrate','taskstoexecute',inf,'busymode','queue','timerfcn',@(varargin)conn_jobmanager_update('refresh'));
     %%set(handles.refresh,'value',1);
     set(handles.hfig,'closerequestfcn',@(varargin)conn_jobmanager_update('end'));
     set(handles.enable,'value',0); 
     conn_jobmanager_update('enable');
     handles.finished=false;
     conn_jobmanager_update('refresh')
-    try, start(handles.timer); end
     if nogui, 
         warning('off','MATLAB:hg:NoDisplayNoFigureSupportSeeReleaseNotes');
         fprintf('Waiting for grid/cluster jobs to finish...\n');
     end
+    try, start(handles.timer); end
     waitfor(handles.hfig);
     if nogui, warning('on','MATLAB:hg:NoDisplayNoFigureSupportSeeReleaseNotes'); end
 else
@@ -1346,7 +1346,9 @@ ok=1+handles.finished;
 
             case 'refresh'
                 try
-                    if (nargin==1&&ishandle(handles.enable)&&get(handles.enable,'value')==0)||(nargin>1&&varargin{1}==1), info=conn_jobmanager('statusjob',info,[],varargin{:}); end
+                    if (nargin==1&&ishandle(handles.enable)&&get(handles.enable,'value')==0)||(nargin>1&&varargin{1}==1), info=conn_jobmanager('statusjob',info,[],varargin{:}); 
+                    else return;
+                    end
                     txt=cellfun(@(a,b,c)sprintf('%-13s%-13s%-32s',a(1:min(numel(a),9)),b(1:min(numel(b),12)),c(1:min(numel(c),32))),info.joblabel,info.tagmsg,info.statusmsg,'uni',0);
                     
                     sortedlabels={'finished','finishing','running','submitted','canceled','stopping','stopped','queued','error','failed','crashed'};

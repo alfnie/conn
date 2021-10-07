@@ -100,6 +100,14 @@ end
 switch(filetype)
     case 1, % CONN-legacy
         [conditions,nsubs,nsess,onsets,durations]=textread(filename, '%s%d%d%s%s','delimiter',',','headerlines',1);
+        try, % note: allow "one line per event" instead of "one line per condition"
+            singleonsets=str2double(onsets); 
+            singledurations=str2double(durations); 
+            if ~any(isnan(singleonsets))&&~any(isnan(singledurations)), 
+                onsets=singleonsets; 
+                durations=singledurations; 
+            end
+        end
     case 2, % BIDS single-file
         [onsets,durations,conditions]=conn_importcondition_readbids(filename);
         nsubs=zeros(size(conditions));

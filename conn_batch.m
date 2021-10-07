@@ -376,8 +376,12 @@ function varargout=conn_batch(varargin)
 %                                            reg_names)
 %      Setup.preprocessing.reg_deriv       : (functional_regression) list of 0/1/2 values (one value for each model regressor in reg_names): add 
 %                                            first- or second- order derivatives to each model regressor
-%      Setup.preprocessing.reg_filter       : (functional_regression) list of 0/1 values (one value for each model regressor in reg_names):  
+%      Setup.preprocessing.reg_filter      : (functional_regression) list of 0/1 values (one value for each model regressor in reg_names):  
 %                                            band-pass filter individual model regressors (filter specified in bp_filter field)
+%      Setup.preprocessing.reg_lag         : (functional_regression) list of 0/1 values (one value for each model regressor in reg_names):
+%                                            removes lagged regressor (estimating optimal lag between each regressor and the BOLD signal at each voxel)
+%      Setup.preprocessing.reg_lagmax      : (functional_regression) maximum lag (in seconds); when estimating optimal lag (see reg_lag) lags
+%                                            between -reg_lagmax and +reg_lagmax are considered
 %      Setup.preprocessing.reg_detrend     : (functional_regression) 1: adds a linear/detrending term to model regressors [1]
 %      Setup.preprocessing.reg_skip        : (functional_regression) 1: does not create output functional files, only creates session-specific 
 %                                            dp_*.txt files with covariate timeseries to be included later in an arbitrary first-level model [0]
@@ -427,6 +431,7 @@ function varargout=conn_batch(varargin)
 %                                             or label containing fieldmap sequence files) ['fmap']
 %      Setup.preprocessing.voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [1]
 %      Setup.preprocessing.voxelsize_func  : (functional normalization) target voxel size for resliced volumes (mm) [2]
+%      Setup.preprocessing.sessions        : defines functional sessions to preprocess [1:max # of sessions]
 %      Setup.preprocessing.sets            : defines functional dataset to preprocess (0 for Primary Dataset; [1-N] or labels for Secondary 
 %                                             Datasets) [0]
 %  

@@ -31,8 +31,8 @@ conflict mcr
 # NOTES: change "foo" below to the proper installation folders for CONN and MCR
 # NOTES: REMOVE THE LINE "prepend-path LD_LIBRARY_PATH {mcr_root/sys/opengl/lib/glnxa64}" if you prefer to use your own OpenGL drivers (e.g. VirtualGL)
 
-set conn_root /foo/software/conn_standalone/R2018b
-set mcr_root  /foo/software/MCR/v95
+set conn_root /foo
+set mcr_root  /foo/MCR/v95
 
 prepend-path PATH ${conn_root}
 setenv MCRROOT ${mcr_root}
