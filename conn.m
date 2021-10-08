@@ -94,6 +94,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     if ~isempty(varargin)&&isequal(varargin{1},'isremotely'), CONN_gui.isremote=true;
     else CONN_gui.isremote=false;
     end
+    CONN_gui.leftarrow='<'; CONN_gui.rightarrow='>'; 
+    try, if ~verLessThan('matlab','8.4.0'), CONN_gui.leftarrow=char(8678); CONN_gui.rightarrow=char(8680); end; end
 	CONN_h=struct;
     cmap=0+1*(7*gray(128) + 1*(hot(128)))/8; if mean(CONN_gui.backgroundcolor)>.5,cmap=flipud(cmap); end
     cmapB=max(0,min(1, repmat((2*(CONN_gui.backgroundcolor<.5)-1).*max(CONN_gui.backgroundcolor ,1-CONN_gui.backgroundcolor),128,1).*cmap+repmat(CONN_gui.backgroundcolor,128,1) ));
@@ -6168,12 +6170,15 @@ else
                     ispending=isequal(CONN_x.gui.parallel,find(strcmp('Null profile',conn_jobmanager('profiles'))));
                     if CONN_x.gui.parallel>0, conn_jobmanager('options','profile',CONN_x.gui.parallel); end; 
                     if isfield(CONN_x.gui,'subjects'), subjects=CONN_x.gui.subjects; else subjects=[]; end
+                    CONN_x_gui=CONN_x.gui;
+                    CONN_x.gui=1;
                     conn save;
-                    conn_jobmanager('submit',processname,subjects,[],CONN_x.gui);
-                else conn_process(processname); ispending=false;
+                    conn_jobmanager('submit',processname,subjects,[],CONN_x_gui);
+                else
+                    conn_process(processname); ispending=false;
+                    CONN_x.gui=1;
+                    conn gui_setup_save;
                 end
-                CONN_x.gui=1;
-                conn gui_setup_save;
                 if ~conn_projectmanager('ispending')&&~ispending, conn gui_preproc; 
                 else conn gui_setup;
                 end
@@ -6210,7 +6215,7 @@ else
 				%CONN_h.menus.m_preproc_00{2}=conn_menu('listboxbigblue',boffset+[.06,.52,.175,.16],'Confounds','','<HTML>List of potential confounding effects (e.g. physiological/movement). <br/> - Linear regression will be used to remove these effects from the BOLD signal <br/> - Select effects in the <i>all effects</i> list and click <b> &lt </b> to add new effects to this list <br/> - Select effects in this list and click <b> &gt </b> to remove them from this list <br/> - By default this list includes White matter and CSF BOLD timeseries (CompCor), all first-level covariates <br/> (e.g. motion-correction and scrubbing), and all main task effects (for task designs) </HTML>','conn(''gui_preproc'',2);');
 				CONN_h.menus.m_preproc_00{2}=conn_menu('listbox',boffset+[.07,.50,.165,.20],'Confounds','','<HTML>List of potential confounding effects (e.g. physiological/movement). <br/> - Linear regression will be used to remove these effects from the BOLD signal <br/> - Select effects in the <i>all effects</i> list and click <b> &lt </b> to add new effects to this list <br/> - Select effects in this list and click <b> &gt </b> to remove them from this list <br/> - By default this list includes White matter and CSF BOLD timeseries (CompCor), all first-level covariates <br/> (e.g. motion-correction and scrubbing), and all main task effects (for task designs) </HTML>','conn(''gui_preproc'',2);');
 				CONN_h.menus.m_preproc_00{1}=conn_menu('listbox',boffset+[.27,.50,.125,.20],'all effects','',['<HTML>List of all effects<br/> - ROI timeseries<br/> - First-level covariates<br/> - Condition/task timeseries<br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_preproc'',1);');
-                CONN_h.menus.m_preproc_00{10}=conn_menu('pushbutton',boffset+[.245,.50,.025,.20],'','<','move elements between ''Confounds'' and ''all effects'' lists', 'conn(''gui_preproc'',0);');
+                CONN_h.menus.m_preproc_00{10}=conn_menu('pushbutton',boffset+[.245,.50,.025,.20],'',CONN_gui.leftarrow,'move elements between ''Confounds'' and ''all effects'' lists', 'conn(''gui_preproc'',0);');
 				CONN_h.menus.m_preproc_00{6}=conn_menu('edit',boffset+[.27,.39,.15,.04],'Confound dimensions','','<HTML>Number of components/timeseries of selected effect to be included in regression model (<i>inf</i> to include all available dimensions)</HTML>','conn(''gui_preproc'',6);');
 				CONN_h.menus.m_preproc_00{4}=conn_menu('popup',boffset+[.27,.35,.15,.04],'',{'no temporal expansion','add 1st-order derivatives','add 2nd-order derivatives'},'<HTML>Temporal/Taylor expansion of regressor timeseries<br/> - Include temporal derivates up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, dx/dt] for first-order derivatives<br/> - [x, dx/dt, d2x/dt2] for second-order derivatives </HTML>','conn(''gui_preproc'',4);');
 				CONN_h.menus.m_preproc_00{8}=conn_menu('popup',boffset+[.27,.31,.15,.04],'',{'no polynomial expansion','add quadratic effects','add cubic effects'},'<HTML>Polynomial expansion of regressor timeseries<br/> - Include powers up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, x^2] for quadratic effects<br/> - [x, x^2, x^3] for cubic effects</HTML>','conn(''gui_preproc'',8);');
@@ -6347,7 +6352,7 @@ else
                         str=get(CONN_h.menus.m_preproc_00{10},'string');
 						%str=conn_menumanager(CONN_h.menus.m_preproc_01,'string');
 						switch(str),
-							case '<',
+							case CONN_gui.leftarrow,
 								ncovariates=get(CONN_h.menus.m_preproc_00{1},'value'); 
 								for ncovariate=ncovariates(:)',
 									if isempty(strmatch(CONN_x.Preproc.variables.names{ncovariate},CONN_x.Preproc.confounds.names,'exact')), 
@@ -6367,7 +6372,7 @@ else
                                 try, tnames=cellfun(@(name,dim,deriv,power)sprintf('%s (%dP)',name,min(dim)*(power*(1+deriv))),CONN_x.Preproc.confounds.names,CONN_x.Preproc.confounds.dimensions,CONN_x.Preproc.confounds.deriv,CONN_x.Preproc.confounds.power,'uni',0); end
                                 set(CONN_h.menus.m_preproc_00{2},'string',tnames);
 								set(CONN_h.menus.m_preproc_00{13},'string',{' TOTAL',CONN_x.Preproc.confounds.names{:}}); 
-							case '>',
+							case CONN_gui.rightarrow,
 								ncovariates=get(CONN_h.menus.m_preproc_00{2},'value'); 
 								idx=setdiff(1:length(CONN_x.Preproc.confounds.names),ncovariates);
 								CONN_x.Preproc.confounds.names={CONN_x.Preproc.confounds.names{idx}};
@@ -6387,14 +6392,14 @@ else
 						end
 						model=1;
 					case 1,
-                        set(CONN_h.menus.m_preproc_00{10},'string','<');
-						%conn_menumanager(CONN_h.menus.m_preproc_01,'string',{'<'},'on',1);
+                        set(CONN_h.menus.m_preproc_00{10},'string',CONN_gui.leftarrow);
+						%conn_menumanager(CONN_h.menus.m_preproc_01,'string',{CONN_gui.leftarrow},'on',1);
 						set(CONN_h.menus.m_preproc_00{2},'value',[]); 
                         set(CONN_h.menus.m_preproc_00{22},'visible','on');
 						%set([CONN_h.menus.m_preproc_00{4},CONN_h.menus.m_preproc_00{6}],'visible','off');% 
 					case 2,
-                        set(CONN_h.menus.m_preproc_00{10},'string','>');
-						%conn_menumanager(CONN_h.menus.m_preproc_01,'string',{'>'},'on',1);
+                        set(CONN_h.menus.m_preproc_00{10},'string',CONN_gui.rightarrow);
+						%conn_menumanager(CONN_h.menus.m_preproc_01,'string',{CONN_gui.rightarrow},'on',1);
 						set(CONN_h.menus.m_preproc_00{1},'value',[]); 
                         set(CONN_h.menus.m_preproc_00{22},'visible','off');
 						nconfounds=get(CONN_h.menus.m_preproc_00{2},'value');
@@ -7282,7 +7287,7 @@ else
                     %set(CONN_h.menus.m_analyses_00{16},'horizontalalignment','left');
                     CONN_h.menus.m_analyses_00{1}=conn_menu('listbox',boffset+[.39,.31,.155,.13],'all ROIs','',['<HTML>List of all seeds/ROIs <br/> - this list includes all ROI timeseres and first-level covariates except those<br/> which have already been defined/used as confounds during the denoising step<br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',1);');
                     CONN_h.menus.m_analyses_00{2}=conn_menu('listbox',boffset+[.175,.31,.195,.13],'Selected Seeds/Sources','',['<HTML>List of seeds/ROIs to be included in this analysis  <br/> - Connectivity measures will be computed among all selected ROIs (for ROI-to-ROI analyses) and/or between the selected ROIs and all brain voxels (seed-to-voxel analyses) <br/> - Select ROIs in the <i>all ROIs</i> list and click <b> &lt </b> to add new sources to this list<br/> - Select ROIs in this list and click <b> &gt </b> to remove them from this list <br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);');
-                    CONN_h.menus.m_analyses_00{30}=conn_menu('pushbutton',boffset+[.37,.31,.02,.13],'','<','move elements between ''Seeds/Sources'' and ''all ROIs'' lists', 'conn(''gui_analyses'',0);');
+                    CONN_h.menus.m_analyses_00{30}=conn_menu('pushbutton',boffset+[.37,.31,.02,.13],'',CONN_gui.leftarrow,'move elements between ''Seeds/Sources'' and ''all ROIs'' lists', 'conn(''gui_analyses'',0);');
                     CONN_h.menus.m_analyses_00{6}=conn_menu('edit',boffset+[.41,.19,.15,.04],'Source dimensions','','Number of dimensions/components of selected source','conn(''gui_analyses'',6);');
                     CONN_h.menus.m_analyses_00{4}=conn_menu('popup',boffset+[.41,.15,.15,.04],'',{'no temporal expansion','add 1st-order derivatives','add 2nd-order derivatives'},'<HTML>Temporal/Taylor expansion of selected seed/source timeseries<br/> - Include temporal derivates up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, dx/dt] for first-order derivatives<br/> - [x, dx/dt, d2x/dt2] for second-order derivatives </HTML>','conn(''gui_analyses'',4);');
                     CONN_h.menus.m_analyses_00{5}=conn_menu('popup',boffset+[.41,.11,.15,.04],'',{'no frequency decomposition','frequency decomposition'},'Number of frequency bands for spectral decomposition of selected seed/source timeseries (''no decomposition'' for single-band covering entire band-pass filtered data)','conn(''gui_analyses'',5);');
@@ -7351,7 +7356,7 @@ else
                             str=get(CONN_h.menus.m_analyses_00{30},'string');
                             %str=conn_menumanager(CONN_h.menus.m_analyses_01,'string');
                             switch(str),
-                                case '<',
+                                case CONN_gui.leftarrow,
                                     ncovariates=get(CONN_h.menus.m_analyses_00{1},'value');
                                     for ncovariate=ncovariates(:)',
                                         if isempty(strmatch(CONN_x.Analysis_variables.names{ncovariate},CONN_x.Analyses(ianalysis).regressors.names,'exact')),
@@ -7367,7 +7372,7 @@ else
                                     tnames=CONN_x.Analysis_variables.names;
                                     tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names)),'uni',0);
                                     set(CONN_h.menus.m_analyses_00{1},'string',tnames);
-                                case '>',
+                                case CONN_gui.rightarrow,
                                     ncovariates=get(CONN_h.menus.m_analyses_00{2},'value');
                                     idx=setdiff(1:length(CONN_x.Analyses(ianalysis).regressors.names),ncovariates);
                                     CONN_x.Analyses(ianalysis).regressors.names={CONN_x.Analyses(ianalysis).regressors.names{idx}};
@@ -7383,14 +7388,14 @@ else
                             end
                             model=1;
                         case 1,
-                            set(CONN_h.menus.m_analyses_00{30},'string','<');
-                            %conn_menumanager(CONN_h.menus.m_analyses_01,'string',{'<'},'on',1);
+                            set(CONN_h.menus.m_analyses_00{30},'string',CONN_gui.leftarrow);
+                            %conn_menumanager(CONN_h.menus.m_analyses_01,'string',{CONN_gui.leftarrow},'on',1);
                             set(CONN_h.menus.m_analyses_00{2},'value',[]);
                             set(CONN_h.menus.m_analyses_00{22},'visible','on');
                             %set([CONN_h.menus.m_analyses_00{4},CONN_h.menus.m_analyses_00{5},CONN_h.menus.m_analyses_00{6}],'visible','off');%
                         case 2,
-                            set(CONN_h.menus.m_analyses_00{30},'string','>');
-                            %conn_menumanager(CONN_h.menus.m_analyses_01,'string',{'>'},'on',1);
+                            set(CONN_h.menus.m_analyses_00{30},'string',CONN_gui.rightarrow);
+                            %conn_menumanager(CONN_h.menus.m_analyses_01,'string',{CONN_gui.rightarrow},'on',1);
                             set(CONN_h.menus.m_analyses_00{1},'value',[]);
                             set(CONN_h.menus.m_analyses_00{22},'visible','off');
                             %set([CONN_h.menus.m_analyses_00{4},CONN_h.menus.m_analyses_00{5},CONN_h.menus.m_analyses_00{6}],'visible','on');%
@@ -8775,7 +8780,7 @@ else
                     %set(CONN_h.menus.m_analyses_00{16},'horizontalalignment','left');
                     CONN_h.menus.m_analyses_00{2}=conn_menu('listbox',boffset+[.105,.30,.195,.15],'Seeds/Sources','',['<HTML>List of seeds/ROIs to be included in this analysis  <br/>- Select ROIs in the <i>all ROIs</i> list and click <b> &lt </b> to add new sources to this list<br/> - Select sources in this list and click <b> &gt </b> to remove them from this list <br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);');
                     CONN_h.menus.m_analyses_00{1}=conn_menu('listbox',boffset+[.32,.30,.145,.15],'all ROIs','',['<HTML>List of all seeds/ROIs<br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all/<HTML>'],'conn(''gui_analyses'',1);');
-                    CONN_h.menus.m_analyses_00{30}=conn_menu('pushbutton',boffset+[.30,.30,.02,.15],'','<','move elements between ''Seeds/Sources'' and ''all ROIs'' lists', 'conn(''gui_analyses'',0);');
+                    CONN_h.menus.m_analyses_00{30}=conn_menu('pushbutton',boffset+[.30,.30,.02,.15],'',CONN_gui.leftarrow,'move elements between ''Seeds/Sources'' and ''all ROIs'' lists', 'conn(''gui_analyses'',0);');
                     CONN_h.menus.m_analyses_00{23}=uicontrol('style','frame','units','norm','position',boffset+[.30,.30,.165,.20],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                     conn_menumanager('onregion',CONN_h.menus.m_analyses_00{23},-1,boffset+[.105 .10 .38 .40]);
                     if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).output), CONN_x.dynAnalyses(CONN_x.dynAnalysis).output=[1 1 0]; end
@@ -8812,7 +8817,7 @@ else
                             str=get(CONN_h.menus.m_analyses_00{30},'string');
                             %str=conn_menumanager(CONN_h.menus.m_analyses_01b,'string');
                             switch(str),
-                                case '<',
+                                case CONN_gui.leftarrow,
                                     ncovariates=get(CONN_h.menus.m_analyses_00{1},'value');
                                     for ncovariate=ncovariates(:)',
                                         if isempty(strmatch(CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names{ncovariate},CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names,'exact')),
@@ -8823,7 +8828,7 @@ else
                                     tnames=CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names;
                                     tnames(ismember(CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names,CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names,CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names)),'uni',0);
                                     set(CONN_h.menus.m_analyses_00{1},'string',tnames);
-                                case '>',
+                                case CONN_gui.rightarrow,
                                     ncovariates=get(CONN_h.menus.m_analyses_00{2},'value');
                                     idx=setdiff(1:length(CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names),ncovariates);
                                     CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names={CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names{idx}};
@@ -8834,12 +8839,12 @@ else
                             end
                             model=1;
                         case 1,
-                            set(CONN_h.menus.m_analyses_00{30},'string','<');
-                            %conn_menumanager(CONN_h.menus.m_analyses_01b,'string',{'<'},'on',1);
+                            set(CONN_h.menus.m_analyses_00{30},'string',CONN_gui.leftarrow);
+                            %conn_menumanager(CONN_h.menus.m_analyses_01b,'string',{CONN_gui.leftarrow},'on',1);
                             set(CONN_h.menus.m_analyses_00{2},'value',[]);
                         case 2,
-                            set(CONN_h.menus.m_analyses_00{30},'string','>');
-                            %conn_menumanager(CONN_h.menus.m_analyses_01b,'string',{'>'},'on',1);
+                            set(CONN_h.menus.m_analyses_00{30},'string',CONN_gui.rightarrow);
+                            %conn_menumanager(CONN_h.menus.m_analyses_01b,'string',{CONN_gui.rightarrow},'on',1);
                             set(CONN_h.menus.m_analyses_00{1},'value',[]);
                         case 4,
                             nregressors=get(CONN_h.menus.m_analyses_00{2},'value');
@@ -11447,8 +11452,12 @@ else
                                     SPM.xX_multivariate.F=reshape(conn_fileutils('spm_get_data',tvol,pinv(tvol(1).mat)*CONN_h.menus.m_results.Y(1).mat*txyz),[1,1,CONN_h.menus.m_results.Y(1).dim(1:2)]);
                                     SPM.xX_multivariate.h=SPM.xX_multivariate.F;
                                     info=conn_jsonread(fullfile(resultsfolder,'spmF_mv.json'));
-                                    SPM.xX_multivariate.statsname=info.statsname;
-                                    SPM.xX_multivariate.dof=info.dof;
+                                    try
+                                        SPM.xX_multivariate.statsname=info.statsname;
+                                        SPM.xX_multivariate.dof=info.dof;
+                                    catch
+                                        if conn_existfile(fullfile(resultsfolder,'SPM.mat')), SPM=struct; conn_loadmatfile(fullfile(resultsfolder,'SPM.mat'),'SPM'); end
+                                    end
                                 elseif conn_existfile(fullfile(resultsfolder,'SPM.mat'))
                                     SPM=struct; conn_loadmatfile(fullfile(resultsfolder,'SPM.mat'),'SPM');
                                 end

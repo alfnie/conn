@@ -416,7 +416,8 @@ end
 
 function y = conn_server_ssh_input(x,varargin)
 try
-    y = input(x, varargin{:});
+    fprintf('%s',char(x));
+    y = input('', varargin{:});
 catch
     if isempty(regexp(x,'\s+\[[^\]]+\]\:\s*$'))
         y = inputdlg(x);
