@@ -697,6 +697,7 @@ else
                     else dodebug=true; error('INSTALLATION PROBLEM. Please re-install CONN and try again');
                     end
                 end
+                try, if isfield(CONN_x,'isready')&&any(CONN_x.isready), conn_projectmanager('tag',''); end; end
                 CONN_x=struct('name',[],'filename','','gui',1,'state',0,'ver',connver,'lastver',connver,'isready',[0 0 0 0],'ispending',0,...
                     'opt',struct('fmt1','%03d'),...
                     'pobj',conn_projectmanager('null'),...
@@ -841,6 +842,8 @@ else
                 if strcmp(lower(varargin{1}),'forceclose'), CONN_gui.status=1; delete(hfig); 
                 else close(hfig);
                 end
+            else
+                try, if isfield(CONN_x,'isready')&&any(CONN_x.isready), conn_projectmanager('tag',''); end; end
             end
             CONN_x.gui=0;
             CONN_x.filename='';
@@ -956,6 +959,7 @@ else
                 else CONN_x.filename=conn_fullfile(basefilename);
                 end
                 CONN_x.pobj=pobj;
+                conn_projectmanager('tag','open');
                 if CONN_x.pobj.holdsdata&&isempty(CONN_x.pobj.cache), conn_updatefolders; 
                 else, conn_updatefolders([],false); 
                 end
@@ -1036,6 +1040,7 @@ else
                 catch
                     error(['Failed to save file ',localfilename,'. Check file name and/or folder permissions']);
                 end
+                conn_projectmanager('tag','saved');
                 conn_disp('fprintf','saved %s\n',localfilename);
                 CONN_x.isready(1)=1;
                 if ~saveas&&CONN_x.pobj.holdsdata&&~(isfield(CONN_x.pobj,'cache')&&~isempty(CONN_x.pobj.cache)),
@@ -1186,6 +1191,8 @@ else
                     end
                     if strcmp(Answ,'Proceed')
                         ht=conn_msgbox('Loading project file. Please wait...','',-1);
+                        conn initfromgui
+                        conn importrois;
                         conn('load',filename,true);
                         conn_disp('fprintf','Project %s loaded\n',filename);
                         if ishandle(ht), delete(ht); end
@@ -5069,6 +5076,8 @@ else
                 else
                     %filename=fullfile(pathname,filename);
                     ht=conn_msgbox('Loading project file. Please wait...','',-1);
+                    conn initfromgui
+                    conn importrois;
                     conn('load',filename,true);
                     conn_disp('fprintf','Project %s loaded\n',filename);
                     if ishandle(ht), delete(ht); end
@@ -6891,8 +6900,8 @@ else
                 CONN_h.menus.m_analyses.analyses_listtype=[CONN_h.menus.m_analyses.analyses_listtype, 3+zeros(1,numel(temp))];
                 CONN_h.menus.m_analyses.analyses_listidx=[CONN_h.menus.m_analyses.analyses_listidx, 1:numel(temp)];
                 %conn_menu('framehighlight',[.06 .23 .10 .57],'');
-                conn_menu('framewhitehighlight',[.06 .25 .10 .51],' ');
-                CONN_h.menus.m_analyses_00{101}=conn_menu('listboxbigblue',[.06 .27 .10 .49],'Analyses',[CONN_h.menus.m_analyses.analyses_listnames,{' '}],'<HTML>Select first-level analysis<br/> - click after the last item to add a new first-level analysis<br/> - after finishing defining/editing this analysis, click on ''Done'' to run the selected first-level analysis</HTML>','conn(''gui_analyses'',101);','conn(''gui_analyses'',102);');
+                conn_menu('framewhitehighlight',[.06 .20 .10 .56],' ');
+                CONN_h.menus.m_analyses_00{101}=conn_menu('listboxbigblue',[.06 .22 .10 .54],'Analyses',[CONN_h.menus.m_analyses.analyses_listnames,{' '}],'<HTML>Select first-level analysis<br/> - click after the last item to add a new first-level analysis<br/> - after finishing defining/editing this analysis, click on ''Done'' to run the selected first-level analysis</HTML>','conn(''gui_analyses'',101);','conn(''gui_analyses'',102);');
                 idx=[];
                 if ~isempty(state)&&state(1)==1, idx=find(CONN_h.menus.m_analyses.analyses_listtype==1&CONN_h.menus.m_analyses.analyses_listidx==CONN_x.Analysis,1); end
                 if ~isempty(state)&&state(1)==2, idx=find(CONN_h.menus.m_analyses.analyses_listtype==2&CONN_h.menus.m_analyses.analyses_listidx==CONN_x.vvAnalysis,1); end
@@ -12987,6 +12996,7 @@ if strcmp(answ,'Save and Exit'), conn save; end
 if strcmp(answ,'Exit without saving/disconnecting'), dohpcexit=false; end
 switch(answ)
     case {'Exit CONN','Exit without saving','Exit without saving/disconnecting','Save and Exit'}
+        try, if ~isequal(answ,'Exit CONN')&&isfield(CONN_x,'isready')&&any(CONN_x.isready), conn_projectmanager('tag',''); end; end
         CONN_gui.status=1;
         delete(gcbf);
         CONN_x.gui=0;

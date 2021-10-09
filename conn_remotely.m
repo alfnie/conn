@@ -248,7 +248,6 @@ if ~nargin||isempty(option), option='start'; end
 switch(option)
     case {'start','restart','end','softstart','softrestart','softend'}         % GUI interaction
         if isequal(varargin,{'server'}), conn_remotely('startserver',varargin{2:end}); return; end
-        if isequal(varargin,{'serverwithgui'}), conn_remotely('startserverwithgui',varargin{2:end}); return; end
         if isfield(CONN_gui,'isremote'), isremote=CONN_gui.isremote;
         else isremote=false; 
         end
@@ -268,7 +267,14 @@ switch(option)
         else Answ='Proceed';
         end
         if strcmp(Answ,'Proceed')
-            if doend
+            if isequal(varargin,{'serverwithgui'}),
+                conn initfromgui;
+                conn importrois;
+                conn gui_recent_init;
+                conn gui_setup
+                conn_remotely('startserverwithgui',varargin{2:end});
+                return;
+            elseif doend
                 if dosoft, conn_server_ssh softexit; % note: softend does not stop server
                 else conn_server_ssh exit;
                 end
@@ -354,7 +360,7 @@ switch(option)
             handles.server=uicontrol(handles.hfig,'style','checkbox','units','norm','position',[.15,.30,.75,.05],'string','Connect using SSH (secure/encrypted communications, servers are automatically started)','value',use_ssh,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>When this option is checked this computer uses secure/encrypted communications and servers are automatically started<br/>When this option is unchecked this computer uses unsecure/unencrypted communications and servers are manually started</HTML>');
             uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.10,.30,.025,.075],'string','?','backgroundcolor','w','callback',@(varargin)conn_msgbox(strserver{1+get(handles.server,'value')},'',-1),'tooltipstring','<HTML>help / how-to connect to remote servers</HTML>','userdata',handles.server);
             handles.cmd_server=uicontrol(handles.hfig,'style','popupmenu','units','norm','position',[.20,.20,.7,.075],'string',toptions,'value',dprofile,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>HPC profile to use when starting a CONN server</HTML>');
-            handles.now_server=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.20,.20,.7,.075],'string','Manually start CONN server now','callback','close(gcbf);conn_remotely(''startserverwithgui'');','tooltipstring','<HTML>Starts a CONN server on this computer and waits for client to connect over TCP/IP (note: without SSH secured/encrypted communications)</HTML>');
+            handles.now_server=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.20,.20,.7,.075],'string','Manually start CONN server now','callback','close(gcbf);conn_remotely(''start'',''serverwithgui'');','tooltipstring','<HTML>Starts a CONN server on this computer and waits for client to connect over TCP/IP (note: without SSH secured/encrypted communications)</HTML>');
             handles.persistent_server=uicontrol(handles.hfig,'style','checkbox','units','norm','position',[.20,.125,.7,.075],'string','Close server when connection to client ends','value',~tjson2.SERVERpersistent,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>Behavior of CONN server when client disconnects (when unchecked, CONN server will wait for a new client after a connection ends)</HTML>');
             hdls={handles.cmd_server handles.now_server handles.persistent_server};
             if use_ssh, set([hdls{1} hdls{3}],'visible','on'); set(hdls{2},'visible','off'); else set([hdls{1} hdls{3}],'visible','off'); set(hdls{2},'visible','on'); end

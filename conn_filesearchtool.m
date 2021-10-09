@@ -60,6 +60,10 @@ if nargin<1 || ischar(varargin{1}),
     h.selected=uicontrol('style','text','units','norm','position',[1,.04,.23,.9,.10]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','fontname',params.fontname,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
     %h.select=uicontrol('style','pushbutton','units','norm','position',[1,.7,.14,.25,.05]*M,'string','Select','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','tooltipstring','Enter selected file(s) or open selected folder','callback',{@conn_filesearchtool,'files',true});
     if ~isempty(params.inserver), h.inserver=params.inserver; else h.inserver=conn_projectmanager('inserver'); end
+    if h.inserver, params.folder=conn_server('util_remotefile',params.folder); % switch to proper local/remote folder when initializing
+    else params.folder=conn_server('util_localfile',params.folder);
+    end
+    cwd=params.folder;
     h.isfiles=strcmp(params.type,'files');
     if h.isfiles
         if ~isempty(params.buttonhelp), h.strbuttonhelp=params.buttonhelp; 

@@ -75,6 +75,29 @@ switch(lower(option))
             varargout={false};
         end
         
+    case 'tag', % submitted/started/finished
+        filepath=conn_prepend('',conn_projectmanager('projectfile'),'');
+        varargout=cell(1,nargout);
+        if ~isempty(filepath)&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'holdsdata')&&CONN_x.pobj.holdsdata
+            if nargin>1
+                tag=varargin{1};
+                filename=fullfile(filepath,['statusfile.' tag]);
+                rename=true;
+                try, conn_fileutils('deletefile_multiple',fullfile(filepath,'statusfile.')); rename=~isempty(tag); end
+                if rename
+                    try, conn_fileutils('emptyfile',filename);
+                    catch, error('Unable to create file %s. Check folder permissions and try again\n',filename);
+                    end
+                end
+                varargout={};
+            else
+                tfiles=conn_fileutils('dir',fullfile(filepath,'statusfile.*'));
+                if numel(tfiles)~=1, varargout={'unknown'};
+                else varargout={regexprep(tfiles.name,'^statusfile\.','')};
+                end
+            end
+        end
+            
     case 'homedir'
         if conn_projectmanager('inserver'), 
             [a,b]=conn_server('run',mfilename,option,varargin{:}); 
