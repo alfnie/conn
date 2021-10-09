@@ -273,8 +273,8 @@ switch(option)
                 conn gui_recent_init;
                 conn gui_setup
                 conn_remotely('startserverwithgui',varargin{2:end});
-                return;
             elseif doend
+                conn init;
                 if dosoft, conn_server_ssh softexit; % note: softend does not stop server
                 else conn_server_ssh exit;
                 end
