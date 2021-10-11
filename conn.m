@@ -304,7 +304,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'toggle',0,...
                                     'roll',1,...
 									'position',[.084,.955-1.5*.045-6*.045,.229,6*.045],...%[.09,.88-6*.05,.08,6*.05],...
-									'fontsize',7,...
+									'fontsize',6,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_recent_load',1},{@conn,'gui_recent_load',2},{@conn,'gui_recent_load',3},{@conn,'gui_recent_load',4},{@conn,'gui_recent_load',5},{@conn,'gui_recent_load',6}} );
 	CONN_h.menus.m_setup_01a=conn_menumanager([], 'n',8,...
@@ -897,7 +897,7 @@ else
                     [tagname,tagmsg]=conn_projectmanager('readtag',localfilename);
                     if ~isempty(tagname),
                         if isequal(regexprep(tagmsg,' @.*$',''),conn_projectmanager('whoami')), conn_msgbox({'Warning: This project has not been properly closed',['Last active user: ',tagmsg],'This may cause loss of data, or conflicts between changes performed by different users','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
-                        else conn_msgbox({'Warning: This project has not been closed',['Last active user: ',tagmsg],'Simultaneous changes from different users may cause loss of data','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
+                        else conn_msgbox({'Warning: This project is currently open by a different user',['Last active user: ',tagmsg],'Simultaneous changes from different users may cause loss of data','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
                         end
                         %else conn_disp('fprintf','Warning: This project has not been properly closed\nLast active user: %s\n',tagmsg);
                     end
@@ -1564,7 +1564,7 @@ else
             info=conn_remotely('info');
             if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
             elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
-            else tnameserver='CONN server';
+            else tnameserver='unknown';
             end
             thfig=figure('units','norm','position',[.3,.4,.5,.4],'menubar','none','numbertitle','off','name','CONN remotely','color','w');
             str={}; 

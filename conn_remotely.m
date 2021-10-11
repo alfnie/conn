@@ -312,7 +312,7 @@ switch(option)
         end
     case 'settings'
         tjson1=conn_server_ssh('options');
-        filename2=fullfile(conn_fileutils('homedir'),'connserverinfo.json');
+        filename2=fullfile(conn_projectmanager('homedir'),'connserverinfo.json');
         if conn_existfile(filename2), use_ssh=true; tjson2=conn_jsonread(filename2); else use_ssh=false; tjson2=struct; end
         if ~isfield(tjson2,'SERVERcmd'), tjson2.SERVERcmd=conn_jobmanager('getdefault'); end
         if ~isfield(tjson2,'SERVERpersistent'), tjson2.SERVERpersistent=false; end
@@ -349,7 +349,15 @@ switch(option)
         if tjson1.use_ssh, set(hdls{1},'visible','on'); set(hdls{2},'visible','off'); else set(hdls{1},'visible','off'); set(hdls{2},'visible','on'); end
         set(handles.client,'callback','hdl=get(gcbo,''userdata''); if get(gcbo,''value''), set(hdl{1},''visible'',''on''); set(hdl{2},''visible'',''off''); else set(hdl{1},''visible'',''off''); set(hdl{2},''visible'',''on''); end','userdata',hdls);
         
-        if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, % note: when connected to remote session list of profiles in this gui may not be representative of local profiles available
+        if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, % note: when connected to remote session options displayed are the options at the remote/server computer, not the local/client machine
+            info=conn_remotely('info');
+            if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
+            elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
+            else tnameserver='CONN server';
+            end
+            set(handles.hfig,'name',sprintf('Remote connection settings (at %s)',tnameserver));
+        end
+        if 0,%isfield(CONN_gui,'isremote')&&CONN_gui.isremote, 
             handles.server=[];
             handles.cmd_server=[];
             handles.now_server=[];
@@ -371,13 +379,17 @@ switch(option)
             tjson1.cmd_ssh=get(handles.cmd_ssh,'string');
             tjson1.cmd_scp=get(handles.cmd_scp,'string');
             tjson1.use_ssh=get(handles.client,'value');
-            conn_server_ssh('options',tjson1); % client info
+            if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn_server('run','conn_server_ssh','options',tjson1); 
+            else conn_server_ssh('options',tjson1); % client info
+            end
             if ~isempty(handles.server) 
                 if get(handles.server,'value')>0
                     dprofile=get(handles.cmd_server,'value');
                     tjson2.SERVERcmd=profiles{tvalid(dprofile)};
                     tjson2.SERVERpersistent=~get(handles.persistent_server,'value');
-                    conn_remotely('setup',filename2,tjson2.SERVERcmd,tjson2.SERVERpersistent); % server info
+                    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn_server('run','conn_remotely','setup',conn_server('util_localfile',filename2),tjson2.SERVERcmd,tjson2.SERVERpersistent);
+                    else conn_remotely('setup',filename2,tjson2.SERVERcmd,tjson2.SERVERpersistent); % server info
+                    end
                 else
                     try, conn_fileutils('deletefile',filename2); end
                 end

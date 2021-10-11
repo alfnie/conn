@@ -254,7 +254,7 @@ switch(lower(option))
         elseif readword % read to var directly
             filename=[];
         else % read to file then load var
-            filename=fullfile(connection.cache,['conntcpipread_',char(conn_tcpip('hash',mat2str(now))),'.mat']);
+            filename=fullfile(connection.cache,['cachetmp_',char(conn_tcpip('hash',mat2str(now))),'.mat']);
         end
         filehandle=[];
         bored=false;
@@ -423,7 +423,7 @@ switch(lower(option))
                 fprintf('Unable to send TCP packet (possibly unresponsive server). Disregarding\n');
             end
         else % save to file then send file
-            filename=fullfile(connection.cache,['conntcpipwrite_',char(conn_tcpip('hash',mat2str(now))),'.mat']);
+            filename=fullfile(connection.cache,['cachetmp_',char(conn_tcpip('hash',mat2str(now))),'.mat']);
             if info.bytes>2e9, save(filename,'msg','-v7.3'); 
             else save(filename,'msg','-v7'); 
             end

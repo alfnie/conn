@@ -433,7 +433,10 @@ switch(lower(option))
         tnameserver=conn_tcpip('private.ip');
         while 1
             if ~isempty(varargin), cmd=varargin{1}; opts=varargin(2:end);
-            else cmd=input([tnameserver,' >> '],'s'); opts={};
+            else
+                fprintf('%s',[tnameserver,' >> ']);
+                cmd=input('','s'); 
+                opts={};
             end
             switch(lower(cmd))
                 case {'quit','exit'}, break;
@@ -456,8 +459,8 @@ switch(lower(option))
         end
         
     case 'clear_cache'
-        conn_cache clear;
-        conn_tcpip clear;
+        conn_cache clearall;
+        %conn_tcpip clear;
         
     case {'clear','clear_keep'}
         if params.isserver,

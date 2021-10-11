@@ -48,21 +48,26 @@ end
 if ~nargin||isempty(option), option='init'; end
 
 switch(lower(option))
-    case 'init'
+    case {'init','clearall'}
+        if strcmpi(option,'clearall'),
+            if ispc,
+                [ok,nill]=system(sprintf('del /Q "%s"',fullfile(params.local_folder,'conncache_*')));
+                [ok,nill]=system(sprintf('del /Q "%s"',fullfile(params.local_folder,'cachetmp_*')));
+            else
+                [ok,nill]=system(sprintf('rm -f ''%s''/conncache_*',params.local_folder));
+                [ok,nill]=system(sprintf('rm -f ''%s''/cachetmp_*',params.local_folder));
+            end
+            fprintf('CONN drive initialized\nLocal/cache folder cleared: %s\n', params.local_folder);
+        else
+            if ispc, for n=1:numel(params.local_files), try, [ok,nill]=system(sprintf('del "%s"',params.local_files{n})); end; end
+            else for n=1:numel(params.local_files), try, [ok,nill]=system(sprintf('rm -f ''%s''',params.local_files{n})); end; end
+            end
+            fprintf('CONN drive initialized\nLocal/cache folder: %s\n', params.local_folder);
+        end
         params.local_files={};
         params.remote_files={};
         params.local_hashes={};
         params.remote_hashes={};
-        if ispc, 
-            [ok,nill]=system(sprintf('del /Q "%s"',fullfile(params.local_folder,'conncache_*')));
-            [ok,nill]=system(sprintf('del /Q "%s"',fullfile(params.local_folder,'cachetmp_*')));
-            [ok,nill]=system(sprintf('del /Q "%s"',fullfile(params.local_folder,'conntcpipwrite_*')));
-        else
-            [ok,nill]=system(sprintf('rm -f ''%s''/conncache_*',params.local_folder));
-            [ok,nill]=system(sprintf('rm -f ''%s''/cachetmp_*',params.local_folder));
-            [ok,nill]=system(sprintf('rm -f ''%s''/conntcpipwrite_*',params.local_folder));
-        end
-        fprintf('CONN drive initialized\nLocal/cache folder: %s\n', params.local_folder);
         
     case {'pull','new'}   % conn drive pull <remotefile>
         filename_remote=varargin{1};
@@ -208,7 +213,7 @@ switch(lower(option))
             idx=find(strcmp(filename_remote, params.remote_files),1,'last');
             if isempty(idx), error('Could not find a match for file %s. Please enter explicit filename_local argument',filename_remote);
             else
-                %conn_fileutils('deletefile',params.local_files{idx});
+                try, conn_fileutils('deletefile',params.local_files{idx}); end
                 params.local_files(idx)=[];
                 params.remote_files(idx)=[];
                 params.local_hashes(idx)=[];
@@ -227,7 +232,7 @@ switch(lower(option))
             params.remote_hashes{idx}=[];
         end
         
-    case 'hash' % conn cache has filename
+    case 'hash' % conn cache hash filename
         varargout={conn_cache_hash(varargin{:},params.hash)};
         
     case 'clearhash'  % conn cache clearhash

@@ -249,9 +249,10 @@ switch(lower(option))
             end
             if ~isempty(params.info.host), try, [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end; end
             conn_tcpip('close');
-            params.state='off';
             conn_cache clear;
             conn_jobmanager clear;
+            %params.state='off';
+            params=[];
         else
             fprintf('unable to connect to server, please terminate the server manually or use "conn_server_ssh restart" to restart the connection with the server and try "conn_server_ssh exit" again\n');
             if ~isempty(params.info.host), system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end
