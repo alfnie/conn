@@ -697,7 +697,7 @@ else
                     else dodebug=true; error('INSTALLATION PROBLEM. Please re-install CONN and try again');
                     end
                 end
-                try, if isfield(CONN_x,'isready')&&any(CONN_x.isready), conn_projectmanager('tag',''); end; end
+                try, if isfield(CONN_x,'isready')&&any(CONN_x.isready), conn_projectmanager('tag',''); end; end % close
                 CONN_x=struct('name',[],'filename','','gui',1,'state',0,'ver',connver,'lastver',connver,'isready',[0 0 0 0],'ispending',0,...
                     'opt',struct('fmt1','%03d'),...
                     'pobj',conn_projectmanager('null'),...
@@ -893,6 +893,15 @@ else
                 folderchanged={};
                 [basefilename,pobj]=conn_projectmanager('extendedname',filename);
                 localfilename=conn_projectmanager('projectfile',basefilename,pobj);
+                if fromgui&&~pobj.isextended
+                    [tagname,tagmsg]=conn_projectmanager('readtag',localfilename);
+                    if ~isempty(tagname),
+                        if isequal(regexprep(tagmsg,' @.*$',''),conn_projectmanager('whoami')), conn_msgbox({'Warning: This project has not been properly closed',['Last active user: ',tagmsg],'This may cause loss of data, or conflicts between changes performed by different users','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
+                        else conn_msgbox({'Warning: This project has not been closed',['Last active user: ',tagmsg],'Simultaneous changes from different users may cause loss of data','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
+                        end
+                        %else conn_disp('fprintf','Warning: This project has not been properly closed\nLast active user: %s\n',tagmsg);
+                    end
+                end
 				try 
                     if ~pobj.isextended||conn_existfile(localfilename), 
                         errstr=localfilename; 
@@ -959,7 +968,7 @@ else
                 else CONN_x.filename=conn_fullfile(basefilename);
                 end
                 CONN_x.pobj=pobj;
-                conn_projectmanager('tag','open');
+                if CONN_x.pobj.holdsdata, conn_projectmanager('tag','open'); end
                 if CONN_x.pobj.holdsdata&&isempty(CONN_x.pobj.cache), conn_updatefolders; 
                 else, conn_updatefolders([],false); 
                 end
@@ -1040,7 +1049,6 @@ else
                 catch
                     error(['Failed to save file ',localfilename,'. Check file name and/or folder permissions']);
                 end
-                conn_projectmanager('tag','saved');
                 conn_disp('fprintf','saved %s\n',localfilename);
                 CONN_x.isready(1)=1;
                 if ~saveas&&CONN_x.pobj.holdsdata&&~(isfield(CONN_x.pobj,'cache')&&~isempty(CONN_x.pobj.cache)),
@@ -1193,6 +1201,7 @@ else
                         ht=conn_msgbox('Loading project file. Please wait...','',-1);
                         conn initfromgui
                         conn importrois;
+                        
                         conn('load',filename,true);
                         conn_disp('fprintf','Project %s loaded\n',filename);
                         if ishandle(ht), delete(ht); end

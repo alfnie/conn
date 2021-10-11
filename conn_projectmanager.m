@@ -75,29 +75,44 @@ switch(lower(option))
             varargout={false};
         end
         
-    case 'tag', % submitted/started/finished
-        filepath=conn_prepend('',conn_projectmanager('projectfile'),'');
-        varargout=cell(1,nargout);
+    case {'tag', 'readtag'}
+        varargout=repmat({''},1,nargout);
+        filepath=''; 
+        if strcmpi(option,'readtag'), filepath=conn_prepend('',varargin{1},'');
+        else try, filepath=conn_prepend('',conn_projectmanager('projectfile'),''); end
+        end
         if ~isempty(filepath)&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'holdsdata')&&CONN_x.pobj.holdsdata
-            if nargin>1
+            if strcmpi(option,'tag')&&nargin>1
                 tag=varargin{1};
-                filename=fullfile(filepath,['statusfile.' tag]);
+                str=sprintf('%s @ %s',conn_projectmanager('whoami'),datestr(now));
+                filename=fullfile(filepath,sprintf('statusfile.%s',tag));
                 rename=true;
                 try, conn_fileutils('deletefile_multiple',fullfile(filepath,'statusfile.')); rename=~isempty(tag); end
                 if rename
-                    try, conn_fileutils('emptyfile',filename);
+                    try, conn_fileutils('filewrite',filename,str);
                     catch, error('Unable to create file %s. Check folder permissions and try again\n',filename);
                     end
                 end
-                varargout={};
             else
                 tfiles=conn_fileutils('dir',fullfile(filepath,'statusfile.*'));
-                if numel(tfiles)~=1, varargout={'unknown'};
-                else varargout={regexprep(tfiles.name,'^statusfile\.','')};
+                if numel(tfiles)==0, varargout={'',''};
+                elseif numel(tfiles)>1, varargout={'unknown',''};
+                else
+                    if nargout>1, varargout={regexprep(tfiles.name,'^statusfile\.',''), conn_fileutils('fileread',fullfile(filepath,tfiles.name))};
+                    else varargout={regexprep(tfiles.name,'^statusfile\.','')};
+                    end
                 end
             end
         end
-            
+           
+    case 'whoami'
+        if conn_projectmanager('inserver'), out=conn_server('run',mfilename,option,varargin{:}); 
+        else
+            out='unknown';
+            try, [nill,str2]=system('whoami'); out=regexprep(char(str2),'\n',''); end
+        end
+        varargout={out};
+        
     case 'homedir'
         if conn_projectmanager('inserver'), 
             [a,b]=conn_server('run',mfilename,option,varargin{:}); 

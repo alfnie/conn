@@ -1851,6 +1851,8 @@ if isfield(batch,'Results'),
     end
 end
 
+if isfield(batch,'filename'), try, conn_projectmanager('tag',''); end; end
+
 end
 
 function conn_batch_eval(filename)
