@@ -203,6 +203,7 @@ switch(lower(option))
                     fprintf('Client was unable to match CONN server ID. Try starting a server at a different port\n');
                 end
             else
+                finished=false;
                 for ntries=1:3
                     try
                         pause(2^(ntries-1)+rand);
@@ -215,9 +216,11 @@ switch(lower(option))
                             conn_tcpip('close');
                             fprintf('Client was unable to match CONN server ID\n');
                         end
+                        finished=true;
                         break;
                     end
                 end
+                assert(finished,'Communication failure');
             end
         catch
             conn_tcpip('close');

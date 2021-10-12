@@ -13,7 +13,7 @@ function varargout=conn_remotely(option,varargin)
 % accessible location (e.g. fixed IP address) and that has a OpenSSH-compatible SSH server/daemon running,
 % as well as access to a second Linux/Mac/Windows computer ('client') with regular network/internet access
 % and a OpenSSH-compatible SSH client installed (e.g. this is already installed by default as part of the
-% operating system in most Linux & Mac computers).
+% operating system in most Linux/Mac/Windows computers).
 %
 % Installation in the 'host' computer requires the standard installation of SPM/CONN, and also running
 % just once as part of the installation procedure the Matlab command "conn_remotely setup" (without quotes),
@@ -22,13 +22,13 @@ function varargout=conn_remotely(option,varargin)
 % computer remotely (alternatively another ~/connserverinfo.json file may be manually copied to a user's
 % home directory).
 %
+% Installation in the 'client' computer simply requires the standard installation of SPM/CONN.
+%
 % If the 'host' computer is part of a HPC or cluster environment, see
 %    www.conn-toolbox.org/resources/cluster-configuration
 % for additional HPC/cluster installation instructions. While optional, setting up CONN's cluster/HPC
 % configuration in your 'host' computer allows CONN_REMOTELY to also submit jobs to your cluster remotely
 % (jobs submitted from the 'client' computer which will be run in the local network of the 'host' computer).
-%
-% Installation in the 'client' computer simply requires the standard installation of SPM/CONN.
 %
 % Usage: %!
 %
@@ -44,7 +44,7 @@ function varargout=conn_remotely(option,varargin)
 %   "Username" prompt        :      Enter your username in the 'host' computer (used to establish an SSH-connection
 %                                   with the host)
 %   "Password" prompt        :      Enter your password in the 'host' computer (note: CONN does not read nor store
-%                                   your password, this will be read by your system's ssh command directly from tty)
+%                                   your password, this will be read by your system's ssh program directly from tty)
 %
 % After this CONN will launch the standard CONN GUI and allow you to load and work with any CONN projects that may be
 % accessible from the 'host' computer.
