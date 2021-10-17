@@ -652,14 +652,14 @@ kx=2*ceil(.75*p2(1))+1;ky=2*ceil(.75*p2(2))+1;
 [tx,ty]=meshgrid(1:kx,1:ky); c1=(ky+1)/2; c2=kx-(ky-1)/2;
 kz=c1:-1:.0*c1; t=0;
 %try, if isequal(datestr(now,'mmdd'),'0401'), params.color=params.color*min(1,sparse(1:3,randperm(3),1,3,3)); end; end
+rns=10;
+for n1=kz, t=t+double((abs(tx-c1).^rns+abs(ty-c1).^rns)<abs(n1).^rns | (abs(tx-c2).^rns+abs(ty-c1).^rns)<abs(n1).^rns | (tx>=c1&tx<=c2&abs(ty-c1)<n1))/length(kz); end;
+t=max(0,min(1,t));
+%t=max(0,t-.20).^.125;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
+t=1*max(0,t-.20).^.0125;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
+t(tx>=kx-2)=0;
 switch(lower(params.bordertype))
     case 'round'
-        rns=10;
-        for n1=kz, t=t+double((abs(tx-c1).^rns+abs(ty-c1).^rns)<abs(n1).^rns | (abs(tx-c2).^rns+abs(ty-c1).^rns)<abs(n1).^rns | (tx>=c1&tx<=c2&abs(ty-c1)<n1))/length(kz); end; 
-        t=max(0,min(1,t));
-        %t=max(0,t-.20).^.125;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
-        t=1*max(0,t-.20).^.0125;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
-        t(tx>=kx-2)=0;
         t2=repmat(.5+0*.5*linspace(1,0,size(t,1))'.^2,1,size(t,2)).*t;
         t1=repmat(.75+0*.25*linspace(1,0,size(t,1))'.^2,1,size(t,2)).*t;
         %bg=[0 0 0];%min(1,4*params.backgroundcolor);
@@ -669,7 +669,7 @@ switch(lower(params.bordertype))
         else transparent=max(0,min(1,min(.0,params.transparent)*[1 .5 0]));
         end
     case 'square'
-        t=1+zeros(size(tx));
+        if 0, t=1+zeros(size(tx)); end
         if 0, t2=1-.5*repmat(linspace(1,-1,size(t,1))'.^8,1,size(t,2)); t1=.75-.5*repmat(linspace(1,-1,size(t,1))'.^8,1,size(t,2));
         elseif strcmp(params.order,'horizontal'), t2=t-0*.5*repmat(linspace(1,-1,size(t,1))'.^10,1,size(t,2)); t1=.75*t-0*.5*repmat(linspace(1,-1,size(t,1))'.^10,1,size(t,2));
         else t2=t-0*.5*repmat(linspace(1,-1,size(t,2)).^50,size(t,1),1); t1=.75*t-0*.5*repmat(linspace(1,-1,size(t,2)).^50,size(t,1),1);

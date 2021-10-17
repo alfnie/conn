@@ -1432,6 +1432,7 @@ end
                 uimenu(hc1,'Label','Sort by ROI','callback',{@rex_results_gui,'sortbyname'});
                 uimenu(hc1,'Label','Sort by p-value','callback',{@rex_results_gui,'sortbysign'});
                 uimenu(hc1,'Label','Export table','callback',{@rex_test_refresh,'export'});
+                uimenu(hc1,'Label','Export effect sizes','callback',{@rex_test_refresh,'export_effects'});
                 set(options.hlist,'uicontextmenu',hc1);
             end
             set(options.hlist,'callback',{@rex_results_gui,'list'});
@@ -1462,6 +1463,13 @@ end
                 return
             case 'export'
                 conn_exportlist(options.hlist,'',get(options.hlist0,'string'));
+                return
+            case 'export_effects'
+                [filename,filepath]=uiputfile({'*.mat','MAT-files (*.mat)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*',  'All Files (*)'},'Save effects as');
+                if ~ischar(filename), return; end
+                filename=fullfile(filepath,filename);
+                conn_savetextfile(filename,cbeta(:,selectedROIs),roinames(selectedROIs));
+                fprintf('Effects exported to %s\n',filename);
                 return
         end
         if options.dispstats, 

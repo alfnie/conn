@@ -1308,7 +1308,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                     try,
                         fileout=conn_prepend('d',cellstr(conn_get_functional(nsub,nses)));
                         if numel(fileout)>1, fileout=fileout(1); end
-                        Voutputfiles{nses}=struct('fname',char(fileout),...
+                        Voutputfiles{nses}=struct('fname',regexprep(char(fileout),',\d+$',''),...
                             'mat',Y{nses}.matdim.mat,...
                             'dim',Y{nses}.matdim.dim(1:3),...
                             'n',[1,1],...
@@ -1382,7 +1382,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                 redone_files=redone_files+1;
             end
             if any(softlinkoverwrite)
-                B=[]; RT=[];
+                B=[]; RT=[]; 
                 for slice=1:Y{1}.matdim.dim(3),
                     Bb=[];
                     if 1, % analyses per slice (all sessions together, faster but requires more memory)
@@ -1437,7 +1437,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                             conn_write_slice(Yout{ncondition},ytemp,slice);
                             if ~Youtnorm{ncondition}.EmptyData, conn_write_slice(Youtnorm{ncondition},cat(1,norm_pre,norm_post),slice); end
                         end
-                    else, % analyses per slice/session (slower but requires less memory)
+                    else, % analyses per slice/session (slower but requires less memory; obsolete now)
                         for nses=1:nsess,
                             [y,idx]=conn_get_slice(Y{nses},slice);
                             if size(y,1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
@@ -1505,6 +1505,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                     end
                     conn_waitbar((n+slice/Y{1}.matdim.dim(3))/N,h,sprintf('Subject %d',nsub));
                 end
+                
                 if 0,%%% 0 to avoid memory errors
                     if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=1&&CONN_x.Setup.outputfiles(1),
                         t=nan+zeros(Y{1}.matdim.dim);
@@ -2930,6 +2931,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
     filename_B1=fullfile(filepath,['vvPC_Subject',num2str(validsubjects(1),'%03d'),'_Condition',num2str(icondition(referenceconditions(1)),'%03d'),'.mat']);
     Y1=conn_vol(filename_B1);
     if isfield(Y1,'issurface')&&Y1.issurface, issurface=true; else issurface=false; end
+    LEFT2RIGHT=[];RIGHT2LEFT=[];
     REPLACERESULTS=true; 
     dogrouplevel=any(options==13|options==13.1); if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'grouplevel')&&~ismember(CONN_x.gui.grouplevel,[0 1]),dogrouplevel=false; end 
     dosubjectlevel=any(options==13|options==13.2); if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'grouplevel')&&~ismember(CONN_x.gui.grouplevel,[0 2]),dosubjectlevel=false; end 
@@ -2948,7 +2950,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
         measuretypes=cat(1,measures.measuretype{:});
         measuretypes_1=ismember(measuretypes,[1,5]);     %v2v
         measuretypes_2=ismember(measuretypes,[2,3,4]);   %groupanalyses
-        measuretypes_3=ismember(measuretypes,[6,7]);     %other
+        measuretypes_3=ismember(measuretypes,[6,7,8]);   %other
         measuretypes=1*measuretypes_1+2*measuretypes_2+3*measuretypes_3;
         [measuretypes,idx]=sort(measuretypes);mfieldnames=fieldnames(measures);for nfieldnames=1:numel(mfieldnames), measures.(mfieldnames{nfieldnames})=measures.(mfieldnames{nfieldnames})(idx); end
         nmeasures=numel(measures.names);
@@ -3126,6 +3128,37 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                         params{nmeasure}.m=y2;
                                     elseif measures.measuretype{nmeasure}==7 % fALFF
                                         params{nmeasure}.m=y2./max(eps,y1);
+                                    elseif measures.measuretype{nmeasure}==8 % IHC
+                                        filename=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
+                                        Y=conn_vol(filename);
+                                        if isfield(Y,'issurface')&&Y.issurface,
+                                            y3=zeros([numel(y2)/2,2]);
+                                            if isempty(LEFT2RIGHT),load(fullfile(which(mfilename),'utils','surf','lhrh.mat','LEFT2RIGHT','RIGHT2LEFT')); end
+                                            for nt=1:Y.size.Nt,
+                                                [ytemp,idx]=conn_get_time(Y,nt);
+                                                ytemp=reshape(ytemp,[],2);
+                                                y3=y3+Y.conditionsweights{1}(nt)*[ytemp(:,1).*ytemp(RIGHT2LEFT,2), ytemp(:,2).*ytemp(LEFT2RIGHT,1)];
+                                            end
+                                            y3=y3/max(eps,sum(Y.conditionsweights{1}));
+                                            ty2=reshape(y2,[],2);
+                                            y3=reshape(y3./max(eps,ty2.*[ty2(RIGHT2LEFT,2), ty2(LEFT2RIGHT,1)]),size(y2));
+                                        else
+                                            y3=zeros(size(y1));
+                                            for slice=1:Y.matdim.dim(3),
+                                                [ytemp,idx]=conn_get_slice(Y,slice);
+                                                idx_involume=idx+Y.matdim.dim(1)*Y.matdim.dim(2)*(slice-1);
+                                                t=zeros(Y.matdim.dim(1:2));
+                                                t(idx)=1:numel(idx);
+                                                t=flipud(t);
+                                                flipped=t(idx);
+                                                flippedok=flipped>0 & flipped~=reshape(1:numel(idx),size(flipped));
+                                                if isempty(LEFT2RIGHT)&&(nnz(Y.matdim.mat(1:3,1:3)-diag(diag(Y.matdim.mat(1:3,1:3))))>0||Y.matdim.mat(1,:)*[Y.matdim.dim(1)+1;0;0;2]~=0), LEFT2RIGHT=false; conn_disp('Warning: data first-dimension does not represent x spatial-coordinates; homotopic interhemispheric correlations may be inaccurate'); end
+                                                rnorm_post=zeros(size(flipped));
+                                                rnorm_post(flippedok)=(sum(repmat(Y.conditionsweights{1},1,nnz(flippedok)).*ytemp(:,flippedok).*ytemp(:,flipped(flippedok)),1)/max(eps,sum(Y.conditionsweights{1})))./reshape(max(eps,y2(idx_involume(flippedok)).*y2(idx_involume(flipped(flippedok)))),1,[]);
+                                                y3(idx_involume)=rnorm_post;
+                                            end
+                                        end
+                                        params{nmeasure}.m=atanh(max(-1,min(1,y3)));
                                     end
                                     d=conn_v2v('compute_end',params{nmeasure});
                                 end

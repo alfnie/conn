@@ -375,7 +375,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     fh('sub_transparency',0);
                     fh('brain_transparency',.05);
                     fh('axis','on');
-                elseif 1
+                elseif 0
                     fh('brain',4);
                     fh('brain_transparency',0);
                     fh('sub_transparency',0);
@@ -384,11 +384,11 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     %fh('material',[.1 1 1 .25 0]);
                     fh('axis','on');
                 else
-                    fh('brain',4);
-                    fh('material',[.1 1 1 .25 0]);
-                    fh('light',1);
-                    fh('brain_color',.8*[1 1 1]);
-                    fh('sub_color',.8*[1 1 1]);
+                    fh('brain',2);
+                    fh('brain_transparency',.05);
+                    fh('sub_transparency',.05);
+                    fh('material',[]);
+                    fh('axis','on');
                 end
                 if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',3,options{:}); fh('close'); end
                 return;
@@ -456,7 +456,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 conn_vproject(GCF,[],'export_mask',filename);
                 filename=fullfile(fileparts(spmfile),'results.ROIs.nii');
                 if strcmpi(OPTION,'cluster_view')&&~conn_server('util_isremotefile',filename), tviewrex=false; else tviewrex=[]; end
-                [tfilename,tspmfile]=conn_vproject_selectfiles(filename,spmfile,tviewrex);
+                [tfilename,tspmfile,tviewrex]=conn_vproject_selectfiles(filename,spmfile,tviewrex);
                 if isempty(tfilename), return; end
                 [tspmfile_path,tspmfile_name]=fileparts(tspmfile);
                 cwd=pwd;

@@ -304,7 +304,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'toggle',0,...
                                     'roll',1,...
 									'position',[.084,.955-1.5*.045-6*.045,.229,6*.045],...%[.09,.88-6*.05,.08,6*.05],...
-									'fontsize',6,...
+									'fontsize',7,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_recent_load',1},{@conn,'gui_recent_load',2},{@conn,'gui_recent_load',3},{@conn,'gui_recent_load',4},{@conn,'gui_recent_load',5},{@conn,'gui_recent_load',6}} );
 	CONN_h.menus.m_setup_01a=conn_menumanager([], 'n',8,...
@@ -6945,6 +6945,7 @@ else
                             'IntrinsicConnectivity','ICC','<HTML><b>ICC</b> (intrinsic connectivity)</HTML>',         {'computes Intrinsic Connectivity (IC) maps characterizing network centrality (root mean square of all connections) at each voxel',' ','for method details see: Martuzzi, R., Ramani, R., Qiu, M., Shen, X., Papademetris, X., & Constable, R. T. (2011). A whole-brain voxel based measure of intrinsic connectivity contrast reveals local changes in tissue connectivity with anesthetic without a priori assumptions on thresholds or regions of interest. Neuroimage, 58(4), 1044-1050'};...
                             'GlobalCorrelation','GCOR', '<HTML><b>GCOR</b> (global correlation)</HTML>',            {'computes Global Correlation (GCOR) maps characterizing network centrality (average of all connections) at each voxel',' ','for method details see: Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press'};...
                             'LocalCorrelation', 'LCOR', '<HTML><b>LCOR</b> (local correlation)</HTML>',             {'computes Local Correlation (LCOR) maps characterizing local coherence (average of all short-range connections) at each voxel',' ','for method details see: Deshpande, G., LaConte, S., Peltier, S., & Hu, X. (2009). Integrated local correlation: a new measure of local coherence in fMRI data. Human brain mapping, 30(1), 13-23'};...
+                            'InterHemisphericCorrelation','IHC', '<HTML><b>IHC</b> (inter-hemispheric correlation)</HTML>',             {'computes inter-hemispheric correlation (IHC) maps characterizing functional connectivity between each voxel and the voxel with the same coordinates in the contralateral hemisphere',' ','for method details see: Jin, X., Liang, X., & Gong, G. (2020). Functional integration between the two brain hemispheres: evidence from the homotopic functional connectivity under resting state. Frontiers in Neuroscience, 14.'};...
                             'RadialSimilarity', 'RSIM',   '<HTML><b>RSIM</b> (radial smilarity)</HTML>',                    {'computes spatial gradients of seed-based connectivity patterns at each voxel',' ','for method details see: Whitfield-Gabrieli, S., & Nieto-Castanon, A. (2012). Conn: A functional connectivity toolbox for correlated and anticorrelated brain networks. Brain connectivity, 2(3), 125-141'};...
                             'RadialCorrelation','RCOR',   '<HTML><b>RCOR</b> (radial correlation)</HTML>',                   {'computes spatial gradients of short-range connections at each voxel',' ','for method details see: Goelman, G. 2004. Radial correlation contrast: a functional connectivity MRI contrast to map changes in local neuronal communication. Neuroimage, 23(4), 1432-1439'};...
                             'ALFF',             'ALFF', '<HTML><b>ALFF</b> (amplitude of low frequency fluctuations)</HTML>',       {'computes ALFF maps characterizing low-frequency BOLD signal variability at each voxel',' ','for method details see: Yang, H., Long, X. Y., Yang, Y., Yan, H., Zhu, C. Z., Zhou, X. P., ... & Gong, Q. Y. (2007). Amplitude of low frequency fluctuation within visual areas revealed by resting-state functional MRI. Neuroimage, 36(1), 144-152.'};...
@@ -7012,7 +7013,7 @@ else
                                 case 'RRC',      conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','roi-to-roi','Analysis.measure','correlation (bivariate)'); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
                                 case 'gPPI', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','correlation (bivariate)','Analysis.modulation',1,'Analysis.conditions',cnames); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
                                 case 'temporal modulation', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','correlation (bivariate)','Analysis.modulation',tmodulation); conn_process('analyses_seedsetup',tnames);  conn('gui_analysesgo',1);
-                                case {'group-PCA','group-ICA','group-MVPA','IntrinsicConnectivity','LocalCorrelation','GlobalCorrelation','RadialCorrelation','RadialSimilarity','ALFF','fALFF'}, conn_batch('vvAnalysis.name',tnames,'vvAnalysis.measures',tanalysis); conn_process('analyses_vvsetup',tnames); conn('gui_analysesgo',2);
+                                case {'group-PCA','group-ICA','group-MVPA','IntrinsicConnectivity','LocalCorrelation','GlobalCorrelation','InterHemisphericCorrelation','RadialCorrelation','RadialSimilarity','ALFF','fALFF'}, conn_batch('vvAnalysis.name',tnames,'vvAnalysis.measures',tanalysis); conn_process('analyses_vvsetup',tnames); conn('gui_analysesgo',2);
                                 case 'dyn-ICA', conn_batch('dynAnalysis.name',tnames,'dynAnalysis.sources',{},'dynAnalysis.factors',20,'dynAnalysis.window',30); conn_process('analyses_dynsetup',tnames); conn('gui_analysesgo',3);
                                 case 'S2V',     conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','seed-to-voxel','Analysis.measure','correlation (bivariate)'); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
                                 case 'V2V',     conn_batch('vvAnalysis.name',tnames,'vvAnalysis.measures','group-MVPA'); conn_process('analyses_vvsetup',tnames); conn('gui_analysesgo',2);
@@ -8650,7 +8651,7 @@ else
                     if ~all(temp==2), set([CONN_h.menus.m_analyses_00{17}],'visible','off'); end
                     if ~all(ismember(temp,[2,3,4])), set([CONN_h.menus.m_analyses_00{7} CONN_h.menus.m_analyses_00{9}],'visible','off'); else set([CONN_h.menus.m_analyses_00{7} CONN_h.menus.m_analyses_00{9}],'visible','on'); end
                     if ~isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).mask), set(CONN_h.menus.m_analyses_00{7}(1),'value',1); else set(CONN_h.menus.m_analyses_00{7}(1),'value',0); end
-                    if any(ismember(temp,[6,7])), set(CONN_h.menus.m_analyses_00{8},'visible','off');
+                    if any(ismember(temp,[6,7,8])), set(CONN_h.menus.m_analyses_00{8},'visible','off');
                     else set(CONN_h.menus.m_analyses_00{8},'visible','on');
                     end
                     val=4;
@@ -10217,8 +10218,8 @@ else
                             end
                         case 3
                             CONN_h.menus.m_results.suggest_within_mnamelong=CONN_x.vvAnalyses(CONN_x.vvAnalysis).regressors.names{1};
-                            CONN_h.menus.m_results.suggest_within_mnameshort=regexprep(CONN_h.menus.m_results.suggest_within_mnamelong,{'^group-MVPA$','^group-PCA$','^group-ICA$','^IntrinsicConnectivity$','^LocalCorrelation$','^GlobalCorrelation$','^RadialCorrelation$','^RadialSimilarity$'},{'connectivity','component connectivity','network connectivity','IC','LCOR','GCOR','RC','RS'});
-                            CONN_h.menus.m_results.suggest_within_mnamelong=regexprep(CONN_h.menus.m_results.suggest_within_mnamelong,{'^group-MVPA$','^group-PCA$','^group-ICA$','^IntrinsicConnectivity$','^LocalCorrelation$','^GlobalCorrelation$','^RadialCorrelation$','^RadialSimilarity$'},{'multivoxel connectivity patterns','group-PCA components','group-ICA networks','Intrinsic Connectivity (IC)','Local Correlation (LCOR)','Global Correlation (GCOR)','Radial Correlation (RC)','Radial Similarity (RS)'});
+                            CONN_h.menus.m_results.suggest_within_mnameshort=regexprep(CONN_h.menus.m_results.suggest_within_mnamelong,{'^group-MVPA$','^group-PCA$','^group-ICA$','^IntrinsicConnectivity$','^LocalCorrelation$','^GlobalCorrelation$','^InterHemisphericCorrelation$','^RadialCorrelation$','^RadialSimilarity$'},{'connectivity','component connectivity','network connectivity','IC','LCOR','GCOR','IHC','RC','RS'});
+                            CONN_h.menus.m_results.suggest_within_mnamelong=regexprep(CONN_h.menus.m_results.suggest_within_mnamelong,{'^group-MVPA$','^group-PCA$','^group-ICA$','^IntrinsicConnectivity$','^LocalCorrelation$','^GlobalCorrelation$','^InterHemisphericCorrelation$','^RadialCorrelation$','^RadialSimilarity$'},{'multivoxel connectivity patterns','group-PCA components','group-ICA networks','Intrinsic Connectivity (IC)','Local Correlation (LCOR)','Global Correlation (GCOR)','Inter-hemispheric Correlation (IHC)','Radial Correlation (RC)','Radial Similarity (RS)'});
                     end
                     %if ~isempty(CONN_h.menus.m_results.suggest_within.descrip), 
                     %    set(CONN_h.menus.m_results_00{56},'string',regexprep([CONN_h.menus.m_results.suggest_within.descrip,{'user-defined connectivity contrast'}],'.*','Analysis of $0')); 
@@ -11458,7 +11459,7 @@ else
                                 CONN_h.menus.m_results.design.pwd=resultsfolder;
                             end
                             if CONN_x.Results.xX.displayvoxels==1
-                                p=[];h=[];F=[];statsname=[];dof=[];
+                                p=[];h=[];F=[];statsname=[];dof=[];selectedslice=false;
                                 if conn_existfile(fullfile(resultsfolder,'spmF_mv.nii'))&conn_existfile(fullfile(resultsfolder,'spmF_mv.json')), 
                                     tvol=conn_fileutils('spm_vol',fullfile(resultsfolder,'spmF_mv.nii'));
                                     if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim)
@@ -11473,6 +11474,7 @@ else
                                     try
                                         SPM.xX_multivariate.statsname=info.statsname;
                                         SPM.xX_multivariate.dof=info.dof;
+                                        selectedslice=true;
                                     catch
                                         if conn_existfile(fullfile(resultsfolder,'SPM.mat')), SPM=struct; conn_loadmatfile(fullfile(resultsfolder,'SPM.mat'),'SPM'); end
                                     end
@@ -11493,10 +11495,13 @@ else
                                     else
                                         %if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
                                         %%set(CONN_h.menus.m_results_00{15},'min',1,'max',CONN_h.menus.m_results.Y(1).dim(3),'sliderstep',min(.5,[1,10]/(CONN_h.menus.m_results.Y(1).dim(3)-1)),'value',CONN_h.menus.m_results.y.slice);
-                                        %h=reshape(SPM.xX_multivariate.h(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
-                                        %F=reshape(SPM.xX_multivariate.F(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
-                                        h=reshape(SPM.xX_multivariate.h,1,[]);
-                                        F=reshape(SPM.xX_multivariate.F,1,[]);
+                                        if selectedslice
+                                            h=reshape(SPM.xX_multivariate.h,1,[]);
+                                            F=reshape(SPM.xX_multivariate.F,1,[]);
+                                        else
+                                            h=reshape(SPM.xX_multivariate.h(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
+                                            F=reshape(SPM.xX_multivariate.F(:,:,:,:,CONN_h.menus.m_results.y.slice),1,[]);
+                                        end
                                     end
                                     p=nan+zeros(size(F));idxvalid=find(~isnan(F)&F~=0);
                                     if ~isempty(idxvalid)
@@ -11522,6 +11527,7 @@ else
                             end
                             %p(F==0)=nan;F(F==0)=nan;
                             if isequal(statsname,'T'), p=2*min(p,1-p); end
+                            p(p==0)=1e-100;
                             if CONN_x.Setup.nsubjects==1,
                                 if isequal(size(p),size(h)), p(h~=0)=.5;
                                 else p=.5+zeros(size(p));

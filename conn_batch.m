@@ -509,6 +509,7 @@ function varargout=conn_batch(varargin)
 %                           'group-MVPA'/'MCOR'     : MultiVoxel Pattern Analysis of connectivity patterns (MCOR)
 %                           'IntrinsicConnectivity' : Intrinsic Connectivity Contrast (pICC0)
 %                           'LocalCorrelation'      : Integrated Local Correlation (ILC,LCOR)     
+%                           'InterHemisphericCorrelation' : Inter-hemispheric Correlation (IHC)
 %                           'GlobalCorrelation'     : Integrated Global Correlation (IGC,GCOR)   
 %                           'RadialCorrelation'     : Radial Correlation Contrast (RCC)
 %                           'RadialSimilarity'      : Radial Similarity Contrast (RSC)
@@ -520,7 +521,7 @@ function varargout=conn_batch(varargin)
 %                                     measure names)
 %      vvAnalysis.measures.factors  : (for group-PCA, group-ICA, group-MVPA) number of group-level components to estimate
 %      vvAnalysis.measures.kernelsupport : (for ILC, RCC) local support (FWHM mm) of smoothing kernel [8]
-%      vvAnalysis.measures.norm     : (for ILC,ICC,RCC,RSC,ALFF,fALFF) 0/1 normalize values to z-scores [1]
+%      vvAnalysis.measures.norm     : (for ILC,ICC,IHC,RCC,RSC,ALFF,fALFF) 0/1 normalize values to z-scores [1]
 %      vvAnalysis.measures.mask     : (for group-PCA, group-ICA, group-MVPA) optional mask for group-level component estimation 
 %                                     (e.g. masked ICA)
 %      vvAnalysis.measures.options  : (for group-ICA) optional ICA method : string containing 'GICA1' or 'GICA3' for choice of ICA back-

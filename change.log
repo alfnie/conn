@@ -329,6 +329,7 @@ ________________________________________________________________________________
      Added conn_tcpip for TCP/IP based communications and conn_server for client/server communication between two CONN sessions
      Added "conn_module EL" for using a combination of SPM and CONN functionality for task activation analyses of fMRI data (see www.conn-toolbox.org/resources/evlab for details)
      Added "conn_remotely" for working with CONN projects stored remotely (see "help conn_remotely" for details)
+     Added Inter-hemispheric Correlation (IHC) 1st-level analyses (voxel-level correlation between a voxel and its contralateral voxel)
 
 
 
