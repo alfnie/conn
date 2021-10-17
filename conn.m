@@ -8690,21 +8690,26 @@ else
                         CONN_h.menus.m_analyses.Xr=permute(reshape(conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XR,pinv(CONN_h.menus.m_analyses.XR(1).mat)*xyz'),[],CONN_h.menus.m_analyses.Y.matdim.dim(1),CONN_h.menus.m_analyses.Y.matdim.dim(2)),[2,3,4,1]);
                     end
                     if ~isempty(CONN_h.menus.m_analyses.Xr)
-                        t1=permute(CONN_h.menus.m_analyses.Xr,[2,1,3,4]);
-                        t2=abs(t1);
-                        if isempty(CONN_h.menus.m_analyses.Xs)
-                            xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
-                            CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
-                            CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                        if conn_surf_dimscheck(CONN_h.menus.m_analyses.XR)
+                            conn_menu('updateimage',CONN_h.menus.m_analyses_00{14},CONN_h.menus.m_analyses.XR);
+                            conn_menu('update',CONN_h.menus.m_analyses_00{29},[]);
+                        else
+                            t1=permute(CONN_h.menus.m_analyses.Xr,[2,1,3,4]);
+                            t2=abs(t1);
+                            if isempty(CONN_h.menus.m_analyses.Xs)
+                                xyz=conn_convertcoordinates('idx2tal',prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))*(CONN_h.menus.m_analyses.y.slice-1)+(1:prod(CONN_h.menus.m_analyses.Y.matdim.dim(1:2))),CONN_h.menus.m_analyses.Y.matdim.mat,CONN_h.menus.m_analyses.Y.matdim.dim);
+                                CONN_h.menus.m_analyses.Xs=conn_fileutils('spm_get_data',CONN_h.menus.m_analyses.XS(1),pinv(CONN_h.menus.m_analyses.XS(1).mat)*xyz');
+                                CONN_h.menus.m_analyses.Xs=permute(reshape(CONN_h.menus.m_analyses.Xs,CONN_h.menus.m_analyses.Y.matdim.dim(1:2)),[2,1,3]);
+                            end
+                            conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_h.menus.m_analyses.Xs,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
+                            set(CONN_h.menus.m_analyses_00{24},'visible','off');
+                            if nargin<2
+                                set(CONN_h.menus.m_analyses_00{14}.h9,'string',mat2str(max(.01,max(t2(~isnan(t2)))),2));
+                                conn_menu('updatecscale',[],[],CONN_h.menus.m_analyses_00{14}.h9);
+                                set([CONN_h.menus.m_analyses_00{14}.h10 CONN_h.menus.m_analyses_00{15} CONN_h.menus.m_analyses_00{45}],'visible','off');
+                            end
+                            conn_callbackdisplay_firstlevelclick;
                         end
-                        conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_h.menus.m_analyses.Xs,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
-                        set(CONN_h.menus.m_analyses_00{24},'visible','off');
-                        if nargin<2
-                            set(CONN_h.menus.m_analyses_00{14}.h9,'string',mat2str(max(.01,max(t2(~isnan(t2)))),2));
-                            conn_menu('updatecscale',[],[],CONN_h.menus.m_analyses_00{14}.h9);
-                            set([CONN_h.menus.m_analyses_00{14}.h10 CONN_h.menus.m_analyses_00{15} CONN_h.menus.m_analyses_00{45}],'visible','off');
-                        end
-                        conn_callbackdisplay_firstlevelclick;
                     else
                         conn_menu('update',CONN_h.menus.m_analyses_00{14},[]);
                         conn_menu('update',CONN_h.menus.m_analyses_00{29},[]);

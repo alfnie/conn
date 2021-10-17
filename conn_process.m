@@ -3133,11 +3133,13 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                         Y=conn_vol(filename);
                                         if isfield(Y,'issurface')&&Y.issurface,
                                             y3=zeros([numel(y2)/2,2]);
-                                            if isempty(LEFT2RIGHT),load(fullfile(which(mfilename),'utils','surf','lhrh.mat','LEFT2RIGHT','RIGHT2LEFT')); end
+                                            if isempty(LEFT2RIGHT),load(fullfile(fileparts(which(mfilename)),'utils','surf','lhrh.mat'),'LEFT2RIGHT','RIGHT2LEFT'); end
                                             for nt=1:Y.size.Nt,
-                                                [ytemp,idx]=conn_get_time(Y,nt);
-                                                ytemp=reshape(ytemp,[],2);
-                                                y3=y3+Y.conditionsweights{1}(nt)*[ytemp(:,1).*ytemp(RIGHT2LEFT,2), ytemp(:,2).*ytemp(LEFT2RIGHT,1)];
+                                                if Y.conditionsweights{1}(nt)~=0
+                                                    [ytemp,idx]=conn_get_time(Y,nt);
+                                                    ytemp=reshape(ytemp,[],2);
+                                                    y3=y3+Y.conditionsweights{1}(nt)*[ytemp(:,1).*ytemp(RIGHT2LEFT,2), ytemp(:,2).*ytemp(LEFT2RIGHT,1)];
+                                                end
                                             end
                                             y3=y3/max(eps,sum(Y.conditionsweights{1}));
                                             ty2=reshape(y2,[],2);
