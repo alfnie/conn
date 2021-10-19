@@ -96,7 +96,7 @@ switch(lower(option))
                 % starts a shared SSH connection
                 system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection (note: use "sleep 600" instead of -N?)
                 [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); if ok~=0, error(msg); end
-                if ~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
+                if 1,%~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
                     filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
                     conn_fileutils('deletefile',filename);
                     fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
@@ -148,14 +148,19 @@ switch(lower(option))
                     [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
                     if ~isempty(regexp(msg,'SSH_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
                     else
-                        keys=regexp(msg,'HOST:([^\n]+)\nPORT:([^\n]+)\nID:([^\n]+)\nLOG:([^\n]+)\n','tokens','once');
-                        params.info.remote_ip=keys{1};
-                        params.info.remote_port=str2double(keys{2});
-                        params.info.remote_id=keys{3};
-                        params.info.remote_log=keys{4};
-                        params.info.start_time=datestr(now);
-                        fprintf('Remote session started:\n  Host address = %s\n  Access port = %d\n  ID = %s\n  Log folder = %s\n',params.info.remote_ip,params.info.remote_port,params.info.remote_id,params.info.remote_log);
-                        params.info.remote_id=keys_private;
+                        try
+                            keys=regexp(msg,'HOST:([^\n]+)\nPORT:([^\n]+)\nID:([^\n]+)\nLOG:([^\n]+)\n','tokens','once');
+                            params.info.remote_ip=keys{1};
+                            params.info.remote_port=str2double(keys{2});
+                            params.info.remote_id=keys{3};
+                            params.info.remote_log=keys{4};
+                            params.info.start_time=datestr(now);
+                            fprintf('Remote session started:\n  Host address = %s\n  Access port = %d\n  ID = %s\n  Log folder = %s\n',params.info.remote_ip,params.info.remote_port,params.info.remote_id,params.info.remote_log);
+                            params.info.remote_id=keys_private;
+                        catch
+                            disp(msg)
+                            error('unable to start remote CONN server')
+                        end
                     end
                 end
                 if isempty(params.info.host)

@@ -329,7 +329,7 @@ ________________________________________________________________________________
      Added conn_tcpip for TCP/IP based communications and conn_server for client/server communication between two CONN sessions
      Added "conn_module EL" for using a combination of SPM and CONN functionality for task activation analyses of fMRI data (see www.conn-toolbox.org/resources/evlab for details)
      Added "conn_remotely" for working with CONN projects stored remotely (see "help conn_remotely" for details)
-     Added Inter-hemispheric Correlation (IHC) 1st-level analyses (voxel-level correlation between a voxel and its contralateral voxel)
+     Added Inter-hemispheric Correlation (IHC) 1st-level analyses (voxel-level correlation between a voxel and its contralateral voxel; note: for 3D volume functionals contralateral voxel is based on voxel coordinates (x,y,z) matched to (-x,y,z); for 2D surface functionals contralateral vertex is based on a non-linear match in spherical coordinates between Freesurfer left- and right- hemisphere surface-curvature templates - vertex i in left-hemisphere surface matched to vertex LEFT2RIGHT(i) in right-hemisphere surface, vertex j in right-hemisphere surface matched to vetex RIGHT2LEFT(j) in left-hemisphere surface; see conn/utils/surf/lhrh.mat)
 
 
 

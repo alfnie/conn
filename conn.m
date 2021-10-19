@@ -94,8 +94,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     if ~isempty(varargin)&&isequal(varargin{1},'isremotely'), CONN_gui.isremote=true;
     else CONN_gui.isremote=false;
     end
-    CONN_gui.leftarrow='<'; CONN_gui.rightarrow='>'; 
-    try, if ~verLessThan('matlab','8.4.0'), CONN_gui.leftarrow=char(8678); CONN_gui.rightarrow=char(8680); end; end
+    CONN_gui.leftarrow='<'; CONN_gui.rightarrow='>'; CONN_gui.delchar='-'; 
+    try, if ~verLessThan('matlab','8.4.0'), CONN_gui.leftarrow=char(8678); CONN_gui.rightarrow=char(8680); CONN_gui.delchar=char(9003); end; end 
 	CONN_h=struct;
     cmap=0+1*(7*gray(128) + 1*(hot(128)))/8; if mean(CONN_gui.backgroundcolor)>.5,cmap=flipud(cmap); end
     cmapB=max(0,min(1, repmat((2*(CONN_gui.backgroundcolor<.5)-1).*max(CONN_gui.backgroundcolor ,1-CONN_gui.backgroundcolor),128,1).*cmap+repmat(CONN_gui.backgroundcolor,128,1) ));
@@ -6945,7 +6945,7 @@ else
                             'IntrinsicConnectivity','ICC','<HTML><b>ICC</b> (intrinsic connectivity)</HTML>',         {'computes Intrinsic Connectivity (IC) maps characterizing network centrality (root mean square of all connections) at each voxel',' ','for method details see: Martuzzi, R., Ramani, R., Qiu, M., Shen, X., Papademetris, X., & Constable, R. T. (2011). A whole-brain voxel based measure of intrinsic connectivity contrast reveals local changes in tissue connectivity with anesthetic without a priori assumptions on thresholds or regions of interest. Neuroimage, 58(4), 1044-1050'};...
                             'GlobalCorrelation','GCOR', '<HTML><b>GCOR</b> (global correlation)</HTML>',            {'computes Global Correlation (GCOR) maps characterizing network centrality (average of all connections) at each voxel',' ','for method details see: Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press'};...
                             'LocalCorrelation', 'LCOR', '<HTML><b>LCOR</b> (local correlation)</HTML>',             {'computes Local Correlation (LCOR) maps characterizing local coherence (average of all short-range connections) at each voxel',' ','for method details see: Deshpande, G., LaConte, S., Peltier, S., & Hu, X. (2009). Integrated local correlation: a new measure of local coherence in fMRI data. Human brain mapping, 30(1), 13-23'};...
-                            'InterHemisphericCorrelation','IHC', '<HTML><b>IHC</b> (inter-hemispheric correlation)</HTML>',             {'computes inter-hemispheric correlation (IHC) maps characterizing functional connectivity between each voxel and the voxel with the same coordinates in the contralateral hemisphere',' ','for method details see: Jin, X., Liang, X., & Gong, G. (2020). Functional integration between the two brain hemispheres: evidence from the homotopic functional connectivity under resting state. Frontiers in Neuroscience, 14.'};...
+                            'InterHemisphericCorrelation','IHC', '<HTML><b>IHC</b> (inter-hemispheric correlation)</HTML>',             {'computes inter-hemispheric correlation (IHC) maps characterizing interhemispheric connectivity at each voxel (Fisher-transformed correlations between each voxel and the voxel at the same anatomical location in the contralateral hemisphere)',' ','for method details see: Jin, X., Liang, X., & Gong, G. (2020). Functional integration between the two brain hemispheres: evidence from the homotopic functional connectivity under resting state. Frontiers in Neuroscience, 14.'};...
                             'RadialSimilarity', 'RSIM',   '<HTML><b>RSIM</b> (radial smilarity)</HTML>',                    {'computes spatial gradients of seed-based connectivity patterns at each voxel',' ','for method details see: Whitfield-Gabrieli, S., & Nieto-Castanon, A. (2012). Conn: A functional connectivity toolbox for correlated and anticorrelated brain networks. Brain connectivity, 2(3), 125-141'};...
                             'RadialCorrelation','RCOR',   '<HTML><b>RCOR</b> (radial correlation)</HTML>',                   {'computes spatial gradients of short-range connections at each voxel',' ','for method details see: Goelman, G. 2004. Radial correlation contrast: a functional connectivity MRI contrast to map changes in local neuronal communication. Neuroimage, 23(4), 1432-1439'};...
                             'ALFF',             'ALFF', '<HTML><b>ALFF</b> (amplitude of low frequency fluctuations)</HTML>',       {'computes ALFF maps characterizing low-frequency BOLD signal variability at each voxel',' ','for method details see: Yang, H., Long, X. Y., Yang, Y., Yan, H., Zhu, C. Z., Zhou, X. P., ... & Gong, Q. Y. (2007). Amplitude of low frequency fluctuation within visual areas revealed by resting-state functional MRI. Neuroimage, 36(1), 144-152.'};...
@@ -7966,7 +7966,7 @@ else
                 end
                 
                 if model,
-                    if nshow==1,
+                    if nshow==1, % from disk
                         if isempty(CONN_h.menus.m_analyses.XR)
                             if CONN_x.Analyses(ianalysis).type==1, CONN_h.menus.m_analyses.XR=fullfile(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name),['resultsROI_Subject',num2str(nsubs,CONN_x.opt.fmt1),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
                             elseif isempty(nregressors)||isempty(nconditions)||isnan(CONN_h.menus.m_analyses.iroi(nregressors))||isnan(CONN_h.menus.m_analyses.icondition(nconditions)), CONN_h.menus.m_analyses.XR=[];
@@ -8003,7 +8003,7 @@ else
                                     conn_menu('update',CONN_h.menus.m_analyses_00{14},[]);
                                     conn_menu('update',CONN_h.menus.m_analyses_00{29},[]);
                                     set(CONN_h.menus.m_analyses_00{24},'visible','on');
-                                elseif ~CONN_h.menus.m_analyses_surfhires
+                                elseif 0,%~CONN_h.menus.m_analyses_surfhires
                                     t1=[t1(CONN_gui.refs.surf.default2reduced) t1(numel(t1)/2+CONN_gui.refs.surf.default2reduced)];
                                     t2=[t2(CONN_gui.refs.surf.default2reduced) t2(numel(t2)/2+CONN_gui.refs.surf.default2reduced)];
                                     conn_menu('update',CONN_h.menus.m_analyses_00{14},{CONN_gui.refs.surf.defaultreduced,t1,t2},{CONN_h.menus.m_analyses.Y.matdim,CONN_h.menus.m_analyses.y.slice});
