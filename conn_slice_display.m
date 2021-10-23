@@ -74,7 +74,8 @@ elseif ~isempty(data) % conn_slice_display(datafile [,structural_file])
         if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=conn_fileutils('spm_vol',fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
     end
     %V=V(1);
-    if 0 % resample to reference grid?
+    if isequal(state.structural,0) % resample to reference grid?
+        state.structural='';
         temp=spm_vol(fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii'));
         state.mat=temp.mat;
         state.size=temp.dim;
@@ -553,18 +554,18 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 end
                 redrawnow=true;
             case 'togglegui',
-                if numel(varargin)>0, onoff=varargin{1}; 
+                if numel(varargin)>0, onoff=varargin{1};
                 else onoff=get(state.handles.gui,'value')==1;
                 end
                 if onoff, 
-                    set(state.handles.gui,'string','Show GUI');
+                    set(state.handles.gui,'string','Show GUI','value',1);
                     h=findobj(state.handles.hfig,'type','uicontrol');
                     set(h(~strcmp(get(h,'style'),'togglebutton')),'visible','off');
                     set(state.handles.axes,'units','norm','position',[.05 .05 .90 .9]);
                     set(state.handles.slider,'units','norm','position',[.97 .1 .025 .8]);
                     if ~isempty(state.handles.colorbar), set(state.handles.colorbar(1),'unit','norm','position',[.95 .15 .015 .75]); end
                 else
-                    set(state.handles.gui,'string','Hide GUI');
+                    set(state.handles.gui,'string','Hide GUI','value',0);
                     h=findobj(state.handles.hfig,'type','uicontrol');
                     set(h(~strcmp(get(h,'style'),'togglebutton')),'visible','on');
                     set(state.handles.axes,'units','norm','position',[.05 .05 .40 .9]);

@@ -902,6 +902,7 @@ else
                         %else conn_disp('fprintf','Warning: This project has not been properly closed\nLast active user: %s\n',tagmsg);
                     end
                 end
+                try, if isfield(CONN_x,'isready')&&any(CONN_x.isready)&&isfield(CONN_x,'filename')&&~isempty(CONN_x.filename)&&~isequal(CONN_x.filename,localfilename), conn_projectmanager('tag',''); end; end % close current
 				try 
                     if ~pobj.isextended||conn_existfile(localfilename), 
                         errstr=localfilename; 

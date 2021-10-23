@@ -77,29 +77,31 @@ switch(lower(option))
         
     case {'tag', 'readtag'}
         varargout=repmat({''},1,nargout);
-        filepath=''; 
-        if strcmpi(option,'readtag'), filepath=conn_prepend('',varargin{1},'');
-        else try, filepath=conn_prepend('',conn_projectmanager('projectfile'),''); end
-        end
-        if ~isempty(filepath)&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'holdsdata')&&CONN_x.pobj.holdsdata
-            if strcmpi(option,'tag')&&nargin>1
-                tag=varargin{1};
-                str=sprintf('%s @ %s',conn_projectmanager('whoami'),datestr(now));
-                filename=fullfile(filepath,sprintf('statusfile.%s',tag));
-                rename=true;
-                try, conn_fileutils('deletefile_multiple',fullfile(filepath,'statusfile.')); rename=~isempty(tag); end
-                if rename
-                    try, conn_fileutils('filewrite',filename,str);
-                    catch, error('Unable to create file %s. Check folder permissions and try again\n',filename);
+        if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'holdsdata')&&CONN_x.pobj.holdsdata
+            filepath='';
+            if strcmpi(option,'readtag'), filepath=conn_prepend('',varargin{1},'');
+            else try, filepath=conn_prepend('',conn_projectmanager('projectfile'),''); end
+            end
+            if ~isempty(filepath)
+                if strcmpi(option,'tag')&&nargin>1
+                    tag=varargin{1};
+                    str=sprintf('%s @ %s',conn_projectmanager('whoami'),datestr(now));
+                    filename=fullfile(filepath,sprintf('statusfile.%s',tag));
+                    rename=true;
+                    try, conn_fileutils('deletefile_multiple',fullfile(filepath,'statusfile.')); rename=~isempty(tag); end
+                    if rename
+                        try, conn_fileutils('filewrite',filename,str);
+                        catch, error('Unable to create file %s. Check folder permissions and try again\n',filename);
+                        end
                     end
-                end
-            else
-                tfiles=conn_fileutils('dir',fullfile(filepath,'statusfile.*'));
-                if numel(tfiles)==0, varargout={'',''};
-                elseif numel(tfiles)>1, varargout={'unknown',''};
                 else
-                    if nargout>1, varargout={regexprep(tfiles.name,'^statusfile\.',''), conn_fileutils('fileread',fullfile(filepath,tfiles.name))};
-                    else varargout={regexprep(tfiles.name,'^statusfile\.','')};
+                    tfiles=conn_fileutils('dir',fullfile(filepath,'statusfile.*'));
+                    if numel(tfiles)==0, varargout={'',''};
+                    elseif numel(tfiles)>1, varargout={'unknown',''};
+                    else
+                        if nargout>1, varargout={regexprep(tfiles.name,'^statusfile\.',''), conn_fileutils('fileread',fullfile(filepath,tfiles.name))};
+                        else varargout={regexprep(tfiles.name,'^statusfile\.','')};
+                        end
                     end
                 end
             end
