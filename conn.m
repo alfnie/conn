@@ -897,8 +897,10 @@ else
                     [tagname,tagmsg]=conn_projectmanager('readtag',localfilename);
                     if ~isempty(tagname),
                         if isequal(regexprep(tagmsg,' @.*$',''),conn_projectmanager('whoami')), conn_msgbox({'Warning: This project has not been properly closed',['Last active user: ',tagmsg],'This may cause loss of data, or conflicts between changes performed by different users','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
-                        else conn_msgbox({'Warning: This project is currently open by a different user',['Last active user: ',tagmsg],'Simultaneous changes from different users may cause loss of data','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
-                        end
+                        else
+                            answ=conn_questdlg({'Warning: This project is currently open by a different user',['Last active user: ',tagmsg],'Simultaneous changes from different users may cause loss of data',['Continue only when certain that ',regexprep(tagmsg,' @.*$',''),' has finished editting this project']},'','Continue','Cancel','Cancel');
+                            if isequal(answ,'Cancel'), conn_disp('warning: canceled by user, project NOT loaded'); return; end
+                        end 
                         %else conn_disp('fprintf','Warning: This project has not been properly closed\nLast active user: %s\n',tagmsg);
                     end
                 end

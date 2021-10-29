@@ -542,8 +542,8 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                     else xyz=nan(3,size(x0,2));
                     end
                     x0=detrend(x0,'constant');
-                    x0valid=find(~all(abs(x0)<1e-4,1)&~any(isnan(x0),1));
-                    [nill,tidx]=sort(sum(x0(:,x0valid).*repmat(mean(x0(:,x0valid),2),1,numel(x0valid)),1));x0valid=x0valid(tidx);
+                    x0valid=~all(abs(x0)<1e-4,1)&~any(isnan(x0),1);
+                    %[nill,tidx]=sort(sum(x0(:,x0valid).*repmat(mean(x0(:,x0valid),2),1,numel(x0valid)),1));x0valid=x0valid(tidx);
                     %[nill,tidx]=sort(sum(abs(x0(:,x0valid)).^2,1));x0valid=x0valid(tidx);
                     x0=x0(:,x0valid);
                     xyz=xyz(:,x0valid);
@@ -692,7 +692,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
             Y=Y-repmat(mean(Y,1),size(Y,1),1);
             Y=Y./repmat(sqrt(max(eps,sum(abs(Y).^2,1))),size(Y,1),1);
             R{nmeasure}=X'*Y;
-            P{nmeasure}=2*spm_Tcdf(-abs(R{nmeasure}.*sqrt((size(Y,1)-2)./max(eps,1-R{nmeasure}.^2))),size(Y,1)-2);
+            P{nmeasure}=nan(size(R{nmeasure})); try, P{nmeasure}=2*spm_Tcdf(-abs(R{nmeasure}.*sqrt((size(Y,1)-2)./max(eps,1-R{nmeasure}.^2))),size(Y,1)-2); end
             if any(procedures==15), D{nmeasure}=valid; end
             %[h,F,p,dof]=conn_glm([ones(size(X,1),1) X],Y,[],[],'collapse_none');
         end

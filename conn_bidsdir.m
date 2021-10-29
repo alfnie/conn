@@ -19,7 +19,8 @@ end
 
 % bids filename spec 2018/7
 %spec={'sub','ses','task','acq','ce','rec','dir','run','mod','echo','recording','proc'};
-spec={'sub','ses','task','acq','ce','rec','dir','run','mod','echo','recording','proc','space','res','desc'};
+%spec={'sub','ses','task','acq','ce','rec','dir','run','mod','echo','recording','proc','space','res','desc'};
+spec={'sub','ses','task','acq','ce','trc','rec','dir','run','mod','echo','flip','inv','mt','part','recording','proc','space','split','res','den','label','desc'}; % v1.6.0 2021-04-22
 filter={};
 
 if isstruct(filenames)

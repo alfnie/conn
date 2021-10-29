@@ -4,6 +4,7 @@ function [fileout,Nrois]=conn_createvoxelroi(filein, fileout)
 % conn_createvoxelroi(filein, fileout)
 %    filein     : input mask filename
 %    fileout    : output ROI filename (by default [filein].ROI.nii)
+%
 
 if nargin<2||isempty(fileout), fileout=conn_prepend('',filein,'.ROI.nii'); end
 if any(conn_server('util_isremotefile',{fileout, filein})), 

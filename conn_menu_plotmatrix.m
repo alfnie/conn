@@ -26,7 +26,7 @@ if ischar(x)
             if n>0&&nr>0, pause(.01); drawnow; end
             if isnan(nv), tnv=n; else tnv=nv; end
             %conn_menu_plotmatrix(.65*rand(np),'dogray',tnv,'colormap',cmap,'colormapcdata',ceil(size(cmap,1)*rand(np)),'shape',cshape,'parent',h,varargin{4:end});
-            conn_menu_plotmatrix(.6*rand(np).*reshape(conn_hanning(prod(np)),np),'dogray',tnv,'colormap',cmap,'colormapcdata',ceil(size(cmap,1)*rand(np)),'shape',cshape,'parent',h,varargin{4:end});
+            conn_menu_plotmatrix(.6*rand(np).*(.25+.5*reshape(conn_hanning(prod(np)),np)),'dogray',tnv,'colormap',cmap,'colormapcdata',ceil(size(cmap,1)*rand(np)),'shape',cshape,'parent',h,varargin{4:end});
             %hstruct=conn_menu_plotmatrix(1*(n/(abs(nr)+0))^2*ones(np),'colormap',[.2 .2 .2;.8 .8 .8],'colormapcdata',ceil(2*rand(np)));
             %hstruct.vertices(:,3)=n/100;
             %patch(hstruct,'facecolor','flat','edgecolor','none','parent',h,varargin{3:end});
