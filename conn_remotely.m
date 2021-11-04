@@ -443,10 +443,10 @@ switch(option)
         end
         
     case 'on'
-        conn_server_ssh('start',varargin{:});
+        conn_server_ssh('start','recent',varargin{:});
         CONN_gui.isremote=true;
     case {'offandon','off&on','offon'}
-        conn_server_ssh('restart',varargin{:});
+        conn_server_ssh('restart','recent',varargin{:});
         CONN_gui.isremote=true;
     case {'off','softoff','forceoff'}
         conn_server_ssh(regexprep(option,'off$','exit'),varargin{:});

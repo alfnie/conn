@@ -34,7 +34,7 @@ if numel(idx)<Nrois, fprintf('warning: Nrois reduced to %d (total number of voxe
 
 [x,y,z]=ndgrid(1:vol(1).dim(1),1:vol(1).dim(2),1:vol(1).dim(3));
 xyz=vol.mat*[x(idx) y(idx) z(idx) ones(size(idx))]';
-if isempty(D) % principal axis
+if isempty(D) % principal axis (note: consider adding graph-based distance partitioning)
     [nill,nill,D]=svd(xyz'-repmat(mean(xyz,2)',size(xyz,2),1),0);
     D=D(1:3,1);
 end

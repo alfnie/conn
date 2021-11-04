@@ -2680,6 +2680,7 @@ switch(data.display),
                             if 0,%data.mvpathrtype_isftest(data.mvpathrtype), txt2{end+1}=sprintf('%-24s  %-20s  %12.6f  %12.6f',[' ',tname1,'-',tname2,tname3],sprintf('%s%s = %.2f',data.statsname,data.dofstr{n1},data.F(n1,n2)),p(n1,n2),data.Ppos(n1,n2)); % P(n1,n2)); % note: a posteriori p-fdr values (for each ROI seed)
                             else txt2{end+1}=sprintf('%-24s  %-20s  %12.6f  %12.6f',[' Connection ',tname1,'-',tname2,tname3],sprintf('%s%s = %.2f',data.statsname,data.dofstr{n1},data.F(n1,n2)),p(n1,n2),P(n1,n2));
                             end
+                            
                             %if numel(data.names2reduced{n1})<=5, tname1=data.names2reduced{n1}; else tname1=['(',num2str(na1),')']; end
                             %if numel(data.names2reduced{n2})<=5, tname2=data.names2reduced{n2}; else tname2=['(',num2str(na2),')']; end
                             %txt2{end+1}=sprintf('%-20s  %-20s  %12.6f  %12.6f',['  conn ',tname1,'-',tname2],[data.statsname,'(',num2str(data.dof(n1,end)),') = ',num2str(data.F(n1,n2),'%0.2f')],p(n1,n2),P(n1,n2));

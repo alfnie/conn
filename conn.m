@@ -8815,7 +8815,7 @@ else
                     %set(CONN_h.menus.m_analyses_00{10},'value',CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(3)); 
                      
                     if ~isfield(CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables,'names')||isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names), 
-                        CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names=CONN_x.Analyses(1).variables.names;
+                        CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names=CONN_x.Analysis_variables.names;
                         CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names=CONN_x.Analyses(1).regressors.names;
                     end
                     set([CONN_h.menus.m_analyses_00{1},CONN_h.menus.m_analyses_00{2}],'max',2);
@@ -10350,7 +10350,7 @@ else
                                     CONN_h.menus.m_results.y.xyz=[ndgridx(:),ndgridy(:),ones(numel(ndgridx),2)]';
                                 end
                                 if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])
-                                    if CONN_h.menus.m_results_surfhires
+                                    if CONN_h.menus.m_results_surfhires||CONN_x.Results.xX.displayvoxels==1
                                         temp=conn_fileutils('spm_read_vols',CONN_h.menus.m_results.Y);
                                         temp=permute(temp,[4,1,2,3]);
                                         temp=temp(:,:);
@@ -10691,7 +10691,7 @@ else
                                          CONN_h.menus.m_results.y.xyz=[ndgridx(:),ndgridy(:),ones(numel(ndgridx),2)]';
                                      end
                                      if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])
-                                         if CONN_h.menus.m_results_surfhires
+                                         if CONN_h.menus.m_results_surfhires||CONN_x.Results.xX.displayvoxels==1
                                              temp=conn_fileutils('spm_read_vols',CONN_h.menus.m_results.Y);
                                              temp=permute(temp,[4,1,2,3]);
                                              temp=temp(:,:);
@@ -11472,11 +11472,12 @@ else
                                     tvol=conn_fileutils('spm_vol',fullfile(resultsfolder,'spmF_mv.nii'));
                                     if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim)
                                         [tx,ty,tz]=ndgrid(1:CONN_h.menus.m_results.Y(1).dim(1),1:CONN_h.menus.m_results.Y(1).dim(2),1:CONN_h.menus.m_results.Y(1).dim(3)); txyz=[tx(:) ty(:) tz(:) ones(numel(tx),1)]';
+                                        SPM.xX_multivariate.F=reshape(conn_fileutils('spm_get_data',tvol,pinv(tvol(1).mat)*CONN_h.menus.m_results.Y(1).mat*txyz),[1,1,CONN_h.menus.m_results.Y(1).dim(1:3)]);
                                     else
                                         if ~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
                                         [tx,ty,tz]=ndgrid(1:CONN_h.menus.m_results.Y(1).dim(1),1:CONN_h.menus.m_results.Y(1).dim(2),CONN_h.menus.m_results.y.slice); txyz=[tx(:) ty(:) tz(:) ones(numel(tx),1)]';
+                                        SPM.xX_multivariate.F=reshape(conn_fileutils('spm_get_data',tvol,pinv(tvol(1).mat)*CONN_h.menus.m_results.Y(1).mat*txyz),[1,1,CONN_h.menus.m_results.Y(1).dim(1:2)]);
                                     end
-                                    SPM.xX_multivariate.F=reshape(conn_fileutils('spm_get_data',tvol,pinv(tvol(1).mat)*CONN_h.menus.m_results.Y(1).mat*txyz),[1,1,CONN_h.menus.m_results.Y(1).dim(1:2)]);
                                     SPM.xX_multivariate.h=SPM.xX_multivariate.F;
                                     info=conn_jsonread(fullfile(resultsfolder,'spmF_mv.json'));
                                     try
@@ -11493,7 +11494,7 @@ else
                                     dof=SPM.xX_multivariate.dof;
                                     statsname=SPM.xX_multivariate.statsname;
                                     if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])
-                                        if CONN_h.menus.m_results_surfhires
+                                        if CONN_h.menus.m_results_surfhires||CONN_x.Results.xX.displayvoxels==1
                                             h=reshape(SPM.xX_multivariate.h,1,[]);
                                             F=reshape(SPM.xX_multivariate.F,1,[]);
                                         else
@@ -11577,7 +11578,7 @@ else
                                 set(CONN_h.menus.m_results_00{46},'string','compute results');
                                 set([CONN_h.menus.m_results_00{24}],'visible','off');
                             elseif conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim), %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2]),
-                                if ~CONN_h.menus.m_results_surfhires
+                                if ~CONN_h.menus.m_results_surfhires&&CONN_x.Results.xX.displayvoxels~=1
                                     t1=reshape(S1,size(CONN_gui.refs.surf.defaultreduced(1).vertices,1),2,1,[]);
                                     t2=reshape(S2,size(CONN_gui.refs.surf.defaultreduced(1).vertices,1),2,1,[]);
                                     conn_menu('update',CONN_h.menus.m_results_00{14},{CONN_gui.refs.surf.defaultreduced,t1,-t2},{CONN_h.menus.m_results.Y(1),CONN_h.menus.m_results.y.slice});
