@@ -680,6 +680,7 @@ else
                 filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii');
                 try
                     infomask=conn_file(filename);
+                    nill=spm_existfile(filename);
                 catch
                     if isempty(which('spm')), dodebug=true; error('INSTALLATION PROBLEM. Please re-install SPM and try again');
                     elseif isempty(which('conn_existfile')), dodebug=true; error('INSTALLATION PROBLEM. Please re-install CONN and try again');
@@ -688,6 +689,7 @@ else
                             try
                                 conn bugfix_catalina2019;
                                 infomask=conn_file(filename);
+                                nill=spm_existfile(filename);
                             catch
                                 dodebug=true; error('INSTALLATION PROBLEM. Please re-install SPM and CONN and try again');
                             end

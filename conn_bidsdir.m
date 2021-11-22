@@ -78,7 +78,11 @@ else
     
     str='^';for n=1:numel(spec), if n>1, str=[str,'(_']; else str=[str,'(']; end; str=[str,spec{n},'-[^_\.]+)?']; end; str=[str,'(_[^_]+)*?$'];
     files_parts=regexp(files_all_name,str,'tokens','once');
-    files_parts=cat(1,files_parts{:});
+    files_valid=cellfun('length',files_parts)>0;
+    files_parts=cat(1,files_parts{files_valid});
+    files_all=files_all(files_valid);
+    files_all_path=files_all_path(files_valid);
+    files_all_ext=files_all_ext(files_valid);
     dataset.data.file=files_all(:);
     dataset.data.description=regexprep(arrayfun(@(n)[files_parts{n,[size(files_parts,2),2:size(files_parts,2)-1]}],1:size(files_parts,1),'uni',0),'_+',' ');
     dataset.data.contents=regexprep(files_parts(:,end),'^_+','');

@@ -101,6 +101,7 @@ function varargout=conn_batch(varargin)
 %                                          /added subjects *only*: Setup.functionals, Setup.structurals, Setup.functionals_explicit, 
 %                                          Setup.vdm_functionals, Setup.fmap_functionals, Setup.coregsource_functionals, Setup.spmfiles, 
 %                                          Setup.masks.Grey/White/CSF, Setup.rois.files, Setup.conditions.onsets/durations, Setup.covariates.files
+%                                          Setup.subjects.effects, Setup.subjects.groups
 %                                         When using Setup.add=1 in combination with Setup.done, Setup.preprocessing, Denoising.done, and/or 
 %                                          Analysis.done only the new/added subjects will be processed
 %                                         When using Setup.add=1 the BATCH.subjects field is disregarded/overwritten to point to the new/added 
@@ -1195,8 +1196,9 @@ if isfield(batch,'Setup'),
                     CONN_x.Setup.l2covariates.names{nl2covariates}=batch.Setup.subjects.group_names{ngroup};
                     CONN_x.Setup.l2covariates.names{nl2covariates+1}=' ';
                 else, nl2covariates=idx;end
-                for nsub=1:CONN_x.Setup.nsubjects,
-                    CONN_x.Setup.l2covariates.values{nsub}{nl2covariates}=(batch.Setup.subjects.groups(nsub)==ngroup);
+                for isub=1:numel(SUBJECTS),
+                    nsub=SUBJECTS(isub);
+                    CONN_x.Setup.l2covariates.values{nsub}{nl2covariates}=(batch.Setup.subjects.groups(isub)==ngroup);
                 end
                 if isfield(batch.Setup.subjects,'group_descrip'), CONN_x.Setup.l2covariates.descrip{nl2covariates}=batch.Setup.subjects.group_descrip{ngroup};
                 elseif isfield(batch.Setup.subjects,'descrip'), CONN_x.Setup.l2covariates.descrip{nl2covariates}=batch.Setup.subjects.descrip{ngroup};
@@ -1212,8 +1214,9 @@ if isfield(batch,'Setup'),
                     CONN_x.Setup.l2covariates.names{nl2covariates}=batch.Setup.subjects.effect_names{neffect};
                     CONN_x.Setup.l2covariates.names{nl2covariates+1}=' ';
                 else, nl2covariates=idx;end
-                for nsub=1:CONN_x.Setup.nsubjects,
-                    CONN_x.Setup.l2covariates.values{nsub}{nl2covariates}=batch.Setup.subjects.effects{neffect}(nsub);
+                for isub=1:numel(SUBJECTS),
+                    nsub=SUBJECTS(isub);
+                    CONN_x.Setup.l2covariates.values{nsub}{nl2covariates}=batch.Setup.subjects.effects{neffect}(isub);
                 end
                 if isfield(batch.Setup.subjects,'effect_descrip'), CONN_x.Setup.l2covariates.descrip{nl2covariates}=batch.Setup.subjects.effect_descrip{neffect};
                 elseif isfield(batch.Setup.subjects,'descrip'), CONN_x.Setup.l2covariates.descrip{nl2covariates}=batch.Setup.subjects.descrip{neffect};
