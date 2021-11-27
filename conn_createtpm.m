@@ -34,13 +34,13 @@ if nargin<1||isempty(lesionmask),
     disp('Select mask file');
     [fname,fpath]=uigetfile('*.nii','Select mask file');
     if ~ischar(fpath), return; end
-    lesionmask=fullfile(fname,fpath);
+    lesionmask=fullfile(fpath,fname);
 end
 if nargin<2||isempty(structural),
     disp('Select structural file');
     [fname,fpath]=uigetfile('*.nii','Select reference structural file');
     if ~ischar(fpath), return; end
-    structural=fullfile(fname,fpath);
+    structural=fullfile(fpath,fname);
 end
 if nargin<3||isempty(newTPMfile), newTPMfile=fullfile(pwd,'lesionTPM.nii'); end
 if any(conn_server('util_isremotefile',lesionmask)), newTPMfile=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',lesionmask), conn_server('util_localfile',structural), conn_server('util_localfile',newTPMfile))); return; end

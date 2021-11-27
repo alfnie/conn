@@ -384,8 +384,10 @@ switch(lower(option))
                     if isnumeric(f{nsub}{nses}), 
                         R=f{nsub}{nses}; 
                         filename=g{nsub}{nses};
-                        filename=conn_prepend('',filename(1,:),sprintf('_%s.mat',ocov{ncov}));
-                        conn_savematfile(filename,'R');
+                        %filename=conn_prepend('',filename(1,:),sprintf('_%s.mat',ocov{ncov}));
+                        %conn_savematfile(filename,'R');
+                        filename=conn_prepend('',filename(1,:),sprintf('_%s.txt',ocov{ncov}));
+                        conn_savetextfile(filename,R);
                         conn_disp('__nolog','fprintf','created file %s\n',filename);
                         fout{nsub}{nses}=filename;
                     end
