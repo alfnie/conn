@@ -347,7 +347,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'position',[3*.045,.955,1*.1,.045],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_jobmanager'}} );
+									'callback',{{@conn,'gui_jobmanager','update'}} );
 	CONN_h.menus.m_setup_08b=conn_menumanager([],	'n',1,...
 									'string',{'note: CONN update'},...
 									'help',{'CONN version update available'},...
@@ -1269,6 +1269,7 @@ else
                 conn_menumanager(CONN_h.menus.m_setup_08,'off',1); ,
                 if CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); end
             end
+            %if numel(varargin)>1&&isequal(varargin{2},'update'), conn gui_setup; end
            
         case 'gui_setup_preproc'
             if nargin>1
@@ -3965,7 +3966,7 @@ else
                                                             for nevents=1:numel(CONN_x.Setup.conditions.values{n1sub}{nconditions0}{n1ses}{1})
                                                                 t1=CONN_x.Setup.conditions.values{n1sub}{nconditions0}{n1ses}{1}(nevents);
                                                                 t2=CONN_x.Setup.conditions.values{n1sub}{nconditions0}{n1ses}{2}(nevents);
-                                                                if t1>t
+                                                                if t1>t+1e-10
                                                                     newt1=[newt1 t];
                                                                     newt2=[newt2 t1-t];
                                                                 end
@@ -3974,7 +3975,7 @@ else
                                                             try, t1=conn_get_rt(n1sub,n1ses)*CONN_x.Setup.nscans{n1sub}{n1ses};
                                                             catch, t1=inf;
                                                             end
-                                                            if t1>t
+                                                            if t1>t+1e-10
                                                                 newt1=[newt1 t];
                                                                 newt2=[newt2 t1-t];
                                                             end

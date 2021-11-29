@@ -50,6 +50,15 @@ function out=conn_importcondition(filename,varargin)
 %   150     25          task
 %   175     25          rest
 %
+%
+% FILE FORMAT 3: (SPM conditions.mat files, one file per subject/session)
+%     .mat file (multiple conditions file, SPM format)
+%               Matlab file with cell arrays "names", "onsets", and "durations" (one entry per condition)
+%
+% Example syntax:
+%   conn_importcondition({{'sub-01/ses-01/func/conditions.mat','sub-01/ses-02/func/conditions.mat'},{'sub-02/ses-01/func/conditions.mat','sub-02/ses-02/func/conditions.mat'}});
+%
+%
 % additional options:
 % conn_importcondition(...,'breakconditionsbysession',true);
 %   automatically breaks each condition into session-specific conditions
@@ -65,10 +74,11 @@ for n1=1:2:nargin-1, if ~isfield(options,lower(varargin{n1})), error('unknown op
 
 % read text data
 if ~nargin||isempty(filename),
-    fileoptions={'CONN-legacy (single .txt or .csv file)','BIDS-compatible (single *_events.tsv file)','BIDS-compatible (one *_events.tsv file in each subject/session folder)'};
+    fileoptions={'CONN-legacy (single .txt or .csv file)','BIDS-compatible (single *_events.tsv file)','BIDS-compatible (one *_events.tsv file in each subject/session folder)', 'SPM-compatible (one conditions.mat file in each subject/session folder)'};
     tooltipstrings={'<HTML>Single .txt or .csv text file with subject/session/condition/onset/duration information<br/>see <i>help conn_importcondition</i> for additional file-format information</HTML>',...
         '<HTML>Single .tsv file with condition/onset/duration information (common across all subjects/sessions)<br/>see <i>help conn_importcondition</i> for additional file-format information</HTML>',...
-        '<HTML>Multiple .tsv files with condition/onset/duration information (one file for each subject&session; *_events.tsv files located in same folders and matchd filenames as functional data)<br/>see <i>help conn_importcondition</i> for additional file-format information</HTML>'};
+        '<HTML>Multiple .tsv files with condition/onset/duration information (one file for each subject&session; *_events.tsv files located in same folders and matched filenames as functional data)<br/>see <i>help conn_importcondition</i> for additional file-format information</HTML>',...
+        '<HTML>Multiple conditions.mat files with names/onsets/duration fields (one file for each subject&session; conditions.mat files located in same folders as functional data)<br/>see <i>help conn_importcondition</i> for additional file-format information</HTML>'};
     answ=conn_questdlg('','Import task/condition information from:',fileoptions{[1:numel(fileoptions) 1]},'tooltipstring',tooltipstrings{:});
     if isempty(answ), return; end
     if isequal(answ,fileoptions{1})
@@ -81,9 +91,12 @@ if ~nargin||isempty(filename),
         if ~ischar(tfilename)||isempty(tfilename), return; end
         filename=fullfile(tpathname,tfilename);
         filetype=2;
-    else
+    elseif isequal(answ,fileoptions{3})
         filename='*_events.tsv';
         filetype=6;
+    else
+        filename='conditions.mat';
+        filetype=3;
     end
     options.dogui=true;
 else
@@ -112,7 +125,7 @@ switch(filetype)
         [onsets,durations,conditions]=conn_importcondition_readbids(filename);
         nsubs=zeros(size(conditions));
         nsess=zeros(size(conditions));
-    case {3,4}, % BIDS one file per subject/session
+    case {3,4}, % BIDS one .tsv file per subject/session - SPM one conditions.mat file per subject/session
         if filetype==3 % look for tsv files in functional directory
             cwd=fileparts(CONN_x.Setup.functional{1}{1}{1});
             fmask=filename;
@@ -121,7 +134,7 @@ switch(filetype)
             f={f.name};
             nf=1;
             if numel(f)>1,
-                nf=listdlg('PromptString','Select events file:','ListString',f,'SelectionMode','single','ListSize',[200 200]);
+                nf=listdlg('PromptString','Select conditions file:','ListString',f,'SelectionMode','single','ListSize',[200 200]);
                 if isempty(nf), return; end
             end
             f0=f{nf};
@@ -151,17 +164,31 @@ switch(filetype)
             else allsess=false; 
             end
             for nses=1:numel(filename{isub})
-                [tonsets,tdurations,tconditions]=conn_importcondition_readbids(filename{isub}{nses});
+                [nill,nill,text]=fileparts(filename{isub}{nses});
+                switch(text)
+                    case '.mat'
+                        tdata=conn_loadmatfile(filename{isub}{nses}); % file with names/onsets/durations fields
+                        assert(isfield(tdata,'onsets')&isfield(tdata,'durations')&isfield(tdata,'names'), 'unknown format of file %d, expected onsets/durations/names variables',filename{isub}{nses});
+                        tonsets=tdata.onsets;
+                        tdurations=tdata.durations;
+                        tconditions=tdata.names;
+                    otherwise
+                        [tonsets,tdurations,tconditions]=conn_importcondition_readbids(filename{isub}{nses});
+                end
                 tnsubs=nsub+zeros(size(tconditions));
                 if allsess, tnsess=zeros(size(tconditions));
                 elseif ~isempty(options.sessions), tnsess=options.sessions(nses)+zeros(size(tconditions));
                 else tnsess=nses+zeros(size(tconditions));
                 end
-                conditions=cat(1,conditions, tconditions);
-                onsets=cat(1,onsets, tonsets);
-                durations=cat(1,durations, tdurations);
-                nsubs=cat(1,nsubs, tnsubs);
-                nsess=cat(1,nsess,tnsess);
+                conditions=cat(1,conditions, tconditions(:));
+                if isempty(onsets), onsets=tonsets(:); 
+                else onsets=cat(1,onsets, tonsets(:));
+                end
+                if isempty(durations), durations=tdurations(:); 
+                else durations=cat(1,durations, tdurations(:));
+                end
+                nsubs=cat(1,nsubs, tnsubs(:));
+                nsess=cat(1,nsess,tnsess(:));
             end
         end
     case 5, % manually-defined condition info
@@ -216,9 +243,13 @@ for isub=1:numel(options.subjects),
                 CONN_x.Setup.conditions.filter{idx}=[];
                 CONN_x.Setup.conditions.names{idx}=name;
                 if iscell(onsets)
-                    t1=str2num(onsets{data}); if isempty(t1)&&~isempty(deblank(t1)), error('incorrect syntax in onset field %s (condition %s, subject %d, session %d)',onsets{data}, name, nsub, nses); end
+                    if ischar(onsets{data}), t1=str2num(onsets{data}); if isempty(t1)&&~isempty(deblank(t1)), error('incorrect syntax in onset field %s (condition %s, subject %d, session %d)',onsets{data}, name, nsub, nses); end
+                    else t1=onsets{data};
+                    end
                     CONN_x.Setup.conditions.values{nsub}{idx}{nses}{1}=t1;
-                    t1=str2num(durations{data}); if isempty(t1)&&~isempty(deblank(t1)), error('incorrect syntax in duration field %s (condition %s, subject %d, session %d)',onsets{data}, name, nsub, nses); end
+                    if ischar(durations{data}), t1=str2num(durations{data}); if isempty(t1)&&~isempty(deblank(t1)), error('incorrect syntax in duration field %s (condition %s, subject %d, session %d)',onsets{data}, name, nsub, nses); end
+                    else t1=durations{data};
+                    end
                     CONN_x.Setup.conditions.values{nsub}{idx}{nses}{2}=t1;
                 else
                     t1=onsets(data);CONN_x.Setup.conditions.values{nsub}{idx}{nses}{1}=t1(:)';
