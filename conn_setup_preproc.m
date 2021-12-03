@@ -2924,7 +2924,7 @@ for iSTEP=1:numel(STEPS)
                                 if ~isempty(ERT)&&~isempty(BLIP)
                                     conn_disp('fprintf','Creating vdm file for subject %d session %d...\n',nsubject,nses);
                                     pm_defaults;
-                                    pm_def.sessname='session'; pm_def.TOTAL_EPI_READOUT_TIME=ERT; pm_def.EPI_BASED_FIELDMAPS=0; pm_def.K_SPACE_TRAVERSAL_BLIP_DIR=BLIP; pm_def.MASKBRAIN=1; %pm_def.match_vdm=1; %pm_def.write_unwarped=1;
+                                    pm_def.sessname='session'; pm_def.TOTAL_EPI_READOUT_TIME=ERT; pm_def.EPI_BASED_FIELDMAPS=0; pm_def.K_SPACE_TRAVERSAL_BLIP_DIR=BLIP; pm_def.MASKBRAIN=1; pm_def.match_vdm=0; %pm_def.match_vdm=1; %pm_def.write_unwarped=1;
                                     conn_disp('fprintf','   FieldMap : %s\n   ref : %s\n',fmap{1},filename);
                                     conn_setup_preproc_disp(pm_def,'   options');
                                     VDM = FieldMap_create(char(fmap),{filename},pm_def); %[ET1,ET2,0,ERT,-1]                                    
