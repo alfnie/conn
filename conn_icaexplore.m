@@ -232,7 +232,7 @@ fh=@conn_icaexplore_update;
         function conn_icaexplore_spatialcorr_selecttemplate(varargin)
             if nargin>0, filename=varargin{1};
             else
-                [file_name,file_path]=uigetfile('*.img;*.nii','Select reference file/mask',pwd);
+                [file_name,file_path]=uigetfile('*.nii;*.img','Select reference file/mask',pwd);
                 if isequal(file_name,0), return; end
                 filename=fullfile(file_path,file_name);
             end

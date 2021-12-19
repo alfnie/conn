@@ -31,7 +31,7 @@ switch(option)
         elseif strcmp(option,'setfilecolor'), filename=fullfile(fileparts(which(mfilename)),'conn_guibackground.jpg');
         elseif nargin>1, filename=varargin{1}; 
         else 
-            [filename,filepath]=uigetfile({'*.jpg;*.tif;*.tiff;*.gif;*.bmp;*.png','image files';'*','All files'},'Select image file:');
+            [filename,filepath]=uigetfile({'*',  'All Files (*)'; '*.jpg;*.tif;*.tiff;*.gif;*.bmp;*.png','image files'},'Select image file:');
             if isequal(filename,0), return; end
             filename=fullfile(filepath,filename);
         end

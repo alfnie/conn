@@ -78,6 +78,7 @@ try
 catch
     idxorder=1:numel(ROInames);
 end
+Bhf_max={}; for n2=1:size(varB,1), [idx1,idx2]=find(shiftdim(Bhf_order(1,idxorder,idxorder),1)==n2); Bhf_max{n2}=idx1+size(Bhf_order,2)*(idx2-1); Bhf_maxval{n2}=Bhf_values(1,idxorder(idx1)+size(Bhf_order,2)*(idxorder(idx2)-1)); end
 
 B0(:,1:size(B0,2)+1:end)=nan;
 Hscale=max(abs(H(:)));
@@ -156,11 +157,13 @@ conn_dynexplore_update([1 1 1 1 1]);
         %disp(idxlock);
         if isempty(ntime)
             c0=nan(size(B0,2),size(B0,3));
+            c1=c0;
             c=c0;
         else
             c0=reshape(H0(ntime,:)*B0(:,:),size(B0,2),size(B0,3));
+            c1=reshape(H(ntime,nfacselected)*B(nfacselected,:),size(B,2),size(B,3));
             if ptype==1, c=reshape(H(ntime,:)*B(:,:),size(B,2),size(B,3));
-            else c=reshape(H(ntime,nfacselected)*B(nfacselected,:),size(B,2),size(B,3));
+            else c=c1;
             end
         end
         imagepos=[.50 .42 .45 .41];
@@ -192,7 +195,12 @@ conn_dynexplore_update([1 1 1 1 1]);
             conn_menumanager('onregionremove',handleplot(ishandle(handleplot)));delete(handleplot(ishandle(handleplot)));
             h1=axes('units','norm','position',imagepos);
             colororder=get(h1,'colororder');
-            h2=plot(c0(idxorder,idxorder),c0(idxorder,idxorder)+c(idxorder,idxorder),'.',[-2 2 nan -2 2 nan 0 0],[-2 2 nan 0 0 nan -2 2],'k','markersize',6);
+            %h2=plot(c0(idxorder,idxorder),c0(idxorder,idxorder)+c(idxorder,idxorder),'.',[-2 2 nan -2 2 nan 0 0],[-2 2 nan 0 0 nan -2 2],'k','markersize',6);
+            temp=max(-2,min(2,c0(idxorder,idxorder)+c(idxorder,idxorder)));
+            temp0=c0(idxorder,idxorder);
+            h2=[]; hold on;
+            for n2=1:Nf, h2=[h2 plot(temp0(Bhf_max{n2}),temp(Bhf_max{n2}),'.','markersize',6)]; end
+            h2=[h2 plot([-2 2 nan -2 2 nan 0 0],[-2 2 nan 0 0 nan -2 2],'k')]; hold off;
             hold on; h4=plot(0,0,'wo','visible','off','markersize',12); hold off;
             h3=uicontrol('units','norm','position',[.65 .1 .0001 .0001],'style','text','fontsize',7+CONN_gui.font_offset,'foregroundcolor','k','backgroundcolor','w','visible','off','horizontalalignment','left'); 
             axis equal tight;
@@ -268,14 +276,22 @@ conn_dynexplore_update([1 1 1 1 1]);
             case 3, set([handleimag handleload],'visible','off'); set(handleplot(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','off'); set([ht3 ht4b ht4c],'visible','on');
         end
         temp=max(-2,min(2,c0(idxorder,idxorder)+c(idxorder,idxorder))); %temp(1:size(temp,1)+1:end)=nan;
+        %temp=c(idxorder,idxorder); %temp(1:size(temp,1)+1:end)=nan;
         temp0=c0(idxorder,idxorder); 
-        for n=1:size(temp,2), set(handleplot(n),'xdata',temp0(:,n),'ydata',temp(:,n)); end
+        %temp0=max(-2,min(2, c0(idxorder,idxorder)+c1(idxorder,idxorder) ));
+        
+        %for n=1:size(temp,2), set(handleplot(n),'xdata',temp0(:,n),'ydata',temp(:,n)); end
+        for n=1:Nf, set(handleplot(n),'xdata',temp0(Bhf_max{n}),'ydata',temp(Bhf_max{n})); end
         colororder=get(get(handleplot(1),'parent'),'colororder');
-        if idxlock(3), 
-            for n=1:numel(idxorder), set(handleplot(n),'markersize',6,'zdata',zeros(1,numel(idxorder)),'color',.5*colororder(1+mod(n-1,size(colororder,1)),:)+.5*CONN_gui.backgroundcolor); end
-            n=find(idxorder==idxlock(2),1); set(handleplot(n),'markersize',12,'zdata',ones(1,numel(idxorder)),'color','y');
-        else
-            for n=1:numel(idxorder), set(handleplot(n),'markersize',6,'zdata',zeros(1,numel(idxorder)),'color',colororder(1+mod(n-1,size(colororder,1)),:)); end
+        %if idxlock(3), 
+        %    for n=1:numel(idxorder), set(handleplot(n),'markersize',6,'zdata',zeros(1,numel(idxorder)),'color',.5*colororder(1+mod(n-1,size(colororder,1)),:)+.5*CONN_gui.backgroundcolor); end
+        %    n=find(idxorder==idxlock(2),1); set(handleplot(n),'markersize',12,'zdata',ones(1,numel(idxorder)),'color','y');
+        %else
+        %    for n=1:numel(idxorder), set(handleplot(n),'markersize',6,'zdata',zeros(1,numel(idxorder)),'color',colororder(1+mod(n-1,size(colororder,1)),:)); end
+        %end
+        %if numel(nfacselected)<Nf, for n=1:Nf, set(handleplot(n),'zdata',ismember(n,nfacselected)+zeros(size(Bhf_max{n})), 'markersize',6,'color',colororder(1+mod(max([0,find(nfacselected==n,1)]),size(colororder,1)),:)); end
+        if numel(nfacselected)<Nf, for n=1:Nf, ismembern=ismember(n,nfacselected); set(handleplot(n),'zdata',ismembern+zeros(size(Bhf_max{n})), 'markersize',6,'color',.25*colororder(1+mod(n-1,size(colororder,1)),:)+.75*(ismembern+(1-2*ismembern)*CONN_gui.backgroundcolor)); end
+        else for n=1:Nf, set(handleplot(n),'zdata',Bhf_maxval{n},'markersize',6,'color',colororder(1+mod(n-1,size(colororder,1)),:)); end
         end
         set(handleplot(end-1),'xdata',c0(idxlock(1),idxlock(2)),'ydata',c0(idxlock(1),idxlock(2))+c(idxlock(1),idxlock(2)),'zdata',1);
         set(handleimag(end-1),'xdata',find(idxorder==idxlock(2),1),'ydata',find(idxorder==idxlock(1),1));

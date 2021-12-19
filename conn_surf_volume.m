@@ -3,7 +3,7 @@ function p=conn_surf_volume(filename,DODISP,THR,SMOOTH,DISREGARDZEROS,HEMSEPARAT
 % internal function
 
 if nargin<1||isempty(filename)
-    [file_name,file_path]=uigetfile('*.img;*.nii','Select volume',pwd);
+    [file_name,file_path]=uigetfile('*.nii;*.img','Select volume',pwd);
     if isequal(file_name,0), return; end
     filename=fullfile(file_path,file_name);
 end

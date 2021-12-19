@@ -1578,7 +1578,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
 	h=conn_waitbar(0,['Step ',num2str(sum(options<=7)),'/',num2str(length(options)),': Denoising ROI data']);
     REDO=[];%filename=fullfile(filepathresults,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(icondition(validconditions(1)),'%03d'),'.mat']);
     %if ~isempty(dir(filename)),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
-    PREPROCESSCOVARIATES=false;
+    PREPROCESSCOVARIATES=false; % set to true if 1st-level covariate should be denoised before moving to first-level analyses
     NUMBEROFFREQBANDS=8;
     reportedsettings=false;
     redone_files=0;
@@ -3882,6 +3882,13 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 IDX_session=[];
                 COND_names=CONN_x.Setup.conditions.names(validconditions);
                 COND_weights=cell(size(COND_names));
+                if 1 % extract temporal measures only across selected conditions
+                    COND_names_all=COND_names;
+                    COND_weights_all=COND_weights;
+                else % extract temporal measures across all conditions
+                    COND_names_all=CONN_x.Setup.conditions.names(1:nconditions);
+                    COND_weights_all=cell(size(COND_names_all));
+                end
                 for nsub=validsubjects,
                     filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(0,'%03d'),'.mat']);
                     if isempty(dir(filename)), conn_disp(['Not ready to process step conn_process_135']); return; end %conn_waitbar('close',h);return; end
@@ -3932,6 +3939,11 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     for n=find(ok2), COND_weights{n}=cat(1,COND_weights{n},X1.conditionsweights{ok1(iok2(n))}{1}); end
                     COND_names=COND_names(ok2);
                     COND_weights=COND_weights(ok2);
+                    ok1=find(ok&ismember(X1.conditionsnames(1:numel(ok)),COND_names_all));
+                    [ok2,iok2]=ismember(COND_names_all,X1.conditionsnames(ok1));
+                    for n=find(ok2), COND_weights_all{n}=cat(1,COND_weights_all{n},X1.conditionsweights{ok1(iok2(n))}{1}); end
+                    COND_names_all=COND_names_all(ok2);
+                    COND_weights_all=COND_weights_all(ok2);
                 end
                 drawnow;
                 if DEMEAN, tX=X; else tX=[]; end
@@ -3946,6 +3958,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 else selectedconditionname='';
                 end
                 save(filename,'X','Y','Xfilter','B','H','B0','H0','names','ROInames','ROIxyzs','IDX_subject','IDX_session','COND_names','COND_weights','selectedconditionname');
+                %load(filename,'H','IDX_subject','IDX_session','COND_names','COND_weights','selectedconditionname')
                 for nsub=1:CONN_x.Setup.nsubjects
                     filename=fullfile(filepathresults,['dyn_Subject',num2str(nsub,'%03d'),'.mat']);
                     thissub=IDX_subject==nsub;
@@ -3988,16 +4001,16 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     %             H_std=accumarray(IDX_subject,H(:,ncomp),[CONN_x.Setup.nsubjects,1],@std);
                     %             new_names{end+1}=sprintf('Dynamic factor %02d',ncomp);
                     %             new_values{end+1}=H_std;
-                    for n=1:numel(COND_names)
-                        w=max(eps,accumarray(IDX_subject,max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1]));
-                        H_std_weighted=sqrt(max(0,accumarray(IDX_subject,H(:,ncomp).^2.*max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w - (accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w).^2));
+                    for n=1:numel(COND_names_all)
+                        w=max(eps,accumarray(IDX_subject,max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1]));
+                        H_std_weighted=sqrt(max(0,accumarray(IDX_subject,H(:,ncomp).^2.*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w - (accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w).^2));
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d @ %s',ncomp,COND_names{n});
-                            else new_names{end+1}=sprintf('_Variability Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names{n});
+                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d @ %s',ncomp,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_Variability Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
                             end
                         else
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
-                            else new_names{end+1}=sprintf('_Variability Dynamic factor %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
+                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_Variability Dynamic factor %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             end
                         end
                         H_std_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
@@ -4005,35 +4018,35 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     end
                 end
                 for ncomp=1:Ncomponents
-                    for n=1:numel(COND_names)
-                        w=max(eps,accumarray(IDX_subject,max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1]));
-                        H_avg_weighted=accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w;
+                    for n=1:numel(COND_names_all)
+                        w=max(eps,accumarray(IDX_subject,max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1]));
+                        H_avg_weighted=accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w;
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d @ %s',ncomp,COND_names{n});
-                            else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names{n});
+                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d @ %s',ncomp,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
                             end
                         else
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
-                            else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
+                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             end
                         end
                         H_avg_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
                         new_values{end+1}=H_avg_weighted;
                     end
                 end
-                for n=1:numel(COND_names)
-                    w=max(eps,accumarray(IDX_subject,max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1]));
+                for n=1:numel(COND_names_all)
+                    w=max(eps,accumarray(IDX_subject,max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1]));
                     H_std_weighted=0;
                     for ncomp=1:Ncomponents
-                        H_std_weighted=H_std_weighted+(max(0,accumarray(IDX_subject,H(:,ncomp).^2.*max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w - (accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w).^2));
+                        H_std_weighted=H_std_weighted+(max(0,accumarray(IDX_subject,H(:,ncomp).^2.*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w - (accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w).^2));
                     end
                     if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total @ %s',COND_names{n});
-                        else new_names{end+1}=sprintf('_Variability Dynamic Total_%s @ %s',CONN_x.Setup.conditions.names{selectedcondition},COND_names{n});
+                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total @ %s',COND_names_all{n});
+                        else new_names{end+1}=sprintf('_Variability Dynamic Total_%s @ %s',CONN_x.Setup.conditions.names{selectedcondition},COND_names_all{n});
                         end
                     else
-                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total %s @ %s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
-                        else new_names{end+1}=sprintf('_Variability Dynamic Total_%s %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
+                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total %s @ %s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                        else new_names{end+1}=sprintf('_Variability Dynamic Total_%s %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                         end
                     end
                     H_std_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
@@ -4041,8 +4054,8 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 end
                 allrt=[];
                 for ncomp=1:Ncomponents
-                    for n=1:numel(COND_names)
-                        tempW=max(0,COND_weights{n});
+                    for n=1:numel(COND_names_all)
+                        tempW=max(0,COND_weights_all{n});
                         w=max(eps,accumarray(IDX_subject,tempW,[CONN_x.Setup.nsubjects,1]));
                         H_avg_weighted=accumarray(IDX_subject,H(:,ncomp).*tempW,[CONN_x.Setup.nsubjects,1],@sum,nan)./w;
                         tempH=(H(:,ncomp)<=H_avg_weighted(IDX_subject,:)&H([2:end end],ncomp)>H_avg_weighted(IDX_subject,:))|(H(:,ncomp)>=H_avg_weighted(IDX_subject,:)&H([2:end end],ncomp)<H_avg_weighted(IDX_subject,:));
@@ -4054,12 +4067,12 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         if isempty(allrt), allrt=conn_get_rt; end
                         H_freq_weighted=H_freq_weighted./reshape(allrt,CONN_x.Setup.nsubjects,1)/2;
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,COND_names{n});
-                            else new_names{end+1}=sprintf('_Frequency Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names{n});
+                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_Frequency Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
                             end
                         else
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
-                            else new_names{end+1}=sprintf('_Frequency Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names{n});
+                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_Frequency Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             end
                         end
                         H_freq_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
@@ -4074,6 +4087,29 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     for n1=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{n1}{icov}=new_values{nvar}(n1); end
                 end
                 
+                if 1,
+                    if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
+                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name='QC_dynamicfactors';
+                        else name=sprintf('QC_dynamicfactors_%s',CONN_x.Setup.conditions.names{selectedcondition});
+                        end
+                    else
+                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('QC_dynamicfactors_%s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name);
+                        else name=sprintf('QC_dynamicfactors_%s_%s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,CONN_x.Setup.conditions.names{selectedcondition});
+                        end
+                    end
+                    idx=strmatch(name,CONN_x.Setup.l1covariates.names,'exact');
+                    if isempty(idx), idx=length(CONN_x.Setup.l1covariates.names); CONN_x.Setup.l1covariates.names{end+1}=' '; end
+                    CONN_x.Setup.l1covariates.names{idx}=name;
+                    for nsub=1:CONN_x.Setup.nsubjects
+                        nsess=max(IDX_session(IDX_subject==nsub));
+                        for nses=1:nsess
+                            samples=IDX_subject==nsub&IDX_session==nses;
+                            filename=fullfile(filepathresults,['dyn_Subject',num2str(nsub,CONN_x.opt.fmt1),'_Session',num2str(nses,'%03d'),'.txt']);
+                            conn_savetextfile(filename,H(samples,:));
+                            CONN_x.Setup.l1covariates.files{nsub}{idx}{nses}=conn_file(filename);
+                        end
+                    end
+                end
                 if CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(3)
                     for ncomp=1:Ncomponents
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
@@ -5102,6 +5138,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                     elseif ismember(CONN_x.Setup.secondlevelanalyses,[1 2]) % parametric stats
                         save('SPM.mat','SPM','-v7.3');
                         spm('Defaults','fmri');
+                        try, spm_select('init'); end
                         try, spm_get_defaults('mat.format','-v7.3'); end
                         if isfield(CONN_x.Setup,'stats_ufp')&&~isempty(CONN_x.Setup.stats_ufp), spm_get_defaults('stats.fmri.ufp',CONN_x.Setup.stats_ufp); end
                         spm_unlink('mask.img','mask.hdr','mask.nii');

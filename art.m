@@ -400,7 +400,7 @@ for sess=1:num_sess
                 try
                     save(fullfile(output_dir,[art_mask_temporalfile(1:end-4),num2str(maskscan_files),'.mat']),'maskscan','-v7.3');
                 catch
-                    art_disp('warning: unable to write to ',output_dir,' folder. Writing output files to ',pwd,' instead.');
+                    art_disp(['warning: unable to write to ',output_dir,' folder. Writing output files to ',pwd,' instead.']);
                     output_dir=pwd;
                     save(fullfile(output_dir,[art_mask_temporalfile(1:end-4),num2str(maskscan_files),'.mat']),'maskscan','-v7.3');
                 end

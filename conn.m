@@ -1804,7 +1804,7 @@ else
         case 'run',
             if nargin>1&&~isempty(varargin{2}), filename=varargin{2};
             else
-                [tfilename,tpathname]=uigetfile({'*.m','Matlab batch script (*.m)'; '*.mat','Matlab batch structure (*.mat)'; '*',  'All Files (*)'},'Select batch file');
+                [tfilename,tpathname]=uigetfile({'*',  'All Files (*)'; '*.m','Matlab batch script (*.m)'; '*.mat','Matlab batch structure (*.mat)'},'Select batch file');
                 if ~ischar(tfilename)||isempty(tfilename), return; end
                 filename=fullfile(tpathname,tfilename);
             end
@@ -2193,7 +2193,9 @@ else
                                                     Vsource=conn_get_functional(nsub,nses,nset);
                                                     if isempty(Vsource), conn_msgbox(sprintf('Functional data not defined for dataset %d subject %d session %d',nset,nsub,nses),'Error',2); return; end
                                                     temp=cellstr(Vsource);
-                                                    [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
+                                                    if nset==0, [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
+                                                    else xtemp=[];
+                                                    end
                                                     if ~isempty(xtemp), temp1=xtemp;
                                                     else
                                                         if numel(temp)==1,
@@ -2520,7 +2522,7 @@ else
                     if nargin<2,
                         conn_menu('frame',boffset+[.19,.15,.41,.57],'Structural data');
                         conn_menu('nullstr',{'No structural','data selected'});
-						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.200,.63,.15,.05],'',{'Session-invariant structurals','Session-specific structurals'},'<HTML>(only applies to studies with multiple sessions/runs) <br/> - Select session-invariant if the structural data does not change across sessions (enter one structural volume per subject) <br/> - Select session-specific if the structural data may change across sessions (enter one structural volume per session; e.g. longitudinal studies)</HTML>','conn(''gui_setup'',13);');
+						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.200,.63,.15,.05],'',{'one structural per subject','multiple structurals per subject'},'<HTML>(only applies to studies with multiple sessions/runs) <br/> - Select the first option when the structural data does not change across sessions (enter one structural volume per subject) <br/> - Select the second option when the structural data may change across sessions (enter one structural volume per session; e.g. longitudinal studies)</HTML>','conn(''gui_setup'',13);');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.200,.25,.075,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
 						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.275,.25,.075,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
 						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import structural data files','*.img; *.nii; *.mgh; *.mgz; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
@@ -3245,7 +3247,9 @@ else
                                             Vsource=conn_get_functional(nsubs(1),nsess(1),nset);
                                             if isempty(Vsource), conn_msgbox(sprintf('Functional data not defined for dataset %d subject %d session %d',nset,nsubs(1),nsess(1)),'Error',2); return; end
                                             temp=cellstr(Vsource);
-                                            [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
+                                            if nset<=1, [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
+                                            else xtemp=[];
+                                            end
                                             if ~isempty(xtemp), temp1=xtemp;
                                             else
                                                 if numel(temp)==1,
@@ -8998,9 +9002,6 @@ else
                                 nshow=get(CONN_h.menus.m_analyses_00{13},'value'); % 1: results; 2: preview
                                 if nshow==1
                                     nsubs=get(CONN_h.menus.m_analyses_00{11},'value');
-                                    B=permute(CONN_h.menus.m_analyses.XR.B,[3,1,2]);
-                                    C=permute(reshape(CONN_h.menus.m_analyses.Xr*B(:,:),[size(CONN_h.menus.m_analyses.Xr,1),size(B,2),size(B,3)]),[2,3,4,1]);
-                                    C=C+repmat(CONN_h.menus.m_analyses.XR.B0(:,:,nsubs),[1,1,1,size(C,3)]);
                                     if ~isfield(CONN_h.menus.m_analyses.XR,'B')
                                         hmsg=conn_msgbox('Loading data... please wait','',-1);
                                         fname=CONN_h.menus.m_analyses.XR.fname;
@@ -9008,6 +9009,9 @@ else
                                         CONN_h.menus.m_analyses.XR.fname=fname;
                                         if ishandle(hmsg), delete(hmsg); end
                                     end
+                                    B=permute(CONN_h.menus.m_analyses.XR.B,[3,1,2]);
+                                    C=permute(reshape(CONN_h.menus.m_analyses.Xr*B(:,:),[size(CONN_h.menus.m_analyses.Xr,1),size(B,2),size(B,3)]),[2,3,4,1]);
+                                    C=C+repmat(CONN_h.menus.m_analyses.XR.B0(:,:,nsubs),[1,1,1,size(C,3)]);
                                     fh=conn_montage_display(C,{},'movie',CONN_h.menus.m_analyses.Xr,{'dynICA components'},[],{},[],{},[],CONN_h.menus.m_analyses.XR.ROInames);
                                     fh('fontsize',6);
                                     fh('start');
@@ -9597,13 +9601,13 @@ else
                     if ~isfield(CONN_x.Analyses,'sources'), dynanalyses=false(size(txt)); 
                     else dynanalyses=arrayfun(@(n)~isempty(CONN_x.Analyses(n).sources)&~isempty(regexp(CONN_x.Analyses(n).name,'^(.*\/|.*\\)?Dynamic factor .*\d+$')),1:numel(CONN_x.Analyses));
                     end
-                    if ~any(dynanalyses),  conn_msgbox({'Not ready to display second-level Analyses',' ','No Dynamic spatial components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2);  conn('gui_resultsgo',[]); return; end
+                    if ~any(dynanalyses),  conn_msgbox({'Not ready to display second-level Analyses',' ','No Dynamic spatial components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2);  conn gui_results_dyn_summary; return; end %conn('gui_resultsgo',[]); return; end
                     state=1; 
                     if ianalysis>numel(dynanalyses)||~dynanalyses(ianalysis), ianalysis=find(dynanalyses,1); CONN_x.Analysis=ianalysis; end
                 elseif tstate==2
                     txt=CONN_x.Setup.l2covariates.names(1:end-1);
                     dyneffects=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_\S* Dynamic')),txt)); 
-                    if ~any(dyneffects),  conn_msgbox({'Not ready to display second-level Analyses',' ','No Dynamic temporal components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; end
+                    if ~any(dyneffects),  conn_msgbox({'Not ready to display second-level Analyses',' ','No Dynamic temporal components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2); conn gui_results_dyn_summary; return; end %conn('gui_resultsgo',[]); return; end
                 end
                 tstate=zeros(size(conn_menumanager(CONN_h.menus.m_results_03,'state')));tstate(5)=1;
                 tstate([1 2])=tstate([2 1]); conn_menumanager(CONN_h.menus.m_results_03,'state',tstate); 

@@ -82,12 +82,12 @@ if ~nargin||isempty(filename),
     answ=conn_questdlg('','Import task/condition information from:',fileoptions{[1:numel(fileoptions) 1]},'tooltipstring',tooltipstrings{:});
     if isempty(answ), return; end
     if isequal(answ,fileoptions{1})
-        [tfilename,tpathname]=uigetfile({'*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*',  'All Files (*)'},'Select data file');
+        [tfilename,tpathname]=uigetfile({'*',  'All Files (*)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'},'Select data file');
         if ~ischar(tfilename)||isempty(tfilename), return; end
         filename=fullfile(tpathname,tfilename);
         filetype=1;
     elseif isequal(answ,fileoptions{2})
-        [tfilename,tpathname]=uigetfile({'*.tsv','TSV-files (*.tsv)'; '*',  'All Files (*)'},'Select data file');
+        [tfilename,tpathname]=uigetfile({'*',  'All Files (*)'; '*.tsv','TSV-files (*.tsv)'},'Select data file');
         if ~ischar(tfilename)||isempty(tfilename), return; end
         filename=fullfile(tpathname,tfilename);
         filetype=2;
