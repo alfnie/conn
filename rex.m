@@ -163,7 +163,17 @@ elseif nargin>0, % COMMAND-LINE OPTIONS
                 params.SPM=conn_loadmatfile(params.spm_file,'SPM');
                 if (~isfield(params,'extractcontrasts')||~params.extractcontrasts)&&isfield(params.SPM.SPM,'xX_multivariate')&&isfield(params.SPM.SPM.xX_multivariate,'Zfiles')
                     params.sources=char(params.SPM.SPM.xX_multivariate.Zfiles);
-                    params.VF=spm_vol(params.sources);
+                    try
+                        params.VF=spm_vol(params.sources);
+                    catch % note: try changes reflected in the difference between folder containing the original SPM.mat file and the field SPM.swd (where that SPM.mat file was originally stored)
+                        fullname1=params.SPM.SPM.swd;
+                        fullname2=fileparts(params.spm_file);
+                        fullnamematch=strvcat(fliplr(fullname1),fliplr(fullname2));
+                        temp_m=sum(cumsum(fullnamematch(1,:)~=fullnamematch(2,:))==0);
+                        temp_m1=max(0,length(fullname1)-temp_m); m2=max(0,length(fullname2)-temp_m);
+                        params.sources=[repmat(fullname2(1:m2),size(params.sources,1),1),params.sources(:,temp_m1+1:end)];
+                        params.VF=spm_vol(params.sources);
+                    end
                 else
                     params.sources=strvcat(params.SPM.SPM.xY.VY(:).fname);
                     try,
@@ -333,7 +343,17 @@ switch(option),
                 data.params.SPM=conn_loadmatfile(data.params.spm_file,'SPM');
                 if (~isfield(data.params,'extractcontrasts')||~data.params.extractcontrasts)&&isfield(data.params.SPM.SPM,'xX_multivariate')&&isfield(data.params.SPM.SPM.xX_multivariate,'Zfiles')
                     data.params.sources=char(data.params.SPM.SPM.xX_multivariate.Zfiles);
-                    data.params.VF=spm_vol(data.params.sources);
+                    try
+                        data.params.VF=spm_vol(data.params.sources);
+                    catch % note: try changes reflected in the difference between folder containing the original SPM.mat file and the field SPM.swd (where that SPM.mat file was originally stored)
+                        fullname1=data.params.SPM.SPM.swd;
+                        fullname2=fileparts(data.params.spm_file);
+                        fullnamematch=strvcat(fliplr(fullname1),fliplr(fullname2));
+                        temp_m=sum(cumsum(fullnamematch(1,:)~=fullnamematch(2,:))==0);
+                        temp_m1=max(0,length(fullname1)-temp_m); m2=max(0,length(fullname2)-temp_m);
+                        data.params.sources=[repmat(fullname2(1:m2),size(data.params.sources,1),1),data.params.sources(:,temp_m1+1:end)];
+                        data.params.VF=spm_vol(data.params.sources);
+                    end
                 else
                     data.params.sources=strvcat(data.params.SPM.SPM.xY.VY(:).fname);
                     try,

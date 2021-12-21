@@ -174,6 +174,7 @@ else
     end
 end
 ncon=1;
+DOCROP=true;
 THR=1;%{.001,1,.05,3};
 side=1;
 parametric=[];
@@ -304,7 +305,7 @@ else % voxel-based
                 end
             end
         end
-        if issurface
+        if ~DOCROP||issurface
             x=[1,size(T,1)];
             y=[1,size(T,2)];
             z=[1,size(T,3)];
