@@ -516,10 +516,10 @@ if any(options==2),
 		nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
 		for nses=1:nsess,
             filename=fullfile(filepath,['COND_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-            if isempty(REDO)&&~isempty(dir(filename)),
+            if isempty(REDO)&&conn_existfile(filename),
                 if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end;
             end
-            if strcmp(lower(REDO),'yes')||isempty(dir(filename)),
+            if strcmp(lower(REDO),'yes')||~conn_existfile(filename),
                 clear data names;
                 clear samples weights;
                 nscans=CONN_x.Setup.nscans;
@@ -630,7 +630,7 @@ if any(options==3) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 	h=conn_waitbar(0,['Step ',num2str(sum(options<=3)),'/',num2str(length(options)),': Importing functional data']);
     REDO='Yes';filename=fullfile(filepath,['DATA_Subject',num2str(validsubjects(1),'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
-    if ~isempty(dir(filename)),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
+    if conn_existfile(filename),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
 	if length(CONN_x.Setup.nsessions)==1, N=CONN_x.Setup.nsessions*numel(validsubjects); else N=sum(CONN_x.Setup.nsessions(validsubjects)); end
 	n=0;
     if CONN_x.Setup.analysismask==1,%CONN_x.Setup.normalized,
@@ -662,7 +662,7 @@ if any(options==3) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
 		sfile=[];%conn_prepend('',CONN_x.Setup.structural{nsub}{1},'_seg_inv_sn.mat');
 		for nses=1:nsess,
 			filename=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-            if strcmp(lower(REDO),'yes')||isempty(dir(filename)),
+            if strcmp(lower(REDO),'yes')||~conn_existfile(filename),
                 warning off;Vsource=spm_vol(CONN_x.Setup.functional{nsub}{nses}{1});warning on;
                 CONN_x.Setup.nscans{nsub}{nses}=prod(size(Vsource));
                 if CONN_x.Setup.analysismask==2&&nses==1,%~CONN_x.Setup.normalized&&(isempty(Vmask)), % computes analysis mask
@@ -712,7 +712,7 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 	h=conn_waitbar(0,['Step ',num2str(sum(options<=4)),'/',num2str(length(options)),': Importing ROI data']);
     REDO='Yes';filename=fullfile(filepath,['ROI_Subject',num2str(validsubjects(1),'%03d'),'_Session',num2str(1,'%03d'),'.mat']);
-    if ~isempty(dir(filename)),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
+    if conn_existfile(filename),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
     USEEXPLICITMASK=true;
 	nrois=length(CONN_x.Setup.rois.names)-1;
     allrois=1:nrois;
@@ -843,7 +843,7 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
             sampledatachange=false;
             anychange=false;
 			filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-            if ~isempty(dir(filename)),
+            if conn_existfile(filename),
                 old=load(filename);%,'data','names','source','xyz','sampledata','samplexyz');
             else, old=[]; end
             
@@ -1268,7 +1268,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             clear Youtnorm0 cachenorm0 Voutputfiles;
             for nses=1:nsess, % loads all ROI COV COND data for this subject 
                 filename=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-                if isempty(dir(filename)), conn_disp(['Not ready to process step conn_process_6']); conn_waitbar('close',h); return; end
+                if ~conn_existfile(filename), conn_disp(['Not ready to process step conn_process_6']); conn_waitbar('close',h); return; end
                 Y{nses}=conn_vol(filename);
                 if Y{nses}.size.Nt==0||sum(Y{nses}.size.Nv)==0, error(sprintf('Empty data (samples=%d,voxels=%d) in file %s',Y{nses}.size.Nt,sum(Y{nses}.size.Nv),filename)); end
                 filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
@@ -1595,7 +1595,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
         clear Y X iX X1 X2 C;
         for nses=1:nsess, % loads all ROI COV COND data for this subject
             filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-            if isempty(dir(filename)), conn_disp(['Not ready to process step conn_process_7']); conn_waitbar('close',h); return; end
+            if ~conn_existfile(filename), conn_disp(['Not ready to process step conn_process_7']); conn_waitbar('close',h); return; end
             X1{nses}=load(filename);
             filename=fullfile(filepath,['COV_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
             X2{nses}=load(filename);
@@ -1840,12 +1840,12 @@ if any(options==8) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&i
         for ncondition=validconditions,
             %filename=fullfile(filepath,['vvPCcov_SubjectA',num2str(nsub,'%03d'),'_SubjectB',num2str(nsub,'%03d'),'_ConditionA',num2str(ncondition,'%03d'),'_ConditionB',num2str(ncondition,'%03d'),'.mat']); 
             filename=fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-            if isempty(REDO)&&~isempty(dir(filename)),
+            if isempty(REDO)&&conn_existfile(filename),
                 if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end;
             end
-            if strcmp(lower(REDO),'yes')||(isempty(dir(filename))),
+            if strcmp(lower(REDO),'yes')||(~conn_existfile(filename)),
                 filename=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-                if isempty(dir(filename)), conn_disp(['Not ready to process step conn_process_8']); return; end
+                if ~conn_existfile(filename), conn_disp(['Not ready to process step conn_process_8']); return; end
                 Y=conn_vol(filename);
                 if isfield(Y,'issurface')&&Y.issurface, issurface=true; else issurface=false; end
                 if isfield(Y,'conditionsweights')
@@ -2038,10 +2038,10 @@ if any(options==8) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&i
         for ncondition=validconditions,
             for nsub=validsubjects
                 filename=fullfile(filepath,['svvPC_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-                if isempty(REDO)&&~isempty(dir(filename)),
+                if isempty(REDO)&&conn_existfile(filename),
                     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end;
                 end
-                if strcmp(lower(REDO),'yes')||(isempty(dir(filename))),
+                if strcmp(lower(REDO),'yes')||(~conn_existfile(filename)),
                     filename_B1=fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
                     Y1=conn_vol(filename_B1);
                     [X,idx]=conn_get_volume(Y1);
@@ -2340,7 +2340,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                 for nroi=1:nrois,
                     filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,CONN_x.opt.fmt1),'_Condition',num2str(icondition(ncondition),'%03d'),'_Source',num2str(iroi(nroi),'%03d'),'.nii']);
                     %filename=fullfile(filepathresults,['resultsDATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(ncondition,'%03d'),'_Source',num2str(iroi(nroi),'%03d'),'.mat']);
-                    isnew(nroi)=isnew(nroi)|isempty(dir(filename));
+                    isnew(nroi)=isnew(nroi)|~conn_existfile(filename);
                 end
                 if any(isnew),
                     switch(CONN_x.Analyses(ianalysis).measure),
@@ -2653,7 +2653,7 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
             for ncondition=union(validconditions,validconditions2),
                 for nsub=validsubjects,
                     filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-                    if isempty(dir(filename)), conn_disp(['Not ready to process step conn_process_10']); conn_waitbar('close',h);return; end
+                    if ~conn_existfile(filename), conn_disp(['Not ready to process step conn_process_10']); conn_waitbar('close',h);return; end
                     X1=load(filename,'conditionweights');
                     for n1=1:numel(X1.conditionweights)
                         ConditionWeights{nsub,n1}(:,ncondition)=X1.conditionweights{n1};
@@ -2666,7 +2666,7 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
             maxrt=[];
             for ncondition=validconditions,
                 filename=fullfile(filepathresults,['resultsROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-                if isempty(REDO)&&~isempty(dir(filename)),
+                if isempty(REDO)&&conn_existfile(filename),
                     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end;
                 end
                 tfilename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
@@ -2674,7 +2674,7 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                 X1=load(tfilename);
                 [X,nill,names,xyz]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,X1,[]);
                 nrois=size(X,2)-1;
-                if strcmp(lower(REDO),'yes')||isempty(dir(filename)), redo=true;
+                if strcmp(lower(REDO),'yes')||~conn_existfile(filename), redo=true;
                 else namestomatch=load(filename,'names'); redo=~isequal(namestomatch.names,names); 
                 end
                 if redo,
@@ -2970,7 +2970,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                     isnew=isnew0;
                     for nmeasure=1:nmeasures1,
                         filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(1,'%03d'),'.nii']);
-                        isnew(nmeasure)=isnew(nmeasure)|isempty(dir(filename));
+                        isnew(nmeasure)=isnew(nmeasure)|~conn_existfile(filename);
                     end
                     if isempty(REDO)&&~all(isnew(1:nmeasures1)),
                         if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end;
@@ -3091,7 +3091,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                     isnew=isnew0;
                     for nmeasure=nmeasures1+nmeasures2+(1:nmeasures3),
                         filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(1,'%03d'),'.nii']);
-                        isnew(nmeasure)=isnew(nmeasure)|isempty(dir(filename));
+                        isnew(nmeasure)=isnew(nmeasure)|~conn_existfile(filename);
                     end
                     if isempty(REDO)&&~all(isnew(nmeasures1+nmeasures2+(1:nmeasures3))),
                         if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end;
@@ -3229,7 +3229,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
             for ncondition=validconditions,
                 for nmeasure=nmeasures1+(1:nmeasures2),
                     filename=fullfile(filepathresults,['BETA_Subject',num2str(CONN_x.Setup.nsubjects,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(1,'%03d'),'.nii']);
-                    isnew(nmeasure)=isnew(nmeasure)|isempty(dir(filename));
+                    isnew(nmeasure)=isnew(nmeasure)|~conn_existfile(filename);
                 end
             end
             if isempty(REDO)&&~all(isnew(nmeasures1+(1:nmeasures2))),
@@ -3857,8 +3857,8 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
 %             end
 %         end
         REDO='Yes'; filename=fullfile(filepathresults,['dyn_Subject',num2str(validsubjects(1),'%03d'),'.mat']);
-        if ~isempty(dir(filename)),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
-        if dogrouplevel && (isempty(dir(filename))||strcmp(lower(REDO),'yes'))
+        if conn_existfile(filename),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
+        if dogrouplevel && (~conn_existfile(filename)||strcmp(lower(REDO),'yes'))
             do=true;
             if ~isequal(validsubjects,1:CONN_x.Setup.nsubjects),
                 if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'),
@@ -3891,7 +3891,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 end
                 for nsub=validsubjects,
                     filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(0,'%03d'),'.mat']);
-                    if isempty(dir(filename)), conn_disp(['Not ready to process step conn_process_135']); return; end %conn_waitbar('close',h);return; end
+                    if ~conn_existfile(filename), conn_disp(['Not ready to process step conn_process_135']); return; end %conn_waitbar('close',h);return; end
                     X1=load(filename); 
                     if isempty(roinames), roinames=X1.names(~ismember(X1.names,{'White Matter','CSF','MotionMask'})); end
                     [ok,idx]=ismember(roinames,X1.names);
