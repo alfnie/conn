@@ -2441,7 +2441,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                     end
                     filename=fullfile(filepathresults,['se_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.nii']);
                     SEout=struct('mat',Y.matdim.mat,'dim',Y.matdim.dim,'fname',filename,'dt',[spm_type('float32') spm_platform('bigend')]);
-                    try, delete(SEout.fname); end
+                    conn_fileutils('deletefile',SEout.fname);
                     SEout=spm_create_vol(SEout);
 %                     filename=fullfile(filepathresults,['seDATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(ncondition,'%03d'),'.mat']);
 %                     SEout=Y; SEout.fname=filename;
@@ -2456,7 +2456,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                         [filename,cache(nroi)]=conn_tempcache(filename);
                         Yout{nroi}=struct('mat',Y.matdim.mat,'dim',Y.matdim.dim,'fname',filename,'pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')],'descrip','');
                         if emptycondition_roi(1+nroi), Yout{nroi}.descrip='CONNlabel:MissingData'; end
-                        try, delete(Yout{nroi}.fname); end
+                        conn_fileutils('deletefile',Yout{nroi}.fname);
                         Yout{nroi}=spm_create_vol(Yout{nroi});
                         redone_files=redone_files+1;
 %                         filename=fullfile(filepathresults,['resultsDATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(ncondition,'%03d'),'_Source',num2str(iroi(idxredo(nroi)),'%03d'),'.mat']);
@@ -3347,7 +3347,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     for ncondition=1:nconditions,
                                         for ndim=1:NdimsOut
                                             filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
-                                            try, delete(filename); end % delete all conditions to avoid mix-up of different models
+                                            conn_fileutils('deletefile',filename); % delete all conditions to avoid mix-up of different models
                                         end
                                     end
                                     for ncondition=validconditions,
@@ -3363,7 +3363,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 end
                                 for ndim=1:NdimsOut
                                     filename=fullfile(filepathresults,['PCAcov_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
-                                    try, delete(filename); end
+                                    conn_fileutils('deletefile',filename);
                                     filesoutCov(ndim)=spm_create_vol(struct('fname',filename,'mat',Y1.matdim.mat,'dim',Y1.matdim.dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip',mfilename));
                                 end
                                 maxvoxels=max(1,floor(MAXMEM/(8*(numel(validsubjects)*numel(validconditions))^2)));
@@ -3483,7 +3483,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 for ncondition=1:nconditions,
                                     for ndim=1:NdimsOut
                                         filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
-                                        try, delete(filename); end % delete all conditions to avoid mix-up of different models
+                                        conn_fileutils('deletefile',filename); % delete all conditions to avoid mix-up of different models
                                     end
                                 end
                                 for ncondition=validconditions,
@@ -3537,7 +3537,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 clear temp_out;
                                 for ndim=1:NdimsOut
                                     filename=fullfile(filepathresults,['ICAPCAcov_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
-                                    try, delete(filename); end
+                                    conn_fileutils('deletefile',filename);
                                     filesoutCov=struct('fname',filename,'mat',Y1.matdim.mat,'dim',Y1.matdim.dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip',mfilename);
                                     t=nan(Y1.matdim.dim);
                                     if ~isempty(Vmask), t(Y1.voxels(Vmask))=Y(ndim,:);
@@ -3602,7 +3602,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 clear temp_out;
                                 for ndim=1:NdimsOut
                                     filename=fullfile(filepathresults,[ICAPCA,'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
-                                    try, delete(filename); end
+                                    conn_fileutils('deletefile',filename);
                                     temp=struct('fname',filename,'mat',Y1.matdim.mat,'dim',Y1.matdim.dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip',mfilename);
                                     t=nan(Y1.matdim.dim);
                                     tY=Y(ndim,:);
@@ -3616,7 +3616,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 clear temp_out;
                                 for ndim=1:NdimsOut
                                     filename=fullfile(filepathresults,[ICAPCA,'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
-                                    try, delete(filename); end
+                                    conn_fileutils('deletefile',filename);
                                     temp=struct('fname',filename,'mat',Y1.matdim.mat,'dim',Y1.matdim.dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip',mfilename);
                                     t=nan(Y1.matdim.dim);
                                     if ~isempty(WDW), tY=WDW(ndim,:)*Y;
@@ -5832,7 +5832,7 @@ if any(options==31) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&
                     for nroi=1:length(idxv);
                         filename=fullfile(folderout,['BETA_Subject',num2str(nsub,CONN_x.opt.fmt1),'_Condition',num2str(icondition(ncondition),'%03d'),'_Source',num2str(iroi(idxv(nroi)),'%03d'),'.nii']);
                         Yout{nroi}=struct('mat',Y10.matdim.mat,'dim',Y10.matdim.dim,'fname',filename,'pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')]);
-                        try, delete(Yout{nroi}.fname); end
+                        conn_fileutils('deletefile',Yout{nroi}.fname);
                         Yout{nroi}=spm_create_vol(Yout{nroi});
                     end
                     for slice=1:Y10.matdim.dim(3),
