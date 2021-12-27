@@ -358,6 +358,18 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn_update,connver}} );
+	CONN_h.menus.m_setup_08c=conn_menumanager([],	'n',1,...
+									'string',{'note: read-only'},...
+									'help',{'This CONN project has been open as read-only, modifications to this project parameters will not be saved to the project conn_*.mat file'},...
+                                    'order','horizontal',...
+                                    'toggle',0,...
+                                    'fontangle','italic',...
+                                    'color',1/6*.5+.5*[6/6,6/6,2/6; 6/6,6/6,2/6; 6/6,6/6,2/6],...
+                                    'transparent',0,...
+									'position',[3*.045,.955,1*.1,.045],...
+									'fontsize',8,...
+                                    'bordertype','square',...
+									'callback',{{@conn,'gui_readonly'}} );
 % 	CONN_h.menus.m_setup_01=conn_menumanager([], 'n',1,...
 % 									'string',{'Project'},...
 % 									'help',{''},...
@@ -699,6 +711,7 @@ else
                     else dodebug=true; error('INSTALLATION PROBLEM. Please re-install CONN and try again');
                     end
                 end
+                try, if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_projectmanager('closereadonly'); end; end % close
                 try, if isfield(CONN_x,'isready')&&any(CONN_x.isready), conn_projectmanager('tag',''); end; end % close
                 CONN_x=struct('name',[],'filename','','gui',1,'state',0,'ver',connver,'lastver',connver,'isready',[0 0 0 0],'ispending',0,...
                     'opt',struct('fmt1','%03d'),...
@@ -898,11 +911,17 @@ else
                 if fromgui&&~pobj.isextended
                     [tagname,tagmsg]=conn_projectmanager('readtag',localfilename);
                     if ~isempty(tagname),
-                        if isequal(regexprep(tagmsg,' @.*$',''),conn_projectmanager('whoami')), conn_msgbox({'Warning: This project has not been properly closed',['Last active user: ',tagmsg],'This may cause loss of data, or conflicts between changes performed by different users','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
+                        if isequal(regexprep(tagmsg,' @.*$',''),conn_projectmanager('whoami')), 
+                            %conn_msgbox({'Warning: This project has not been properly closed',['Last active user: ',tagmsg],'This may cause loss of data, or conflicts between changes performed by different users','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
+                            answ=conn_questdlg({'Warning: This project is currently open (or it may have not been properly closed)', ['Last active user: ',tagmsg],'CONN does not support multiple users working simultaneously on the same project', 'Doing so may cause loss of data, or conflicts between changes performed by different users','To avoid this message in the future please save and close your project before exiting the CONN gui '},'Open project','Continue normally','Continue in read-only mode','Cancel','Continue normally');
                         else
-                            answ=conn_questdlg({'Warning: This project is currently open by a different user',['Last active user: ',tagmsg],'Simultaneous changes from different users may cause loss of data',['Continue only when certain that ',regexprep(tagmsg,' @.*$',''),' has finished editting this project']},'','Continue','Cancel','Cancel');
-                            if isequal(answ,'Cancel'), conn_disp('warning: canceled by user, project NOT loaded'); return; end
+                            answ=conn_questdlg({'Warning: This project is currently open by a different user',  ['Last active user: ',tagmsg],'CONN does not support multiple users working simultaneously on the same project', 'Doing so may cause loss of data or conflicts between changes performed by different users',['Continue normally only if certain that ',regexprep(tagmsg,' @.*$',''),' has finished editing this project']},'Open project','Continue normally','Continue in read-only mode','Cancel','Continue in read-only mode');
                         end 
+                        if isequal(answ,'Cancel'), conn_disp('warning: canceled by user, project NOT loaded'); return; end
+                        if isequal(answ,'Continue in read-only mode'),
+                            [basefilename,pobj]=conn_projectmanager('extendedname',[basefilename,'?read-only']);
+                            localfilename=conn_projectmanager('projectfile',basefilename,pobj);
+                        end
                         %else conn_disp('fprintf','Warning: This project has not been properly closed\nLast active user: %s\n',tagmsg);
                     end
                 end
@@ -1016,6 +1035,10 @@ else
                 CONN_x.isready(1)=1;
             end
 			
+        case 'load-readonly'
+            conn('load',[varargin{2},'?read-only'],varargin{3:end});
+            return
+            
 		case 'save',
             if nargin>1, filename=varargin{2}; 
             else filename=CONN_x.filename; end
@@ -1171,6 +1194,7 @@ else
             tdescr(ok)=cellfun(@(a,b)sprintf('%s (%s)',a,b),tname,tpath,'uni',0);
             conn_menumanager(CONN_h.menus.m_setup_01c,'string',tdescr);
         case 'gui_recent_set'
+            if isempty(CONN_x.filename), return; end
             nrecent=find(strcmp(conn_server('util_localfile',CONN_x.filename),CONN_gui.recentfiles),1);
             if isempty(nrecent), nrecent=find(cellfun('length',CONN_gui.recentfiles)==0,1); end
             if isempty(nrecent), nrecent=numel(CONN_gui.recentfiles); end
@@ -1222,6 +1246,28 @@ else
             else varargout={false};
             end
             
+        case 'gui_readonly'
+            if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, 
+                filename=CONN_x.filename;
+                [tagname,tagmsg]=conn_projectmanager('readtag',filename);
+                if isempty(tagname), mainmsg={'This project is no longer open by another user or process'};
+                else mainmsg={'Warning: This project is still open by another user or process',['Last active user: ',tagmsg]};
+                end
+                answ=conn_questdlg({...
+                    'Read-only mode allows displaying (but not modifying) a project while another user is still actively working on the same project',...
+                    'While in read-only mode please avoid running any steps that may cause changes to this project files',...
+                    '(note: to avoid potential conflicts any changes to this project information/design are saved to a temporary project file which will be deleted when this project is closed)',...
+                    sprintf('Temporary project file: %s',conn_projectmanager('projectfile')),...
+                    sprintf('Main project file: %s',conn_projectmanager('parentfile')),...
+                    ' ',...
+                    mainmsg{:} ...
+                    },'','Reload main project and exit read-only mode','Continue in read-only mode','Continue in read-only mode');
+                if isequal(answ,'Reload main project and exit read-only mode'),
+                    conn('load',filename);
+                    conn gui_setup
+                end
+            end
+            
         case 'gui_analyses_cleanup'
             ok=arrayfun(@(n)exist(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(n).name),'dir'),1:numel(CONN_x.Analyses))>0;
             if ~any(ok), ok(1)=true; end
@@ -1245,6 +1291,7 @@ else
             conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
             conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
             if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1); 
+            elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1); 
             elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); 
             end
             conn_calculator;
@@ -1253,10 +1300,14 @@ else
             conn_jobmanager ispending;
             if CONN_x.ispending, 
                 conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
-                if CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'off',1); end
+            	if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'off',1); 
+                elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'off',1); 
+                end
             else
                 conn_menumanager(CONN_h.menus.m_setup_08,'off',1); ,
-                if CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); end
+                if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
+                elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); 
+                end
             end
             
         case 'gui_jobmanager'
@@ -1264,15 +1315,22 @@ else
             conn_jobmanager ispending;
             if CONN_x.ispending, 
                 conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
-                if CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'off',1); end
+            	if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'off',1); 
+                elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'off',1); 
+                end
             else
                 conn_menumanager(CONN_h.menus.m_setup_08,'off',1); ,
-                if CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); end
+                if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
+                elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); 
+                end
             end
             %if numel(varargin)>1&&isequal(varargin{2},'update'), conn gui_setup; end
            
         case 'gui_setup_preproc'
-            if nargin>1
+            if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, 
+                conn_msgbox({'This procedure cannot be run in a read-only project. Please re-load your project to enable edits'},'',true);
+                ok=false;
+            elseif nargin>1
                 ok=conn_setup_preproc('',varargin{2:end});
             else
                 ok=conn_setup_preproc;
@@ -1397,6 +1455,7 @@ else
             conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
             conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
             if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+            elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1); 
             elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
             end
             
@@ -1821,6 +1880,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 psteps={'setup','denoising_gui','analyses_gui_seedandroi','analyses_gui_vv','analyses_gui_dyn'};
@@ -1924,6 +1984,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
 				conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 conn_menu('nullstr',{'No data','selected'});
@@ -1959,6 +2020,7 @@ else
                     else
                         switch(varargin{2}),
                             case 1, 
+                                if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, error('This procedure cannot be run in a read-only project. Please re-load your project to enable edits'); end
 								value0=CONN_x.Setup.nsubjects; 
 								txt=get(CONN_h.menus.m_setup_00{1},'string'); value=str2num(txt); if ~isempty(value)&&length(value)==1, CONN_x.Setup.nsubjects=value; end; 
 								if CONN_x.Setup.nsubjects~=value0, CONN_x.Setup.nsubjects=conn_merge(value0,CONN_x.Setup.nsubjects); end
@@ -2393,13 +2455,16 @@ else
                                     case 9, % apply individual preprocessing step
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
                                         nset=get(CONN_h.menus.m_setup_00{7},'value')-1;
-                                        ok=conn_setup_preproc('','select','functional','sets',nset);
-                                        if ok==2
-                                            conn_msgbox({'Preprocessing finished correctly; Output files imported.'},'',true);
-                                        elseif ok==1
-                                            conn_msgbox({'Preprocessing finished correctly'},'',true);
-                                        elseif ok<0
-                                            conn_msgbox({'Some error occurred when running SPM batch.','Please see log or Matlab command window for full report'},'',2);
+                                        if nset==0&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_msgbox({'This procedure cannot be run in a read-only project. Please re-load your project to enable edits'},'',true); 
+                                        else
+                                            ok=conn_setup_preproc('','select','functional','sets',nset);
+                                            if ok==2
+                                                conn_msgbox({'Preprocessing finished correctly; Output files imported.'},'',true);
+                                            elseif ok==1
+                                                conn_msgbox({'Preprocessing finished correctly'},'',true);
+                                            elseif ok<0
+                                                conn_msgbox({'Some error occurred when running SPM batch.','Please see log or Matlab command window for full report'},'',2);
+                                            end
                                         end
                                     case 10, % reassign all functional
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
@@ -5224,6 +5289,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
 				
@@ -5399,6 +5465,10 @@ else
                             try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
                             return
                         end
+                    else
+                        conn gui_setup;
+                        try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
+                        return
                     end
                 else
                     CONN_h.menus.m_setup_import_isnew=false; 
@@ -5411,6 +5481,7 @@ else
             end
             if ~isfield(CONN_h.menus,'m_setup_import_isfmriprep'), CONN_h.menus.m_setup_import_isfmriprep=false; end
             if ~isfield(CONN_h.menus,'m_setup_import_isnew'), CONN_h.menus.m_setup_import_isnew=false; end
+            if ~CONN_h.menus.m_setup_import_isnew&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_msgbox({'This procedure cannot be run in a read-only project. Please re-load your project to enable edits'},'',true); return; end
             switch(CONN_h.menus.m_setup_import)
                 case 'spm'
                     if nargin<2||ischar(varargin{2})
@@ -5422,6 +5493,7 @@ else
                         %conn_menumanager([CONN_h.menus.m_setup_04,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                         conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                         if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                        elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                         elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                         end
                         
@@ -5538,6 +5610,7 @@ else
                         %conn_menumanager([CONN_h.menus.m_setup_04,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                         conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                         if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                        elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                         elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                         end
                         if ~isfield(CONN_h.menus,'m_setup_import_dicom'), CONN_h.menus.m_setup_import_dicom.folderout='BIDS';end
@@ -5767,6 +5840,7 @@ else
                         %conn_menumanager([CONN_h.menus.m_setup_04,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                         conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                         if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                        elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                         elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                         end
                         conn_menu('nullstr',{''});
@@ -5816,7 +5890,7 @@ else
                         hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',6,''manual'');');set(CONN_h.menus.m_setup_00{6},'uicontextmenu',hc1);
                         hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',7,''manual'');');set(CONN_h.menus.m_setup_00{7},'uicontextmenu',hc1);
                         set(CONN_h.menus.m_setup_00{1}(1),'string',[repmat('Subject ',[CONN_x.Setup.nsubjects,1]),num2str((1:CONN_x.Setup.nsubjects)')],'max',2);
-                        set(CONN_h.menus.m_setup_00{3}.files,'max',2);
+                        %set(CONN_h.menus.m_setup_00{3}.files,'max',2);
                         set([CONN_h.menus.m_setup_00{5},CONN_h.menus.m_setup_00{6},CONN_h.menus.m_setup_00{7}],'max',2);
                         %set(CONN_h.menus.m_setup_00{8},'value',2);
                         if CONN_h.menus.m_setup_import_isfmriprep, set([CONN_h.menus.m_setup_00{7},CONN_h.menus.m_setup_00{16},CONN_h.menus.m_setup_00{17},CONN_h.menus.m_setup_00{18},CONN_h.menus.m_setup_00{19},CONN_h.menus.m_setup_00{11},CONN_h.menus.m_setup_00{12},CONN_h.menus.m_setup_00{13}],'visible','off'); end
@@ -6106,6 +6180,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
 				conn_menumanager([CONN_h.menus.m_setup_05,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 
@@ -6187,6 +6262,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 processname='setup';
@@ -6228,6 +6304,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
 				conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
 				if isempty(CONN_x.Preproc.variables.names), conn_msgbox({'Not ready to start Denoising step',' ','Please complete the Setup step first','(fill any required information and press "Done" in the Setup tab)'},'',2); return; end; %conn gui_setup; return; end
@@ -6825,6 +6902,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 if CONN_x.gui.parallel~=0, 
@@ -6891,6 +6969,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);%conn_menumanager([CONN_h.menus.m_analyses_03,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 conn_menu('nullstr',{'Analysis not','computed yet'});
@@ -9150,6 +9229,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 if CONN_x.gui.parallel~=0, 
@@ -9180,6 +9260,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 if CONN_x.gui.parallel~=0, 
@@ -9212,6 +9293,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 if CONN_x.gui.parallel~=0, 
@@ -9293,6 +9375,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 conn_menu('nullstr',' ');
@@ -12194,6 +12277,7 @@ else
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 CONN_x.Results.foldername='';
@@ -12351,6 +12435,11 @@ if nargin<5||isempty(dispoption), dispoption=[]; end
 if nargin<4||isempty(condsoption), condsoption=true; end
 if nargin<3||isempty(steps), steps=CONN_x.Setup.steps(1:3); end
 if nargin<2||isempty(stepsoption), stepsoption=true; end
+if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, 
+    conn_msgbox({'This procedure cannot be run in a read-only project. Please re-load your project to enable edits'},'',true);
+    ok=false;
+    return;
+end
 thfig=figure('units','norm','position',[.3,.5,.4,.3],'color','w','name','CONN data processing pipeline','numbertitle','off','menubar','none');
 ht3=uicontrol(thfig,'style','text','units','norm','position',[.1,.8,.8,.15],'string',str,'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
 ht2a=uicontrol(thfig,'style','checkbox','units','norm','position',[.1,.7,.3,.10],'string','ROI-to-ROI','value',steps(1),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w');

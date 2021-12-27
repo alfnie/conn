@@ -28,6 +28,7 @@ for isub=1:numel(nsubs),
         id=options.subjects_id{isub};
         select=cellfun('length',regexp(file_name,['^sub-',id,'$|^sub-',id,'_']))>0;
         filename=filenames(select);
+        if isempty(filename), conn_disp('fprintf','warning: no match found for subject sub-%s\n',id); end
     end
     nsub=nsubs(isub);
     if isempty(options.sessions), nses=[];
@@ -127,104 +128,108 @@ for isub=1:numel(nsubs),
                 end
             end
         case 'structural'
-            if isempty(filename), ok=true; return; end
-            if isequal(nsesstemp,1:nsess), CONN_x.Setup.structural_sessionspecific=numel(filename)>1&numel(filename)==nsess; end
-            if CONN_x.Setup.structural_sessionspecific
-                if numel(filename)~=numel(nsesstemp), ERR{end+1}=sprintf('Subject %d structural import skipped : mismatched number of selected files (%d) and number of target sessions (%d)',nsub,numel(filename),numel(nsesstemp));
+            if isempty(filename), ok=true; %return; end
+            else
+                if isequal(nsesstemp,1:nsess), CONN_x.Setup.structural_sessionspecific=numel(filename)>1&numel(filename)==nsess; end
+                if CONN_x.Setup.structural_sessionspecific
+                    if numel(filename)~=numel(nsesstemp), ERR{end+1}=sprintf('Subject %d structural import skipped : mismatched number of selected files (%d) and number of target sessions (%d)',nsub,numel(filename),numel(nsesstemp));
+                    else
+                        for n2=1:numel(nsesstemp)
+                            nses=nsesstemp(n2);
+                            if options.copytoderiv, conn_importvol2bids(filename{n2},nsub,nses,'anat',[],[],[],[],[],true);
+                            elseif options.localcopy, conn_importvol2bids(filename{n2},nsub,nses,'anat');
+                            else CONN_x.Setup.structural{nsub}{nses}=conn_file(filename{n2});
+                            end
+                        end
+                    end
+                else
+                    if numel(filename)~=1,
+                        conn_disp('fprintf','warning: subject %d listed multiple strutural files (%d), importing first file only\n',nsub,numel(filename));
+                        WRN{end+1}=sprintf('warning: subject %d listed multiple strutural files (%d), importing first file only\n',nsub,numel(filename));
+                    end
+                    for n2=1:numel(nsesstemp)
+                        nses=nsesstemp(n2);
+                        if options.copytoderiv, conn_importvol2bids(filename{1},nsub,[1,nses],'anat',[],[],[],[],[],true);
+                        elseif options.localcopy, conn_importvol2bids(filename{1},nsub,[1,nses],'anat');
+                        else CONN_x.Setup.structural{nsub}{nses}=conn_file(filename{1});
+                        end
+                        conn_disp('fprintf','structural %s imported to subject %d session %d\n',filename{1},nsub,nses);
+                    end
+                end
+                for n2=1:numel(nsesstemp) % search for fmriprep gray/white/csf files
+                    nses=nsesstemp(n2);
+                    if CONN_x.Setup.structural_sessionspecific, n3=n2; else n3=1; end
+                    f=reshape({regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-GM_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-GM_probseg.nii.gz'),...
+                        regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-WM_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-WM_probseg.nii.gz'),...
+                        regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-CSF_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-CSF_probseg.nii.gz')},2,[]);
+                    ef=reshape(conn_existfile(f),size(f))&cellfun(@(x)~isequal(filename{n3},x),f);
+                    for nmask=1:3,
+                        if any(ef(:,nmask)),
+                            localcopy_reduce=false;
+                            temp2=f{find(ef(:,nmask),1),nmask};
+                            if options.copytoderiv,
+                                if CONN_x.Setup.structural_sessionspecific, conn_importvol2bids(temp2,nsub,nses,'roi',[],[],[],localcopy_reduce,nmask,true);
+                                elseif nses==1, conn_importvol2bids(temp2,nsub,[],'roi',[],[],[],localcopy_reduce,nmask,true);
+                                else CONN_x.Setup.rois.files{nsub}{nmask}{nses}=CONN_x.Setup.rois.files{nsub}{nmask}{1};
+                                end
+                            elseif options.localcopy,
+                                if CONN_x.Setup.structural_sessionspecific, conn_importvol2bids(temp2,nsub,nses,'roi',[],[],[],localcopy_reduce,nmask);
+                                elseif nses==1, conn_importvol2bids(temp2,nsub,[],'roi',[],[],[],localcopy_reduce,nmask);
+                                else CONN_x.Setup.rois.files{nsub}{nmask}{nses}=CONN_x.Setup.rois.files{nsub}{nmask}{1};
+                                end
+                            else
+                                CONN_x.Setup.rois.files{nsub}{nmask}{nses}=conn_file(temp2);
+                            end
+                            conn_disp('fprintf','ROI%d %s imported to subject %d session %d\n',nmask,temp2,nsub,nses);
+                        end
+                    end
+                end
+            end
+        case 'conditions'
+            if isempty(filename), ok=true; %return; end
+            else
+                if numel(filename)~=numel(nsesstemp), ERR{end+1}=sprintf('Subject %d conditions import skipped : mismatched number of selected files (%d) and number of target sessions (%d)',nsub,numel(filename),numel(nsesstemp));
                 else
                     for n2=1:numel(nsesstemp)
                         nses=nsesstemp(n2);
-                        if options.copytoderiv, conn_importvol2bids(filename{n2},nsub,nses,'anat',[],[],[],[],[],true);
-                        elseif options.localcopy, conn_importvol2bids(filename{n2},nsub,nses,'anat');
-                        else CONN_x.Setup.structural{nsub}{nses}=conn_file(filename{n2});
-                        end
-                    end
-                end
-            else
-                if numel(filename)~=1, 
-                    conn_disp('fprintf','warning: subject %d listed multiple strutural files (%d), importing first file only\n',nsub,numel(filename)); 
-                    WRN{end+1}=sprintf('warning: subject %d listed multiple strutural files (%d), importing first file only\n',nsub,numel(filename)); 
-                end
-                for n2=1:numel(nsesstemp)
-                    nses=nsesstemp(n2);
-                    if options.copytoderiv, conn_importvol2bids(filename{1},nsub,[1,nses],'anat',[],[],[],[],[],true);
-                    elseif options.localcopy, conn_importvol2bids(filename{1},nsub,[1,nses],'anat');
-                    else CONN_x.Setup.structural{nsub}{nses}=conn_file(filename{1});
-                    end
-                    conn_disp('fprintf','structural %s imported to subject %d session %d\n',filename{1},nsub,nses);
-                end
-            end
-            for n2=1:numel(nsesstemp) % search for fmriprep gray/white/csf files
-                nses=nsesstemp(n2);
-                if CONN_x.Setup.structural_sessionspecific, n3=n2; else n3=1; end
-                f=reshape({regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-GM_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-GM_probseg.nii.gz'),...
-                    regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-WM_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-WM_probseg.nii.gz'),...
-                    regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-CSF_probseg.nii'),regexprep(filename{n3},'desc-preproc_T1w\.nii(\.gz)?$','label-CSF_probseg.nii.gz')},2,[]);
-                ef=reshape(conn_existfile(f),size(f))&cellfun(@(x)~isequal(filename{n3},x),f);
-                for nmask=1:3,
-                    if any(ef(:,nmask)), 
-                        localcopy_reduce=false;
-                        temp2=f{find(ef(:,nmask),1),nmask};  
-                        if options.copytoderiv,
-                            if CONN_x.Setup.structural_sessionspecific, conn_importvol2bids(temp2,nsub,nses,'roi',[],[],[],localcopy_reduce,nmask,true);
-                            elseif nses==1, conn_importvol2bids(temp2,nsub,[],'roi',[],[],[],localcopy_reduce,nmask,true);
-                            else CONN_x.Setup.rois.files{nsub}{nmask}{nses}=CONN_x.Setup.rois.files{nsub}{nmask}{1};
-                            end
-                        elseif options.localcopy,
-                            if CONN_x.Setup.structural_sessionspecific, conn_importvol2bids(temp2,nsub,nses,'roi',[],[],[],localcopy_reduce,nmask);
-                            elseif nses==1, conn_importvol2bids(temp2,nsub,[],'roi',[],[],[],localcopy_reduce,nmask);
-                            else CONN_x.Setup.rois.files{nsub}{nmask}{nses}=CONN_x.Setup.rois.files{nsub}{nmask}{1};
-                            end
-                        else
-                            CONN_x.Setup.rois.files{nsub}{nmask}{nses}=conn_file(temp2);
-                        end
-                        conn_disp('fprintf','ROI%d %s imported to subject %d session %d\n',nmask,temp2,nsub,nses);
-                    end
-                end                
-            end
-        case 'conditions'
-            if isempty(filename), ok=true; return; end
-            if numel(filename)~=numel(nsesstemp), ERR{end+1}=sprintf('Subject %d conditions import skipped : mismatched number of selected files (%d) and number of target sessions (%d)',nsub,numel(filename),numel(nsesstemp));
-            else
-                for n2=1:numel(nsesstemp)
-                    nses=nsesstemp(n2);
-                    tname=filename{n2};
-                    fname=conn_prepend('',regexprep(tname,'_bold\.nii(\.gz)?$','.nii'),'_events.tsv');
-                    if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','$3.nii'),'_events.tsv'); end
-                    if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','.nii'),'_events.tsv'); end
-                    if ~conn_existfile(fname)&&~isempty(regexp(filename{n2},'[\\\/]derivatives[\\\/]fmriprep([\\\/]sub-)')) % search condition info in raw-data directory (for fmriprep import)
-                        tname=regexprep(filename{n2},'[\\\/]derivatives[\\\/]fmriprep([\\\/]sub-)','$1'); 
+                        tname=filename{n2};
                         fname=conn_prepend('',regexprep(tname,'_bold\.nii(\.gz)?$','.nii'),'_events.tsv');
                         if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','$3.nii'),'_events.tsv'); end
                         if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','.nii'),'_events.tsv'); end
-                    end
-                    if conn_existfile(fname), 
-                        conn_importcondition({fname},'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
-                        conn_disp('fprintf','conditions in %s imported\n',fname);
-%                     elseif ~isempty(regexp(filename{n2},'_task-rest_[^\\\/]*$'))
-%                         cname=char(regexp(filename{n2},'(_ses-[^\._\\\/]*)?_task-rest_[^\\\/]*$','tokens','once'));
-%                         if isempty(cname), cname='rest';
-%                         else cname=[regexprep(cname,'^_ses-',''),'_','rest'];
-%                         end
-%                         conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
-%                         conn_disp('fprintf','condition %s imported as %s\n',filename{n2},cname);
-                    elseif ~isempty(regexp(filename{n2},'_task-([^_\\\/]+)_[^\\\/]*$'))
-                        cname=regexp(filename{n2},'(_ses-[^_\\\/]*)?_task-([^_\\\/]+)_[^\\\/]*$','tokens','once');
-                        if numel(cname)==2&&~isempty(cname{1}), cname=[regexprep(cname{1},'^_ses-',''),'_',cname{2}];
-                        elseif numel(cname)==2&&isempty(cname{1}), cname=cname{2};
-                        else cname=char(cname);
+                        if ~conn_existfile(fname)&&~isempty(regexp(filename{n2},'[\\\/]derivatives[\\\/]fmriprep([\\\/]sub-)')) % search condition info in raw-data directory (for fmriprep import)
+                            tname=regexprep(filename{n2},'[\\\/]derivatives[\\\/]fmriprep([\\\/]sub-)','$1');
+                            fname=conn_prepend('',regexprep(tname,'_bold\.nii(\.gz)?$','.nii'),'_events.tsv');
+                            if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','$3.nii'),'_events.tsv'); end
+                            if ~conn_existfile(fname), fname=conn_prepend('',regexprep(tname,'(_space-[^\._\\\/]*)?(_res-[^\._\\\/]*)?(_desc-[^\._\\\/]*)_bold\.nii(\.gz)?$','.nii'),'_events.tsv'); end
                         end
-                        conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
-                        conn_disp('fprintf','warning: condition file %s not found. Imported as %s\n',fname,cname);
-                        WRN{end+1}=sprintf('warning: condition file %s not found. Imported as %s\n',fname,cname);
-                    elseif ~isempty(regexp(filename{n2},'_ses-([^_\\\/]+)_[^\\\/]*$'))
-                        cname=char(regexp(filename{n2},'_ses-([^_\\\/]+)_[^\\\/]*$','tokens','once'));
-                        conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
-                        conn_disp('fprintf','warning: condition file %s not found. Imported as %s\n',fname,cname);
-                        WRN{end+1}=sprintf('warning: condition file %s not found. Imported as %s\n',fname,cname);
-                    else
-                        conn_disp('fprintf','warning: condition file %s not found. Skipped\n',fname);
-                        WRN{end+1}=sprintf('warning: condition file %s not found. Skipped\n',fname);
+                        if conn_existfile(fname),
+                            conn_importcondition({fname},'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
+                            conn_disp('fprintf','conditions in %s imported\n',fname);
+                            %                     elseif ~isempty(regexp(filename{n2},'_task-rest_[^\\\/]*$'))
+                            %                         cname=char(regexp(filename{n2},'(_ses-[^\._\\\/]*)?_task-rest_[^\\\/]*$','tokens','once'));
+                            %                         if isempty(cname), cname='rest';
+                            %                         else cname=[regexprep(cname,'^_ses-',''),'_','rest'];
+                            %                         end
+                            %                         conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
+                            %                         conn_disp('fprintf','condition %s imported as %s\n',filename{n2},cname);
+                        elseif ~isempty(regexp(filename{n2},'_task-([^_\\\/]+)_[^\\\/]*$'))
+                            cname=regexp(filename{n2},'(_ses-[^_\\\/]*)?_task-([^_\\\/]+)_[^\\\/]*$','tokens','once');
+                            if numel(cname)==2&&~isempty(cname{1}), cname=[regexprep(cname{1},'^_ses-',''),'_',cname{2}];
+                            elseif numel(cname)==2&&isempty(cname{1}), cname=cname{2};
+                            else cname=char(cname);
+                            end
+                            conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
+                            conn_disp('fprintf','warning: condition file %s not found. Imported as %s\n',fname,cname);
+                            WRN{end+1}=sprintf('warning: condition file %s not found. Imported as %s\n',fname,cname);
+                        elseif ~isempty(regexp(filename{n2},'_ses-([^_\\\/]+)_[^\\\/]*$'))
+                            cname=char(regexp(filename{n2},'_ses-([^_\\\/]+)_[^\\\/]*$','tokens','once'));
+                            conn_importcondition(struct('conditions',{{cname}},'onsets',0,'durations',inf),'subjects',nsub,'sessions',nses,'breakconditionsbysession',false,'deleteall',false);
+                            conn_disp('fprintf','warning: condition file %s not found. Imported as %s\n',fname,cname);
+                            WRN{end+1}=sprintf('warning: condition file %s not found. Imported as %s\n',fname,cname);
+                        else
+                            conn_disp('fprintf','warning: condition file %s not found. Skipped\n',fname);
+                            WRN{end+1}=sprintf('warning: condition file %s not found. Skipped\n',fname);
+                        end
                     end
                 end
             end

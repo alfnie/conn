@@ -7,32 +7,44 @@ function varargout = conn_projectmanager(option,varargin)
 global CONN_x CONN_gui;
 switch(lower(option))
     case 'null'
-        pobj.isextended=false;    % is this project an extension of a different base project?
+        pobj.isextended=false;    % is this project an extension of a different base project? (extended projects: parentfile is different from self, localfile is self; do not save logs; do not save tags; parentfile considers as pending job unless readonly)
         pobj.id='';
         pobj.holdsdata=true;      % has this project an independent data folder?
+        pobj.readonly=false;      % is this project read-only
         pobj.importedfiles={};    % has this project just imported associated extended projects?
         pobj.cache='';
         varargout={pobj};
         
     case 'extendedname', % checks if input filename indicates extended project
         filename=varargin{1};
-        [jid,jidx]=regexp(filename,'\?id=(\d+)\s*(,\s*version\s*=[^,\?]+)?(,\s*subjects\s*=[^,\?]+)?(,\s*partition\s*=\d+-\d+)?\s*$','tokens','start','once');
-        if ~isempty(jid),
+        [jid,jidx]=regexp(filename,'\?read-?only\s*$','match','start','once');
+        if ~isempty(jid)
             pobj.isextended=true;
-            pobj.id=jid{1};
-            if numel(jid)<2||isempty(jid{2}), pobj.ver=conn('ver'); else pobj.ver=regexprep(jid{2},'^,\s*version\s*=\s*',''); end
-            if numel(jid)>=3&&~isempty(jid{3}), pobj.subjects=str2num(regexprep(jid{3},'^,\s*subjects\s*=\s*','')); pobj.holdsdata=false;
-            else pobj.holdsdata=true;
-            end
-            if numel(jid)>=4&&~isempty(jid{4}), pobj.partition=str2double(regexp(regexprep(jid{4},'^,\s*partition\s*=\s*',''),'-','split')); end
-            %pobj.importedfiles={};
+            pobj.id=datestr(now,'yyyy_mm_dd_HHMMSSFFF');
+            pobj.holdsdata=false;
+            pobj.readonly=true;
             pobj.cache='';
-            if ~isequal(pobj.ver,conn('ver')), error('Incorrect CONN version. Expected %s, found %s. Parallel processing only supported when all nodes are running the same version of CONN',pobj.ver,conn('ver')); end
             filename=filename(1:jidx-1);
-            if conn_server('util_isremotefile',filename), filename=conn_server('util_localfile',filename); end % force distributed processes work with local project file
-            %if ~isfield(pobj,'subjects'), filename=conn_projectmanager('projectfile',filename,pobj); pobj.isextended=0; end % treat as normal project file
         else
-            pobj=conn_projectmanager('null');
+            [jid,jidx]=regexp(filename,'\?id=(\d+)\s*(,\s*version\s*=[^,\?]+)?(,\s*subjects\s*=[^,\?]+)?(,\s*partition\s*=\d+-\d+)?\s*$','tokens','start','once');
+            if ~isempty(jid),
+                pobj.isextended=true;
+                pobj.readonly=false;
+                pobj.id=jid{1};
+                if numel(jid)<2||isempty(jid{2}), pobj.ver=conn('ver'); else pobj.ver=regexprep(jid{2},'^,\s*version\s*=\s*',''); end
+                if numel(jid)>=3&&~isempty(jid{3}), pobj.subjects=str2num(regexprep(jid{3},'^,\s*subjects\s*=\s*','')); pobj.holdsdata=false;
+                else pobj.holdsdata=true;
+                end
+                if numel(jid)>=4&&~isempty(jid{4}), pobj.partition=str2double(regexp(regexprep(jid{4},'^,\s*partition\s*=\s*',''),'-','split')); end
+                %pobj.importedfiles={};
+                pobj.cache='';
+                if ~isequal(pobj.ver,conn('ver')), error('Incorrect CONN version. Expected %s, found %s. Parallel processing only supported when all nodes are running the same version of CONN',pobj.ver,conn('ver')); end
+                filename=filename(1:jidx-1);
+                if conn_server('util_isremotefile',filename), filename=conn_server('util_localfile',filename); end % force distributed processes work with local project file
+                %if ~isfield(pobj,'subjects'), filename=conn_projectmanager('projectfile',filename,pobj); pobj.isextended=0; end % treat as normal project file
+            else
+                pobj=conn_projectmanager('null');
+            end
         end
         varargout={filename, pobj};
 
@@ -44,6 +56,7 @@ switch(lower(option))
         else pobj=CONN_x.pobj;
         end
         if nargin>3, fext=varargin{3};
+        elseif isfield(pobj,'readonly')&&pobj.readonly, fext='.gmat';
         else fext='.dmat';
         end
         if ~pobj.isextended, localfilename=basefilename; 
@@ -59,6 +72,7 @@ switch(lower(option))
         else pobj=CONN_x.pobj;
         end
         if nargin>3, fext=varargin{3};
+        elseif isfield(pobj,'readonly')&&pobj.readonly, fext='.gmat';
         else fext='.dmat';
         end
         if ~pobj.isextended, basefilename=localfilename; 
@@ -77,7 +91,7 @@ switch(lower(option))
         
     case {'tag', 'readtag'}
         varargout=repmat({''},1,nargout);
-        if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'holdsdata')&&CONN_x.pobj.holdsdata
+        if strcmpi(option,'readtag')||(isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'holdsdata')&&CONN_x.pobj.holdsdata)
             filepath='';
             if strcmpi(option,'readtag'), filepath=conn_prepend('',varargin{1},'');
             else try, filepath=conn_prepend('',conn_projectmanager('projectfile'),''); end
@@ -107,6 +121,12 @@ switch(lower(option))
             end
         end
            
+    case 'closereadonly'
+        if CONN_x.pobj.readonly,
+            localfilename=conn_projectmanager('projectfile');
+            try, if conn_existfile(localfilename), conn_fileutils('deletefile',localfilename); end; end
+        end
+        
     case 'whoami'
         if conn_projectmanager('inserver'), out=conn_server('run',mfilename,option,varargin{:}); 
         else
