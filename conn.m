@@ -947,9 +947,20 @@ else
                         if isempty(fext), localfilename=conn_prepend('',localfilename,'.mat'); end
                     else
                         errstr=basefilename; 
-                        vars=load(basefilename,'CONN_x','-mat'); 
-                        pobj.cache='';
-                        CONN_gui.isremote=false;
+                        if conn_server('util_isremotefile',basefilename)&&isfield(pobj,'readonly')&&pobj.readonly, 
+                            assert(conn_server('isconnected'),'unable to connect to CONN server. Use "conn_server connect ..." command to re-connect to server and try again');
+                            conn_server('run','conn','load',[conn_server('util_localfile',basefilename),'?read-only'],false,true);
+                            conn_server('run','conn','save');
+                            pobj.id=conn_server('run','conn','get','pobj.id');
+                            localfilename=conn_projectmanager('projectfile',basefilename,pobj);
+                            pobj.cache=conn_cache('pull',localfilename);
+                            vars=load(pobj.cache,'CONN_x','-mat');
+                            CONN_gui.isremote=true;
+                        else
+                            vars=load(basefilename,'CONN_x','-mat');
+                            pobj.cache='';
+                            CONN_gui.isremote=false;
+                        end
                         CONN_x=vars.CONN_x;
                         clear vars;
                     end
@@ -1061,6 +1072,9 @@ else
                         localfilename=CONN_x.filename;
                         conn_updatefolders;
                     end
+                elseif isfield(CONN_x.pobj,'cache')&&~isempty(CONN_x.pobj.cache),
+                    assert(conn_server('isconnected'),'unable to connect to CONN server. Use "conn_server connect ..." command to re-connect to server and try again');
+                    localfilename=CONN_x.pobj.cache;
                 else
                     localfilename=conn_projectmanager('projectfile');
                 end
@@ -1089,7 +1103,7 @@ else
                         error('Failed to delete temporal project files. Check file name and/or folder permissions');
                     end
                 end
-                if ~saveas
+                if ~saveas&&~(isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly)
                     if isfield(CONN_x,'Analyses')
                         for ianalysis=1:numel(CONN_x.Analyses)
                             if isfield(CONN_x.Analyses(ianalysis),'name')&&isfield(CONN_x.Analyses(ianalysis),'sourcenames')&&conn_existfile(fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name),2) 
