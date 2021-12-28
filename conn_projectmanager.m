@@ -10,14 +10,14 @@ switch(lower(option))
         pobj.isextended=false;    % is this project an extension of a different base project? (extended projects: parentfile is different from self, localfile is self; do not save logs; do not save tags; parentfile considers as pending job unless readonly)
         pobj.id='';
         pobj.holdsdata=true;      % has this project an independent data folder?
-        pobj.readonly=false;      % is this project read-only
+        pobj.readonly=false;      % is this project in view-only mode
         pobj.importedfiles={};    % has this project just imported associated extended projects?
         pobj.cache='';
         varargout={pobj};
         
     case 'extendedname', % checks if input filename indicates extended project
         filename=varargin{1};
-        [jid,jidx]=regexp(filename,'\?read-?only\s*$','match','start','once');
+        [jid,jidx]=regexp(filename,'\?(read-?only|view-?only)\s*$','match','start','once');
         if ~isempty(jid)
             pobj.isextended=true;
             pobj.id=datestr(now,'yyyy_mm_dd_HHMMSSFFF');
@@ -121,7 +121,7 @@ switch(lower(option))
             end
         end
            
-    case 'closereadonly'
+    case {'closereadonly','closeviewonly'}
         if CONN_x.pobj.readonly,
             localfilename=conn_projectmanager('projectfile');
             try, if conn_existfile(localfilename), conn_fileutils('deletefile',localfilename); end; end

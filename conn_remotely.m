@@ -7,20 +7,31 @@ function varargout=conn_remotely(option,varargin)
 % using the standard SSH protocol for tunneling all communications between your local computer and
 % the computer where the CONN project data is stored and analyzed
 %
-% Configuration/Installation: %!
+% To use it simply select in the CONN gui the menu 'Project. Connect to remote projects' and log-in to
+% your institution cluster-computing environment (or your personal server). Once connected CONN will be 
+% able to work with projects and datasets stored in the server computer/network, and, if that server computer
+% is part of a larger cluster-computing environment, CONN will also be able to use that larger environment to
+% run preprocessing and analysis steps in parallel
 %
-% To use this functionality you need to have access to a Linux computer ('host') that is in a network-
-% accessible location (e.g. fixed IP address) and that has a OpenSSH-compatible SSH server/daemon running,
-% as well as access to a second Linux/Mac/Windows computer ('client') with regular network/internet access
-% and a OpenSSH-compatible SSH client installed (e.g. this is already installed by default as part of the
-% operating system in most Linux/Mac/Windows computers).
+%
+% Advanced Configuration/Installation: %!
+%
+% To use CONN remotely you only need a Linux computer (referred to as the 'host') that 
+%   a) it is located in a network-accessible location (e.g. fixed IP address) 
+%   b) it has an OpenSSH-compatible SSH server/daemon running
+%   c) it has Matlab/SPM/CONN installed
+%
+% You also need a second Linux/Mac/Windows computer (referred to as the 'client') that
+%   a) it has regular network/internet access
+%   b) it has an OpenSSH-compatible SSH client installed (e.g. this is already installed by default as 
+%      part of the operating system in most Linux/Mac/Windows computers)
 %
 % Installation in the 'host' computer requires the standard installation of SPM/CONN, and also running
 % just once as part of the installation procedure the Matlab command "conn_remotely setup" (without quotes),
 % which will create a file in your home directory [~/connserverinfo.json] describing the location of
-% Matlab, CONN, and SPM packages. This command needs to be run for any user that wishes to access this
-% computer remotely (alternatively another ~/connserverinfo.json file may be manually copied to a user's
-% home directory).
+% Matlab, CONN, and SPM packages (note: this command needs to be run for any user that wishes to access this
+% computer remotely; or alternatively a fixed ~/connserverinfo.json file may be manually copied to the home
+% directory of each user).
 %
 % Installation in the 'client' computer simply requires the standard installation of SPM/CONN.
 %
@@ -30,9 +41,9 @@ function varargout=conn_remotely(option,varargin)
 % configuration in your 'host' computer allows CONN_REMOTELY to also submit jobs to your cluster remotely
 % (jobs submitted from the 'client' computer which will be run in the local network of the 'host' computer).
 %
-% Usage: %!
+% Advanced Usage: %!
 %
-% Start CONN from the 'client' computer using the Matlab command:
+% Manually start CONN from the 'client' computer using the Matlab command:
 %
 %    conn remotely
 %

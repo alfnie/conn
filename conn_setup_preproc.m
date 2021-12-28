@@ -22,7 +22,7 @@ if isdeployed, spmver12=true;
 else spmver12=str2double(regexp(spm('ver'),'SPM(\d+)','tokens','once'))>=12;
 end
 if isfield(CONN_gui,'font_offset'),font_offset=CONN_gui.font_offset; else font_offset=0; end
-%if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, error('This procedure cannot be run in a read-only project. Please re-load your project to enable edits'); end
+%if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, error('This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'); end
 if ~nargin, STEPS=''; varargin={'multiplesteps',1}; end
 options=varargin;
 steps={'default_mni','default_mnifield','default_mnidirectfield','default_ss','default_ssfield','default_ssnl',...

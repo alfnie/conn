@@ -206,26 +206,26 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setup_preproc','multiplesteps',1},{@conn,'run_process',[]},{@conn,'gui_results_done'},{@conn,'run',[]},{@conn,'run_cmd',[]}} );
-	CONN_h.menus.m_setup_07j=conn_menumanager([],	'n',3,...
-									'string',{'Configuration','Active/last connection','Copy/transfer files'},...
-									'help',{'Configuration options for connecting to/from remote computers','Display details about current or last connection','Transfer files between local and remote computer'},...
+	CONN_h.menus.m_setup_07j=conn_menumanager([],	'n',4,...
+									'string',{'Configuration','Active/last connection','Copy/transfer files','Help'},...
+									'help',{'Configuration options for connecting to/from remote computers','Display details about current or last connection','Transfer files between local and remote computer',''},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.135,.955-2.5*.045-3*.045,.129,3*.045],...
+									'position',[.135,.955-2.5*.045-4*.045,.129,4*.045],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn_remotely,'settings'},{@conn,'gui_server'},{@conn,'gui_filetransfer'}} );
-	CONN_h.menus.m_setup_07f=conn_menumanager([],	'n',3,...
-									'string',{'Configuration','Active/pending jobs','Job history'},...
-									'help',{'Configuration settings in distributed cluster or multi-processor environments','Displays status of currently running, pending, or queued jobs','Displays all jobs (past and present)'},...
+									'callback',{{@conn_remotely,'settings'},{@conn,'gui_server'},{@conn,'gui_filetransfer'},{@conn,'gui_help','help','conn_remotely.m'}} );
+	CONN_h.menus.m_setup_07f=conn_menumanager([],	'n',4,...
+									'string',{'Configuration','Active/pending jobs','Job history','Help'},...
+									'help',{'Configuration settings in distributed cluster or multi-processor environments','Displays status of currently running, pending, or queued jobs','Displays all jobs (past and present)',''},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.135,.955-1.5*.045-3*.045,.129,3*.045],...
+									'position',[.135,.955-1.5*.045-4*.045,.129,4*.045],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'parallel_settings'},{@conn,'gui_jobmanager'}, {@conn_jobmanager, 'all'}} );
+									'callback',{{@conn,'parallel_settings'},{@conn,'gui_jobmanager'}, {@conn_jobmanager, 'all'}, {@conn,'gui_help','help','conn_grid.m'}} );
 	CONN_h.menus.m_setup_07h=conn_menumanager([],	'n',4,...
 									'string',{'from DICOM data files','from SPM design files','from BIDS dataset','from fMRIPrep dataset'},...
 									'help',{'Imports functional/anatomical data from raw scanner DICOM files','Imports Setup information and/or functional/anatomical data from SPM first-level design files','Imports Setup information and/or functional/anatomical data from BIDS-compatible dataset','Imports Setup information and functional/anatomical data from FMRIPREP-preprocessed dataset'},...
@@ -359,8 +359,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'bordertype','square',...
 									'callback',{{@conn_update,connver}} );
 	CONN_h.menus.m_setup_08c=conn_menumanager([],	'n',1,...
-									'string',{'note: read-only'},...
-									'help',{'This CONN project has been open as read-only, modifications to this project parameters will not be saved to the project conn_*.mat file'},...
+									'string',{'note: view-only'},...
+									'help',{'This CONN project has been open as view-only, modifications to this project parameters will not be saved to the project conn_*.mat file'},...
                                     'order','horizontal',...
                                     'toggle',0,...
                                     'fontangle','italic',...
@@ -913,12 +913,12 @@ else
                     if ~isempty(tagname),
                         if isequal(regexprep(tagmsg,' @.*$',''),conn_projectmanager('whoami')), 
                             %conn_msgbox({'Warning: This project has not been properly closed',['Last active user: ',tagmsg],'This may cause loss of data, or conflicts between changes performed by different users','To avoid this message in the future please save and close your project before exiting the CONN gui'},'',true);
-                            answ=conn_questdlg({'Warning: This project is currently open (or it may have not been properly closed)', ['Last active user: ',tagmsg],'CONN does not support multiple users working simultaneously on the same project', 'Doing so may cause loss of data, or conflicts between changes performed by different users','To avoid this message in the future please save and close your project before exiting the CONN gui '},'Open project','Continue normally','Continue in read-only mode','Cancel','Continue normally');
+                            answ=conn_questdlg({'Warning: This project is currently open (or it may have not been properly closed)', ['Last active user: ',tagmsg],'CONN does not support multiple users working simultaneously on the same project', 'Doing so may cause loss of data, or conflicts between changes performed by different users','To avoid this message in the future please save and close your project before exiting the CONN gui '},'Open project','Continue normally','Continue in view-only mode','Cancel','Continue normally');
                         else
-                            answ=conn_questdlg({'Warning: This project is currently open by a different user',  ['Last active user: ',tagmsg],'CONN does not support multiple users working simultaneously on the same project', 'Doing so may cause loss of data or conflicts between changes performed by different users',['Continue normally only if certain that ',regexprep(tagmsg,' @.*$',''),' has finished editing this project']},'Open project','Continue normally','Continue in read-only mode','Cancel','Continue in read-only mode');
+                            answ=conn_questdlg({'Warning: This project is currently open by a different user',  ['Last active user: ',tagmsg],'CONN does not support multiple users working simultaneously on the same project', 'Doing so may cause loss of data or conflicts between changes performed by different users',['Continue normally only if certain that ',regexprep(tagmsg,' @.*$',''),' has finished editing this project']},'Open project','Continue normally','Continue in view-only mode','Cancel','Continue in view-only mode');
                         end 
                         if isequal(answ,'Cancel'), conn_disp('warning: canceled by user, project NOT loaded'); return; end
-                        if isequal(answ,'Continue in read-only mode'),
+                        if isequal(answ,'Continue in view-only mode'),
                             [basefilename,pobj]=conn_projectmanager('extendedname',[basefilename,'?read-only']);
                             localfilename=conn_projectmanager('projectfile',basefilename,pobj);
                         end
@@ -997,6 +997,7 @@ else
                 if fromgui, CONN_x.gui=1; end
                 if ~pobj.isextended&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'isextended')&&CONN_x.pobj.isextended, % note: fix when attempting to load an extended project directly (e.g. conn load conn_test.#.dmat) instead of indirectly (e.g. conn load conn_test.mat?id=#)
                     pobj=CONN_x.pobj;
+                    pobj.cache='';
                     [basefilename,localfilename]=conn_projectmanager('parentfile',basefilename,pobj);
                 end
                 if pobj.holdsdata, CONN_x.filename=conn_fullfile(localfilename);
@@ -1046,7 +1047,7 @@ else
                 CONN_x.isready(1)=1;
             end
 			
-        case 'load-readonly'
+        case {'load-readonly','load-viewonly'}
             conn('load',[varargin{2},'?read-only'],varargin{3:end});
             return
             
@@ -1264,19 +1265,19 @@ else
             if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, 
                 filename=CONN_x.filename;
                 [tagname,tagmsg]=conn_projectmanager('readtag',filename);
-                if isempty(tagname), mainmsg={'This project is no longer open by another user or process'};
-                else mainmsg={'Warning: This project is still open by another user or process',['Last active user: ',tagmsg]};
+                if isempty(tagname), mainmsg={'STATUS UPDATE: this project is no longer open by another user or process'};
+                else mainmsg={'STATUS UPDATE: warning, this project is still open by another user or process',['Last active user: ',tagmsg]};
                 end
                 answ=conn_questdlg({...
-                    'Read-only mode allows displaying (but not modifying) a project while another user is still actively working on the same project',...
-                    'While in read-only mode please avoid running any steps that may cause changes to this project files',...
+                    'View-only mode allows displaying (but not modifying) a project while another user is still actively working on the same project',...
+                    'While in view-only mode please avoid running any steps that may cause changes to this project files',...
                     '(note: to avoid potential conflicts any changes to this project information/design are saved to a temporary project file which will be deleted when this project is closed)',...
                     sprintf('Temporary project file: %s',conn_projectmanager('projectfile')),...
                     sprintf('Main project file: %s',conn_projectmanager('parentfile')),...
                     ' ',...
                     mainmsg{:} ...
-                    },'','Reload main project and exit read-only mode','Continue in read-only mode','Continue in read-only mode');
-                if isequal(answ,'Reload main project and exit read-only mode'),
+                    },'','Reload main project and exit view-only mode','Continue in view-only mode','Continue in view-only mode');
+                if isequal(answ,'Reload main project and exit view-only mode'),
                     conn initfromgui;
                     conn importrois;
                     conn('load',filename);
@@ -1306,23 +1307,27 @@ else
             conn_menu('frame2border',[.0,.955,1,.045],'');
             conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
             conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
-            if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1); 
-            elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1); 
+            if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1); 
+            elseif CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1); 
             elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); 
             end
             conn_calculator;
             
         case 'gui_ispending'
-            conn_jobmanager ispending;
-            if CONN_x.ispending, 
-                conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
-            	if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'off',1); 
-                elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'off',1); 
-                end
+            if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, 
+                conn_menumanager(CONN_h.menus.m_setup_08,'off',1);
+                if CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'off',1); end
+                conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
             else
-                conn_menumanager(CONN_h.menus.m_setup_08,'off',1); ,
-                if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
-                elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); 
+                conn_jobmanager ispending;
+                if CONN_x.ispending,
+                    conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
+                    if CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'off',1); end
+                    conn_menumanager(CONN_h.menus.m_setup_08c,'off',1);
+                else
+                    conn_menumanager(CONN_h.menus.m_setup_08,'off',1);
+                    if CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); end
+                    conn_menumanager(CONN_h.menus.m_setup_08c,'off',1);
                 end
             end
             
@@ -1344,7 +1349,7 @@ else
            
         case 'gui_setup_preproc'
             if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, 
-                conn_msgbox({'This procedure cannot be run in a read-only project. Please re-load your project to enable edits'},'',true);
+                conn_msgbox({'This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'},'',true);
                 ok=false;
             elseif nargin>1
                 ok=conn_setup_preproc('',varargin{2:end});
@@ -1703,7 +1708,10 @@ else
             varargout={ok};
             
         case 'gui_filetransfer'
-            if ~CONN_gui.isremote, return; end
+            if ~CONN_gui.isremote, 
+                try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
+                return;
+            end
             boffset=[0 0 0 0];
             ALLOWRMDIR=false; % set to true to allow users to use rmdir commands (recursive deletion of directory and its contents)
             if nargin<2,
@@ -1804,12 +1812,12 @@ else
                 hmsg=conn_msgbox('Disconnecting from remote projects','');
                 conn_remotely end;
                 if ishandle(hmsg), delete(hmsg); end
-                conn_msgbox({'Done. Working with local projects/studies now'},'',true);
+                if ~CONN_gui.isremote, conn_msgbox({'Done. Working with local projects/studies now'},'',true); end
             else
                 hmsg=conn_msgbox('Connecting to remote projects','');
                 conn_remotely start;
                 if ishandle(hmsg), delete(hmsg); end
-                conn_msgbox({'Done. Working with remote projects/studies now'},'',true);
+                if CONN_gui.isremote, conn_msgbox({'Done. Working with remote projects/studies now'},'',true); end
             end
 
         case 'parallel_settings'
@@ -1984,12 +1992,12 @@ else
                 CONN_x.isready(1)=~isempty(CONN_x.filename);
                 if ~CONN_x.isready(1), 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_07a,'enable'); tstate(4:end)=0; conn_menumanager(CONN_h.menus.m_setup_07a,'enable',tstate); 
-                    tstate=conn_menumanager(CONN_h.menus.m_setup_07f,'enable'); tstate(2:end)=0; conn_menumanager(CONN_h.menus.m_setup_07f,'enable',tstate); 
+                    tstate=conn_menumanager(CONN_h.menus.m_setup_07f,'enable'); tstate(2:3)=0; conn_menumanager(CONN_h.menus.m_setup_07f,'enable',tstate); 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_01a,'enable'); tstate(5:end-1)=0; conn_menumanager(CONN_h.menus.m_setup_01a,'enable',tstate); 
                     
                 else 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_07a,'enable'); tstate(4:end)=1; conn_menumanager(CONN_h.menus.m_setup_07a,'enable',tstate); 
-                    tstate=conn_menumanager(CONN_h.menus.m_setup_07f,'enable'); tstate(2:end)=1; conn_menumanager(CONN_h.menus.m_setup_07f,'enable',tstate); 
+                    tstate=conn_menumanager(CONN_h.menus.m_setup_07f,'enable'); tstate(2:3)=1; conn_menumanager(CONN_h.menus.m_setup_07f,'enable',tstate); 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_01a,'enable'); tstate(5:end-1)=1; conn_menumanager(CONN_h.menus.m_setup_01a,'enable',tstate); 
                     %conn_menu('frame2borderl',[0,0,.135,1],'');
                 end
@@ -2036,7 +2044,7 @@ else
                     else
                         switch(varargin{2}),
                             case 1, 
-                                if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, error('This procedure cannot be run in a read-only project. Please re-load your project to enable edits'); end
+                                if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, error('This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'); end
 								value0=CONN_x.Setup.nsubjects; 
 								txt=get(CONN_h.menus.m_setup_00{1},'string'); value=str2num(txt); if ~isempty(value)&&length(value)==1, CONN_x.Setup.nsubjects=value; end; 
 								if CONN_x.Setup.nsubjects~=value0, CONN_x.Setup.nsubjects=conn_merge(value0,CONN_x.Setup.nsubjects); end
@@ -2471,7 +2479,7 @@ else
                                     case 9, % apply individual preprocessing step
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
                                         nset=get(CONN_h.menus.m_setup_00{7},'value')-1;
-                                        if nset==0&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_msgbox({'This procedure cannot be run in a read-only project. Please re-load your project to enable edits'},'',true); 
+                                        if nset==0&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_msgbox({'This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'},'',true); 
                                         else
                                             ok=conn_setup_preproc('','select','functional','sets',nset);
                                             if ok==2
@@ -5497,7 +5505,7 @@ else
             end
             if ~isfield(CONN_h.menus,'m_setup_import_isfmriprep'), CONN_h.menus.m_setup_import_isfmriprep=false; end
             if ~isfield(CONN_h.menus,'m_setup_import_isnew'), CONN_h.menus.m_setup_import_isnew=false; end
-            if ~CONN_h.menus.m_setup_import_isnew&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_msgbox({'This procedure cannot be run in a read-only project. Please re-load your project to enable edits'},'',true); return; end
+            if ~CONN_h.menus.m_setup_import_isnew&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_msgbox({'This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'},'',true); return; end
             switch(CONN_h.menus.m_setup_import)
                 case 'spm'
                     if nargin<2||ischar(varargin{2})
@@ -12452,7 +12460,7 @@ if nargin<4||isempty(condsoption), condsoption=true; end
 if nargin<3||isempty(steps), steps=CONN_x.Setup.steps(1:3); end
 if nargin<2||isempty(stepsoption), stepsoption=true; end
 if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, 
-    conn_msgbox({'This procedure cannot be run in a read-only project. Please re-load your project to enable edits'},'',true);
+    conn_msgbox({'This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'},'',true);
     ok=false;
     return;
 end
