@@ -897,7 +897,7 @@ else
             
         case 'load',
             if nargin>1,filename=varargin{2}; 
-            else filename=CONN_x.filename; end
+            else filename=conn_projectmanager('projectfile'); end %CONN_x.filename; end
             if nargin>2,fromgui=varargin{3}; 
             else fromgui=false; end
             if nargin>3,forcecheck=varargin{4}; 
@@ -925,7 +925,7 @@ else
                         %else conn_disp('fprintf','Warning: This project has not been properly closed\nLast active user: %s\n',tagmsg);
                     end
                 end
-                try, if isfield(CONN_x,'isready')&&any(CONN_x.isready)&&isfield(CONN_x,'filename')&&~isempty(CONN_x.filename)&&~isequal(CONN_x.filename,localfilename), conn_projectmanager('tag',''); end; end % close current
+                try, if isfield(CONN_x,'isready')&&any(CONN_x.isready)&&~isempty(filename)&&~isequal(filename,localfilename), conn_projectmanager('tag',''); end; end % close current
 				try 
                     if ~pobj.isextended||conn_existfile(localfilename), 
                         errstr=localfilename; 
@@ -1084,7 +1084,7 @@ else
                     try, version73=isempty(whos('-file',localfilename)); end 
                     if version73, save(localfilename,'CONN_x','-v7.3'); end % note: try 7.3 if failed to save (e.g. >2Gb -v7)
                     if isfield(CONN_x.pobj,'cache')&&~isempty(CONN_x.pobj.cache),
-                        localfilename=CONN_x.filename;
+                        localfilename=conn_projectmanager('projectfile'); %CONN_x.filename;
                         conn_cache('push',localfilename,CONN_x.pobj.cache);
                         conn_server('run','conn','load',conn_server('util_localfile',localfilename),false,true);
                     end
@@ -1277,6 +1277,8 @@ else
                     mainmsg{:} ...
                     },'','Reload main project and exit read-only mode','Continue in read-only mode','Continue in read-only mode');
                 if isequal(answ,'Reload main project and exit read-only mode'),
+                    conn initfromgui;
+                    conn importrois;
                     conn('load',filename);
                     conn gui_setup
                 end
@@ -13038,7 +13040,7 @@ if ~ok, CONN_gui.background_handle=image(shiftdim(CONN_gui.backgroundcolor,-1),'
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,(.85-mean(CONN_gui.backgroundcolor))*.2*[zeros(1,128) sin(linspace(0,pi,128)).^2 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor,-1))))); end
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,conn_bsxfun(@times,max(.05,(1-mean(CONN_gui.backgroundcolor))*.1)*[zeros(1,128) sin(linspace(0,pi,128)).^4 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor/max(.01,mean(CONN_gui.backgroundcolor)),-1)),shiftdim(CONN_gui.backgroundcolor,-1))))); end
 if conn_menumanager('ison')
-    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbuttonblue2',[.0,.920,.138,.040],'','reconnecting...','','conn(''gui_server'');');
+    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbuttonblue2',[.0,.920,.236,.037],'','reconnecting...','','conn(''gui_server'');');
     else hserver=[];
     end
 end
