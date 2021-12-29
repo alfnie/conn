@@ -43,7 +43,8 @@ end
 if nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'thesefolders')),   % each subfolder within current folder contains a different QA report
     qafolder=pwd;
     qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
-    dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+    %dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+    dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
     isCONN=false;
 elseif nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'thisfolder')), % single QA report in current folder
     [qafolder,qagroups]=fileparts(pwd);
@@ -55,7 +56,8 @@ elseif nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'flfolders')),  % 
     end
     qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
     if isempty(qagroups), conn_disp('no QA plots found'); return; end
-    dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+    %dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+    dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
     nfilesep=sum(char(dlg.sets)==filesep,2);
     mnfilesep=mode(nfilesep);
     switch(mnfilesep)
@@ -84,7 +86,8 @@ elseif nargin&&ischar(varargin{1})&&conn_fileutils('isdir',varargin{1})         
     isCONN=false;
 else
     qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
-    dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+    %dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+    dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
 end
 if nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'isconn')), isCONN=true; end
 if dlg.forceinitdenoise&&(dlg.createdenoise||isempty(dlg.sets)),
@@ -394,7 +397,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     conn_fileutils('mkdir',qafolder,tag);
                 end
                 qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
-                dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+                %dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+                dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
                 [nill,qanames]=cellfun(@fileparts,dlg.sets,'uni',0);
                 dlg.iset=find(strcmp(qanames,tag),1);
                 if isempty(dlg.iset), dlg.iset=1; end
@@ -450,6 +454,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 nl2covariates=[];
                 [x,nl2covariates]=conn_module('get','l2covariates','^[^_]');
                 il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(QCOR_|MeanMotion|MeanGlobal|MeanGSchange|ValidScans)')));
+                validconditions=find(cellfun('length',CONN_x.Setup.conditions.model(1:numel(CONN_x.Setup.conditions.names)-1))==0);
                 
                 fh=figure('units','norm','position',[.4,.4,.4,.5],'menubar','none','numbertitle','off','name','compute QA plots','color','w');
                 h1=uicontrol('units','norm','position',[.1,.90,.4,.05],'style','text','string','Plot type: ','horizontalalignment','left','fontweight','bold','backgroundcolor',get(fh,'color'));
@@ -457,9 +462,10 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 h4D=uicontrol('units','norm','position',[.1,.55,.35,.05],'style','checkbox','string','All subjects','value',1,'horizontalalignment','left','fontweight','bold','backgroundcolor',get(fh,'color'));
                 h4d=uicontrol('units','norm','position',[.1,.25,.25,.30],'style','listbox','max',2,'string',arrayfun(@(n)sprintf('subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'value',1:CONN_x.Setup.nsubjects,'tooltipstring','<HTML>Select subjet(s) to include in these plots<br/> - right-click for additional options</HTML>');
                 h4A=uicontrol('units','norm','position',[.45,.55,.45,.05],'style','text','string','Plot options: ','horizontalalignment','left','fontweight','bold','backgroundcolor',get(fh,'color'));
-                h4a=uicontrol('units','norm','position',[.45,.45,.45,.10],'style','listbox','max',1,'string',[{'primary dataset'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)],'value',min(2,numel(CONN_x.Setup.secondarydataset)+1),'tooltipstring','<HTML>Select functional dataset(s) to include in functional data plots</HTML>');
-                h4b=uicontrol('units','norm','position',[.45,.35,.45,.10],'style','listbox','max',2,'string',[CONN_x.Setup.rois.names(1:end-1), regexprep(CONN_x.Setup.rois.names(1:3),'^(.*)$','eroded $1')],'value',1,'tooltipstring','<HTML>Select ROI(s) to include in ROI data plots</HTML>');
-                h4c=uicontrol('units','norm','position',[.45,.25,.45,.10],'style','listbox','max',2,'string',nl2covariates,'value',il2covariates,'tooltipstring','<HTML>Select QC variable(s) to include in QC/FC plots</HTML>');
+                h4a=uicontrol('units','norm','position',[.45,.47,.45,.08],'style','listbox','max',1,'string',[{'primary dataset'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)],'value',min(2,numel(CONN_x.Setup.secondarydataset)+1),'tooltipstring','<HTML>Select functional dataset(s) to include in functional data plots</HTML>');
+                h4b=uicontrol('units','norm','position',[.45,.38,.45,.08],'style','listbox','max',2,'string',[CONN_x.Setup.rois.names(1:end-1), regexprep(CONN_x.Setup.rois.names(1:3),'^(.*)$','eroded $1')],'value',1,'tooltipstring','<HTML>Select ROI(s) to include in ROI data plots</HTML>');
+                h4c=uicontrol('units','norm','position',[.45,.29,.45,.08],'style','listbox','max',2,'string',nl2covariates,'value',il2covariates,'tooltipstring','<HTML>Select QC variable(s) to include in QC/FC plots</HTML>');
+                h4e=uicontrol('units','norm','position',[.45,.20,.45,.08],'style','listbox','max',2,'string',CONN_x.Setup.conditions.names(validconditions),'value',[],'tooltipstring','<HTML>QC/FC plots aggregate FC data across multiple runs/sessions <br/> Select individual conditions if you want to only aggregate in these plots <br/> across runs/sessions where at least one of the selected conditions is present</HTML>');
                 toptions=[{'local processing (run on this computer)'} tstr(tvalid)];
                 if CONN_gui.isremote
                     info=conn_remotely('info');
@@ -473,8 +479,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 h6=uicontrol('units','norm','position',[.1,.025,.4,.08],'style','pushbutton','string','Start','callback','uiresume(gcbf)');
                 h7=uicontrol('units','norm','position',[.5,.025,.4,.08],'style','pushbutton','string','Cancel','callback','close(gcbf)');
                 hc1=uicontextmenu;uimenu(hc1,'Label','select group (2nd-level covariate)','callback',@(varargin)conn_qaplotsexplore_callbackgui('group',h4d)); set(h4d,'uicontextmenu',hc1);
-                set([h2,h4D],'callback',@(varargin)conn_qaplotsexplore_callbackgui('update',h2,h4a,h4b,h4c,h4A,analyses_numbers,h4D,h4d));
-                conn_qaplotsexplore_callbackgui('update',h2,h4a,h4b,h4c,h4A,analyses_numbers,h4D,h4d);
+                set([h2,h4D],'callback',@(varargin)conn_qaplotsexplore_callbackgui('update',h2,h4a,h4b,h4c,h4e,h4A,analyses_numbers,h4D,h4d));
+                conn_qaplotsexplore_callbackgui('update',h2,h4a,h4b,h4c,h4e,h4A,analyses_numbers,h4D,h4d);
                 uiwait(fh);
                 if ishandle(fh),
                     procedures=analyses_numbers(get(h2,'value'));
@@ -484,13 +490,14 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     validsets=get(h4a,'value')-1;
                     validrois=get(h4b,'value');
                     nl2covariates=nl2covariates(get(h4c,'value'));
+                    validconditions=validconditions(get(h4e,'value'));
                     nalt=get(h3,'value');
                     nl1contrasts='?';
                     close(fh);
                     if nalt==1,
                         %conn_batch('subjects',validsubjects,'QA.foldername',fullfile(qafolder,tag),'QA.plots',procedures,'QA.rois',validrois,'QA.sets',validsets,'QA.l2covariates',nl2covariates,'QA.l1contrasts',nl1contrasts);
                         %conn_qaplots(conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
-                        conn_process('qaplots',conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
+                        conn_process('qaplots',conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions);
                     else
                         if numel(validsubjects)>1
                             answer=inputdlg('Number of parallel jobs?','',1,{'1'});
@@ -500,7 +507,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         end
                         %conn_batch('subjects',validsubjects,'parallel.N',N,'parallel.profile',tvalid(nalt-1),'QA.foldername',fullfile(qafolder,tag),'QA.plots',procedures,'QA.rois',validrois,'QA.sets',validsets,'QA.l2covariates',nl2covariates,'QA.l1contrasts',nl1contrasts);
                         conn_jobmanager('setprofile',tvalid(nalt-1));
-                        conn_jobmanager('submit','qaplots',validsubjects,N,[],conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts);
+                        conn_jobmanager('submit','qaplots',validsubjects,N,[],conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions);
                     end
                     conn_qaplotsexplore_update([],[],'set');
                     conn_msgbox('Finished creating new plot','',2);
@@ -1379,17 +1386,17 @@ proceduretype=cellfun(@str2num,regexprep(root,...
     root_list(:,1)',root_list(:,4)'));
 end
 
-function conn_qaplotsexplore_callbackgui(option,h1,h2,h3,h4,h0,procedures,h5,h6)
+function conn_qaplotsexplore_callbackgui(option,h1,h2,h3,h4,h7,h0,procedures,h5,h6)
 global CONN_x;
 switch(option)
     case 'update'
         v=get(h1,'value');
-        h=[h2,h3,h4];
+        h=[h7,h2,h3,h4];
         if isempty(v)
             set([h h0],'visible','off');
         else
             v=procedures(v);
-            vv=[any(ismember(v,[2,7,8,9,10])),any(ismember(v,[3:6])),any(ismember(v,[13,15,31]))];
+            vv=[any(ismember(v,[11,13,15])),any(ismember(v,[2,7,8,9,10])),any(ismember(v,[3:6])),any(ismember(v,[13,15,31]))];
             set(h(vv==0),'visible','off');
             set(h(vv>0),'visible','on');
             b=0;

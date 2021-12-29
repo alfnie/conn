@@ -1,6 +1,6 @@
-function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts)
+function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions)
 % CONN_QAPLOTS creates Quality Assurance plots
-% conn_qaplots(outputfolder,procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts)
+% conn_qaplots(outputfolder,procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions)
 %   outputfolder: target folder where to save plots
 %   procedures: plots to create (numbers or labels)
 %     1:  QA_NORM structural    : structural data + outline of MNI TPM template
@@ -27,7 +27,7 @@ function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois,vali
 %   validsets: (only for procedures==2,7,8,9,10) functional dataset number (defaults to dataset-0)
 %   nl2covariates: (only for procedures==13,15,31) l2 covariate names (defaults to all QC_*)
 %   nl1contrasts: (only for procedures==23) l1 contrast name (defaults to first contrast)
-%   
+%   validconditions: (only for plots==13,15,11) QC-FC plots aggregate across sesssions where the selected conditions are present (defaults to all sessions)  
 
 
 global CONN_gui CONN_x;
@@ -38,6 +38,7 @@ if nargin<4||isempty(validrois), validrois=2; end %[2,4:numel(CONN_x.Setup.rois.
 if nargin<5||isempty(validsets), validsets=0; end %0:numel(CONN_x.Setup.secondarydataset); end
 if nargin<6||isempty(nl2covariates), nl2covariates=[]; end
 if nargin<7||isempty(nl1contrasts), nl1contrasts=[]; end
+if nargin<7||isempty(validconditions), validconditions=[]; end
 if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 erodedrois=validrois<0;
 validrois=abs(validrois);
@@ -579,18 +580,24 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                         [a0,b0]=hist(z0(:),linspace(-1,1,NptsHist));[a1,b1]=hist(z1(:),linspace(-1,1,NptsHist));
                         maxa=max(maxa,max(max(a0),max(a1)));
                         if any(ismember(procedures,[11]))
-                            if isempty(z0)||isempty(z1),
-                                conn_disp('Warning! Empty correlation data');
-                                results_patch={};results_info={};results_str={};results_label={};
+                            if iscell(validconditions), validconditions=find(ismember(CONN_x.Setup.conditions.names(1:end-1),validconditions)); end
+                            if isempty(validconditions)||any(arrayfun(@(n)any(C{nses}.weights{n}{1}>0),validconditions))
+                                if isempty(z0)||isempty(z1),
+                                    conn_disp('Warning! Empty correlation data');
+                                    results_patch={};results_info={};results_str={};results_label={};
+                                else
+                                    results_patch={[b1(1),b1,b1(end)],[0,a1,0],[0,a0,0]};
+                                    results_info=struct('units','Functional Connectivity (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
+                                    tstr={sprintf('FC for subject %d. session %d',nsub,nses),sprintf('FC = edge connectivity (r) in %d-node network',numel(x0valid))};
+                                    results_str=[tstr{1} sprintf(' before denoising: mean %f std %f; after denoising: mean %f std %f (dof=%.1f, dof_WS=%.1f)',mean(z0(z0~=1)),std(z0(z0~=1)),mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
+                                    results_label=tstr;
+                                end
+                                filename=fullfile(qafolder,sprintf('QA_DENOISE.subject%03d.session%03d.mat',nsub,nses));
+                                conn_savematfile(filename,'results_patch','results_info','results_label','results_str','-v7.3');
                             else
-                                results_patch={[b1(1),b1,b1(end)],[0,a1,0],[0,a0,0]};
-                                results_info=struct('units','Functional Connectivity (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
-                                tstr={sprintf('FC for subject %d. session %d',nsub,nses),sprintf('FC = edge connectivity (r) in %d-node network',numel(x0valid))};
-                                results_str=[tstr{1} sprintf(' before denoising: mean %f std %f; after denoising: mean %f std %f (dof=%.1f, dof_WS=%.1f)',mean(z0(z0~=1)),std(z0(z0~=1)),mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
-                                results_label=tstr;
+                                filename=fullfile(qafolder,sprintf('QA_DENOISE.subject%03d.session%03d.mat',nsub,nses));
+                                conn_fileutils('deletefile',filename);
                             end
-                            filename=fullfile(qafolder,sprintf('QA_DENOISE.subject%03d.session%03d.mat',nsub,nses));
-                            conn_savematfile(filename,'results_patch','results_info','results_label','results_str','-v7.3');
                         end
                         if any(ismember(procedures,[14]))
                             if all(isnan(d0))
@@ -631,29 +638,32 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                     end
                     
                     if any(ismember(procedures,[13,15]))
-                        if numel(k)~=numel(x0valid)
-                            if numel(x0valid)^2*numel(nsubs)>1e8, k=randperm(numel(x0valid))<=sqrt(1e8/numel(nsubs));
-                            else k=true(size(x0valid));
+                        if iscell(validconditions), validconditions=find(ismember(CONN_x.Setup.conditions.names(1:end-1),validconditions)); end
+                        if isempty(validconditions)||any(arrayfun(@(n)any(C{nses}.weights{n}{1}>0),validconditions))
+                            if numel(k)~=numel(x0valid)
+                                if numel(x0valid)^2*numel(nsubs)>1e8, k=randperm(numel(x0valid))<=sqrt(1e8/numel(nsubs));
+                                else k=true(size(x0valid));
+                                end
                             end
+                            if isempty(FC_X0),
+                                FC_X0=zeros(numel(k),numel(k),numel(nsubs));
+                                FC_X1=zeros(numel(k),numel(k),numel(nsubs));
+                                FC_N=zeros(numel(k),numel(k),numel(nsubs));
+                            end
+                            if isempty(nl2covariates)
+                                [x,nl2covariates]=conn_module('get','l2covariates','^QC_');
+                            end
+                            z0=corrcoef(x0);z1=corrcoef(x1);z0(1:size(z0,1)+1:end)=nan;z1(1:size(z1,1)+1:end)=nan;z0(z0==1)=nan;z1(z1==1)=nan;
+                            if any(procedures==15)
+                                if isempty(FC_D),FC_D=zeros(numel(k),numel(k),numel(nsubs));end
+                                d0=shiftdim(sqrt(sum(abs(conn_bsxfun(@minus, xyz,permute(xyz,[1,3,2]))).^2,1)),1);
+                                FC_D(x0valid&k,x0valid&k,isub)=FC_D(x0valid&k,x0valid&k,isub)+d0(k(x0valid),k(x0valid))/nsess;
+                            end
+                            FC_X0(x0valid&k,x0valid&k,isub)=FC_X0(x0valid&k,x0valid&k,isub)+z0(k(x0valid),k(x0valid));
+                            FC_X1(x0valid&k,x0valid&k,isub)=FC_X1(x0valid&k,x0valid&k,isub)+z1(k(x0valid),k(x0valid));
+                            FC_N(x0valid&k,x0valid&k,isub)=FC_N(x0valid&k,x0valid&k,isub)+1;
+                            %z0=(z0(z0~=1));z1=(z1(z1~=1));
                         end
-                        if isempty(FC_X0),
-                            FC_X0=zeros(numel(k),numel(k),numel(nsubs));
-                            FC_X1=zeros(numel(k),numel(k),numel(nsubs));
-                            FC_N=zeros(numel(k),numel(k),numel(nsubs));
-                        end
-                        if isempty(nl2covariates)
-                            [x,nl2covariates]=conn_module('get','l2covariates','^QC_');
-                        end
-                        z0=corrcoef(x0);z1=corrcoef(x1);z0(1:size(z0,1)+1:end)=nan;z1(1:size(z1,1)+1:end)=nan;z0(z0==1)=nan;z1(z1==1)=nan;
-                        if any(procedures==15)
-                            if isempty(FC_D),FC_D=zeros(numel(k),numel(k),numel(nsubs));end
-                            d0=shiftdim(sqrt(sum(abs(conn_bsxfun(@minus, xyz,permute(xyz,[1,3,2]))).^2,1)),1);
-                            FC_D(x0valid&k,x0valid&k,isub)=FC_D(x0valid&k,x0valid&k,isub)+d0(k(x0valid),k(x0valid))/nsess;
-                        end
-                        FC_X0(x0valid&k,x0valid&k,isub)=FC_X0(x0valid&k,x0valid&k,isub)+z0(k(x0valid),k(x0valid));
-                        FC_X1(x0valid&k,x0valid&k,isub)=FC_X1(x0valid&k,x0valid&k,isub)+z1(k(x0valid),k(x0valid));
-                        FC_N(x0valid&k,x0valid&k,isub)=FC_N(x0valid&k,x0valid&k,isub)+1;
-                        %z0=(z0(z0~=1));z1=(z1(z1~=1));
                     end
                 end
                 if ~nargout, conn_waitbar(nprocedures/Nprocedures+nproceduresin/Nprocedures*isub/numel(nsubs),ht);

@@ -601,6 +601,8 @@ function varargout=conn_batch(varargin)
 %   QA.sets                         : (only for plots==2,7,8,9,10) functional dataset number (defaults to dataset-0)
 %   QA.l2covariates                 : (only for plots==13,31) l2 covariate names (defaults to all QC_*)
 %   QA.l1contrasts                  : (only for plots==23) l1 contrast name (defaults to first contrast)
+%   QA.conditions                   : (only for plots==13) QC-FC plots aggregate across sesssions where the selected conditions 
+%                                      are present (defaults to all sessions)
 %__________________________________________________________________________________________________________________
 % 
 % See 
@@ -1636,11 +1638,14 @@ if isfield(batch,'QA'),
     if isfield(batch.QA,'l1contrasts'), nl1contrasts=batch.QA.l1contrasts; 
     else nl1contrasts=[];
     end
+    if isfield(batch.QA,'conditions'), validconditions=batch.QA.conditions; 
+    else validconditions=[];
+    end
     if isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0,
         PAR_CMD{end+1}='qaplots';
-        PAR_ARG{end+1}={[],qafolder,procedures,SUBJECTS,validrois,validsets,nl2covariates,nl1contrasts};
+        PAR_ARG{end+1}={[],qafolder,procedures,SUBJECTS,validrois,validsets,nl2covariates,nl1contrasts,validconditions};
     else
-        conn_process('qaplots',qafolder,procedures,SUBJECTS,validrois,validsets,nl2covariates,nl1contrasts);
+        conn_process('qaplots',qafolder,procedures,SUBJECTS,validrois,validsets,nl2covariates,nl1contrasts,validconditions);
         CONN_x.gui=1;
     end
 end

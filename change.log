@@ -317,6 +317,7 @@ ________________________________________________________________________________
      Added submit_delay option to parallelization/HPC job submission (this can be used to reduce the load on the cluster job scheduler when handling multiple job requests)
      Added option to create .mtx.nii file output with estimated time-varying RRC matrix when running dynamic ICA
      Added -v7.3 version save as backup option if default project save fails
+     Updated BIDS compatibility to v1.6.0 
      Added script for cat12-to-Freesurfer conversion
      Added filter option to 'function_regression' preprocessing step (to allow filtered-regressor option when using conn_module('preprocessing',...) to run aCompCor denoising)
      Added 'view details' checkbox in 2nd-level GUIs to simplify threshold-setting options
@@ -324,12 +325,13 @@ ________________________________________________________________________________
      Added option for using scrubbing based on thresholding external timeseries (including single-measure timeseries)
      Added option to create single-voxel-ROIs from mask (see Setup.ROIs tab)
      Added 'import values' functionality to conn_display when run outside of any CONN project
-     Added conn_vol_read/write functions to complement conn_mtx_* and conn_surf_* functions (see www.conn-toolbox.org/resources/documentation for detailis)
+     Added conn_vol_read/write functions to complement conn_mtx_* and conn_surf_* functions (see www.conn-toolbox.org/resources/documentation for details)
      Added QC_DOF_Session# quality control 2nd-level covariate computing effective degrees of freedom for each subject/session after denoising
      Added conn_tcpip for TCP/IP based communications and conn_server for client/server communication between two CONN sessions
      Added "conn_module EL" for using a combination of SPM and CONN functionality for task activation analyses of fMRI data (see www.conn-toolbox.org/resources/evlab for details)
-     Added "conn_remotely" for working with CONN projects stored remotely (see "help conn_remotely" for details)
+     Added "conn_remotely" for working with CONN projects stored remotely using SSH protocol for communications (see "help conn_remotely" for details)
      Added Inter-hemispheric Correlation (IHC) 1st-level analyses (voxel-level correlation between a voxel and its contralateral voxel; note: for 3D volume functionals contralateral voxel is based on voxel coordinates (x,y,z) matched to (-x,y,z); for 2D surface functionals contralateral vertex is based on a non-linear match in spherical coordinates between Freesurfer left- and right- hemisphere surface-curvature templates - vertex i in left-hemisphere surface matched to vertex LEFT2RIGHT(i) in right-hemisphere surface, vertex j in right-hemisphere surface matched to vetex RIGHT2LEFT(j) in left-hemisphere surface; see conn/utils/surf/lhrh.mat)
+     Added "view-only" mode for avoiding conflicts when viewing a project while another user may be actively working with the same project
 
 
 

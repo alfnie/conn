@@ -1812,12 +1812,12 @@ else
                 hmsg=conn_msgbox('Disconnecting from remote projects','');
                 conn_remotely end;
                 if ishandle(hmsg), delete(hmsg); end
-                if ~CONN_gui.isremote, conn_msgbox({'Done. Working with local projects/studies now'},'',true); end
+                if ~CONN_gui.isremote, conn_msgbox({'Disconnection procedure complete','Working with local projects/studies now'},'',true); end
             else
                 hmsg=conn_msgbox('Connecting to remote projects','');
                 conn_remotely start;
                 if ishandle(hmsg), delete(hmsg); end
-                if CONN_gui.isremote, conn_msgbox({'Done. Working with remote projects/studies now'},'',true); end
+                if CONN_gui.isremote, conn_msgbox({'Connection procedure complete','Working with remote projects/studies now'},'',true); end
             end
 
         case 'parallel_settings'

@@ -1259,7 +1259,7 @@ handles.txt=text(.5,1,'','horizontalalignment','center','color','w','parent',han
 hold(handles.axes,'off');
 handles.contall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.2,.075,.2,.05],'string','Continue','callback','close(gcbf)','tooltipstring','<HTML>Close this GUI but continue running this job in the background <br/> - processes will continue running in their current location (as background processes or in the cluster)<br/> - visit Tools.Cluster/HPC.PendingJobs at any time to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
 handles.stopall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.4,.075,.2,.05],'string','Cancel job','callback',@(varargin)conn_jobmanager_update('cancelall'),'tooltipstring','Cancels all unfinished nodes and finishes this job pipeline');
-handles.enable=uicontrol(handles.hfig,'style','checkbox','value',0,'units','norm','position',[.65,.075,.3,.05],'string','Advanced options','backgroundcolor','w','callback',@(varargin)conn_jobmanager_update('enable'));
+handles.enable=uicontrol(handles.hfig,'style','checkbox','value',0,'units','norm','position',[.64,.075,.3,.05],'string','Advanced options','backgroundcolor','w','callback',@(varargin)conn_jobmanager_update('enable'));
 
 handles.panel=uipanel(handles.hfig,'units','norm','position',[0 .3 1 .7],'backgroundcolor',.9*[1 1 1]);
 handles.files=[];
