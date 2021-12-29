@@ -1396,7 +1396,7 @@ switch(option)
             set([h h0],'visible','off');
         else
             v=procedures(v);
-            vv=[any(ismember(v,[11,13,15])),any(ismember(v,[2,7,8,9,10])),any(ismember(v,[3:6])),any(ismember(v,[13,15,31]))];
+            vv=[any(ismember(v,[11,13,14,15])),any(ismember(v,[2,7,8,9,10])),any(ismember(v,[3:6])),any(ismember(v,[13,15,31]))];
             set(h(vv==0),'visible','off');
             set(h(vv>0),'visible','on');
             b=0;

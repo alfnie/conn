@@ -601,8 +601,8 @@ function varargout=conn_batch(varargin)
 %   QA.sets                         : (only for plots==2,7,8,9,10) functional dataset number (defaults to dataset-0)
 %   QA.l2covariates                 : (only for plots==13,31) l2 covariate names (defaults to all QC_*)
 %   QA.l1contrasts                  : (only for plots==23) l1 contrast name (defaults to first contrast)
-%   QA.conditions                   : (only for plots==13) QC-FC plots aggregate across sesssions where the selected conditions 
-%                                      are present (defaults to all sessions)
+%   QA.conditions                   : (only for plots==11,13,14,15) FC & QC-FC plots aggregate across sesssions where 
+%                                      the selected conditions are present (defaults to all sessions)
 %__________________________________________________________________________________________________________________
 % 
 % See 

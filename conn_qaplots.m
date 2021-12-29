@@ -27,7 +27,7 @@ function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois,vali
 %   validsets: (only for procedures==2,7,8,9,10) functional dataset number (defaults to dataset-0)
 %   nl2covariates: (only for procedures==13,15,31) l2 covariate names (defaults to all QC_*)
 %   nl1contrasts: (only for procedures==23) l1 contrast name (defaults to first contrast)
-%   validconditions: (only for plots==13,15,11) QC-FC plots aggregate across sesssions where the selected conditions are present (defaults to all sessions)  
+%   validconditions: (only for plots==13,15,11,14) FC & QC-FC plots aggregate across sesssions where the selected conditions are present (defaults to all sessions)  
 
 
 global CONN_gui CONN_x;
@@ -579,8 +579,8 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                         z0=z0(maskz);z1=z1(maskz);d0=d0(maskz);
                         [a0,b0]=hist(z0(:),linspace(-1,1,NptsHist));[a1,b1]=hist(z1(:),linspace(-1,1,NptsHist));
                         maxa=max(maxa,max(max(a0),max(a1)));
+                        if iscell(validconditions), validconditions=find(ismember(CONN_x.Setup.conditions.names(1:end-1),validconditions)); end
                         if any(ismember(procedures,[11]))
-                            if iscell(validconditions), validconditions=find(ismember(CONN_x.Setup.conditions.names(1:end-1),validconditions)); end
                             if isempty(validconditions)||any(arrayfun(@(n)any(C{nses}.weights{n}{1}>0),validconditions))
                                 if isempty(z0)||isempty(z1),
                                     conn_disp('Warning! Empty correlation data');
@@ -600,24 +600,29 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                             end
                         end
                         if any(ismember(procedures,[14]))
-                            if all(isnan(d0))
-                                conn_disp('Warning! Empty distance data');
-                                results_patch={};results_line={};results_info={};results_str={};results_label={};
+                            if isempty(validconditions)||any(arrayfun(@(n)any(C{nses}.weights{n}{1}>0),validconditions))
+                                if all(isnan(d0))
+                                    conn_disp('Warning! Empty distance data');
+                                    results_patch={};results_line={};results_info={};results_str={};results_label={};
+                                else
+                                    kpoints=floor(numel(d0)/NptsScat);
+                                    [nill,tidx]=sort(d0(:));
+                                    sd0=reshape(d0(tidx(1:kpoints*NptsScat)),kpoints,NptsScat); msd0=mean(sd0,1);ssd0=std(sd0,0,1);
+                                    sz0=reshape(z0(tidx(1:kpoints*NptsScat)),kpoints,NptsScat); msz0=mean(sz0,1);ssz0=std(sz0,0,1);
+                                    sz1=reshape(z1(tidx(1:kpoints*NptsScat)),kpoints,NptsScat); msz1=mean(sz1,1);ssz1=std(sz1,0,1);
+                                    results_patch={[msd0 fliplr(msd0)]', [msz1+ssz1 fliplr(msz1-ssz1)]', [msz0+ssz0 fliplr(msz0-ssz0)]'};
+                                    results_line={msd0', msz1', msz0'};
+                                    results_info=struct('units','Functional Connectivity (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
+                                    tstr={sprintf('FC (r mean%cstd) vs. distance (mm) for subject %d. session %d',177,nsub,nses),sprintf('FC = edge connectivity (r) in %d-node network',numel(x0valid)),sprintf('distance = edge distance (mm) in %d-node network',numel(x0valid))};
+                                    results_str=[tstr{1} sprintf(' before denoising: mean %f std %f; after denoising: mean %f std %f (dof=%.1f, dof_WS=%.1f)',mean(z0(z0~=1)),std(z0(z0~=1)),mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
+                                    results_label=tstr;
+                                end
+                                filename=fullfile(qafolder,sprintf('QA_DENOISE_scatterplot.subject%03d.session%03d.mat',nsub,nses));
+                                conn_savematfile(filename,'results_patch','results_line','results_info','results_label','results_str','-v7.3');
                             else
-                                kpoints=floor(numel(d0)/NptsScat);
-                                [nill,tidx]=sort(d0(:));
-                                sd0=reshape(d0(tidx(1:kpoints*NptsScat)),kpoints,NptsScat); msd0=mean(sd0,1);ssd0=std(sd0,0,1);
-                                sz0=reshape(z0(tidx(1:kpoints*NptsScat)),kpoints,NptsScat); msz0=mean(sz0,1);ssz0=std(sz0,0,1);
-                                sz1=reshape(z1(tidx(1:kpoints*NptsScat)),kpoints,NptsScat); msz1=mean(sz1,1);ssz1=std(sz1,0,1);
-                                results_patch={[msd0 fliplr(msd0)]', [msz1+ssz1 fliplr(msz1-ssz1)]', [msz0+ssz0 fliplr(msz0-ssz0)]'};
-                                results_line={msd0', msz1', msz0'};
-                                results_info=struct('units','Functional Connectivity (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
-                                tstr={sprintf('FC (r mean%cstd) vs. distance (mm) for subject %d. session %d',177,nsub,nses),sprintf('FC = edge connectivity (r) in %d-node network',numel(x0valid)),sprintf('distance = edge distance (mm) in %d-node network',numel(x0valid))};
-                                results_str=[tstr{1} sprintf(' before denoising: mean %f std %f; after denoising: mean %f std %f (dof=%.1f, dof_WS=%.1f)',mean(z0(z0~=1)),std(z0(z0~=1)),mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
-                                results_label=tstr;
+                                filename=fullfile(qafolder,sprintf('QA_DENOISE_scatterplot.subject%03d.session%03d.mat',nsub,nses));
+                                conn_fileutils('deletefile',filename);
                             end
-                            filename=fullfile(qafolder,sprintf('QA_DENOISE_scatterplot.subject%03d.session%03d.mat',nsub,nses));
-                            conn_savematfile(filename,'results_patch','results_line','results_info','results_label','results_str','-v7.3');
                         end
                     end
                     
