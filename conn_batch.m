@@ -1258,6 +1258,7 @@ if isfield(batch,'Setup'),
         if isscalar(batch.Setup.overwrite)&&~isstruct(batch.Setup.overwrite)&&ismember(double(batch.Setup.overwrite),[1 89 121]), batch.Setup.overwrite='Yes'; end
         CONN_x.gui=struct('overwrite',batch.Setup.overwrite,'subjects',SUBJECTS);
         if isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0, 
+            CONN_x.isready(2)=1;
             PAR_CMD{end+1}='Setup'; PAR_ARG{end+1}={CONN_x.gui};
         else
             conn_process Setup;
