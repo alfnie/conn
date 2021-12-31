@@ -1223,6 +1223,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
 	[path,name,ext]=fileparts(CONN_x.filename);
     filepath=CONN_x.folders.data;
 	filepathresults=CONN_x.folders.preprocessing;
+    try, conn_fileutils('mkdir',filepathresults); end
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 	nconditions=length(CONN_x.Setup.conditions.names)-1;
@@ -1569,6 +1570,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
 	[path,name,ext]=fileparts(CONN_x.filename);
     filepath=CONN_x.folders.data;
 	filepathresults=CONN_x.folders.preprocessing;
+    try, conn_fileutils('mkdir',filepathresults); end
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 	nconditions=length(CONN_x.Setup.conditions.names)-1;
@@ -1815,6 +1817,7 @@ end
 if any(options==8) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'steps')&&~any(CONN_x.gui.steps([3]))),
     [path,name,ext]=fileparts(CONN_x.filename);
     filepath=CONN_x.folders.preprocessing;
+    try, conn_fileutils('mkdir',filepath); end
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
     nconditions=length(CONN_x.Setup.conditions.names)-1;
