@@ -387,6 +387,7 @@ switch(lower(option))
         if ischar(filename2), filename2=cellstr(filename2); end
         filename2=regexprep(filename2,'[\\\/]CONNSERVER','');
         assert(numel(filename1)==numel(filename2), 'mismatched number of source/destination files');
+        filename1=conn_server('util_localfile',filename1);
         ok=false(1,numel(filename1));
         for n=1:numel(filename1)
             if conn_existfile(filename1{n}),

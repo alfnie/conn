@@ -265,6 +265,8 @@ end
 end
 
 function conn_cache_copyfile(a,b,varargin)
+a=conn_server('util_localfile',a);
+b=conn_server('util_localfile',b);
 if ispc, [ok,nill]=system(['copy "',a,'" "',b,'"']);
 else, [ok,nill]=system(['''cp'' -f ''',a,''' ''',b,'''']);
 end
@@ -276,12 +278,12 @@ if iscell(filename)
     hash=cellfun(@(x)conn_cache_hash(x,htype),filename,'uni',0);
     hash=cat(2,hash{:});
 elseif strcmp(htype,'timestamp')
-    fh=dir(filename);
+    fh=dir(conn_server('util_localfile',filename));
     hash=fh.datenum;
 else
     maxsize=65536;
     try
-        fh=fopen(filename,'rb');
+        fh=fopen(conn_server('util_localfile',filename),'rb');
         hh=java.security.MessageDigest.getInstance(htype);
         while 1
             tdata=fread(fh, maxsize, 'uint8')';

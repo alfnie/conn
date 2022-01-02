@@ -252,7 +252,7 @@ switch(lower(option))
         readnowait=strcmpi(option,'readnowait');
         readword=strcmpi(option,'readword');
         if readtofile
-            filename=varargin{1}; % reads raw data to file (data does not need to fit in memory)
+            filename=conn_server('util_localfile',varargin{1}); % reads raw data to file (data does not need to fit in memory)
             if ~isempty(connection.hash)&&nargout>0&&~isequal(connection.hash,'timestamp'), hash=java.security.MessageDigest.getInstance(connection.hash); end
         elseif readword % read to var directly
             filename=[];
@@ -438,7 +438,7 @@ switch(lower(option))
         varargout={ok};
         
     case 'writefromfile' % writes raw data from file to remote (data does not need to fit in memory)
-        filename=varargin{1}; 
+        filename=conn_server('util_localfile',varargin{1}); 
         assert(isempty(regexp(filename,'<>')),'invalid characters in filename');
         fh=fopen(filename,'rb');
         if isequal(fh,-1)
