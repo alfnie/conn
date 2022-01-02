@@ -2382,7 +2382,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                             %wx=X1.conditionweights{3};   %PPI
                             wx=ConditionWeights{nsub,3}(:,[setdiff(validconditions2,ncondition) ncondition]); %gPPI
                         elseif ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')), % Dyn FC
-                            CONN_x.Analyses(ianalysis).modulation=regexprep(CONN_x.Analyses(ianalysis).modulation,'\\|\/',filesep);
+                            CONN_x.Analyses(ianalysis).modulation=regexprep(CONN_x.Analyses(ianalysis).modulation,'\\|\/',['\',filesep]);
                             [name1,name2]=fileparts(CONN_x.Analyses(ianalysis).modulation);
                             [ok,value1]=ismember(name1,{CONN_x.dynAnalyses.name}); if ~ok, if numel(CONN_x.dynAnalyses)==1, value1=1; else error('Analysis name %s not found',name1); end; end
                             filename=fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(value1).name,['dyn_Subject',num2str(nsub,'%03d'),'.mat']);
@@ -2723,7 +2723,7 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                             %wx=X1.conditionweights{3};   % PPI
                             wx=ConditionWeights{nsub,3}(:,[setdiff(validconditions2,ncondition) ncondition]); %gPPI
                         elseif ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')),
-                            CONN_x.Analyses(ianalysis).modulation=regexprep(CONN_x.Analyses(ianalysis).modulation,'\\|\/',filesep);
+                            CONN_x.Analyses(ianalysis).modulation=regexprep(CONN_x.Analyses(ianalysis).modulation,'\\|\/',['\',filesep]);
                             [name1,name2]=fileparts(CONN_x.Analyses(ianalysis).modulation);
                             [ok,value1]=ismember(name1,{CONN_x.dynAnalyses.name}); if ~ok, if numel(CONN_x.dynAnalyses)==1, value1=1; else error('Analysis name %s not found',name1); end; end
                             filename=fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(value1).name,['dyn_Subject',num2str(nsub,'%03d'),'.mat']);

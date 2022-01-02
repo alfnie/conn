@@ -610,6 +610,7 @@ switch(lower(option))
         try
             ischarfilename=ischar(varargin{1});
             filename=regexprep(cellstr(varargin{1}),'^\s*[\\\/]CONNSERVER','');
+            filename=regexprep(filename,'\\|\/','/');
             if ischarfilename, filename=char(filename); end
             varargout={filename};
         end
@@ -623,7 +624,8 @@ switch(lower(option))
             else change=true(size(filename));
             end
             filename(change)=regexprep(filename(change),'^\s*[\\\/]CONNSERVER','');
-            filename(change)=regexprep(filename(change),'^\s*[\\\/]*(.*)',[filesep,'CONNSERVER',filesep,'$1']);
+            filename(change)=regexprep(filename(change),'^\s*[\\\/]*(.*)',['\',filesep,'CONNSERVER','\',filesep,'$1']);
+            filename(change)=regexprep(filename(change),'\\|\/','/');
             if ischarfilename, filename=char(filename); end
             varargout={filename};
         end

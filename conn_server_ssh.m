@@ -373,7 +373,7 @@ switch(lower(option))
     case {'pull','folderpull'}
         fileremote=conn_server('util_localfile',varargin{1});
         filelocal=conn_server('util_localfile',varargin{2});
-        if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('%s -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0',filesep])));
+        if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('%s -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
         else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
         end
         if ~isequal(ok,0), disp(msg); end

@@ -127,7 +127,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
         drawnow;
         set(h,'fontunits','points');
         tfontsize=get(h,'fontsize');
-        conn_font_offset=max(-4,round(tfontsize)/2);
+        conn_font_offset=max(-4,floor(tfontsize/2));
         %fprintf('Font size change %dpts to %dpts (%f %s)\n',8+CONN_gui.font_offset,8+conn_font_offset,tfontsize,mat2str([get(0,'screensize') get(gca,'position')]));
         CONN_gui.font_offset=conn_font_offset;
     end
@@ -975,14 +975,14 @@ else
                         %end
                     end
                 catch me,%#ok<*CTCH>
-                    if ~isempty(me)&&fromgui&&pobj.holdsdata&&~isempty(regexp(char(getReport(me,'basic','hyperlinks','off')),'File might be corrupt'))&&~isempty(regexp(errstr,'\.mat$'))&&conn_existfile(regexprep(errstr,'\.mat$',[filesep,'bakfile.mat']))
+                    if ~isempty(me)&&fromgui&&pobj.holdsdata&&~isempty(regexp(char(getReport(me,'basic','hyperlinks','off')),'File might be corrupt'))&&~isempty(regexp(errstr,'\.mat$'))&&conn_existfile(regexprep(errstr,'\.mat$',['\',filesep,'bakfile.mat']))
                         answ=conn_questdlg({'WARNING!!!',sprintf('This CONN project file (%s) appears to be corrupted',errstr),sprintf('Attempt to repair this file using latest backup?',connver)},'','Proceed','Cancel','Cancel');
                         if isequal(answ,'Cancel')
                             error(['Failed to load file ',errstr,'.']);
                             return;
                         end
                         try
-                            vars=load(regexprep(errstr,'\.mat$',[filesep,'bakfile.mat']),'CONN_x','-mat');
+                            vars=load(regexprep(errstr,'\.mat$',['\',filesep,'bakfile.mat']),'CONN_x','-mat');
                             CONN_x=vars.CONN_x;
                             clear vars;
                         catch
