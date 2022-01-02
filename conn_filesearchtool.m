@@ -393,7 +393,7 @@ end
 end
 
 function str=conn_filesearch_breakfolder(pathname)
-idx=find(pathname=='/'||pathname='\');
+idx=find(pathname=='/'||pathname=='\');
 str=mat2cell(pathname,1,diff([0 idx(:)' numel(pathname)]));
 % str={pathname};
 % pbak='';
