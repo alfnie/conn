@@ -475,6 +475,7 @@ switch(lower(option))
                 break;
             end
         end
+        if ~isequal(fh,-1), fclose(fh); end
         varargout={ok};
         
     case 'writekeepalive' % write keep-alive package

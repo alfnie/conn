@@ -16,7 +16,7 @@ if isequal(options,'aminserver') % if running from server
     CONN_x.gui=1;
     if ~skiploadsave, conn save; end
     return
-elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 17 17.5 19 34])) % note: list of processes which may be run from client
+elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(options,[1.5 5 9 9.1 9.2 9.3 17 17.5 19 34])) % if running from client; note: list of processes which may be run from client
     hmsg=[];
     if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
         info=conn_remotely('info');
