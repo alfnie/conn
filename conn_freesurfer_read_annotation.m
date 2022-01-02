@@ -81,7 +81,7 @@ function [vertices, label, colortable] = conn_freesurfer_read_annotation(filenam
 %
 
 if any(conn_server('util_isremotefile',filename)), [vertices, label, colortable] = conn_server('run',mfilename,conn_server('util_localfile',filename),varargin{:}); return; end
-
+filename=conn_server('util_localfile',filename);
 fp = fopen(filename, 'r', 'b');
 
 verbosity = 1;

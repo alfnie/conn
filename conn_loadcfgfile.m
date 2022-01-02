@@ -22,7 +22,7 @@ function out=conn_loadcfgfile(filename,out);
 if nargin<2, out=struct; end
 if isstruct(filename), for f=reshape(fieldnames(filename),1,[]), out=setfield(out,f{1},getfield(filename,f{1})); end; return; end
 if any(conn_server('util_isremotefile',filename)), out=conn_server('run',mfilename,conn_server('util_localfile',filename),out); return; end
-filename=char(filename);
+filename=char(conn_server('util_localfile',filename));
 
 fieldname={'arg'};
 s=fileread(filename);

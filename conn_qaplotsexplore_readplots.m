@@ -7,6 +7,8 @@ if any(conn_server('util_isremotefile',files)),
     if ishandle(hmsg), delete(hmsg); end
     return; 
 end
+files=conn_server('util_localfile',files);
+files_txt=conn_server('util_localfile',files_txt);
 
 if dogui, ht=conn_waitbar(0,sprintf('Loading %d plots. Please wait...',numel(in)),false); end
 dataA={};
@@ -15,7 +17,7 @@ infoA={};
 lineA={};
 %dataB={};
 dopull=conn_server('util_isremotefile',files(in));
-if any(dopull),
+if any(dopull), % deprecated
     files(in(dopull))=conn_cache('pull',files(in(dopull)));
     files_txt(in(dopull))=conn_prepend('',files(in(dopull)),'.txt');
 end

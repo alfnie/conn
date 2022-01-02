@@ -61,7 +61,7 @@ if any(conn_server('util_isremotefile',filename)),
         end
     end
 else
-    data=load(filename,varargin{cellfun(@(x)~isequal(x,'-cache'),varargin)});
+    data=load(conn_server('util_localfile',filename),varargin{cellfun(@(x)~isequal(x,'-cache'),varargin)});
 end
 
 if ~nargout, for fname=reshape(fieldnames(data),1,[]), assignin('caller',fname{1},data.(fname{1})); end; end

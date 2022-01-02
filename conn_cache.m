@@ -81,7 +81,7 @@ switch(lower(option))
             fnum=regexp(filename_remote,',\d+\s*$','match','once');
             filename_remote=regexprep(filename_remote,',\d+\s*$','');
             remote_inserver=conn_server('util_isremotefile',filename_remote);
-            filename_remote=conn_fullfile(filename_remote);
+            if ~remote_inserver, filename_remote=conn_fullfile(conn_server('util_localfile',filename_remote)); end
             [fext,fexts]=conn_cache_exts(filename_remote);
             idx=find(strcmp(filename_remote,params.remote_files),1,'last');
             if isempty(idx), filename_local=conn_fullfile(params.local_folder, ['conncache_', char(conn_tcpip('hash',[filename_remote, mat2str(now)])), fext]);
@@ -150,7 +150,7 @@ switch(lower(option))
             fnum=regexp(filename_remote,',\d+\s*$','match','once');
             filename_remote=regexprep(filename_remote,',\d+\s*$','');
             remote_inserver=conn_server('util_isremotefile',filename_remote);
-            filename_remote=conn_fullfile(filename_remote);
+            if ~remote_inserver, filename_remote=conn_fullfile(conn_server('util_localfile',filename_remote)); end
             if numel(varargin)>=2&&~isempty(varargin{2}),
                 filename_local=varargin{2};
                 idx=find(strcmp(filename_remote, params.remote_files),1,'last');
@@ -209,7 +209,7 @@ switch(lower(option))
         else
             filename_remote=varargin{1};
             remote_inserver=conn_server('util_isremotefile',filename_remote);
-            filename_remote=conn_fullfile(filename_remote);
+            if ~remote_inserver, filename_remote=conn_fullfile(conn_server('util_localfile',filename_remote)); end
             idx=find(strcmp(filename_remote, params.remote_files),1,'last');
             if isempty(idx), error('Could not find a match for file %s. Please enter explicit filename_local argument',filename_remote);
             else
@@ -224,11 +224,13 @@ switch(lower(option))
     case 'rename'   % conn drive rename <remotefile> <remotefile_newname>
         filename_remote=varargin{1};
         remote_inserver=conn_server('util_isremotefile',filename_remote);
-        filename_remote=conn_fullfile(filename_remote);
+        if ~remote_inserver, filename_remote=conn_fullfile(conn_server('util_localfile',filename_remote)); end
         idx=find(strcmp(filename_remote, params.remote_files),1,'last');
         if isempty(idx), error('Could not find a match for file %s. Please enter explicit filename_local argument',filename_remote);
         else
-            params.remote_files{idx}=conn_fullfile(varargin{2});
+            if ~remote_inserver, params.remote_files{idx}=conn_fullfile(varargin{2});
+            else params.remote_files{idx}=varargin{2};
+            end
             params.remote_hashes{idx}=[];
         end
         

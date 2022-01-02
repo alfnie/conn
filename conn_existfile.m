@@ -7,7 +7,9 @@ function out=conn_existfile(filename,acceptdir)
 % 
 
 if nargin<2||isempty(acceptdir), acceptdir=false; end
-if any(conn_server('util_isremotefile',filename)), out=conn_server('run',mfilename,conn_server('util_localfile',filename),acceptdir); return; end
+if any(conn_server('util_isremotefile',filename)), out=conn_server('run',mfilename,conn_server('util_localfile',filename),acceptdir); return; 
+else filename=conn_server('util_localfile',filename);
+end
 
 out=false;
 if iscell(filename)||size(filename,1)>1

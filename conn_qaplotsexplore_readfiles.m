@@ -16,6 +16,9 @@ if any(conn_server('util_isremotefile',files_jpg)),
     dataA=conn_server('util_remotefile',dataA);
     return; 
 end
+files_jpg=conn_server('util_localfile',files_jpg);
+files_txt=conn_server('util_localfile',files_txt);
+
 if dogui, ht=conn_waitbar(0,sprintf('Loading %d plots. Please wait...',numel(in)),false); end
 if keeprawdata&&~skipall, dataA=[];
 else dataA={};

@@ -610,7 +610,7 @@ switch(lower(option))
         try
             ischarfilename=ischar(varargin{1});
             filename=regexprep(cellstr(varargin{1}),'^\s*[\\\/]CONNSERVER','');
-            filename=regexprep(filename,'\\|\/','/');
+            filename=regexprep(filename,'\\|\/',['\',filesep]); % localfiles use convention of this computer
             if ischarfilename, filename=char(filename); end
             varargout={filename};
         end
@@ -625,7 +625,7 @@ switch(lower(option))
             end
             filename(change)=regexprep(filename(change),'^\s*[\\\/]CONNSERVER','');
             filename(change)=regexprep(filename(change),'^\s*[\\\/]*(.*)',['\',filesep,'CONNSERVER','\',filesep,'$1']);
-            filename(change)=regexprep(filename(change),'\\|\/','/');
+            filename(change)=regexprep(filename(change),'\\|\/','/'); % remotefiles use common / convention
             if ischarfilename, filename=char(filename); end
             varargout={filename};
         end

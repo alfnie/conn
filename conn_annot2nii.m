@@ -12,7 +12,9 @@ if nargin==1&&ischar(varargin{1}), roifiles=varargin;
 elseif nargin==1&&iscell(varargin{1}), roifiles=varargin{1};
 else roifiles=varargin;
 end
-if any(conn_server('util_isremotefile',roifiles)), niifilename=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',roifiles))); return; end
+if any(conn_server('util_isremotefile',roifiles)), niifilename=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',roifiles))); return; 
+else roifiles=conn_server('util_localfile',roifiles);
+end
 
 if numel(roifiles)==1
     [file_path,file_name,file_ext]=fileparts(roifiles{1});

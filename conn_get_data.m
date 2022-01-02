@@ -21,6 +21,7 @@ if nargin<4 || isempty(components), if length(weight)<=1, components=inf; else, 
 if any(conn_server('util_isremotefile',V.fname)), V.fname=conn_server('util_localfile',V.fname); [X,IDX,Q]=conn_server('run',mfilename,V,xyz,weight,components); return; end
 
 if ~components, X=[]; return; end
+V.fname=conn_server('util_localfile',V.fname); 
 if isfield(V,'softlink')&&~isempty(V.softlink), 
     str1=regexp(V.fname,'Subject\d+','match'); if ~isempty(str1), V.softlink=regexprep(V.softlink,'Subject\d+',str1{end}); end
     [file_path,file_name,file_ext]=fileparts(V.fname);

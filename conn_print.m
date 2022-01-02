@@ -96,7 +96,9 @@ end
 if ~isempty(answ)
     filename=answ{1};
     isremotefile=conn_server('util_isremotefile',filename);
-    if isremotefile, filename=conn_cache('new',filename); end
+    if isremotefile, filename=conn_cache('new',filename); 
+    else filename=conn_server('util_localfile',filename);
+    end
     PRINT_OPTIONS=regexp(strtrim(answ{2}),'\s+','split');
     %if persistentoptions, printoptions=PRINT_OPTIONS; end
     oldpointer=get(hfig,'pointer');

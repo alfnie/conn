@@ -13,6 +13,7 @@ if any(conn_server('util_isremotefile',filenames)),
     Series=conn_server('run',mfilename,conn_server('util_localfile',filenames),DOGUI); 
     for n=1:numel(Series), Series(n).files=conn_server('util_remotefile',Series(n).files); end
     return
+else filenames=conn_server('util_localfile',filenames);
 end
 
 if ischar(filenames), filenames=conn_dir(filenames,'-ls'); end

@@ -7,6 +7,9 @@ if numel(filename_lh)~=numel(filename_rh), error('input lengths must match in si
 if nargin<3||isempty(filename), filename=cell(size(filename_lh)); end
 
 if any(conn_server('util_isremotefile',filename)), filename=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filename_lh),conn_server('util_localfile',filename_rh),conn_server('util_localfile',filename))); return; end
+filename_lh=conn_server('util_localfile',filename_lh);
+filename_rh=conn_server('util_localfile',filename_rh);
+filename=conn_server('util_localfile',filename);
 
 ps=conn_surf_dims(8);
 for n=1:numel(filename_lh)

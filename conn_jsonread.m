@@ -2,6 +2,7 @@ function out = conn_jsonread(filename,fieldname,isnumericfield)
 if nargin<3||isempty(isnumericfield), isnumericfield=true; end
 if nargin<2||isempty(fieldname),fieldname=''; end
 if any(conn_server('util_isremotefile',filename)), out=conn_server('run',mfilename,conn_server('util_localfile',filename),fieldname,isnumericfield); return; end
+filename=conn_server('util_localfile',filename);
 
 out=[];
 if ~isempty(regexp(filename,'\.nii(\.gz)?(\,\d+)?$'))

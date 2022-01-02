@@ -9,6 +9,7 @@ function fileout=conn_surf_nii2curv(filein)
 %
 
 if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein))); return; end
+filein=conn_server('util_localfile',filein);
 
 fileout={};
 b=conn_fileutils('spm_read_vols',filein);

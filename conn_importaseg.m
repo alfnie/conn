@@ -19,6 +19,7 @@ end
 if nargin<3||isempty(justchecking), justchecking=false; end
 if nargin<2||isempty(filelabels),  filelabels=fullfile(fileparts(which(mfilename)),'utils','surf','FreeSurferColorLUT.txt'); end
 if ~justchecking&&any(conn_server('util_isremotefile',filename)), varargout={conn_server('run',mfilename,conn_server('util_localfile',filename),filelabels,justchecking)}; return; end
+filename=conn_server('util_localfile',filename);
 
 if conn_fileutils('isdir',filename), filename=fullfile(filename,'aseg.mgz'); end
 [file_path,file_name,file_ext,file_num]=spm_fileparts(filename);

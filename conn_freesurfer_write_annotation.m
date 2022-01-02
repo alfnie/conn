@@ -35,6 +35,7 @@ if nargin<3||iscell(label), % alfnie 2017; conn_freesurfer_write_annotation(file
     if any(conn_server('util_isremotefile',filename)), conn_server('run',mfilename,conn_server('util_localfile',filename), vertices, label, ct); return; end
 else okbool=nargin>=4;
 end
+filename=conn_server('util_localfile',filename);
 
 fp = fopen(filename, 'w', 'b');
 

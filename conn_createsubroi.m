@@ -22,6 +22,9 @@ if any(conn_server('util_isremotefile',{fileout, filein})),
     [fileout,Nrois]=conn_server('run',mfilename,conn_server('util_localfile',fileout),conn_server('util_localfile',filein), Nrois, D); 
     fileout=conn_server('util_remotefile',fileout);
     return
+else
+    filein=conn_server('util_localfile',filein);
+    fileout=conn_server('util_localfile',fileout);
 end
 
 assert(Nrois<=65535,'unable to create atlas file with more than 65535 ROIs');

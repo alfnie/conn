@@ -9,6 +9,7 @@ if any(conn_server('util_isremotefile',V.fname)),
     end
     return
 end
+V.fname=conn_server('util_localfile',V.fname);
 
 if isfield(V,'softlink')&&~isempty(V.softlink), 
     str1=regexp(V.fname,'Subject\d+','match'); if ~isempty(str1), V.softlink=regexprep(V.softlink,'Subject\d+',str1{end}); end

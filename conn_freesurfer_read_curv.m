@@ -34,6 +34,7 @@ function [curv, fnum] = conn_freesurfer_read_curv(fname)
 %curv = all(5, :)' ;
 
 if any(conn_server('util_isremotefile',fname)), [curv, fnum] = conn_server('run',mfilename,conn_server('util_localfile',fname)); return; end
+fname=conn_server('util_localfile',fname);
 
 % open it as a big-endian file
 fid = fopen(fname, 'rb', 'b') ;

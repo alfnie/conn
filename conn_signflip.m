@@ -18,6 +18,7 @@ if isnumeric(files), % conn_singflip(x) - enter raw data directly (observations-
     q(:,p<0)=-q(:,p<0);
 else % conn_signflip(files,w)
     if any(conn_server('util_isremotefile',files)), [varargout{1:nargout}]=conn_server('run',mfilename,conn_server('util_localfile',files),w); return; end    
+    files=conn_server('util_localfile',files);
     if iscell(files), files=char(files); end
     if ~isstruct(files), files=spm_vol(files); end 
     p=0;

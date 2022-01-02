@@ -87,6 +87,7 @@ if(frames(1) <= 0) frames = 0; end
 if(exist('headeronly')~=1) headeronly = 0; end
 
 if any(conn_server('util_isremotefile',fname)), [vol, M, mr_parms, volsz] = conn_server('run',mfilename,conn_server('util_localfile',fname),slices,frames,headeronly); return; end
+fname=conn_server('util_localfile',fname);
 
 fid    = fopen(fname, 'rb', 'b') ;
 if(fid == -1)

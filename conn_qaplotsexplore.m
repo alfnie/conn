@@ -294,12 +294,14 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 if conn_server('util_isremotefile',filename)
                     conn_server('run','publish',conn_server('util_localfile',filename),struct('format',format,stylesheet{:},'showCode',false,'useNewFigure',false,'figureSnapMethod','getframe','outputDir',conn_server('util_localfile',outputDir)));
                 else
-                    publish(filename,struct('format',format,stylesheet{:},'showCode',false,'useNewFigure',false,'figureSnapMethod','getframe','outputDir',outputDir));
+                    publish(conn_server('util_localfile',filename),struct('format',format,stylesheet{:},'showCode',false,'useNewFigure',false,'figureSnapMethod','getframe','outputDir',conn_server('util_localfile',outputDir)));
                 end
                 conn_disp('fprintf','Report created\nOpen %s to view\n',fullfile(outputDir,tfilename));
                 if ishandle(hmsg), delete(hmsg); end
                 tfile=fullfile(outputDir,tfilename);
-                if conn_server('util_isremotefile',tfile), tfile=conn_cache('pull',tfile); end
+                if conn_server('util_isremotefile',tfile), tfile=conn_cache('pull',tfile); 
+                else tfile=conn_server('util_localfile',tfile);
+                end
                 switch(format)
                     case 'html', web(tfile);
                     case 'pdf',  if ispc, system(sprintf('open "%s"',tfile));
@@ -307,7 +309,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         end
                     otherwise, try, system(sprintf('open %s',tfile)); end
                 end
-                conn_fileutils('cd',cwd);
+                try, conn_fileutils('cd',cwd); end
             case 'togglegui'
                 if (numel(varargin)>=1&&isequal(varargin{1},'on')), onoff=1;
                 elseif (numel(varargin)>=1&&isequal(varargin{1},'off')), onoff=2;

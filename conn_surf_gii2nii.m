@@ -22,6 +22,7 @@ if iscell(filein),
     return
 end
 
+filein=conn_server('util_localfile',filein);
 [filepath,filename,fileext]=fileparts(filein);
 if nargin<2||isempty(filein2)
     if ~isempty(regexp(filename,'^lh\.'))

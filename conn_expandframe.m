@@ -14,6 +14,7 @@ if ~iscell(filesin),
 end
 
 filesout={};
+filesin=conn_server('util_localfile',filesin);
 for n=1:numel(filesin)
     filename=filesin{n};
     if ~isempty(regexp(filename,',\d+$','once'))

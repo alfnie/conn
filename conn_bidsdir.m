@@ -59,6 +59,7 @@ if isstruct(filenames)
         end
     end
 else
+    filenames=conn_server('util_localfile',filenames);
     if iscell(filenames), files_all=conn_sortfilenames(filenames);
     else
         dirs_all=conn_dir(fullfile(filenames,'sub-*'),'-cell','-R','-sort','-dir');

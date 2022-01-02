@@ -16,6 +16,7 @@ if any(conn_server('util_isremotefile',fname)),
     [filename,Nrois]=conn_server('run',mfilename,conn_server('util_localfile',fname),xyz,rad,res,mtype,ftype); 
     filename=conn_server('util_remotefile',filename);
     return
+else fname=conn_server('util_localfile',fname);
 end
 
 if ftype==0, ftype=1+(res<1); end

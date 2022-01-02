@@ -60,6 +60,7 @@ conn_disp('fprintf','converting dcm files to nifti format...\n');
 
 if isstruct(filename) % input from conn_dcmdir
 else % input from filename
+    filename=conn_server('util_localfile',filename);
     ischarfilename=ischar(filename);
     if ischarfilename, filename={filename}; end
     filename=cellfun(@strtrim,filename,'uni',0);

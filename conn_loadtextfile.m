@@ -34,6 +34,8 @@ elseif ischar(tfilename)&&any(tfilename==',')
     v=tfields{2};
 else v='';
 end
+tfilename=conn_server('util_localfile',tfilename);
+
 try, 
     if ischar(tfilename)&&~isempty(tfilename)&&~isempty(regexp(tfilename,'\.mat$')) % bugfix older spm
         tdata=load(tfilename,'-mat');

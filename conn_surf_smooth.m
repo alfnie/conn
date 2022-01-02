@@ -24,6 +24,7 @@ if ~ischar(filename),
     b=filename;
     filename='manual data'; 
 else 
+    filename=conn_server('util_localfile',filename);
     a=spm_vol(filename);
     b=spm_read_vols(a);
 end

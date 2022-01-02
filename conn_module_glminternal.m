@@ -115,6 +115,8 @@ if any(conn_server('util_isremotefile',swd)),
     %if ~nargout, conn_display(fullfile(SPM.swd,'SPM.mat'),1);end
     return
 end
+filenames=conn_server('util_localfile',filenames);
+swd=conn_server('util_localfile',swd);
 
 NANTO0=true; % skips SPM's explicit masking of NaN values
 FORCEORTH=true; % enforces orthogonal rows in within-subject contrasts (C2)

@@ -40,7 +40,8 @@ switch(lower(option))
                 pobj.cache='';
                 if ~isequal(pobj.ver,conn('ver')), error('Incorrect CONN version. Expected %s, found %s. Parallel processing only supported when all nodes are running the same version of CONN',pobj.ver,conn('ver')); end
                 filename=filename(1:jidx-1);
-                if conn_server('util_isremotefile',filename), filename=conn_server('util_localfile',filename); end % force distributed processes work with local project file
+                filename=conn_server('util_localfile',filename); % force distributed processes work with local project file
+                %if conn_server('util_isremotefile',filename), filename=conn_server('util_localfile',filename); end % force distributed processes work with local project file
                 %if ~isfield(pobj,'subjects'), filename=conn_projectmanager('projectfile',filename,pobj); pobj.isextended=0; end % treat as normal project file
             else
                 pobj=conn_projectmanager('null');

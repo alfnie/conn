@@ -5,7 +5,7 @@ function filename=conn_surf_resample(filename,FS_folder)
 
 if nargin<2, FS_folder=''; end
 if any(conn_server('util_isremotefile',filename)), filename=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filename),FS_folder)); return; end
-tfilename=cellstr(filename);
+tfilename=conn_server('util_localfile',cellstr(filename));
 refinfo=[];
 tfileout={};
 for n=1:numel(tfilename)

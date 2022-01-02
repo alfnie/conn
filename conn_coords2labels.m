@@ -22,7 +22,9 @@ end
 if isempty(atlas)
     if isdefault&&~isempty(default_atlas), atlas=default_atlas;
     else 
-        if any(conn_server('util_isremotefile',filename)), filename=conn_cache('pull',filename); end
+        if any(conn_server('util_isremotefile',filename)), filename=conn_cache('pull',filename); 
+        else filename=conn_server('util_localfile',filename);
+        end
         [filename_path,filename_name,filename_ext]=fileparts(filename);
         V=conn_fileutils('spm_vol',filename);
         [idxlabels,strlabels]=rex(filename,filename,'level','clusters','disregard_zeros',false); strlabels=regexprep(strlabels,['^',filename_name,'\.'],'');

@@ -43,6 +43,6 @@ if any(conn_server('util_isremotefile',filename)),
     end
     conn_server('run',mfilename,conn_server('util_localfile',filename),'-struct',data,varargin{opts}); 
 else        
-    save(filename,'-struct','data',varargin{opts});
+    save(conn_server('util_localfile',filename),'-struct','data',varargin{opts});
 end
 end

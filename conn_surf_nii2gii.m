@@ -21,6 +21,8 @@ if iscell(filein),
 end
 if nargin<2||isempty(fileout), fileout=filein; end
 
+filein=conn_server('util_localfile',filein);
+fileout=conn_server('util_localfile',fileout);
 data=reshape(conn_surf_read(filein),163842,2,[]);
 save(gifti(permute(data(:,1,:),[1,3,2])),conn_prepend('lh.',fileout,'.gii'));
 save(gifti(permute(data(:,2,:),[1,3,2])),conn_prepend('rh.',fileout,'.gii'));

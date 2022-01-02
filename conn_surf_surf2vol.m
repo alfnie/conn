@@ -36,6 +36,8 @@ isfsaverage=false;
 if nargin<3||isempty(FSfolder), FSfolder=fullfile(fileparts(which(mfilename)),'utils','surf'); isfsaverage=true; end
 if nargin<4||isempty(interp), interp=.05:.10:.95; end % interpolation samples (0=white 1=pial)
     
+filein=conn_server('util_localfile',filein);
+fileout=conn_server('util_localfile',fileout);
 a1=spm_vol(filein);
 b1=spm_read_vols(a1);
 mat=[-2 0 0 92;0 2 0 -128;0 0 2 -74;0 0 0 1];

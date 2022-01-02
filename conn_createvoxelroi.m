@@ -12,6 +12,8 @@ if any(conn_server('util_isremotefile',{fileout, filein})),
     fileout=conn_server('util_remotefile',fileout);
     return
 end
+filein=conn_server('util_localfile',filein);
+fileout=conn_server('util_localfile',fileout);
 
 vol=spm_vol(filein);
 mask=spm_read_vols(vol);

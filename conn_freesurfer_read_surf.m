@@ -49,6 +49,7 @@ if any(conn_server('util_isremotefile',fname)),
     end
     return
 end
+fname=conn_server('util_localfile',fname);
 
 TRIANGLE_FILE_MAGIC_NUMBER =  16777214 ;
 QUAD_FILE_MAGIC_NUMBER =  16777215 ;

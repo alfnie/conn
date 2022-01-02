@@ -8,6 +8,7 @@ if any(conn_server('util_isremotefile',PATHNAME)),
     [filenamesout,filestructsout]=conn_server('run',mfilename,conn_server('util_localfile',PATHNAME),varargin{:}); 
     filenamesout=conn_server('util_remotefile',filenamesout);
     return
+else PATHNAME=conn_server('util_localfile',PATHNAME);
 end
 
 DORECURSIVE=true;

@@ -937,6 +937,7 @@ else
                             vars=load(pobj.cache,'CONN_x','-mat');
                             CONN_gui.isremote=true;
                         else
+                            localfilename=conn_server('util_localfile',localfilename);
                             vars=load(localfilename,'CONN_x','-mat');
                             pobj.cache='';
                             CONN_gui.isremote=false;
@@ -957,6 +958,7 @@ else
                             vars=load(pobj.cache,'CONN_x','-mat');
                             CONN_gui.isremote=true;
                         else
+                            basefilename=conn_server('util_localfile',basefilename);
                             vars=load(basefilename,'CONN_x','-mat');
                             pobj.cache='';
                             CONN_gui.isremote=false;
@@ -1070,7 +1072,7 @@ else
                         localfilename=CONN_x.pobj.cache;
                         conn_updatefolders([],false); 
                     else
-                        localfilename=CONN_x.filename;
+                        localfilename=conn_server('util_localfile',CONN_x.filename);
                         conn_updatefolders;
                     end
                 elseif isfield(CONN_x.pobj,'cache')&&~isempty(CONN_x.pobj.cache),

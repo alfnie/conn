@@ -11,6 +11,7 @@ function [ROIxyz,ROInames,ROIidx,ROIstruct]=conn_roicenters(filename,varargin)
 %       
 
 if any(conn_server('util_isremotefile',filename)), [ROIxyz,ROInames,ROIidx,ROIstruct]=conn_server('run',mfilename,conn_server('util_localfile',filename),varargin{:}); return; end
+filename=conn_server('util_localfile',filename);
 ROIxyz=[];
 ROIdata=[];
 ROIstruct=[];

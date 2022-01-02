@@ -9,6 +9,7 @@ if nargin<2, FSfolder=''; end
 if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),FSfolder)); return; end
 if isempty(FSfolder), FSfolder=fullfile(fileparts(which('conn')),'utils','surf'); end
 
+filein=conn_server('util_localfile',filein);
 tV=conn_surf_extract(filein,{fullfile(FSfolder,'lh.pial.surf'),fullfile(FSfolder,'rh.pial.surf'),fullfile(FSfolder,'lh.mid.surf'),fullfile(FSfolder,'rh.mid.surf'),fullfile(FSfolder,'lh.white.surf'),fullfile(FSfolder,'rh.white.surf')},[],10); % use this for smoother display
 %tV=conn_surf_extract(filein,{fullfile(FSfolder,'lh.mid.surf'),fullfile(FSfolder,'rh.mid.surf')});                                                                                                                                          % use this for accurate values
 tV=cell2mat(tV);

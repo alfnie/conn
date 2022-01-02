@@ -16,6 +16,7 @@ function conn_savecfgfile(filename,out);
 %
 
 if any(conn_server('util_isremotefile',filename)), conn_server('run',mfilename,conn_server('util_localfile',filename),out); return; end
+filename=conn_server('util_localfile',filename);
 
 fh=fopen(filename,'wt');
 if iscell(out),

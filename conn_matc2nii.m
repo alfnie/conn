@@ -25,7 +25,7 @@ if any(conn_server('util_isremotefile',filename)),
     outfiles=conn_server('util_remotefile',outfiles);
     return
 end
-
+filename=conn_server('util_localfile',filename);
 filename=regexprep(filename,'\.matc$','.mat');
 
 outfiles={}; outvals={};

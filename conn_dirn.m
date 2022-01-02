@@ -5,8 +5,8 @@ if nargin<1||isempty(filename), filename='.'; end
 if nargin<2||isempty(option), option=''; end
 
 if any(conn_server('util_isremotefile',filename)), out=conn_server('run',mfilename,conn_server('util_localfile',filename),option); 
-elseif isequal(option,'-ls'), out=ls('-al',filename);
-else out=dir(filename);
+elseif isequal(option,'-ls'), out=ls('-al',conn_server('util_localfile',filename));
+else out=dir(conn_server('util_localfile',filename));
 end
 
 if ~nargout,
