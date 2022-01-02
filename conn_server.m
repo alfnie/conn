@@ -616,6 +616,15 @@ switch(lower(option))
             varargout={filename};
         end
         
+    case 'util_localformat'
+        varargout=varargin;
+        try
+            ischarfilename=ischar(varargin{1});
+            filename=regexprep(cellstr(varargin{1}),'\\|\/',['\',filesep]); % localfiles use convention of this computer
+            if ischarfilename, filename=char(filename); end
+            varargout={filename};
+        end
+        
     case {'util_remotefile','util_remotefile_keeprelative'}
         varargout=varargin;
         try

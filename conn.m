@@ -908,6 +908,10 @@ else
                 folderchanged={};
                 [basefilename,pobj]=conn_projectmanager('extendedname',filename);
                 localfilename=conn_projectmanager('projectfile',basefilename,pobj);
+                if ~conn_server('util_isremotefile',localfilename), 
+                    basefilename=conn_server('util_localfile',basefilename); 
+                    localfilename=conn_server('util_localfile',localfilename); 
+                end
                 if fromgui&&~pobj.isextended
                     [tagname,tagmsg]=conn_projectmanager('readtag',localfilename);
                     if ~isempty(tagname),
@@ -937,7 +941,6 @@ else
                             vars=load(pobj.cache,'CONN_x','-mat');
                             CONN_gui.isremote=true;
                         else
-                            localfilename=conn_server('util_localfile',localfilename);
                             vars=load(localfilename,'CONN_x','-mat');
                             pobj.cache='';
                             CONN_gui.isremote=false;
@@ -958,7 +961,6 @@ else
                             vars=load(pobj.cache,'CONN_x','-mat');
                             CONN_gui.isremote=true;
                         else
-                            basefilename=conn_server('util_localfile',basefilename);
                             vars=load(basefilename,'CONN_x','-mat');
                             pobj.cache='';
                             CONN_gui.isremote=false;
