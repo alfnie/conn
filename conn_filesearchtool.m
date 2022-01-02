@@ -176,7 +176,7 @@ else,
                     end
                 end
             end
-            if strcmp(pathname,'.')||strncmp(pathname,['.' filesep],2), pathname=conn_fullfile(conn_projectmanager('pwd'),pathname(3:end)); end
+            if strcmp(pathname,'.')||strncmp(pathname,'.\',2)||strncmp(pathname,'./',2), pathname=conn_fullfile(conn_projectmanager('pwd'),pathname(3:end)); end
             if ~conn_fileutils('isdir',pathname), pathname=cwd; end
             if strcmp(varargin{3},'folderpopup')
                 str=conn_filesearch_breakfolder(pathname);
@@ -198,7 +198,7 @@ else,
                     if strncmp(filename,parse{1},numel(parse{1})), filename=fliplr(deblank(fliplr(deblank(filename(numel(parse{1})+1:end-numel(parse{2})))))); end
                     if strcmp(filename,'..'),
                         selectfolder=false;
-                        idx=find(pathname==filesep); idx(idx==length(pathname))=[];
+                        idx=find(pathname=='/'|pathname=='\'); idx(idx==length(pathname))=[];
                         if ~isempty(idx), pathname=pathname(1:idx(end)); else return; end
                     elseif ~selectfolder
                         pathname=fullfile(pathname,filename);
@@ -272,7 +272,7 @@ else,
                 if ~isempty(idx) & size(names,1)>=max(idx),
                     names=names(idx,:);
                     pathname=fliplr(deblank(fliplr(deblank(get(h.folder,'string')))));
-                    if isempty(pathname)||pathname(end)~=filesep, pathname=[pathname,filesep]; end
+                    if isempty(pathname)||(pathname(end)~='/'&&pathname(end)~='\'), pathname=[pathname,filesep]; end
                     names=regexprep(cellstr(names),'^\s+|\s+$','');
                     for n2=1:numel(names),
                         if strncmp(names{n2},parse{1},numel(parse{1})), names{n2}=names{n2}(numel(parse{1})+1:end-numel(parse{2})); end
@@ -293,7 +293,7 @@ else,
                 if ~isempty(idx) & size(names,1)>=max(idx),
                     names=names(idx,:);
                     pathname=fliplr(deblank(fliplr(deblank(get(h.folder,'string')))));
-                    if isempty(pathname)||pathname(end)~=filesep, pathname=[pathname,filesep]; end
+                    if isempty(pathname)||(pathname(end)~='/'&&pathname(end)~='\'), pathname=[pathname,filesep]; end
                     names=[repmat(pathname,[size(names,1),1]),names];
                     try
                         if h.reduced, strselected='';
@@ -393,7 +393,7 @@ end
 end
 
 function str=conn_filesearch_breakfolder(pathname)
-idx=find(pathname==filesep);
+idx=find(pathname=='/'||pathname='\');
 str=mat2cell(pathname,1,diff([0 idx(:)' numel(pathname)]));
 % str={pathname};
 % pbak='';
