@@ -2814,7 +2814,7 @@ if nargin==2&&isequal(THR_TYPE,'all')
     simfilename=fullfile(fileparts(spmfile),'nonparametric_p*.mat');
 else
     simfilename=char(arrayfun(@(a,b)fullfile(fileparts(spmfile),sprintf('nonparametric_p%d_%.8f.mat',a,b)),THR_TYPE,THR,'uni',0));
-    if ~isempty(conn_fileutils('dir',conn_prepend('parallel_*_',simfilename))), conn_process('results_nonparametric_collapse',conn_server('util_localfile',simfilename)); end
+    if ~isempty(conn_fileutils('dir',conn_prepend('parallel_*_',simfilename))), conn_process('results_nonparametric_collapse',conn_server('util_localfile_filesep',[],simfilename)); end
 end
 end
 
@@ -2927,14 +2927,15 @@ if ishandle(fh),
         end
         if ~conn_existfile(deblank(Y(1,:)))&&isfield(SPM,'swd')&&isempty(fileparts(deblank(Y(1,:)))),Y=cellstr(Y); for n=1:numel(Y), if isempty(fileparts(deblank(Y{n}))), Y{n}=fullfile(SPM.swd,Y{n}); end; end; Y=char(Y); end
         if ~conn_existfile(deblank(Y(1,:))), conn_msgbox({sprintf('Unable to find file %s',deblank(Y(1,:))),'Please re-compute second-level model and try again'},'Outdated file references',2); return; end
-        Y=conn_server('util_localfile',Y);
-        simfilename=conn_server('util_localfile',simfilename);
+        tfilesep=conn_projectmanager('filesep');
+        Y=conn_server('util_localfile_filesep',tfilesep,Y);
+        simfilename=conn_server('util_localfile_filesep',tfilesep,simfilename);
         N=str2num(v5);
         tfilename=fullfile(fileparts(spmfile),'args_nonparam.mat');
         niters=max(1,ceil(niters/N));
         conn_savematfile(tfilename,'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples');
         conn_jobmanager('options','profile',parallel);
-        info=conn_jobmanager('submit','orphan_results_nonparametric',N,N,[],conn_server('util_localfile',tfilename));
+        info=conn_jobmanager('submit','orphan_results_nonparametric',N,N,[],conn_server('util_localfile_filesep',tfilesep,tfilename));
         info=conn_jobmanager(info,'','donotupdate'); 
         ok=true; 
         %if v3>2, info=conn_jobmanager(info,'','donotupdate'); ok=true; 

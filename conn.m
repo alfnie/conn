@@ -127,7 +127,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
         drawnow;
         set(h,'fontunits','points');
         tfontsize=get(h,'fontsize');
-        conn_font_offset=max(-4,floor(tfontsize/2));
+        conn_font_offset=max(-4,floor(tfontsize-8));
         %fprintf('Font size change %dpts to %dpts (%f %s)\n',8+CONN_gui.font_offset,8+conn_font_offset,tfontsize,mat2str([get(0,'screensize') get(gca,'position')]));
         CONN_gui.font_offset=conn_font_offset;
     end

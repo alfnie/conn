@@ -4449,7 +4449,7 @@ else
     end    
     if dosave, conn_savematfile(indexfile,'listsrois'); end
     simfilename=char(arrayfun(@(a,b)fullfile(fileparts(spmfile),sprintf('nonparametricroi_p%d_%.8f_i%d.mat',a,b,idx)),THR_TYPE,THR,'uni',0));
-    if ~isempty(conn_fileutils('dir',conn_prepend('parallel_*_',simfilename))), conn_process('results_nonparametric_collapse',conn_server('util_localfile',simfilename)); end
+    if ~isempty(conn_fileutils('dir',conn_prepend('parallel_*_',simfilename))), conn_process('results_nonparametric_collapse',conn_server('util_localfile_filesep',[],simfilename)); end
 end
 end
 
