@@ -93,7 +93,7 @@ switch(lower(option))
                 params.info.filename_ctrl=fullfile(localcachefolder,sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user));
                 try, conn_fileutils('deletefile',params.info.filename_ctrl); end
                 % starts a shared SSH connection
-                if ispc
+                if 0
                     fprintf('Initializing connection to %s... ',params.info.login_ip);
                     system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s &', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection
                     ok=1; while ok~=0, pause(1); [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end
