@@ -1214,10 +1214,11 @@ else
             conn_menumanager(CONN_h.menus.m_setup_01c,'string',tdescr);
         case 'gui_recent_set'
             if isempty(CONN_x.filename), return; end
-            nrecent=find(strcmp(conn_server('util_localfile',CONN_x.filename),CONN_gui.recentfiles),1);
+            connxfilename=conn_server('util_localfile_filesep',[],CONN_x.filename);
+            nrecent=find(strcmp(connxfilename,CONN_gui.recentfiles),1);
             if isempty(nrecent), nrecent=find(cellfun('length',CONN_gui.recentfiles)==0,1); end
             if isempty(nrecent), nrecent=numel(CONN_gui.recentfiles); end
-            CONN_gui.recentfiles{nrecent}=conn_server('util_localfile',CONN_x.filename);
+            CONN_gui.recentfiles{nrecent}=connxfilename;
             CONN_gui.recentfiles=CONN_gui.recentfiles([nrecent, 1:nrecent-1, nrecent+1:numel(CONN_gui.recentfiles)]);
             ok=cellfun('length',CONN_gui.recentfiles)>0;
             tdescr=repmat({''},1,numel(CONN_gui.recentfiles));

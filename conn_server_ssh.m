@@ -92,10 +92,27 @@ switch(lower(option))
             if ~isempty(params.info.host)
                 params.info.filename_ctrl=fullfile(localcachefolder,sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user));
                 try, conn_fileutils('deletefile',params.info.filename_ctrl); end
-                fprintf('Connecting to %s... ',params.info.login_ip);
                 % starts a shared SSH connection
-                system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection (note: use "sleep 600" instead of -N?)
-                [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); if ok~=0, error(msg); end
+                if ispc
+                    fprintf('Initializing connection to %s... ',params.info.login_ip);
+                    system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s &', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection
+                    ok=1; while ok~=0, pause(1); [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end
+                elseif 1, 
+                    fprintf('Connecting to %s... ',params.info.login_ip);
+                    system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection
+                    [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); 
+                    if ok~=0, error(msg); end
+                else
+                    %[msg]=evalc('!ssh -o ControlPath=''/Users/alfnie/.conn_cache/connserver_ctrl_scc1.bu.edu_alfnie'' -O check alfnie@scc1.bu.edu') % skips authentication if ControlMaster already exists
+                    %if isempty(regexp(msg,'Master running'))
+                    [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); 
+                    fprintf('Connecting to %s... ',params.info.login_ip);
+                    if ok~=0,
+                        system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection
+                        [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip));
+                        if ok~=0, error(msg); end
+                    end
+                end
                 if 1,%~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
                     filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
                     conn_fileutils('deletefile',filename);
