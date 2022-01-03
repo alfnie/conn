@@ -616,14 +616,17 @@ switch(lower(option))
             varargout={filename};
         end
         
-    case 'util_localformat'
-        varargout=varargin;
+    case 'util_localfile_filesep'
+        tfilesep=varargin{1};
+        varargout=varargin(2:end);
+        if isempty(tfilesep), tfilesep=conn_projectmanager('filesep'); end
         try
-            ischarfilename=ischar(varargin{1});
-            filename=regexprep(cellstr(varargin{1}),'\\|\/',['\',filesep]); % localfiles use convention of this computer
+            ischarfilename=ischar(varargin{2});
+            filename=regexprep(cellstr(varargin{2}),'^\s*[\\\/]CONNSERVER','');
+            filename=regexprep(filename,'\\|\/',['\',tfilesep]); % localfiles use manually-defined convention
             if ischarfilename, filename=char(filename); end
             varargout={filename};
-        end
+        end        
         
     case {'util_remotefile','util_remotefile_keeprelative'}
         varargout=varargin;

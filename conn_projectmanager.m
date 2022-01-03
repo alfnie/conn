@@ -166,6 +166,12 @@ switch(lower(option))
         end
         varargout={ok,msg};
 
+    case 'filesep'
+        if conn_projectmanager('inserver'), out=conn_server('run',mfilename,option,varargin{:});
+        else out=filesep;
+        end
+        varargout={out};
+        
     case 'pwd' 
         if conn_projectmanager('inserver'), out=conn_server('util_remotefile',conn_server('run',mfilename,option,varargin{:}));
         else out=pwd;

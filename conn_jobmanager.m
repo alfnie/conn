@@ -291,7 +291,8 @@ if isempty(CFG)
         'profile',DEFAULT,... 
         'matlabpath',fullfile(conn_projectmanager('matlabroot'),'bin'),...
         'machinetype',PML,...
-        'osquotes',char('"'*PML.ispc+''''*~PML.ispc));
+        'osquotes',char('"'*PML.ispc+''''*~PML.ispc),...
+        'filesep',char('\'*PML.ispc+'/'*~PML.ispc));
     
     if CFG.machinetype.ispc, CFG.osfile=@(x)regexprep(x,'\\','\\\\');
     else     CFG.osfile=@(x)x;
@@ -616,7 +617,7 @@ else
             elseif ischar(ijobs), ijobs=find(strcmp(info.tagmsg,ijobs));
             end
             for i=ijobs(:)',
-                str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile',info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile_filesep',CFG.filesep,info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile_filesep',CFG.filesep,info.stdout{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stderr{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{i})},'uni',0)]);
                 [ok,msg]=conn_projectmanager('system',str);
                 msg(msg<32|msg>=127)=' ';
                 info.deletemsg{i}=msg;
@@ -633,7 +634,7 @@ else
                 oldtag=conn_jobmanager('tag',info.scripts{i});
                 if ~isequal(oldtag,'finished'), 
                     conn_jobmanager('tag',info.scripts{i},'canceled');
-                    str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile',info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                    str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile_filesep',CFG.filesep,info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile_filesep',CFG.filesep,info.stdout{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stderr{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{i})},'uni',0)]);
                     [ok,msg]=conn_projectmanager('system',str);
                     %if ok~=0, fprintf(2,'%s\n',msg); end
                     msg(msg<32|msg>=127)=' ';
@@ -650,7 +651,7 @@ else
             end
             for i=ijobs(:)',
                 conn_jobmanager('tag',info.scripts{i},'stopped');
-                str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile',info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                str=regexprep(CFG.cmd_deletejob,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile_filesep',CFG.filesep,info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile_filesep',CFG.filesep,info.stdout{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stderr{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{i})},'uni',0)]);
                 [ok,msg]=conn_projectmanager('system',str);
                 %if ok~=0, fprintf(2,'%s\n',msg); end
                 msg(msg<32|msg>=127)=' ';
@@ -673,7 +674,7 @@ else
             end
             for i=find(changed),
                 %conn_disp(['check ',info.joblabel{i}]);
-                str=regexprep(CFG.cmd_checkstatus,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile',info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                str=regexprep(CFG.cmd_checkstatus,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} CFG.cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{regexprep(conn_server('util_localfile_filesep',CFG.filesep,info.scripts{i}),'\.sh$|\.bat$',''),conn_server('util_localfile_filesep',CFG.filesep,info.stdout{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stderr{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{i})},'uni',0)]);
                 if ~isempty(str)&&(CFG.cmd_checkstatus_automatic||force), [ok,msg]=conn_projectmanager('system',str); 
 %                     if ~ok
 %                         ID=regexp(msg,'\d+','match');
@@ -753,7 +754,7 @@ else
             
             for i=ijobs(:)',
                 conn_jobmanager('tag',info.scripts{i},'submitted');
-                str=regexprep(CFG.cmd_submit,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{conn_server('util_localfile',info.scripts{i}),conn_server('util_localfile',info.stdout{i}),conn_server('util_localfile',info.stderr{i}),conn_server('util_localfile',info.stdlog{i})},'uni',0)]);
+                str=regexprep(CFG.cmd_submit,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{conn_server('util_localfile_filesep',CFG.filesep,info.scripts{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdout{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stderr{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{i})},'uni',0)]);
                 [ok,msg]=conn_projectmanager('system',str);
                 if ok~=0, 
                     %fprintf(2,'%s\n',msg); 
@@ -947,7 +948,7 @@ else
             if submitPROFILE.cmd_rundeployed, isdep=true; end
             if isdep&&~isempty(submitPROFILE.cmd_deployedfile), fun_callback=submitPROFILE.cmd_deployedfile;
             elseif isdep,                             fun_callback=conn_jobmanager_checkdeployedname(CFG); 
-            else                                      fun_callback=[CFG.osquotes conn_server('util_localfile',fullfile(CFG.matlabpath,'matlab')) CFG.osquotes];
+            else                                      fun_callback=[CFG.osquotes conn_server('util_localfile_filesep',CFG.filesep,fullfile(CFG.matlabpath,'matlab')) CFG.osquotes];
             end
             %if submitPROFILE.cmd_relativepaths, [nill,fun_callback]=fileparts(fun_callback); end
             whichfiles={'spm','conn'};
@@ -960,7 +961,7 @@ else
                     if ~isempty(fcnloc{1})&&isempty(regexp(fcnloc{1},'built-in'))&&~isequal(fileparts(fileparts(fileparts(fcnloc{2}))),fileparts(fileparts(fileparts(fcnloc{1})))), whichfiles{end+1}=fcnname; end
                 end
             end
-            whichfolders=conn_server('util_localfile',cellfun(@fileparts,conn_projectmanager('which',whichfiles),'uni',0));
+            whichfolders=conn_server('util_localfile_filesep',CFG.filesep,cellfun(@fileparts,conn_projectmanager('which',whichfiles),'uni',0));
             if numel(whichfolders)>3, try, whichfolders{3}=strjoin(whichfolders(3:end),''' '''); end; end
             if ismember(submitPROFILE.name,{'Background process (Unix,Mac)','Background process (Windows)'}), singleCompThread=''; % note: consider adding to cmd_* options
             else singleCompThread=' -singleCompThread';
@@ -994,19 +995,19 @@ else
                         cmd_submitoptions=submitPROFILE.cmd_submitoptions_infile;
                         for ncmd_submitoptions=1:numel(cmd_submitoptions), fh{end+1}=sprintf('%s\n',cmd_submitoptions{ncmd_submitoptions}); end
                     end
-                    if isdep,   fh{end+1}=sprintf('%s jobmanager rexec "%s"\n',fun_callback,conn_server('util_localfile',filename_mat));
+                    if isdep,   fh{end+1}=sprintf('%s jobmanager rexec "%s"\n',fun_callback,conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     elseif numel(whichfolders)>=3&&~isempty(whichfolders{3}),   fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation%s -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                            fun_callback, singleCompThread, conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname), conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     else                                fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash -automation%s -wait -logfile "%s" -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                            fun_callback, singleCompThread, conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname), conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     end
                     fh{end+1}=sprintf('exit\n');
                     conn_fileutils('filewrite_raw',filename_sh,fh); %fclose(fh);
                     fh={};%fopen(filename_m,'wt');
                     if numel(whichfolders)>=3&&~isempty(whichfolders{3}),fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
-                            whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                            whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname), conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     else fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
-                            whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                            whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname), conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     end
                     conn_fileutils('filewrite_raw',filename_m,fh); %fclose(fh);
                 else
@@ -1017,21 +1018,21 @@ else
                         cmd_submitoptions=cellstr(submitPROFILE.cmd_submitoptions_infile);
                         for ncmd_submitoptions=1:numel(cmd_submitoptions), fh{end+1}=sprintf('%s\n',cmd_submitoptions{ncmd_submitoptions}); end
                     end
-                    if isdep,   fh{end+1}=sprintf('%s jobmanager rexec ''%s''\n',fun_callback,conn_server('util_localfile',filename_mat));
+                    if isdep,   fh{end+1}=sprintf('%s jobmanager rexec ''%s''\n',fun_callback,conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     elseif USENODISPLAY,                    fh{end+1}=sprintf('%s -nodesktop -nodisplay -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                            fun_callback, singleCompThread, conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname), conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     elseif numel(whichfolders)>=3&&~isempty(whichfolders{3}),       fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                            fun_callback, singleCompThread, conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{n}), whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname), conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     else                                    fh{end+1}=sprintf('%s -nodesktop -noFigureWindows -nosplash%s -logfile ''%s'' -r "addpath ''%s''; addpath ''%s''; cd ''%s''; conn_jobmanager(''rexec'',''%s''); exit"\n',...
-                            fun_callback, singleCompThread, conn_server('util_localfile',info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                            fun_callback, singleCompThread, conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{n}), whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname), conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     end
                     fh{end+1}=sprintf('echo _NODE END_\n');
                     conn_fileutils('filewrite_raw',filename_sh,fh); %fclose(fh);
                     fh={};%fopen(filename_m,'wt');
                     if numel(whichfolders)>=3&&~isempty(whichfolders{3}), fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
-                            whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                            whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname), conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     else fh{end+1}=sprintf(' addpath ''%s'';\n addpath ''%s'';\n cd ''%s'';\n conn_jobmanager(''rexec'',''%s'');\n',...
-                            whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname), conn_server('util_localfile',filename_mat));
+                            whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname), conn_server('util_localfile_filesep',CFG.filesep,filename_mat));
                     end
                     conn_fileutils('filewrite_raw',filename_m,fh); %fclose(fh);
                 end
@@ -1041,26 +1042,26 @@ else
             filename_m=fullfile(pathname,'node_merge.m');
             fh={};%fopen(filename_m,'wt');
             fh{end+1}=sprintf('%% auto-generated by conn_jobmanager\n%% this script can be used in combination with node_###.m (from Matlab), .sh (from Mac or Unix OS), or .bat (from DOS/Windows OS) scripts to run this process across several computers in a shared-storage local network or HPC environment\n%% this script should only be run after all individual node_### scripts have finished\n\n');
-            fh{end+1}=sprintf('%% merges job outputs with conn project\nconn load ''%s'';\nconn save;', conn_server('util_localfile',conn_jobmanager('conn_x_filename')));
+            fh{end+1}=sprintf('%% merges job outputs with conn project\nconn load ''%s'';\nconn save;', conn_server('util_localfile_filesep',CFG.filesep,conn_jobmanager('conn_x_filename')));
             conn_fileutils('filewrite_raw',filename_m,fh); %fclose(fh);
             filename_m=fullfile(pathname,'run_all.m');
             fh={};%fopen(filename_m,'wt');
             fh{end+1}=sprintf('%% auto-generated by conn_jobmanager\n%% this script can be used to run this process from Matlab locally on this machine (or in a Matlab parallel toolbox environment)\n\n');
             if numel(whichfolders)>=3&&~isempty(whichfolders{3}), fh{end+1}=sprintf('addpath ''%s'';\naddpath ''%s'';\naddpath ''%s'';\ncd ''%s'';\n\n',...
-                whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname));
+                whichfolders{3}, whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname));
             else fh{end+1}=sprintf('addpath ''%s'';\naddpath ''%s'';\ncd ''%s'';\n\n',...
-                whichfolders{1}, whichfolders{2}, conn_server('util_localfile',pathname));
+                whichfolders{1}, whichfolders{2}, conn_server('util_localfile_filesep',CFG.filesep,pathname));
             end
             fh{end+1}=sprintf('jobs={');
             for n=1:N
                 ID=sprintf('%04d%s',n,tag);
-                filename_mat=conn_server('util_localfile',fullfile(pathname,sprintf('node.%s.mat',ID)));
+                filename_mat=conn_server('util_localfile_filesep',CFG.filesep,fullfile(pathname,sprintf('node.%s.mat',ID)));
                 fh{end+1}=sprintf('''%s''',filename_mat);
                 if n<N, fh{end+1}=sprintf(','); end
             end
             fh{end+1}=sprintf('};\n');
             fh{end+1}=sprintf('%% runs individual jobs\nparfor n=1:numel(jobs)\n  conn_jobmanager(''exec'',jobs{n});\nend\n\n');
-            fh{end+1}=sprintf('%% merges job outputs with conn project\nconn load ''%s'';\nconn save;', conn_server('util_localfile',conn_jobmanager('conn_x_filename')));
+            fh{end+1}=sprintf('%% merges job outputs with conn project\nconn load ''%s'';\nconn save;', conn_server('util_localfile_filesep',CFG.filesep,conn_jobmanager('conn_x_filename')));
             conn_fileutils('filewrite_raw',filename_m,fh); %fclose(fh);
             varargout={info};
             
