@@ -18,6 +18,7 @@ function varargout=conn_fileutils(option,varargin)
 % conn_fileutils('cd', dirname)                     : changes current working directory
 % conn_fileutils('homedir')                         : returns user-specific home directory
 % conn_fileutils('imread')                          : see "help imread"
+% conn_fileutils('imwrite')                         : see "help imwrite"
 %
 % SPM-SPECIFIC functions: overloaded SPM functions to support /CONNSERVER/[filepath] nomenclature (see below)
 % conn_fileutils('nifti',...)
@@ -231,6 +232,18 @@ switch(lower(option))
     case 'imread',
         if any(conn_server('util_isremotefile',varargin{1})), [varargout{1:nargout}]=imread(conn_cache('pull',varargin{1}),varargin{2:end});
         else [varargout{1:nargout}]=imread(conn_server('util_localfile',varargin{1}),varargin{2:end});
+        end
+        
+    case 'imwrite',
+        if ischar(varargin{2})
+            if any(conn_server('util_isremotefile',varargin{2})), [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{1},conn_server('util_localfile',varargin{2}),varargin{3:end});
+            else [varargout{1:nargout}]=imwrite(varargin{1},conn_server('util_localfile',varargin{2}),varargin{3:end});
+            end
+        elseif ischar(varargin{3})
+            if any(conn_server('util_isremotefile',varargin{3})), [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{1:2},conn_server('util_localfile',varargin{3}),varargin{4:end});
+            else [varargout{1:nargout}]=imwrite(varargin{1:2},conn_server('util_localfile',varargin{3}),varargin{4:end});
+            end
+        else error('unsupported imwrite syntax');
         end
         
     case 'uigetfile'
