@@ -401,31 +401,31 @@ switch(lower(option))
 %         h.filesTO=uicontrol('style','edit','max',1,'units','norm','position',[.3 .50 .6 .15],'string','','backgroundcolor','w','horizontalalignment','left','parent',h.hfig);
 %         uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.25],'callback','uiresume');
 %         uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.25],'callback','delete(gcbf)');
-        filelocal=conn_server('util_localfile',regexprep(varargin{1},'^(\w*):','\\$1'));
-        fileremote=conn_server('util_localfile_filesep',[],regexprep(varargin{2},'^(\w*):','\\$1'));
+        filelocal=conn_server('util_localfile_filesep','/',regexprep(varargin{1},'^(\w*):',''));
+        fileremote=conn_server('util_localfile_filesep','/',regexprep(varargin{2},'^(\w*):',''));
         if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
             if strcmpi(option,'folderpush'), ok=system(sprintf('%s -C -r -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
             else ok=system(sprintf('%s -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
             end
         else 
             tstr=sprintf('Copying to %s',params.info.login_ip);
-            if strcmpi(option,'folderpush'), ok=system(sprintf('start "CONN copy" /WAIT cmd /c "echo %s && %s -C -r ''%s'' %s:''%s''"', tstr, params.options.cmd_scp, regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
-            else ok=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q ''%s'' %s:''%s''"', tstr, params.options.cmd_scp, filelocal,params.info.login_ip,fileremote));
+            if strcmpi(option,'folderpush'), ok=system(sprintf('start "CONN copy" /WAIT cmd /c "echo %s && %s -C -r "%s" %s:"%s""', tstr, params.options.cmd_scp, regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
+            else ok=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q "%s" %s:"%s""', tstr, params.options.cmd_scp, filelocal,params.info.login_ip,fileremote));
             end
         end
         varargout={isequal(ok,0)}; 
         
     case {'pull','folderpull'}
-        fileremote=conn_server('util_localfile_filesep',[],regexprep(varargin{1},'^(\w*):','\\$1'));
-        filelocal=conn_server('util_localfile',regexprep(varargin{2},'^(\w*):','\\$1'));
+        fileremote=conn_server('util_localfile_filesep','/',regexprep(varargin{1},'^(\w*):',''));
+        filelocal=conn_server('util_localfile+filesep','/',regexprep(varargin{2},'^(\w*):',''));
         if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
             if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('%s -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
             else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
             end
         else
             tstr=sprintf('Copying to %s',params.info.login_ip);
-            if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('start "CONN copy" /WAIT cmd /c "echo %s && %s -C -r %s:''%s'' ''%s''"', tstr, params.options.cmd_scp, params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
-            else [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q %s:''%s'' ''%s''"', tstr, params.options.cmd_scp, params.info.login_ip,fileremote,filelocal));
+            if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('start "CONN copy" /WAIT cmd /c "echo %s && %s -C -r %s:"%s" "%s""', tstr, params.options.cmd_scp, params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
+            else [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q %s:"%s" "%s""', tstr, params.options.cmd_scp, params.info.login_ip,fileremote,filelocal));
             end
         end
         if ~isequal(ok,0), disp(msg); end
