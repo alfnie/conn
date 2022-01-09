@@ -91,7 +91,7 @@ switch(lower(option))
             localcachefolder=conn_cache('private.local_folder');
         end
         params.info.scp=false;
-        params.info.windowscmbugfixed=true; % allows use of SSH ControlMaster option in Windows
+        params.info.windowscmbugfixed=false; % allows use of SSH ControlMaster option in Windows
         if isempty(params.options.cmd_ssh), 
             error('No SSH client found (see Tools.RemoteOptions.Configuration)');
         else
