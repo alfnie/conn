@@ -401,8 +401,8 @@ switch(lower(option))
 %         h.filesTO=uicontrol('style','edit','max',1,'units','norm','position',[.3 .50 .6 .15],'string','','backgroundcolor','w','horizontalalignment','left','parent',h.hfig);
 %         uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.25],'callback','uiresume');
 %         uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.25],'callback','delete(gcbf)');
-        filelocal=conn_server('util_localfile',varargin{1});
-        fileremote=conn_server('util_localfile',varargin{2});
+        filelocal=conn_server('util_localfile',regexprep(varargin{1},'^(\w*):','\\$1'));
+        fileremote=conn_server('util_localfile_filesep',[],regexprep(varargin{2},'^(\w*):','\\$1'));
         if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
             if strcmpi(option,'folderpush'), ok=system(sprintf('%s -C -r -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
             else ok=system(sprintf('%s -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
@@ -416,8 +416,8 @@ switch(lower(option))
         varargout={isequal(ok,0)}; 
         
     case {'pull','folderpull'}
-        fileremote=conn_server('util_localfile',varargin{1});
-        filelocal=conn_server('util_localfile',varargin{2});
+        fileremote=conn_server('util_localfile_filesep',[],regexprep(varargin{1},'^(\w*):','\\$1'));
+        filelocal=conn_server('util_localfile',regexprep(varargin{2},'^(\w*):','\\$1'));
         if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
             if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('%s -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
             else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
