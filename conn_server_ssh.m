@@ -120,8 +120,8 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
                             params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
                     else
-                        tstr=sprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
-                        [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -q %s:~/connserverinfo.json %s"',...
+                        tstr=sprintf('Downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
+                        [ok,msg]=system(sprintf('start "Step 1/3: Downloading configuration information" /WAIT cmd /c "echo %s && %s -q %s:~/connserverinfo.json %s"',...
                             tstr, params.options.cmd_scp, params.info.login_ip,filename));
                     end
                     assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
@@ -170,8 +170,10 @@ switch(lower(option))
                     if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
                     else
-                        tstr=sprintf('Requesting a new Matlab session in %s. This may take a few minutes, please be patient as your job currently sits in a queue. CONN will resume automatically when the new Matlab session becomes available\n',params.info.login_ip);
-                        [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s %s ""%s"""', tstr, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
+                        tfilename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
+                        [ok,msg]=system(sprintf('start "Step 2/3: Requesting a new Matlab session in %s. This may take a few minutes" /WAIT cmd /c %s %s "%s" ^> %s', params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
+                        msg=conn_fileutils('fileread',tfilename);
+                        conn_fileutils('deletefile',tfilename);
                     end
                     if ~isempty(regexp(msg,'SSH_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
                     else
@@ -208,8 +210,9 @@ switch(lower(option))
                         fprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     else
-                        tstr=sprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
-                        [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -N -L%d:%s:%d %s', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        tstr=sprintf('Establishing secure communication path to remote session (%d:%s:%d)',params.info.local_port,params.info.remote_ip,params.info.remote_port);
+                        %[ok,msg]=system(sprintf('start "Step 3/3: Establishing secure communication" /WAIT cmd /c "echo %s && %s -f -L%d:%s:%d %s sleep 30', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        [ok,msg]=system(sprintf('start "Step 3/3: Establishing secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     end
                     if ok~=0, 
                         params.info.local_port=[]; 
