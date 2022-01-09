@@ -211,8 +211,7 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     else
                         tstr=sprintf('Establishing secure communication path to remote session (%d:%s:%d)',params.info.local_port,params.info.remote_ip,params.info.remote_port);
-                        %[ok,msg]=system(sprintf('start "Step 3/3: Establishing secure communication" /WAIT cmd /c "echo %s && %s -f -L%d:%s:%d %s sleep 30', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
-                        [ok,msg]=system(sprintf('start "Step 3/3: Establishing secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        [ok,msg]=system(sprintf('start "Step 3/3: Establishing secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     end
                     if ok~=0, 
                         params.info.local_port=[]; 
@@ -321,8 +320,7 @@ switch(lower(option))
                 end
                 [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server_ssh submitexit ''%s''',params.info.remote_log)),'"','\\"')));
             else
-                tstr=sprintf('Connecting to %s... ',params.info.login_ip);
-                [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s %s ""%s"""', tstr, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server_ssh submitexit ''%s''',params.info.remote_log)),'"','\\"')));
+                [ok,msg]=system(sprintf('start "exiting CONN server" /WAIT cmd /c %s %s "%s"', params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server_ssh submitexit ''%s''',params.info.remote_log)),'"','\\"')));
             end
             if ok~=0, disp(msg); 
             else fprintf('Remote CONN session deletion requested successfully\n');
@@ -410,8 +408,8 @@ switch(lower(option))
             else ok=system(sprintf('%s -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
             end
         else 
-            tstr=sprintf('Copying to %s\n',params.info.login_ip);
-            if strcmpi(option,'folderpush'), ok=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -r ''%s'' %s:''%s''"', tstr, params.options.cmd_scp, regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
+            tstr=sprintf('Copying to %s',params.info.login_ip);
+            if strcmpi(option,'folderpush'), ok=system(sprintf('start "CONN copy" /WAIT cmd /c "echo %s && %s -C -r ''%s'' %s:''%s''"', tstr, params.options.cmd_scp, regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
             else ok=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q ''%s'' %s:''%s''"', tstr, params.options.cmd_scp, filelocal,params.info.login_ip,fileremote));
             end
         end
@@ -425,8 +423,8 @@ switch(lower(option))
             else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
             end
         else
-            tstr=sprintf('Copying to %s\n',params.info.login_ip);
-            if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -r %s:''%s'' ''%s''"', tstr, params.options.cmd_scp, params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
+            tstr=sprintf('Copying to %s',params.info.login_ip);
+            if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('start "CONN copy" /WAIT cmd /c "echo %s && %s -C -r %s:''%s'' ''%s''"', tstr, params.options.cmd_scp, params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
             else [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q %s:''%s'' ''%s''"', tstr, params.options.cmd_scp, params.info.login_ip,fileremote,filelocal));
             end
         end
