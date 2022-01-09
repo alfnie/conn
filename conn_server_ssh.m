@@ -1,3 +1,8 @@
+
+
+
+
+
 function varargout = conn_server_ssh(option, varargin)
 % internal function
 
@@ -86,6 +91,7 @@ switch(lower(option))
             localcachefolder=conn_cache('private.local_folder');
         end
         params.info.scp=false;
+        params.info.windowscmbugfixed=true; % allows use of SSH ControlMaster option in Windows
         if isempty(params.options.cmd_ssh), 
             error('No SSH client found (see Tools.RemoteOptions.Configuration)');
         else
@@ -93,32 +99,31 @@ switch(lower(option))
                 params.info.filename_ctrl=fullfile(localcachefolder,sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user));
                 try, conn_fileutils('deletefile',params.info.filename_ctrl); end
                 % starts a shared SSH connection
-                if 0
-                    fprintf('Initializing connection to %s... ',params.info.login_ip);
-                    system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s &', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection
-                    ok=1; while ok~=0, pause(1); [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end
-                elseif 1, 
+                if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
                     fprintf('Connecting to %s... ',params.info.login_ip);
                     system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection
                     [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); 
                     if ok~=0, error(msg); end
-                else
-                    %[msg]=evalc('!ssh -o ControlPath=''/Users/alfnie/.conn_cache/connserver_ctrl_scc1.bu.edu_alfnie'' -O check alfnie@scc1.bu.edu') % skips authentication if ControlMaster already exists
-                    %if isempty(regexp(msg,'Master running'))
-                    [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); 
-                    fprintf('Connecting to %s... ',params.info.login_ip);
-                    if ok~=0,
-                        system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection
-                        [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip));
-                        if ok~=0, error(msg); end
-                    end
+%                     [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); 
+%                     fprintf('Connecting to %s... ',params.info.login_ip);
+%                     if ok~=0,
+%                         system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection
+%                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip));
+%                         if ok~=0, error(msg); end
+%                     end
                 end
                 if 1,%~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
                     filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
                     conn_fileutils('deletefile',filename);
-                    fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
-                    [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
-                        params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
+                    if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
+                        fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
+                        [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
+                            params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
+                    else
+                        tstr=sprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
+                        [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -q %s:~/connserverinfo.json %s"',...
+                            tstr, params.options.cmd_scp, params.info.login_ip,filename));
+                    end
                     assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
                     tjson=conn_jsonread(filename);
                     params.info.CONNcmd=tjson.CONNcmd;
@@ -162,7 +167,12 @@ switch(lower(option))
                     if isfield(params.info,'SERVERcmd')&&~isempty(params.info.SERVERcmd), tstr=sprintf('server_ssh %s ''%s'' ''%s''',sbc,params.info.SERVERcmd, keys_public);
                     else tstr=sprintf('server_ssh %s '''' ''%s''', sbc,keys_public);
                     end
-                    [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
+                    if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
+                        [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
+                    else
+                        tstr=sprintf('Requesting a new Matlab session in %s. This may take a few minutes, please be patient as your job currently sits in a queue. CONN will resume automatically when the new Matlab session becomes available\n',params.info.login_ip);
+                        [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s %s ""%s"""', tstr, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
+                    end
                     if ~isempty(regexp(msg,'SSH_SUBMITSTART error')), error('Error initiating server job\n %s',msg);
                     else
                         try
@@ -194,8 +204,13 @@ switch(lower(option))
                         pause(1);
                     end
                     
-                    fprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
-                    [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                    if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
+                        fprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
+                        [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                    else
+                        tstr=sprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
+                        [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -N -L%d:%s:%d %s', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                    end
                     if ok~=0, 
                         params.info.local_port=[]; 
                     else
@@ -269,7 +284,7 @@ switch(lower(option))
             else
                 fprintf('Disconnecting from remote CONN session\n');
             end
-            if ~isempty(params.info.host), try, [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end; end
+            if ~isempty(params.info.host)&& (~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed), try, [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end; end
             conn_tcpip('close');
             conn_cache clear;
             conn_jobmanager clear;
@@ -277,30 +292,35 @@ switch(lower(option))
             params=[];
         else
             fprintf('unable to connect to server, please terminate the server manually or use "conn_server_ssh restart" to restart the connection with the server and try "conn_server_ssh exit" again\n');
-            if ~isempty(params.info.host), system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end
+            if ~isempty(params.info.host)&& (~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed), try, system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end; end
         end
         
     case 'forceexit' % run remotely a command to forcibly delete the server's job
         if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'login_ip')&&~isempty(params.info.login_ip)&&isfield(params.info,'remote_log')&&~isempty(params.info.remote_log)
             localcachefolder=conn_cache('private.local_folder');
             params.info.filename_ctrl=fullfile(localcachefolder,sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user));
-            fprintf('Connecting to %s... ',params.info.login_ip);
-            % starts a shared SSH connection
-            [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); 
-            if ok~=0, 
-                try, conn_fileutils('deletefile',params.info.filename_ctrl); end
-                system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip));
+            if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
+                fprintf('Connecting to %s... ',params.info.login_ip);
+                % starts a shared SSH connection
+                [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip));
+                if ok~=0,
+                    try, conn_fileutils('deletefile',params.info.filename_ctrl); end
+                    system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip));
+                end
+                if ~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
+                    filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
+                    conn_fileutils('deletefile',filename);
+                    fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
+                    [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
+                        params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
+                    assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
+                    params.info.CONNcmd=conn_jsonread(filename,'CONNcmd');
+                end
+                [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server_ssh submitexit ''%s''',params.info.remote_log)),'"','\\"')));
+            else
+                tstr=sprintf('Connecting to %s... ',params.info.login_ip);
+                [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s %s ""%s"""', tstr, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server_ssh submitexit ''%s''',params.info.remote_log)),'"','\\"')));
             end
-            if ~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
-                filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
-                conn_fileutils('deletefile',filename);
-                fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
-                [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
-                    params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
-                assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
-                params.info.CONNcmd=conn_jsonread(filename,'CONNcmd');
-            end            
-            [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server_ssh submitexit ''%s''',params.info.remote_log)),'"','\\"')));
             if ok~=0, disp(msg); 
             else fprintf('Remote CONN session deletion requested successfully\n');
             end
@@ -382,16 +402,30 @@ switch(lower(option))
 %         uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.25],'callback','delete(gcbf)');
         filelocal=conn_server('util_localfile',varargin{1});
         fileremote=conn_server('util_localfile',varargin{2});
-        if strcmpi(option,'folderpush'), ok=system(sprintf('%s -C -r -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
-        else ok=system(sprintf('%s -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
+        if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
+            if strcmpi(option,'folderpush'), ok=system(sprintf('%s -C -r -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
+            else ok=system(sprintf('%s -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
+            end
+        else 
+            tstr=sprintf('Copying to %s\n',params.info.login_ip);
+            if strcmpi(option,'folderpush'), ok=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -r ''%s'' %s:''%s''"', tstr, params.options.cmd_scp, regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
+            else ok=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q ''%s'' %s:''%s''"', tstr, params.options.cmd_scp, filelocal,params.info.login_ip,fileremote));
+            end
         end
         varargout={isequal(ok,0)}; 
         
     case {'pull','folderpull'}
         fileremote=conn_server('util_localfile',varargin{1});
         filelocal=conn_server('util_localfile',varargin{2});
-        if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('%s -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
-        else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
+        if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
+            if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('%s -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
+            else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
+            end
+        else
+            tstr=sprintf('Copying to %s\n',params.info.login_ip);
+            if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -r %s:''%s'' ''%s''"', tstr, params.options.cmd_scp, params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
+            else [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q %s:''%s'' ''%s''"', tstr, params.options.cmd_scp, params.info.login_ip,fileremote,filelocal));
+            end
         end
         if ~isequal(ok,0), disp(msg); end
         varargout={isequal(ok,0)};
