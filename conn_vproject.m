@@ -216,7 +216,8 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 end
             case {'export','export_mask','export_mask_selected'},
                 if isempty(OPTION2)
-                    [filename,filepath]=uiputfile('*.nii;*.img','Save mask as',fileparts(spmfile));
+                    %[filename,filepath]=uiputfile('*.nii;*.img','Save mask as',fileparts(spmfile));
+                    [filename,filepath]=conn_fileutils('uiputfile','*.nii;*.img','Save mask as',fileparts(spmfile));
                 else
                     [filepath,filename_name,filename_ext]=fileparts(OPTION2);
                     if isempty(filepath), filepath=fileparts(spmfile); end

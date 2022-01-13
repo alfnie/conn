@@ -35,10 +35,10 @@ if isempty(atlas)
 end
 
 coords = round(pinv(atlas.V(1).mat)*[coords; ones(1,size(coords,2))]); % coordinates in voxels
-ok = all(coords(1:3,:)>=1,1)&coords(1,:)<=size(atlas.data,1)&coords(2,:)<=size(atlas.data,2)&coords(3,:)<=size(atlas.data,3);
+ok = find(all(coords(1:3,:)>=1,1)&coords(1,:)<=size(atlas.data,1)&coords(2,:)<=size(atlas.data,2)&coords(3,:)<=size(atlas.data,3));
 idx = sub2ind(size(atlas.data),coords(1,ok),coords(2,ok),coords(3,ok));
 val = atlas.data(idx); % ROI ids
-labels=repmat({''},1,numel(val));
-labels(ok)=atlas.labels(atlas.labelsidx(val));
+labels=repmat({''},1,size(coords,2));
+labels(ok(val>0))=atlas.labels(atlas.labelsidx(val(val>0)));
 
 

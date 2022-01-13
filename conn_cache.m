@@ -10,12 +10,15 @@ function varargout=conn_cache(option, varargin)
 %   conn_cache('push',filename_remote)                          : copies file from local cache to remote storage
 %   conn_cache('pushall')                                       : copies all files in local cache to remote storage
 %   
-%   conn_cache                                                  : initializes CONN drive (clear all memory and cached files)
+%   conn_cache                                                  : initializes CONN drive (clear all in-memory files as well 
+%                                                                 as cache files older than 30 days)
 %   conn_cache('setlocal', folder_local)                        : defines local cache folder (default: ~/.conn_cache)
+%   conn_cache('sethash',method)                                : defines algorithm used to identify file-changes ('md5' 
+%                                                                 or 'timestamp'; default: 'timestamp'; see "help conn_tcpip")
+%   conn_cache('duration',ndays)                                : defines duration (in days) after which cache files can be
+%                                                                 safely deleted (default: 30)
 %   conn_cache('rename',filename1_remote,filename2_remote)      : reassigns remote storage target of file "filename1_remote" 
 %                                                                 to "filename2_remote"
-%   conn_cache('sethash',method)                                : defines algorithm used to identify file-changes ('md5' 
-%                                                                 or 'timestamp'; see "help conn_tcpip")
 %
 %   note: CONN_CACHE accepts /CONNSERVER/[filepath] nomenclature for remote files in conn_server machine, e.g.
 %     conn_cache('pull','/Volumes/usb-disk/data/myfile.nii')    pulls file from the /data folder within the Volumes/usb-disk drive
@@ -39,7 +42,8 @@ if isempty(params)
         'local_files',{{}},...
         'local_hashes',{{}},...
         'remote_files',{{}},...
-        'remote_hashes',{{}});        
+        'remote_hashes',{{}},...
+        'cacheduration',30);        % duration (in days)
     if ispc, params.local_folder=conn_fullfile(getenv('USERPROFILE'),'.conn_cache');
     else params.local_folder=conn_fullfile('~/.conn_cache');
     end
@@ -61,6 +65,14 @@ switch(lower(option))
         else
             if ispc, for n=1:numel(params.local_files), try, [ok,nill]=system(sprintf('del "%s"',params.local_files{n})); end; end
             else for n=1:numel(params.local_files), try, [ok,nill]=system(sprintf('rm -f ''%s''',params.local_files{n})); end; end
+            end
+            files_1=dir(fullfile(params.local_folder,'conncache_*'));
+            files_2=dir(fullfile(params.local_folder,'cachetmp_*'));
+            files_all=[reshape(files_1,1,[]) reshape(files_2,1,[])];
+            if ~isfield(params,'cacheduration')||isempty(params.cacheduration), params.cacheduration=30; end
+            dodelete=[files_all.datenum]<datenum(now)-params.cacheduration;
+            if ispc, for n=reshape(find(dodelete),1,[]), try, [ok,nill]=system(sprintf('del "%s"',fullfile(params.local_folder,files_all(n).name))); end; end
+            else for n=reshape(find(dodelete),1,[]), try, [ok,nill]=system(sprintf('rm -f ''%s''',fullfile(params.local_folder,files_all(n).name))); end; end
             end
             fprintf('CONN drive initialized\nLocal/cache folder: %s\n', params.local_folder);
         end
@@ -94,6 +106,7 @@ switch(lower(option))
             else
                 f1=cellfun(@(x)conn_prepend('',filename_remote,x),fexts,'uni',0);
                 f2=cellfun(@(x)conn_prepend('',filename_local,x),fexts,'uni',0);
+                if ~all(conn_existfile(f2)), params.local_hashes{idx}=[]; end
                 in=conn_existfile(f1);
                 assert(in(1),'unable to find file %s',filename_remote);
                 if remote_inserver
@@ -171,6 +184,11 @@ switch(lower(option))
             f1=cellfun(@(x)conn_prepend('',filename_local,x),fexts,'uni',0);
             f2=cellfun(@(x)conn_prepend('',filename_remote,x),fexts,'uni',0);
             in=conn_existfile(f1);
+            if ~in(1)
+                fprintf('Warning: local cache files have been deleted. Refreshing cache files\n');
+                conn_cache('pull',f2{1});
+                in=conn_existfile(f1);
+            end
             assert(in(1),'unable to find file %s',filename_local);
             if remote_inserver
                 local_hash=conn_cache_hash(f1(in),params.hash);
@@ -205,7 +223,8 @@ switch(lower(option))
         if nargout, varargout={filename_local}; end
         
     case 'clear'   % conn cache clear filename_remote
-        if isempty(varargin), conn_cache('init');
+        if isempty(varargin), 
+            conn_cache('init');
         else
             filename_remote=varargin{1};
             remote_inserver=conn_server('util_isremotefile',filename_remote);

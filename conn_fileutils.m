@@ -248,23 +248,24 @@ switch(lower(option))
         
     case 'uigetfile'
         if conn_projectmanager('inserver')
-            if 1 % type-in remote file
+            if 1 % type-in remote or local file
                 if numel(varargin)<1||isempty(varargin{1}), varargin{1}=''; end
                 if numel(varargin)<2||isempty(varargin{2}), varargin{2}=''; end
                 if numel(varargin)<3||isempty(varargin{3}), varargin{3}='/CONNSERVER/';
                 else varargin{3}=conn_server('util_remotefile',varargin{3});
                 end           
-                answ=inputdlg(sprintf('%s (%s)',varargin{2},varargin{1}),'',1,varargin(3),struct('Resize','on'));
-                if numel(answ)==1&&~isempty(answ{1}),
-                    [tfilepath,t1,t2]=fileparts(answ{1});
-                    new_tpathname=conn_projectmanager('homedir');
-                    if any(conn_server('util_isremotefile',answ{1}))
-                        varargout={[t1,t2],tfilepath};
-                    else % if selected local file push to remote
-                        new_tfilename=[t1,'_',char(conn_tcpip('hash',[t1, mat2str(now)])),t2];
-                        conn_server('push',conn_server('util_localfile',answ{1}),fullfile(new_tpathname,new_tfilename));
-                        varargout={new_tfilename,new_tpathname};
-                    end
+                filename=conn_fileutils_uifile('get',varargin{:});
+                if ~isempty(filename),
+                    [tfilepath,t1,t2]=fileparts(filename);
+                    varargout={[t1,t2],tfilepath};
+                    %new_tpathname=conn_projectmanager('homedir');
+                    %if any(conn_server('util_isremotefile',filename))
+                    %    varargout={[t1,t2],tfilepath};
+                    %else % if selected local file push to remote
+                    %    new_tfilename=[t1,'_',char(conn_tcpip('hash',[t1, mat2str(now)])),t2];
+                    %    conn_server('push',conn_server('util_localfile',filename),fullfile(new_tpathname,new_tfilename));
+                    %    varargout={new_tfilename,new_tpathname};
+                    %end
                 else varargout={0,0};
                 end                    
             else % select local file and push to remote
@@ -280,6 +281,26 @@ switch(lower(option))
             end
         else [varargout{1:nargout}]=uigetfile(varargin{:});
         end        
+        
+    case 'uiputfile'
+        if conn_projectmanager('inserver') % type-in remote or local file
+            if numel(varargin)<1||isempty(varargin{1}), varargin{1}=''; end
+            if numel(varargin)<2||isempty(varargin{2}), varargin{2}=''; end
+            if numel(varargin)<3||isempty(varargin{3}), varargin{3}='/CONNSERVER/';
+            else varargin{3}=conn_server('util_remotefile',varargin{3});
+            end
+            [filename,checked]=conn_fileutils_uifile('put',varargin{:});
+            if ~isempty(filename),
+                [tfilepath,t1,t2]=fileparts(filename);
+                if ~checked&&conn_existfile(filename), 
+                    tansw=conn_questdlg({'Output file already exist','Overwrite existing file?'},'','Yes','No','Yes');
+                    if ~strcmp(tansw,'Yes'), varargout={0,0}; return; end
+                end
+                varargout={[t1,t2],tfilepath};
+            else varargout={0,0};
+            end
+        else [varargout{1:nargout}]=uiputfile(varargin{:});
+        end
         
     case 'spm_unlink'
         files=conn_server('util_localfile',varargin);
@@ -396,11 +417,12 @@ switch(lower(option))
             if iscell(V), for n=1:numel(V), V{n}.fname=conn_server('util_localfile',V{n}.fname); end
             else for n=1:numel(V), V(n).fname=conn_server('util_localfile',V(n).fname); end
             end
-            if any(conn_server('util_isremotefile',varargin{1}(1).fname)), V=conn_server('run',mfilename,option,V,varargin{2:end});
+            if any(conn_server('util_isremotefile',varargin{1}(1).fname)), 
+                V=conn_server('run',mfilename,option,V,varargin{2:end});
+                if iscell(V), for n=1:numel(V), V{n}.fname=conn_server('util_remotefile',V{n}.fname); end
+                else for n=1:numel(V), V(n).fname=conn_server('util_remotefile',V(n).fname); end
+                end
             else V=spm_write_vol(V,varargin{2:end});
-            end
-            if iscell(V), for n=1:numel(V), V{n}.fname=conn_server('util_remotefile',V{n}.fname); end
-            else for n=1:numel(V), V(n).fname=conn_server('util_remotefile',V(n).fname); end
             end
         else V=spm_write_vol(varargin{:});
         end
@@ -426,4 +448,49 @@ switch(lower(option))
         error('unknown option %s',option);
 end
 if ~nargout, varargout={}; end
+end
+
+
+function [filename,skipoverwritequestion]=conn_fileutils_uifile(style,varargin)
+if nargin<1||isempty(style), style='get'; end
+if numel(varargin)<1||isempty(varargin{1}), varargin{1}='*'; end
+if numel(varargin)<2||isempty(varargin{2}), if strcmp(style,'put'), varargin{2}='Select a file to write'; else varargin{2}='Select a file'; end; end
+if numel(varargin)<3||isempty(varargin{3}), varargin{3}=''; end
+options=varargin;
+
+filename='';
+skipoverwritequestion=strcmp(style,'get');
+thfig=figure('units','norm','position',[.4,.5,.35,.15],'color',1*[1 1 1],'name','file dialog','numbertitle','off','menubar','none');
+ht1a=uicontrol('style','text','units','norm','position',[.1,.8,.8,.15],'string',sprintf('%s (%s)',varargin{2},varargin{1}),'horizontalalignment','left','backgroundcolor',1*[1 1 1],'fontweight','bold');
+ht1=uicontrol('style','edit','units','norm','position',[.1,.65,.7,.15],'string',varargin{3},'tooltipstring','<HTML>enter full path to target file<br/> - click the button at the right to do this using the system dialog box (only for local files) <br/> - use /CONNSERVER/[remote_filepath] syntax to refer to files in remote server</HTML>','userdata',skipoverwritequestion,'callback',['set(gcbo,''userdata'',',num2str(skipoverwritequestion),');']);
+ht1b=uicontrol('style','pushbutton','units','norm','position',[.8,.65,.1,.15],'string','...','backgroundcolor',1*[1 1 1],'tooltipstring','select target file using system dialog box (only for local files)','callback',@conn_uifile_callback);
+%ht2a=uicontrol('style','text','units','norm','position',[.1,.45,.8,.15],'string','(use /CONNSERVER/* for remote files)','horizontalalignment','center','backgroundcolor',1*[1 1 1]);
+uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.25],'callback','uiresume');
+uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.25],'callback','delete(gcbf)');
+uicontrol(ht1);
+while isempty(filename),
+    uiwait(thfig);
+    if ~ishandle(thfig), return; end
+    filename=get(ht1,'string');
+    skipoverwritequestion=isequal(get(ht1,'userdata'),1);
+    if ~skipoverwritequestion&&~isempty(filename)&&conn_existfile(filename)
+        tansw=conn_questdlg({'Output file already exist','Overwrite existing file?'},'','Yes','No','Yes');
+        if ~strcmp(tansw,'Yes'), filename=''; 
+        else skipoverwritequestion=true;
+        end
+    end
+end
+delete(thfig);
+drawnow;
+
+    function conn_uifile_callback(varargin)
+        filename=conn_server('util_localfile',get(ht1,'string'));
+        if strcmp(style,'put'), [tfilename,tpathname]=uiputfile(options{1:2},filename);
+        else [tfilename,tpathname]=uigetfile(options{1:2},filename);
+        end
+        if ~isequal(tpathname,0), 
+            filename=fullfile(tpathname,tfilename); 
+            set(ht1,'string',filename,'userdata',1); 
+        end
+    end
 end

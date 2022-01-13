@@ -169,9 +169,12 @@ function varargout=conn_remotely(option,varargin)
 % conn_remotely on [IP]       : starts remote CONN server and connect to it (equivalent to running "conn remotely" but
 %                               without launching CONN GUI)
 % conn_remotely off           : disconnects from remote CONN server (equivalent to closing GUI when using "conn remotely"
-%                               syntax to start CONN)
+%                               syntax to start CONN); the server may remain listening for new connections or it may be 
+%                               closed after disconnection depending on the server "conn_remotely settings" options
 % conn_remotely offandon      : restarts communication with remote CONN server after dropped connection (equivalent
 %                               to running "conn remotely restart" but without launching CONN GUI)
+% conn_remotely forceoff      : disconnects from remote CONN server and closes server (note: this forces the server to close
+%                               irrespective of the server "conn_remotely settings" options)
 %
 % REMOTE EXECUTION
 %
