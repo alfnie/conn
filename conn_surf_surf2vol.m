@@ -1,11 +1,12 @@
-function fileout=conn_surf_surf2vol(filein,fileout,FSfolder,interp)
+function fileout=conn_surf_surf2vol(filein,fileout,FSfolder,interp, aggreg)
 % CONN_SURF_SURF2VOL converts surface nifti file to volume nifti file
 %
-% conn_surf_surf2vol(filename [, fileout, folderREF, interp])
+% conn_surf_surf2vol(filename [, fileout, folderREF, interp, aggreg])
 %     filename  : input surface nifti file (containing fsaverage 2*nvertices voxels; see help conn_surf_write)
 %     fileout   : output volume nifti file (in MNI space)
 %     folderREF : folder with reference surfaces (default conn/utils/surf)
 %     interp    : interpolation sample(s) along cortical surface perpendicular (0:white 1:pial; default .05:.10:.95 taking the average across 10 samples along the normal between the white and pial surfaces)
+%     aggreg    : aggregation function (default @mean; switch to @mode for categorical data to avoid the resampling operation to interpolate across different categories)
 %
 % e.g. conn_surf_curv2nii('curv.surf.nii')
 %      creates curv.vol.nii volume nifti file
@@ -14,7 +15,8 @@ function fileout=conn_surf_surf2vol(filein,fileout,FSfolder,interp)
 if nargin<2, fileout=[]; end
 if nargin<3, FSfolder=[]; end
 if nargin<4, interp=[]; end
-if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),conn_server('util_localfile',fileout),FSfolder,interp)); return; end
+if nargin<5, aggreg=[]; end
+if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),conn_server('util_localfile',fileout),FSfolder,interp,aggreg)); return; end
 
 if size(filein,1)>1, 
     fileout=char(cellfun(@conn_surf_surf2vol,cellstr(filein),'uni',0));
@@ -35,6 +37,7 @@ end
 isfsaverage=false;
 if nargin<3||isempty(FSfolder), FSfolder=fullfile(fileparts(which(mfilename)),'utils','surf'); isfsaverage=true; end
 if nargin<4||isempty(interp), interp=.05:.10:.95; end % interpolation samples (0=white 1=pial)
+if nargin<5||isempty(aggreg), aggreg=[]; end
     
 filein=conn_server('util_localfile',filein);
 fileout=conn_server('util_localfile',fileout);
@@ -83,13 +86,18 @@ if conn_surf_dimscheck(a1)&&~all(matchdims) % fsaverage input surface nifti file
 end
 M=0;
 N=0;
+Recoords=[]; B1=[];
 for alpha=interp(:)'
     surfcoords=[alpha*surfparams{1}.vertices+(1-alpha)*surfparams{2}.vertices;alpha*surfparams{3}.vertices+(1-alpha)*surfparams{4}.vertices];
     recoords=round([surfcoords,ones(size(surfcoords,1),1)]*imat(1:3,:)');
-    M=M+accumarray(recoords,b1(:),dim);
-    N=N+accumarray(recoords,1,dim);
+    Recoords=[Recoords; recoords];
+    B1=[B1;b1(:)];
 end
-M=M./max(eps,N);
+M=accumarray(Recoords,B1(:),dim,aggreg);
+%    M=M+accumarray(recoords,b1(:),dim);
+%    N=N+accumarray(recoords,1,dim);
+%end
+%M=M./max(eps,N);
 if numel(alpha)==1, dt=a1.dt;
 else dt=[spm_type('float32') spm_platform('bigend')];
 end
