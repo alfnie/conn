@@ -6,7 +6,7 @@ function fileout=conn_surf_surf2vol(filein,fileout,FSfolder,interp, aggreg)
 %     fileout   : output volume nifti file (in MNI space)
 %     folderREF : folder with reference surfaces (default conn/utils/surf)
 %     interp    : interpolation sample(s) along cortical surface perpendicular (0:white 1:pial; default .05:.10:.95 taking the average across 10 samples along the normal between the white and pial surfaces)
-%     aggreg    : aggregation function (default @mean) switch to @mode for categorical data to avoid the resampling operation to interpolate across different categories)
+%     aggreg    : aggregation function (default @mean takes the average acros the 'interp' samples) switch to @mode for categorical data to avoid the resampling operation to interpolate across different categories)
 %
 % e.g. conn_surf_curv2nii('curv.surf.nii')
 %      creates curv.vol.nii volume nifti file
