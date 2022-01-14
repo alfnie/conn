@@ -39,6 +39,11 @@ function varargout=conn_fileutils(option,varargin)
 
 varargout=cell(1,nargout);
 switch(lower(option))
+    case 'file',
+        if any(conn_server('util_isremotefile',varargin{1})), varargout={conn_cache('pull',varargin{1})};
+        else varargout={conn_server('util_localfile',varargin{1})};
+        end
+        
     case {'fileread','readfile'}
         if any(conn_server('util_isremotefile',varargin{1})), varargout={conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),varargin{2:end})};
         else varargout={fileread(conn_server('util_localfile',varargin{1}),varargin{2:end})};
@@ -244,6 +249,11 @@ switch(lower(option))
             else [varargout{1:nargout}]=imwrite(varargin{1:2},conn_server('util_localfile',varargin{3}),varargin{4:end});
             end
         else error('unsupported imwrite syntax');
+        end
+        
+    case 'imopen',
+        if any(conn_server('util_isremotefile',varargin{1})), [ok,msg]=system(sprintf('open %s',conn_cache('pull',varargin{1}),varargin{2:end}));
+        else [ok,msg]=system(sprintf('open %s',conn_server('util_localfile',varargin{1})));
         end
         
     case 'uigetfile'

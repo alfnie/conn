@@ -106,7 +106,7 @@ switch(lower(option))
             else
                 f1=cellfun(@(x)conn_prepend('',filename_remote,x),fexts,'uni',0);
                 f2=cellfun(@(x)conn_prepend('',filename_local,x),fexts,'uni',0);
-                if ~all(conn_existfile(f2)), params.local_hashes{idx}=[]; end
+                if ~conn_existfile(f2(1)), params.local_hashes{idx}=[]; end
                 in=conn_existfile(f1);
                 assert(in(1),'unable to find file %s',filename_remote);
                 if remote_inserver
