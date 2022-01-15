@@ -4,7 +4,7 @@ function [ROInames,ROIidx]=conn_roilabels(filename)
 [roi_path_dir,roi_path_name,roi_path_ext]=fileparts(filename);
 ok=false;
 if conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
-    lines=textread(fullfile(roi_path_dir,[roi_path_name,'.txt']),'%s','delimiter','\n');
+    lines=conn_fileutils('textread',fullfile(roi_path_dir,[roi_path_name,'.txt']),'%s','delimiter','\n');
     for opts=1:3
         try
             switch(opts)
@@ -43,7 +43,7 @@ if conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
         if ok, break; end
     end
 elseif conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.csv'])),
-    lines=textread(fullfile(roi_path_dir,[roi_path_name,'.csv']),'%s','delimiter','\n');
+    lines=conn_fileutils('textread',fullfile(roi_path_dir,[roi_path_name,'.csv']),'%s','delimiter','\n');
     lines=lines(cellfun('length',lines)>0);
     for opts=1:4
         try

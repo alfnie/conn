@@ -1,10 +1,11 @@
 function varargout=conn_fileutils(option,varargin)
-% conn_fileutils(option,...) performs basic fileio operations on files/directories (system-independent)
+% conn_fileutils(option,...) performs basic fileio operations on files/directories (system-independent, client/server-independent)
 %
 % GENERAL FILEIO FUNCTIONS:
 % conn_fileutils('fileread', filename)              : reads text file
 % conn_fileutils('filewrite', filename, str)        : creates text file with cell array str (one line per element)
 % conn_fileutils('fileappend', filename, str)       : appends text file with cell array str (one line per element)
+% conn_fileutils('textread', filename)              : see "help textread"
 % conn_fileutils('copyfile', source, target)        : copies file
 % conn_fileutils('movefile', source, target)        : moves file
 % conn_fileutils('renamefile', source, target)      : renames file
@@ -17,8 +18,11 @@ function varargout=conn_fileutils(option,varargin)
 % conn_fileutils('isdir', dirname)                  : returns true if dirname points to an existing directory
 % conn_fileutils('cd', dirname)                     : changes current working directory
 % conn_fileutils('homedir')                         : returns user-specific home directory
-% conn_fileutils('imread')                          : see "help imread"
-% conn_fileutils('imwrite')                         : see "help imwrite"
+% conn_fileutils('imread',...)                      : see "help imread"
+% conn_fileutils('imwrite',...)                     : see "help imwrite"
+% conn_fileutils('imopen', filename)                : open image in system viewer
+% conn_fileutils('uigetfile', ...)                  : see "help uigetfile"
+% conn_fileutils('uiputfile', ...)                  : see "help uiputfile"
 %
 % SPM-SPECIFIC functions: overloaded SPM functions to support /CONNSERVER/[filepath] nomenclature (see below)
 % conn_fileutils('nifti',...)
@@ -47,6 +51,11 @@ switch(lower(option))
     case {'fileread','readfile'}
         if any(conn_server('util_isremotefile',varargin{1})), varargout={conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),varargin{2:end})};
         else varargout={fileread(conn_server('util_localfile',varargin{1}),varargin{2:end})};
+        end
+        
+    case {'textread','readtext'}
+        if any(conn_server('util_isremotefile',varargin{1})), varargout={conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),varargin{2:end})};
+        else varargout={textread(conn_server('util_localfile',varargin{1}),varargin{2:end})};
         end
         
     case {'filewrite','writefile','filewrite_raw','writefile_raw','fileappend','appendfile','fileappend_raw','appendfile_raw'}

@@ -23,6 +23,8 @@ if nargin<2, out=struct; end
 if isstruct(filename), for f=reshape(fieldnames(filename),1,[]), out=setfield(out,f{1},getfield(filename,f{1})); end; return; end
 if any(conn_server('util_isremotefile',filename)), out=conn_server('run',mfilename,conn_server('util_localfile',filename),out); return; end
 filename=char(conn_server('util_localfile',filename));
+if ~isempty(regexp(filename,'\.json$')), tout=conn_jsonread(filename); for n=reshape(fieldnames(tout),1,[]), out=setfield(out,n{1},tout.(n{1})); end; return; end % handles other compatible formats
+if ~isempty(regexp(filename,'\.mat$')), tout=load(filename); for n=reshape(fieldnames(tout),1,[]), out=setfield(out,n{1},tout.(n{1})); end; return; end
 
 fieldname={'arg'};
 s=fileread(filename);
