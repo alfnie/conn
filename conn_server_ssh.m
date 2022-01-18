@@ -210,8 +210,8 @@ switch(lower(option))
                         fprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     else
-                        tstr=sprintf('Establishing secure communication path to remote session (%d:%s:%d).\nPlease close this window after the connection procedure is complete',params.info.local_port,params.info.remote_ip,params.info.remote_port);
-                        [ok,msg]=system(sprintf('start "Secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        tstr=sprintf('Establishing secure communication path to remote session (%d:%s:%d)',params.info.local_port,params.info.remote_ip,params.info.remote_port);
+                        [ok,msg]=system(sprintf('start "Secure communication channel" cmd /c "echo %s && echo Please close this window after the connection procedure is complete && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     end
                     if ok~=0, 
                         params.info.local_port=[]; 
