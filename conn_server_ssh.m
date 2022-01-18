@@ -171,7 +171,7 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
                     else
                         tfilename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
-                        [ok,msg]=system(sprintf('start "Step 2/3: Requesting a new Matlab session in %s. This may take a few minutes" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
+                        [ok,msg]=system(sprintf('start "Step 2/3: Requesting a new Matlab session in %s. This may take a few minutes. Please wait" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
                         msg=conn_fileutils('fileread',tfilename);
                         conn_fileutils('deletefile',tfilename);
                     end
@@ -211,7 +211,9 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     else
                         tstr=sprintf('Establishing secure communication path to remote session (%d:%s:%d)',params.info.local_port,params.info.remote_ip,params.info.remote_port);
-                        [ok,msg]=system(sprintf('start "Step 3/3: Establishing secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        if startnewserver, [ok,msg]=system(sprintf('start "Step 3/3: Establishing new secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        else               [ok,msg]=system(sprintf(           'start "Re-establishing secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        end
                     end
                     if ok~=0, 
                         params.info.local_port=[]; 
