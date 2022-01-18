@@ -210,8 +210,8 @@ switch(lower(option))
                         fprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     else
-                        tstr=sprintf('Establishing secure communication path to remote session (%d:%s:%d)',params.info.local_port,params.info.remote_ip,params.info.remote_port);
-                        [ok,msg]=system(sprintf('start "Secure communication channel" cmd /c "echo %s && echo Please close this window after the connection procedure is complete && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        tstr=sprintf('Secure communication channel %d:%s:%d',params.info.local_port,params.info.remote_ip,params.info.remote_port);
+                        [ok,msg]=system(sprintf('start "%s" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     end
                     if ok~=0, 
                         params.info.local_port=[]; 
@@ -224,17 +224,18 @@ switch(lower(option))
                     end
                 end
                 ntries=max(0,ntries-1);
-                filename=fullfile(conn_fileutils('homedir'),'conn_recentservers.json');
-                spm_jsonwrite(filename,params.info,struct('indent',' '));
-                if isunix, try, system(sprintf('chmod 600 ''%s''',filename)); end; end
-                fprintf('Connection information saved in %s\n',filename);
+                if ~isempty(params.info.host)&&ispc&&isfield(params.info,'windowscmbugfixed')&&~params.info.windowscmbugfixed, try, [nill,nill]=system(sprintf('taskkill /FI "WindowTitle eq *%s" /T /F',tstr)); end; end
                 if conn_server('isconnected'), 
                     ntries=0; 
+                    filename=fullfile(conn_fileutils('homedir'),'conn_recentservers.json');
+                    spm_jsonwrite(filename,params.info,struct('indent',' '));
+                    if isunix, try, system(sprintf('chmod 600 ''%s''',filename)); end; end
+                    fprintf('Connection information saved in %s\n',filename);
                 elseif ntries>0, 
                     startnewserver=true; params.info.local_port=[]; 
                     fprintf('No remote session found, starting a new session\n');
                 else
-                    fprintf('Unable to connect to remote CONN session\n',filename);
+                    fprintf('Unable to connect to remote CONN session\n');
                 end
             end
         end
