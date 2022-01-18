@@ -258,6 +258,17 @@ else
                 end
             end
         end
+        if isfield(CONN_x,'vvAnalyses')&&isfield(CONN_x.vvAnalyses,'mask')
+            for nalt=1:numel(CONN_x.vvAnalyses)
+                temp=CONN_x.vvAnalyses(nalt).mask;
+                if ~isempty(temp)
+                    temp=conn_updatefilepaths(temp);
+                    if ~isempty(temp), CONN_x.vvAnalyses(nalt).mask=temp;
+                    else break;
+                    end
+                end
+            end
+        end
     catch
        conn_disp('warning: conn_updatefilepaths did not finish');
     end

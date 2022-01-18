@@ -1277,7 +1277,7 @@ if ishandle(hmsg), delete(hmsg); end
                 %if isempty(otherVOL), return; end
                 if numel(varargin)>0, totherVOL=varargin{1};
                 else
-                    [tfilename,tpathname]=uigetfile('*.nii; *.img','Select file',fullfile(fileparts(which(mfilename)),'rois'));
+                    [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select file',fullfile(fileparts(which(mfilename)),'rois'));
                     if ischar(tfilename), totherVOL=fullfile(tpathname,tfilename);
                     else return;
                     end
@@ -1310,7 +1310,7 @@ if ishandle(hmsg), delete(hmsg); end
                 set(state.handles.patchref(nref),'visible',dosubstr);
             case {'ref_file','file_ref'}
                 if isempty(varargin)
-                    [tfilename,tpathname]=uigetfile('*.nii; *.img','Select reference file');
+                    [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select reference file');
                     if ischar(tfilename), state.structural=fullfile(tpathname,tfilename);
                     else return;
                     end
@@ -1366,7 +1366,7 @@ if ishandle(hmsg), delete(hmsg); end
                     filenameSURF=varargin{1};
                     if numel(varargin)>=2&&~isempty(varargin{2}), THR=varargin{2}; end
                 else
-                    [tfilename,tpathname]=uigetfile('*.nii; *.img','Select file');
+                    [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select file');
                     if ischar(tfilename), filenameSURF=fullfile(tpathname,tfilename);
                     else return;
                     end

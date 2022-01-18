@@ -29,7 +29,7 @@ switch(lower(option)),
 %             end
         else
             data.side=3;
-            [filename,filepath]=uigetfile('*ROI*.mat');
+            [filename,filepath]=conn_fileutils('uigetfile','*ROI*.mat');
             if ~ischar(filename), return; end
             results=conn_loadmatfile(fullfile(filepath,filename));results=results.ROI;
             if ~isfield(results(1),'c2'), results(1).c2=[]; end

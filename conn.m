@@ -3625,7 +3625,7 @@ else
                                         end
                                     case 15, % new ROI from voxels within mask
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
-                                        [tfilename,tpathname]=uigetfile('*.nii; *.img','Select explicit mask');
+                                        [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select explicit mask');
                                         if ischar(tfilename),
                                             fname=fullfile(tpathname,tfilename);
                                             [nill,fname_name]=fileparts(fname);
@@ -4752,7 +4752,7 @@ else
                                     nl2covariates=numel(CONN_x.Setup.l2covariates.names); 
                                 elseif varargin{2}==15 % import
                                     if numel(nl2covariates)==1, nl2covariates=numel(CONN_x.Setup.l2covariates.names); end
-                                    [tfilename,tpathname]=uigetfile({'*',  'All Files (*)'; '*.mat','MAT-files (*.mat)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*.tsv','TSV-files (*.tsv)'; '*.json','JSON-files (*.json)'},'Select data file');
+                                    [tfilename,tpathname]=conn_fileutils('uigetfile',{'*',  'All Files (*)'; '*.mat','MAT-files (*.mat)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*.tsv','TSV-files (*.tsv)'; '*.json','JSON-files (*.json)'},'Select data file');
                                     if ~ischar(tfilename)||isempty(tfilename), 
                                         try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
                                         return; 
@@ -5130,7 +5130,7 @@ else
 %                                 end
 							case 3, value=get(CONN_h.menus.m_setup_00{3},'value'); CONN_x.Setup.analysismask=mod(value,3);
                                 if value==1
-                                    [tfilename,tpathname]=uigetfile('*.nii; *.img','Select explicit mask',CONN_x.Setup.explicitmask{1});
+                                    [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select explicit mask',CONN_x.Setup.explicitmask{1});
                                     if ischar(tfilename),
                                         CONN_x.Setup.explicitmask=conn_file(fullfile(tpathname,tfilename)); 
                                         analysistypes={'Explicit mask ','Implicit mask (subject-specific)','None'};
@@ -8473,7 +8473,7 @@ else
                             if ~isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).mask), tfilename=CONN_x.vvAnalyses(CONN_x.vvAnalysis).mask{1};
                             else tfilename='';
                             end
-                            [tfilename,tpathname]=uigetfile('*.nii; *.img','Select explicit mask',tfilename);
+                            [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select explicit mask',tfilename);
                             if ischar(tfilename), CONN_x.vvAnalyses(CONN_x.vvAnalysis).mask=conn_file(fullfile(tpathname,tfilename));
                             else CONN_x.vvAnalyses(CONN_x.vvAnalysis).mask=[];
                             end

@@ -7,7 +7,7 @@ if nargin<1||isempty(filename),
     global CONN_x;
     if ~isempty(CONN_x)&&isfield(CONN_x,'folders')&&isfield(CONN_x.folders,'firstlevel'),pathname=fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(1).name);
     else, pathname=pwd; end
-    [filename, pathname] = uigetfile('.mat', 'Select a condition file',fullfile(pathname,'resultsROI_Condition*.mat'));
+    [filename, pathname] = conn_fileutils('uigetfile','.mat', 'Select a condition file',fullfile(pathname,'resultsROI_Condition*.mat'));
     filename=fullfile(pathname,filename);
 end
 

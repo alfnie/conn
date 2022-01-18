@@ -126,7 +126,7 @@ switch(lower(option)),
         else
             data.thres=1;
             data.side=3;
-            [filename,filepath]=uigetfile('*ROI*.mat');
+            [filename,filepath]=conn_fileutils('uigetfile','*ROI*.mat');
             if ~ischar(filename), return; end
             results=conn_loadmatfile(fullfile(filepath,filename));results=results.ROI;
             data.initfile=fullfile(filepath,filename);
@@ -1054,7 +1054,7 @@ switch(lower(option)),
         elseif isequal(answ,Answ{4})
             if margin>2&&~isempty(varargin{2}), tfilename=varargin{2};
             else 
-                [tfilename,tfilepath]=uigetfile('connROIorder.mat','Load ROI order from');
+                [tfilename,tfilepath]=conn_fileutils('uigetfile','connROIorder.mat','Load ROI order from');
                 if isequal(tfilename,0), return; end
                 tfilename=fullfile(tfilepath,tfilename);
             end
@@ -4407,7 +4407,7 @@ end
         else
             tfilename=filename_rois;
             if iscell(tfilename)&&~isempty(tfilename), tfilename=tfilename{1}; end
-            [tfilename,tpathname]=uigetfile('*.nii; *.img','Select mask/clusters file',tfilename);
+            [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select mask/clusters file',tfilename);
             if ischar(tfilename), filename_rois=fullfile(tpathname,tfilename);
             else
                 filename_rois=filename_rois0;
@@ -4419,7 +4419,7 @@ end
         if get(ht2,'value')==1
             filename_sources=filename_sources0;
         else
-            [tfilename,tpathname]=uigetfile('*.mat','Select SPM.mat file',filename_sources);
+            [tfilename,tpathname]=conn_fileutils('uigetfile','*.mat','Select SPM.mat file',filename_sources);
             if ischar(tfilename), filename_sources=fullfile(tpathname,tfilename);
             else
                 filename_sources=filename_sources0;

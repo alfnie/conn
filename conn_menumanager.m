@@ -518,7 +518,7 @@ else
                 fontweight=CONN_MM.MENU{thishandle}.fontweight;
                 if x==3, 
                     fontsize=fontsize+CONN_MM.MENU{thishandle}.dfont; 
-                    fontweight='bold';
+                    %fontweight='bold';
                 %elseif x==2, fontsize=fontsize+round(CONN_MM.MENU{thishandle}.dfont/2);
                 end
                 

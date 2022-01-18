@@ -149,7 +149,7 @@ if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 hfigure=[];
 fulld=true;
 if nargin<1 || isempty(SPMfilename),
-    [filename,filepath]=uigetfile('SPM.mat');
+    [filename,filepath]=conn_fileutils('uigetfile','SPM.mat');
     if ~ischar(filename), return; end
     SPMfilename=fullfile(filepath,filename);
 elseif ishandle(SPMfilename) % conn_display(hfig,opts)

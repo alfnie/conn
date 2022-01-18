@@ -9,7 +9,7 @@ if nargin<1||isempty(filename),
     global CONN_x
     if ~isempty(CONN_x)&&isfield(CONN_x,'folders')&&isfield(CONN_x.folders,'firstlevel'),pathname=fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(1).name);
     else pathname=pwd; end
-    [filename, pathname] = uigetfile('.mat', 'Select a network analysis file',fullfile(pathname,'*.network'));
+    [filename, pathname] = conn_fileutils('uigetfile','.mat', 'Select a network analysis file',fullfile(pathname,'*.network'));
     filename=fullfile(pathname,filename);
 end
 if iscell(filename), results=filename{1}; ss=filename{2}; filename=[];

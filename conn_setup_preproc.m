@@ -664,12 +664,12 @@ if any(ismember({'structural_manualorient','functional_manualorient'},lSTEPS))
                 answ=str2num(answ{1});
                 reorient{ntime}=answ;
             elseif isequal(reorient{ntime},2)
-                [tfilename1,tfilename2]=uigetfile('*.mat','Select file',pwd);
+                [tfilename1,tfilename2]=conn_fileutils('uigetfile','*.mat','Select file');
                 if ~ischar(tfilename1), return; end
                 filename=fullfile(tfilename2,tfilename1);
                 reorient{ntime}=filename;
             elseif isequal(reorient{ntime},3)
-                [tfilename1,tfilename2]=uigetfile('*.nii','Select file',pwd);
+                [tfilename1,tfilename2]=conn_fileutils('uigetfile','*.nii','Select file');
                 if ~ischar(tfilename1), return; end
                 filename=fullfile(tfilename2,tfilename1);
                 reorient{ntime}=filename;
@@ -753,10 +753,10 @@ if any(ismember({'structural_manualspatialdef','functional_manualspatialdef'},lS
             end
             if DOSPM12,
                 str='Select deformation field volume (e.g. y_*.nii)'; conn_disp(str);
-                [tfilename1,tfilename2]=uigetfile('*.nii',str,topt{:});
+                [tfilename1,tfilename2]=conn_fileutils('uigetfile','*.nii',str,topt{:});
             else
                 str='Select transformation file (e.g. *_seg_sn.mat)'; conn_disp(str);
-                [tfilename1,tfilename2]=uigetfile('*.mat',str,topt{:});
+                [tfilename1,tfilename2]=conn_fileutils('uigetfile','*.mat',str,topt{:});
             end
             if ~ischar(tfilename1), return; end
             filename=fullfile(tfilename2,tfilename1);
@@ -787,9 +787,9 @@ if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_pres
     if ~any(ismember(lSTEPS,{'structural_normalize','structural_normalize_preservemasks','structural_segment&normalize','structural_segment','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_masks','structural_manualspatialdef'})), set([ht1a ht1 ht4],'enable','off'); end
     if ~any(ismember(lSTEPS,{'functional_normalize','functional_segment&normalize','functional_segment','functional_segment&normalize_direct','functional_normalize_direct','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_preservemasks','functional_manualspatialdef'})), set([ht2a ht2 ht5],'enable','off'); end
     if all(ismember(lSTEPS,{'structural_manualspatialdef','functional_manualspatialdef'})), set([ht3 ht4 ht5],'visible','off'); set(thfig,'name','Resample settings'); end
-    set(ht3,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=uigetfile(''*.nii;*.img'',''Select TPM file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
-    set(ht4,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=uigetfile(''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
-    set(ht5,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=uigetfile(''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
+    set(ht3,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select TPM file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
+    set(ht4,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
+    set(ht5,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
     uiwait(thfig);
     if ~ishandle(thfig), return; end
     temp=str2num(get(ht1,'string')); if ~isempty(temp), voxelsize_anat=temp; end

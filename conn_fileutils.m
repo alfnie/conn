@@ -476,12 +476,19 @@ if numel(varargin)<1||isempty(varargin{1}), varargin{1}='*'; end
 if numel(varargin)<2||isempty(varargin{2}), if strcmp(style,'put'), varargin{2}='Select a file to write'; else varargin{2}='Select a file'; end; end
 if numel(varargin)<3||isempty(varargin{3}), varargin{3}=''; end
 options=varargin;
-
+if ischar(varargin{1}), filterspec=varargin{1};
+elseif iscell(varargin{1}), filterspec=sprintf('%s ',varargin{1}{:,1}); 
+else filterspec='*';
+end
+if ischar(varargin{2}), filtertitle=varargin{2};
+elseif iscell(varargin{2}), filtertitle=sprintf('%s ',varargin{2}{:}); 
+else filtertitle='Select a file';
+end
 filename='';
 skipoverwritequestion=strcmp(style,'get');
 thfig=figure('units','norm','position',[.4,.5,.35,.15],'color',1*[1 1 1],'name','file dialog','numbertitle','off','menubar','none');
-ht1a=uicontrol('style','text','units','norm','position',[.1,.8,.8,.15],'string',sprintf('%s (%s)',varargin{2},varargin{1}),'horizontalalignment','left','backgroundcolor',1*[1 1 1],'fontweight','bold');
-ht1=uicontrol('style','edit','units','norm','position',[.1,.65,.7,.15],'string',varargin{3},'tooltipstring','<HTML>enter full path to target file<br/> - click the button at the right to do this using the system dialog box (only for local files) <br/> - use /CONNSERVER/[remote_filepath] syntax to refer to files in remote server</HTML>','userdata',skipoverwritequestion,'callback',['set(gcbo,''userdata'',',num2str(skipoverwritequestion),');']);
+ht1a=uicontrol('style','text','units','norm','position',[.1,.8,.8,.15],'string',sprintf('%s (%s)',filtertitle,filterspec),'horizontalalignment','left','backgroundcolor',1*[1 1 1],'fontweight','bold');
+ht1=uicontrol('style','edit','units','norm','position',[.1,.65,.7,.15],'string',varargin{3},'tooltipstring','<HTML>enter full path to target file<br/> - click the button at the right to select a file using the system dialog box (only for local files) <br/> - use /CONNSERVER/[remote_filepath] syntax to refer to files in remote server</HTML>','userdata',skipoverwritequestion,'callback',['set(gcbo,''userdata'',',num2str(skipoverwritequestion),');']);
 ht1b=uicontrol('style','pushbutton','units','norm','position',[.8,.65,.1,.15],'string','...','backgroundcolor',1*[1 1 1],'tooltipstring','select target file using system dialog box (only for local files)','callback',@conn_uifile_callback);
 %ht2a=uicontrol('style','text','units','norm','position',[.1,.45,.8,.15],'string','(use /CONNSERVER/* for remote files)','horizontalalignment','center','backgroundcolor',1*[1 1 1]);
 uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.25],'callback','uiresume');
@@ -489,7 +496,7 @@ uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,
 uicontrol(ht1);
 while isempty(filename),
     uiwait(thfig);
-    if ~ishandle(thfig), return; end
+    if ~ishandle(thfig), filename=''; return; end
     filename=get(ht1,'string');
     skipoverwritequestion=isequal(get(ht1,'userdata'),1);
     if ~skipoverwritequestion&&~isempty(filename)&&conn_existfile(filename)

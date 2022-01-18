@@ -142,7 +142,7 @@ for nsub=SUBJECTS,
                                 name2='';
                                 while ~strcmp(name2,[name1,ext1])&&~isequal(name2,0)
                                     conn_disp(['File not found: ',name1,ext1]);
-                                    [name2,pathname2]=uigetfile(['*',ext1],['File not found: ',name1,ext1],['*',name1,ext1]);
+                                    [name2,pathname2]=conn_fileutils('uigetfile',['*',ext1],['File not found: ',name1,ext1],['*',name1,ext1]);
                                 end
                                 if isequal(name2,0), importfunctional=false; break; end
                                 fullname2=fullfile(pathname2,[name2,num1]);

@@ -525,7 +525,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
             case {'reference_atlas','ref_atlas'}
                 if nargin>3, DATA.refatlas=OPTION2;
                 else
-                    [tfilename,tpathname]=uigetfile('*.nii; *.img','Select background reference atlas',DATA.refatlas);
+                    [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select background reference atlas',DATA.refatlas);
                     if ischar(tfilename), DATA.refatlas=fullfile(tpathname,tfilename); end
                     %DATA.refatlas=[];
                 end
@@ -2788,7 +2788,7 @@ end
         if get(ht1,'value')==1
             filename_rois=filename_rois0;
         else
-            [tfilename,tpathname]=uigetfile('*.nii; *.img','Select mask/ROI file',filename_rois);
+            [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select mask/ROI file',filename_rois);
             if ischar(tfilename), filename_rois=fullfile(tpathname,tfilename);
             else
                 filename_rois=filename_rois0;
@@ -2800,7 +2800,7 @@ end
         if get(ht2,'value')==1
             filename_sources=filename_sources0;
         else
-            [tfilename,tpathname]=uigetfile('*.mat','Select SPM.mat file',filename_sources);
+            [tfilename,tpathname]=conn_fileutils('uigetfile','*.mat','Select SPM.mat file',filename_sources);
             if ischar(tfilename), filename_sources=fullfile(tpathname,tfilename);
             else
                 filename_sources=filename_sources0;

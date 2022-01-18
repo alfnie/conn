@@ -42,7 +42,7 @@ end
 teffectnames={};
 if nargin<1||isempty(X), 
     str='Select design matrix (.csv, .txt, .mat file with one row per subject and one column per model regressor)';
-    conn_disp(str); [filename,pathname]=uigetfile({'*',  'All Files (*)'},str);
+    conn_disp(str); [filename,pathname]=conn_fileutils('uigetfile',{'*',  'All Files (*)'},str);
     if isequal(filename,0), return; end
     X=fullfile(pathname,filename);
 end

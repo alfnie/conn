@@ -514,8 +514,8 @@ end
     function conn_filesearch_selectconn_select(varargin)
         if get(dlg.m0,'value')==1, a.CONN_x=CONN_x;
         else
-            [filename,pathname]=uigetfile({'*.mat','conn-project files (conn_*.mat)';'*','All Files (*)'},'Select CONN project','conn_*.mat');
-            if ischar(filename), a=load(fullfile(pathname,filename),'CONN_x'); end
+            [filename,pathname]=conn_fileutils('uigetfile',{'*.mat','conn-project files (conn_*.mat)';'*','All Files (*)'},'Select CONN project','conn_*.mat');
+            if ischar(filename), a=conn_loadmatfile(fullfile(pathname,filename),'CONN_x'); end
         end
         set(dlg.m2,'string',a.CONN_x.Setup.rois.names(1:end-1),'value',min(numel(a.CONN_x.Setup.rois.names)-1,get(dlg.m2,'value')));
         set(dlg.m3,'string',a.CONN_x.Setup.l1covariates.names(1:end-1),'value',min(numel(a.CONN_x.Setup.l1covariates.names)-1,get(dlg.m3,'value')));

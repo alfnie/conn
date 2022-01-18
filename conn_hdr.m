@@ -4,7 +4,7 @@ function varargout=conn_hdr(filename)
 
 CONN_x=struct; 
 if nargin<1 || isempty(filename),
-    [filename,filepath]=uigetfile('conn*.mat');
+    [filename,filepath]=conn_fileutils('uigetfile','conn*.mat');
     if ~ischar(filename), return; end
     filename=fullfile(filepath,filename);
     conn_loadmatfile(filename,'CONN_x');
