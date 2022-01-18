@@ -224,7 +224,6 @@ switch(lower(option))
                     end
                 end
                 ntries=max(0,ntries-1);
-                if ~isempty(params.info.host)&&ispc&&isfield(params.info,'windowscmbugfixed')&&~params.info.windowscmbugfixed, try, [nill,nill]=system(sprintf('taskkill /FI "WindowTitle eq *%s" /T /F',tstr)); end; end
                 if conn_server('isconnected'), 
                     ntries=0; 
                     filename=fullfile(conn_fileutils('homedir'),'conn_recentservers.json');
@@ -237,6 +236,7 @@ switch(lower(option))
                 else
                     fprintf('Unable to connect to remote CONN session\n');
                 end
+                if ~isempty(params.info.host)&&ispc&&isfield(params.info,'windowscmbugfixed')&&~params.info.windowscmbugfixed, try, for n1=1:2, pause(1); [ok,msg]=system(sprintf('taskkill /FI "WindowTitle eq %s" /F',tstr)); end; end; end
             end
         end
         
