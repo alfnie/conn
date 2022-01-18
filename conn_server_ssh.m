@@ -121,7 +121,7 @@ switch(lower(option))
                             params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
                     else
                         tstr=sprintf('Downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
-                        [ok,msg]=system(sprintf('start "Step 1/3: Downloading configuration information" /WAIT cmd /c "echo %s && %s -q %s:~/connserverinfo.json %s"',...
+                        [ok,msg]=system(sprintf('start "Step 1/2: Downloading configuration information" /WAIT cmd /c "echo %s && %s -q %s:~/connserverinfo.json %s"',...
                             tstr, params.options.cmd_scp, params.info.login_ip,filename));
                     end
                     assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
@@ -171,7 +171,7 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
                     else
                         tfilename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
-                        [ok,msg]=system(sprintf('start "Step 2/3: Requesting a new Matlab session in %s. This may take a few minutes. Please wait" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
+                        [ok,msg]=system(sprintf('start "Step 2/2: Requesting a new Matlab session in %s. This may take a few minutes. Please wait" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
                         msg=conn_fileutils('fileread',tfilename);
                         conn_fileutils('deletefile',tfilename);
                     end
@@ -211,9 +211,7 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     else
                         tstr=sprintf('Establishing secure communication path to remote session (%d:%s:%d)',params.info.local_port,params.info.remote_ip,params.info.remote_port);
-                        if startnewserver, [ok,msg]=system(sprintf('start "Step 3/3: Establishing new secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
-                        else               [ok,msg]=system(sprintf(           'start "Re-establishing secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
-                        end
+                        [ok,msg]=system(sprintf('start "Secure communication channel" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     end
                     if ok~=0, 
                         params.info.local_port=[]; 
