@@ -121,28 +121,34 @@ switch(lower(option))
     case 'connect' % init client
         if numel(varargin)>=1&&~isempty(varargin{1}), ip=varargin{1}; else ip=[]; end
         if numel(varargin)>=2&&~isempty(varargin{2}), sid=varargin{2}; else sid=[]; end
+        varargout={false};
         params.isserver=false;
         port=str2double(regexprep(sid,'CONN.*',''));
         id=regexprep(sid,'^\d*CONN','');
-        ok=false;
-        while ~ok
+        finished=false; ok=false;
+        while ~finished
             try
                 params.state='off';
-                conn_tcpip('open','client',ip,port,id);
-                ok=true;
-                remote_ver=conn_server('run','conn','ver');
-                local_ver=conn('ver');
-                if ~isequal(local_ver, remote_ver)
-                    fprintf('Unable to continue: this machine is running a different CONN version from the server (local = %s, server = %s)\n',local_ver,remote_ver);
-                    conn_server('disconnect');
-                    return
+                ok=conn_tcpip('open','client',ip,port,id);
+                finished=true;
+                if ok
+                    remote_ver=conn_server('run','conn','ver');
+                    local_ver=conn('ver');
+                    if ~isequal(local_ver, remote_ver)
+                        fprintf('Unable to continue: this machine is running a different CONN version from the server (local = %s, server = %s)\n',local_ver,remote_ver);
+                        conn_server('disconnect');
+                        return
+                    end
+                    params.state='on';
                 end
-                params.state='on';
             end
             pause(rand);
         end
-        conn_cache clear;
-        conn_jobmanager clear;
+        if ok
+            conn_cache clear;
+            conn_jobmanager clear;
+        end
+        varargout={ok};
         
     case {'run','run_immediatereturn','run_withwaitbar','run_keep','run_keepas'}
         data.type='run';

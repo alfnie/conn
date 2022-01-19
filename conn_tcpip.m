@@ -93,6 +93,7 @@ end
 switch(lower(option))
     case 'open' % open client/server socket
         type=varargin{1};        
+        varargout={false};
         connection.isserver=strcmpi(type,'server');
         connection.buffer=[];
         connection.length=nan;
@@ -198,6 +199,7 @@ switch(lower(option))
                 if ischar(varcheck)&&isequal(conn_tcpip('keypair',varcheck),handshake)
                     conn_tcpip('write','ok');
                     fprintf('Succesfully established connection to client\n');
+                    varargout={true};
                 else % single attempt to correct ID only
                     conn_tcpip('close');
                     fprintf('Client was unable to match CONN server ID. Try starting a server at a different port\n');
@@ -212,6 +214,7 @@ switch(lower(option))
                         ok=conn_tcpip('read');
                         if isequal(ok,'ok')
                             fprintf('Succesfully established connection to server\n');
+                            varargout={true};
                         else
                             conn_tcpip('close');
                             fprintf('Client was unable to match CONN server ID\n');
