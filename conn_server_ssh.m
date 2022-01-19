@@ -120,8 +120,8 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
                             params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
                     else
-                        tstr=sprintf('Downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
-                        [ok,msg]=system(sprintf('start "Step 1/2: Downloading configuration information" /WAIT cmd /c "echo %s && %s -q %s:~/connserverinfo.json %s"',...
+                        tstr=sprintf('Step 1/2: Downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
+                        [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c "%s -q %s:~/connserverinfo.json %s"',...
                             tstr, params.options.cmd_scp, params.info.login_ip,filename));
                     end
                     assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
@@ -211,7 +211,7 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     else
                         tstr=sprintf('Secure communication channel %d:%s:%d',params.info.local_port,params.info.remote_ip,params.info.remote_port);
-                        [ok,msg]=system(sprintf('start "%s" cmd /c "echo %s && %s -f -N -L%d:%s:%d %s"', tstr, tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        [ok,msg]=system(sprintf('start "%s" cmd /c "%s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     end
                     if ok~=0, 
                         params.info.local_port=[]; 
@@ -410,8 +410,8 @@ switch(lower(option))
             end
         else 
             tstr=sprintf('Copying to %s',params.info.login_ip);
-            if strcmpi(option,'folderpush'), ok=system(sprintf('start "CONN copy" /WAIT cmd /c "echo %s && %s -C -r "%s" %s:"%s""', tstr, params.options.cmd_scp, regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
-            else ok=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q "%s" %s:"%s""', tstr, params.options.cmd_scp, filelocal,params.info.login_ip,fileremote));
+            if strcmpi(option,'folderpush'), ok=system(sprintf('start "%s" /WAIT cmd /c %s -C -r "%s" %s:"%s"', tstr, params.options.cmd_scp, regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
+            else ok=system(sprintf('start "%s" /WAIT cmd /c %s -C -q "%s" %s:"%s"', tstr, params.options.cmd_scp, filelocal,params.info.login_ip,fileremote));
             end
         end
         varargout={isequal(ok,0)}; 
@@ -425,8 +425,8 @@ switch(lower(option))
             end
         else
             tstr=sprintf('Copying to %s',params.info.login_ip);
-            if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('start "CONN copy" /WAIT cmd /c "echo %s && %s -C -r %s:"%s" "%s""', tstr, params.options.cmd_scp, params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
-            else [ok,msg]=system(sprintf('start "CONN server" /WAIT cmd /c "echo %s && %s -C -q %s:"%s" "%s""', tstr, params.options.cmd_scp, params.info.login_ip,fileremote,filelocal));
+            if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c %s -C -r %s:"%s" "%s"', tstr, params.options.cmd_scp, params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
+            else [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c %s -C -q %s:"%s" "%s"', tstr, params.options.cmd_scp, params.info.login_ip,fileremote,filelocal));
             end
         end
         if ~isequal(ok,0), disp(msg); end
