@@ -171,7 +171,7 @@ switch(lower(option))
                 catch me,
                     if ~isempty(regexp(me.message,'SocketTimeoutException')), fprintf('.');  % timeout
                     elseif ~isempty(regexp(me.message,'EOFException|IOException|SocketException'))
-                        error('ERROR: connection may be down\n');
+                        error('ERROR: connection may be down');
                         %% restart
                         %fprintf('\n Idle connection to server. ');
                         %conn_server restart;
