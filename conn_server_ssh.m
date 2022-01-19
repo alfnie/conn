@@ -120,7 +120,7 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
                             params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
                     else
-                        tstr=sprintf('Step 1/2: Downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
+                        tstr=sprintf('SSH Step 1/2: downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
                         [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c "%s -q %s:~/connserverinfo.json %s"',...
                             tstr, params.options.cmd_scp, params.info.login_ip,filename));
                     end
@@ -171,7 +171,7 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
                     else
                         tfilename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
-                        [ok,msg]=system(sprintf('start "Step 2/2: Requesting a new Matlab session in %s. This may take a few minutes. Please wait" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
+                        [ok,msg]=system(sprintf('start "SSH Step 2/2: requesting a new Matlab session in %s. This may take a few minutes. Please wait" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
                         msg=conn_fileutils('fileread',tfilename);
                         conn_fileutils('deletefile',tfilename);
                     end
@@ -210,7 +210,7 @@ switch(lower(option))
                         fprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     else
-                        tstr=sprintf('Secure communication channel %d:%s:%d',params.info.local_port,params.info.remote_ip,params.info.remote_port);
+                        tstr=sprintf('SSH secure communication channel %d:%s:%d',params.info.local_port,params.info.remote_ip,params.info.remote_port);
                         [ok,msg]=system(sprintf('start "%s" cmd /c "%s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                     end
                     if ok~=0, 
@@ -321,7 +321,7 @@ switch(lower(option))
                 end
                 [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server_ssh submitexit ''%s''',params.info.remote_log)),'"','\\"')));
             else
-                [ok,msg]=system(sprintf('start "exiting CONN server" /WAIT cmd /c %s %s "%s"', params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server_ssh submitexit ''%s''',params.info.remote_log)),'"','\\"')));
+                [ok,msg]=system(sprintf('start "SSH exiting remote CONN server" /WAIT cmd /c %s %s "%s"', params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,sprintf('server_ssh submitexit ''%s''',params.info.remote_log)),'"','\\"')));
             end
             if ok~=0, disp(msg); 
             else fprintf('Remote CONN session deletion requested successfully\n');
@@ -409,7 +409,7 @@ switch(lower(option))
             else ok=system(sprintf('%s -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
             end
         else 
-            tstr=sprintf('Copying to %s',params.info.login_ip);
+            tstr=sprintf('SSH copying to %s',params.info.login_ip);
             if strcmpi(option,'folderpush'), ok=system(sprintf('start "%s" /WAIT cmd /c %s -C -r "%s" %s:"%s"', tstr, params.options.cmd_scp, regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
             else ok=system(sprintf('start "%s" /WAIT cmd /c %s -C -q "%s" %s:"%s"', tstr, params.options.cmd_scp, filelocal,params.info.login_ip,fileremote));
             end
@@ -424,7 +424,7 @@ switch(lower(option))
             else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
             end
         else
-            tstr=sprintf('Copying to %s',params.info.login_ip);
+            tstr=sprintf('SSH copying to %s',params.info.login_ip);
             if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c %s -C -r %s:"%s" "%s"', tstr, params.options.cmd_scp, params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
             else [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c %s -C -q %s:"%s" "%s"', tstr, params.options.cmd_scp, params.info.login_ip,fileremote,filelocal));
             end
