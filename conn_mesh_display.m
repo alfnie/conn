@@ -9,9 +9,10 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %      fileVOL          : volume-level 3D NIFTI mask file (display clusters of non-zero values as custom masks) (default [])
 %      dirFS            : directory containing reference freesurfer-generated surfaces (leave empty for default conn/utils/surf/)
 %      rois             : structure defining ROIs to be displayed (default [])
-%                           rois.sph_xyz : (nx3) coordinates XYZ values
-%                           rois.sph_c   : (nx3) color RGB values
-%                           rois.sph_r   : (nx1) sphere radius
+%                           rois.sph_xyz    : (nx3) coordinates XYZ values
+%                           rois.sph_c      : (nx3) color RGB values
+%                           rois.sph_r      : (nx1) sphere radius
+%                           rois.sph_shapes : (optional) patch structure with .vertices and .faces fields
 %      connections      : (nxn) matrix of ROI-to-ROI connections to be displayed (values represent connection
 %                         strength, with 0 or NaN for connections not to be displayed) (default [])
 %      threshold        : only display voxels in 'fileSURF' above 'threshold' (default 0)
@@ -63,7 +64,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 % ROI OPTIONS
 %  fh('roi_transparency',val)            : set ROIs surface transparency level (val: 0-1)
 %  fh('roi_color',color)                 : set ROIs surface color (color: [Mx3] RGB values)
-%  fh('sphereshape',type)                : set ROI shape (type: 'sphere' 'cube' 'star')
+%  fh('roi_shape',type)                  : set ROI shape (type: 'real' 'sphere' 'cube' 'star')
 %  fh('spheres',scale)                   : increases/decreases all ROIs size (scale 0-inf)
 %  fh('labels',state)                    : displays ROI labels (state: 'on' 'off')
 %  fh('labels_font',scale)               : increases/decreases all ROI-labels font (scale 0-inf)
@@ -396,6 +397,9 @@ state.handles.sphplots=[];
 %state.sphplots_xyz=zeros(0,3);
 %state.sphplots_r=[];
 state.handles.sphplots_txt=[];
+state.handles.sphplots_shapes=[];
+state.handles.sphplots_shapesok=[];
+troifiles=[];
 if ~isempty(state.sphplots)
     if ~isstruct(state.sphplots), state.sphplots=struct('sph_xyz',state.sphplots); end
     if ~isfield(state.sphplots,'sph_c'), state.sphplots.sph_c=ones(size(state.sphplots.sph_xyz,1),3); end
@@ -420,11 +424,19 @@ if ~isempty(state.sphplots)
         if isfield(state.sphplots,'sph_names')
             state.handles.sphplots_txt(n1)=text(state.sphplots.sph_xyz(n1,1)+state.up(1)*state.fontclose*state.sphplots.sph_r(n1),state.sphplots.sph_xyz(n1,2)+state.up(2)*state.fontclose*state.sphplots.sph_r(n1),state.sphplots.sph_xyz(n1,3)+state.up(3)*state.fontclose*state.sphplots.sph_r(n1),state.sphplots.sph_names{n1},'fontsize',state.fontsize,'horizontalalignment','center','color',bgc,'interpreter','none','visible','off','parent',state.handles.hax);
         end
+        if isfield(state.sphplots,'sph_shapes')
+            state.handles.sphplots_shapes(n1)=patch(struct('vertices',zeros(0,3),'faces',zeros(0,3)),'facecolor',state.sphplots.sph_c{n1},'edgecolor','none','facealpha',state.facealpharoi,'visible','off','parent',state.handles.hax);
+            state.handles.sphplots_shapesok(n1)=false;
+        end
     end
     hold off;
     if ~isempty(state.roi_color),
-        if size(state.roi_color,1)==1, set(state.handles.sphplots,'facecolor',state.roi_color);
-        else for n1=1:numel(state.handles.sphplots), set(state.handles.sphplots(n1),'facecolor',state.roi_color(1+rem(n1-1,size(state.roi_color,1)),:)); end
+        if size(state.roi_color,1)==1, set([state.handles.sphplots state.handles.sphplots_shapes(ishandle(state.handles.sphplots_shapes))],'facecolor',state.roi_color); 
+        else
+            for n1=1:numel(state.handles.sphplots),
+                set(state.handles.sphplots(n1),'facecolor',state.roi_color(1+rem(n1-1,size(state.roi_color,1)),:)); 
+                if numel(state.handles.sphplots_shapes)>=n1&&ishandle(state.handles.sphplots_shapes(n1)), set(state.handles.sphplots_shapes(n1),'facecolor',state.roi_color(1+rem(n1-1,size(state.roi_color,1)),:)); end
+            end
         end
     end
     set(state.handles.sphplots,'tag','rois');
@@ -627,6 +639,18 @@ thdl=[thdl,uimenu(hc1,'Label','Brainmask surface off','callback',{@conn_mesh_dis
 set(thdl,'checked','off');set(thdl(max(1,min(numel(thdl),idx))),'checked','on');
 uimenu(hc1,'Label','Brainmask surface color','callback',{@conn_mesh_display_refresh,'mask_color'});
 
+hc1=uimenu(hc0,'Label','Other surfaces');
+tvalues=[1 .9:-.1:.1 .05 0];
+uimenu(hc1,'Label','Other surfaces add','callback',{@conn_mesh_display_refresh,'ud_select'});
+uimenu(hc1,'Label','Other surfaces delete','callback',{@conn_mesh_display_refresh,'ud_delete'});
+thdl=uimenu(hc1,'Label','Other surfaces on','callback',{@conn_mesh_display_refresh,'ud_transparency',1},'tag','ud_transparency','separator','on');
+hc2=uimenu(hc1,'Label','Other surfaces transparent');
+for n1=1:numel(tvalues)-1, thdl=[thdl,uimenu(hc2,'Label',num2str(n1-1),'callback',{@conn_mesh_display_refresh,'ud_transparency',tvalues(n1)},'tag','ud_transparency')]; end
+thdl=[thdl,uimenu(hc1,'Label','Other surfaces off','callback',{@conn_mesh_display_refresh,'ud_transparency',0},'tag','ud_transparency')];
+[nill,idx]=min(abs(state.facealphaud-[1 tvalues]));
+set(thdl,'checked','off');set(thdl(max(1,min(numel(thdl),idx))),'checked','on');
+uimenu(hc1,'Label','Other surfaces color','callback',{@conn_mesh_display_refresh,'ud_color'});
+
 hc1=uimenu(hc0,'Label','Reference slices');
 thdl=[uimenu(hc1,'Label','Sagittal reference on','callback',{@conn_mesh_display_refresh,'sag_ref','on'},'tag','sag_ref');
     uimenu(hc1,'Label','Sagittal reference off','callback',{@conn_mesh_display_refresh,'sag_ref','off'},'tag','sag_ref')];
@@ -644,18 +668,6 @@ thdl=[];for n1=1:numel(tvalues)-1, thdl=[thdl,uimenu(hc2,'Label',num2str(n1-1),'
 set(thdl,'checked','off');set(thdl(max(1,min(numel(thdl),idx))),'checked','on');
 uimenu(hc1,'Label','Reference slices position','callback',{@conn_mesh_display_refresh,'pos_ref'});
 
-hc1=uimenu(hc0,'Label','Custom surface');
-tvalues=[1 .9:-.1:.1 .05 0];
-thdl=uimenu(hc1,'Label','Custom surface on','callback',{@conn_mesh_display_refresh,'ud_transparency',1},'tag','ud_transparency');
-hc2=uimenu(hc1,'Label','Custom surface transparent');
-for n1=1:numel(tvalues)-1, thdl=[thdl,uimenu(hc2,'Label',num2str(n1-1),'callback',{@conn_mesh_display_refresh,'ud_transparency',tvalues(n1)},'tag','ud_transparency')]; end
-thdl=[thdl,uimenu(hc1,'Label','Custom surface off','callback',{@conn_mesh_display_refresh,'ud_transparency',0},'tag','ud_transparency')];
-[nill,idx]=min(abs(state.facealphaud-[1 tvalues]));
-set(thdl,'checked','off');set(thdl(max(1,min(numel(thdl),idx))),'checked','on');
-uimenu(hc1,'Label','Custom surface color','callback',{@conn_mesh_display_refresh,'ud_color'});
-uimenu(hc1,'Label','Custom surface add','callback',{@conn_mesh_display_refresh,'ud_select'});
-uimenu(hc1,'Label','Custom surface delete','callback',{@conn_mesh_display_refresh,'ud_delete'});
-
 if ~isempty(state.handles.sphplots)&&any(any(state.handles.sphplots))||~isempty(state.handles.sphplots_txt)&&any(any(state.handles.sphplots_txt))
     hc0=uimenu(hc,'Label','ROIs');
     tvalues=[1 .9:-.1:.1 .05 0];
@@ -667,11 +679,12 @@ if ~isempty(state.handles.sphplots)&&any(any(state.handles.sphplots))||~isempty(
     set(thdl,'checked','off');set(thdl(max(1,min(numel(thdl),idx))),'checked','on');
     uimenu(hc0,'Label','ROIs color','callback',{@conn_mesh_display_refresh,'roi_color'});
 end
-if ~isempty(state.handles.sphplots)&&any(any(state.handles.sphplots))
+if ~isempty(state.handles.sphplots)&&any(any(ishandle(state.handles.sphplots)))
     hc1=uimenu(hc0,'Label','Shapes','separator','on');
-    uimenu(hc1,'Label','Spheres','callback',{@conn_mesh_display_refresh,'sphereshape','sphere'});
-    uimenu(hc1,'Label','Cubes','callback',{@conn_mesh_display_refresh,'sphereshape','cube'});
-    uimenu(hc1,'Label','Stars','callback',{@conn_mesh_display_refresh,'sphereshape','star'});
+    if isfield(state.sphplots,'sph_shapes'), uimenu(hc1,'Label','Real ROI shape','callback',{@conn_mesh_display_refresh,'roi_shape','real'},'tag','roi_shape'); end
+    uimenu(hc1,'Label','Sphere @ ROI center','callback',{@conn_mesh_display_refresh,'roi_shape','sphere'},'tag','roi_shape');
+    uimenu(hc1,'Label','Cube @ ROI center','callback',{@conn_mesh_display_refresh,'roi_shape','cube'},'tag','roi_shape');
+    uimenu(hc1,'Label','Star @ ROI center','callback',{@conn_mesh_display_refresh,'roi_shape','star'},'tag','roi_shape');
     uimenu(hc1,'Label','Increase size','callback',{@conn_mesh_display_refresh,'spheres',1.25});
     uimenu(hc1,'Label','Decrease size','callback',{@conn_mesh_display_refresh,'spheres',1/1.25});
 end
@@ -858,7 +871,7 @@ if ishandle(hmsg), delete(hmsg); end
                             case 'random',cmap=rand(96,3);
                             case 'brighter',cmap=min(1,1/sqrt(.95)*get(state.handles.hfig,'colormap').^(1/2)); cmap=cmap(round(size(cmap,1)/2)+1:end,:);
                             case 'darker',cmap=.95*get(state.handles.hfig,'colormap').^2; cmap=cmap(round(size(cmap,1)/2)+1:end,:);
-                            case 'manual',answer=inputdlg({'colormap (96x3)'},'',1,{mat2str(state.colormap(round(size(state.colormap,1)/2)+1:end,:))});if ~isempty(answer), answer=str2num(answer{1}); end;if ~any(size(answer,1)==[96,2*96]), return; end;cmap=max(0,min(1,answer));
+                            case 'manual',answer=conn_menu_inputdlg({'colormap (96x3)'},'',1,{mat2str(state.colormap(round(size(state.colormap,1)/2)+1:end,:))});if ~isempty(answer), answer=str2num(answer{1}); end;if ~any(size(answer,1)==[96,2*96]), return; end;cmap=max(0,min(1,answer));
                             case 'color',cmap=uisetcolor([],'Select color'); if isempty(cmap)||isequal(cmap,0), return; end;
                             otherwise, disp('unknown value');
                         end
@@ -954,6 +967,7 @@ if ishandle(hmsg), delete(hmsg); end
                 set(state.handles.subpatch,'visible','off'); 
                 set(state.handles.maskpatch,'visible','off');
                 set(state.handles.sphplots,'visible','off');
+                set(state.handles.sphplots_shapes(ishandle(state.handles.sphplots_shapes)),'visible','off');
                 set(state.handles.sphplots_txt,'visible','off');
                 set(state.handles.connplots(state.handles.connplots~=0),'visible','off');
                 set([state.handles.patchblob1 state.handles.patchblob2 state.handles.patchblob3 state.handles.patchblob4],'visible','off');
@@ -963,7 +977,15 @@ if ishandle(hmsg), delete(hmsg); end
                     set(state.handles.subpatch(1),'visible','on');
                     set(state.handles.maskpatch(1),'visible','on'); 
                     if ~isempty(state.sphplots)&&~isempty(state.sphplots.sph_xyz), 
-                        set(state.handles.sphplots(state.sphplots.sph_xyz(:,1)<=5),'visible','on');
+                        thandles=state.handles.sphplots(state.sphplots.sph_xyz(:,1)<=5);
+                        if isequal(state.roishape,'real'), 
+                            thandles2=state.handles.sphplots_shapes(state.sphplots.sph_xyz(:,1)<=5); 
+                            tok2=state.handles.sphplots_shapesok(state.sphplots.sph_xyz(:,1)<=5)&ishandle(thandles2); 
+                            set(thandles2(tok2),'visible','on');
+                            set(thandles(~tok2),'visible','on');
+                        else
+                            set(thandles(ishandle(thandles)),'visible','on');
+                        end
                         if state.facealphatxt, set(state.handles.sphplots_txt(state.sphplots.sph_xyz(:,1)<=5),'visible','on'); end
                     end
                     if ~isempty(state.handles.connplots), temp=state.handles.connplots(state.sphplots.sph_xyz(:,1)<=5,state.sphplots.sph_xyz(:,1)<=5);set(temp(temp~=0),'visible','on'); end
@@ -975,7 +997,15 @@ if ishandle(hmsg), delete(hmsg); end
                     set(state.handles.subpatch(2),'visible','on');
                     set(state.handles.maskpatch(2),'visible','on'); 
                     if ~isempty(state.sphplots)&&~isempty(state.sphplots.sph_xyz)
-                        set(state.handles.sphplots(state.sphplots.sph_xyz(:,1)>=-5),'visible','on');
+                        thandles=state.handles.sphplots(state.sphplots.sph_xyz(:,1)>=-5);
+                        if isequal(state.roishape,'real'), 
+                            thandles2=state.handles.sphplots_shapes(state.sphplots.sph_xyz(:,1)>=-5); 
+                            tok2=state.handles.sphplots_shapesok(state.sphplots.sph_xyz(:,1)>=-5)&ishandle(thandles2); 
+                            set(thandles2(tok2),'visible','on');
+                            set(thandles(~tok2),'visible','on');
+                        else
+                            set(thandles(ishandle(thandles)),'visible','on');
+                        end
                         if state.facealphatxt, set(state.handles.sphplots_txt(state.sphplots.sph_xyz(:,1)>=-5),'visible','on'); end
                     end
                     if ~isempty(state.handles.connplots), temp=state.handles.connplots(state.sphplots.sph_xyz(:,1)>=-5,state.sphplots.sph_xyz(:,1)>=-5); set(temp(temp~=0),'visible','on'); end
@@ -1023,24 +1053,80 @@ if ishandle(hmsg), delete(hmsg); end
                 end
                 state.selectedsurface=newselected; 
                 set(state.handles.hfig,'name',str);
-            case {'spheres','sphereshape'}
+            case {'spheres','sphereshape','roi_shape'}
                 if strcmp(option,'spheres'),
                     scale=varargin{1};
                     state.sphplots.sph_r=state.sphplots.sph_r*scale;
                 else
                     state.roishape=varargin{1};
                 end
-                [x,y,z]=sphere(32);
-                switch(state.roishape)
-                    case 'sphere', f=1;
-                    case 'cube', f=.25;
-                    case 'star', f=4;
+                if isequal(state.roishape,'real')
+                    t0={}; troifiles=[];
+                    for n1=1:numel(sphplots.sph_shapes)
+                        if ischar(state.sphplots.sph_shapes{n1}),
+                            t1=regexprep(state.sphplots.sph_shapes{n1},'\..*$','');
+                            t2=regexprep(state.sphplots.sph_shapes{n1},'^[^\.]*\.','');
+                            if isempty(troifiles), [troifiles,troinames]=conn_module('get','rois'); end
+                            [tok,troiidx]=ismember(t1,troinames);
+                            if tok, t0=[t0; {troifiles{troiidx}{1}{1}, t2, n1}];
+                            else fprintf('Unable to find ROI %s in current CONN project\n',state.sphplots.sph_shapes{n1});
+                            end
+                        end
+                    end
+                    if ~isempty(t0), 
+                        thmsg=conn_msgbox('Preparing ROI surfaces. Please wait...','',-1);
+                        [ut1,nill,it1]=unique(t0(:,1));
+                        for n1=1:numel(ut1)
+                            try
+                                p2=find(it1==n1);
+                                p1=conn_surf_volume(ut1{n1},0,t0(it1==n1,2));
+                                for n2=1:numel(p2), state.sphplots.sph_shapes{p2(n2)}=p1(n2); end
+                            catch
+                                fprintf('Unable to compute surface ROIs from %s\n',ut1{n1});
+                            end
+                        end
+                        if ishandle(thmsg), delete(thmsg); end
+                    end
+                    for n1=1:numel(state.sphplots.sph_shapes)
+                        if isstruct(state.sphplots.sph_shapes{n1})
+                            set(state.handles.sphplots_shapes(n1),'vertices',state.sphplots.sph_shapes{n1}.vertices,'faces',state.sphplots.sph_shapes{n1}.faces);
+                            state.handles.sphplots_shapesok(n1)=true;
+                        end
+                    end
+                    for n1=1:numel(state.handles.sphplots)
+                        if numel(state.handles.sphplots_shapes)>=n1&&ishandle(state.handles.sphplots_shapes(n1))&&state.handles.sphplots_shapesok(n1)
+                            if isequal(get(state.handles.sphplots(n1),'visible'),'on')
+                                set(state.handles.sphplots_shapes(n1),'visible','on');
+                                set(state.handles.sphplots(n1),'visible','off');
+                            end
+                        end
+                    end
+                    %set(state.handles.sphplots_shapes(ishandle(state.handles.sphplots_shapes)),'visible','on');
+                    %set(state.handles.sphplots(ishandle(state.handles.sphplots)),'visible','off');
+                    for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
+                else
+                    [x,y,z]=sphere(32);
+                    switch(state.roishape)
+                        case 'sphere', f=1;
+                        case 'cube', f=.25;
+                        case 'star', f=4;
+                    end
+                    x=sign(x).*abs(x).^f;y=sign(y).*abs(y).^f;z=sign(z).*abs(z).^f;
+                    for n=1:numel(state.handles.sphplots),
+                        set(state.handles.sphplots(n),'xdata',state.sphplots.sph_xyz(n,1)+state.sphplots.sph_r(n)*x,'ydata',state.sphplots.sph_xyz(n,2)+state.sphplots.sph_r(n)*y,'zdata',state.sphplots.sph_xyz(n,3)+state.sphplots.sph_r(n)*z);
+                    end
+                    for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
+                    for n1=1:numel(state.handles.sphplots)
+                        if numel(state.handles.sphplots_shapes)>=n1&&ishandle(state.handles.sphplots_shapes(n1))&&state.handles.sphplots_shapesok(n1), 
+                            if isequal(get(state.handles.sphplots_shapes(n1),'visible'),'on')
+                                set(state.handles.sphplots(n1),'visible','on');
+                                set(state.handles.sphplots_shapes(n1),'visible','off');
+                            end
+                        end
+                    end
+                    %set(state.handles.sphplots(ishandle(state.handles.sphplots)),'visible','on');
+                    %set(state.handles.sphplots_shapes(ishandle(state.handles.sphplots_shapes)),'visible','off');
                 end
-                x=sign(x).*abs(x).^f;y=sign(y).*abs(y).^f;z=sign(z).*abs(z).^f;
-                for n=1:numel(state.handles.sphplots), 
-                    set(state.handles.sphplots(n),'xdata',state.sphplots.sph_xyz(n,1)+state.sphplots.sph_r(n)*x,'ydata',state.sphplots.sph_xyz(n,2)+state.sphplots.sph_r(n)*y,'zdata',state.sphplots.sph_xyz(n,3)+state.sphplots.sph_r(n)*z);
-                end
-                for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
             case 'labels'
                 if ischar(varargin{1}), varargin{1}=strcmpi(varargin{1},'on'); end 
                 if varargin{1}, str='on'; state.facealphatxt=1; else str='off'; state.facealphatxt=0; end
@@ -1101,7 +1187,7 @@ if ishandle(hmsg), delete(hmsg); end
             case {'con_bundling','bundling'}
                 if numel(varargin)>=1, str=varargin{1};
                 else
-                    answer=inputdlg({'Bundling level?'},'',1,{num2str(max([0,state.bundling]))});
+                    answer=conn_menu_inputdlg({'Bundling level?'},'',1,{num2str(max([0,state.bundling]))});
                     if isempty(answer), return; end
                     str=max(0,round(str2num(answer{1})));
                     if ~(numel(str)==1&&~isnan(str)&&~isinf(str)), return; end
@@ -1226,7 +1312,10 @@ if ishandle(hmsg), delete(hmsg); end
             case 'ud_color'
                 if numel(varargin)>0, color=varargin{1};
                 elseif numel(state.handles.patchblobother)>1
-                    answer=inputdlg({sprintf('Surface color (%dxRGB)',numel(state.handles.patchblobother))},'',1,{mat2str([0 .45 .74])});
+                    color=[];
+                    if isfield(state,'ud_color'), color=state.ud_color; end
+                    if isempty(color), color=[0 .45 .74]; end
+                    answer=conn_menu_inputdlg({sprintf('Surface color (%dxRGB)  e.g. rand(%d,3)',numel(state.handles.patchblobother),numel(state.handles.patchblobother))},'',1,{mat2str(color)});
                     if isempty(answer), return; end
                     color=str2num(answer{1});
                     if size(color,2)~=3, return; end
@@ -1239,21 +1328,31 @@ if ishandle(hmsg), delete(hmsg); end
             case 'roi_transparency'
                 scale=varargin{1};
                 state.facealpharoi=max(eps,scale);
-                set(state.handles.sphplots,'facealpha',state.facealpharoi); 
+                set([state.handles.sphplots state.handles.sphplots_shapes(ishandle(state.handles.sphplots_shapes))],'facealpha',state.facealpharoi); 
             case 'roi_color'
                 if numel(varargin)>0, color=varargin{1};
                 elseif numel(state.handles.sphplots)>1
-                    answer=inputdlg({sprintf('ROI color (%dxRGB)',numel(state.handles.sphplots))},'',1,{mat2str([0 .45 .74])});
+                    color=[];
+                    if isfield(state,'roi_color'), color=state.roi_color; end
+                    if isempty(color), color=[0 .45 .74]; end
+                    answer=conn_menu_inputdlg({sprintf('ROI color (%dxRGB)  e.g. rand(%d,3)',numel(state.handles.sphplots),numel(state.handles.sphplots))},'',1,{mat2str(color)});
                     if isempty(answer), return; end
                     color=str2num(answer{1});
                     if size(color,2)~=3, return; end
                 else color=uisetcolor([],'Select color'); if isempty(color)||isequal(color,0), return; end; 
                 end
                 %[nill,idx]=sort(state.sphplots.sph_r);color(idx,:)=color;
-                if size(color,1)==1, set(state.handles.sphplots,'facecolor',color); 
-                else for n1=1:numel(state.handles.sphplots), set(state.handles.sphplots(n1),'facecolor',color(1+rem(n1-1,size(color,1)),:)); end
-                end
                 state.roi_color=color;
+                if size(state.roi_color,1)==1, set([state.handles.sphplots state.handles.sphplots_shapes(ishandle(state.handles.sphplots_shapes))],'facecolor',state.roi_color);
+                else
+                    for n1=1:numel(state.handles.sphplots),
+                        set(state.handles.sphplots(n1),'facecolor',state.roi_color(1+rem(n1-1,size(state.roi_color,1)),:));
+                        if numel(state.handles.sphplots_shapes)>=n1&&ishandle(state.handles.sphplots_shapes(n1)), set(state.handles.sphplots_shapes(n1),'facecolor',state.roi_color(1+rem(n1-1,size(state.roi_color,1)),:)); end
+                    end
+                end
+                %if size(color,1)==1, set(state.handles.sphplots,'facecolor',color); 
+                %else for n1=1:numel(state.handles.sphplots), set(state.handles.sphplots(n1),'facecolor',color(1+rem(n1-1,size(color,1)),:)); end
+                %end
 %                 if numel(varargin)>0, color=varargin{1};
 %                 else color=uisetcolor([],'Select color'); if isempty(color)||isequal(color,0), return; end; 
 %                 end
@@ -1286,7 +1385,7 @@ if ishandle(hmsg), delete(hmsg); end
                 if isempty(tpVOLother), return; end
                 facecolor=uisetcolor([.5 .5 0],'Select surface color');
                 if isempty(facecolor)||isequal(facecolor,0), return; end
-                %answer=inputdlg({'Surface color (RGB)'},'',1,{mat2str(facecolor)});
+                %answer=conn_menu_inputdlg({'Surface color (RGB)'},'',1,{mat2str(facecolor)});
                 %if isempty(answer), return; end
                 %answer=str2num(answer{1}); 
                 %if numel(answer)==3, facecolor=answer; end
@@ -1327,7 +1426,7 @@ if ishandle(hmsg), delete(hmsg); end
                 if isempty(varargin)
                     answer={''};
                     while numel(str2num(answer{1}))~=3
-                        answer=inputdlg({'Reference axes position (x/y/z coordinates in mm)'},'',1,{num2str(state.pointer_mm)});
+                        answer=conn_menu_inputdlg({'Reference axes position (x/y/z coordinates in mm)'},'',1,{num2str(state.pointer_mm)});
                         if isempty(answer), return; end
                     end
                     state.pointer_mm=str2num(answer{1});
@@ -1350,7 +1449,7 @@ if ishandle(hmsg), delete(hmsg); end
                 if isempty(state.Vrange), conn_msgbox({'No activation overlay present','Use menu Surface.BrainSurface.BrainSurfaceActivation to define a new activation overlay'},'',2); return; end
                 if strcmp(varargin{1},'rescale')
                     if numel(varargin)>1, answ=varargin{2}; 
-                    else answ=inputdlg({'Enter new colorbar limits:'},'Rescale colorbar',1,{mat2str(state.Vrange([1 end]),6)});
+                    else answ=conn_menu_inputdlg({'Enter new colorbar limits:'},'Rescale colorbar',1,{mat2str(state.Vrange([1 end]),6)});
                         if ~isempty(answ), answ=str2num(answ{1}); end
                     end
                     if ~isempty(answ)&&numel(answ)==2

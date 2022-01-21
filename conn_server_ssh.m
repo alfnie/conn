@@ -120,7 +120,7 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
                             params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
                     else
-                        tstr=sprintf('SSH Step 1/2: downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
+                        tstr=sprintf('SSH downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
                         [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c "%s -q %s:~/connserverinfo.json %s"',...
                             tstr, params.options.cmd_scp, params.info.login_ip,filename));
                     end
@@ -171,7 +171,7 @@ switch(lower(option))
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
                     else
                         tfilename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
-                        [ok,msg]=system(sprintf('start "SSH Step 2/2: requesting a new Matlab session in %s. This may take a few minutes. Please wait" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
+                        [ok,msg]=system(sprintf('start "SSH requesting a new Matlab session in %s. This may take a few minutes. Please wait" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
                         msg=conn_fileutils('fileread',tfilename);
                         conn_fileutils('deletefile',tfilename);
                     end

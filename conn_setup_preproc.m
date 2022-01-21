@@ -508,7 +508,7 @@ if ~nargin||isempty(STEPS)||dogui,
             end
         end
         if numel(subjects)>1,
-            answer=inputdlg(sprintf('Number of parallel jobs? (1-%d)',numel(subjects)),'',1,{num2str(1)});
+            answer=conn_menu_inputdlg(sprintf('Number of parallel jobs? (1-%d)',numel(subjects)),'CONN HPC',1,{num2str(1)});
             if isempty(answer)||isempty(str2num(answer{1})), return; end
             parallel_N=str2num(answer{1});
         else parallel_N=1;
@@ -542,7 +542,7 @@ end
 if any(ismember('functional_removescans',lSTEPS))
     if isempty(removescans)||dogui
         if isempty(removescans), removescans=0; end
-        removescans=inputdlg('Enter number of initial scans to remove','conn_setup_preproc',1,{num2str(removescans)});
+        removescans=conn_menu_inputdlg('Enter number of initial scans to remove','conn_setup_preproc',1,{num2str(removescans)});
         if isempty(removescans), return; end
         removescans=str2num(removescans{1});
     end
@@ -551,7 +551,7 @@ end
 if any(ismember('functional_bandpass',lSTEPS))
     if isempty(bp_filter)||dogui
         if isempty(bp_filter), bp_filter=[0.01 0.10]; end
-        bp_filter=inputdlg('Enter band-pass filter thresholds in Hz','conn_setup_preproc',1,{num2str(bp_filter)});
+        bp_filter=conn_menu_inputdlg('Enter band-pass filter thresholds in Hz','conn_setup_preproc',1,{num2str(bp_filter)});
         if isempty(bp_filter), return; end
         bp_filter=str2num(bp_filter{1});
     end
@@ -659,7 +659,7 @@ if any(ismember({'structural_manualorient','functional_manualorient'},lSTEPS))
             if isempty(treorient), return; end
             reorient{ntime}=opts{treorient,2};
             if isequal(reorient{ntime},1)
-                answ=inputdlg('Enter affine transformation matrix (4x4 values)','conn_setup_preproc',1,{mat2str(eye(4))});
+                answ=conn_menu_inputdlg('Enter affine transformation matrix (4x4 values)','conn_setup_preproc',1,{mat2str(eye(4))});
                 if isempty(answ), return; end
                 answ=str2num(answ{1});
                 reorient{ntime}=answ;
@@ -674,7 +674,7 @@ if any(ismember({'structural_manualorient','functional_manualorient'},lSTEPS))
                 filename=fullfile(tfilename2,tfilename1);
                 reorient{ntime}=filename;
             elseif isa(reorient{ntime},'function_handle'),
-                answ=inputdlg('Angular rotation (in degrees)','conn_setup_preproc',1,{num2str(90)});
+                answ=conn_menu_inputdlg('Angular rotation (in degrees)','conn_setup_preproc',1,{num2str(90)});
                 if isempty(answ), return; end
                 answ=str2num(answ{1});
                 reorient{ntime}=reorient{ntime}(answ/180*pi);
@@ -715,7 +715,7 @@ if any(ismember('functional_art',lSTEPS))
         set(ht5,'callback','h=get(gcbo,''userdata''); temp=str2num(get(h.handles(4),''string'')); if get(gcbo,''value''), set(h.handles(3),''string'',''Subject-motion mm threshold''); temp=temp(1); else, set(h.handles(3),''string'',''Subject-motion translation/rotation thresholds [mm, rad]''); if numel(temp)<2, temp=[temp .02]; end; end; set(h.handles(4),''string'',mat2str(temp));','userdata',struct('handles',[ht1a ht1 ht2a ht2 ht3a ht4a ht3b ht3c ht4b ht5],'default',{{art_global_thresholds, art_motion_thresholds}}));
         set(ht3a,'callback',@(varargin)set(ht3b,'value',~get(gcbo,'value')));
         set(ht3b,'callback',@(varargin)set(ht3a,'value',~get(gcbo,'value')));
-        set(ht3c,'callback','v=get(gcbo,''value''); if v, v=str2double(inputdlg({''Number of initial scans to remove''},'''',1,{num2str(get(gcbo,''userdata''))})); if isempty(v), v=0; end; end; set(gcbo,''value'',v>0); if v>0, set(gcbo,''userdata'',v); end');
+        set(ht3c,'callback','v=get(gcbo,''value''); if v, v=str2double(conn_menu_inputdlg({''Number of initial scans to remove''},'''',1,{num2str(get(gcbo,''userdata''))})); if isempty(v), v=0; end; end; set(gcbo,''value'',v>0); if v>0, set(gcbo,''userdata'',v); end');
         set(ht4a,'callback',@(varargin)set(ht4b,'value',~get(gcbo,'value')));
         set(ht4b,'callback',@(varargin)set(ht4a,'value',~get(gcbo,'value')));
         uiwait(thfig);
@@ -733,7 +733,7 @@ if any(ismember('functional_art',lSTEPS))
         if numel(art_motion_threshold)<2, art_thresholds=[art_global_threshold(1) art_motion_threshold(1) art_use_diff_global(1) art_use_diff_motion(1) art_use_norms(1) art_force_interactive(1) nan art_drop_flag(1)];
         else art_thresholds=[art_global_threshold(1) art_motion_threshold(1) art_use_diff_global(1) art_use_diff_motion(1) art_use_norms(1) art_force_interactive(1) art_motion_threshold(2) art_drop_flag(1)];
         end
-        %answ=inputdlg({'Enter scan-to-scan global signal z-value threshold','Enter scan-to-scan composite motion mm threshold'},'conn_setup_preproc',1,{num2str(art_global_threshold),num2str(art_motion_threshold)});
+        %answ=conn_menu_inputdlg({'Enter scan-to-scan global signal z-value threshold','Enter scan-to-scan composite motion mm threshold'},'conn_setup_preproc',1,{num2str(art_global_threshold),num2str(art_motion_threshold)});
         %if isempty(answ), return; end
         %art_global_threshold=str2num(answ{1});
         %art_motion_threshold=str2num(answ{2});
@@ -805,7 +805,7 @@ end
 if any(ismember('functional_smooth',lSTEPS))||any(ismember('functional_smooth_masked',lSTEPS))
     if isempty(fwhm)||dogui
         if isempty(fwhm), fwhm=8; end
-        fwhm=inputdlg('Enter smoothing kernel FWHM (in mm)','conn_setup_preproc',1,{num2str(fwhm)});
+        fwhm=conn_menu_inputdlg('Enter smoothing kernel FWHM (in mm)','conn_setup_preproc',1,{num2str(fwhm)});
         if isempty(fwhm), return; end
         fwhm=str2num(fwhm{1});
     end
@@ -814,7 +814,7 @@ end
 if any(ismember('functional_surface_smooth',lSTEPS))
     if isempty(diffusionsteps)||dogui
         if isempty(diffusionsteps), diffusionsteps=40; end
-        diffusionsteps=inputdlg('Enter number of diffusion steps for smoothing','conn_setup_preproc',1,{num2str(diffusionsteps)});
+        diffusionsteps=conn_menu_inputdlg('Enter number of diffusion steps for smoothing','conn_setup_preproc',1,{num2str(diffusionsteps)});
         if isempty(diffusionsteps), return; end
         diffusionsteps=str2num(diffusionsteps{1});
     end
@@ -825,10 +825,10 @@ if any(ismember('functional_label',lSTEPS))
         nl=sum(ismember(lSTEPS,'functional_label'));
         if nl>1,
             if numel(label)~=nl, label=arrayfun(@(n)sprintf('Label%d',n),1:nl,'uni',0); end
-            label=inputdlg(repmat({'Enter functional label'},1,nl),'conn_setup_preproc',1,label);
+            label=conn_menu_inputdlg(repmat({'Enter functional label'},1,nl),'conn_setup_preproc',1,label);
         else
             if isempty(label), label={datestr(now)}; end
-            label=inputdlg('Enter functional label  (arbitrary description)','conn_setup_preproc',1,label);
+            label=conn_menu_inputdlg('Enter functional label  (arbitrary description)','conn_setup_preproc',1,label);
         end
         if isempty(label), return; end
     end
@@ -2653,7 +2653,7 @@ for iSTEP=1:numel(STEPS)
             else this_fwhm=fwhm;
             end
             if isempty(this_fwhm)
-                this_fwhm=inputdlg('Enter smoothing FWHM (in mm)','conn_setup_preproc',1,{num2str(8)});
+                this_fwhm=conn_menu_inputdlg('Enter smoothing FWHM (in mm)','conn_setup_preproc',1,{num2str(8)});
                 if isempty(this_fwhm), return; end
                 this_fwhm=str2num(this_fwhm{1});
             end
@@ -2708,7 +2708,7 @@ for iSTEP=1:numel(STEPS)
             else this_fwhm=fwhm;
             end
             if isempty(this_fwhm)
-                this_fwhm=inputdlg('Enter smoothing FWHM (in mm)','conn_setup_preproc',1,{num2str(8)});
+                this_fwhm=conn_menu_inputdlg('Enter smoothing FWHM (in mm)','conn_setup_preproc',1,{num2str(8)});
                 if isempty(this_fwhm), return; end
                 this_fwhm=str2num(this_fwhm{1});
             end
@@ -2767,7 +2767,7 @@ for iSTEP=1:numel(STEPS)
             else this_diffusionsteps=diffusionsteps;
             end
             if isempty(this_diffusionsteps)
-                this_diffusionsteps=inputdlg('Enter number of diffusion steps for smoothing','conn_setup_preproc',1,{num2str(10)});
+                this_diffusionsteps=conn_menu_inputdlg('Enter number of diffusion steps for smoothing','conn_setup_preproc',1,{num2str(10)});
                 if isempty(this_diffusionsteps), return; end
                 this_diffusionsteps=str2num(this_diffusionsteps{1});
             end

@@ -747,7 +747,7 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
             case 'colorbar',
                 if strcmp(varargin{1},'rescale')
                     if numel(varargin)>1, answ=varargin{2}; 
-                    else answ=inputdlg({'Enter new colorbar limits:'},'Rescale colorbar',1,{mat2str(state.Vrange([1 end]),6)});
+                    else answ=conn_menu_inputdlg({'Enter new colorbar limits:'},'Rescale colorbar',1,{mat2str(state.Vrange([1 end]),6)});
                         if ~isempty(answ), answ=str2num(answ{1}); end
                     end
                     if ~isempty(answ)&&numel(answ)==2
@@ -793,7 +793,7 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                             sp=sp(1)+[0;cumsum(diff(sp)+1e-10)];
                             isp=interp1([min(sp(1)-1e-10,0); sp],linspace(1,size(state.cmap,1),numel(sp)+1),linspace(0,sp(end),256));
                             cmap=interp1((1:size(state.cmap,1))',state.cmap,isp);
-                        case 'manual',answer=inputdlg({'colormap (256x3)'},'',1,{mat2str(state.cmap)});if ~isempty(answer), answer=str2num(answer{1}); end;if ~any(size(answer,1)==[256]), return; end;cmap=max(0,min(1,answer));
+                        case 'manual',answer=conn_menu_inputdlg({'colormap (256x3)'},'',1,{mat2str(state.cmap)});if ~isempty(answer), answer=str2num(answer{1}); end;if ~any(size(answer,1)==[256]), return; end;cmap=max(0,min(1,answer));
                         case 'color',cmap=uisetcolor([],'Select color'); if isempty(cmap)||isequal(cmap,0), return; end; 
                         otherwise, disp('unknown value');
                     end

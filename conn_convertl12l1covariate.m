@@ -60,28 +60,28 @@ if ~nargin||isequal(option,'?')
         case opts{1}, % FD_conn 
             fields={'Bounding box (mm)','compare to previous- (rel) or first- (abs) scan','Name of input first-level covariate','Name of output first-level covariate'};
             values={'[-70,-110,-45; 70,70,75]','rel','realignment','QC_FDconn'};
-            answ=inputdlg(fields,'FD_conn options',1,values,struct('Resize','on'));
+            answ=conn_menu_inputdlg(fields,'FD_conn options',1,values,struct('Resize','on'));
             if numel(answ)~=numel(fields)||isempty(answ{1}),return; end
             answ(1)=cellfun(@str2num,answ(1),'uni',0);
             ocov=conn_convertl12l1covariate('FD_conn',answ{:});
         case opts{2}, % FD_jenkinson
             fields={'Sphere radius (mm)','Sphere center (mm)','compare to previous- (rel) or first- (abs) scan','Name of input first-level covariate','Name of output first-level covariate'};
             values={'80','0;0;0','rel','realignment','QC_FDjenkinson'};
-            answ=inputdlg(fields,'FD_jenkinson options',1,values,struct('Resize','on'));
+            answ=conn_menu_inputdlg(fields,'FD_jenkinson options',1,values,struct('Resize','on'));
             if numel(answ)~=numel(fields)||isempty(answ{1}),return; end
             answ(1:2)=cellfun(@str2num,answ(1:2),'uni',0);
             ocov=conn_convertl12l1covariate('FD_jenkinson',answ{:});
         case opts{3}, % FD_power
             fields={'Sphere radius (mm)','compare to previous- (rel) or first- (abs) scan','Name of input first-level covariate','Name of output first-level covariate'};
             values={'50','rel','realignment','QC_FDpower'};
-            answ=inputdlg(fields,'FD_power options',1,values,struct('Resize','on'));
+            answ=conn_menu_inputdlg(fields,'FD_power options',1,values,struct('Resize','on'));
             if numel(answ)~=numel(fields)||isempty(answ{1}),return; end
             answ(1)=cellfun(@str2num,answ(1),'uni',0);
             ocov=conn_convertl12l1covariate('FD_power',answ{:});
         case opts{4}, % scrubbing
             fields={'Threshold values for each input covariate timeseries (e.g. [9 2] liberal; [5 0.9] intermediate; [3 0.5] conservative)','Window-size around each supra-threshold value (scans)','Name of input first-level covariate(s)','Name of output first-level covariate'};
             values={'[5 0.9]','1','QC_timeseries','scrubbing'};
-            answ=inputdlg(fields,'scrubbing options',1,values,struct('Resize','on'));
+            answ=conn_menu_inputdlg(fields,'scrubbing options',1,values,struct('Resize','on'));
             if numel(answ)~=numel(fields)||isempty(answ{1}),return; end
             answ(1:2)=cellfun(@str2num,answ(1:2),'uni',0);
             ocov=conn_convertl12l1covariate('scrubbing',answ{:});
@@ -90,7 +90,7 @@ if ~nargin||isequal(option,'?')
             if numel(varargin)==numel(fields), values=varargin;
             else values={'QC_timeseries','QC_timeseries'}; 
             end
-            answ=inputdlg(fields,'split options',1,values,struct('Resize','on'));
+            answ=conn_menu_inputdlg(fields,'split options',1,values,struct('Resize','on'));
             if numel(answ)~=numel(fields)||isempty(answ{1}),return; end
             ocov=conn_convertl12l1covariate('split',answ{:});
         case opts{6} % save
@@ -98,7 +98,7 @@ if ~nargin||isequal(option,'?')
             if numel(varargin)==numel(fields), values=varargin;
             else values={'QC_timeseries','QC_timeseries'}; 
             end
-            answ=inputdlg(fields,'save options',1,values,struct('Resize','on'));
+            answ=conn_menu_inputdlg(fields,'save options',1,values,struct('Resize','on'));
             if numel(answ)~=numel(fields)||isempty(answ{1}),return; end
             ocov=conn_convertl12l1covariate('save',answ{:});
     end

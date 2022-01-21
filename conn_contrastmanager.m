@@ -75,7 +75,7 @@ end
                 if nargin<3||isempty(name), 
 %                     newname=conn_resultsfolder('subjectsconditions',0,CONN_x.Results.xX.nsubjecteffects,CONN_x.Results.xX.csubjecteffects,CONN_x.Results.xX.nconditions,CONN_x.Results.xX.cconditions);
                     newname='NEW_MODEL';
-                    answ=inputdlg({'2nd-level design name (alphanumeric, case sensitive, short)','Description (arbitrarily long)'},'New 2nd-level design',1,{newname,''});
+                    answ=conn_menu_inputdlg({'2nd-level design name (alphanumeric, case sensitive, short)','Description (arbitrarily long)'},'New 2nd-level design',1,{newname,''});
                     if isempty(answ), return; end
                     name=regexprep(answ{1},'[^\w\d ]','');
                     descrip=answ{2};
@@ -119,7 +119,7 @@ end
                 if ncontrast
                     answ={};
                     if nargin<3||isempty(name),
-                        answ=inputdlg({'2nd-level design name (alphanumeric, case sensitive, short)','Description (e.g. Does the average connectivity during rest differ from zero?)','Subject effects','Between-subjects contrast','Conditions','Between-conditions contrast'},'Edit 2nd-level design',1,{CONN_x.Results.saved.names{ncontrast},CONN_x.Results.saved.descrip{ncontrast},strjoinstr(CONN_x.Results.saved.nsubjecteffects{ncontrast},';'),mat2str(CONN_x.Results.saved.csubjecteffects{ncontrast}),strjoinstr(CONN_x.Results.saved.nconditions{ncontrast},';'),mat2str(CONN_x.Results.saved.cconditions{ncontrast})});
+                        answ=conn_menu_inputdlg({'2nd-level design name (alphanumeric, case sensitive, short)','Description (e.g. Does the average connectivity during rest differ from zero?)','Subject effects','Between-subjects contrast','Conditions','Between-conditions contrast'},'Edit 2nd-level design',1,{CONN_x.Results.saved.names{ncontrast},CONN_x.Results.saved.descrip{ncontrast},strjoinstr(CONN_x.Results.saved.nsubjecteffects{ncontrast},';'),mat2str(CONN_x.Results.saved.csubjecteffects{ncontrast}),strjoinstr(CONN_x.Results.saved.nconditions{ncontrast},';'),mat2str(CONN_x.Results.saved.cconditions{ncontrast})});
                         if isempty(answ), return; end
                         name=regexprep(answ{1},'[^\w\d ]','');
                     end

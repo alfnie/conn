@@ -419,7 +419,7 @@ switch(option)
         isgui=usejava('desktop')&strcmp(lower(option),'startserverwithgui');
         port='';
         if isgui, 
-            answ=inputdlg({'Create a one-time-use password to access this server:','Specify local TCP port: (leave empty for automatic selection)'},'',1,{str,port},struct('Resize','on'));
+            answ=conn_menu_inputdlg({'Create a one-time-use password to access this server:','Specify local TCP port: (leave empty for automatic selection)'},'',1,{str,port},struct('Resize','on'));
             if numel(answ)~=2||isempty(answ{1}),return; end
             str=answ{1};
             port=answ{2};

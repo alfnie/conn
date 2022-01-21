@@ -332,8 +332,10 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
                     tfiles=conn_dir(conn_prepend('',conn_fullfile(CONN_x_filename),'.qlog/*.status.submitted'));
                     if ~isempty(tfiles),
                         files=cellstr(tfiles);
-                        files={fullfile(fileparts(files{1}),'info.mat')};
-                        if ~conn_existfile(files{1}), files={}; end
+                        files=cellfun(@(x)fullfile(fileparts(x),'info.mat'),files,'uni',0);
+                        files=files(conn_existfile(files));
+                        if ~isempty(files), files=files(1); end
+                        %if ~conn_existfile(files{1}), files={}; end
                     end
                     CONN_x.ispending=~isempty(files);
                 end
@@ -565,7 +567,7 @@ else
             elseif nargin>3&&~isempty(varargin{3}), N=varargin{3};
             else
                 if numel(subjects)>1
-                    answer=inputdlg(sprintf('Number of parallel jobs? (1-%d)',numel(subjects)),'',1,{'1'}); %num2str(numel(subjects))});
+                    answer=conn_menu_inputdlg(sprintf('Number of parallel jobs? (1-%d)',numel(subjects)),'CONN HPC',1,{'1'}); %num2str(numel(subjects))});
                     if isempty(answer), return; end
                     N=str2num(answer{1});
                 else N=1;
@@ -736,7 +738,7 @@ else
                     try, checkdesktop=checkdesktop&usejava('awt'); end
                     if isempty(opt_str)
                         if ~checkdesktop,
-                        else answer=inputdlg('Additional submit options:','',1,{cmd_submitoptions}); end
+                        else answer=conn_menu_inputdlg('Additional submit options:','CONN HPC options',1,{cmd_submitoptions}); end
                         if isempty(answer), cmd_submitoptions='';
                         else cmd_submitoptions=answer{1}; 
                         end
@@ -744,7 +746,7 @@ else
                         opt_str=regexprep(opt_str,'[\[\]]','');
                         opt_str1=regexprep(opt_str,':.*','');
                         opt_str2=regexprep(opt_str,'.*:','');
-                        answer=inputdlg(opt_str1,'Options',1,opt_str2);
+                        answer=conn_menu_inputdlg(opt_str1,'CONN HPC options',1,opt_str2);
                         if isempty(answer),cmd_submitoptions='';
                         else for opt_n=numel(answer):-1:1, cmd_submitoptions=[cmd_submitoptions(1:opt_i(opt_n)-1),strtrim(answer{opt_n}),cmd_submitoptions(opt_j(opt_n)+1:end)]; end; 
                         end
@@ -1148,7 +1150,7 @@ waitfor(handles.hfig);
                 %if strcmp(option,'editrundeployed')&&(isdeployed||get(handles.cmd_rundeployed,'value')>0)
                 %    tstr=profiles{iprofile}.cmd_deployedfile;
                 %    if isempty(tstr), tstr=conn_jobmanager_checkdeployedname; end
-                %    answer=inputdlg({'Command used to run pre-compiled CONN (e.g. /foo/conn_standalone/R2017a/run_conn.sh /foo/MCR/v92)'},'Options',1,{tstr});
+                %    answer=conn_menu_inputdlg({'Command used to run pre-compiled CONN (e.g. /foo/conn_standalone/R2017a/run_conn.sh /foo/MCR/v92)'},'Options',1,{tstr});
                 %    if ~isempty(answer), profiles{iprofile}.cmd_deployedfile=answer{1}; end
                 %end
                 profiles{iprofile}.name=get(handles.name,'string');

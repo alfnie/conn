@@ -1211,7 +1211,7 @@ switch(lower(option)),
             hc2=uimenu(hc1,'Label','fontsize');
             uimenu(hc2,'Label','increase labels fontsize','callback','h=findobj(gcbf,''type'',''text''); s=max(1,cell2mat(get(h,''fontsize''))+1); for ss=reshape(unique(s),1,[]), set(h(s==ss),''fontsize'',ss); end');
             uimenu(hc2,'Label','decrease labels fontsize','callback','h=findobj(gcbf,''type'',''text''); s=max(1,cell2mat(get(h,''fontsize''))-1); for ss=reshape(unique(s),1,[]), set(h(s==ss),''fontsize'',ss); end');
-            uimenu(hc2,'Label','set labels fontsize','callback','h=findobj(gcbf,''type'',''text''); s=inputdlg(''Enter fontsize'',''conn_displayroi'',1,{num2str(round(mean(cell2mat(get(h,''fontsize'')))))}); if ~isempty(s), s=str2num(s{1}); if ~isempty(s), set(h,''fontsize'',s); end; end');
+            uimenu(hc2,'Label','set labels fontsize','callback','h=findobj(gcbf,''type'',''text''); s=conn_menu_inputdlg(''Enter fontsize'',''conn_displayroi'',1,{num2str(round(mean(cell2mat(get(h,''fontsize'')))))}); if ~isempty(s), s=str2num(s{1}); if ~isempty(s), set(h,''fontsize'',s); end; end');
             hc2=uimenu(hc1,'Label','background');
             uimenu(hc2,'Label','white background','callback','data=get(gcbf,''userdata''); h=findobj(gcbf,''type'',''text''); nc0=get(data.hfig,''color''); set([data.hfig data.hax],''color'',[1 1 1]); hc=cell2mat(get(h,''color'')); for nc=unique(hc,''rows'')'', idx=all(bsxfun(@eq,nc'',hc),2); set(h(idx),''color'',max(0,min(1,[1 1 1]-abs(nc''-nc0)))); end');
             uimenu(hc2,'Label','light background','callback','data=get(gcbf,''userdata''); h=findobj(gcbf,''type'',''text''); nc0=get(data.hfig,''color''); set([data.hfig data.hax],''color'',[.95 .95 .9]); hc=cell2mat(get(h,''color'')); for nc=unique(hc,''rows'')'', idx=all(bsxfun(@eq,nc'',hc),2); set(h(idx),''color'',max(0,min(1,[.95 .95 .9]-abs(nc''-nc0)))); end');
@@ -1223,7 +1223,7 @@ switch(lower(option)),
         return
 
         
-    case {'glass_view','glass_print','matrix_view','matrix_print'}
+    case {'glass_view','glass_print','matrix_view','matrix_print','glass0_view','glass0_print'}
         if margin>1, options={varargin{1},'-nogui'};
         else         options={};
         end
@@ -1298,23 +1298,37 @@ switch(lower(option)),
             fh=conn_mesh_display('','',[],...
                 struct('sph_names',{data.names2reduced(idxkeep)},'sph_xyz',[datax(idxkeep),datay(idxkeep),dataz(idxkeep)],...
                 'sph_r',3*ones(numel(idxkeep),1),...
+                'sph_shapes',{data.names2(idxkeep)},...
                 'sph_c',{c}),...%{repmat({[.9,.9,.9]},[1,numel(idxkeep)])}), ...
                 z, ...
                 [], .2, [0,-1e-8,1],[],data.defaultfilepath);
-            fh('brain',4);
-            fh('brain_transparency',0);
-            fh('sub_transparency',0);
-            fh('mask_transparency',.05);
-            %fh('material',[.1 1 1 .25 0]);
-            fh('axis','on');
-            try
-                nprojection=data.plotconnoptions.nprojection;
-                if nprojection<=0, nprojection=3; end
-                switch(nprojection)
-                    case 1, fh('view',[-1,0,0]);
-                    case 2, fh('view',[0,-1,0]);
-                    case 3, fh('view',[0,-1e-8,1]);
+            if strcmp(lower(option),'glass0_view')||strcmp(lower(option),'glass0_view')
+                fh('brain',4);
+                fh('brain_transparency',0);
+                fh('sub_transparency',0);
+                fh('mask_transparency',.05);
+                %fh('material',[.1 1 1 .25 0]);
+                fh('axis','on');
+                try
+                    nprojection=data.plotconnoptions.nprojection;
+                    if nprojection<=0, nprojection=3; end
+                    switch(nprojection)
+                        case 1, fh('view',[-1,0,0]);
+                        case 2, fh('view',[0,-1,0]);
+                        case 3, fh('view',[0,-1e-8,1]);
+                    end
                 end
+            else
+                fh('brain',4);
+                fh('brain_transparency',0);
+                fh('sub_transparency',0);
+                fh('mask_transparency',.15);
+                fh('material',[]);
+                fh('axis','on');
+                fh('roi_color',rand(numel(idxkeep),3));
+                fh('view',[0,-1e-8,1]);
+                fh('roi_shape','real');
+                fh('roi_transparency',.15);
             end
             if ~isempty(regexp(lower(option),'print$')), 
                 fh('background',[1 1 1]);
@@ -1560,7 +1574,7 @@ switch(lower(option)),
         if numel(varargin)>=1, data.maxz=max(abs(varargin{1}));
         else 
             val=data.maxz;
-            val=inputdlg({'Enter new colorbar limit:'},'Rescale colorbar',1,{num2str(val)});
+            val=conn_menu_inputdlg({'Enter new colorbar limit:'},'Rescale colorbar',1,{num2str(val)});
             if isempty(val), return; end
             val=str2num(val{1}); 
             data.maxz=max(abs(val));
@@ -1598,7 +1612,7 @@ switch(lower(option)),
         data.plotconnoptions.BCOLOR=varargin{1};
     case {'displayoptions','display.options'}
         data=get(hfig,'userdata');
-        answer=inputdlg({'Brain display size (0,inf)','Brain display orientation (0=automatic; 1=sagittal; 2=coronal; 3=axial)','Brain display contrast (0,1)','Connectivity display (0: lines; 1: matrix)','Connectivity lines width (-inf,inf; negative for proportional to stats)','Connectivity lines transparency (-1,1; negative for proportional to stats)','Connectivity lines curvature (-inf,inf)','Connectivity lines bundling (0,inf)','ROI sphere size (0,inf)','Space reserved for labels (0,inf)','Fontsize for labels (pts)','Rotation of labels (degrees)','Image background color (rgb)'},'display options',1,...
+        answer=conn_menu_inputdlg({'Brain display size (0,inf)','Brain display orientation (0=automatic; 1=sagittal; 2=coronal; 3=axial)','Brain display contrast (0,1)','Connectivity display (0: lines; 1: matrix)','Connectivity lines width (-inf,inf; negative for proportional to stats)','Connectivity lines transparency (-1,1; negative for proportional to stats)','Connectivity lines curvature (-inf,inf)','Connectivity lines bundling (0,inf)','ROI sphere size (0,inf)','Space reserved for labels (0,inf)','Fontsize for labels (pts)','Rotation of labels (degrees)','Image background color (rgb)'},'display options',1,...
             {num2str(data.plotconnoptions.BSCALE),num2str(data.plotconnoptions.nprojection),num2str(data.plotconnoptions.BTRANS),num2str(data.plotconnoptions.LINESTYLEMTX),num2str(data.plotconnoptions.LINEWIDTH),num2str(data.plotconnoptions.LTRANS),num2str(data.plotconnoptions.LCURVE),num2str(data.plotconnoptions.LBUNDL),num2str(data.plotconnoptions.RSCALE),num2str(data.plotconnoptions.DOFFSET),num2str(data.plotconnoptions.FONTSIZE),num2str(data.plotconnoptions.FONTANGLE),num2str(data.plotconnoptions.BCOLOR)});
         try
             data.plotconnoptions.BSCALE=str2num(answer{1});
@@ -1708,7 +1722,7 @@ switch(lower(option)),
         data=get(hfig,'userdata');
         if strcmp(option,'labels1'), data.plotconnoptions.FONTSIZE=data.plotconnoptions.FONTSIZE+1;
         elseif strcmp(option,'labels2'), data.plotconnoptions.FONTSIZE=max(1,data.plotconnoptions.FONTSIZE-1);
-        elseif strcmp(option,'labels3'), s=inputdlg('Enter fontsize','conn_displayroi',1,{num2str(data.plotconnoptions.FONTSIZE(1))}); if ~isempty(s), s=str2num(s{1}); if ~isempty(s), data.plotconnoptions.FONTSIZE(1)=s(1); end; end;
+        elseif strcmp(option,'labels3'), s=conn_menu_inputdlg('Enter fontsize','conn_displayroi',1,{num2str(data.plotconnoptions.FONTSIZE(1))}); if ~isempty(s), s=str2num(s{1}); if ~isempty(s), data.plotconnoptions.FONTSIZE(1)=s(1); end; end;
         end
         h=findobj(hfig,'tag','textstring','-or','tag','textstringpartial');
         if ~isempty(h), set(h,'fontsize',data.plotconnoptions.FONTSIZE(1)); end
@@ -3607,8 +3621,10 @@ switch(data.display),
             for n1=1:numel(data.source),idxc=find(idxkeep==data.source(n1));c(idxc,:)=repmat({[.25,.25,.25]},[numel(idxc),1]); end
             % ring placeholder xyz/2
             conn_mesh_display('','',[],...
-                struct('sph_names',{data.names2reduced(data.displaytheserois(idxkeep))},'sph_xyz',[data.x(data.displaytheserois(idxkeep)),data.y(data.displaytheserois(idxkeep)),data.z(data.displaytheserois(idxkeep))],...
+                struct('sph_names',{data.names2reduced(data.displaytheserois(idxkeep))},...
+                 'sph_xyz',[data.x(data.displaytheserois(idxkeep)),data.y(data.displaytheserois(idxkeep)),data.z(data.displaytheserois(idxkeep))],...
                  'sph_r',3*ones(numel(idxkeep),1),...
+                 'sph_shapes',{data.names2(data.displaytheserois(idxkeep))},...
                  'sph_c',{c}),...%{repmat({[.9,.9,.9]},[1,numel(idxkeep)])}), ...
                 z(data.displaytheserois(idxkeep(data.displaytheserois(idxkeep)<=size(z,1))),data.displaytheserois(idxkeep)).*sign(data.h(data.displaytheserois(idxkeep(data.displaytheserois(idxkeep)<=size(z,1))),data.displaytheserois(idxkeep))), ...
                 [], .2, [0,-1e-8,1],[],data.defaultfilepath);
@@ -3697,7 +3713,7 @@ if strcmp(TYPE,'hc')
     if DOASK||isempty(LAMBDAPOS)||isempty(NCLUSTERS),
         if isempty(LAMBDAPOS), LAMBDAPOS=.05; end
         if isnan(NCLUSTERS), NCLUSTERS=[]; end
-        answer=inputdlg({'Number of groups/clusters (leave empty for automatic cutoff)','Hierarchical Clustering criteria: -1=Labels; 0=Functional; 1=Positional'},'clustering parameters',1,{num2str(NCLUSTERS),num2str(LAMBDAPOS)});
+        answer=conn_menu_inputdlg({'Number of groups/clusters (leave empty for automatic cutoff)','Hierarchical Clustering criteria: -1=Labels; 0=Functional; 1=Positional'},'clustering parameters',1,{num2str(NCLUSTERS),num2str(LAMBDAPOS)});
         try
             NCLUSTERS=str2num(answer{1});
             if isempty(NCLUSTERS), NCLUSTERS=nan; end
@@ -3709,7 +3725,7 @@ if strcmp(TYPE,'hc')
 elseif strcmp(TYPE,'none')
     if DOASK||isempty(NPLOTS)
         if isempty(NPLOTS), NPLOTS=10; try, NPLOTS=data.plotconnoptions.NPLOTS; end; end
-        answer=inputdlg({'Number of groups/clusters'},'clustering parameters',1,{num2str(NPLOTS)});
+        answer=conn_menu_inputdlg({'Number of groups/clusters'},'clustering parameters',1,{num2str(NPLOTS)});
         try
             data.plotconnoptions.NPLOTS=str2num(answer{1});
         catch
@@ -3719,19 +3735,19 @@ elseif strcmp(TYPE,'none')
 elseif strcmp(TYPE,'hcnet'),
     if DOASK||isempty(MAXROIS),
         if isempty(MAXROIS), MAXROIS=inf; end
-        answer=inputdlg({'Maximum number of ROIs per brain display / cluster'},'display parameters',1,{num2str(MAXROIS)});
+        answer=conn_menu_inputdlg({'Maximum number of ROIs per brain display / cluster'},'display parameters',1,{num2str(MAXROIS)});
         try, MAXROIS=str2num(answer{1}); end
     end
 elseif strcmp(TYPE,'symrcm'),
     if DOASK||isempty(MAXROIS),
         if isempty(MAXROIS), MAXROIS=inf; end
-        answer=inputdlg({'Maximum number of ROIs per brain display / cluster'},'display parameters',1,{num2str(MAXROIS)});
+        answer=conn_menu_inputdlg({'Maximum number of ROIs per brain display / cluster'},'display parameters',1,{num2str(MAXROIS)});
         try, MAXROIS=str2num(answer{1}); end
     end
 elseif strcmp(TYPE,'amd')
     if DOASK||isempty(MAXROIS),
         MAXROIS=inf;
-        answer=inputdlg({'Maximum number of ROIs per brain display /cluster (set to inf for one brain display per network)'},'display parameters',1,{num2str(MAXROIS)});
+        answer=conn_menu_inputdlg({'Maximum number of ROIs per brain display /cluster (set to inf for one brain display per network)'},'display parameters',1,{num2str(MAXROIS)});
         try, MAXROIS=str2num(answer{1}); end
     end
 end

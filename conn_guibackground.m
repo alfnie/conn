@@ -41,7 +41,7 @@ switch(option)
         pos=get(CONN_h.screen.hfig,'position');
         if max(a(:))>1, a=double(a)/255; end
         if ~strcmp(option,'setfilecolor')
-            answer=inputdlg('Background image smoothing? (set to 0 for no smoothing)','',1,{'20'});
+            answer=conn_menu_inputdlg('Background image smoothing? (set to 0 for no smoothing)','',1,{'20'});
             if ~isempty(answer)&&~isempty(str2num(answer{1})), a=conn_guibackground_filter(a,str2num(answer{1})); end
         end
         if size(a,3)>1,
@@ -90,7 +90,7 @@ switch(option)
             img = cat(3, reshape(pixelsData(3, :, :), w, h)', reshape(pixelsData(2, :, :), w, h)', reshape(pixelsData(1, :, :), w, h)');
             img = max(0,min(1, bsxfun(@plus,0*shiftdim(CONN_gui.backgroundcolor,-1),1*double(img)/255)));
             %img = max(0,min(1, bsxfun(@plus,.75*shiftdim(CONN_gui.backgroundcolor,-1),.25*double(img)/255)));
-            answer=inputdlg('Background image smoothing? (set to 0 for no smoothing)','',1,{'20'});
+            answer=conn_menu_inputdlg('Background image smoothing? (set to 0 for no smoothing)','',1,{'20'});
             if ~isempty(answer)&&~isempty(str2num(answer{1})), img=conn_guibackground_filter(img,str2num(answer{1})); end
             answ=conn_questdlg('Color scheme?','','True color','CONN color theme','True color');
             if isequal(answ,'CONN color theme'),

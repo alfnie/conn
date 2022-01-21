@@ -79,7 +79,7 @@ if Ns~=Ns2, error('Incorrect dimensions (design matrix X and input data filename
 for n=1:numel(filenames), if isempty(fileparts(filenames{n})), filenames{n}=fullfile(pwd,filenames{n}); end; end
 if nargin<3||isempty(C1), 
     if askall&&Nx>1
-        answ=inputdlg({sprintf('Enter between-subjects contrast (vector/matrix with at least one row and %d columns)',Nx)},'',1,{mat2str(eye(Nx))},struct('Resize','on'));
+        answ=conn_menu_inputdlg({sprintf('Enter between-subjects contrast (vector/matrix with at least one row and %d columns)',Nx)},'',1,{mat2str(eye(Nx))},struct('Resize','on'));
         if numel(answ)~=1||isempty(answ{1}),return; end
         C1=str2num(answ{1});
     else C1=eye(Nx); 
@@ -87,7 +87,7 @@ if nargin<3||isempty(C1),
 end
 if nargin<4||isempty(C2), 
     if askall&&Ny>1
-        answ=inputdlg({sprintf('Enter between-measures contrast (vector/matrix with at least one row and %d columns)',Ny)},'',1,{mat2str(eye(Ny))},struct('Resize','on'));
+        answ=conn_menu_inputdlg({sprintf('Enter between-measures contrast (vector/matrix with at least one row and %d columns)',Ny)},'',1,{mat2str(eye(Ny))},struct('Resize','on'));
         if numel(answ)~=1||isempty(answ{1}),return; end
         C2=str2num(answ{1});
     else C2=eye(Ny); 

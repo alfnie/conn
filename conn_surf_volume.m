@@ -19,6 +19,7 @@ elseif ischar(filename),
         return
     else
         VOL=conn_fileutils('spm_vol',filename); fname=filename;
+        assert(~conn_surf_dimscheck(VOL), 'conn_surf_volume expects 3D volume input data');
     end
 elseif iscell(filename)
     DATA=filename{1};
@@ -41,8 +42,8 @@ if ~isempty(fname)&&~any(rem(DATA(:),1))
         [trefnames,trefidx]=conn_roilabels(fname);
         if ~isempty(trefnames)
             maxdata=max(DATA(:));
-            if max(trefidx)==maxdata, refnames=trefnames; refidx=trefidx; reftype=1; if DODISP, THR=refidx(1); else THR=trefidx; end
-            elseif numel(trefnames)==size(DATA,4), refnames=trefnames; refidx=trefidx; reftype=2; if DODISP, THR=refidx(1); else THR=trefidx; end
+            if max(trefidx)==maxdata, refnames=trefnames; refidx=trefidx; reftype=1; if DODISP, THR=refidx(1); elseif ischar(THR)||iscell(THR), [tok,tid]=ismember(cellstr(THR),refnames); THR=refidx(tid(tok>0)); else THR=trefidx; end
+            elseif numel(trefnames)==size(DATA,4), refnames=trefnames; refidx=trefidx; reftype=2; if DODISP, THR=refidx(1); elseif ischar(THR)||iscell(THR), [tok,tid]=ismember(cellstr(THR),refnames); THR=refidx(tid(tok>0)); else THR=trefidx; end
             end
         end
     end

@@ -57,7 +57,7 @@ if ~nargin||isempty(varargin),
         str='Select folder containing NYU_TRT_session* files/folders';
         disp(str);
         if conn_projectmanager('inserver'),
-            cwd=inputdlg(str,'data folder',1,{conn_projectmanager('homedir')});
+            cwd=conn_menu_inputdlg(str,'data folder',1,{conn_projectmanager('homedir')});
             if isempty(cwd), return; end
             cwd=conn_server('util_remotefile',char(cwd));
         else
@@ -76,7 +76,7 @@ if ~nargin||isempty(varargin),
         if isempty(answ)||strcmp(answ,'Cancel'), return; end
         if strcmp(answ,'Modify'),
             if conn_projectmanager('inserver'),
-                cwd=inputdlg('Select target folder to store the new CONN project and data','data folder',1,{cwd});
+                cwd=conn_menu_inputdlg('Select target folder to store the new CONN project and data','data folder',1,{cwd});
                 if isempty(cwd), return; end
                 cwd=conn_server('util_remotefile',char(cwd));
             else

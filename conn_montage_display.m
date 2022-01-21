@@ -340,7 +340,7 @@ end
                 opt=varargin{1};
                 if isequal(opt,'+'), opt=state.fontsize+1;
                 elseif isequal(opt,'-'), opt=state.fontsize-1;
-                elseif isequal(opt,'?'), opt=inputdlg('Enter fontsize','conn_montage_display',1,{num2str(state.fontsize)}); if ~isempty(opt), opt=str2num(opt{1}); end; if isempty(opt), return; end
+                elseif isequal(opt,'?'), opt=conn_menu_inputdlg('Enter fontsize','conn_montage_display',1,{num2str(state.fontsize)}); if ~isempty(opt), opt=str2num(opt{1}); end; if isempty(opt), return; end
                 end
                 state.fontsize=opt;
                 if isfield(state.handles,'scalecov')&&all(ishandle(state.handles.scalecov)), set(state.handles.scalecov,'fontsize',max(1,state.fontsize-3)); end
@@ -355,7 +355,7 @@ end
                         if numel(varargin)>=2, val=varargin{2}; 
                         else
                             val=state.datalim;
-                            val=inputdlg({'Enter new colorbar limit:'},'Rescale colorbar',1,{num2str(val)});
+                            val=conn_menu_inputdlg({'Enter new colorbar limit:'},'Rescale colorbar',1,{num2str(val)});
                             if ~isempty(val), val=str2num(val{1}); end
                         end
                         if isempty(val), return; end
@@ -430,7 +430,7 @@ end
                         case 'random',cmap=rand(96,3);
                         case 'brighter',cmap=min(1,1/sqrt(.95)*get(state.handles.hfig,'colormap').^(1/2)); cmap=cmap(round(size(cmap,1)/2)+1:end,:);
                         case 'darker',cmap=.95*get(state.handles.hfig,'colormap').^2; cmap=cmap(round(size(cmap,1)/2)+1:end,:);
-                        case 'manual',answer=inputdlg({'colormap (96x3)'},'',1,{mat2str(state.colormap(round(size(state.colormap,1)/2)+1:end,:))});if ~isempty(answer), answer=str2num(answer{1}); end;if ~any(size(answer,1)==[96,2*96]), return; end;cmap=max(0,min(1,answer));
+                        case 'manual',answer=conn_menu_inputdlg({'colormap (96x3)'},'',1,{mat2str(state.colormap(round(size(state.colormap,1)/2)+1:end,:))});if ~isempty(answer), answer=str2num(answer{1}); end;if ~any(size(answer,1)==[96,2*96]), return; end;cmap=max(0,min(1,answer));
                         case 'color',cmap=uisetcolor([],'Select color'); if isempty(cmap)||isequal(cmap,0), return; end;
                         otherwise, disp('unknown value');
                     end

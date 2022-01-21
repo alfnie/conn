@@ -25,7 +25,7 @@ function varargout=conn(varargin)
 % alfnie@gmail.com
 %
 
-connver='21.a';
+connver='21.b';
 dodebug=false;
 
 global CONN_h CONN_x CONN_gui;
@@ -1778,28 +1778,28 @@ else
                         switch(val)
                             case 2, % local mkdir
                                 dirname=fullfile(conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_local),'NewFolder');
-                                answ=inputdlg({'Name of folder (in local computer) to create'},'',1,{dirname},struct('Resize','on'));
+                                answ=conn_menu_inputdlg({'Name of folder (in local computer) to create'},'',1,{dirname},struct('Resize','on'));
                                 if numel(answ)==1&&~isempty(answ{1}),
                                     dirname=answ{1};
                                     conn_fileutils('mkdir',conn_server('util_localfile',dirname));
                                 end
                             case 3, % remote mkdir
                                 dirname=fullfile(conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_remote),'NewFolder');
-                                answ=inputdlg({'Name of folder (in remote computer) to create'},'',1,{dirname},struct('Resize','on'));
+                                answ=conn_menu_inputdlg({'Name of folder (in remote computer) to create'},'',1,{dirname},struct('Resize','on'));
                                 if numel(answ)==1&&~isempty(answ{1}),
                                     dirname=answ{1};
                                     conn_fileutils('mkdir',conn_server('util_remotefile',dirname));
                                 end
                             case 4, % local rmdir
                                 dirname=fullfile(conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_local),'NewFolder');
-                                answ=inputdlg({'Name of folder (in local computer) to delete'},'',1,{dirname},struct('Resize','on'));
+                                answ=conn_menu_inputdlg({'Name of folder (in local computer) to delete'},'',1,{dirname},struct('Resize','on'));
                                 if numel(answ)==1&&~isempty(answ{1}),
                                     dirname=answ{1};
                                     conn_fileutils('rmdir_recursive',conn_server('util_localfile',dirname));
                                 end
                             case 5, % remote rmdir
                                 dirname=fullfile(conn_server('util_localfile',CONN_h.menus.m_filetransfer.file_remote),'NewFolder');
-                                answ=inputdlg({'Name of folder (in remote computer) to delete'},'',1,{dirname},struct('Resize','on'));
+                                answ=conn_menu_inputdlg({'Name of folder (in remote computer) to delete'},'',1,{dirname},struct('Resize','on'));
                                 if numel(answ)==1&&~isempty(answ{1}),
                                     dirname=answ{1};
                                     conn_fileutils('rmdir_recursive',conn_server('util_remotefile',dirname));
@@ -1880,7 +1880,7 @@ else
         case 'run_cmd',
             if nargin>1&&~isempty(varargin{2}), str=varargin{2};
             else
-                answ=inputdlg({'Enter Matlab command: (evaluated in the base Matlab workspace)'},'',1,{''},struct('Resize','on'));
+                answ=conn_menu_inputdlg({'Enter Matlab command: (evaluated in the base Matlab workspace)'},'',1,{''},struct('Resize','on'));
                 if numel(answ)~=1||isempty(answ{1}),return; end
                 str=answ{1};
             end
@@ -2239,7 +2239,7 @@ else
                                     nset=0;
                                 elseif nset==numel(CONN_x.Setup.secondarydataset)+3, %label
                                     label={CONN_x.Setup.secondarydataset.label};
-                                    label=inputdlg(arrayfun(@(n)sprintf('Label of Secondary dataset #%d:',n),1:numel(CONN_x.Setup.secondarydataset),'uni',0),'functional dataset labels',1,label,struct('Resize','on'));
+                                    label=conn_menu_inputdlg(arrayfun(@(n)sprintf('Label of Secondary dataset #%d:',n),1:numel(CONN_x.Setup.secondarydataset),'uni',0),'functional dataset labels',1,label,struct('Resize','on'));
                                     if ~isempty(label), [CONN_x.Setup.secondarydataset.label]=deal(label{:}); end
                                     nset=0;
                                 elseif nset==numel(CONN_x.Setup.secondarydataset)+4, %remove
@@ -3227,7 +3227,7 @@ else
                                         CONN_x.Setup.rois.weighted(nrois)=0;
                                     case 2, 
                                         answ={num2str(max(1,CONN_x.Setup.rois.dimensions{nrois}))};
-                                        answ=inputdlg('Number of PCA components','',1,answ);
+                                        answ=conn_menu_inputdlg('Number of PCA components','',1,answ);
                                         if numel(answ)==1&&numel(str2num(answ{1}))==1, CONN_x.Setup.rois.dimensions{nrois}=max(0,round(str2num(answ{1}))); end
                                         CONN_x.Setup.rois.weighted(nrois)=0;
                                     case 3, 
@@ -3235,7 +3235,7 @@ else
                                         CONN_x.Setup.rois.weighted(nrois)=1;
                                     case 4, 
                                         answ={num2str(max(1,CONN_x.Setup.rois.dimensions{nrois}))};
-                                        answ=inputdlg('Number of PCA components','',1,answ);
+                                        answ=conn_menu_inputdlg('Number of PCA components','',1,answ);
                                         if numel(answ)==1&&numel(str2num(answ{1}))==1, CONN_x.Setup.rois.dimensions{nrois}=max(0,round(str2num(answ{1}))); end
                                         CONN_x.Setup.rois.weighted(nrois)=1;
                                 end
@@ -3557,7 +3557,7 @@ else
                                     case 13, % new ROI from MNI coordinates
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
                                         answ={'0 0 0','10',fullfile(conn_projectmanager('pwd'),'newroi.nii'),'2'};
-                                        answ=inputdlg({'MNI coordinates (mm)','ROI spherical radius (mm)','ROI-file name','ROI-file resolution (mm)'},'',1,answ);
+                                        answ=conn_menu_inputdlg({'MNI coordinates (mm)','ROI spherical radius (mm)','ROI-file name','ROI-file resolution (mm)'},'',1,answ);
                                         if numel(answ)==4,
                                             xyz=str2num(answ{1}); if isempty(xyz), return; end
                                             rad=str2num(answ{2}); if isempty(rad), return; end
@@ -4113,7 +4113,7 @@ else
                                         if numel(CONN_x.Setup.conditions.filter{nconditions(1)})==2, answ={mat2str(CONN_x.Setup.conditions.filter{nconditions(1)})}; 
                                         else answ={'[.01 .10]'};
                                         end
-                                        answ=inputdlg('Band-pass filter (Hz)','',1,answ);
+                                        answ=conn_menu_inputdlg('Band-pass filter (Hz)','',1,answ);
                                         if numel(answ)==1&&numel(str2num(answ{1}))==2,
                                             [CONN_x.Setup.conditions.filter{nconditions}]=str2num(answ{1});
                                         end
@@ -4121,7 +4121,7 @@ else
                                         if numel(CONN_x.Setup.conditions.filter{nconditions(1)})==1, answ={num2str(CONN_x.Setup.conditions.filter{nconditions(1)})}; 
                                         else answ={'4'};
                                         end
-                                        answ=inputdlg('Number of frequency bands','',1,answ);
+                                        answ=conn_menu_inputdlg('Number of frequency bands','',1,answ);
                                         if numel(answ)==1,
                                             answ=str2num(answ{1});
                                             if numel(answ)==1&&answ>1, 
@@ -4145,7 +4145,7 @@ else
                                                 answ={mat2str(0:25:200),'100'};
                                             end
                                         end
-                                        answ=inputdlg({'Sliding-window onsets (in seconds relative to condition onset)','Sliding-window length (in seconds)'},'',1,answ);
+                                        answ=conn_menu_inputdlg({'Sliding-window onsets (in seconds relative to condition onset)','Sliding-window length (in seconds)'},'',1,answ);
                                         if numel(answ)==2,
                                             answ={str2num(answ{1}) str2num(answ{2})};
                                             if numel(answ)==2&&numel(answ{1})>1&&numel(answ{2})==1, 
@@ -4166,19 +4166,20 @@ else
                                     end
                                 else conds=1;
                                 end
+                                if nconditions(1)<=1, conn_msgbox('No prior conditions available','',2); return; end
                                 answ=listdlg('name','','PromptString','Select input conditions:','ListString',CONN_x.Setup.conditions.names(1:nconditions(1)-1),'SelectionMode','multiple','initialvalue',conds,'ListSize',[300 200]);
                                 if isempty(answ), return; end
                                 conds=CONN_x.Setup.conditions.names(answ);
                                 if value==5, % lin
                                     if isequal(CONN_x.Setup.conditions.model{nconditions(1)}{1},'lin'), G=CONN_x.Setup.conditions.model{nconditions(1)}{2}; else G=''; end
                                     if ~ischar(G), G=strmat(G); end
-                                    answ=inputdlg({sprintf('Enter design matrix using Matlab notation (with %d rows, one per condition; first column is regressor of interest)',numel(conds))},'',1,{G},struct('Resize','on'));
+                                    answ=conn_menu_inputdlg({sprintf('Enter design matrix using Matlab notation (with %d rows, one per condition; first column is regressor of interest)',numel(conds))},'',1,{G},struct('Resize','on'));
                                     if numel(answ)~=1||isempty(answ{1}),return; end
                                     G=answ{1};
                                 elseif value==6 % @fun
                                     if ~ischar(CONN_x.Setup.conditions.model{nconditions(1)}{1}), fun=CONN_x.Setup.conditions.model{nconditions(1)}{1}; else fun='@(x)mean(x,1)'; end
                                     if ~ischar(fun), fun=func2str(fun); end
-                                    answ=inputdlg({'Enter function handle using Matlab notation'},'',1,{fun},struct('Resize','on'));
+                                    answ=conn_menu_inputdlg({'Enter function handle using Matlab notation (rows = input conditions)'},'',1,{fun},struct('Resize','on'));
                                     if numel(answ)~=1||isempty(answ{1}),return; end
                                     fun=str2func(answ{1});
                                 end
@@ -5484,7 +5485,7 @@ else
                         if conn('gui_setup_save','Enter new CONN project filename:'), 
                             conn gui_recent_set; 
                             if ismember(varargin{2},{'newspm','newdicom'})
-                                answ=inputdlg('Enter number of subjects','new project',1,{num2str(1)});
+                                answ=conn_menu_inputdlg('Enter number of subjects','new project',1,{num2str(1)});
                                 if ~isempty(answ)&&~isempty(str2num(answ{1})), 
                                     CONN_x.Setup.nsubjects=conn_merge(CONN_x.Setup.nsubjects,str2num(answ{1}));
                                 end
@@ -6024,11 +6025,11 @@ else
                                 filter_anat{idx+1}=var0(bids_subj);
                                 if numel(varargin)>=3 && isequal(varargin{3},'manual')
                                     if ismember(varargin{2},[5,6])
-                                        answ=inputdlg(filter_func(1:2:end-1),'BIDS functional filter:',1,cellfun(@(x)regexprep(sprintf('%s,',x{:}),',$',''),cellfun(@cellstr,filter_func(2:2:end),'uni',0),'uni',0));
+                                        answ=conn_menu_inputdlg(filter_func(1:2:end-1),'BIDS functional filter:',1,cellfun(@(x)regexprep(sprintf('%s,',x{:}),',$',''),cellfun(@cellstr,filter_func(2:2:end),'uni',0),'uni',0));
                                         if ~isempty(answ), filter_func(2:2:end)=cellfun(@(x)regexp(x,',','split'),answ,'uni',0); end
                                     end
                                     if ismember(varargin{2},[6,7])
-                                        answ=inputdlg(filter_anat(1:2:end-1),'BIDS structural filter:',1,cellfun(@(x)regexprep(sprintf('%s,',x{:}),',$',''),cellfun(@cellstr,filter_anat(2:2:end),'uni',0),'uni',0));
+                                        answ=conn_menu_inputdlg(filter_anat(1:2:end-1),'BIDS structural filter:',1,cellfun(@(x)regexprep(sprintf('%s,',x{:}),',$',''),cellfun(@cellstr,filter_anat(2:2:end),'uni',0),'uni',0));
                                         if ~isempty(answ), filter_anat(2:2:end)=cellfun(@(x)regexp(x,',','split'),answ,'uni',0); end
                                     end
                                 end
@@ -6964,7 +6965,7 @@ else
             DOREM={{'run_keepas:y'},{'-run_keepas','x1'},{'-run_keepas','x2'}}; % remotely: keep some vars remotely
             %DOREM={{},{'-cache'},{'-cache'}}; % remotely: bring all vars locally
             if 0,%ianalysis>numel(CONN_x.Analyses)||~isfield(CONN_x.Analyses(ianalysis),'name'),
-                txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['SBC_',num2str(ianalysis,'%02d')]});
+                txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['SBC_',num2str(ianalysis,'%02d')]});
                 if isempty(txt), return; end
                 txt{1}=regexprep(txt{1},'[^\w\d_]','');
                 if isempty(txt{1}), return; end
@@ -6973,7 +6974,7 @@ else
             end
             if ~isfield(CONN_x,'vvAnalysis')||~CONN_x.vvAnalysis, CONN_x.vvAnalysis=1; end
             if 0,%CONN_x.vvAnalysis>numel(CONN_x.vvAnalyses)||~isfield(CONN_x.vvAnalyses(CONN_x.vvAnalysis),'name'),
-                txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['V2V_',num2str(CONN_x.vvAnalysis,'%02d')]});
+                txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['V2V_',num2str(CONN_x.vvAnalysis,'%02d')]});
                 if isempty(txt), return; end
                 txt{1}=regexprep(txt{1},'[^\w\d_]','');
                 if isempty(txt{1}), return; end
@@ -6982,7 +6983,7 @@ else
             end
             if ~isfield(CONN_x,'dynAnalysis')||~CONN_x.dynAnalysis, CONN_x.dynAnalysis=1; end
             if 0,%CONN_x.dynAnalysis>numel(CONN_x.dynAnalyses)||~isfield(CONN_x.dynAnalyses(CONN_x.dynAnalysis),'name'),
-                txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['DYN_',num2str(CONN_x.dynAnalysis,'%02d')]});
+                txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['DYN_',num2str(CONN_x.dynAnalysis,'%02d')]});
                 if isempty(txt), return; end
                 txt{1}=regexprep(txt{1},'[^\w\d_]','');
                 if isempty(txt{1}), return; end
@@ -7160,7 +7161,7 @@ else
                         if state(1)==2&&isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).name), conn_msgbox('Sorry, this analysis was created in an older version of CONN and it cannot be renamed','',2); return; end 
                         ok=0;
                         while ~ok,
-                            txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,tnames(state(1)));
+                            txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,tnames(state(1)));
                             if isempty(txt)||isempty(txt{1}), break; end
                             txt{1}=regexprep(txt{1},'[^\w\d_]','');
                             if isempty(txt{1}), break; end
@@ -7564,7 +7565,7 @@ else
 %                             end
                             if value>1
                                 answ=num2str(max([1 CONN_x.Analyses(ianalysis).regressors.fbands{:}]));
-                                answ=inputdlg('Number of frequency bands','',1,{answ});
+                                answ=conn_menu_inputdlg('Number of frequency bands','',1,{answ});
                                 if numel(answ)==1,
                                     answ=str2num(answ{1});
                                     if numel(answ)==1&&answ>0, value=round(answ);
@@ -7744,7 +7745,7 @@ else
                             if tianalysis==size(analysisname,1)-2, % new 
                                 ok=0;
                                 while ~ok,
-                                    txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['SBC_',num2str(tianalysis,'%02d')]});
+                                    txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['SBC_',num2str(tianalysis,'%02d')]});
                                     if isempty(txt)||isempty(txt{1}), break; end
                                     txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                     if isempty(txt{1}), break; end
@@ -7778,7 +7779,7 @@ else
                                 ok=0;
                                 if ~isempty(CONN_x.Analyses(CONN_x.Analysis).name) % note: very-old analyses (empty analysis name) cannot be renamed
                                     while ~ok,
-                                        txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{CONN_x.Analyses(CONN_x.Analysis).name});
+                                        txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{CONN_x.Analyses(CONN_x.Analysis).name});
                                         if isempty(txt)||isempty(txt{1}), break; end
                                         txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                         if isempty(txt{1}), break; end
@@ -8583,7 +8584,7 @@ else
                             if tianalysis==size(analysisname,1)-2, % new 
                                 ok=0;
                                 while ~ok,
-                                    txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['V2V_',num2str(tianalysis,'%02d')]});
+                                    txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['V2V_',num2str(tianalysis,'%02d')]});
                                     if isempty(txt)||isempty(txt{1}), break; end
                                     txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                     if isempty(txt{1}), break; end
@@ -8615,7 +8616,7 @@ else
                                 ok=0;
                                 if ~isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).name) % note: very-old analyses (empty analysis name) cannot be renamed
                                     while ~ok,
-                                        txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{CONN_x.vvAnalyses(CONN_x.vvAnalysis).name});
+                                        txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{CONN_x.vvAnalyses(CONN_x.vvAnalysis).name});
                                         if isempty(txt)||isempty(txt{1}), break; end
                                         txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                         if isempty(txt{1}), break; end
@@ -9019,7 +9020,7 @@ else
                             if tianalysis==size(analysisname,1)-2, % new 
                                 ok=0;
                                 while ~ok,
-                                    txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['DYN_',num2str(tianalysis,'%02d')]});
+                                    txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{['DYN_',num2str(tianalysis,'%02d')]});
                                     if isempty(txt)||isempty(txt{1}), break; end
                                     txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                     if isempty(txt{1}), break; end
@@ -9050,7 +9051,7 @@ else
                                 ok=0;
                                 if ~isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name) % note: very-old analyses (empty analysis name) cannot be renamed
                                     while ~ok,
-                                        txt=inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{CONN_x.dynAnalyses(CONN_x.dynAnalysis).name});
+                                        txt=conn_menu_inputdlg('New analysis name (alphanumeric case sensitive):','conn',1,{CONN_x.dynAnalyses(CONN_x.dynAnalysis).name});
                                         if isempty(txt)||isempty(txt{1}), break; end
                                         txt{1}=regexprep(txt{1},'[^\w\d_]','');
                                         if isempty(txt{1}), break; end
@@ -11130,7 +11131,7 @@ else
                              CONN_h.menus.m_results.roiresults.lastselected=ntarget;
                          else
                              if isfield(CONN_h.menus.m_results,'selectedcoords')&&~isempty(CONN_h.menus.m_results.selectedcoords), ntarget=CONN_h.menus.m_results.selectedcoords;
-                             else ntarget=[]; conn_msgbox('please select target voxel in "Data/Results preview" display first','',2); 
+                             else ntarget=[]; conn_msgbox('please select target voxel in group-analysis results preview first','',2); 
                              end
                          end
                          if isempty(ntarget)||isempty(isources), return; end
@@ -12254,7 +12255,8 @@ else
             b=permute(mean(mean(CONN_h.menus.m_results.roiresults.y(:,idx,:,:),1),4),[3,4,1,2]); % connectivity values averaged across subjects (1) and conditions (4)
             b=permute(b/max(eps,max(abs(b(:)))),[1,4,2,3]);
             B=zeros(max(size(b))); B(idx1,1:size(b,2))=b;
-            conn_mesh_display('','',[],struct('sph_names',{CONN_h.menus.m_results.roiresults.displayroisnames},'sph_xyz',CONN_h.menus.m_results.roiresults.displayrois(:,1:3),'sph_r',CONN_h.menus.m_results.roiresults.displayrois(:,4)*.5,'sph_c',{c(2+sign(CONN_h.menus.m_results.roiresults.displayrois(:,5)))}), ...
+            conn_mesh_display('','',[],...
+                struct('sph_names',{CONN_h.menus.m_results.roiresults.displayroisnames},'sph_xyz',CONN_h.menus.m_results.roiresults.displayrois(:,1:3),'sph_shapes',{CONN_h.menus.m_results.roiresults.displayroisnames},'sph_r',CONN_h.menus.m_results.roiresults.displayrois(:,4)*.5,'sph_c',{c(2+sign(CONN_h.menus.m_results.roiresults.displayrois(:,5)))}), ...
                 B, ...
                 [], ...
                 .2, ...

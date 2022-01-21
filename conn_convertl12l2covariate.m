@@ -137,12 +137,12 @@ conn_convertl12l2covariate_update;
                                 if isnumeric(f0x)
                                     switch(f0x)
                                         case 1,
-                                            answ=inputdlg('function f(x) of raw values','',1,{'sin(x)'});
+                                            answ=conn_menu_inputdlg('function f(x) of raw values','',1,{'sin(x)'});
                                             if isempty(answ), conn_waitbar('close',ht); return; end
                                             g0x=str2num(['@(x)(',answ{1},')']);
                                             f0x=@(x)g0x(x);
                                         case 2,
-                                            answ=inputdlg('function f(x) of scan-to-scan differences','',1,{'sin(x)'});
+                                            answ=conn_menu_inputdlg('function f(x) of scan-to-scan differences','',1,{'sin(x)'});
                                             if isempty(answ), conn_waitbar('close',ht); return; end
                                             g0x=str2num(['@(x)(',answ{1},')']);
                                             f0x=@(x)g0x(diff(x,1,1));
@@ -155,7 +155,7 @@ conn_convertl12l2covariate_update;
                                     if f2first
                                         while isempty(WEIGHTS)
                                             wtemp=ones(1,size(y,2));
-                                            answ=inputdlg(sprintf('Weights (%d values)',size(y,2)),'',1,{mat2str(wtemp)});
+                                            answ=conn_menu_inputdlg(sprintf('Weights (%d values)',size(y,2)),'',1,{mat2str(wtemp)});
                                             if isempty(answ), conn_waitbar('close',ht); return; end
                                             WEIGHTS=str2num(answ{1});
                                             if numel(WEIGHTS)~=size(y,2), WEIGHTS=[]; end
@@ -185,7 +185,7 @@ conn_convertl12l2covariate_update;
                         if ~f2first
                             while isempty(WEIGHTS)
                                 wtemp=ones(1,size(temp,2));
-                                answ=inputdlg(sprintf('Weights (%d values)',size(temp,2)),'',1,{mat2str(wtemp)});
+                                answ=conn_menu_inputdlg(sprintf('Weights (%d values)',size(temp,2)),'',1,{mat2str(wtemp)});
                                 if isempty(answ), conn_waitbar('close',ht); return; end
                                 WEIGHTS=str2num(answ{1});
                                 if numel(WEIGHTS)~=size(temp,2), WEIGHTS=[]; end
@@ -253,7 +253,7 @@ else
     if numel(f)<dim||isempty(f{dim})
         fcn={'h(x)','g(x)'};
         str={'timepoints','dimensions'};
-        answ=inputdlg(sprintf('user-defined function %s aggregating across %s',fcn{dim},str{dim}),'',1,{sprintf('mean(x,%d)',dim)});
+        answ=conn_menu_inputdlg(sprintf('user-defined function %s aggregating across %s',fcn{dim},str{dim}),'',1,{sprintf('mean(x,%d)',dim)});
         if isempty(answ), return; end
         f{dim}=str2num(['@(x)(',answ{1},')']);
     end

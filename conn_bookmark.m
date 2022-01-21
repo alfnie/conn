@@ -143,7 +143,7 @@ switch(option)
         if ~isempty(tdirs)&&get(ht2,'value')>1, pfilename=fullfile(tdirs{get(ht2,'value')-1},pfilename); end
         tfilename=fullfile(filepath,pfilename);
         delete(thfig);
-        %answer=inputdlg({'Plot description (optional)'},'',4,{char(descr)});
+        %answer=conn_menu_inputdlg({'Plot description (optional)'},'',4,{char(descr)});
         %if isempty(answer), return; end
         %descr=cellstr(answer{1});
         descr=descr(cellfun('length',descr)>0);
@@ -165,7 +165,7 @@ end
     function conn_bookmark_update(hObject,eventdata,option,varargin)
         switch(option)
             case 'newfolder'
-                answer=inputdlg({'Folder name (alphanumeric, case sensitive)'},'',1,{''});
+                answer=conn_menu_inputdlg({'Folder name (alphanumeric, case sensitive)'},'',1,{''});
                 if isempty(answer), return; end
                 tfname=answer{1};
                 conn_fileutils('mkdir',filepath,tfname);

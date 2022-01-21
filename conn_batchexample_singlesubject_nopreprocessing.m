@@ -11,7 +11,7 @@ if isempty(STRUCTURAL_FILE),return;end
 SPM_FILE=cellstr(spm_select(1,'SPM\.mat$','Select first-level SPM.mat file'));
 if isempty(SPM_FILE),return;end
 % Selects TR (seconds)
-TR=inputdlg('Enter Repetition-Time (in seconds)','TR',1,{num2str('2')});
+TR=conn_menu_inputdlg({'Enter Repetition-Time (in seconds)'},'TR',1,{'2'});
 TR=str2num(TR{1});
 
 %% CONN Setup

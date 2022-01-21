@@ -359,13 +359,13 @@ switch(lower(option))
     case {'prep','preprocessing'}
         options=struct;
         if isempty(varargin)
-            answ=inputdlg('Enter number of subjects','conn_module PREP',1,{'1'});
+            answ=conn_menu_inputdlg('Enter number of subjects','conn_module PREP',1,{'1'});
             if isempty(answ), return; end
             options.nsubjects=str2num(answ{1});
             options.functionals=cell(options.nsubjects,1);
             nsessions=ones(1,options.nsubjects);
             for nsubject=1:options.nsubjects,
-                temp=inputdlg(['Subject ',num2str(nsubject),': Enter number of runs/sessions'],'conn_module PREP',1,{num2str(nsessions(min(length(nsessions),nsubject)))});
+                temp=conn_menu_inputdlg(['Subject ',num2str(nsubject),': Enter number of runs/sessions'],'conn_module PREP',1,{num2str(nsessions(min(length(nsessions),nsubject)))});
                 if isempty(temp), return; end
                 temp=str2num(temp{1});
                 nsessions(nsubject)=temp;

@@ -1325,6 +1325,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                         Voutputfiles{nses}=spm_create_vol(Voutputfiles{nses}); 
                     catch
                         Voutputfiles{nses}=[];
+                        try, str=lasterror; conn_disp('Warning: unable to create denoised files; error message:'); conn_disp(str.message); end
                     end
                 end
                 if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,CONN_x.Setup.nscans{nsub}{nses}*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0-size(X{nses},2));
