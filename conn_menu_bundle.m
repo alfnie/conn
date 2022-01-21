@@ -1,8 +1,9 @@
-function [Lines,WidthLines] = conn_menu_bundle(Lines,WidthLines,ValueLines,MaxBundleLevel,doplot)
+function [Lines,WidthLines] = conn_menu_bundle(Lines,WidthLines,ValueLines,MaxBundleLevel,doplot,weightsim)
 if nargin<2||isempty(WidthLines), WidthLines=.2*ones([size(Lines,1),1,size(Lines,3),size(Lines,4)]); end
 if nargin<3||isempty(ValueLines), ValueLines=zeros([1,1,size(Lines,3)]); end
 if nargin<4||isempty(MaxBundleLevel), MaxBundleLevel=10; end
 if nargin<5||isempty(doplot), doplot=false; end
+if nargin<6||isempty(weightsim), weightsim=1e3; end
 METHODTEST=false;
 
 if METHODTEST
@@ -58,17 +59,21 @@ else
             tlines=lines;
             tlines(:,:,negdirlines(:,n1))=tlines(end:-1:1,:,negdirlines(:,n1));
             ltemp=conn_bsxfun(@minus,tlines,lines(:,:,n1));
-            dlines1=sum(abs(ltemp).^2,2);
-            dlines2=sum(diff(ltemp([1 1:end],:,:),1,1).^2,2);
+            dlines1=sum(abs(ltemp).^2,2);                           % pairwise comparison: are these two lines close?
+            dlines2=sum(diff(ltemp([1 1:end],:,:),1,1).^2,2);       % pairwise comparison: are these two lines going in the same direction?
             dlines=dlines1+dirweight*dlines2;
-            dlines=conn_bsxfun(@plus,dlines,1e3*simlines(n1,:,:));
-            plines=max(0,exp(-.5*dlines/bundlewidth^2)-0);
+            dlines=conn_bsxfun(@plus,dlines,weightsim*simlines(n1,:,:));  % pairwise comparison: do these two lines have the same values/color/class/etc.?
+            bundlewidth2=bundlewidth^2;
+            %bundlewidth2=mean(dlines(~isnan(dlines)))/8;
+            plines=max(0,exp(-.5*dlines/bundlewidth2)-0);
             widthlines(:,:,n1)=max(1e-3,sum(plines,3));
-            newlines1(:,:,n1)=conn_bsxfun(@rdivide,sum(conn_bsxfun(@times,tlines,plines),3),widthlines(:,:,n1));
+            %newlines1(:,:,n1)=conn_bsxfun(@rdivide,sum(conn_bsxfun(@times,tlines,plines),3),widthlines(:,:,n1));
+            newlines1(:,:,n1)=conn_bsxfun(@rdivide,sum(conn_bsxfun(@times,ltemp,plines),3),0+widthlines(:,:,n1));
         end
         
-        newlines=newlines1-lines;
-        lines=lines+.1*conn_bsxfun(@times,wp0, convn(newlines,conn_hanning(11)/6,'same'));%-max(-.1,min(.1, newlines));
+        fh=conn_hanning(11)/sum(conn_hanning(11));
+        %lines=lines+.1*conn_bsxfun(@times,wp0, convn(newlines1,fh,'same'));% ...
+        lines=lines+.1*conn_bsxfun(@times,wp0, convn(newlines1 + 5*(convn(lines(max(1,min(size(lines,1),1-1*floor(11/2):size(lines,1)+1*floor(11/2))),:,:),fh,'valid') - lines),fh,'same') );% ...
         
         klines=cumsum(cat(1,zeros(1,1,size(lines,3)),sqrt(sum(diff(lines,1,1).^2,2))),1);
         klines=conn_bsxfun(@rdivide,klines,max(eps,klines(end,:,:)));

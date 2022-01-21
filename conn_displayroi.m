@@ -1294,13 +1294,17 @@ switch(lower(option)),
             end
         else
             z=nan(numel(idxkeep));
-            for n1=1:numel(idxkeep_conn1), i=find(idxkeep==idxkeep_conn1(n1)); j=find(idxkeep==idxkeep_conn2(n1)); z(i,j)=data.plot_z(idxkeep(i),idxkeep(j)).*sign(data.h(idxkeep(i),idxkeep(j))); end
+            tcl=data.CLUSTER_labels(idxkeep,idxkeep);
+            for n1=1:numel(idxkeep_conn1), 
+                i=find(idxkeep==idxkeep_conn1(n1)); j=find(idxkeep==idxkeep_conn2(n1)); 
+                z(i,j)=data.plot_z(idxkeep(i),idxkeep(j)).*sign(data.h(idxkeep(i),idxkeep(j))); 
+            end
             fh=conn_mesh_display('','',[],...
                 struct('sph_names',{data.names2reduced(idxkeep)},'sph_xyz',[datax(idxkeep),datay(idxkeep),dataz(idxkeep)],...
                 'sph_r',3*ones(numel(idxkeep),1),...
                 'sph_shapes',{data.names2(idxkeep)},...
                 'sph_c',{c}),...%{repmat({[.9,.9,.9]},[1,numel(idxkeep)])}), ...
-                z, ...
+                z,... %+1*sign(z).*tcl, ...
                 [], .2, [0,-1e-8,1],[],data.defaultfilepath);
             if strcmp(lower(option),'glass0_view')||strcmp(lower(option),'glass0_view')
                 fh('brain',4);
@@ -1325,7 +1329,7 @@ switch(lower(option)),
                 fh('mask_transparency',.15);
                 fh('material',[]);
                 fh('axis','on');
-                fh('roi_color',rand(numel(idxkeep),3));
+                fh('roi_color',.75*rand(numel(idxkeep),3));
                 fh('view',[0,-1e-8,1]);
                 fh('roi_shape','real');
                 fh('roi_transparency',.15);

@@ -982,7 +982,7 @@ if ishandle(hmsg), delete(hmsg); end
                             thandles2=state.handles.sphplots_shapes(state.sphplots.sph_xyz(:,1)<=5); 
                             tok2=state.handles.sphplots_shapesok(state.sphplots.sph_xyz(:,1)<=5)&ishandle(thandles2); 
                             set(thandles2(tok2),'visible','on');
-                            set(thandles(~tok2),'visible','on');
+                            set(thandles,'visible','on'); %thandles(~tok2)
                         else
                             set(thandles(ishandle(thandles)),'visible','on');
                         end
@@ -1002,7 +1002,7 @@ if ishandle(hmsg), delete(hmsg); end
                             thandles2=state.handles.sphplots_shapes(state.sphplots.sph_xyz(:,1)>=-5); 
                             tok2=state.handles.sphplots_shapesok(state.sphplots.sph_xyz(:,1)>=-5)&ishandle(thandles2); 
                             set(thandles2(tok2),'visible','on');
-                            set(thandles(~tok2),'visible','on');
+                            set(thandles,'visible','on'); %thandles(~tok2)
                         else
                             set(thandles(ishandle(thandles)),'visible','on');
                         end
@@ -1097,9 +1097,15 @@ if ishandle(hmsg), delete(hmsg); end
                         if numel(state.handles.sphplots_shapes)>=n1&&ishandle(state.handles.sphplots_shapes(n1))&&state.handles.sphplots_shapesok(n1)
                             if isequal(get(state.handles.sphplots(n1),'visible'),'on')
                                 set(state.handles.sphplots_shapes(n1),'visible','on');
-                                set(state.handles.sphplots(n1),'visible','off');
+                                %set(state.handles.sphplots(n1),'visible','off');
                             end
                         end
+                    end
+                    [x,y,z]=sphere(32);
+                    f=1;
+                    x=sign(x).*abs(x).^f;y=sign(y).*abs(y).^f;z=sign(z).*abs(z).^f;
+                    for n=1:numel(state.handles.sphplots),
+                        set(state.handles.sphplots(n),'xdata',state.sphplots.sph_xyz(n,1)+1*x,'ydata',state.sphplots.sph_xyz(n,2)+1*y,'zdata',state.sphplots.sph_xyz(n,3)+1*z,'facealpha',1,'facecolor',.5*[1 1 1]);
                     end
                     %set(state.handles.sphplots_shapes(ishandle(state.handles.sphplots_shapes)),'visible','on');
                     %set(state.handles.sphplots(ishandle(state.handles.sphplots)),'visible','off');
@@ -1113,7 +1119,7 @@ if ishandle(hmsg), delete(hmsg); end
                     end
                     x=sign(x).*abs(x).^f;y=sign(y).*abs(y).^f;z=sign(z).*abs(z).^f;
                     for n=1:numel(state.handles.sphplots),
-                        set(state.handles.sphplots(n),'xdata',state.sphplots.sph_xyz(n,1)+state.sphplots.sph_r(n)*x,'ydata',state.sphplots.sph_xyz(n,2)+state.sphplots.sph_r(n)*y,'zdata',state.sphplots.sph_xyz(n,3)+state.sphplots.sph_r(n)*z);
+                        set(state.handles.sphplots(n),'xdata',state.sphplots.sph_xyz(n,1)+state.sphplots.sph_r(n)*x,'ydata',state.sphplots.sph_xyz(n,2)+state.sphplots.sph_r(n)*y,'zdata',state.sphplots.sph_xyz(n,3)+state.sphplots.sph_r(n)*z,'facealpha',state.facealpharoi,'facecolor',state.roi_color(1+rem(n1-1,size(state.roi_color,1)),:));
                     end
                     for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
                     for n1=1:numel(state.handles.sphplots)
