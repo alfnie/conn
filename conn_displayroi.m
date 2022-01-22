@@ -2687,7 +2687,7 @@ switch(data.display),
                 n2=data.displaytheserois(na2);
                 if n1<=N&&n1~=n2&&z(n1,n2)>0, % connection info
                     if data.mvpathrtype_isroi(data.mvpathrtype)||~isfield(data,'issymmetric')||~data.issymmetric||na1<na2
-                        index2(end+1)=N*(n1-1)+n2; % indexes to z matrix
+                        index2(end+1)=N*(n2-1)+n1; % indexes to z matrix
                         if nnz(z>0)<=1e5 % skip connection-level stats if above 1e5
                             %txt2{end+1}=(sprintf('%-6s %-6s  %6.2f  %6.2f  %4d  %12.6f  %12.6f',['(',num2str(na1),')'],['(',num2str(na2),')'],data.h(n1,n2),data.F(n1,n2),data.dof(n1,end),p(n1,n2),P(n1,n2)));
                             %if data.displayroilabelsinstats, tname1=sprintf('(%s)',data.names2reduced{n1}); else tname1=sprintf('(%d)',sortedroinumbers(n1)); end %na1); end
