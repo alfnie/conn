@@ -3393,9 +3393,13 @@ else
                                         nsess=get(CONN_h.menus.m_setup_00{16},'value');
                                         roifile=CONN_x.Setup.rois.files{nsubs(1)}{nrois}{nsess(1)}{1};
                                         if isempty(roifile), conn_msgbox({'Please select ROI to display first'},'',2); return; end
-                                        if val==7, conn_mesh_display('',{'',roifile},[],[],[],[],.2);
-                                        else conn_mesh_display(roifile);
+                                        if val==7, fh=conn_mesh_display('',{'',roifile},[],[],[],[],.2);
+                                        else fh=conn_mesh_display(roifile);
                                         end
+                                        fh('brain_transparency',0);
+                                        fh('sub_transparency',0);
+                                        fh('mask_transparency',.15);
+                                        fh('axis','on');
                                         return;
                                     case {9,10}, % check registration anatomical
                                         set(CONN_h.menus.m_setup_00{14},'value',1);

@@ -1369,10 +1369,24 @@ if ishandle(hmsg), delete(hmsg); end
                 set(state.handles.connplots(state.handles.connplots~=0),'facealpha',state.facealphacon); 
             case 'con_color'
                 if numel(varargin)>0, color=varargin{1};
+                elseif nnz(state.handles.connplots~=0)>1
+                    color=[];
+                    if isfield(state,'roi_color'), color=state.roi_color; end
+                    if isempty(color), color=[0 .45 .74]; end
+                    answer=conn_menu_inputdlg({sprintf('Connection color (%dxRGB)  e.g. rand(%d,3)',numel(state.handles.sphplots),numel(state.handles.sphplots))},'',1,{mat2str(color)});
+                    if isempty(answer), return; end
+                    color=str2num(answer{1});
+                    if size(color,2)~=3, return; end
                 else color=uisetcolor([],'Select color'); if isempty(color)||isequal(color,0), return; end; 
                 end
-                set(state.handles.connplots(state.handles.connplots~=0),'facecolor',color); 
                 state.con_color=color;
+                if size(state.con_color,1)==1, set(state.handles.connplots(state.handles.connplots~=0),'facecolor',state.con_color); 
+                else
+                    tidx=find(state.handles.connplots~=0);
+                    for n1=1:numel(tidx), 
+                        set(state.handles.connplots(tidx(n1)),'facecolor',state.con_color(1+rem(n1-1,size(state.con_color,1)),:));
+                    end
+                end
             case 'ud_delete'
                 delete(state.handles.patchblobother(ishandle(state.handles.patchblobother)));
                 state.handles.patchblobother=[];
