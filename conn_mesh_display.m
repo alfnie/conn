@@ -430,7 +430,9 @@ if ~isempty(state.sphplots)
         end
     end
     hold off;
-    if ~isempty(state.roi_color),
+    if isempty(state.roi_color),
+        try, state.roi_color=cell2mat(state.sphplots.sph_c(:)); end
+    else
         if size(state.roi_color,1)==1, set([state.handles.sphplots state.handles.sphplots_shapes(ishandle(state.handles.sphplots_shapes))],'facecolor',state.roi_color); 
         else
             for n1=1:numel(state.handles.sphplots),
@@ -1371,7 +1373,7 @@ if ishandle(hmsg), delete(hmsg); end
                 if numel(varargin)>0, color=varargin{1};
                 elseif nnz(state.handles.connplots~=0)>1
                     color=[];
-                    if isfield(state,'roi_color'), color=state.roi_color; end
+                    if isfield(state,'con_color'), color=state.con_color; end
                     if isempty(color), color=[0 .45 .74]; end
                     answer=conn_menu_inputdlg({sprintf('Connection color (%dxRGB)  e.g. rand(%d,3)',numel(state.handles.sphplots),numel(state.handles.sphplots))},'',1,{mat2str(color)});
                     if isempty(answer), return; end

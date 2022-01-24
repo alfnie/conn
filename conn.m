@@ -12259,7 +12259,7 @@ else
             b=permute(mean(mean(CONN_h.menus.m_results.roiresults.y(:,idx,:,:),1),4),[3,4,1,2]); % connectivity values averaged across subjects (1) and conditions (4)
             b=permute(b/max(eps,max(abs(b(:)))),[1,4,2,3]);
             B=zeros(max(size(b))); B(idx1,1:size(b,2))=b;
-            conn_mesh_display('','',[],...
+            fh=conn_mesh_display('','',[],...
                 struct('sph_names',{CONN_h.menus.m_results.roiresults.displayroisnames},'sph_xyz',CONN_h.menus.m_results.roiresults.displayrois(:,1:3),'sph_shapes',{CONN_h.menus.m_results.roiresults.displayroisnames},'sph_r',CONN_h.menus.m_results.roiresults.displayrois(:,4)*.5,'sph_c',{c(2+sign(CONN_h.menus.m_results.roiresults.displayrois(:,5)))}), ...
                 B, ...
                 [], ...
@@ -12267,6 +12267,16 @@ else
                 [0,-.01,1],...
                 [],...
                 fullfile(CONN_x.folders.secondlevel,conn_resultsfolder('subjectsconditions',1,CONN_x.Results.xX.nsubjecteffects,CONN_x.Results.xX.csubjecteffects,CONN_x.Results.xX.nconditions,CONN_x.Results.xX.cconditions)));
+%             fh('brain',4);
+%             fh('brain_transparency',0);
+%             fh('sub_transparency',0);
+%             fh('mask_transparency',.15);
+%             fh('material',[]);
+%             fh('axis','on');
+%             fh('roi_color',.75*rand(numel(idxkeep),3));
+%             fh('view',[0,-1e-8,1]);
+            fh('roi_shape','real');
+            fh('roi_transparency',max(.15,1/numel(CONN_h.menus.m_results.roiresults.displayroisnames)));
             
         case {'gui_results_wholebrain','gui_results_wholebrain_vv'}
             %if ~CONN_x.Setup.normalized, warndlg('Second-level voxel-level analyses not available for non-normalized data'); return; end

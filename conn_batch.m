@@ -985,6 +985,7 @@ if isfield(batch,'Setup'),
                             end
                         end
                     end
+                    if isfield(batch.Setup.masks.(masks{nmask}),'dimensions')&&~iscell(batch.Setup.masks.(masks{nmask}).dimensions), batch.Setup.masks.(masks{nmask}).dimensions=num2cell(batch.Setup.masks.(masks{nmask}).dimensions); end
                     if isfield(batch.Setup.masks.(masks{nmask}),'dimensions'), CONN_x.Setup.rois.dimensions{nmask}=batch.Setup.masks.(masks{nmask}).dimensions; if CONN_x.Setup.rois.dimensions{nmask}==0, CONN_x.Setup.rois.weighted(nmask)=1; end; end
                     if isfield(batch.Setup.masks.(masks{nmask}),'regresscovariates'), CONN_x.Setup.rois.regresscovariates(nmask)=batch.Setup.masks.(masks{nmask}).regresscovariates; end
                     if isfield(batch.Setup.masks.(masks{nmask}),'weighted'), CONN_x.Setup.rois.weighted(nmask)=batch.Setup.masks.(masks{nmask}).weighted; end
@@ -1073,6 +1074,7 @@ if isfield(batch,'Setup'),
                 end
             end
             if ~isfield(batch.Setup.rois,'names')||length(batch.Setup.rois.names)<n1||isempty(batch.Setup.rois.names{n1}), batch.Setup.rois.names{n1}=name; end % note: need to set names first in case localcopy==1
+            if isfield(batch.Setup.rois,'dimensions')&&~iscell(batch.Setup.rois.dimensions), batch.Setup.rois.dimensions=num2cell(batch.Setup.rois.dimensions); end
             if ~isfield(batch.Setup.rois,'dimensions')||length(batch.Setup.rois.dimensions)<n1||isempty(batch.Setup.rois.dimensions{n1}), batch.Setup.rois.dimensions{n1}=1; end
             if ~isfield(batch.Setup.rois,'mask')||length(batch.Setup.rois.mask)<n1, batch.Setup.rois.mask(n1)=0; end
             if ~isfield(batch.Setup.rois,'multiplelabels')||length(batch.Setup.rois.multiplelabels)<n1, batch.Setup.rois.multiplelabels(n1)=(strcmp(nameext,'.img')|strcmp(nameext,'.nii')|strcmp(nameext,'.mgz'))&(conn_existfile(conn_prepend('',CONN_x.Setup.rois.files{1}{n0+n1}{1}{1},'.txt'))|conn_existfile(conn_prepend('',CONN_x.Setup.rois.files{1}{n0+n1}{1}{1},'.csv'))|conn_existfile(conn_prepend('',CONN_x.Setup.rois.files{1}{n0+n1}{1}{1},'.xls'))); end

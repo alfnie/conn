@@ -348,7 +348,7 @@ if isfield(options,'functionals_path'), options=rmfield(options,'functionals_pat
 if isfield(options,'rois_ss'), options.rois=options.rois_ss; end
 if isfield(options,'rois')
     if ischar(options.rois), options.rois={options.rois}; end
-    if iscell(options.rois), options=struct('files',{options.rois}); end
+    if iscell(options.rois), options.rois=struct('files',{options.rois}); end
     if isfield(options,'rois_path')
         partialfilenames=cellfun(@(x)isempty(regexp(x,'^[\\\/]')),options.rois.files);
         roi_files={};                    % strings indicate filenames (with potential wildcards)
