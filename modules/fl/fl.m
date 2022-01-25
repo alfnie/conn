@@ -186,14 +186,25 @@ function varargout=fl(STEPS,varargin)
 %
 % see also: FL_INTERNAL
 
-persistent rootfolder;
+persistent rootfolder isremote;
 
 if isempty(rootfolder), rootfolder=fullfile(fileparts(which(mfilename)),'REPOSITORY'); end
+if isempty(isremote), isremote=false; end
 fileout=[];
 varargout=cell(1,nargout);
-OUTPUT_FOLDER=rootfolder; 
+if isremote, OUTPUT_FOLDER=fullfile('/CONNSERVER',rootfolder); 
+else OUTPUT_FOLDER=rootfolder; 
+end
 
-if ~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~ismember(lower(char(STEPS)),{'init','initforce','root','qa.plots','qaplots'}); %,'list'}) % exceptions to subject-expansion
+if isremote&&~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete'})); % run these locally
+    [hmsg,hstat]=conn_msgbox({'Process running remotely (%s)','Please wait...',' ',' '},[],[],true);
+    if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,STEPS,varargin{:}); 
+    else [varargout{1:nargout}]=conn_server('run',mfilename,STEPS,varargin{:}); 
+    end
+    return
+end
+
+if ~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~ismember(lower(char(STEPS)),{'init','initforce','root','remote','qa.plots','qaplots'}); %,'list'}) % exceptions to subject-expansion
     subject_id=varargin{1};
     if ischar(subject_id)&&any(ismember(subject_id,'*?'))
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
@@ -261,6 +272,25 @@ switch(lower(STEPS))
             end
         end
         
+    case 'remote'
+        if nargin>1&&~isempty(varargin{1}), 
+            isremote=varargin{1}; 
+            if ischar(isremote), isremote=str2num(isremote); end
+            if isremote&&~conn_server('isconnected')
+                fprintf('Starting new remote connection to server\n');
+                conn remotely on;
+            end
+            if isremote&&conn_server('isconnected')
+                conn_server('run',mfilename,'init','silent');
+                conn_server('run',mfilename,'root',rootfolder);
+            end
+            if nargout>0, varargout={isremote}; end
+        else
+            if ~nargout, disp(isremote);
+            else varargout={isremote};
+            end
+        end
+        
     case 'open'
         assert(numel(varargin)>=1,'incorrect usage: please specify subject_id')
         subject_id=varargin{1};
@@ -284,7 +314,7 @@ switch(lower(STEPS))
         pipeline_id=varargin{2};
         project_id=regexprep(subject_id,'\d+.*$','');
         dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
-        [ok,msg]=system('qstat -u $USER');if ~ok, disp(msg); end
+        if ~isremote, [ok,msg]=system('qstat -u $USER');if ~ok, disp(msg); end; end
         conn_module evlab17 init silent;
         conn_module('evlab17','load',dataset);
         if ~isempty(regexp(lower(STEPS),'report.gui')), conn_jobmanager;
@@ -669,7 +699,7 @@ switch(lower(STEPS))
             roi_id=varargin{5};
             rex_file=fullfile(results_path,sprintf('REX_%s.mat',roi_id));
         else
-            [tfilename,tpathname]=uigetfile({'REX*.mat','REX file (REX*.mat)'; '*',  'All Files (*)'},'Select ROI results file');
+            [tfilename,tpathname]=conn_fileutils('uigetfile',{'REX*.mat','REX file (REX*.mat)'; '*',  'All Files (*)'},'Select ROI results file');
             if ~ischar(tfilename)||isempty(tfilename), return; end
             rex_file=fullfile(tpathname,tfilename);
         end
