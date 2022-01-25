@@ -18,7 +18,7 @@ function varargout=fl(STEPS,varargin)
 %   Inputs:
 %       subject_id : string of the form [Experiment_code][Subject_number][OptionalSubject_code] identifying individual subject/session
 %   Input config files:
-%       [subject_id].cfg file in $FLDATA/[Experiment_code]/config detailing original functional/structural files and first-level design information (see subject_info in HELP FL)
+%       [subject_id].cfg file in $FLDATA/[Experiment_code]/config/FL/IMPORT detailing original functional/structural files and first-level design information (see subject_info in HELP FL)
 %   Output in $FLDATA/[Experiment_code]/sub-[subject_id]
 %
 %   fl('IMPORT.DICOM2NII',subject_id) 
@@ -34,9 +34,9 @@ function varargout=fl(STEPS,varargin)
 %       subject_id : string of the form [Experiment_code][Subject_number][OptionalSubject_code] identifying individual subject/session
 %       pipeline_id : string identifying an individual preprocessing pipeline
 %   Input config files:
-%       preprocessing_[pipeline_id].cfg file in $FLDATA/[Experiment_code]/config detailing data preprocessing steps and options (see pipeline_info in HELP FL_INTERNAL)
-%       (optional) preprocessing_[subject_id]_[pipeline_id].cfg file in $FLDATA/[Experiment_code]/config containing any subject-specific preprocessing steps and options
-%   Output in $FLDATA/[Experiment_code]/derivatives/[pipeline_id]/sub-[subject_id]
+%       preprocessing_[pipeline_id].cfg file in $FLDATA/[Experiment_code]/config/FL/PREPROCESSING detailing data preprocessing steps and options (see pipeline_info in HELP FL_INTERNAL)
+%       (optional) preprocessing_[subject_id]_[pipeline_id].cfg file in $FLDATA/[Experiment_code]/config/FL/PREPROCESSING containing any subject-specific preprocessing steps and options
+%   Output in $FLDATA/[Experiment_code]/derivatives/FL/[pipeline_id]/sub-[subject_id]
 %
 %   fl('PREPROCESSING',subject_id,pipeline_id,'parallel',1)
 %      submits preprocessing job to cluster (instead of running it locally)
@@ -63,9 +63,9 @@ function varargout=fl(STEPS,varargin)
 %       pipeline_id : string identifying an individual preprocessing pipeline
 %       model_id : string identifying an individual first-level analysis
 %   Input config files:
-%       firstlevel_[model_id].cfg file in $FLDATA/[Experiment_code]/config detailing first level estimation options (see design_info in HELP FL)
-%       (optional) firstlevel_[subject_id]_[model_id].cfg file in $FLDATA/[Experiment_code]/config detailing design information for each subject (if exists, this information will take precedence over information in the original [subject_id].cfg file used during the IMPORT step; see subject_info #design field in HELP FL)
-%   Output in $FLDATA/[Experiment_code]/derivatives/[pipeline_id]/sub-[subject_id]/results/firstlevel/[model_id]
+%       firstlevel_[model_id].cfg file in $FLDATA/[Experiment_code]/config/FL/FIRSTLEVEL detailing first level estimation options (see design_info in HELP FL)
+%       (optional) firstlevel_[subject_id]_[model_id].cfg file in $FLDATA/[Experiment_code]/config/FL/FIRSTLEVEL detailing design information for each subject (if exists, this information will take precedence over information in the original [subject_id].cfg file used during the IMPORT step; see subject_info #design field in HELP FL)
+%   Output in $FLDATA/[Experiment_code]/derivatives/FL/[pipeline_id]/sub-[subject_id]/results/firstlevel/[model_id]
 %
 % fl('FIRSTLEVEL.PLOT',subject_id,pipeline_id,model_id [,contrast_name])
 %   displays first-level contrast estimation of subject data
@@ -84,8 +84,8 @@ function varargout=fl(STEPS,varargin)
 %       pipeline_id : string identifying an individual preprocessing pipeline
 %       model_id : string identifying an individual first-level analysis
 %   Input config files:
-%       secondlevel_[results_id].cfg file in $FLDATA/[Experiment_code]/config detailing second level estimation options
-%   Output in $FLDATA/[Experiment_code]/derivatives/[pipeline_id]/results/secondlevel/[results_id]
+%       secondlevel_[results_id].cfg file in $FLDATA/[Experiment_code]/config/FL/SECONDLEVEL detailing second level estimation options
+%   Output in $FLDATA/[Experiment_code]/derivatives/FL/[pipeline_id]/results/secondlevel/[results_id]
 %
 % fl('SECONDLEVEL.PLOT',experiment_id,pipeline_id,model_id,results_id)
 %   displays second-level results (previously computed) 
@@ -95,7 +95,7 @@ function varargout=fl(STEPS,varargin)
 %   Inputs:
 %       roi_id : string identifying an individual ROI or atlas file 
 %   Input config files:
-%       roi_[roi_id].cfg file in $FLDATA/[Experiment_code]/config detailing roi/atlas information
+%       roi_[roi_id].cfg file in $FLDATA/[Experiment_code]/config/FL/IMPORT detailing roi/atlas information
 %
 %   EXAMPLE: fl SECONDLEVEL XMP mnispace speechrate groupcomparison
 %
@@ -198,7 +198,7 @@ if isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~ismember(lower(char(STEP
     if ischar(subject_id)&&any(ismember(subject_id,'*?'))
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
         dataset=fullfile(OUTPUT_FOLDER,project_id,sprintf('sub-%s',subject_id));
-        subject_info=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('',subject_id,'.cfg'));
+        subject_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('',subject_id,'.cfg'));
         f1=conn_dir(dataset,'-cell','-R','-dir'); f1=f1(cellfun('length',regexp(f1,'\.qlog$'))==0);
         f2=conn_dir(subject_info,'-cell','-R'); 
         if 1, 
@@ -237,10 +237,11 @@ switch(lower(STEPS))
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
         if numel(varargin)>=2, 
             pipeline_id=varargin{2}; 
-            dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id));
+            dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
             conn_setpermissions;
             conn_fixpermissions(dataset,[],true);
-            [ok,msg]=system(sprintf('chmod %s ''%s''','g+rw',fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id)));
+            [ok,msg]=system(sprintf('chmod %s ''%s''','g+rw',fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id)));
+            [ok,msg]=system(sprintf('chmod %s ''%s''','g+rw',fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL')));
             [ok,msg]=system(sprintf('chmod %s ''%s''','g+rw',fullfile(OUTPUT_FOLDER,project_id,'derivatives')));
             [ok,msg]=system(sprintf('chmod %s ''%s''','g+rw',fullfile(OUTPUT_FOLDER,project_id)));
         else
@@ -267,7 +268,7 @@ switch(lower(STEPS))
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
         if numel(varargin)>1, 
             pipeline_id=varargin{2}; 
-            dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id));
+            dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
         else
             dataset=fullfile(OUTPUT_FOLDER,project_id,sprintf('sub-%s',subject_id));
         end
@@ -282,7 +283,7 @@ switch(lower(STEPS))
         subject_id=varargin{1};
         pipeline_id=varargin{2};
         project_id=regexprep(subject_id,'\d+.*$','');
-        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id));
+        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
         [ok,msg]=system('qstat -u $USER');if ~ok, disp(msg); end
         conn_module evlab17 init silent;
         conn_module('evlab17','load',dataset);
@@ -303,7 +304,7 @@ switch(lower(STEPS))
         subject_id=varargin{1};
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
         dataset=fullfile(OUTPUT_FOLDER,project_id,sprintf('sub-%s',subject_id));
-        subject_info=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('',subject_id,'.cfg'));
+        subject_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('',subject_id,'.cfg'));
         issubject_info=~isempty(dir(subject_info));
         opts={};
         switch(lower(STEPS))
@@ -312,7 +313,7 @@ switch(lower(STEPS))
                     opts={'PREPROC.IMPORT',dataset,...
                         'dicoms',fullfile('dicom','*'),...
                         'dicoms_path','scanner',...
-                        'path',fullfile(OUTPUT_FOLDER,project_id,'config'),...
+                        'path',fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT'),...
                         varargin{2:end}};
                     if issubject_info, opts=[opts,{'subject_info',subject_info}]; end
                 end
@@ -325,7 +326,7 @@ switch(lower(STEPS))
                         'functionals_path','scanner',...
                         'rois_path','scanner',...
                         'dicoms_path','scanner',...
-                        'path',fullfile(OUTPUT_FOLDER,project_id,'config'),...
+                        'path',fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT'),...
                         varargin{2:end}};
                     if issubject_info, opts=[opts,{'subject_info',subject_info}]; end
                 end
@@ -337,7 +338,7 @@ switch(lower(STEPS))
                         'functionals_path','scanner',...
                         'rois_path','scanner',...
                         'dicoms_path','scanner',...
-                        'path',fullfile(OUTPUT_FOLDER,project_id,'config'),...
+                        'path',fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT'),...
                         'isnew',1,...
                         varargin{2:end}};
                 end
@@ -360,10 +361,10 @@ switch(lower(STEPS))
         [subject_idpath,subject_idname,subject_idext]=fileparts(subject_id);
         subject_id=[subject_idname,subject_idext];
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
-        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id));
+        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
         datainput=fullfile(OUTPUT_FOLDER,project_id,subject_idpath,conn_prepend('',sprintf('sub-%s',subject_id),'.mat'));
-        pipeline_info=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('preprocessing_',pipeline_id,'.cfg'));
-        pipeline_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('preprocessing_',[subject_id,'_',pipeline_id],'.cfg'));
+        pipeline_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','PREPROCESSING',conn_prepend('preprocessing_',pipeline_id,'.cfg'));
+        pipeline_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config','FL','PREPROCESSING',conn_prepend('preprocessing_',[subject_id,'_',pipeline_id],'.cfg'));
         if ~isempty(dir(pipeline_info_opt)), 
             if isempty(dir(pipeline_info)), pipeline_info=struct; 
             else pipeline_info=conn_loadcfgfile(pipeline_info); 
@@ -407,7 +408,7 @@ switch(lower(STEPS))
         pipeline_idadd=varargin{3};
         opts=varargin(4:end);
         if rem(numel(opts),2), opts=[opts,{[]}]; end
-        fl('preprocessing',fullfile('derivatives',pipeline_id,subject_id),pipeline_idadd,opts{:});
+        fl('preprocessing',fullfile('derivatives','FL',pipeline_id,subject_id),pipeline_idadd,opts{:});
         
     case {'preproc.append','preprocessing.append'}  % preproc.append ACE01 try01 try02
         assert(numel(varargin)>=3,'incorrect usage: please specify subject_id, pipeline_id, and AdditionalStepsPipeline_id')
@@ -415,9 +416,9 @@ switch(lower(STEPS))
         pipeline_id=varargin{2};
         pipeline_idadd=varargin{3};
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
-        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id));
-        pipeline_info=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('preprocessing_',pipeline_idadd,'.cfg'));
-        pipeline_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('preprocessing_',[subject_id,'_',pipeline_idadd],'.cfg'));
+        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
+        pipeline_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','PREPROCESSING',conn_prepend('preprocessing_',pipeline_idadd,'.cfg'));
+        pipeline_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config','FL','PREPROCESSING',conn_prepend('preprocessing_',[subject_id,'_',pipeline_idadd],'.cfg'));
         if ~isempty(dir(pipeline_info_opt)), 
             if isempty(dir(pipeline_info)), pipeline_info=struct; 
             else pipeline_info=conn_loadcfgfile(pipeline_info); 
@@ -450,13 +451,13 @@ switch(lower(STEPS))
         pipeline_id=varargin{2};
         design_id=varargin{3};
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
-        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id));
-        analysis_info=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('firstlevel_',design_id,'.cfg'));
-        analysis_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('firstlevel_',[subject_id,'_',design_id],'.cfg'));
-        subject_info=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('',subject_id,'.cfg'));
+        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
+        analysis_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','FIRSTLEVEL',conn_prepend('firstlevel_',design_id,'.cfg'));
+        analysis_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config','FL','FIRSTLEVEL',conn_prepend('firstlevel_',[subject_id,'_',design_id],'.cfg'));
+        subject_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('',subject_id,'.cfg'));
         isanalysis_info_opt=~isempty(dir(analysis_info_opt));
         design_info=struct;
-        design_info.design=struct('path',fullfile(OUTPUT_FOLDER,project_id,'config'));
+        design_info.design=struct('path',fullfile(OUTPUT_FOLDER,project_id,'config','FL','DESIGN'));
         if ~isempty(dir(analysis_info)), design_info=conn_loadcfgfile(analysis_info,design_info); end
         if isanalysis_info_opt, 
             design_info=conn_loadcfgfile(analysis_info_opt,design_info);
@@ -496,7 +497,7 @@ switch(lower(STEPS))
         pipeline_id=varargin{2};
         design_id=varargin{3};
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
-        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id));
+        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
         opts={dataset,design_id,...
             varargin{4:end}};
         fprintf('Project id %s\n',project_id);
@@ -513,8 +514,8 @@ switch(lower(STEPS))
         pipeline_id=varargin{2};
         design_id=varargin{3};
         results_id=varargin{4};
-        results_path=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,'results','secondlevel',design_id,results_id);
-        results_info=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('secondlevel_',results_id,'.cfg'));
+        results_path=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,'results','secondlevel',design_id,results_id);
+        results_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','SECONDLEVEL',conn_prepend('secondlevel_',results_id,'.cfg'));
         options=varargin(5:end);
         
         fprintf('Project id %s\n',project_id);
@@ -522,7 +523,7 @@ switch(lower(STEPS))
         fprintf('Second-level results id %s\n',results_id);
         fprintf('Second-level results folder %s\n',results_path);
         assert(~isempty(dir(results_info)),'file %s not found',results_info);
-        assert(~isempty(dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id))),'preprocessing path %s not found',fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id));
+        assert(~isempty(dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id))),'preprocessing path %s not found',fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id));
         
         results_cfg=conn_loadcfgfile(results_info);
         if ~isfield(results_cfg,'subjects')&&isfield(results_cfg,'data'), 
@@ -531,16 +532,16 @@ switch(lower(STEPS))
             subjects={};
         elseif ~isfield(results_cfg,'subjects'), 
             fprintf('#subjects field not found in %s. Assuming all subjects\n',results_info)
-            f1=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,'sub-*'),'-cell','-R','-dir');f1=f1(cellfun('length',regexp(f1,'\.qlog$'))==0);
-            assert(~isempty(f1),'no first-level results found in %s. Check syntax or re-run first-level analyses',fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,'sub-*')); 
+            f1=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,'sub-*'),'-cell','-R','-dir');f1=f1(cellfun('length',regexp(f1,'\.qlog$'))==0);
+            assert(~isempty(f1),'no first-level results found in %s. Check syntax or re-run first-level analyses',fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,'sub-*')); 
             dataset=cellfun(@(x)fullfile(x,'results','firstlevel',design_id,'SPM.mat'),f1,'uni',0);
             subjects=regexprep(f1,'^.*[\\\/]','');
         else
             if ischar(results_cfg.subjects), results_cfg.subjects=cellstr(results_cfg.subjects); end
-            if numel(results_cfg.subjects)==1, f1=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,['sub-',regexprep(results_cfg.subjects{1},'^sub-','')]),'-cell','-R','-dir');f1=f1(cellfun('length',regexp(f1,'\.qlog$'))==0);
-            else f1=cellfun(@(x)fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,['sub-',regexprep(x,'^sub-','')]),results_cfg.subjects,'uni',0);
+            if numel(results_cfg.subjects)==1, f1=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,['sub-',regexprep(results_cfg.subjects{1},'^sub-','')]),'-cell','-R','-dir');f1=f1(cellfun('length',regexp(f1,'\.qlog$'))==0);
+            else f1=cellfun(@(x)fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,['sub-',regexprep(x,'^sub-','')]),results_cfg.subjects,'uni',0);
             end
-            assert(~isempty(f1),'no first-level results found in %s. Check syntax or re-run first-level analyses',fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,['sub-',regexprep(results_cfg.subjects{1},'^sub-','')])); 
+            assert(~isempty(f1),'no first-level results found in %s. Check syntax or re-run first-level analyses',fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,['sub-',regexprep(results_cfg.subjects{1},'^sub-','')])); 
             dataset=cellfun(@(x)fullfile(x,'results','firstlevel',design_id,'SPM.mat'),f1,'uni',0);
             subjects=regexprep(f1,'^.*[\\\/]','');
         end
@@ -561,7 +562,8 @@ switch(lower(STEPS))
             pdata_idx=[];
             X_labels=X;
             if conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'participants.tsv')),pdata_name=fullfile(OUTPUT_FOLDER,project_id,'participants.tsv');
-            elseif conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'config','participants.tsv')),pdata_name=fullfile(OUTPUT_FOLDER,project_id,'config','participants.tsv');
+            elseif conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'config','FL','participants.tsv')),pdata_name=fullfile(OUTPUT_FOLDER,project_id,'config','FL','participants.tsv');
+            elseif conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'config','FL','SECONDLEVEL','participants.tsv')),pdata_name=fullfile(OUTPUT_FOLDER,project_id,'config','FL','SECONDLEVEL','participants.tsv');
             end
             if ~isempty(pdata_name), pdata=conn_loadtextfile(pdata_name); end
             for n=1:numel(X)
@@ -616,7 +618,7 @@ switch(lower(STEPS))
         design_id=varargin{3};
         results_id=varargin{4};
         options=varargin(5:end);
-        results_path=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,'results','secondlevel',design_id,results_id);
+        results_path=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,'results','secondlevel',design_id,results_id);
         conn_module evlab17 init silent;
         fh=conn_module('evlab17','resultsplots',results_path,options{:});
         varargout={fh};
@@ -628,19 +630,19 @@ switch(lower(STEPS))
         design_id=varargin{3};
         results_id=varargin{4};
         roi_id=varargin{5};
-        results_path=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,'results','secondlevel',design_id,results_id);
+        results_path=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,'results','secondlevel',design_id,results_id);
         options=varargin(6:end);
         if ~conn_existfile(fullfile(results_path,'SPM.mat'))
             fprintf('Second-level results file %s does not exist\n',fullfile(results_path,'SPM.mat'));
             fl('secondlevel',project_id,pipeline_id,design_id,results_id,'analysistype',3); % note: non-param only
         end
-        roi_keys={@(roiid,subid)fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subid),'roi',sprintf('sub-%s_roi-%s.nii',subid,roiid)),...
+        roi_keys={@(roiid,subid)fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subid),'roi',sprintf('sub-%s_roi-%s.nii',subid,roiid)),...
                   @(roiid,subid)fullfile(OUTPUT_FOLDER,project_id,sprintf('sub-%s',subid),'roi',sprintf('sub-%s_roi-%s.nii',subid,roiid))}; % note: change to line below if ROIs can be modified by preprocessing pipeline; % note: not supported yet session-specific rois
         troi_id=[];
         roi_file={};
         if ~iscell(roi_id), roi_id={roi_id}; end
         for n=1:numel(roi_id)
-            roi_file{n}=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('roi_',roi_id{n},'.cfg')); % cfg file
+            roi_file{n}=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('roi_',roi_id{n},'.cfg')); % cfg file
             if conn_existfile(roi_file{n}), troi_id=roi_id{n};
             elseif conn_existfile(roi_id{n}), roi_file{n}=roi_id{n}; % roi file
             else error('unable to find configuration file %s',roi_file{n}); 
@@ -662,7 +664,7 @@ switch(lower(STEPS))
         pipeline_id=varargin{2};
         design_id=varargin{3};
         results_id=varargin{4};
-        results_path=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,'results','secondlevel',design_id,results_id);
+        results_path=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,'results','secondlevel',design_id,results_id);
         if numel(varargin)>=5, 
             roi_id=varargin{5};
             rex_file=fullfile(results_path,sprintf('REX_%s.mat',roi_id));
@@ -683,10 +685,10 @@ switch(lower(STEPS))
         else design_id='';
         end
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
-        if ~isempty(design_id), opts={'qa_plist',['firstlevel_',design_id],opts{:}};
+        if ~isempty(design_id), opts={'qa_plist',conn_prepend('firstlevel_',design_id),opts{:}};
         else opts={'qa_plist','preprocessing',opts{:}};
         end
-        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id));
+        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
         opts={'QA.CREATE',dataset,opts{:}};
         fprintf('Project id %s\n',project_id);
         fprintf('Subject id %s\n',subject_id);
@@ -706,7 +708,7 @@ switch(lower(STEPS))
         else design_id='';
         end
         project_id=regexprep(experiment_id,'\d+.*$','');
-        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id);
+        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id);
         opts={'QA.PLOTS',dataset,...
             opts{:}};
         fprintf('Project id %s\n',project_id);
@@ -724,7 +726,7 @@ switch(lower(STEPS))
         else design_id='';
         end
         project_id=regexprep(subject_id,'\d+.*$','');
-        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id));
+        dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
         opts={'QA.PLOT',dataset,...
             opts{:}};
         fprintf('Project id %s\n',project_id);
@@ -752,7 +754,7 @@ switch(lower(STEPS))
                 if numel(varargin)>1 % exp pipeline_id
                     pipeline_id=varargin{2};
                 else % exp
-                    subject_info=fullfile(OUTPUT_FOLDER,project_id,'config',conn_prepend('',project_id,'*.cfg'));
+                    subject_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('',project_id,'*.cfg'));
                     f2=conn_dir(subject_info,'-cell','-R');
                     [nill,subject_id]=cellfun(@fileparts,f2,'uni',0);
                     subject_id=conn_prepend('',subject_id,'');
@@ -767,11 +769,11 @@ switch(lower(STEPS))
                 if numel(varargin)>2, % subj_id pipeline_id model_id
                     pipeline_id=varargin{2};
                     model_id=varargin{3};
-                    files=fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,sprintf('sub-%s',subject_id),'results','firstlevel',model_id,'SPM.mat');
+                    files=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id),'results','firstlevel',model_id,'SPM.mat');
                     if ~conn_existfile(files)
                         fprintf('This first-level analysis has not been run yet');
                     else
-                        load(files,'SPM');
+                        conn_loadmatfile(files,'SPM');
                         SPMcolnames=SPM.xX.name;
                         S=regexp(SPMcolnames,'^Sn\((\d+)\)\s+(.*?)(\*bf\(1\))?$','tokens','once');
                         SPMidxvalid=find(cellfun(@(s)isequal(size(s),[1,3]),S));
@@ -785,7 +787,7 @@ switch(lower(STEPS))
                     end
                 elseif numel(varargin)>1, % subj_id pipeline_id
                     pipeline_id=varargin{2};
-                    files=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives',pipeline_id,'SPM.mat'),'-cell','-sort');
+                    files=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,'SPM.mat'),'-cell','-sort');
                     [files,nill]=cellfun(@fileparts,files,'uni',0);
                     [nill,firstlevel_id]=cellfun(@fileparts,files,'uni',0);
                     firstlevel_id=unique(firstlevel_id);
@@ -796,7 +798,7 @@ switch(lower(STEPS))
                         end
                     end
                 else % subj_id
-                    pipeline_id=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','*'),'-cell','-sort','-R','-dir');
+                    pipeline_id=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL','*'),'-cell','-sort','-R','-dir');
                     [nill,pipeline_id]=cellfun(@fileparts,pipeline_id,'uni',0);
                     pipeline_id=pipeline_id(cellfun('length',regexprep(pipeline_id,'^\.+',''))>0);
                     if isempty(pipeline_id), fprintf('no preprocessing pipelines run\n')
