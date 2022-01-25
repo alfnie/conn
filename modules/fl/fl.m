@@ -193,7 +193,7 @@ fileout=[];
 varargout=cell(1,nargout);
 OUTPUT_FOLDER=rootfolder; 
 
-if isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~ismember(lower(char(STEPS)),{'init','initforce','root','qa.plots','qaplots'}); %,'list'}) % exceptions to subject-expansion
+if ~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~ismember(lower(char(STEPS)),{'init','initforce','root','qa.plots','qaplots'}); %,'list'}) % exceptions to subject-expansion
     subject_id=varargin{1};
     if ischar(subject_id)&&any(ismember(subject_id,'*?'))
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
