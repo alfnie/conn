@@ -5958,21 +5958,33 @@ else
                                                 space='';
                                                 desc=''; for n={'preproc'}, if any(ismember(dataset.dict.desc,n{1})), desc=n{1}; break; end; end; if isempty(desc)&&~isempty(dataset.dict.desc), desc=dataset.dict.desc{1}; end
                                                 Nsubs=zeros(1,numel(dataset.dict.space));
-                                                for n=1:numel(dataset.dict.space)
-                                                    space=dataset.dict.space{n};
-                                                    dataset_anat=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'anat'},'format',{'nii','nii.gz'},'desc',desc,'space',space);
-                                                    dataset_func=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'func'},'format',{'nii','nii.gz'},'contents','bold','desc',desc,'space',space);
+                                                allspaces=dataset.dict.space;
+                                                if ismember('T1w',allspaces), allspaces{end+1}='#MIXED'; end
+                                                for n=1:numel(allspaces)
+                                                    space=allspaces{n};
+                                                    if strcmp(space,'#MIXED'), % treats missing _space field in anatomicals as T1w
+                                                        dataset_anat=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'anat'},'format',{'nii','nii.gz'},'desc',desc,'space','#EMPTY');
+                                                        dataset_func=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'func'},'format',{'nii','nii.gz'},'contents','bold','desc',desc,'space','T1w');
+                                                    else
+                                                        dataset_anat=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'anat'},'format',{'nii','nii.gz'},'desc',desc,'space',space);
+                                                        dataset_func=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'func'},'format',{'nii','nii.gz'},'contents','bold','desc',desc,'space',space);
+                                                    end
                                                     Nsubs(n)=numel(intersect(dataset_anat.dict.sub,dataset_func.dict.sub));
                                                 end
                                                 Nvalid=find(Nsubs>0); % keeps only space entries with >0 subjects
-                                                if numel(Nvalid)>1&&any(strcmp(dataset.dict.space(Nvalid),'MNI152NLin2009cAsym')), Nvalid=Nvalid(strcmp(dataset.dict.space(Nvalid),'MNI152NLin2009cAsym')); end % prefers MNI152NLin2009cAsym space
+                                                if numel(Nvalid)>1&&any(strcmp(allspaces(Nvalid),'MNI152NLin2009cAsym')), Nvalid=Nvalid(strcmp(allspaces(Nvalid),'MNI152NLin2009cAsym')); end % prefers MNI152NLin2009cAsym space
                                                 if numel(Nvalid)>1, Nvalid=Nvalid(Nsubs==max(Nsubs)); end % alternatively, select space with maximum number of subjects
-                                                if numel(Nvalid)>1&&any(strcmp(dataset.dict.space(Nvalid),'T1w')), Nvalid=Nvalid(strcmp(dataset.dict.space(Nvalid),'T1w')); end % alternatively, T1w space
-                                                if numel(Nvalid)==1, space=dataset.dict.space{Nvalid}; end
+                                                if numel(Nvalid)>1&&any(strcmp(allspaces(Nvalid),'T1w')), Nvalid=Nvalid(strcmp(allspaces(Nvalid),'T1w')); end % alternatively, T1w space
+                                                if numel(Nvalid)==1, space=allspaces{Nvalid}; end
                                             end
                                             desc=''; for n={'preproc'}, if any(ismember(dataset.dict.desc,n{1})), desc=n{1}; break; end; end; if isempty(desc)&&~isempty(dataset.dict.desc), desc=dataset.dict.desc{1}; end
-                                            dataset_anat=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'anat'},'format',{'nii','nii.gz'},'desc',desc,'space',space);
-                                            dataset_func=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'func'},'format',{'nii','nii.gz'},'contents','bold','desc',desc,'space',space);
+                                            if strcmp(space,'#MIXED')
+                                                dataset_anat=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'anat'},'format',{'nii','nii.gz'},'desc',desc,'space','#EMPTY');
+                                                dataset_func=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'func'},'format',{'nii','nii.gz'},'contents','bold','desc',desc,'space','T1w');
+                                            else
+                                                dataset_anat=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'anat'},'format',{'nii','nii.gz'},'desc',desc,'space',space);
+                                                dataset_func=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'func'},'format',{'nii','nii.gz'},'contents','bold','desc',desc,'space',space);
+                                            end
                                         else
                                             dataset_anat=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'anat'},'format',{'nii','nii.gz'});
                                             dataset_func=conn_bidsdir(dataset,'sub',dataset.dict.sub,'folder',{'func'},'format',{'nii','nii.gz'},'contents','bold');
