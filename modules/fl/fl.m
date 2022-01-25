@@ -197,10 +197,11 @@ else OUTPUT_FOLDER=rootfolder;
 end
 
 if isremote&&~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete'})); % run these locally
-    [hmsg,hstat]=conn_msgbox({'Process running remotely (%s)','Please wait...',' ',' '},[],[],true);
+    [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,STEPS,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,STEPS,varargin{:}); 
     end
+    if ~isempty(hmsg)&&ishandle(hmsg), delete(hmsg); end
     return
 end
 
@@ -265,7 +266,9 @@ switch(lower(STEPS))
     case 'root'
         if nargin>1&&~isempty(varargin{1}), 
             rootfolder=varargin{1}; 
+            if isremote, conn_server('run',mfilename,'root',rootfolder); end
             if nargout>0, varargout={rootfolder}; end
+            fprintf('ROOT folder set to %s\n',rootfolder);
         else
             if ~nargout, disp(rootfolder);
             else varargout={rootfolder};
@@ -280,9 +283,13 @@ switch(lower(STEPS))
                 fprintf('Starting new remote connection to server\n');
                 conn remotely on;
             end
+            if isremote, fprintf('working with remote projects now\n');
+            else fprintf('working with local projects now\n');
+            end
             if isremote&&conn_server('isconnected')
-                conn_server('run',mfilename,'init','silent');
-                conn_server('run',mfilename,'root',rootfolder);
+                conn_server('run','conn_module','fl','init');
+                rootfolder=conn_server('run',mfilename,'root');
+                fprintf('ROOT folder set to %s\n',rootfolder);
             end
             if nargout>0, varargout={isremote}; end
         else
