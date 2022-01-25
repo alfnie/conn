@@ -755,8 +755,8 @@ switch(lower(STEPS))
                     pipeline_id=varargin{2};
                 else % exp
                     subject_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('',project_id,'*.cfg'));
-                    f2=conn_dir(subject_info,'-cell','-R');
-                    [nill,subject_id]=cellfun(@fileparts,f2,'uni',0);
+                    f2=conn_dir(subject_info,'-cell');
+                    subject_id=regexprep(f2,'^.*[\\\/]config[\\\/]FL[\\\/]IMPORT[\\\/]',''); %[nill,subject_id]=cellfun(@fileparts,f2,'uni',0);
                     subject_id=conn_prepend('',subject_id,'');
                     if isempty(subject_id), fprintf('no subjects defined (no %s files found)\n',subject_info)
                     else
@@ -789,7 +789,7 @@ switch(lower(STEPS))
                     pipeline_id=varargin{2};
                     files=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,'SPM.mat'),'-cell','-sort');
                     [files,nill]=cellfun(@fileparts,files,'uni',0);
-                    [nill,firstlevel_id]=cellfun(@fileparts,files,'uni',0);
+                    firstlevel_id=regexprep(files,'^.*[\\\/]derivatives[\\\/]FL[\\\/]',''); %[nill,firstlevel_id]=cellfun(@fileparts,files,'uni',0);
                     firstlevel_id=unique(firstlevel_id);
                     if isempty(firstlevel_id), fprintf('no first-level analyses run\n')
                     else
