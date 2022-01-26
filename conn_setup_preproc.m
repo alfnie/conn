@@ -1059,15 +1059,13 @@ for iSTEP=1:numel(STEPS)
                         lagidx=[];
                         lagmax=[];
                         if any(reg_filter), rt=conn_get_rt(nsubject,nses,sets); end
-                        X=[ones(numel(Vin),1)]; Xnames={'session (1)'};
+                        X=[]; Xnames={};
+                        if 1, X=[X, ones(numel(Vin),1)]; Xnames{end+1}='session (1)'; end
                         if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; Xnames{end+1}='detrend (1)'; end
                         entercovariates=X;
-                        reg_done=false(size(reg_names));
-                        Vsource=[];
                         for nl1covariate=1:numel(reg_names)
                             icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),reg_names{nl1covariate}));
                             if ~isempty(icov) % first-level covariates
-                                reg_done(nl1covariate)=true;
                                 cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
                                 assert(~isempty(cfilename),'covariate %s has not been defined for subject %d sessions %d',reg_names{nl1covariate},nsubject,nses);
                                 switch(cfilename),
@@ -1078,7 +1076,23 @@ for iSTEP=1:numel(STEPS)
                                 end
                                 assert(size(data,1)==numel(Vin),'mismatched dimensions; functional data has %d timepoints, covariate %s has %d timepoints',numel(Vin),reg_names{nl1covariate},size(data,1));
                                 if numel(reg_dimensions)>=nl1covariate, data=data(:,1:min(size(data,2),reg_dimensions(nl1covariate))); end
-                                entercovariates=cat(2,entercovariates,data-repmat(mean(data,1),size(data,1),1)); % note: same as ROI entercovariates behavior                                
+                                entercovariates=cat(2,entercovariates,data-repmat(mean(data,1),size(data,1),1)); % note: same as ROI entercovariates behavior
+                            end
+                        end
+                        X=[]; Xnames={};
+                        reg_done=false(size(reg_names));
+                        Vsource=[];
+                        for nl1covariate=1:numel(reg_names)
+                            icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),reg_names{nl1covariate}));
+                            if ~isempty(icov) % first-level covariates
+                                cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
+                                switch(cfilename),
+                                    case '[raw values]',
+                                        data=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{3};
+                                    otherwise,
+                                        data=conn_loadtextfile(cfilename,false);
+                                end
+                                if numel(reg_dimensions)>=nl1covariate, data=data(:,1:min(size(data,2),reg_dimensions(nl1covariate))); end
                                 if numel(reg_deriv)>=nl1covariate&&reg_deriv(nl1covariate)>0, ddata=convn(cat(1,data(1,:),data,data(end,:)),[1;0;-1],'valid'); data=[data, ddata]; end
                                 if numel(reg_deriv)>=nl1covariate&&reg_deriv(nl1covariate)>1, data=[data, convn(cat(1,ddata(1,:),ddata,ddata(end,:)),[1;0;-1],'valid')]; end
                                 if numel(reg_filter)>=nl1covariate&&reg_filter(nl1covariate)>0, data=conn_filter(rt,bp_filter,data); end
@@ -1132,6 +1146,8 @@ for iSTEP=1:numel(STEPS)
                                 X=cat(2,X,data-repmat(mean(data,1),size(data,1),1)); Xnames{end+1}=sprintf('%s (%d)',reg_names{nl1covariate},size(data,2));
                             end
                         end
+                        if 1, X=[X, ones(numel(Vin),1)]; Xnames{end+1}='session (1)'; end
+                        if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; Xnames{end+1}='detrend (1)'; end
                         if ~reg_skip
                             [gridx,gridy]=ndgrid(1:Vin(1).dim(1),1:Vin(1).dim(2));
                             xyz0=[gridx(:),gridy(:)]';

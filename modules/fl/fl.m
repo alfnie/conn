@@ -180,7 +180,9 @@ function varargout=fl(STEPS,varargin)
 % ************************************************************************************
 %
 % fl('ROOT',rootfolder) 
-% defines the location of $FLDATA (root folder for all experiments) as rootfolder
+% defines the location of $FLDATA (root folder for all experiments)
+% fl('REMOTE',onoff)       
+% work remotely (default 'off') (0/'off': when working from SCC computer or on a dataset saved locally on your computer; 1/'on': when working remotely -to enable this functionality on a remote server run on the remote server the command "conn remotely setup")
 %
 % ************************************************************************************
 %
@@ -278,7 +280,13 @@ switch(lower(STEPS))
     case 'remote'
         if nargin>1&&~isempty(varargin{1}), 
             isremote=varargin{1}; 
-            if ischar(isremote), isremote=str2num(isremote); end
+            if ischar(isremote)
+                switch(lower(isremote))
+                    case 'on',  isremote=1;
+                    case 'off', isremote=0;
+                    otherwise, isremote=str2num(isremote); 
+                end
+            end
             if isremote&&~conn_server('isconnected')
                 fprintf('Starting new remote connection to server\n');
                 conn remotely on;
