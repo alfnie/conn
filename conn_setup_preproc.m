@@ -1063,6 +1063,7 @@ for iSTEP=1:numel(STEPS)
                         if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; Xnames{end+1}='detrend (1)'; end
                         entercovariates=X;
                         reg_done=false(size(reg_names));
+                        Vsource=[];
                         for nl1covariate=1:numel(reg_names)
                             icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),reg_names{nl1covariate}));
                             if ~isempty(icov) % first-level covariates
@@ -1086,9 +1087,6 @@ for iSTEP=1:numel(STEPS)
                                 else X=cat(2,X,data); Xnames{end+1}=sprintf('%s (%d)',reg_names{nl1covariate},size(data,2));
                                 end
                             end
-                        end
-                        Vsource=[];
-                        for nl1covariate=1:numel(reg_names)
                             icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),reg_names{nl1covariate}));
                             if isempty(icov) % ROIs
                                 reg_done(nl1covariate)=true;
