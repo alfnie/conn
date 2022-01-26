@@ -19,6 +19,9 @@ function evlab17_run_model(varargin)
 %             onsets   : Nx2 array with onset times for each event/block in the first column and condition number (1-M) for each event/block in the second column   
 %             durations: Nx1 array with duration of each event/block OR 1xM array with duration of each condition
 %             names    : 1xM cell array with condition names (note: condition names cannot contain whitespace charaters)
+%             units    : 'scans' / 'secs; : units for onset/duration specification of condition information  (default: scans)
+%             (optional fields for sparse sampling acquisitions)
+%             scan_times: Nscans x 1 array with times of each scan acquisition (in seconds, starting at 0s; effects sampled at time fMRI_T0/fMRI_T within each scan acquisition)
 %             (optional fields only applicable when multiple within-condition effects are estimated)
 %             orth     :  1/0 array indicating whether within-condition regressors should be GS orthogonalized [1]
 %             (optional fields for temporal modulation)
@@ -218,6 +221,7 @@ else
     end
     NSESSIONS=numel(RUNS);
     pmod_interaction={};    
+    scan_times={};
 
     if skipmodeldefinition % re-estimates model from existing SPM.mat file
         if isequal(options.files{1},fullfile(pwd1,'SPM.mat'))
@@ -232,8 +236,9 @@ else
         nscans=conn_module('get','Setup.nscans');
         nscans=nscans(nsubject);
         if isfield(options,'units')
-            matlabbatch{1}.spm.stats.fmri_spec.timing.units=char(options.units);
+            paraunits=char(options.units);
             options=rmfield(options,'units');
+        else paraunits=[];
         end
         
         if isfield(options,'RT'),
@@ -441,15 +446,22 @@ else
                 para_file=options.files{nses};
                 if isempty(regexp(para_file,'^[\\\/]')), para_file=fullfile(pathtopara,para_file); end
                 para=conn_loadcfgfile(para_file);
+                if isfield(para,'scan_times'), matlabbatch{1}.spm.stats.fmri_spec.timing.units='secs'; break; end % note: if any session has #scan_times field transform all condition onset/duration units to secs
+            end
+            for nses=1:NSESSIONS
+                para_file=options.files{nses};
+                if isempty(regexp(para_file,'^[\\\/]')), para_file=fullfile(pathtopara,para_file); end
+                para=conn_loadcfgfile(para_file);
                 for overwriteopts={'orth','pmod','pmod_interaction','tmod','npmod'}, if isfield(options,overwriteopts{1}), para.(overwriteopts{1})=options.(overwriteopts{1}); end; end
                 assert(isfield(para,'names'), 'Para file %s must contain the field ''names''!', para_file);
                 assert(isfield(para, 'onsets'), 'Para file %s must contain the field ''onsets''!', para_file);
                 factor=1;
+                if ~isfield(para,'units')&&~isempty(paraunits), para.units=paraunits; end
                 if isfield(para,'units'),
                     para.units=char(para.units);
-                    if isfield(matlabbatch{1}.spm.stats.fmri_spec.timing,'units')&&~isequal(matlabbatch{1}.spm.stats.fmri_spec.timing.units,para.units),
-                        if strcmp(para.units,'secs')&&strcmp(matlabbatch{1}.spm.stats.fmri_spec.timing.units,'scans'), factor=1/matlabbatch{1}.spm.stats.fmri_spec.timing.RT;
-                        elseif strcmp(para.units,'scans')&&strcmp(matlabbatch{1}.spm.stats.fmri_spec.timing.units,'secs'), factor=matlabbatch{1}.spm.stats.fmri_spec.timing.RT;
+                    if isfield(matlabbatch{1}.spm.stats.fmri_spec.timing,'units')&&~isequal(matlabbatch{1}.spm.stats.fmri_spec.timing.units,para.units), 
+                        if strcmp(para.units,'secs')&&strcmp(matlabbatch{1}.spm.stats.fmri_spec.timing.units,'scans'), assert(~isfield(para,'scan_times'),'incorrect units combination'); factor=1/matlabbatch{1}.spm.stats.fmri_spec.timing.RT;
+                        elseif strcmp(para.units,'scans')&&strcmp(matlabbatch{1}.spm.stats.fmri_spec.timing.units,'secs'), factor=matlabbatch{1}.spm.stats.fmri_spec.timing.RT; if isfield(para,'scan_times'), factor='scantosecs'; end
                         else error('unrecognized units %s / %s',para.units,matlabbatch{1}.spm.stats.fmri_spec.timing.units);
                         end
                         %error('Inconsistent #units field in %s',para_file);
@@ -495,6 +507,15 @@ else
                     para.pmod_names=para.pmod_names(cellfun('length',para.pmod_names)>0);
                 end
                 [conditions,nill,iconditions]=unique(para.onsets(:,2));
+                if isfield(para,'scan_times'), 
+                    scan_times{nses}=para.scan_times; 
+                    assert(numel(para.scan_times)==nscans{1}{RUNS(nses)},'Para file %s: number of elements in #scan_times field (%d) must be equal to number of functional scans/acquisitions (%d)',para_file,numel(para.scan_times),nscans{1}{RUNS(nses)});
+                    if isequal(factor,'scantosecs')
+                        assert(max(para.onsets(:,1))+1<=numel(para.scan_times),'Para file %s: condition onset times in ''scan'' units exceeds number of #scan_times values',para_file);
+                        para.onsets(:,1)=para.scan_times(round(1+para.onsets(:,1)));
+                        factor=1;
+                    end
+                end
                 if isfield(matlabbatch{1}.spm.stats.fmri_spec.timing,'units'), conn_disp('fprintf','Run #%d (%d scans; %d secs): %d conditions (onsets [%d-%d %s])\n',nses,round(nscans{1}{RUNS(nses)}),round(nscans{1}{RUNS(nses)}*matlabbatch{1}.spm.stats.fmri_spec.timing.RT),length(conditions),floor(factor*min(para.onsets(:,1))),ceil(factor*max(para.onsets(:,1))),matlabbatch{1}.spm.stats.fmri_spec.timing.units);
                 else conn_disp('fprintf','Run #%d (%d scans): %d conditions (onsets [%d-%d])\n',nses,round(nscans{1}{RUNS(nses)}),length(conditions),floor(factor*min(para.onsets(:,1))),ceil(factor*max(para.onsets(:,1))));
                 end
@@ -575,7 +596,9 @@ else
         isunitsscan=strcmp(matlabbatch{1}.spm.stats.fmri_spec.timing.units,'scans');
         for nses=1:NSESSIONS % warnings for onsets beyond session boundaries
             for ncond=1:numel(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond)
-                if isunitsscan, exceededonset=find(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(ncond).onset>nscans{1}{RUNS(nses)});
+                if numel(scan_times)>=nses&&~isempty(scan_times{nses})&&isunitsscan, exceededonset=[]; % this should never happen
+                elseif numel(scan_times)>=nses&&~isempty(scan_times{nses})&&~isunitsscan, exceededonset=find(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(ncond).onset>max(scan_times{nses})+matlabbatch{1}.spm.stats.fmri_spec.timing.RT);
+                elseif isunitsscan, exceededonset=find(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(ncond).onset>nscans{1}{RUNS(nses)});
                 else exceededonset=find(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(ncond).onset>nscans{1}{RUNS(nses)}*matlabbatch{1}.spm.stats.fmri_spec.timing.RT);
                 end
                 for nexceededonset=exceededonset(:)', conn_disp('fprintf','Warning: condition %s onset %d %s exceeds total session #%d length (%d scans)\n',matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(ncond).name,matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(ncond).onset,matlabbatch{1}.spm.stats.fmri_spec.timing.units,nses,round(nscans{1}{RUNS(nses)})); end
@@ -663,6 +686,33 @@ else
             job_id=spm_jobman('run',matlabbatch);
         end
         cd(pwd0);
+    end
+    if ~isempty(scan_times), 
+        conn_disp('fprintf','Resampling task effects at specified scan-times\n');
+        load(fullfile(pwd1,'SPM.mat'),'SPM');
+        RT=SPM.xY.RT;
+        T=SPM.xBF.T;
+        T0=SPM.xBF.T0;
+        for nses=1:NSESSIONS, 
+            if numel(scan_times)<nses||isempty(scan_times{nses}), 
+                scan_times{nses}=(0:SPM.nscans(nses)-1)*SPM.xY.RT;
+            end
+        end
+        maxrt=0;
+        conn_disp('fprintf','Sampling offset = %.2fs\n',T0/T*RT);
+        for nses=1:NSESSIONS, 
+            conn_disp('fprintf','Scan-times session #%d (s) = %s\n',nses,mat2str(scan_times{nses}));
+            maxrt=max(maxrt, (max(scan_times{nses})+SPM.xY.RT)/SPM.nscans(nses)); % RT if scans were uniformly sampled
+        end
+        SPM.xY.RT=maxrt;
+        SPM.xBF.T=max(16,2*ceil(8*SPM.xY.RT)); % number of bins per "uniform-scan"
+        SPM.xBF.T0=round(T0/T*SPM.xBF.T); % sample bin
+        SPM = evlab17_run_model_resample(SPM,scan_times);
+        SPM.xY.RT=RT;
+        SPM.xBF.T=T;
+        SPM.xBF.T0=T0;
+        SPM.xX.sparsesampling=true;
+        save(fullfile(pwd1,'SPM.mat'),'SPM',evlab17_module('default','mat_format'));
     end
     if isfield(options,'model_session')&&(iscell(options.model_session)||~options.model_session), 
         conn_disp('fprintf','Collapsing session-specific task effects into session-invariant task effects\n');
@@ -1028,6 +1078,8 @@ end
 
 end
 
+
+
 function SPM=evlab17_run_model_configuredesign(SPM) % scaling & threshold configuration (from SPM12 spm_fmri_spm_ui.m)
 VY    = SPM.xY.VY;
 nscan = SPM.nscan;
@@ -1102,4 +1154,137 @@ SPM.xM = struct(...
     'I',   0,...
     'VM',  VM,...
     'xs',  struct('Masking','analysis threshold'));
+end
+
+
+function [SPM] = evlab17_run_model_resample(SPM,scantimes)  % resample design at non-uniform sample times (from SPM12 spm_fMRI_design.m)
+if nargin<2||isempty(scantimes), scantimes={}; end
+if ~iscell(scantimes), scantimes={scantimes}; end % scantimes: cell array, scan times (in seconds, starting at 0) for each session
+
+SVNid = '$Rev: 7739 $';
+
+
+%-Construct Design matrix {X}
+%==========================================================================
+
+%-Microtime onset and microtime resolution
+%--------------------------------------------------------------------------
+try
+    fMRI_T     = SPM.xBF.T;
+    fMRI_T0    = SPM.xBF.T0;
+catch
+    fMRI_T     = spm_get_defaults('stats.fmri.t');
+    fMRI_T0    = spm_get_defaults('stats.fmri.t0');
+    SPM.xBF.T  = fMRI_T;
+    SPM.xBF.T0 = fMRI_T0;
+end
+
+%-Time units, dt = time bin {secs}
+%--------------------------------------------------------------------------
+SPM.xBF.dt     = SPM.xY.RT/SPM.xBF.T;
+
+%-Get basis functions
+%--------------------------------------------------------------------------
+SPM.xBF        = spm_get_bf(SPM.xBF);
+
+
+%-Get session specific design parameters
+%==========================================================================
+Xx    = [];
+Xb    = [];
+Xname = {};
+Bname = {};
+for s = 1:length(SPM.nscan)
+    %-Number of scans for this session
+    %----------------------------------------------------------------------
+    k = SPM.nscan(s);
+    
+    
+    %-Create convolved stimulus functions or inputs
+    %======================================================================
+    
+    %-Get inputs, neuronal causes or stimulus functions U
+    %----------------------------------------------------------------------
+    U = spm_get_ons(SPM,s);
+    
+    %-Convolve stimulus functions with basis functions
+    %----------------------------------------------------------------------
+    [X,Xn,Fc] = spm_Volterra(U, SPM.xBF.bf, SPM.xBF.Volterra);
+    
+    %-Resample regressors at acquisition times (32 bin offset)
+    %----------------------------------------------------------------------
+    if ~isempty(X)
+        if numel(scantimes)<s||isempty(scantimes{s}), scantimes{s}=SPM.xY.RT*(0:k - 1); end
+        X = X(round(scantimes{s}/SPM.xY.RT*fMRI_T) + fMRI_T0 + 32,:);
+        %X = X((0:(k - 1))*fMRI_T + fMRI_T0 + 32,:);
+    end
+    
+    %-Orthogonalise (within trial type)
+    %----------------------------------------------------------------------
+    for i = 1:length(Fc)
+        if i<= numel(U) && ... % for Volterra kernels
+                (~isfield(U(i),'orth') || U(i).orth)
+            p = ones(size(Fc(i).i));
+        else
+            p = Fc(i).p;
+        end
+        for j = 1:max(p)
+            X(:,Fc(i).i(p==j)) = spm_orth(X(:,Fc(i).i(p==j)));
+        end
+    end
+    
+    
+    %-Get user specified regressors
+    %======================================================================
+    C     = SPM.Sess(s).C.C;
+    Cname = SPM.Sess(s).C.name;
+    
+    %-Append mean-corrected regressors and names
+    %----------------------------------------------------------------------
+    X     = [X spm_detrend(C)];
+    Xn    = {Xn{:} Cname{:}};
+    
+    
+    %-Confounds: Session effects
+    %======================================================================
+    B     = ones(k,1);
+    Bn    = {'constant'};
+    
+    
+    %-Session structure array
+    %======================================================================
+    SPM.Sess(s).U      = U;
+    SPM.Sess(s).C.C    = C;
+    SPM.Sess(s).C.name = Cname;
+    SPM.Sess(s).row    = size(Xb,1) + (1:k);
+    SPM.Sess(s).col    = size(Xx,2) + (1:size(X,2));
+    SPM.Sess(s).Fc     = Fc;
+    
+    
+    %-Append into Xx and Xb
+    %======================================================================
+    Xx      = blkdiag(Xx,X);
+    Xb      = blkdiag(Xb,B);
+    
+    %-Append names
+    %----------------------------------------------------------------------
+    for i = 1:length(Xn)
+        Xname{end + 1} = [sprintf('Sn(%i) ',s) Xn{i}];
+    end
+    for i = 1:length(Bn)
+        Bname{end + 1} = [sprintf('Sn(%i) ',s) Bn{i}];
+    end
+    
+end
+
+
+%-Place design matrix structure in xX
+%==========================================================================
+SPM.xX.X    = [Xx Xb];
+SPM.xX.iH   = [];
+SPM.xX.iC   = 1:size(Xx,2);
+SPM.xX.iB   = (1:size(Xb,2)) + size(Xx,2);
+SPM.xX.iG   = [];
+SPM.xX.name = {Xname{:} Bname{:}};
+
 end

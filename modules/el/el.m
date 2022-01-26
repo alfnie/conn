@@ -3,12 +3,14 @@ function varargout=el(option,varargin)
 %
 % INITIALIZATION SYNTAX:
 %
+%   conn module EL init                  : initializes EVLAB tools
 %   el root.subjects <subjects_folder>   : defines root directory where subject folders are stored
 %                                    Altnernatively, this is defined by the symbolic link conn/modules/el/root.subjects if it exists
 %                                    (syntax "el root.subjects <subjects_folder> all" may be used to create this symbolic link)
 %   el root.tasks <tasks_folder>         : defines root directory where experimental design files are stored
 %                                    Altnernatively, this is defined by the symbolic link conn/modules/el/root.tasks if it exists
 %                                    (syntax "el root.tasks <tasks_folder> all" may be used to create this symbolic link)
+%   el remote on                         : work remotely (default 'off') (0/'off': when working with data stored locally on your computer; 1/'on': when working with data stored in a remote server -to enable this functionality on a remote server run on the remote server the command "conn remotely setup")
 %
 % PREPROCESSING SYNTAX:
 %
@@ -94,23 +96,71 @@ if isempty(defaults),
         'folder_dicoms','*dicoms' ,...
         'dicom_isstructural',{{'^T1_MPRAGE_1iso'}} ,...
         'dicom_disregard_functional',{{'^localizer','^AAScout','^AAHScout','^MoCoSeries','^T1_MPRAGE_1iso','^DIFFUSION_HighRes'}},...
-        'create_model_cfg_files',false); % 1/0 specifying whether "el model *" commands create an associated .cfg file (for backwards compatibility) [false]
+        'create_model_cfg_files',false,... % 1/0 specifying whether "el model *" commands create an associated .cfg file (for backwards compatibility) [false]
+        'isremote', 0); 
 end
 
 conn_module('evlab17','init','silent');
 fileout=[];
 varargout=cell(1,nargout);
 
+if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','remote','init','initforce'})); % run these locally
+    [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
+    if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,option,varargin{:}); 
+    else [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{:}); 
+    end
+    if ~isempty(hmsg)&&ishandle(hmsg), delete(hmsg); end
+    return
+end
+
 switch(lower(option))
     case 'root.subjects'
-        if numel(varargin)>1&&isequal(varargin{2},'all'), conn_fileutils('linkdir',varargin{1},fullfile(fileparts(which(mfilename)),'root.subjects')); end
-        if numel(varargin)>0, defaults.folder_subjects=varargin{1};
+        if numel(varargin)>1&&isequal(varargin{2},'all')&&~defaults.isremote, conn_fileutils('linkdir',varargin{1},fullfile(fileparts(which(mfilename)),'root.subjects')); end
+        if numel(varargin)>0, 
+            defaults.folder_subjects=varargin{1};
+            if defaults.isremote, conn_server('run',mfilename,'root.subjects',defaults.folder_subjects); end
         else varargout={defaults.folder_subjects};
         end
     case 'root.tasks'
-        if numel(varargin)>1&&isequal(varargin{2},'all'), conn_fileutils('linkdir',varargin{1},fullfile(fileparts(which(mfilename)),'root.tasks')); end
-        if numel(varargin)>0, defaults.folder_tasks=varargin{1};
+        if numel(varargin)>1&&isequal(varargin{2},'all')&&~defaults.isremote, conn_fileutils('linkdir',varargin{1},fullfile(fileparts(which(mfilename)),'root.tasks')); end
+        if numel(varargin)>0, 
+            defaults.folder_tasks=varargin{1};
+            if defaults.isremote, conn_server('run',mfilename,'root.tasks',defaults.folder_tasks); end
         else varargout={defaults.folder_tasks};
+        end
+        
+    case 'remote'
+        if nargin>1&&~isempty(varargin{1}), 
+            defaults.isremote=varargin{1}; 
+            if ischar(defaults.isremote)
+                switch(lower(defaults.isremote))
+                    case 'on',  defaults.isremote=1;
+                    case 'off', defaults.isremote=0;
+                    otherwise, defaults.isremote=str2num(defaults.isremote); 
+                end
+            end
+            if defaults.isremote&&~conn_server('isconnected')
+                fprintf('Starting new remote connection to server\n');
+                conn remotely on;
+            end
+            if defaults.isremote, fprintf('working with remote projects now\n');
+            else fprintf('working with local projects now\n');
+            end
+            if defaults.isremote&&conn_server('isconnected')
+                conn_server('run','conn_module','el','init');
+                defaults.folder_subjects=conn_server('run',mfilename,'root.subjects');
+                defaults.folder_tasks=conn_server('run',mfilename,'root.tasks');
+                fprintf('ROOT.SUBJECTS folder set to %s\n',defaults.folder_subjects);
+                fprintf('ROOT.TASKS folder set to %s\n',defaults.folder_tasks);
+            end
+            if nargout>0, varargout={defaults.isremote}; end
+        else
+            if ~nargout,
+                if defaults.isremote, fprintf('working with remote projects (remote=1)\n');
+                else fprintf('working with local projects (remote=0)\n');
+                end
+            else varargout={defaults.isremote};
+            end
         end
         
     case 'default'
@@ -289,7 +339,7 @@ switch(lower(option))
             str=reshape(regexp(str,'\n','split'),1,[]);
             cons=reshape(str(cellfun('length',str)>0),1,[]);
         else % back-compatibility
-            all_contrasts_files=fullfile(defaults.folder_tasks,'contrasts_by_expt.txt'); % single-file, all expt contrasts
+            all_contrasts_files=fullfile(el_readtaskfolder(defauts),'contrasts_by_expt.txt'); % single-file, all expt contrasts
             %if ~conn_existfile(all_contrasts_files), all_contrasts_files=fullfile(defaults.folder_subjects,'..','ANALYSIS','contrasts_by_expt.txt'); end
             str=conn_fileutils('fileread',all_contrasts_files);
             str=reshape(regexp(str,'\n','split'),1,[]);
@@ -302,7 +352,7 @@ switch(lower(option))
         cat_file=conn_dir(fullfile(subject_path,[expt,'.cat']),'-ls');
         if isempty(cat_file), cat_file=conn_dir(fullfile(subject_path,['*_',expt,'.cat']),'-ls'); end
         assert(numel(cat_file)==1,'%d %s files found',numel(cat_file),fullfile(subject_path,['*_',expt,'.cat']));
-        cat_info=conn_loadcfgfile(char(cat_file),struct('path',defaults.folder_tasks));
+        cat_info=conn_loadcfgfile(char(cat_file),struct('path',el_readtaskfolder(defauts)));
         DOSAVECFG=defaults.create_model_cfg_files;
         opts=struct('dataset',char(dataset),'design',char(cat_file),'model_name',expt,'contrasts',{cons});
         if DOSAVECFG
@@ -326,6 +376,8 @@ switch(lower(option))
         assert(conn_existfile(dataset),'file %s not found',dataset);
         conn_module('evlab17','modelplots',opts{:});
         
+    case 'roi.extract'
+        
     otherwise
         [varargout{1:nargout}]=conn_module('evlab17',option,varargin{:});
 end
@@ -339,6 +391,7 @@ if ~isempty(regexp(subject,'\.cfg')) % old format
     subject_path=filepath(subject);
 else
     subject_path=fullfile(defaults.folder_subjects,subject);
+    if defaults.isremote, subject_path=fullfile('/CONNSERVER',subject_path); end
     assert(conn_existfile(subject_path,2),'unable to find directory %s',subject_path);
     data_config_file=fullfile(subject_path,'data.cfg');
 end
@@ -376,6 +429,7 @@ elseif ~isempty(regexp(dataset,'\.mat$')) % .mat file
     dataset=conn_fullfile(dataset);
 else % pipeline id
     dataset=fullfile(defaults.folder_subjects,subject,[dataset,'.mat']);
+    if defaults.isremote, dataset=fullfile('/CONNSERVER',dataset); end
 end
 end
 
@@ -387,5 +441,12 @@ if isempty(expt),
     expt=expt{end};
 end
 end
+
+function fpath = el_readtaskfolder(defaults)
+fpath = defaults.folder_tasks;
+if defaults.isremote, fpath=fullfile('/CONNSERVER',fpath); end
+end
+
+
 
 

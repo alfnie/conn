@@ -6,7 +6,7 @@ function varargout=fl(STEPS,varargin)
 %
 % ************************************************************************************
 %
-% fl('INIT')
+% conn module FL init
 % initializes all FL toolboxes and performs full check of software-versions
 % (this is done automatically everytime that other fl commands are run, but users may use this syntax in their own scripts
 % to make sure that their functions use the same software-versions as the FL functions)
@@ -198,7 +198,7 @@ if isremote, OUTPUT_FOLDER=fullfile('/CONNSERVER',rootfolder);
 else OUTPUT_FOLDER=rootfolder; 
 end
 
-if isremote&&~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete'})); % run these locally
+if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,STEPS,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,STEPS,varargin{:}); 
@@ -609,9 +609,9 @@ switch(lower(STEPS))
             pdata_name=[];
             pdata_idx=[];
             X_labels=X;
-            if conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'participants.tsv')),pdata_name=fullfile(OUTPUT_FOLDER,project_id,'participants.tsv');
+            if conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'config','FL','SECONDLEVEL','participants.tsv')),pdata_name=fullfile(OUTPUT_FOLDER,project_id,'config','FL','SECONDLEVEL','participants.tsv');
             elseif conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'config','FL','participants.tsv')),pdata_name=fullfile(OUTPUT_FOLDER,project_id,'config','FL','participants.tsv');
-            elseif conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'config','FL','SECONDLEVEL','participants.tsv')),pdata_name=fullfile(OUTPUT_FOLDER,project_id,'config','FL','SECONDLEVEL','participants.tsv');
+            elseif conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'participants.tsv')),pdata_name=fullfile(OUTPUT_FOLDER,project_id,'participants.tsv');
             end
             if ~isempty(pdata_name), pdata=conn_loadtextfile(pdata_name); end
             for n=1:numel(X)

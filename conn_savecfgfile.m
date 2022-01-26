@@ -23,8 +23,7 @@ if iscell(out),
     names=out(1:2:end-1);
     values=out(2:2:end);
 else
-    names=fieldnames(out);
-    values=cellfun(@(x)out.(x),names,'uni',0);
+    [names,values]=structlist(out);
 end
 for n=1:numel(names)
     fprintf(fh,'\n#%s\n',names{n});
@@ -38,3 +37,21 @@ for n=1:numel(names)
     end
 end
 fclose(fh);
+end
+
+function [names,values]=structlist(out)
+names={};
+values={};
+fnames=fieldnames(out);
+for n=1:numel(fnames),
+    if isstruct(out.(fnames{n})), 
+        [tn,tv]=structlist(out.(fnames{n}));
+        tn=cellfun(@(x)[fnames{n} '.' x],tn,'uni',0);
+    else
+        tn={fnames{n}};
+        tv={out.(fnames{n})};
+    end
+    names=[names;tn(:)];
+    values=[values;tv(:)];
+end
+end
