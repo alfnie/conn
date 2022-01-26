@@ -687,7 +687,7 @@ else
         SPMconditions=S(:,2);
         SPMconditions=regexprep(SPMconditions,'\^1$','');
         SPMbasis=S(:,3);
-        [uC,jC,iC]=unique(SPMconditions);
+        try, [uC,jC,iC]=unique(SPMconditions,'stable'); catch, [uC,jC,iC]=unique(SPMconditions); end
         conn_disp('fprintf','Session-invariant conditions: %s \n',sprintf('%s ',uC{:}));
         Xnew=[];
         for neff=1:numel(uC),

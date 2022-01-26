@@ -293,7 +293,10 @@ switch(lower(STEPS))
             end
             if nargout>0, varargout={isremote}; end
         else
-            if ~nargout, disp(isremote);
+            if ~nargout,
+                if isremote, fprintf('working with remote projects (remote=1)\n');
+                else fprintf('working with local projects (remote=0)\n');
+                end
             else varargout={isremote};
             end
         end
@@ -342,11 +345,11 @@ switch(lower(STEPS))
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
         dataset=fullfile(OUTPUT_FOLDER,project_id,sprintf('sub-%s',subject_id));
         subject_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('',subject_id,'.cfg'));
-        issubject_info=~isempty(dir(subject_info));
+        issubject_info=conn_existfile(subject_info);
         opts={};
         switch(lower(STEPS))
             case {'import.dicoms','import.dicom'}
-                if ~isempty(dir(fullfile(dataset,'scanner','dicom')))
+                if conn_existfile(fullfile(dataset,'scanner','dicom'),2)
                     opts={'PREPROC.IMPORT',dataset,...
                         'dicoms',fullfile('dicom','*'),...
                         'dicoms_path','scanner',...
@@ -355,7 +358,7 @@ switch(lower(STEPS))
                     if issubject_info, opts=[opts,{'subject_info',subject_info}]; end
                 end
             case {'import.func','import.anat'}
-                if ~isempty(dir(fullfile(dataset,'scanner','anat')))&&~isempty(dir(fullfile(dataset,'scanner','func')))
+                if conn_existfile(fullfile(dataset,'scanner','anat'),2)&&conn_existfile(fullfile(dataset,'scanner','func'),2)
                     opts={'PREPROC.IMPORT',dataset,...
                         'structurals',fullfile('anat','*.nii'),...
                         'functionals',fullfile('func','*.nii'),...
@@ -402,8 +405,8 @@ switch(lower(STEPS))
         datainput=fullfile(OUTPUT_FOLDER,project_id,subject_idpath,conn_prepend('',sprintf('sub-%s',subject_id),'.mat'));
         pipeline_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','PREPROCESSING',conn_prepend('preprocessing_',pipeline_id,'.cfg'));
         pipeline_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config','FL','PREPROCESSING',conn_prepend('preprocessing_',[subject_id,'_',pipeline_id],'.cfg'));
-        if ~isempty(dir(pipeline_info_opt)), 
-            if isempty(dir(pipeline_info)), pipeline_info=struct; 
+        if conn_existfile(pipeline_info_opt), 
+            if ~conn_existfile(pipeline_info), pipeline_info=struct; 
             else pipeline_info=conn_loadcfgfile(pipeline_info); 
             end
             pipeline_info=conn_loadcfgfile(pipeline_info_opt,pipeline_info);
@@ -419,7 +422,7 @@ switch(lower(STEPS))
         fprintf('Pipeline id %s\n',pipeline_id);
         fprintf('Output subject folder %s\n',dataset);
         fprintf('Input subject folder %s\n',datainput);
-        if ~isstruct(pipeline_info)&&isempty(dir(pipeline_info)), 
+        if ~isstruct(pipeline_info)&&~conn_existfile(pipeline_info), 
             tpipeline_info=fullfile(fileparts(which(mfilename)),conn_prepend('preprocessing_',pipeline_id,'.cfg'));
             if ~isempty(tpipeline_info), 
                 fprintf('Warning: no %s or %s pipeline information files found. Copying pipeline definition from %s to %s\n',pipeline_info,pipeline_info_opt,tpipeline_info,pipeline_info); 
@@ -434,7 +437,7 @@ switch(lower(STEPS))
         else fprintf('Preprocessing pipeline info read from %s\n',pipeline_info);
         end
         fprintf('FL_INTERNAL command syntax:\n'); for n=1:numel(opts), fprintf('   '); disp(opts{n}); end
-        assert(~isempty(dir(datainput)),'file %s not found',datainput);
+        assert(conn_existfile(datainput,1),'file %s not found',datainput);
         fl_internal(opts{:});
         fprintf('Done\n');
                 
@@ -456,8 +459,8 @@ switch(lower(STEPS))
         dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
         pipeline_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','PREPROCESSING',conn_prepend('preprocessing_',pipeline_idadd,'.cfg'));
         pipeline_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config','FL','PREPROCESSING',conn_prepend('preprocessing_',[subject_id,'_',pipeline_idadd],'.cfg'));
-        if ~isempty(dir(pipeline_info_opt)), 
-            if isempty(dir(pipeline_info)), pipeline_info=struct; 
+        if conn_existfile(pipeline_info_opt), 
+            if ~conn_existfile(pipeline_info), pipeline_info=struct; 
             else pipeline_info=conn_loadcfgfile(pipeline_info); 
             end
             pipeline_info=conn_loadcfgfile(pipeline_info_opt,pipeline_info);
@@ -471,14 +474,14 @@ switch(lower(STEPS))
         fprintf('Subject id %s\n',subject_id);
         fprintf('Pipeline id %s\n',pipeline_id);
         fprintf('Output subject folder %s\n',dataset);
-        if ~isstruct(pipeline_info)&&isempty(dir(pipeline_info)), error('No %s or %s additional pipeline information files found',pipeline_info,pipeline_info_opt); 
+        if ~isstruct(pipeline_info)&&~conn_existfile(pipeline_info), error('No %s or %s additional pipeline information files found',pipeline_info,pipeline_info_opt); 
             %fprintf('No pipeline info found in %s. Preprocessing pipeline %s will be only initialized (no steps run)\n',pipeline_info);
             %pipeline_info=struct;
         elseif isstruct(pipeline_info), fprintf('Additional preprocessing pipeline info read from %s\n',pipeline_info_opt);
         else fprintf('Additional preprocessing pipeline info read from %s\n',pipeline_info);
         end
         fprintf('FL_INTERNAL command syntax:\n'); for n=1:numel(opts), fprintf('   '); disp(opts{n}); end
-        assert(~isempty(dir(dataset)),'file %s not found',dataset);
+        assert(conn_existfile(dataset,1),'file %s not found',dataset);
         fl_internal(opts{:});
         fprintf('Done\n');
         
@@ -492,13 +495,13 @@ switch(lower(STEPS))
         analysis_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','FIRSTLEVEL',conn_prepend('firstlevel_',design_id,'.cfg'));
         analysis_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config','FL','FIRSTLEVEL',conn_prepend('firstlevel_',[subject_id,'_',design_id],'.cfg'));
         subject_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('',subject_id,'.cfg'));
-        isanalysis_info_opt=~isempty(dir(analysis_info_opt));
+        isanalysis_info_opt=conn_existfile(analysis_info_opt);
         design_info=struct;
         design_info.design=struct('path',fullfile(OUTPUT_FOLDER,project_id,'config','FL','DESIGN'));
-        if ~isempty(dir(analysis_info)), design_info=conn_loadcfgfile(analysis_info,design_info); end
+        if conn_existfile(analysis_info), design_info=conn_loadcfgfile(analysis_info,design_info); end
         if isanalysis_info_opt, 
             design_info=conn_loadcfgfile(analysis_info_opt,design_info);
-        elseif ~isempty(dir(subject_info)), % note: if no subject-specific (e.g. config/EXAMPLE01_speech.cfg) file is found, it will re-read the info in config/EXAMPLE01.cfg looking for design info there
+        elseif conn_existfile(subject_info), % note: if no subject-specific (e.g. config/EXAMPLE01_speech.cfg) file is found, it will re-read the info in config/EXAMPLE01.cfg looking for design info there
             design_info_temp=conn_loadcfgfile(subject_info,design_info);
             if isfield(design_info_temp,'design'), design_info.design=design_info_temp.design; end
             if isfield(design_info_temp,'files'), design_info.files=design_info_temp.files; end
@@ -522,9 +525,9 @@ switch(lower(STEPS))
         else fprintf('First-level design info read from %s (file %s not found)\n',subject_info);
         end
         fprintf('FL_INTERNAL command syntax:\n'); for n=1:numel(opts), fprintf('   '); disp(opts{n}); end
-        assert(~isempty(dir(dataset)),'file %s not found',dataset);
-        assert(~isempty(dir(analysis_info)),'file %s not found',analysis_info);
-        assert(isanalysis_info_opt|~isempty(dir(subject_info)),'files %s or %s not found',analysis_info_opt,subject_info);
+        assert(conn_existfile(dataset,1),'file %s not found',dataset);
+        assert(conn_existfile(analysis_info),'file %s not found',analysis_info);
+        assert(isanalysis_info_opt|conn_existfile(subject_info),'files %s or %s not found',analysis_info_opt,subject_info);
         fl_internal(opts{:});
         fprintf('Done\n');
         
@@ -541,7 +544,7 @@ switch(lower(STEPS))
         fprintf('Subject id %s\n',subject_id);
         fprintf('First-level analysis id %s\n',design_id);
         fprintf('Experiment folder %s\n',dataset);
-        assert(~isempty(dir(dataset)),'file %s not found',dataset);
+        assert(conn_existfile(dataset,1),'file %s not found',dataset);
         conn_module evlab17 init silent;
         conn_module('evlab17','modelplots',opts{:});
        
@@ -559,8 +562,8 @@ switch(lower(STEPS))
         fprintf('First-level analysis id %s\n',design_id);
         fprintf('Second-level results id %s\n',results_id);
         fprintf('Second-level results folder %s\n',results_path);
-        assert(~isempty(dir(results_info)),'file %s not found',results_info);
-        assert(~isempty(dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id))),'preprocessing path %s not found',fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id));
+        assert(conn_existfile(results_info),'file %s not found',results_info);
+        assert(conn_existfile(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id),1),'preprocessing path %s not found',fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id));
         
         results_cfg=conn_loadcfgfile(results_info);
         if ~isfield(results_cfg,'subjects')&&isfield(results_cfg,'data'), 
@@ -582,7 +585,7 @@ switch(lower(STEPS))
             dataset=cellfun(@(x)fullfile(x,'results','firstlevel',design_id,'SPM.mat'),f1,'uni',0);
             subjects=regexprep(f1,'^.*[\\\/]','');
         end
-        okdataset=conn_existfile(dataset);
+        okdataset=conn_existfile(dataset,1);
         assert(~isempty(dataset), 'unable to find any first-level files');
         if any(~okdataset), fprintf('Warning: unable to find first-level files in:\n'); disp(char(dataset(~okdataset))); end
         dataset=dataset(okdataset>0);
@@ -732,7 +735,7 @@ switch(lower(STEPS))
         if ~isempty(design_id), fprintf('First-level analysis id %s\n',design_id); end
         fprintf('Subject folder %s\n',dataset);
         fprintf('FL_INTERNAL command syntax:\n'); for n=1:numel(opts), fprintf('   '); disp(opts{n}); end
-        assert(~isempty(dir(dataset)),'file %s not found',dataset);
+        assert(conn_existfile(dataset,1),'file %s not found',dataset);
         fl_internal(opts{:});
         fprintf('Done\n');
         
@@ -751,7 +754,7 @@ switch(lower(STEPS))
         fprintf('Project id %s\n',project_id);
         fprintf('Experiment id %s\n',experiment_id);
         fprintf('Experiment folder %s\n',dataset);
-        assert(~isempty(dir(dataset)),'file %s not found',dataset);        
+        assert(conn_existfile(dataset,1),'file %s not found',dataset);        
         conn_qaplotsexplore(dataset,opts{:},'flfolders');
                 
     case {'qa.plot','qaplot'}  % qaplot ACE01 try01
@@ -770,7 +773,7 @@ switch(lower(STEPS))
         fprintf('Subject id %s\n',subject_id);
         fprintf('Experiment folder %s\n',dataset);
         fprintf('FL_INTERNAL command syntax:\n'); for n=1:numel(opts), fprintf('   '); disp(opts{n}); end
-        assert(~isempty(dir(dataset)),'file %s not found',dataset);
+        assert(conn_existfile(dataset,1),'file %s not found',dataset);
         fl_internal(opts{:});
                 
     case 'list'

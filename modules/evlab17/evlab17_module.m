@@ -203,13 +203,21 @@ switch(lower(option))
         varargout={false};
         if numel(varargin)>0, filename=conn_prepend('',conn_fullfile(varargin{1}),'.mat'); end
         CONN_x.info=EVLAB17_info;
-        save(filename,'CONN_x');
+        conn_savematfile(filename,'CONN_x');
         varargout={true};
     case 'load',
         varargout={false};
         filename=conn_prepend('',conn_fullfile(varargin{1}),'.mat');
-        load(filename,'CONN_x');
+        conn_loadmatfile(filename,'CONN_x');
+        CONN_x.filename=filename;
         conn_updatefolders;
+        if conn_server('util_isremotefile',filename)
+            conn_updatefilepaths('remotefile',{},{});
+            conn_updatefilepaths('hold','off');
+        else
+            conn_updatefilepaths('localfile',{},{});
+            conn_updatefilepaths('hold','off');
+        end
         if isfield(CONN_x,'info'), EVLAB17_info=CONN_x.info;
         else EVLAB17_info=[];
         end
