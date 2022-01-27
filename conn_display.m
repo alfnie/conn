@@ -184,10 +184,9 @@ if numel(varargin)>=3&&~isempty(varargin{3}), side=varargin{3}; end
 if numel(varargin)>=4&&~isempty(varargin{4}), parametric=varargin{4}; end
 
 forceusespmresults=false;
-try, 
-    if nargin>2&&any(strcmp(varargin,'forceusespmresults')), forceusespmresults=true; end
-end
+try, if nargin>2&&any(strcmp(varargin,'forceusespmresults')), forceusespmresults=true; end; end
 [filepath,filename,fileext]=fileparts(SPMfilename);
+
 cwd=pwd;
 
 if ~isempty(filepath), conn_fileutils('cd',filepath); end
@@ -245,9 +244,10 @@ else % voxel-based
     for doparam=find([isparam isnonparam])
         if doparam==1 % SPM-based analyses, for parametric stats
             if isfield(SPM,'xCon')&&length(SPM.xCon)>1,
-                if nargin<2||isempty(ncon), ncon=spm_conman(SPM); end
+                if nargin<2||isempty(ncon)||isequal(ncon,'?'), ncon=spm_conman(SPM); end
             else ncon=1;
             end
+            if ischar(ncon), ncon=find(ismember({SPM.xCon.name},ncon)); end
             statsname=SPM.xCon(ncon).STAT;
             [nill,tfname,tfext]=fileparts(SPM.xCon(ncon).Vspm.fname);
             tvol=conn_fileutils('spm_vol',fullfile(filepath,[tfname,tfext]));

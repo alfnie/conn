@@ -4,6 +4,8 @@ function evlab17_modelplots(varargin)
 %      displays first-level results associated with dataset evlab17_foo
 %   evlab17_modelplots('/myfolder/evlab17_foo.mat',analysis,contrast); 
 %      displays selected first-level analysis and contrast (by contrast number or by contrast name)
+%   evlab17_modelplots(...,'stats');
+%      displays first-level statistics
 %
 
 evlab17_module init silent;
@@ -36,7 +38,14 @@ if numel(varargin)>0&&~isempty(varargin{1}),
         end
     end
 end
-conn_displaysubject(varargin{3:end});
+if numel(varargin)>0&&isequal(varargin{end},'stats'), 
+    files=evlab17_module('get','spm');
+    if numel(varargin)>=3, for n=1:numel(files), conn_display(files{n},varargin{3},[],[],1); end
+    else for n=1:numel(files), conn_display(files{n},'?',[],[],1); end
+    end
+else
+    conn_displaysubject(varargin{3:end});
+end
 cd(cwd);
 
 

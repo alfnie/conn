@@ -69,6 +69,8 @@ function varargout=fl(STEPS,varargin)
 %
 % fl('FIRSTLEVEL.PLOT',subject_id,pipeline_id,model_id [,contrast_name])
 %   displays first-level contrast estimation of subject data
+% fl('FIRSTLEVEL.STATS',subject_id,pipeline_id,model_id [,contrast_name])
+%   displays first-level contrast statistics
 % fl('FIRSTLEVEL.CONTRAST',subject_id,pipeline_id,model_id [,contrast_name])
 %   runs only contrast-estimation step (skips first-level analysis estimation step)
 %
@@ -198,7 +200,7 @@ if isremote, OUTPUT_FOLDER=fullfile('/CONNSERVER',rootfolder);
 else OUTPUT_FOLDER=rootfolder; 
 end
 
-if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete'})); % run these locally
+if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete','firstlevel.stats'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,STEPS,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,STEPS,varargin{:}); 
@@ -539,7 +541,7 @@ switch(lower(STEPS))
         fl_internal(opts{:});
         fprintf('Done\n');
         
-    case {'firstlevel.plot','firstlevel.plots'}
+    case {'firstlevel.plot','firstlevel.plots','firstlevel.stats'}
         assert(numel(varargin)>=3,'incorrect usage: please specify subject_id, pipeline_id, and firstlevel_id')
         subject_id=varargin{1};
         pipeline_id=varargin{2};
@@ -554,7 +556,9 @@ switch(lower(STEPS))
         fprintf('Experiment folder %s\n',dataset);
         assert(conn_existfile(dataset,1),'file %s not found',dataset);
         conn_module evlab17 init silent;
-        conn_module('evlab17','modelplots',opts{:});
+        if strcmpi(STEPS,'firstlevel.stats'), conn_module('evlab17','modelplots',opts{:},'stats');
+        else conn_module('evlab17','modelplots',opts{:});
+        end
        
     case {'secondlevel'}  % secondlevel ACE try01 Speech_Raw Group_Comparison
         assert(numel(varargin)>=4,'incorrect usage: please specify experiment_id, pipeline_id, firstlevel_id, and results_id')

@@ -724,6 +724,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 if isempty(OPTION2), skipgui=false;
                 else skipgui=OPTION2;
                 end
+                if DATA.parametric==1, conn_msgbox('This option is only available when using non-parametric statistics','',2); return; end
                 switch(DATA.thres{2}),
                     case 1, THR_TYPE=1; %'vox-unc',
                     case 2, THR_TYPE=3; %'fdr-all'
