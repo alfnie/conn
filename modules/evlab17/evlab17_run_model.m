@@ -21,9 +21,10 @@ function evlab17_run_model(varargin)
 %             names    : 1xM cell array with condition names (note: condition names cannot contain whitespace charaters)
 %             units    : 'scans' / 'secs; : units for onset/duration specification of condition information  (default: scans)
 %             (optional fields for sparse sampling acquisitions)
-%             scan_times: Nscans x 1 array with times of each scan acquisition (in seconds, starting at 0s; effects sampled at time fMRI_T0/fMRI_T within each scan acquisition)
+%             scan_times: Nscans x 1 array with times of each scan acquisition onset (in seconds, starting at 0s; task-effects are sampled at time fMRI_T0/fMRI_T*TR after each scan onset)
+%             scan     : 1/0 value indicating whether an explicit scanner-noise regressor should be included [0] (note: this is treated as an additional condition and named 'scannernoise')
 %             (optional fields only applicable when multiple within-condition effects are estimated)
-%             orth     :  1/0 array indicating whether within-condition regressors should be GS orthogonalized [1]
+%             orth     :  1/0 value indicating whether within-condition regressors should be GS orthogonalized [1]
 %             (optional fields for temporal modulation)
 %             tmod     : 1xM 1/0 array indicating whether condition M is modulated by time (if values >1 are entered they are interpreted as polynomial order of temporal modulation effects)
 %             (optional fields for parametric modulation)
@@ -587,6 +588,20 @@ else
                             pmod_interaction{end+1}=sprintf('pmodtemp%d',n2);
                         end
                     end
+                end
+                if isfield(para,'scan')&&para.scan
+                    newcond=newcond+1;
+                    matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).name='scannernoise';
+                    if numel(scan_times)<nses||isempty(scan_times{nses}),
+                        if isfield(matlabbatch{1}.spm.stats.fmri_spec.timing,'units')&&strcmp(matlabbatch{1}.spm.stats.fmri_spec.timing.units,'secs'), matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset=(0:SPM.nscan(nses)-1)*SPM.xY.RT;
+                        else matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset=(0:SPM.nscan(nses)-1);
+                        end
+                    else
+                        matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset=scan_times{nses};
+                    end
+                    matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).duration=SPM.xY.RT+zeros(size(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset));;
+                    matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).orth=1;
+                    conn_disp('fprintf','   condition %s (%d blocks/events)\n',matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).name,numel(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset));
                 end
             end
             options=rmfield(options,'files');
