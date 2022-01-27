@@ -116,6 +116,9 @@ switch(dispopt)
         for n=1:numel(idxsubjects)
             fh=conn_mesh_display([],datafiles(idxsubjects(n),:),[],[],[],thr);
             set(fh('figurehandle'),'name',['Subject ',mat2str(consubjects(n))]);
+            fh('sub_transparency',.5);
+            fh('brain_color',[1 1 1]);
+            fh('act_color',[1 0 0]); fh('colormap',[1 0 0]);
             fhall{end+1}=fh;
         end
         fh=fhall;
@@ -156,12 +159,11 @@ switch(dispopt)
         for n=1:numel(idxsubjects)
             fh=conn_mesh_display([],datafiles(idxsubjects(n),:),[],[],[],thr);
             set(fh('figurehandle'),'name',['Subject ',mat2str(consubjects(n))]);
-            fh('brain',4);
-            fh('background',[1 1 1]);
-            fh('brain_transparency',0);
-            fh('sub_transparency',0);
-            fh('mask_transparency',.2);
-            fh('material',[.1 1 1 .25 0]);
+            fh('brain',2);
+            fh('brain_transparency',.05);
+            fh('sub_transparency',.05);
+            fh('material',[]);
+            fh('axis','on');
             fhall{end+1}=fh;
         end
         fh=fhall;
