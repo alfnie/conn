@@ -593,13 +593,13 @@ else
                     newcond=newcond+1;
                     matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).name='scannernoise';
                     if numel(scan_times)<nses||isempty(scan_times{nses}),
-                        if isfield(matlabbatch{1}.spm.stats.fmri_spec.timing,'units')&&strcmp(matlabbatch{1}.spm.stats.fmri_spec.timing.units,'secs'), matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset=(0:SPM.nscan(nses)-1)*SPM.xY.RT;
-                        else matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset=(0:SPM.nscan(nses)-1);
+                        if isfield(matlabbatch{1}.spm.stats.fmri_spec.timing,'units')&&strcmp(matlabbatch{1}.spm.stats.fmri_spec.timing.units,'secs'), matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset=(0:nscans{1}{RUNS(nses)}-1)*matlabbatch{1}.spm.stats.fmri_spec.timing.RT;
+                        else matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset=(0:nscans{1}{RUNS(nses)}-1);
                         end
                     else
                         matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset=scan_times{nses};
                     end
-                    matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).duration=SPM.xY.RT+zeros(size(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset));;
+                    matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).duration=matlabbatch{1}.spm.stats.fmri_spec.timing.RT+zeros(size(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset));
                     matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).orth=1;
                     conn_disp('fprintf','   condition %s (%d blocks/events)\n',matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).name,numel(matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).onset));
                 end
