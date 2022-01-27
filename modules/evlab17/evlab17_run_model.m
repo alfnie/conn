@@ -698,7 +698,7 @@ else
                 scan_times{nses}=(0:SPM.nscan(nses)-1)*SPM.xY.RT;
             end
         end
-        maxrt=0;
+        maxrt=RT;
         conn_disp('fprintf','Sampling offset = %.2fs\n',T0/T*RT);
         for nses=1:NSESSIONS, 
             conn_disp('fprintf','Scan-times session #%d (s) = %s\n',nses,mat2str(scan_times{nses}));
@@ -706,7 +706,7 @@ else
         end
         SPM.xY.RT=maxrt;
         SPM.xBF.T=max(16,2*ceil(8*SPM.xY.RT)); % number of bins per "uniform-scan"
-        SPM.xBF.T0=round(T0/T*SPM.xBF.T); % sample bin
+        SPM.xBF.T0=round(T0/T*RT/SPM.xY.RT*SPM.xBF.T); % sample bin
         SPM = evlab17_run_model_resample(SPM,scan_times);
         SPM.xY.RT=RT;
         SPM.xBF.T=T;
