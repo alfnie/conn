@@ -39,6 +39,7 @@ if numel(varargin)>0&&~isempty(varargin{1}),
     end
 end
 if numel(varargin)>0&&isequal(varargin{end},'stats'), 
+    varargin=varargin(1:end-1);
     files=evlab17_module('get','spm');
     if numel(varargin)>=3, for n=1:numel(files), conn_display(files{n},varargin{3},[],[],1); end
     else for n=1:numel(files), conn_display(files{n},'?',[],[],1); end

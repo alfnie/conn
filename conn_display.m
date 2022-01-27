@@ -247,7 +247,12 @@ else % voxel-based
                 if nargin<2||isempty(ncon)||isequal(ncon,'?'), ncon=spm_conman(SPM); end
             else ncon=1;
             end
-            if ischar(ncon), ncon=find(ismember({SPM.xCon.name},ncon)); end
+            if ischar(ncon), 
+                tcons={SPM.xCon.name};
+                tncon=find(ismember(tcons,ncon)); 
+                assert(~isempty(tncon), 'unable to find contrast %s; available contrasts are %s',ncon,sprintf('%s, ',tcons{:}));
+                ncon=tncon;
+            end
             statsname=SPM.xCon(ncon).STAT;
             [nill,tfname,tfext]=fileparts(SPM.xCon(ncon).Vspm.fname);
             tvol=conn_fileutils('spm_vol',fullfile(filepath,[tfname,tfext]));
