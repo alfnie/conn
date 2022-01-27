@@ -695,14 +695,14 @@ else
         T0=SPM.xBF.T0;
         for nses=1:NSESSIONS, 
             if numel(scan_times)<nses||isempty(scan_times{nses}), 
-                scan_times{nses}=(0:SPM.nscans(nses)-1)*SPM.xY.RT;
+                scan_times{nses}=(0:SPM.nscan(nses)-1)*SPM.xY.RT;
             end
         end
         maxrt=0;
         conn_disp('fprintf','Sampling offset = %.2fs\n',T0/T*RT);
         for nses=1:NSESSIONS, 
             conn_disp('fprintf','Scan-times session #%d (s) = %s\n',nses,mat2str(scan_times{nses}));
-            maxrt=max(maxrt, (max(scan_times{nses})+SPM.xY.RT)/SPM.nscans(nses)); % RT if scans were uniformly sampled
+            maxrt=max(maxrt, (max(scan_times{nses})+SPM.xY.RT)/SPM.nscan(nses)); % RT if scans were uniformly sampled
         end
         SPM.xY.RT=maxrt;
         SPM.xBF.T=max(16,2*ceil(8*SPM.xY.RT)); % number of bins per "uniform-scan"
