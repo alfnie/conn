@@ -23,7 +23,8 @@ if nargin<1||isempty(datafiles),
                 SPM=struct; conn_loadmatfile(files{n},'SPM');
                 if isfield(SPM,'xCon'),
                     for n1=1:numel(SPM.xCon),
-                        datafiles=[datafiles {fullfile(fileparts(files{n}),SPM.xCon(n1).Vspm.fname)}];
+                        [nill,fname,fext]=fileparts(SPM.xCon(n1).Vspm.fname);
+                        datafiles=[datafiles {fullfile(fileparts(files{n}),[fname fext])}];
                         consubjects=[consubjects n];
                         datafiles_names=[datafiles_names {sprintf('subject %d %s',n,SPM.xCon(n1).name)}];
                     end

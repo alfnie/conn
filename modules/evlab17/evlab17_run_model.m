@@ -21,8 +21,8 @@ function evlab17_run_model(varargin)
 %             names    : 1xM cell array with condition names (note: condition names cannot contain whitespace charaters)
 %             units    : 'scans' / 'secs; : units for onset/duration specification of condition information  (default: scans)
 %             (optional fields for sparse sampling acquisitions)
-%             scan_times: Nscans x 1 array with times of each scan acquisition onset (in seconds, starting at 0s; task-effects are sampled at time fMRI_T0/fMRI_T*TR after each scan onset)
-%             scan     : 1/0 value indicating whether an explicit scanner-noise regressor should be included [0] (note: this is treated as an additional condition and named 'scannernoise')
+%             scan_times: Nscans x 1 array with times of each scan acquisition onset (in seconds, starting at 0s) event-effects will be sampled at time RT*fMRI_T0/fMRI_T after each scan onset
+%             scan     : 1/0 value indicating whether an explicit scanner-noise regressor should be included [0] (note: this is modeled as an additional condition and named 'scannernoise')
 %             (optional fields only applicable when multiple within-condition effects are estimated)
 %             orth     :  1/0 value indicating whether within-condition regressors should be GS orthogonalized [1]
 %             (optional fields for temporal modulation)
