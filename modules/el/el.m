@@ -378,8 +378,6 @@ switch(lower(option))
         assert(conn_existfile(dataset),'file %s not found',dataset);
         conn_module('evlab17','modelplots',opts{:});
         
-    case 'roi.extract'
-        
     otherwise
         [varargout{1:nargout}]=conn_module('evlab17',option,varargin{:});
 end

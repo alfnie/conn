@@ -348,28 +348,52 @@ if isfield(options,'functionals_path'), options=rmfield(options,'functionals_pat
 if isfield(options,'rois_ss'), options.rois=options.rois_ss; end
 if isfield(options,'rois')
     if ischar(options.rois), options.rois={options.rois}; end
-    if iscell(options.rois), options.rois=struct('files',{options.rois}); end
-    if isfield(options,'rois_path')
-        partialfilenames=cellfun(@(x)isempty(regexp(x,'^[\\\/]')),options.rois.files);
-        roi_files={};                    % strings indicate filenames (with potential wildcards)
-        for n=1:numel(options.rois.files)
-            if partialfilenames(n)&&isfield(options,'rois_path')
-                if isempty(regexp(char(options.rois_path),'^[\\\/]')), options.rois_path=conn_fullfile(conn_prepend('',fileout,''),char(options.rois_path)); end
-                partialfilenames(n)=false;
-                files=conn_dir(fullfile(char(options.rois_path),options.rois.files{n}),'-R');
-                if isempty(files), error('file %s not found',fullfile(char(options.rois_path),options.rois.files{n})); end
-                roi_files=cat(1,roi_files,conn_sortfilenames(cellstr(files)));
-            elseif partialfilenames(n)&&~isfield(options,'rois_path'),
-                roi_files=cat(1,roi_files,options.rois.files(n));
-            else
-                files=conn_dir(options.rois.files{n},'-R');
-                if isempty(files), error('file %s not found',options.rois.files{n}); end
-                roi_files=cat(1,roi_files,conn_sortfilenames(cellstr(files)));
-            end
+    if iscell(options.rois), options.rois=struct('files',{options.rois}); % interpreted as one file per ROI
+    elseif isstruct(options.rois)
+        fnames=fieldnames(options.rois);
+        newrois=struct('names',{{}},'files',{{}});
+        for n=1:numel(fnames)
+            fstruct=options.rois.(fnames{n});
+            if ischar(fstruct), fstruct={fstruct}; end
+            if iscell(fstruct), fstruct=struct('files',{fstruct}); end % interpreted as one file per run/session
+            newrois.names{n}=fnames{n};
+            newrois.files{n}{1}=cellstr(fstruct.files);
+            if isfield(fstruct,'names'), newrois.names{n}=fstruct.names; end
+            if isfield(fstruct,'dimensions'), newrois.dimensions{n}=fstruct.dimensions; end
+            if isfield(fstruct,'weighted'), newrois.weighted(n)=fstruct.weighted; end
+            if isfield(fstruct,'multiplelabels'), newrois.multiplelabels(n)=fstruct.multiplelabels; end
+            if isfield(fstruct,'mask'), newrois.mask(n)=fstruct.mask; end
+            if isfield(fstruct,'regresscovariates'), newrois.regresscovariates(n)=fstruct.regresscovariates; end
+            if isfield(fstruct,'dataset'), newrois.dataset{n}=fstruct.dataset; end
+            if isfield(fstruct,'add'), newrois.add=fstruct.add; end
         end
-    else roi_files=options.rois.files;
+        options.rois=newrois;
     end
-    options.rois.files=roi_files; % same set of roi files
+    if isfield(options,'rois_path')
+        for nrois=1:numel(options.rois.files)
+            roifiles=options.rois.files{nrois};
+            if iscell(roifiles)&&numel(roifiles)==1, roifiles=roifiles{1}; end
+            if ~iscell(roifiles), roifiles={roifiles}; end
+            partialfilenames=cellfun(@(x)isempty(regexp(x,'^[\\\/]')),roifiles);
+            roi_files={};                    % strings indicate filenames (with potential wildcards)
+            for n=1:numel(roifiles)
+                if partialfilenames(n)&&isfield(options,'rois_path')
+                    if isempty(regexp(char(options.rois_path),'^[\\\/]')), options.rois_path=conn_fullfile(conn_prepend('',fileout,''),char(options.rois_path)); end
+                    partialfilenames(n)=false;
+                    files=conn_dir(fullfile(char(options.rois_path),roifiles{n}),'-R');
+                    if isempty(files), error('file %s not found',fullfile(char(options.rois_path),roifiles{n})); end
+                    roi_files=cat(1,roi_files,conn_sortfilenames(cellstr(files)));
+                elseif partialfilenames(n)&&~isfield(options,'rois_path'),
+                    roi_files=cat(1,roi_files,roifiles(n));
+                else
+                    files=conn_dir(roifiles{n},'-R');
+                    if isempty(files), error('file %s not found',roifiles{n}); end
+                    roi_files=cat(1,roi_files,conn_sortfilenames(cellstr(files)));
+                end
+            end
+            options.rois.files{nrois}{1}=roi_files; 
+        end
+    end
     if ~isfield(options.rois,'add')&&isfield(options,'isnew')&&options.isnew, options.rois.add=1; end % note: fix to keep CONN's default ROIs
 end
 if isfield(options,'rois_path'), options=rmfield(options,'rois_path'); end

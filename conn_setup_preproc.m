@@ -31,7 +31,7 @@ steps={'default_mni','default_mnifield','default_mnidirectfield','default_ss','d
     'structural_normalize','structural_segment&normalize','structural_normalize_preservemasks',...
     'structural_manualspatialdef', ...
     'functional_removescans','functional_manualorient','functional_center','functional_centertostruct'...
-    'functional_slicetime','functional_bandpass','functional_regression','functional_realign','functional_realign&unwarp',...
+    'functional_slicetime','functional_bandpass','functional_regression','functional_roiextract','functional_realign','functional_realign&unwarp',...
     'functional_realign&unwarp&fieldmap','functional_art','functional_coregister_affine_reslice',...
     'functional_segment',...
     'functional_manualspatialdef',...
@@ -66,7 +66,7 @@ steps_names={'<HTML><b>default preprocessing pipeline</b> for volume-based analy
     'structural Normalization (MNI space normalization)','structural Segmentation & Normalization (simultaneous Grey/White/CSF segmentation and MNI normalization)','structural Normalization preserving Grey/White/CSF masks (MNI space normalization of structural, applying same transformation to existing Grey/White/CSF masks)',...
     'structural Manual deformation (non-linear transformation of structural volumes)', ...
     'functional Removal of initial scans (disregard initial functional scans)','functional Manual transformation (rotation/flip/translation/affine of functional volumes)','functional Center to (0,0,0) coordinates (translation)','functional Center to structural coordinates (translation)'...
-    'functional Slice-Timing correction (STC; correction for inter-slice differences in acquisition time)','functional Band-pass filtering (temporal filtering of BOLD data)','functional Regression of temporal components (keep residuals of linear model to BOLD timeseries)','functional Realignment (subject motion estimation and correction)','functional Realignment & unwarp (subject motion estimation and correction)',...
+    'functional Slice-Timing correction (STC; correction for inter-slice differences in acquisition time)','functional Band-pass filtering (temporal filtering of BOLD data)','functional Regression of temporal components (keep residuals of linear model to BOLD timeseries)','functional ROI extraction (compute BOLD timeseres within ROI)','functional Realignment (subject motion estimation and correction)','functional Realignment & unwarp (subject motion estimation and correction)',...
     'functional Realignment & unwarp & susceptibility distortion correction (subject motion estimation and correction)','functional Outlier detection (ART-based identification of outlier scans for scrubbing)','functional Direct Coregistration to structural (rigid body transformation)',...
     'functional Segmentation (Grey/White/CSF segmentation)',...
     'functional Manual deformation (non-linear transformation of functional volumes)',...
@@ -104,7 +104,7 @@ steps_descr={{'INPUT: structural&functional volumes','OUTPUT (all in MNI-space):
     {'INPUT: structural volume','OUTPUT: skull-stripped normalized structural volume (in MNI space)'},{'INPUT: structural volume','OUTPUT: skull-stripped normalized structural volume, normalized Grey/White/CSF masks (all in MNI space)'},{'INPUT: structural volume; Grey/White/CSF masks (in same space as structural)','OUTPUT: skull-stripped normalized structural volume, normalized Grey/White/CSF masks (all in MNI space)'},...
     {'INPUT: structural volume; user-defined spatial deformation file (e.g. y_#.nii file)','OUTPUT: resampled structural volumes'}, ...
     {'INPUT: functional volumes','OUTPUT: temporal subset of functional volumes; temporal subset of first-level covariates (if already defined)'},{'INPUT: functional volumes','OUTPUT: functional volumes (same files re-oriented, not resliced)'},{'INPUT: functional volumes','OUTPUT: functional volumes (same files translated, not resliced)'},{'INPUT: structural and functional volumes','OUTPUT: functional volumes (same files translated, not resliced)'}, ...
-    {'INPUT: functional volumes','OUTPUT: slice-timing corrected functional volumes'},{'INPUT: functional volumes','OUTPUT: band-pass filtered functional volumes'},{'INPUT: functional volumes; first-level covariates','OUTPUT: functional volumes with selected covariates regressed-out'},{'INPUT: functional volumes','OUTPUT: realigned functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},{'INPUT: functional volumes','OUTPUT: realigned&unwarp functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},...
+    {'INPUT: functional volumes','OUTPUT: slice-timing corrected functional volumes'},{'INPUT: functional volumes','OUTPUT: band-pass filtered functional volumes'},{'INPUT: functional volumes; first-level covariates','OUTPUT: functional volumes with selected covariates regressed-out'},{'INPUT: functional volumes; ROIs (in same space as functional volumes)','OUTPUT: QC_rois first-level covariate with BOLD timeseries within ROIs'},{'INPUT: functional volumes','OUTPUT: realigned functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},{'INPUT: functional volumes','OUTPUT: realigned&unwarp functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},...
     {'INPUT: functional volumes & VDM maps','OUTPUT: realigned&unwarp functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},{'INPUT: functional volumes, realignment parameters','OUTPUT: outlier scans 1st-level covariate, mean functional image, QA 2nd-level covariates'},{'INPUT: structural and mean functional volume (or first functional)','OUTPUT: coregistered functional volumes'},...
     {'INPUT: mean functional volume (or first functional)','OUTPUT: Grey/White/CSF masks (in same space as functional volume)'},...
     {'INPUT: functional volumes; user-defined spatial deformation file (e.g. y_#.nii file)','OUTPUT: resampled functional volumes'},...
@@ -185,6 +185,12 @@ reg_detrend=1;
 reg_lag=[];
 reg_lagmax=8;
 reg_skip=0;
+roi_names={};
+roi_dimensions=[];
+roi_deriv=[];
+roi_filter=[];
+roi_detrend=0;
+roi_scale=1;
 reorient=[];
 respatialdef=[];
 coregtomean=1;
@@ -288,6 +294,18 @@ for n1=1:2:numel(options)-1,
             reg_lagmax=options{n1+1};
         case 'reg_skip',
             reg_skip=options{n1+1};
+        case 'roi_names',
+            roi_names=options{n1+1};
+        case 'roi_dimensions',
+            roi_dimensions=options{n1+1};
+        case 'roi_deriv',
+            roi_deriv=options{n1+1};
+        case 'roi_filter',
+            roi_filter=options{n1+1};
+        case 'roi_detrend',
+            roi_detrend=options{n1+1};
+        case 'roi_scale',
+            roi_scale=options{n1+1};
         case 'removescans',
             removescans=options{n1+1};
         case 'applytofunctional',
@@ -579,6 +597,23 @@ if any(ismember('functional_regression',lSTEPS))
             uansw=unique(2*floor(answ/2));
             reg_names=temp_reg_names(uansw);
             reg_deriv=double(ismember(uansw+1,answ));
+        else return;
+        end
+    end
+end
+
+if any(ismember('functional_roiextract',lSTEPS))
+    if isempty(roi_names)||dogui
+        temp_roi_names=reshape(CONN_x.Setup.rois.names(1:end-1),1,[]);
+        if isempty(roi_names),
+            answ=false(size(temp_roi_names));
+        else
+            temp_roi_names=[reshape(roi_names,1,[]), reshape(temp_roi_names(~ismember(temp_roi_names,roi_names)),1,[])];
+            answ=ismember(temp_roi_names,roi_names);
+        end
+        answ=listdlg('Promptstring','Select ROIs','selectionmode','multiple','liststring',temp_roi_names,'initialvalue',find(answ),'ListSize',[320 300]);
+        if numel(answ)>=1,
+            roi_names=temp_roi_names(answ);
         else return;
         end
     end
@@ -895,7 +930,7 @@ if parallel_N>0,
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip);
+        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale);
     if isequal(parallel_profile,find(strcmp('Null profile',conn_jobmanager('profiles')))),
         ok=0;
     elseif dogui
@@ -915,7 +950,7 @@ elseif conn_projectmanager('inserver'),
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip);
+        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale);
     return;
 else
     if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log'), CONN_x.SetupPreproc.log={}; end
@@ -925,7 +960,7 @@ else
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'sliceorder_select',sliceorder_select,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip};
+        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale};
 end
 job_id={};
 
@@ -1100,9 +1135,7 @@ for iSTEP=1:numel(STEPS)
                                 if nnz(data~=0&data~=1), X=cat(2,X,data-repmat(mean(data,1),size(data,1),1)); Xnames{end+1}=sprintf('%s (%d)',reg_names{nl1covariate},size(data,2)); % note: 0/1 covariates not centered
                                 else X=cat(2,X,data); Xnames{end+1}=sprintf('%s (%d)',reg_names{nl1covariate},size(data,2));
                                 end
-                            end
-                            icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),reg_names{nl1covariate}));
-                            if isempty(icov) % ROIs
+                            else % ROIs
                                 reg_done(nl1covariate)=true;
                                 nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),reg_names{nl1covariate}));
                                 assert(~isempty(nroi),'unable to find first-level covariate or ROI named %s',reg_names{nl1covariate});
@@ -1184,6 +1217,97 @@ for iSTEP=1:numel(STEPS)
                         else outputfiles{isubject}{nses}{1}=char(filein);
                         end
                         outputfiles{isubject}{nses}{2}=conn_prepend('dp_',filein{1},'.txt');
+                    end
+                end
+            end
+            
+        case 'functional_roiextract'
+            if isempty(bp_filter)&&any(roi_filter), error('Band-pass filter not specified (missing #bp_filter field)'); end
+            conn_disp('fprintf','extraction of ROI timeseries (%s)\n',sprintf('%s ',roi_names{:}));
+            conn_disp('fprintf','dimensions = %s; derivatives = %s; filtered = %s; detrend = %d; PSC scale = %d; orthogonal 1st-level covariates = [%s]\n',mat2str(roi_dimensions),mat2str(roi_deriv),mat2str(roi_filter),roi_detrend,roi_scale,sprintf('%s ',roi_names{ismember(roi_names,CONN_x.Setup.l1covariates.names(1:end-1))}));
+            for isubject=1:numel(subjects),
+                nsubject=subjects(isubject);
+                nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
+                for nses=1:nsess,
+                    if ismember(nses,sessions)
+                        filename=conn_get_functional(nsubject,nses,sets);
+                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
+                        filein=cellstr(filename);
+                        Vin=spm_vol(char(filein));
+                        if any(roi_filter), rt=conn_get_rt(nsubject,nses,sets); end
+                        entercovariates=[];
+                        if roi_detrend, entercovariates=[entercovariates,linspace(-1,1,numel(Vin))']; end
+                        for nl1covariate=1:numel(roi_names)
+                            icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),roi_names{nl1covariate}));
+                            if ~isempty(icov) % first-level covariates
+                                cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
+                                assert(~isempty(cfilename),'covariate %s has not been defined for subject %d sessions %d',roi_names{nl1covariate},nsubject,nses);
+                                switch(cfilename),
+                                    case '[raw values]',
+                                        data=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{3};
+                                    otherwise,
+                                        data=conn_loadtextfile(cfilename,false);
+                                end
+                                assert(size(data,1)==numel(Vin),'mismatched dimensions; functional data has %d timepoints, covariate %s has %d timepoints',numel(Vin),roi_names{nl1covariate},size(data,1));
+                                if numel(roi_dimensions)>=nl1covariate, data=data(:,1:min(size(data,2),roi_dimensions(nl1covariate))); end
+                                entercovariates=cat(2,entercovariates,data-repmat(mean(data,1),size(data,1),1)); % note: same as ROI entercovariates behavior
+                            end
+                        end
+                        if ~isempty(entercovariates), entercovariates=[entercovariates, ones(numel(Vin),1)]; end
+                        X=[]; Xnames={};
+                        roi_done=false(size(roi_names));
+                        Vsource=[];
+                        for nl1covariate=1:numel(roi_names)
+                            icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),roi_names{nl1covariate}));
+                            if isempty(icov) % ROIs
+                                roi_done(nl1covariate)=true;
+                                nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),roi_names{nl1covariate}));
+                                assert(~isempty(nroi),'unable to find first-level covariate or ROI named %s',roi_names{nl1covariate});
+                                if isempty(Vsource)
+                                    Vsource=CONN_x.Setup.functional{nsubject}{nses}{1};
+                                    clear VsourceUnsmoothed;
+                                    for nalt=1:numel(CONN_x.Setup.secondarydataset)
+                                        VsourceUnsmoothed{nalt}=conn_get_functional(nsubject,nses,nalt,true);
+                                    end
+                                end
+                                
+                                if roi_scale, scalinglevel='roi'; else scalinglevel='none'; end
+                                if (nroi>3&&~CONN_x.Setup.rois.sessionspecific(nroi))||(nroi<=3&&~CONN_x.Setup.structural_sessionspecific), nsesstemp=1; else nsesstemp=nsess; end
+                                temp=conn_maskserode(nsubject,nroi,false);
+                                Vmask=temp{nsubject}{nroi}{min(nses,nsesstemp)};
+                                %Vmask=CONN_x.Setup.rois.files{nsubject}{nroi}{min(nses,nsesstemp)}{1};
+                                if CONN_x.Setup.rois.mask(nroi), mask=CONN_x.Setup.rois.files{nsubject}{1}{min(nses,nsesstemp)}{1}; else, mask=''; end
+                                if CONN_x.Setup.rois.multiplelabels(nroi)&&numel(CONN_x.Setup.rois.files{nsubject}{nroi}{min(nses,nsesstemp)}{3})<=1, level='clusters'; else, level='rois'; end
+                                if CONN_x.Setup.rois.unsmoothedvolumes(nroi), Vsourcethis=VsourceUnsmoothed{CONN_x.Setup.rois.unsmoothedvolumes(nroi)}; else, Vsourcethis=Vsource; end
+                                if conn_surf_dimscheck(CONN_x.Setup.rois.files{nsubject}{nroi}{min(nses,nsesstemp)}{3})&&~conn_surf_dimscheck(Vsourcethis), fsanatomical=CONN_x.Setup.structural{nsubject}{min(nses,nsesstemp)}{1}; else fsanatomical=''; end
+                                outputtype='none'; filenamerex='';
+                                if CONN_x.Setup.rois.dimensions{nroi}>1,        % average&pca
+                                    if CONN_x.Setup.rois.weighted(nroi), data=conn_rex(Vsourcethis,Vmask,'summary_measure','weighted eigenvariate','dims',CONN_x.Setup.rois.dimensions{nroi},'conjunction_mask',mask,'level',level,'scaling','none','select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
+                                    else data=conn_rex(Vsourcethis,Vmask,'summary_measure','eigenvariate','dims',CONN_x.Setup.rois.dimensions{nroi},'conjunction_mask',mask,'level',level,'scaling',scalinglevel,'select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
+                                    end
+                                    if size(data,2)<CONN_x.Setup.rois.dimensions{nroi},
+                                        conn_disp('fprintf','WARNING: not enough voxels or scans to extract %d dimensions from %s @ %s\n',CONN_x.Setup.rois.dimensions{nroi},Vsourcethis,Vmask);
+                                        data=[data zeros(size(data,1),CONN_x.Setup.rois.dimensions{nroi}-size(data,2))];
+                                    end
+                                elseif CONN_x.Setup.rois.dimensions{nroi}==0||CONN_x.Setup.rois.weighted(nroi),   % weighted sum
+                                    data=conn_rex(Vsourcethis,Vmask,'summary_measure','weighted sum','conjunction_mask',mask,'level',level,'scaling','none','select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
+                                else                                            % average
+                                    data=conn_rex(Vsourcethis,Vmask,'summary_measure','mean','conjunction_mask',mask,'level',level,'scaling',scalinglevel,'select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
+                                end
+                                [data,ok]=conn_nan(data);
+                                assert(size(data,1)==numel(Vin),'mismatched dimensions; functional data has %d timepoints, covariate %s has %d timepoints',numel(Vin),roi_names{nl1covariate},size(data,1));
+                                if numel(roi_dimensions)>=nl1covariate, data=data(:,1:min(size(data,2),roi_dimensions(nl1covariate))); end
+                                if ~isempty(entercovariates), data = data - entercovariates*(pinv(entercovariates'*entercovariates)*entercovariates'*data); end % orthogonalize to covariates
+                                if numel(roi_deriv)>=nl1covariate&&roi_deriv(nl1covariate)>0, ddata=convn(cat(1,data(1,:),data,data(end,:)),[1;0;-1],'valid'); data=[data, ddata]; end
+                                if numel(roi_deriv)>=nl1covariate&&roi_deriv(nl1covariate)>1, data=[data, convn(cat(1,ddata(1,:),ddata,ddata(end,:)),[1;0;-1],'valid')]; end
+                                if numel(roi_filter)>=nl1covariate&&roi_filter(nl1covariate)>0, data=conn_filter(rt,bp_filter,data); end
+                                X=cat(2,X,data); Xnames{end+1}=sprintf('%s (%d)',roi_names{nl1covariate},size(data,2));
+                            end
+                        end
+                        conn_savetextfile(conn_prepend('rois_',filein{1},'.txt'),X);
+                        conn_savematfile(conn_prepend('rois_',filein{1},'.mat'),'X','Xnames');
+                        outputfiles{isubject}{nses}{1}=char(filein);
+                        outputfiles{isubject}{nses}{2}=conn_prepend('rois_',filein{1},'.txt');
                     end
                 end
             end
@@ -3040,7 +3164,7 @@ for iSTEP=1:numel(STEPS)
             for n=1:numel(matlabbatch)
                 conn_art('sess_file',matlabbatch{n}.art);
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_roiextract','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');
             try, spm_get_defaults('mat.format','-v7.3'); end
@@ -3089,7 +3213,7 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_roiextract','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}))
         elseif strncmp(lower(STEP),'update_',numel('update_'))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');
@@ -3158,6 +3282,24 @@ for iSTEP=1:numel(STEPS)
                         if ismember(nses,sessions)
                             nV=conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{1});
                             if ~sets||ALLSETSPERMISSIONS, CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}=conn_file(outputfiles{isubject}{nses}{2}); end
+                        end
+                    end
+                end
+                
+            case 'functional_roiextract'
+                if ~sets||ALLSETSPERMISSIONS,
+                    icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),'QC_rois'));
+                    if isempty(icov),
+                        icov=numel(CONN_x.Setup.l1covariates.names);
+                        CONN_x.Setup.l1covariates.names{icov}='QC_rois';
+                        CONN_x.Setup.l1covariates.names{icov+1}=' ';
+                    end
+                    for isubject=1:numel(subjects),
+                        nsubject=subjects(isubject);
+                        for nses=1:numel(outputfiles{isubject})
+                            if ismember(nses,sessions)
+                                CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}=conn_file(outputfiles{isubject}{nses}{2});
+                            end
                         end
                     end
                 end

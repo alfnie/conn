@@ -302,6 +302,7 @@ function varargout=conn_batch(varargin)
 %                        'functional_regression'                 : removal of user-defined temporal components from BOLD timeseries (keeps 
 %                                                                   residuals of linear regression model)
 %                        'functional_removescans'                : removes user-defined number of initial scans from functional
+%                        'functional_roiextract'                 : extraction of ROI timeseries (compute BOLD timeseres within ROI)
 %                        'functional_segment'                    : functional segmentation (Grey/White/CSF tissue classes)
 %                        'functional_segment&normalize_direct'   : functional direct unified normalization and segmentation
 %                        'functional_segment&normalize_indirect' : functional indirect unified normalization and segmentation
@@ -390,6 +391,15 @@ function varargout=conn_batch(varargin)
 %      Setup.preprocessing.reorient        : (functional/structural_manualorient) 3x3 or 4x4 transformation matrix or filename containing
 %                                            corresponding matrix
 %      Setup.preprocessing.respatialdef    : (functional/structural_manualspatialdef) nifti deformation file (e.g. y_*.nii or *seg_sn.mat files)
+%      Setup.preprocessing.roi_names       : (functional_roiextract) list of ROI names
+%                                              additional 1st-level covariate names may be included (to be regressed-out from ROI timeseries)
+%      Setup.preprocessing.roi_dimensions  : (functional_roiextract) list of maximum number of dimensions (one value for each entry in roi_names)
+%      Setup.preprocessing.roi_deriv       : (functional_roiextract) list of 0/1/2 values (one value for each entry in roi_names): adds 
+%                                            first- or second- order derivatives to each extracted timeseries
+%      Setup.preprocessing.roi_filter      : (functional_roiextract) list of 0/1 values (one value for each entry in roi_names):  
+%                                            band-pass filter individual timeseries (filter specified in bp_filter field)
+%      Setup.preprocessing.roi_detrend     : (functional_roiextract) 1: detrends extracted BOLD timeseries [0]
+%      Setup.preprocessing.roi_scale       : (functional_roiextract) 1: scales extracted BOLD timeseries to PSC units (within each ROI) [1]
 %      Setup.preprocessing.rtm             : (functional_realign) 0: use first volume; 1: use mean volume [0]
 %      Setup.preprocessing.sliceorder      : (functional_slicetime) acquisition order (vector of indexes; 1=first slice in image; note: use cell
 %                                             array for subject-specific vectors)

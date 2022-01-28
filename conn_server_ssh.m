@@ -1,8 +1,3 @@
-
-
-
-
-
 function varargout = conn_server_ssh(option, varargin)
 % internal function
 
@@ -275,7 +270,7 @@ switch(lower(option))
             'CONNcmd',cmd,...
             'SERVERcmd',profilename,...
             'SERVERpersistent',ispersistent);
-        if ~isempty(filename), spm_jsonwrite(filename,info); fprintf('Host information saved in %s\n',filename); end
+        if ~isempty(filename), spm_jsonwrite(filename,info,struct('indent',' ')); fprintf('Host information saved in %s\n',filename); end
         if nargout>0, varargout={info}; end
         if ~nargout&&isempty(filename), disp(info); end
         
