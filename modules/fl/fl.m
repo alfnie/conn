@@ -831,9 +831,12 @@ switch(lower(STEPS))
                         SPMidxvalid=find(cellfun(@(s)isequal(size(s),[1,3]),S));
                         S=cat(1,S{SPMidxvalid});
                         SPMconditions=unique(regexprep(S(:,2),'\^1$',''));
+                        disp('Effect names:');
                         disp(char(SPMconditions)); % effect-names
                         disp(' ');
-                        if ~nargout, disp(char({SPM.xCon.name})); % contrast-names
+                        if ~nargout, 
+                            disp('Contrast names:');
+                            disp(char({SPM.xCon.name})); % contrast-names
                         else varargout={{SPM.xCon.name}};
                         end
                     end

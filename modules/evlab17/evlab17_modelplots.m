@@ -12,7 +12,7 @@ evlab17_module init silent;
 
 % interprets info
 cwd=pwd;
-if numel(varargin)>0&&~isempty(varargin{1}), 
+if numel(varargin)>0&&~isempty(varargin{1}),  
     evlab17_module('load',varargin{1}); 
     if numel(varargin)>1, % select firstlevel analysis
         model_name=regexprep(varargin{2},'^firstlevel_','');
