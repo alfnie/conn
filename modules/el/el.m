@@ -104,7 +104,7 @@ conn_module('evlab17','init','silent');
 fileout=[];
 varargout=cell(1,nargout);
 
-if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','remote','init','initforce'})); % run these locally
+if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','remote','init','initforce','default'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,option,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{:}); 
@@ -148,8 +148,8 @@ switch(lower(option))
             end
             if defaults.isremote&&conn_server('isconnected')
                 conn_server('run','conn_module','el','init');
-                defaults.folder_subjects=conn_server('run',mfilename,'root.subjects');
-                defaults.folder_tasks=conn_server('run',mfilename,'root.tasks');
+                defaults=conn_server('run',mfilename,'default');
+                defaults.isremote=true;
                 fprintf('ROOT.SUBJECTS folder set to %s\n',defaults.folder_subjects);
                 fprintf('ROOT.TASKS folder set to %s\n',defaults.folder_tasks);
             end
@@ -166,7 +166,9 @@ switch(lower(option))
     case 'default'
         if isempty(varargin), varargout={defaults}; 
         elseif isfield(defaults,varargin{1})
-            if numel(varargin)>1, defaults.(varargin{1})=varargin{2};
+            if numel(varargin)>1, 
+                if defaults.isremote, conn_server('run',mfilename,option,varargin{:}); end
+                defaults.(varargin{1})=varargin{2};
             else varargout={defaults.(varargin{1})};
             end
         else
@@ -176,8 +178,8 @@ switch(lower(option))
         end
         
     case 'submit'
-        if ~nargout, conn('submit',@el,varargin{:}); % e.g. el submit preprocessing 408_FED_20160617a_3T2
-        else [varargout{1:nargout}]=conn('submit',@el,varargin{:});
+        if ~nargout, conn('submit',mfilename,varargin{:}); % e.g. el submit preprocessing 408_FED_20160617a_3T2
+        else [varargout{1:nargout}]=conn('submit',mfilename,varargin{:});
         end
         
     case 'preprocessing'
