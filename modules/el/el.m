@@ -354,7 +354,7 @@ switch(lower(option))
         
         % adapted from msieg firstlevel_PL2017
         contrasts_file=fullfile(subject_path,['contrasts_',expt,'.txt']);
-        if ~conn_existfile(contrasts_file), contrasts_file=fullfile(subject_path,['contrast_',expt,'.txt']); end
+        if ~conn_existfile(contrasts_file), contrasts_file=fullfile(subject_path,['contrasts_',expt,'.txt']); end
         if conn_existfile(contrasts_file), % contrast definitions
             str=conn_fileutils('fileread',all_contrasts_files);
             str=reshape(regexp(str,'\n','split'),1,[]);
