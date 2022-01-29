@@ -353,8 +353,8 @@ switch(lower(option))
         assert(conn_existfile(model_config_file),'unable to find model estimation options %s',model_config_file);
         
         % adapted from msieg firstlevel_PL2017
-        contrasts_file=fullfile(subject_path,['contrasts_',expt,'.txt']);
-        if ~conn_existfile(contrasts_file), contrasts_file=fullfile(subject_path,['contrasts_',expt,'.txt']); end
+        contrasts_file=fullfile(el_readtaskfolder(defaults),['contrasts_',expt,'.txt']);
+        if ~conn_existfile(contrasts_file), fprintf('no contrast file %s defined\n',contrasts_file); contrasts_file=fullfile(el_readtaskfolder(defaults),['contrast_',expt,'.txt']); end
         if conn_existfile(contrasts_file), % contrast definitions
             str=conn_fileutils('fileread',all_contrasts_files);
             str=reshape(regexp(str,'\n','split'),1,[]);
