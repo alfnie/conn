@@ -29,7 +29,9 @@ if ~isempty(varargin)&&any(strcmp(varargin,'-ls')), OUTPUTCELL=true; DOSORT=true
 if ~isempty(varargin), FILTER2=varargin{1}; else FILTER2=''; end
 
 [PATHNAME,NAME,EXT]=fileparts(PATHNAME);
-if isempty(PATHNAME),PATHNAME=pwd; end
+if isempty(PATHNAME),PATHNAME=pwd; 
+else PATHNAME=conn_fullfile(PATHNAME); 
+end
 FILTER=[NAME,EXT];
 FILENAMES={};
 FILESTRUCTS=[];
@@ -58,7 +60,7 @@ end
             for n1=1:length(dir0),
                 if DIRSONLY==dir0(idx(n1)).isdir&&(isempty(filter2)||~isempty(regexp(dir0(idx(n1)).name,filter2)))&&(~DOSKIPDOT||~all(dir0(idx(n1)).name=='.')),
                     %if ~dir0(idx(n1)).isdir,
-                    if isfield(dir0,'folder'), txt=fullfile(dir0(idx(n1)).folder,dir0(idx(n1)).name);
+                    if 0,%isfield(dir0,'folder'), txt=fullfile(dir0(idx(n1)).folder,dir0(idx(n1)).name);
                     else txt=fullfile(pathname,dir0(idx(n1)).name);
                     end
                     if DOINF||size(FILENAMES,1)<1e6, % Change this value to increase the maximum number of FILENAMES displayed

@@ -105,7 +105,7 @@ conn_module('evlab17','init','silent');
 fileout=[];
 varargout=cell(1,nargout);
 
-if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','remote','init','initforce','default'})); % run these locally
+if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','remote','init','initforce','default','model.stats'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,option,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{:}); 
@@ -395,7 +395,7 @@ switch(lower(option))
         opts={dataset,expt,...
             varargin{4:end}};
         assert(conn_existfile(dataset),'file %s not found',dataset);
-        if strcmpi(STEPS,'model.stats'), conn_module('evlab17','modelplots',opts{:},'stats');
+        if strcmpi(option,'model.stats'), conn_module('evlab17','modelplots',opts{:},'stats');
         else conn_module('evlab17','modelplots',opts{:});
         end
         

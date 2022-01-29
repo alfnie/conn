@@ -6,7 +6,7 @@ global CONN_x CONN_gui;
 
 if isfield(CONN_gui,'font_offset'),font_offset=CONN_gui.font_offset; else font_offset=0; end
 if ~isfield(CONN_x,'folders')||~isfield(CONN_x.folders,'qa')||isempty(CONN_x.folders.qa),
-    qafolder=pwd;
+    qafolder=conn_projectmanager('pwd');
     isCONN=false;
 else qafolder=CONN_x.folders.qa;
     isCONN=true;
@@ -41,23 +41,23 @@ if dlg.overwritecurrentfigure||dlg.keepcurrentfigure
     end
 end
 if nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'thesefolders')),   % each subfolder within current folder contains a different QA report
-    qafolder=pwd;
+    qafolder=conn_projectmanager('pwd');
     qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
-    %dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
-    dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
+    dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+    %dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
     isCONN=false;
 elseif nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'thisfolder')), % single QA report in current folder
-    [qafolder,qagroups]=fileparts(pwd);
+    [qafolder,qagroups]=fileparts(conn_projectmanager('pwd'));
     dlg.sets={qagroups};
     isCONN=false;
 elseif nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'flfolders')),  % each conn folder contains a different subject
     if ischar(varargin{1})&&conn_fileutils('isdir',varargin{1}), qafolder=varargin{1};
-    else qafolder=pwd;
+    else qafolder=conn_projectmanager('pwd');
     end
     qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
     if isempty(qagroups), conn_disp('no QA plots found'); return; end
-    %dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
-    dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
+    dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+    %dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
     nfilesep=sum(char(dlg.sets)==filesep,2);
     mnfilesep=mode(nfilesep);
     switch(mnfilesep)
@@ -69,7 +69,7 @@ elseif nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'flfolders')),  % 
             conn_disp('fl single dataset display');
             [qafolder,qagroups]=fileparts(qafolder);
             if isempty(qagroups), [qafolder,qagroups]=fileparts(qafolder); end
-            if isempty(qafolder), qafolder=pwd; end
+            if isempty(qafolder), qafolder=conn_projectmanager('pwd'); end
             dlg.sets={qagroups};
             isCONN=false;
         otherwise % multiple datasets
@@ -81,13 +81,13 @@ elseif nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'flfolders')),  % 
 elseif nargin&&ischar(varargin{1})&&conn_fileutils('isdir',varargin{1})                        % single QA report in specified folder
     [qafolder,qagroups]=fileparts(varargin{1});
     if isempty(qagroups), [qafolder,qagroups]=fileparts(qafolder); end
-    if isempty(qafolder), qafolder=pwd; end
+    if isempty(qafolder), qafolder=conn_projectmanager('pwd'); end
     dlg.sets={qagroups};
     isCONN=false;
 else
     qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
-    %dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
-    dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
+    dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+    %dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
 end
 if nargin&&any(strcmp(varargin(cellfun(@ischar,varargin)),'isconn')), isCONN=true; end
 if dlg.forceinitdenoise&&(dlg.createdenoise||isempty(dlg.sets)),
@@ -384,7 +384,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         f=cellstr(f);
                         conn_fileutils('spm_unlink',f{:});
                     end
-                    if strncmp(fullfile(qafolder,dlg.sets{dlg.iset}),pwd,numel(fullfile(qafolder,dlg.sets{dlg.iset}))), cd(qafolder); end
+                    if strncmp(fullfile(qafolder,dlg.sets{dlg.iset}),conn_projectmanager('pwd'),numel(fullfile(qafolder,dlg.sets{dlg.iset}))), conn_fileutils('cd',qafolder); end
                     [ok,nill]=conn_fileutils('rmdir_dironly',fullfile(qafolder,dlg.sets{dlg.iset}));
                     try, if ~ok, conn_disp(['warning: unable to remove report directory; ',nill]); end; end
                     tag='';
@@ -399,8 +399,8 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     conn_fileutils('mkdir',qafolder,tag);
                 end
                 qagroups=conn_sortfilenames(conn_dir(fullfile(qafolder,'QA_*'),'-dir','-cell'));
-                %dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
-                dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
+                dlg.sets=regexprep(cellfun(@(x)x(numel(qafolder)+1:end),qagroups,'uni',0),'^[\\\/]','');
+                %dlg.sets=regexprep(qagroups,'^(.*)[\\\/]QA_(.*?)$','QA_$2');
                 [nill,qanames]=cellfun(@fileparts,dlg.sets,'uni',0);
                 dlg.iset=find(strcmp(qanames,tag),1);
                 if isempty(dlg.iset), dlg.iset=1; end
