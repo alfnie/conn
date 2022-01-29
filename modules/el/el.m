@@ -69,8 +69,9 @@ function varargout=el(option,varargin)
 %           >> el submit preprocessing 408_FED_20160617a_3T2
 %
 %   el('model.plot',subjectID, pipelineID, experimentID) displays first-level effect-size estimates
+%   el('model.stats',subjectID, pipelineID, experimentID) displays first-level statistics
 %   el('model.qa',subjectID, pipelineID, experimentID) creates QA plots on first-level GLM analyses
-%   el('qa.plot',subjectID, pipelineID) displays already-created QA plots
+%   el('model.qa.plot',subjectID, pipelineID) displays already-created QA plots
 %
 %
 % CONFIGURATION OPTIONS:
@@ -359,7 +360,7 @@ switch(lower(option))
             str=reshape(regexp(str,'\n','split'),1,[]);
             cons=reshape(str(cellfun('length',str)>0),1,[]);
         else % back-compatibility
-            all_contrasts_files=fullfile(el_readtaskfolder(defauts),'contrasts_by_expt.txt'); % single-file, all expt contrasts
+            all_contrasts_files=fullfile(el_readtaskfolder(defaults),'contrasts_by_expt.txt'); % single-file, all expt contrasts
             %if ~conn_existfile(all_contrasts_files), all_contrasts_files=fullfile(defaults.folder_subjects,'..','ANALYSIS','contrasts_by_expt.txt'); end
             str=conn_fileutils('fileread',all_contrasts_files);
             str=reshape(regexp(str,'\n','split'),1,[]);
@@ -372,7 +373,7 @@ switch(lower(option))
         cat_file=conn_dir(fullfile(subject_path,[expt,'.cat']),'-ls');
         if isempty(cat_file), cat_file=conn_dir(fullfile(subject_path,['*_',expt,'.cat']),'-ls'); end
         assert(numel(cat_file)==1,'%d %s files found',numel(cat_file),fullfile(subject_path,['*_',expt,'.cat']));
-        cat_info=conn_loadcfgfile(char(cat_file),struct('path',el_readtaskfolder(defauts)));
+        cat_info=conn_loadcfgfile(char(cat_file),struct('path',el_readtaskfolder(defaults)));
         DOSAVECFG=defaults.create_model_cfg_files;
         opts=struct('dataset',char(dataset),'design',char(cat_file),'model_name',expt,'contrasts',{cons});
         if DOSAVECFG
@@ -384,7 +385,7 @@ switch(lower(option))
         end
         cd(pwd0);
 
-    case {'model.plot'}
+    case {'model.plot', 'model.stats'}
         assert(numel(varargin)>=3,'incorrect usage >> el model.plot subject_id, pipeline_id, and model_id')
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
         if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
@@ -394,7 +395,9 @@ switch(lower(option))
         opts={dataset,expt,...
             varargin{4:end}};
         assert(conn_existfile(dataset),'file %s not found',dataset);
-        conn_module('evlab17','modelplots',opts{:});
+        if strcmpi(STEPS,'model.stats'), conn_module('evlab17','modelplots',opts{:},'stats');
+        else conn_module('evlab17','modelplots',opts{:});
+        end
         
     otherwise
         [varargout{1:nargout}]=conn_module('evlab17',option,varargin{:});

@@ -284,7 +284,7 @@ function varargout=conn_batch(varargin)
 %                        'functional_label'                      : labels current functional files (to list of Secondary Datasets)
 %                        'functional_load'                       : assigns current functional files (from list of Secondary Datasets)
 %                        'functional_manualorient'               : applies user-defined affine transformation to functional data
-%                        'functional_manualspatialdef'           : applies user-defined spatial deformation to functional data
+%                        'functional_manualspatialdef'           : applies user-defined spatial deformation to functional data%                        'functional_mask'                       : masks functional data using inclusive or exclusive mask
 %                        'functional_motionmask'                 : creates functional motion masks (mean BOLD signal spatial 
 %                                                                   derivatives wrt motion parameters)
 %                        'functional_normalize_direct'           : functional direct normalization
@@ -373,6 +373,8 @@ function varargout=conn_batch(varargin)
 %      Setup.preprocessing.load_label      : (functional_load) label of secondary dataset (note: the following functional step names do not require an 
 %                                            explicit continue field: 'functional_load_from_original', 'functional_load_from_subjectspace', 
 %                                            'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed')
+%      Setup.preprocessing.mask_names      : (functional_mask) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
+%      Setup.preprocessing.mask_inclusive  : (functional_mask) 1: inclusive ROI mask (keep voxels inside ROI); 0: exclusive ROI mask (keep voxels outside ROI) [1]
 %      Setup.preprocessing.reg_names       : (functional_regression) list of first-level covariates to use as model regressors / design matrix (valid 
 %                                            entries are first-level covariate names or ROI names)
 %      Setup.preprocessing.reg_dimensions  : (functional_regression) list of maximum number of dimensions (one value for each model regressor in 
