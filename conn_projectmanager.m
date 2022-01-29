@@ -105,6 +105,7 @@ switch(lower(option))
                     rename=true;
                     try, conn_fileutils('deletefile_multiple',fullfile(filepath,'statusfile.')); rename=~isempty(tag); end
                     if rename
+                        try, conn_fileutils('mkdir',filepath); end
                         try, conn_fileutils('filewrite',filename,str);
                         catch, error('Unable to create file %s. Check folder permissions and try again\n',filename);
                         end
