@@ -209,6 +209,10 @@ else
     %qafolder=fullfile(niifolder,['QA_',tag]);
 end
 
+if ~isfield(options,'functionals_path')&&isfield(options,'alt_functionals_path'), options.functionals_path=options.alt_functionals_path; options=rmfield(options,'alt_functionals_path'); end
+if ~isfield(options,'structurals_path')&&isfield(options,'alt_structurals_path'), options.structurals_path=options.alt_structurals_path; options=rmfield(options,'alt_structurals_path'); end
+if ~isfield(options,'rois_path')&&isfield(options,'alt_rois_path'), options.rois_path=options.alt_rois_path; options=rmfield(options,'alt_rois_path'); end
+if ~isfield(options,'dicoms_path')&&isfield(options,'alt_dicoms_path'), options.dicoms_path=options.alt_dicoms_path; options=rmfield(options,'alt_dicoms_path'); end
 if isfield(options,'structurals')
     if ischar(options.structurals), options.structurals=cellstr(options.structurals); end
     if isequal(options.structurals,{'*'})
@@ -362,6 +366,7 @@ if isfield(options,'rois')
             if isfield(fstruct,'dimensions'), newrois.dimensions{n}=fstruct.dimensions; end
             if isfield(fstruct,'weighted'), newrois.weighted(n)=fstruct.weighted; end
             if isfield(fstruct,'multiplelabels'), newrois.multiplelabels(n)=fstruct.multiplelabels; end
+            if isfield(fstruct,'labelfiles'), newrois.labelfiles{n}=fstruct.labelfiles; end
             if isfield(fstruct,'mask'), newrois.mask(n)=fstruct.mask; end
             if isfield(fstruct,'regresscovariates'), newrois.regresscovariates(n)=fstruct.regresscovariates; end
             if isfield(fstruct,'dataset'), newrois.dataset{n}=fstruct.dataset; end

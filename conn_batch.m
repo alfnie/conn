@@ -130,6 +130,7 @@ function varargout=conn_batch(varargin)
 %      Setup.rois.multiplelabels        : rois.multiplelabels(nroi) 1/0 to indicate roi file contains multiple labels/ROIs (default: set to 
 %                                         1 if there exist an associated .txt or .xls file with the same filename and in the same folder as 
 %                                         the roi file)
+%      Setup.rois.labelfiles            : rois.labelfiles{nroi} to import label file from alternative location
 %      Setup.rois.mask                  : rois.mask(nroi) 1/0 to mask with grey matter voxels [0] 
 %      Setup.rois.regresscovariates     : rois.regresscovariates(nroi) 1/0 to regress known first-level covariates before computing PCA 
 %                                         decomposition of BOLD signal within ROI [1 if dimensions>1; 0 otherwise] 

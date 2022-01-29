@@ -803,8 +803,9 @@ end
 if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_preservemasks','structural_segment&normalize','structural_segment','functional_normalize','functional_segment&normalize','functional_segment','functional_segment&normalize_direct','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_preservemasks','functional_normalize_direct','structural_manualspatialdef','functional_manualspatialdef'}))
     DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
     thfig=figure('units','norm','position',[.4,.4,.3,.2],'color',1*[1 1 1],'name','Segment/Normalize/Resample settings','numbertitle','off','menubar','none');
+    secdatasets=arrayfun(@(n)sprintf('Custom TPM location: dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0);
     if DOSPM12||any(ismember(lSTEPS,{'structural_segment','structural_segment&normalize','functional_segment','functional_segment&normalize'}))
-        ht3=uicontrol('style','checkbox','units','norm','position',[.1,.75,.8,.1],'string','Use default Tissue Probability Maps','value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines TPM file used by normalization/segmentation routine');
+        ht3=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',[{'Use default Tissue Probability Maps (spm/tpm)','Custom TPM location: [select file]'},secdatasets],'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines TPM file used by normalization/segmentation routine');
         ht4=[];ht5=[];
     else
         ht3=[];
@@ -822,7 +823,7 @@ if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_pres
     if ~any(ismember(lSTEPS,{'structural_normalize','structural_normalize_preservemasks','structural_segment&normalize','structural_segment','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_masks','structural_manualspatialdef'})), set([ht1a ht1 ht4],'enable','off'); end
     if ~any(ismember(lSTEPS,{'functional_normalize','functional_segment&normalize','functional_segment','functional_segment&normalize_direct','functional_normalize_direct','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_preservemasks','functional_manualspatialdef'})), set([ht2a ht2 ht5],'enable','off'); end
     if all(ismember(lSTEPS,{'structural_manualspatialdef','functional_manualspatialdef'})), set([ht3 ht4 ht5],'visible','off'); set(thfig,'name','Resample settings'); end
-    set(ht3,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select TPM file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
+    set(ht3,'userdata',[],'callback','val=get(gcbo,''value''); if val==2, [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select TPM file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; else set(gcbo,''userdata'',val); end');
     set(ht4,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
     set(ht5,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
     uiwait(thfig);
@@ -830,7 +831,7 @@ if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_pres
     temp=str2num(get(ht1,'string')); if ~isempty(temp), voxelsize_anat=temp; end
     temp=str2num(get(ht2,'string')); if ~isempty(temp), voxelsize_func=temp; end
     temp=str2num(get(ht0,'string')); if ~isempty(temp), boundingbox=temp; end
-    if ~isempty(ht3), val=get(ht3,'value'); if ~val, tpm_template=get(ht3,'userdata'); end; end
+    if ~isempty(ht3), val=get(ht3,'value'); if val>1, tpm_template=get(ht3,'userdata'); if isnumeric(tpm_template), tpm_template=CONN_x.Setup.secondarydataset(tpm_template-2).label; end; end; end
     if ~isempty(ht4), val=get(ht4,'value'); if ~val, structural_template=get(ht4,'userdata'); end; end
     if ~isempty(ht5), val=get(ht5,'value'); if ~val, functional_template=get(ht5,'userdata'); end; end
     delete(thfig);
