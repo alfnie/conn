@@ -5,11 +5,13 @@ function varargout=el(option,varargin)
 %
 %   conn module EL init                  : initializes EVLAB tools
 %   el root.subjects <subjects_folder>   : defines root directory where subject folders are stored
-%                                    Altnernatively, this is defined by the symbolic link conn/modules/el/root.subjects if it exists
+%                                    Altnernatively, this is defined by the symbolic link .../conn/modules/el/root.subjects if it exists
 %                                    (syntax "el root.subjects <subjects_folder> all" may be used to create this symbolic link)
 %   el root.tasks <tasks_folder>         : defines root directory where experimental design files are stored
-%                                    Altnernatively, this is defined by the symbolic link conn/modules/el/root.tasks if it exists
+%                                    Altnernatively, this is defined by the symbolic link .../conn/modules/el/root.tasks if it exists
 %                                    (syntax "el root.tasks <tasks_folder> all" may be used to create this symbolic link)
+%   el root.pipelines <pipelines_folder> : defines root directory where preprocessing and model pipeline files are stored
+%                                    By default this points to .../conn/modules/el, where several default pipelines already exist
 %   el remote on                         : work remotely (default 'off') (0/'off': when working with data stored locally on your computer; 1/'on': when working with data stored in a remote server -to enable this functionality on a remote server run on the remote server the command "conn remotely setup")
 %
 % PREPROCESSING SYNTAX:
@@ -76,10 +78,6 @@ function varargout=el(option,varargin)
 %
 % CONFIGURATION OPTIONS:
 %
-%   foldername = el('default','folder_subjects' [,foldername])
-%      foldername               : default root.subjects directory where subject folders may be found. By default this is defined as conn/modules/el/root.subjects
-%   foldername = el('default','folder_tasks' [,foldername])
-%      foldername               : default root.tasks directory where task files may be found. By default this is defined as conn/modules/el/root.tasks
 %   foldername = el('default','folder_dicoms' [,foldername])
 %      foldername               : subdirectory name within folder_subjects where DICOM files may be found. Default '*dicoms'
 %   list = el('default','dicom_disregard_functional' [,list])
@@ -94,6 +92,7 @@ if isempty(defaults),
     defaults=struct(...
         'folder_subjects',fullfile(fileparts(which(mfilename)),'root.subjects') ,...
         'folder_tasks',fullfile(fileparts(which(mfilename)),'root.tasks') ,...
+        'folder_pipelines',fileparts(which(mfilename)) ,...
         'folder_dicoms','*dicoms' ,...
         'dicom_isstructural',{{'^T1_MPRAGE_1iso'}} ,...
         'dicom_disregard_functional',{{'^localizer','^AAScout','^AAHScout','^MoCoSeries','^T1_MPRAGE_1iso','^DIFFUSION_HighRes'}},...
@@ -105,7 +104,7 @@ conn_module('evlab17','init','silent');
 fileout=[];
 varargout=cell(1,nargout);
 
-if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','remote','init','initforce','default','model.stats'})); % run these locally
+if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','root.pipelines','remote','init','initforce','default','model.stats'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,option,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{:}); 
@@ -128,6 +127,13 @@ switch(lower(option))
             defaults.folder_tasks=varargin{1};
             if defaults.isremote, conn_server('run',mfilename,'root.tasks',defaults.folder_tasks); end
         else varargout={defaults.folder_tasks};
+        end
+        
+    case 'root.pipelines'
+        if numel(varargin)>0, 
+            defaults.folder_pipelines=varargin{1};
+            if defaults.isremote, conn_server('run',mfilename,'root.pipelines',defaults.folder_pipelines); end
+        else varargout={defaults.folder_pipelines};
         end
         
     case 'remote'
@@ -153,6 +159,7 @@ switch(lower(option))
                 defaults.isremote=true;
                 fprintf('ROOT.SUBJECTS folder set to %s\n',defaults.folder_subjects);
                 fprintf('ROOT.TASKS folder set to %s\n',defaults.folder_tasks);
+                fprintf('ROOT.PIPELINES folder set to %s\n',defaults.folder_pipelines);
             end
             if nargout>0, varargout={defaults.isremote}; end
         else
@@ -198,12 +205,12 @@ switch(lower(option))
         else struct_run=[];
         end
         if numel(varargin)<2||isempty(varargin{2})
-            if isempty(struct_run), preproc_config_file = fullfile(fileparts(which(mfilename)),'pipeline_preproc_DefaultMNI.cfg');
-            else preproc_config_file = fullfile(fileparts(which(mfilename)),'pipeline_preproc_DefaultMNI_PlusStructural.cfg');
+            if isempty(struct_run), preproc_config_file = fullfile(defaults.folder_pipelines,'pipeline_preproc_DefaultMNI.cfg');
+            else preproc_config_file = fullfile(defaults.folder_pipelines,'pipeline_preproc_DefaultMNI_PlusStructural.cfg');
             end
             assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',preproc_config_file);
         else
-            preproc_config_file = el_readconfig(varargin{2});
+            preproc_config_file = el_readpreprocconfig(varargin{2},defaults);
             assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',varargin{2});
         end
         
@@ -250,7 +257,7 @@ switch(lower(option))
         dataset=el_readpipeline(varargin{2},subject,subject_path,defaults);
         assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
         conn_module('evlab17','load',dataset);
-        preproc_config_file = el_readconfig(varargin{3});
+        preproc_config_file = el_readpreprocconfig(varargin{3},defaults);
         assert(conn_existfile(preproc_config_file),'unable to find preprocessing pipeline %s',varargin{3});
         if isempty(preproc_config_file), opts={[]};
         else opts={preproc_config_file, []};
@@ -266,7 +273,7 @@ switch(lower(option))
         cd(pwd0);
         varargout{1}=fileout; 
     
-    case 'createdatacfg' % subject id
+    case {'data.cfg.dicom','createdatacfg'} % subject id
         assert(numel(varargin)>=1,'incorrect usage >> el createdatacfg subject_id');
         pwd0=pwd;
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
@@ -318,6 +325,40 @@ switch(lower(option))
         %             end
         varargout{1}=data_config_file;
             
+    case {'data.cfg.nifti','data.cfg'} % subject id
+        assert(numel(varargin)>=1,'incorrect usage >> el data.cfg subject_id');
+        pwd0=pwd;
+        [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
+        assert(~conn_existfile(data_config_file),'data configuration file %s already exist. Please delete this file before proceeding',data_config_file);
+        
+        subject_path_func = fullfile(subject_path,'func');
+        assert(conn_existfile(subject_path_func,2),'unable to find func folder %s\n',subject_path_func);
+        subject_path_anat = fullfile(subject_path,'anat');
+        assert(conn_existfile(subject_path_anat,2),'unable to find anat folder %s\n',subject_path_anat);
+        subject_path_fmap = fullfile(subject_path,'fmap');
+        
+        func=conn_dir(fullfile(subject_path_func,'*.nii'),'-ls');
+        anat=conn_dir(fullfile(subject_path_anat,'*.nii'),'-ls');
+        if conn_existfile(subject_path_fmap,2),fmap=conn_dir(fullfile(subject_path_fmap,'*.nii'),'-ls'); else fmap={}; end
+        assert(~isempty(func),'unable to find any functional files in %s\n',subject_path_func);
+
+        fid=fopen(fullfile(subject_path,'data.cfg'),'wt');
+        fprintf(fid,'\n#functionals\n');
+        for n=1:numel(func), fprintf(fid,'%s\n',func{n});end
+        if ~isempty(anat)
+            fprintf(fid,'\n#structurals\n');
+            for n=1:numel(anat), fprintf(fid,'%s\n',anat{n});end
+        end
+        if ~isempty(fmap)
+            fprintf(fid,'\n#fmap_functionals\n');
+            for n=1:numel(fmap), fprintf(fid,'%s\n',fmap{n});end
+        end
+        fprintf(fid,'\n#RT nan\n'); % note: will read RT from .json files
+        fclose(fid);
+        data_config_file=fullfile(subject_path,'data.cfg');
+        fprintf('Created data configuration file %s\n',data_config_file);
+        varargout{1}=data_config_file;
+            
     case {'preprocessing.qa','model.qa','qa.preprocessing','qa.model'}
         assert(numel(varargin)>=1,'incorrect usage >> el preprocessing.qa subject_id [,pipeline_id ,model_id]');
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
@@ -349,18 +390,24 @@ switch(lower(option))
         if numel(varargin)<3, expt=''; else expt=varargin{3}; end
         expt=el_readexpt(expt,dataset);
         if numel(varargin)<4, model_config_file=''; else model_config_file=varargin{4}; end
-        model_config_file=el_readmodelconfig(model_config_file);
+        try, if isempty(model_config_file)&&conn_existfile(fullfile(subject_path,[expt,'.cfg'])), model_config_file=fullfile(subject_path,[expt,'.cfg']); end; end
+        model_config_file=el_readmodelconfig(model_config_file,defaults);
         assert(conn_existfile(model_config_file),'unable to find model estimation options %s',model_config_file);
         
         % adapted from msieg firstlevel_PL2017
-        contrasts_file=fullfile(el_readtaskfolder(defaults),['contrasts_',expt,'.txt']);
-        if ~conn_existfile(contrasts_file), fprintf('no contrast file %s defined\n',contrasts_file); contrasts_file=fullfile(el_readtaskfolder(defaults),['contrast_',expt,'.txt']); end
+        contrasts_file=fullfile(el_readtaskfolder(defaults),[expt,'.con']);
+        if ~conn_existfile(contrasts_file), contrasts_file=fullfile(el_readtaskfolder(defaults),[expt,'.txt']); end
+        if ~conn_existfile(contrasts_file), contrasts_file=fullfile(el_readtaskfolder(defaults),[expt,'.csv']); end
+        if ~conn_existfile(contrasts_file), contrasts_file=fullfile(el_readtaskfolder(defaults),[expt,'.tsv']); end
         if conn_existfile(contrasts_file), % contrast definitions
+            fprintf('contrast file %s found\n',contrasts_file); 
             str=conn_fileutils('fileread',contrasts_file);
             str=reshape(regexp(str,'\n','split'),1,[]);
             cons=reshape(str(cellfun('length',str)>0),1,[]);
         else % back-compatibility
             all_contrasts_files=fullfile(el_readtaskfolder(defaults),'contrasts_by_expt.txt'); % single-file, all expt contrasts
+            assert(conn_existfile(all_contrasts_files), 'no contrast-file found\n');
+            fprintf('contrast file %s found\n',all_contrasts_files); 
             %if ~conn_existfile(all_contrasts_files), all_contrasts_files=fullfile(defaults.folder_subjects,'..','ANALYSIS','contrasts_by_expt.txt'); end
             str=conn_fileutils('fileread',all_contrasts_files);
             str=reshape(regexp(str,'\n','split'),1,[]);
@@ -418,23 +465,23 @@ else
 end
 end
 
-function preproc_config_file = el_readconfig(preproc_config_file);
+function preproc_config_file = el_readpreprocconfig(preproc_config_file,defaults);
 preproc_config_file=conn_prepend('',char(preproc_config_file),'.cfg');
 if isempty(fileparts(preproc_config_file)),
-    preproc_config_file=fullfile(fileparts(which(mfilename)),preproc_config_file);
-    if ~conn_existfile(preproc_config_file), preproc_config_file=conn_prepend('pipeline_preproc_',preproc_config_file,'.cfg'); end
+    preproc_config_file=fullfile(defaults.folder_pipelines,preproc_config_file);
+    if ~conn_existfile(preproc_config_file)&&conn_existfile(conn_prepend('pipeline_preproc_',preproc_config_file,'.cfg')), preproc_config_file=conn_prepend('pipeline_preproc_',preproc_config_file,'.cfg'); end
 end
 end
 
-function model_config_file = el_readmodelconfig(model_config_file);
+function model_config_file = el_readmodelconfig(model_config_file,defaults);
 model_config_file=char(model_config_file);
 if isempty(model_config_file)
-    model_config_file = fullfile(fileparts(which(mfilename)),'pipeline_model_Default.cfg');
+    model_config_file = fullfile(defaults.folder_pipelines,'pipeline_model_Default.cfg');
 else
     model_config_file=conn_prepend('',model_config_file,'.cfg');
     if isempty(fileparts(model_config_file)),
-        model_config_file=fullfile(fileparts(which(mfilename)),model_config_file);
-        if ~conn_existfile(model_config_file), model_config_file=conn_prepend('pipeline_model_',model_config_file,'.cfg'); end
+        model_config_file=fullfile(defaults.folder_pipelines,model_config_file);
+        if ~conn_existfile(model_config_file)&&conn_existfile(conn_prepend('pipeline_model_',model_config_file,'.cfg')), model_config_file=conn_prepend('pipeline_model_',model_config_file,'.cfg'); end
     end
 end
 end
