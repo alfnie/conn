@@ -28,8 +28,12 @@ options=varargin;
 steps={'default_mni','default_mnifield','default_mnidirectfield','default_ss','default_ssfield','default_ssnl',...
     'functional_surface_coreg&resample',...
     'structural_manualorient','structural_center','structural_segment',...
-    'structural_normalize','structural_segment&normalize','structural_normalize_preservemasks',...
+    'structural_normalize','structural_segment&normalize',...
+    'structural_segment&normalize_withlesion',...
+    'functional_segment&normalize_indirect_withlesion',...
+    'structural_normalize_preservemasks',...
     'structural_manualspatialdef', ...
+    'structural_mask',...
     'functional_removescans','functional_manualorient','functional_center','functional_centertostruct'...
     'functional_slicetime','functional_bandpass','functional_regression','functional_roiextract','functional_mask','functional_realign','functional_realign&unwarp',...
     'functional_realign&unwarp&fieldmap','functional_art','functional_coregister_affine_reslice',...
@@ -63,8 +67,13 @@ steps={'default_mni','default_mnifield','default_mnidirectfield','default_ss','d
 steps_names={'<HTML><b>default preprocessing pipeline</b> for volume-based analyses (direct normalization to MNI-space)</HTML>','<HTML><b>preprocessing pipeline</b> for volume-based analyses (indirect normalization to MNI-space) when FieldMaps are available</HTML>','<HTML><b>preprocessing pipeline</b> for volume-based analyses (direct normalization to MNI-space) when FieldMaps are available</HTML>','<HTML><b>preprocessing pipeline</b> for surface-based analyses (in subject-space)</HTML>','<HTML><b>preprocessing pipeline</b> for surface-based analyses (in subject-space) when FieldMaps are available</HTML>','<HTML><b>preprocessing pipeline</b> for surface-based analyses (in subject-space) using nonlinear coregistration</HTML>',...
     'functional Direct Coregistration to structural without reslicing followed by Resampling of functional data at the location of FreeSurfer subject-specific structural cortical surface (converts volume- to surface- level data)', ...
     'structural Manual transformation (rotation/flip/translation/affine of structural volumes)','structural Center to (0,0,0) coordinates (translation)','structural Segmentation (Grey/White/CSF tissue estimation)',...
-    'structural Normalization (MNI space normalization)','structural Segmentation & Normalization (simultaneous Grey/White/CSF segmentation and MNI normalization)','structural Normalization preserving Grey/White/CSF masks (MNI space normalization of structural, applying same transformation to existing Grey/White/CSF masks)',...
+    'structural Normalization (MNI space normalization)',...
+    'structural Segmentation & Normalization (simultaneous Grey/White/CSF segmentation and MNI normalization)',...
+    'structural Segmentation & Normalization with structural lesion mask (simultaneous Grey/White/CSF segmentation and MNI normalization, creating a new subject-specific TPM with a lesion tissue class)',...
+    'functional Indirect Segmentation & Normalization with structural lesion mask (coregister functional/structural; structural segmentation & normalization; apply same deformation field to functional; create a new subject-specific TPM with a lesion tissue class)',...
+    'structural Normalization preserving Grey/White/CSF masks (MNI space normalization of structural, applying same transformation to existing Grey/White/CSF masks)',...
     'structural Manual deformation (non-linear transformation of structural volumes)', ...
+    'structural Mask (apply mask to structural data)',...
     'functional Removal of initial scans (disregard initial functional scans)','functional Manual transformation (rotation/flip/translation/affine of functional volumes)','functional Center to (0,0,0) coordinates (translation)','functional Center to structural coordinates (translation)'...
     'functional Slice-Timing correction (STC; correction for inter-slice differences in acquisition time)','functional Band-pass filtering (temporal filtering of BOLD data)','functional Regression of temporal components (keep residuals of linear model to BOLD timeseries)','functional ROI extraction (compute BOLD timeseres within ROI)','functional Mask (apply mask to functional data)','functional Realignment (subject motion estimation and correction)','functional Realignment & unwarp (subject motion estimation and correction)',...
     'functional Realignment & unwarp & susceptibility distortion correction (subject motion estimation and correction)','functional Outlier detection (ART-based identification of outlier scans for scrubbing)','functional Direct Coregistration to structural (rigid body transformation)',...
@@ -101,10 +110,15 @@ steps_names={'<HTML><b>default preprocessing pipeline</b> for volume-based analy
 steps_descr={{'INPUT: structural&functional volumes','OUTPUT (all in MNI-space): skull-stripped normalized structural volume, Grey/White/CSF normalized masks, realigned slice-time corrected normalized smoothed functional volumes, subject movement ''realignment'' and ''scrubbing'' 1st-level covariate'},{'INPUT: structural&functional&FieldMap volumes',  'OUTPUT (all in MNI-space): skull-stripped normalized structural volume, Grey/White/CSF normalized masks, realigned&unwarp slice-time corrected normalized smoothed functional volumes, subject movement ''realignment'' and ''scrubbing'' 1st-level covariate'},{'INPUT: structural&functional&FieldMap volumes',  'OUTPUT (all in MNI-space): skull-stripped normalized structural volume, Grey/White/CSF normalized masks, realigned&unwarp slice-time corrected normalized smoothed functional volumes, subject movement ''realignment'' and ''scrubbing'' 1st-level covariate'},{'INPUT: structural&functional volumes','OUTPUT (all in subject-space): skull-stripped structural volume, Grey/White/CSF masks, realigned slice-time corrected coregistered functional volumes, subject movement ''realignment'' and ''scrubbing'' 1st-level covariate'},{'INPUT: structural&functional&VDM volumes','OUTPUT (all in subject-space): skull-stripped structural volume, Grey/White/CSF masks, realigned&unwarp slice-time corrected coregistered functional volumes, subject movement ''realignment'' and ''scrubbing'' 1st-level covariate'},{'INPUT: structural&functional volumes','OUTPUT (all in subject-space): skull-stripped structural volume, Grey/White/CSF masks, realigned slice-time corrected coregistered functional volumes, subject movement ''realignment'' and ''scrubbing'' 1st-level covariate'},...
     {'INPUT: functional data (volume files); structural volume; FreeSurfer-processed structural volume','OUTPUT: functional data (surface files)'}, ...
     {'INPUT: structural volume','OUTPUT: structural volume (same files re-oriented, not resliced)'}, {'INPUT: structural volume','OUTPUT: structural volume (same files translated, not resliced)'}, {'INPUT: structural volume','OUTPUT: skull-stripped structural volume, Grey/White/CSF masks (in same space as structural)'},...
-    {'INPUT: structural volume','OUTPUT: skull-stripped normalized structural volume (in MNI space)'},{'INPUT: structural volume','OUTPUT: skull-stripped normalized structural volume, normalized Grey/White/CSF masks (all in MNI space)'},{'INPUT: structural volume; Grey/White/CSF masks (in same space as structural)','OUTPUT: skull-stripped normalized structural volume, normalized Grey/White/CSF masks (all in MNI space)'},...
+    {'INPUT: structural volume','OUTPUT: skull-stripped normalized structural volume (in MNI space)'},...
+    {'INPUT: structural volume','OUTPUT: skull-stripped normalized structural volume, normalized Grey/White/CSF masks (all in MNI space)'},...
+    {'INPUT: structural volume & coregistered structural lesion ROI','OUTPUT: skull-stripped normalized structural volume, normalized Grey/White/CSF masks, normalized lesion ROI, [TPM+lesion] maps in "tpm" dataset (all in MNI space)'},...
+    {'INPUT: functional volumes; structural volume & coregistered structural lesion ROI','OUTPUT: skull-stripped normalized structural volume, normalized Grey/White/CSF masks, normalized lesion ROI, normalized functional volumes, [TPM+lesion] maps in "tpm" dataset (all in MNI space)'},...
+    {'INPUT: structural volume; Grey/White/CSF masks (in same space as structural)','OUTPUT: skull-stripped normalized structural volume, normalized Grey/White/CSF masks (all in MNI space)'},...
     {'INPUT: structural volume; user-defined spatial deformation file (e.g. y_#.nii file)','OUTPUT: resampled structural volumes'}, ...
+    {'INPUT: structural volume; ROIs (in same space as structural volume)','OUTPUT: structural volumes masked with ROI (or union of multiple ROIs)'}, ...
     {'INPUT: functional volumes','OUTPUT: temporal subset of functional volumes; temporal subset of first-level covariates (if already defined)'},{'INPUT: functional volumes','OUTPUT: functional volumes (same files re-oriented, not resliced)'},{'INPUT: functional volumes','OUTPUT: functional volumes (same files translated, not resliced)'},{'INPUT: structural and functional volumes','OUTPUT: functional volumes (same files translated, not resliced)'}, ...
-    {'INPUT: functional volumes','OUTPUT: slice-timing corrected functional volumes'},{'INPUT: functional volumes','OUTPUT: band-pass filtered functional volumes'},{'INPUT: functional volumes; first-level covariates','OUTPUT: functional volumes with selected covariates regressed-out'},{'INPUT: functional volumes; ROIs (in same space as functional volumes)','OUTPUT: QC_rois first-level covariate with BOLD timeseries within ROIs'},{'INPUT: functional volumes; ROIs (in same space as functional volumes)','OUTPUT: functional volumes masked with ROI (or intersection of multiple ROIs)'},{'INPUT: functional volumes','OUTPUT: realigned functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},{'INPUT: functional volumes','OUTPUT: realigned&unwarp functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},...
+    {'INPUT: functional volumes','OUTPUT: slice-timing corrected functional volumes'},{'INPUT: functional volumes','OUTPUT: band-pass filtered functional volumes'},{'INPUT: functional volumes; first-level covariates','OUTPUT: functional volumes with selected covariates regressed-out'},{'INPUT: functional volumes; ROIs (in same space as functional volumes)','OUTPUT: QC_rois first-level covariate with BOLD timeseries within ROIs'},{'INPUT: functional volumes; ROIs (in same space as functional volumes)','OUTPUT: functional volumes masked with ROI (or union of multiple ROIs)'},{'INPUT: functional volumes','OUTPUT: realigned functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},{'INPUT: functional volumes','OUTPUT: realigned&unwarp functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},...
     {'INPUT: functional volumes & VDM maps','OUTPUT: realigned&unwarp functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},{'INPUT: functional volumes, realignment parameters','OUTPUT: outlier scans 1st-level covariate, mean functional image, QA 2nd-level covariates'},{'INPUT: structural and mean functional volume (or first functional)','OUTPUT: coregistered functional volumes'},...
     {'INPUT: mean functional volume (or first functional)','OUTPUT: Grey/White/CSF masks (in same space as functional volume)'},...
     {'INPUT: functional volumes; user-defined spatial deformation file (e.g. y_#.nii file)','OUTPUT: resampled functional volumes'},...
@@ -191,8 +205,10 @@ roi_deriv=[];
 roi_filter=[];
 roi_detrend=0;
 roi_scale=1;
-mask_names={};
-mask_inclusive=[];
+mask_names_func={};
+mask_inclusive_func=1;
+mask_names_anat={};
+mask_inclusive_anat=1;
 reorient=[];
 respatialdef=[];
 coregtomean=1;
@@ -200,6 +216,7 @@ rtm=0;
 coregsource={};
 applytofunctional=false;
 tpm_template=[];
+tpm_structlesion=[];
 affreg=[];
 tpm_ngaus=[];
 vdm_et1=[]; % eg. 2.84, 4.37;
@@ -308,10 +325,14 @@ for n1=1:2:numel(options)-1,
             roi_detrend=options{n1+1};
         case 'roi_scale',
             roi_scale=options{n1+1};
-        case 'mask_names',
-            mask_names=options{n1+1};
-        case 'mask_inclusive',
-            mask_inclusive=options{n1+1};
+        case 'mask_names_func',
+            mask_names_func=options{n1+1};
+        case 'mask_inclusive_func',
+            mask_inclusive_func=options{n1+1};
+        case 'mask_names_anat',
+            mask_names_anat=options{n1+1};
+        case 'mask_inclusive_anat',
+            mask_inclusive_anat=options{n1+1};
         case 'removescans',
             removescans=options{n1+1};
         case 'applytofunctional',
@@ -359,6 +380,9 @@ for n1=1:2:numel(options)-1,
             affreg=char(options{n1+1});
         case 'tpm_template',
             tpm_template=options{n1+1};
+            if iscell(tpm_template), tpm_template=char(tpm_template); end
+        case 'tpm_structlesion',
+            tpm_structlesion=options{n1+1};
         case 'tpm_ngaus',
             tpm_ngaus=options{n1+1};
         case 'vdm_et1',
@@ -626,23 +650,43 @@ if any(ismember('functional_roiextract',lSTEPS))
 end
 
 if any(ismember('functional_mask',lSTEPS))
-    if isempty(mask_names)||dogui
-        temp_mask_names=reshape(CONN_x.Setup.rois.names(1:end-1),1,[]);
-        temp_mask_names0=reshape([temp_mask_names; temp_mask_names],1,[]);
-        temp_mask_names1=reshape([cellfun(@(x)[x ' (inclusive mask)'],temp_mask_names,'uni',0); cellfun(@(x)[x ' (exclusive mask)'], temp_mask_names,'uni',0)],1,[]);
-        if isempty(mask_names),
-            answ=false(size(temp_mask_names0));
+    if isempty(mask_names_func)||dogui
+        temp_mask_names_func=reshape(CONN_x.Setup.rois.names(1:end-1),1,[]);
+        temp_mask_names_func0=reshape([temp_mask_names_func; temp_mask_names_func],1,[]);
+        temp_mask_names_func1=reshape([cellfun(@(x)[x ' (inclusive mask)'],temp_mask_names_func,'uni',0); cellfun(@(x)[x ' (exclusive mask)'], temp_mask_names_func,'uni',0)],1,[]);
+        if isempty(mask_names_func),
+            answ=false(size(temp_mask_names_func0));
         else
-            answ=ismember(temp_mask_names0,mask_names);
+            answ=ismember(temp_mask_names_func0,mask_names_func);
         end
-        answ=listdlg('Promptstring','Select ROI(s)','selectionmode','multiple','liststring',temp_mask_names1,'initialvalue',find(answ),'ListSize',[320 300]);
+        answ=listdlg('Promptstring','Select ROI(s) for functional masking','selectionmode','single','liststring',temp_mask_names_func1,'initialvalue',find(answ),'ListSize',[320 300]);
         if numel(answ)>=1,
-            mask_names=temp_mask_names0(answ);
-            mask_inclusive=rem(answ,2);
+            mask_names_func=temp_mask_names_func0(answ);
+            mask_inclusive_func=rem(answ,2);
         else return;
         end
     end
 end
+
+if any(ismember('structural_mask',lSTEPS))
+    if isempty(mask_names_anat)||dogui
+        temp_mask_names_anat=reshape(CONN_x.Setup.rois.names(1:end-1),1,[]);
+        temp_mask_names_anat0=reshape([temp_mask_names_anat; temp_mask_names_anat],1,[]);
+        temp_mask_names_anat1=reshape([cellfun(@(x)[x ' (inclusive mask)'],temp_mask_names_anat,'uni',0); cellfun(@(x)[x ' (exclusive mask)'], temp_mask_names_anat,'uni',0)],1,[]);
+        if isempty(mask_names_anat),
+            answ=false(size(temp_mask_names_anat0));
+        else
+            answ=ismember(temp_mask_names_anat0,mask_names_anat);
+        end
+        answ=listdlg('Promptstring','Select ROI(s) for structural masking','selectionmode','single','liststring',temp_mask_names_anat1,'initialvalue',find(answ),'ListSize',[320 300]);
+        if numel(answ)>=1,
+            mask_names_anat=temp_mask_names_anat0(answ);
+            mask_inclusive_anat=rem(answ,2);
+        else return;
+        end
+    end
+end
+
 
 if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     thfig=figure('units','norm','position',[.4,.4,.35,.3],'color',1*[1 1 1],'name','VDM create settings','numbertitle','off','menubar','none');
@@ -825,15 +869,24 @@ if any(ismember({'structural_manualspatialdef','functional_manualspatialdef'},lS
     end
 end
 
-if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_preservemasks','structural_segment&normalize','structural_segment','functional_normalize','functional_segment&normalize','functional_segment','functional_segment&normalize_direct','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_preservemasks','functional_normalize_direct','structural_manualspatialdef','functional_manualspatialdef'}))
+if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_preservemasks','structural_segment&normalize','structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion','structural_segment','functional_normalize','functional_segment&normalize','functional_segment','functional_segment&normalize_direct','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_preservemasks','functional_normalize_direct','structural_manualspatialdef','functional_manualspatialdef'}))
     DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
-    thfig=figure('units','norm','position',[.4,.4,.3,.2],'color',1*[1 1 1],'name','Segment/Normalize/Resample settings','numbertitle','off','menubar','none');
-    secdatasets=arrayfun(@(n)sprintf('Custom TPM location: dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0);
-    if DOSPM12||any(ismember(lSTEPS,{'structural_segment','structural_segment&normalize','functional_segment','functional_segment&normalize'}))
-        ht3=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',[{'Use default Tissue Probability Maps (spm/tpm)','Custom TPM location: [select file]'},secdatasets],'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines TPM file used by normalization/segmentation routine');
+    thfig=figure('units','norm','position',[.4,.4,.3,.3],'color',1*[1 1 1],'name','Segment/Normalize/Resample settings','numbertitle','off','menubar','none');
+    if DOSPM12||any(ismember(lSTEPS,{'structural_segment','structural_segment&normalize','structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion','functional_segment','functional_segment&normalize'}))
         ht4=[];ht5=[];
+        if any(ismember(lSTEPS,{'functional_segment&normalize_indirect_withlesion','structural_segment&normalize_withlesion'})), 
+            lesionmasks=cellfun(@(x)sprintf('Use structural lesion mask: ROI %s',x),CONN_x.Setup.rois.names(1:end-1),'uni',0);
+            ht6=uicontrol('style','popupmenu','units','norm','position',[.1,.85,.8,.1],'string',[{'No lesion masking','Use structural lesion mask: [select file]'},lesionmasks],'value',2+numel(lesionmasks),'userdata',2+numel(lesionmasks),'backgroundcolor',1*[1 1 1],'tooltipstring','defines structural-lesion mask used by normalization/segmentation routine');
+            ntpm=2+conn_datasetlabel('tpm','add');
+            if numel(ntpm)~=1, ntpm=1; end
+        else
+            ht6=[];
+            ntpm=1;
+        end
+        secdatasets=arrayfun(@(n)sprintf('Custom TPM files: secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0);
+        ht3=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',[{'Use default Tissue Probability Map (SPM/TPM)','Custom TPM file: [select file]'},secdatasets],'value',ntpm,'userdata',ntpm,'backgroundcolor',1*[1 1 1],'tooltipstring','defines TPM file (or multiple files for subject-specific TPMs) used by normalization/segmentation routine');
     else
-        ht3=[];
+        ht3=[]; ht6=[];
         ht4=uicontrol('style','checkbox','units','norm','position',[.1,.85,.8,.1],'string','Use default structural template','value',1,'backgroundcolor',1*[1 1 1]);
         ht5=uicontrol('style','checkbox','units','norm','position',[.1,.75,.8,.1],'string','Use default functional template','value',1,'backgroundcolor',1*[1 1 1]);
     end
@@ -845,12 +898,13 @@ if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_pres
     ht0=uicontrol('style','edit','units','norm','position',[.7,.35,.2,.1],'string',mat2str(boundingbox),'tooltipstring','<HTML>defines bounding box of resampled volumes<br/> - enter a 2x3 matrix with minimum xyz values in the top row and maximum xyz values in the bottom row</HTML>');
     uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.15],'callback','uiresume');
     uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.15],'callback','delete(gcbf)');
-    if ~any(ismember(lSTEPS,{'structural_normalize','structural_normalize_preservemasks','structural_segment&normalize','structural_segment','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_masks','structural_manualspatialdef'})), set([ht1a ht1 ht4],'enable','off'); end
+    if ~any(ismember(lSTEPS,{'structural_normalize','structural_normalize_preservemasks','structural_segment&normalize','structural_segment&normalize_withlesion','structural_segment','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_masks','structural_manualspatialdef'})), set([ht1a ht1 ht4],'enable','off'); end
     if ~any(ismember(lSTEPS,{'functional_normalize','functional_segment&normalize','functional_segment','functional_segment&normalize_direct','functional_normalize_direct','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_preservemasks','functional_manualspatialdef'})), set([ht2a ht2 ht5],'enable','off'); end
     if all(ismember(lSTEPS,{'structural_manualspatialdef','functional_manualspatialdef'})), set([ht3 ht4 ht5],'visible','off'); set(thfig,'name','Resample settings'); end
-    set(ht3,'userdata',[],'callback','val=get(gcbo,''value''); if val==2, [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select TPM file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; else set(gcbo,''userdata'',val); end');
-    set(ht4,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
-    set(ht5,'userdata',[],'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
+    set(ht3,'callback','val=get(gcbo,''value''); if val==2, [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select TPM file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; else set(gcbo,''userdata'',val); end');
+    set(ht4,'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
+    set(ht5,'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
+    set(ht6,'callback','val=get(gcbo,''value''); if val==2, [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select lesion mask''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; else set(gcbo,''userdata'',val); end');
     uiwait(thfig);
     if ~ishandle(thfig), return; end
     temp=str2num(get(ht1,'string')); if ~isempty(temp), voxelsize_anat=temp; end
@@ -859,6 +913,7 @@ if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_pres
     if ~isempty(ht3), val=get(ht3,'value'); if val>1, tpm_template=get(ht3,'userdata'); if isnumeric(tpm_template), tpm_template=CONN_x.Setup.secondarydataset(tpm_template-2).label; end; end; end
     if ~isempty(ht4), val=get(ht4,'value'); if ~val, structural_template=get(ht4,'userdata'); end; end
     if ~isempty(ht5), val=get(ht5,'value'); if ~val, functional_template=get(ht5,'userdata'); end; end
+    if ~isempty(ht6), val=get(ht6,'value'); if val>1, tpm_structlesion=get(ht6,'userdata'); if isnumeric(tpm_structlesion), tpm_structlesion=CONN_x.Setup.rois.names{tpm_structlesion-2}; end; end; end
     delete(thfig);
     drawnow;
 end
@@ -956,7 +1011,7 @@ if parallel_N>0,
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names',mask_names,'mask_inclusive',mask_inclusive);
+        'affreg',affreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
     if isequal(parallel_profile,find(strcmp('Null profile',conn_jobmanager('profiles')))),
         ok=0;
     elseif dogui
@@ -976,7 +1031,7 @@ elseif conn_projectmanager('inserver'),
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names',mask_names,'mask_inclusive',mask_inclusive);
+        'affreg',affreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
     return;
 else
     if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log'), CONN_x.SetupPreproc.log={}; end
@@ -986,7 +1041,7 @@ else
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'sliceorder_select',sliceorder_select,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names',mask_names,'mask_inclusive',mask_inclusive};
+        'affreg',affreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func};
 end
 job_id={};
 
@@ -1339,7 +1394,8 @@ for iSTEP=1:numel(STEPS)
             end
             
         case 'functional_mask'
-            conn_disp('fprintf','functional mask (%s); inclusive = %s\n',sprintf('%s ',mask_names{:}),mat2str(mask_inclusive));
+            if ~iscell(mask_names_func), mask_names_func={mask_names_func}; end
+            conn_disp('fprintf','functional mask (%s); inclusive = %s\n',sprintf('%s ',mask_names_func{:}),mat2str(mask_inclusive_func));
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
@@ -1358,12 +1414,17 @@ for iSTEP=1:numel(STEPS)
                         else maskval=0;
                         end
                         Vmask=[];
-                        for nmask=1:numel(mask_names)
-                            nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),mask_names{nmask}));
-                            assert(~isempty(nroi),'unable to find first-level covariate or ROI named %s',mask_names{nmask});
-                            if (nroi>3&&~CONN_x.Setup.rois.sessionspecific(nroi))||(nroi<=3&&~CONN_x.Setup.structural_sessionspecific), nsesstemp=1; else nsesstemp=nsess; end
-                            temp=conn_maskserode(nsubject,nroi,false);
-                            Vmask=cat(1,Vmask,reshape(spm_vol(temp{nsubject}{nroi}{min(nses,nsesstemp)}),[],1));
+                        for nmask=1:numel(mask_names_func)
+                            nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),mask_names_func{nmask}));
+                            if isempty(nroi)&&conn_existfile(mask_names_func{nmask})
+                                temp=mask_names_func{nmask};
+                                Vmask=cat(1,Vmask,reshape(spm_vol(temp),[],1));
+                            else
+                                assert(~isempty(nroi),'unable to find ROI named %s',mask_names_func{nmask});
+                                if (nroi>3&&~CONN_x.Setup.rois.sessionspecific(nroi))||(nroi<=3&&~CONN_x.Setup.structural_sessionspecific), nsesstemp=1; else nsesstemp=nsess; end
+                                temp=conn_maskserode(nsubject,nroi,false);
+                                Vmask=cat(1,Vmask,reshape(spm_vol(temp{nsubject}{nroi}{min(nses,nsesstemp)}),[],1));
+                            end
                         end
                         
                         gridxyz=[];
@@ -1371,14 +1432,16 @@ for iSTEP=1:numel(STEPS)
                             if nt==1||~isequal(Vin(nt).mat,Vin(nt-1).mat)
                                 [gridx,gridy,gridz]=ndgrid(1:Vin(nt).dim(1),1:Vin(nt).dim(2),1:Vin(nt).dim(3));
                                 gridxyz=Vin(nt).mat*[gridx(:) gridy(:) gridz(:) ones(numel(gridx),1)]';
-                                mask=true;                                
+                                %mask=true;                                
+                                mask=false;                                
                                 for nmask=1:numel(Vmask)
                                     xyz=pinv(Vmask(nmask).mat)*gridxyz;
-                                    mask=mask&reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0;
+                                    %mask=mask&reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0; % intersection-mask
+                                    mask=mask|reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0;  % union-mask
                                 end
                             end
                             data=spm_read_vols(Vin(nt));
-                            if mask_inclusive, data(~mask)=maskval;
+                            if mask_inclusive_func, data(~mask)=maskval;
                             else data(mask)=maskval;
                             end
                             spm_write_vol(Vout(nt),data);
@@ -1387,7 +1450,70 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
             end
+            
+        case 'structural_mask'
+            if ~iscell(mask_names_anat), mask_names_anat={mask_names_anat}; end
+            conn_disp('fprintf','structural mask (%s); inclusive = %s\n',sprintf('%s ',mask_names_anat{:}),mat2str(mask_inclusive_anat));
+            for isubject=1:numel(subjects),
+                nsubject=subjects(isubject);
+                nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
+                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                else nsess_struct=1;
+                end
+                for nses=nsess_struct(:)'
+                    if ismember(nses,sessions)
+                        if isempty(CONN_x.Setup.structural{nsubject}{nses}{1}), error(sprintf('No structural file defined for Subject %d Session %d. Please select a structural file',nsubject,nses));
+                        elseif numel(CONN_x.Setup.structural{nsubject}{nses}{3})>1, error(sprintf('Multiple structural files found for Subject %d Session %d. Please select a single structural file',nsubject,nses));
+                        end
+                        filename=CONN_x.Setup.structural{nsubject}{nses}{1};
+                        filein=cellstr(filename);
+                        fileout=conn_prepend('m',filein);
+                        if numel(fileout)>1, fileout=fileout(1); end
+                        Vin=spm_vol(char(filein));
+                        Vout=Vin;
+                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).descrip='masked'; end
+                        Vout=spm_create_vol(Vout);
+                        if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
+                        else maskval=0;
+                        end
+                        Vmask=[];
+                        for nmask=1:numel(mask_names_anat)
+                            nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),mask_names_anat{nmask}));
+                            if isempty(nroi)&&conn_existfile(mask_names_anat{nmask})
+                                temp=mask_names_anat{nmask};
+                                Vmask=cat(1,Vmask,reshape(spm_vol(temp),[],1));
+                            else
+                                assert(~isempty(nroi),'unable to find ROI named %s',mask_names_anat{nmask});
+                                if (nroi>3&&~CONN_x.Setup.rois.sessionspecific(nroi))||(nroi<=3&&~CONN_x.Setup.structural_sessionspecific), nsesstemp=1; else nsesstemp=nsess; end
+                                temp=conn_maskserode(nsubject,nroi,false);
+                                Vmask=cat(1,Vmask,reshape(spm_vol(temp{nsubject}{nroi}{min(nses,nsesstemp)}),[],1));
+                            end
+                        end
                         
+                        gridxyz=[];
+                        for nt=1:numel(Vin)
+                            if nt==1||~isequal(Vin(nt).mat,Vin(nt-1).mat)
+                                [gridx,gridy,gridz]=ndgrid(1:Vin(nt).dim(1),1:Vin(nt).dim(2),1:Vin(nt).dim(3));
+                                gridxyz=Vin(nt).mat*[gridx(:) gridy(:) gridz(:) ones(numel(gridx),1)]';
+                                %mask=true;                                
+                                mask=false;                                
+                                for nmask=1:numel(Vmask)
+                                    xyz=pinv(Vmask(nmask).mat)*gridxyz;
+                                    %mask=mask&reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0; % intersection-mask
+                                    mask=mask|reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0;  % union-mask
+                                end
+                            end
+                            data=spm_read_vols(Vin(nt));
+                            if mask_inclusive_anat, data(~mask)=maskval;
+                            else data(mask)=maskval;
+                            end
+                            spm_write_vol(Vout(nt),data);
+                        end
+                        outputfiles{isubject}{nses}{1}=char(fileout);
+                    end
+                end
+            end
+                                                
         case 'functional_manualorient'
         case 'structural_manualorient'
         case 'functional_center'
@@ -1776,9 +1902,84 @@ for iSTEP=1:numel(STEPS)
             end
             if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
             
-        case {'structural_segment&normalize','functional_segment&normalize_indirect'}
+        case {'structural_segment&normalize','functional_segment&normalize_indirect','structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion'}
             DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
-            if strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_segment&normalize_indirect')
+            assert(DOSPM12|isempty(tpm_structlesion),'lesion masking procedure not available in SPM8, please use SPM12 or above'); 
+            input_tpm_template=tpm_template;
+            if ~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion)
+                if isequal(tpm_template,'tpm'), input_tpm_template=[]; end % avoids input/output the same dataset, assume SPM/TPM is input
+                if ~iscell(tpm_structlesion), tpm_structlesion={tpm_structlesion}; end
+                tpm_structlesion_file={};
+                for nmask=1:numel(tpm_structlesion)
+                    nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),tpm_structlesion{nmask}),1);
+                    if isempty(nroi)&&conn_existfile(tpm_structlesion{nmask})
+                        temp=tpm_structlesion{nmask};
+                        [temppath,tempname,tempext]=fileparts(temp); if ~isempty(regexp(tempname,'^wcL_')), conn_disp('fprintf','warning: disregarding wcL_ prefix in lesion file %s (using original lesion file %s)\n',temp,conn_prepend(-4,temp)); temp=conn_prepend(-4,temp); end
+                        tpm_structlesion_file{nmask}=temp;
+                    end
+                end
+                for isubject=1:numel(subjects), % mask structural with lesion
+                    nsubject=subjects(isubject);
+                    nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
+                    if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                    else nsess_struct=1;
+                    end
+                    for nses=nsess_struct(:)'
+                        if ismember(nses,sessions)
+                            if isempty(CONN_x.Setup.structural{nsubject}{nses}{1}), error(sprintf('No structural file defined for Subject %d Session %d. Please select a structural file',nsubject,nses));
+                            elseif numel(CONN_x.Setup.structural{nsubject}{nses}{3})>1, error(sprintf('Multiple structural files found for Subject %d Session %d. Please select a single structural file',nsubject,nses));
+                            end
+                            filename=CONN_x.Setup.structural{nsubject}{nses}{1};
+                            filein=cellstr(filename);
+                            fileout=conn_prepend('m',filein);
+                            if numel(fileout)>1, fileout=fileout(1); end
+                            Vin=spm_vol(char(filein));
+                            Vout=Vin;
+                            for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).descrip='masked'; end
+                            Vout=spm_create_vol(Vout);
+                            if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
+                            else maskval=0;
+                            end
+                            Vmask=[];
+                            for nmask=1:numel(tpm_structlesion)
+                                if numel(tpm_structlesion_file)>=nmask&&~isempty(tpm_structlesion_file{nmask})
+                                    temp=tpm_structlesion_file{nmask};
+                                else
+                                    nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),tpm_structlesion{nmask}),1);
+                                    assert(~isempty(nroi),'unable to find ROI named %s',tpm_structlesion{nmask});
+                                    if (nroi>3&&~CONN_x.Setup.rois.sessionspecific(nroi))||(nroi<=3&&~CONN_x.Setup.structural_sessionspecific), nsesstemp=1; else nsesstemp=nsess; end
+                                    temp=CONN_x.Setup.rois.files{nsubject}{nroi}{min(nses,nsesstemp)}{1};
+                                    [temppath,tempname,tempext]=fileparts(temp); if ~isempty(regexp(tempname,'^wcL_')), temp=conn_prepend(-4,temp); end %conn_disp('fprintf','warning: disregarding wcL_ prefix in lesion file %s (using original lesion file %s)\n',temp,conn_prepend(-4,temp)); 
+                                end
+                                Vmask=cat(1,Vmask,reshape(spm_vol(temp),[],1));
+                                outputfiles{isubject}{nses}{8+nmask-1}=temp;
+                            end
+                            
+                            gridxyz=[];
+                            for nt=1:numel(Vin)
+                                if nt==1||~isequal(Vin(nt).mat,Vin(nt-1).mat)
+                                    [gridx,gridy,gridz]=ndgrid(1:Vin(nt).dim(1),1:Vin(nt).dim(2),1:Vin(nt).dim(3));
+                                    gridxyz=Vin(nt).mat*[gridx(:) gridy(:) gridz(:) ones(numel(gridx),1)]';
+                                    %mask=true;
+                                    mask=false;
+                                    for nmask=1:numel(Vmask)
+                                        xyz=pinv(Vmask(nmask).mat)*gridxyz;
+                                        %mask=mask&reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0; % intersection-mask
+                                        mask=mask|reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0;  % union-mask
+                                    end
+                                end
+                                data=spm_read_vols(Vin(nt));
+                                if 0, data(~mask)=maskval; % exclusive masking
+                                else data(mask)=maskval;
+                                end
+                                spm_write_vol(Vout(nt),data);
+                            end
+                            outputfiles{isubject}{nses}{1}=char(fileout);
+                        end
+                    end
+                end
+            end
+            if strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_|_withlesion$',''),'functional_segment&normalize_indirect')
                 jsubject=0;
                 for isubject=1:numel(subjects), % coregister
                     nsubject=subjects(isubject);
@@ -1800,6 +2001,7 @@ for iSTEP=1:numel(STEPS)
                                 else [matfile,nill,reffile]=conn_setup_preproc_meanimage(CONN_x.Setup.structural{nsubject}{nses_struct}{1},'norm_spm8');
                                 end
                             end
+                            if ~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion), reffile=conn_prepend('m',reffile); end
                             filename=conn_get_functional(nsubject,nsess_func(1),sets);
                             if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nsess_func(1)); end
                             temp=cellstr(filename);
@@ -1848,9 +2050,12 @@ for iSTEP=1:numel(STEPS)
                         elseif numel(CONN_x.Setup.structural{nsubject}{nses}{3})>1, error(sprintf('Multiple structural files found for Subject %d Session %d. Please select a single structural file',nsubject,nses));
                         end
                         if DOSPM12,
-                            matlabbatch{end}.spm.spatial.preproc.channel.vols{jsubject}=CONN_x.Setup.structural{nsubject}{nses}{1};
-                            outputfiles{isubject}{nses}{1}=CONN_x.Setup.structural{nsubject}{nses}{1};
-                            outputfiles{isubject}{nses}{5}=conn_prepend('y_',CONN_x.Setup.structural{nsubject}{nses}{1},'.nii');  % note: fix SPM12 issue converting .img to .nii
+                            if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), reffile=CONN_x.Setup.structural{nsubject}{nses}{1}; 
+                            else reffile=conn_prepend('m',CONN_x.Setup.structural{nsubject}{nses}{1});
+                            end
+                            matlabbatch{end}.spm.spatial.preproc.channel.vols{jsubject}=reffile;
+                            outputfiles{isubject}{nses}{1}=reffile;
+                            outputfiles{isubject}{nses}{5}=conn_prepend('y_',reffile,'.nii');  % note: fix SPM12 issue converting .img to .nii
                         else
                             matlabbatch{end}.spm.spatial.preproc.data{jsubject}=CONN_x.Setup.structural{nsubject}{nses}{1};
                             outputfiles{isubject}{nses}{1}=CONN_x.Setup.structural{nsubject}{nses}{1};
@@ -1873,16 +2078,16 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             if DOSPM12
-                if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
+                if ~isempty(input_tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(input_tpm_template,tpm_ngaus,subjects,sessions); end
                 if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
             else
-                if ~isempty(tpm_template),
-                    if ~isempty(subjects)&&~isempty(sessions)&&(isnumeric(tpm_template)||(ischar(tpm_template)&&size(tpm_template,1)==1&&~isempty(conn_datasetlabel(tpm_template))))
+                if ~isempty(input_tpm_template),
+                    if ~isempty(subjects)&&~isempty(sessions)&&(isnumeric(input_tpm_template)||(ischar(input_tpm_template)&&size(input_tpm_template,1)==1&&~isempty(conn_datasetlabel(input_tpm_template))))
                         error('unsupported subject-specific TPM in SPM8; please upgrade to SPM12 instead')
-                    else temp=cellstr(conn_expandframe(tpm_template));
+                    else temp=cellstr(conn_expandframe(input_tpm_template));
                     end
                     if isempty(tpm_ngaus), tpm_ngaus=[2 2 2 4]; end % grey/white/CSF (+other implicit)
                     matlabbatch{end}.spm.spatial.preproc.opts.tpm=temp;
@@ -1895,7 +2100,7 @@ for iSTEP=1:numel(STEPS)
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
             end
             
-            doapplyfunctional=applytofunctional||strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_segment&normalize_indirect');
+            doapplyfunctional=applytofunctional||strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_|_withlesion$',''),'functional_segment&normalize_indirect');
             if doapplyfunctional % resample functional
                 if DOSPM12
                     matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
@@ -1974,7 +2179,14 @@ for iSTEP=1:numel(STEPS)
                         end
                         matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample={};
                         if ismember(nses,sessions)
-                            matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{nses}(1:4)';
+                            if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{nses}(1:4)';
+                            else matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=[outputfiles{isubject}{nses}(1:4)';outputfiles{isubject}{nses}(8:end)'];
+                            end
+                            % note: change w prefix to avoid 
+                            try
+                                conn_fileutils('movefile',conn_prepend('w',outputfiles{isubject}{nses}(8:end)),conn_prepend('wcL_',outputfiles{isubject}{nses}(8:end)));
+                                outputfiles{isubject}{nses}(8:end)=conn_prepend('wcL_',outputfiles{isubject}{nses}(8:end));
+                            end
                         end
                         %outputfiles{isubject}{nses}=outputfiles{isubject}{nses}(1:4);
                     end
@@ -1998,17 +2210,44 @@ for iSTEP=1:numel(STEPS)
                         jsubject=jsubject+1;
                         matlabbatch{end+1}.spm.util.imcalc.expression='(i2+i3+i4).*i1';
                         matlabbatch{end}.spm.util.imcalc.input=reshape(outputfiles{isubject}{nses}(1:4),[],1);
-                        matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        else matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0m',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        end
                         matlabbatch{end}.spm.util.imcalc.options.dtype=spm_type('float32');
                         matlabbatch{end+1}.spm.util.imcalc.expression='(i2+i3+i4)';
                         matlabbatch{end}.spm.util.imcalc.input=reshape(outputfiles{isubject}{nses}(1:4),[],1);
-                        matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0mask',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0mask',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        else matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0maskm',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        end
                         matlabbatch{end}.spm.util.imcalc.options.dtype=spm_type('float32');
                     end
                     outputfiles{isubject}{nses}{1}=conn_prepend('wc0',conn_prepend(-1,outputfiles{isubject}{nses}{1}));
                 end
             end
             
+%         case {'structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion'}
+%             if isempty(tpm_template), tpm_template='tpm'; end
+%             if isempty(tpm_structlesion), tpm_structlesion='lesion'; end
+%             % 1: mask structural with lesion
+%             % 2: structural_segment&normalize (plus write wlesion)
+%             % 3: create TPM+wlesion
+%             for isubject=1:numel(subjects),
+%                 nsubject=subjects(isubject);
+%                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
+%                 if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+%                 else nsess_struct=1;
+%                 end
+%                 for nses=1:nsess_struct(:)' 
+%                     if ismember(nses,sessions)
+%                         if isempty(CONN_x.Setup.structural{nsubject}{nses}{1}), error(sprintf('No structural file defined for Subject %d Session %d. Please select a structural file',nsubject,nses));
+%                         elseif numel(CONN_x.Setup.structural{nsubject}{nses}{3})>1, error(sprintf('Multiple structural files found for Subject %d Session %d. Please select a single structural file',nsubject,nses));
+%                         end
+%                         filename=CONN_x.Setup.structural{nsubject}{nses}{1};
+%                         outputfiles{isubject}{nses}{1}=conn_createtpm_batch(tpm_structlesion, filename, tpm_template); % new TPM file
+%                     end
+%                 end
+%             end 
+
         case {'functional_coregister_nonlinear'}
             % functional segment&normalize
             DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
@@ -3240,7 +3479,7 @@ for iSTEP=1:numel(STEPS)
             for n=1:numel(matlabbatch)
                 conn_art('sess_file',matlabbatch{n}.art);
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_roiextract','functional_mask','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');
             try, spm_get_defaults('mat.format','-v7.3'); end
@@ -3289,7 +3528,7 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_roiextract','functional_mask','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}))
         elseif strncmp(lower(STEP),'update_',numel('update_'))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');
@@ -3446,6 +3685,18 @@ for iSTEP=1:numel(STEPS)
                         if ismember(nses,sessions)
                             nV=conn_set_functional(nsubject,nses,sets,filename{nsubject}{nses});
                         end
+                    end
+                end
+                
+            case 'structural_mask'
+                for isubject=1:numel(subjects),
+                    nsubject=subjects(isubject);
+                    nsess=intersect(1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)),sessions);
+                    for nses=nsess(:)'
+                        if CONN_x.Setup.structural_sessionspecific, nses_struct=nses;
+                        else nses_struct=1;
+                        end
+                        CONN_x.Setup.structural{nsubject}{nses}=conn_file(outputfiles{isubject}{nses_struct}{1});
                     end
                 end
                 
@@ -3697,7 +3948,7 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
                 
-            case {'structural_segment&normalize','functional_segment&normalize_indirect'}
+            case {'structural_segment&normalize','functional_segment&normalize_indirect','structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion'}
                 for isubject=1:numel(subjects),
                     nsubject=subjects(isubject);
                     nsess=intersect(1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)),sessions);
@@ -3706,13 +3957,52 @@ for iSTEP=1:numel(STEPS)
                         else nses_struct=1;
                         end
                         CONN_x.Setup.structural{nsubject}{nses}=conn_file(outputfiles{isubject}{nses_struct}{1});
+                        if applytofunctional||strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_|_withlesion$',''),'functional_segment&normalize_indirect'),
+                            conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{6});
+                        end
+                        if ~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion)&&nses==nses_struct
+                            % create new TPM file with lesion mask
+                            normLESIONfile=outputfiles{isubject}{nses}(8:end);
+                            if isempty(input_tpm_template), origTPMfile=fullfile(fileparts(which('spm')),'tpm','TPM.nii');
+                            elseif isnumeric(input_tpm_template)||(ischar(input_tpm_template)&&size(input_tpm_template,1)==1&&~isempty(conn_datasetlabel(input_tpm_template))), origTPMfile=conn_get_functional(nsubject,nses,input_tpm_template);
+                            else origTPMfile=char(input_tpm_template);
+                            end
+                            newTPMfile=conn_prepend('tpm_',outputfiles{isubject}{nses}{1});
+                            Ntpm=numel(spm_vol(origTPMfile));
+                            newTPMfiles={};
+                            for n=1:Ntpm+numel(normLESIONfile)
+                                newTPMfiles{n}=conn_prepend('',newTPMfile,['.',num2str(n),'.nii']);
+                                if n<=Ntpm, spm_imcalc({[origTPMfile,',',num2str(n)],normLESIONfile{:}},newTPMfiles{n},'X(1,:).*(1-max(0,min(1,max(X(2:end,:),[],1))))',{1}); % other tissue classes
+                                else        spm_imcalc({[origTPMfile,',1'],normLESIONfile{n-Ntpm},normLESIONfile{:}},newTPMfiles{n},'max(0,min(1,X(2,:)))./max(1e-6,sum(max(0,min(1,X(3:end,:))),1))',{1});                   % lesion mask
+                                end
+                            end
+                            try, spm_unlink(newTPMfile); end
+                            spm_file_merge(newTPMfiles,newTPMfile);
+                            try, spm_unlink(newTPMfiles{:}); end
+                            if ~sets||ALLSETSPERMISSIONS
+                                conn_set_functional(nsubject,nses,'tpm',newTPMfile); % output TPM file stored in 'tpm' secondary dataset
+                            end
+                            % mask gray/white/csf with lesion mask
+                            for nc=2:4,
+                                tin=outputfiles{isubject}{nses}{nc};
+                                tout=conn_prepend('m',tin);
+                                spm_imcalc({tin,normLESIONfile{:}},tout,'X(1,:).*(1-max(0,min(1,max(X(2:end,:),[],1))))',{1});
+                                outputfiles{isubject}{nses}{nc}=tout;
+                            end
+                            % normed lesion ROI
+                            if ~sets||ALLSETSPERMISSIONS
+                                for nmask=1:numel(tpm_structlesion)
+                                    nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),tpm_structlesion{nmask}),1);
+                                    if ~isempty(nroi)
+                                        CONN_x.Setup.rois.files{nsubject}{nroi}{nses}=conn_file(normLESIONfile{nmask});
+                                    end
+                                end
+                            end
+                        end
                         if ~sets||ALLSETSPERMISSIONS
                             CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{nses_struct}{2});
                             CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{nses_struct}{3});
                             CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{nses_struct}{4});
-                        end
-                        if applytofunctional||strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),'functional_segment&normalize_indirect'),
-                            conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{6});
                         end
                     end
                 end

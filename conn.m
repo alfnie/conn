@@ -2616,7 +2616,7 @@ else
                     if nargin<2,
                         conn_menu('frame',boffset+[.19,.15,.41,.57],'Structural data');
                         conn_menu('nullstr',{'No structural','data selected'});
-						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.200,.63,.15,.05],'',{'one structural per subject','multiple structurals per subject'},'<HTML>(only applies to studies with multiple sessions/runs) <br/> - Select the first option when the structural data does not change across sessions (enter one structural volume per subject) <br/> - Select the second option when the structural data may change across sessions (enter one structural volume per session; e.g. longitudinal studies)</HTML>','conn(''gui_setup'',13);');
+						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.200,.63,.15,.05],'',{'one file per subject','multiple files per subject'},'<HTML>(only applies to studies with multiple sessions/runs) <br/> - Select the first option when the structural data does not change across sessions (enter one structural volume per subject) <br/> - Select the second option when the structural data may change across sessions (enter one structural volume per session; e.g. longitudinal studies)</HTML>','conn(''gui_setup'',13);');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.200,.25,.075,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
 						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.275,.25,.075,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
 						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import structural data files','*.img; *.nii; *.mgh; *.mgz; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');

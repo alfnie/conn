@@ -269,6 +269,9 @@ function varargout=conn_batch(varargin)
 %                        'structural_manualorient'               : applies user-defined affine transformation to structural data
 %                        'structural_manualspatialdef'           : applies user-defined spatial deformation to structural data
 %                        'structural_segment&normalize'          : structural unified normalization and segmentation 
+%                        'structural_segment&normalize&lesion'   : structural unified normalization and segmentation with lesion mask
+%                                                                   (normalizes structural data and creates a modified TPM for functional
+%                                                                   normalization that includes the lesion as an added tissue class)
 %                        'structural_normalize'                  : structural normalization to MNI space (without segmentation)
 %                        'structural_normalize_preservemasks'    : structural normalization to MNI space with user-defined Grey/White/CSF masks 
 %                                                                   (normalizes structural data and applies same transformation to user-defined 
@@ -373,8 +376,10 @@ function varargout=conn_batch(varargin)
 %      Setup.preprocessing.load_label      : (functional_load) label of secondary dataset (note: the following functional step names do not require an 
 %                                            explicit continue field: 'functional_load_from_original', 'functional_load_from_subjectspace', 
 %                                            'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed')
-%      Setup.preprocessing.mask_names      : (functional_mask) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
-%      Setup.preprocessing.mask_inclusive  : (functional_mask) 1: inclusive ROI mask (keep voxels inside ROI); 0: exclusive ROI mask (keep voxels outside ROI) [1]
+%      Setup.preprocessing.mask_names_anat : (strucutral_mask) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
+%      Setup.preprocessing.mask_names_func : (functional_mask) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
+%      Setup.preprocessing.mask_inclusive_anat : (strucutral_mask) 1: inclusive ROI mask (keep voxels inside ROI); 0: exclusive ROI mask (keep voxels outside ROI) [1]
+%      Setup.preprocessing.mask_inclusive_func : (functional_mask) 1: inclusive ROI mask (keep voxels inside ROI); 0: exclusive ROI mask (keep voxels outside ROI) [1]
 %      Setup.preprocessing.reg_names       : (functional_regression) list of first-level covariates to use as model regressors / design matrix (valid 
 %                                            entries are first-level covariate names or ROI names)
 %      Setup.preprocessing.reg_dimensions  : (functional_regression) list of maximum number of dimensions (one value for each model regressor in 
@@ -423,6 +428,9 @@ function varargout=conn_batch(varargin)
 %                                            alternatively, location of subject-specific TPM files (secondary functional dataset number or name ['tpm'])
 %      Setup.preprocessing.tpm_ngaus       : (structural_segment, structural_segment&normalize in SPM8&SPM12) number of gaussians for each 
 %                                             tissue probability map
+%      Setup.preprocessing.tpm_structlesion: (structural_segment&normalize&lesion) name of ROI containing a structural-lesion mask
+%                                             (the lesion mask is expected to be coregistered with the structural, as part of structural normalization 
+%                                              a new TPM template will be created with the lesion as an added tissue class)
 %      Setup.preprocessing.vdm_et1         : (functional_vdm_create) ET1 (Echo Time first echo in fieldmap sequence) 
 %                                             (default [] : read from .json file / BIDS)
 %      Setup.preprocessing.vdm_et2         : (functional_vdm_create) ET2 (Echo Time second echo in fieldmap sequence)
@@ -687,6 +695,7 @@ if isfield(batch,'New'), % obsolete functionality / for backwards compatibility 
     if isfield(batch.New,'template_structural')&&~isempty(batch.New.template_structural),OPTIONS.STRUCTURAL_TEMPLATE=batch.New.template_structural;end
     if isfield(batch.New,'template_functional')&&~isempty(batch.New.template_functional),OPTIONS.FUNCTIONAL_TEMPLATE=batch.New.template_functional;end
     if isfield(batch.New,'tpm_template'),OPTIONS.tpm_template=batch.New.tpm_template;end
+    if isfield(batch.New,'tpm_structlesion'),OPTIONS.tpm_structlesion=batch.New.tpm_structlesion;end
     if isfield(batch.New,'tpm_ngaus'),OPTIONS.tpm_ngaus=batch.New.tpm_ngaus;end
     if isfield(batch.New,'functionals')&&~isempty(batch.New.functionals),
         OPTIONS.FUNCTIONAL_FILES=batch.New.functionals;
@@ -882,6 +891,30 @@ if isfield(batch,'Setup'),
             [CONN_x.Setup.coregsource_functional{nsub},nV]=conn_file(batch.Setup.coregsource_functionals{isub});
         end
     end
+    
+    allfields=fieldnames(batch.Setup);
+    idx=cellfun('length',regexp(allfields,'_functionals$'))>0;
+    idx=idx(~ismember(allfields(idx),{'fmap_functionals','vdm_functionals','unwarp_functionals','coregsource_functionals','roiextract_functionals'})); % *_functionals interpreted as other secondary datasets
+    for nidx=1:numel(idx) % '*_functionals'
+        setupfieldname=allfields{idx(nidx)};
+        datasetname=regexprep(setupfieldname,'_functionals$','');
+        localcopy=false; if isfield(batch.Setup,'localcopy')&&batch.Setup.localcopy, localcopy=true; end
+        localcopy_reduce=false; if isfield(batch.Setup,'localcopy_reduce')&&batch.Setup.localcopy_reduce, localcopy_reduce=true; end
+        for isub=1:numel(SUBJECTS),
+            nsub=SUBJECTS(isub);
+            if ~iscell(batch.Setup.(setupfieldname){isub}), batch.Setup.(setupfieldname){isub}={batch.Setup.(setupfieldname){isub}}; end
+            for nses=1:CONN_x.Setup.nsessions(nsub),
+                fname=batch.Setup.(setupfieldname){isub}{min(numel(batch.Setup.(setupfieldname){isub}),nses)};
+                if localcopy, [nill,nill,nV]=conn_importvol2bids(fname,nsub,nses,datasetname,[],[],[],localcopy_reduce);
+                else
+                    %[CONN_x.Setup.fmap_functional{nsub}{nses},nV]=conn_file(fname);
+                    conn_set_functional(nsub,nses,datasetname,fname);
+                end
+                %CONN_x.Setup.nscans{nsub}{nses}=nV;
+            end
+        end
+    end
+    
     if isfield(batch.Setup,'cwthreshold')
         if ~isfield(batch.Setup,'binary_threshold_type'), batch.Setup.binary_threshold_type=[1 1 1]; end
         if ~isfield(batch.Setup,'exclude_grey_matter'), batch.Setup.exclude_grey_matter=[nan nan nan]; end
