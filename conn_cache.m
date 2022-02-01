@@ -12,6 +12,7 @@ function varargout=conn_cache(option, varargin)
 %   
 %   conn_cache                                                  : initializes CONN drive (clear all in-memory files as well 
 %                                                                 as cache files older than 30 days)
+%   conn_cache clearall                                         : clear all in-memory files and all cache files
 %   conn_cache('setlocal', folder_local)                        : defines local cache folder (default: ~/.conn_cache)
 %   conn_cache('sethash',method)                                : defines algorithm used to identify file-changes ('md5' 
 %                                                                 or 'timestamp'; default: 'timestamp'; see "help conn_tcpip")

@@ -234,26 +234,38 @@ function varargout=conn_remotely(option,varargin)
 
 % notes: development reference notes on use of conn_server and conn_cache in CONN internal functions:
 %
+%
 %   usage model #1: (a function will run remotely if it needs to work with remote files) (optimal when the fcn call requires minimal transfer of information)
+%
 %   function fileout = fcn(filein, varargin)
-%      if any(conn_server('util_isremotefile',filin)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),varargin{:})); return; end
+%      if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),varargin{:})); return; end
 %      % the code below this point works with normal/local files
+%      ...
+%
 %
 %   usage model #2: (a function will work on a local cache/copy of remote files) (optimal when working with mixture of local and remote files)
+%
 %   function fileout = fcn(filein, varargin)
 %      isremotefile=conn_server('util_isremotefile',filein);
-%      if isremotefile, remotefilename=filename; filename=conn_cache('new',filename); end
+%      OPTION1 (when remote file already exists):   if isremotefile, remotefilename=filename; filename=conn_cache('pull',filename); end
+%      OPTION2 (when remote file is to be created): if isremotefile, remotefilename=filename; filename=conn_cache('new',filename); end
+%      ...
+%      ... % the code here works with filename locally/normally
 %      ...
 %      if isremotefile, conn_cache('push',remotefilename); end
 %   end
 %
+%
 %   usage model #3: (a function will run remotely if it needs to work with remote variables) (optimal when working with large intermediate variables)
+%
 %   function output = fcn(input, varargin)
 %      if conn_server('util_isremotevar',input), output=conn_server('run_keep',mfilename,input,varargin{:}); return; end
-%      % the code below this point works with normal/local variables
+%      % the code below this point works with normal/local variable "input"
+%      ...
+%
 %
 %   usage model #4: (a function that accesses files only through calls to functions that follow model #1 or model #2)
-%
+%      [no changes needed]
 %
 
 global CONN_gui;

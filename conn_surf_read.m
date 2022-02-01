@@ -8,8 +8,7 @@ function data = conn_surf_read(filename)
 %
 
 if ~nargin, help(mfilename); return; end
-isremotefile=conn_server('util_isremotefile',filename);
-if isremotefile, remotefilename=filename; filename=conn_cache('pull',remotefilename); end
+if conn_server('util_isremotefile',filename), filename=conn_cache('pull',filename); end
 
 vol = spm_vol(filename);
 data = spm_read_vols(vol);
