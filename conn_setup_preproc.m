@@ -1931,16 +1931,17 @@ for iSTEP=1:numel(STEPS)
                             end
                             filename=CONN_x.Setup.structural{nsubject}{nses}{1};
                             filein=cellstr(filename);
+                            Vin=spm_vol(char(filein));
                             fileout=conn_prepend('m',filein);
                             if numel(fileout)>1, fileout=fileout(1); end
-                            Vin=spm_vol(char(filein));
                             Vout=Vin;
                             for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).descrip='masked'; end
                             Vout=spm_create_vol(Vout);
                             if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
                             else maskval=0;
                             end
-                            Vmask=[];
+                            
+                            Vmask=[]; Vmaskout={};
                             for nmask=1:numel(tpm_structlesion)
                                 if numel(tpm_structlesion_file)>=nmask&&~isempty(tpm_structlesion_file{nmask})
                                     temp=tpm_structlesion_file{nmask};
@@ -1952,7 +1953,10 @@ for iSTEP=1:numel(STEPS)
                                     [temppath,tempname,tempext]=fileparts(temp); if ~isempty(regexp(tempname,'^wcL_')), temp=conn_prepend(-4,temp); end %conn_disp('fprintf','warning: disregarding wcL_ prefix in lesion file %s (using original lesion file %s)\n',temp,conn_prepend(-4,temp)); 
                                 end
                                 Vmask=cat(1,Vmask,reshape(spm_vol(temp),[],1));
-                                outputfiles{isubject}{nses}{8+nmask-1}=temp;
+                                Vmaskout{nmask}=Vin(1);
+                                Vmaskout{nmask}.fname=char(conn_prepend('cL_',temp)); Vmaskout{nmask}.pinfo=[1;0;0]; Vmaskout{nmask}.descrip='lesion mask';
+                                Vmaskout{nmask}=spm_create_vol(Vmaskout{nmask});
+                                outputfiles{isubject}{nses}{8+nmask-1}=char(conn_prepend('cL_',temp));
                             end
                             
                             gridxyz=[];
@@ -1965,7 +1969,9 @@ for iSTEP=1:numel(STEPS)
                                     for nmask=1:numel(Vmask)
                                         xyz=pinv(Vmask(nmask).mat)*gridxyz;
                                         %mask=mask&reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0; % intersection-mask
-                                        mask=mask|reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0;  % union-mask
+                                        thismask=reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0;
+                                        if nt==1, spm_write_vol(Vmaskout{nmask},double(thismask)); end
+                                        mask=mask|thismask;  % union-mask
                                     end
                                 end
                                 data=spm_read_vols(Vin(nt));
@@ -1974,7 +1980,7 @@ for iSTEP=1:numel(STEPS)
                                 end
                                 spm_write_vol(Vout(nt),data);
                             end
-                            outputfiles{isubject}{nses}{1}=char(fileout);
+                            outputfiles{isubject}{nses}{1}=char(fileout); % structural masked
                         end
                     end
                 end
@@ -2162,7 +2168,6 @@ for iSTEP=1:numel(STEPS)
                 else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1;
                 end
             end
-            
             jsubject=0; 
             for isubject=1:numel(subjects), % normalize write structural
                 nsubject=subjects(isubject);
@@ -2176,10 +2181,8 @@ for iSTEP=1:numel(STEPS)
                         else        matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).matname=outputfiles{isubject}{nses}(5);
                         end
                         matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample={};
-                        if ismember(nses,sessions)
-                            if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{nses}(1:4)';
-                            else matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=[outputfiles{isubject}{nses}(1:4)';outputfiles{isubject}{nses}(8:end)'];
-                            end
+                        if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{nses}(1:4)';
+                        else matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=[outputfiles{isubject}{nses}(1:4)';outputfiles{isubject}{nses}(8:end)'];
                         end
                         %outputfiles{isubject}{nses}=outputfiles{isubject}{nses}(1:4);
                     end
@@ -2190,6 +2193,7 @@ for iSTEP=1:numel(STEPS)
                     outputfiles{isubject}{nses}{2}=conn_prepend('w',outputfiles{isubject}{nses}{2});
                     outputfiles{isubject}{nses}{3}=conn_prepend('w',outputfiles{isubject}{nses}{3});
                     outputfiles{isubject}{nses}{4}=conn_prepend('w',outputfiles{isubject}{nses}{4});
+                    try, if ~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion), outputfiles{isubject}{nses}(8:end)=conn_prepend('w',outputfiles{isubject}{nses}(8:end)); end; end
                 end
             end
             if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
@@ -3932,11 +3936,6 @@ for iSTEP=1:numel(STEPS)
                             conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{6});
                         end
                         if ~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion)&&nses==nses_struct
-                            % note: change w prefix to avoid re-using
-                            try
-                                conn_fileutils('movefile',conn_prepend('w',outputfiles{isubject}{nses}(8:end)),conn_prepend('wcL_',outputfiles{isubject}{nses}(8:end)));
-                                outputfiles{isubject}{nses}(8:end)=conn_prepend('wcL_',outputfiles{isubject}{nses}(8:end));
-                            end
                             % create new TPM file with lesion mask
                             normLESIONfile=outputfiles{isubject}{nses}(8:end);
                             if isempty(input_tpm_template), origTPMfile=fullfile(fileparts(which('spm')),'tpm','TPM.nii');
