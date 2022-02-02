@@ -134,7 +134,9 @@ if any(procedures==Iprocedure) % QA_NORM functional
                 if ~sessionspecific, nsess=1; end
                 %nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
                 for nses=1:nsess,
-                    fhset=conn('gui_setupgo',3,14,4,nsub,nses,validsets);
+                    if all(validsets==0), fhset=conn('gui_setupgo',3,14,4,nsub,nses,validsets);
+                    else fhset=conn('gui_setupgo',5,14,4,nsub,nses,validsets);
+                    end
                     for nset=1:numel(fhset)
                         fh=fhset{nset};
                         filename=fullfile(qafolder,sprintf('QA_NORM_functionalDataset%d.subject%03d.session%03d.jpg',validsets(nset),nsub,nses));
@@ -365,7 +367,9 @@ if any(procedures==Iprocedure) % QA_COREG functional
         for isub=1:numel(nsubs)
             nsub=nsubs(isub);
             try
-                fh=conn('gui_setupgo',3,14,7,nsub,nslice,validsets);
+                if all(validsets==0), fh=conn('gui_setupgo',3,14,7,nsub,nslice,validsets);
+                else fh=conn('gui_setupgo',5,14,7,nsub,nslice,validsets);
+                end
                 filename=fullfile(qafolder,sprintf('QA_COREG_functional.subject%03d.jpg',nsub));
                 fh('togglegui',1);
                 fh('print',filename,'-nogui','-noerror',dpires,'-nopersistent');
@@ -395,7 +399,9 @@ if any(procedures==Iprocedure) % QA_TIME functional
         for isub=1:numel(nsubs)
             nsub=nsubs(isub);
             try
-                fh=conn('gui_setupgo',3,14,8,nsub,[],nslice,validsets,false);
+                if all(validsets==0), fh=conn('gui_setupgo',3,14,8,nsub,[],nslice,validsets,false);
+                else fh=conn('gui_setupgo',5,14,8,nsub,[],nslice,validsets,false);
+                end
                 filename=fullfile(qafolder,sprintf('QA_TIME_functional.subject%03d.jpg',nsub));
                 fh('print',filename,'-nogui','-noerror',dpires,'-ADDnoui','-nopersistent');
                 state=fh('getstate');
@@ -432,7 +438,7 @@ if any(procedures==Iprocedure) % QA_TIMEART functional
                 %                 fh=conn('gui_setupgo',6,14,2,icov,nsub,nses,nslice,validsets,false);
                 %                 fh('style','timeseries');
                 %                 filename=fullfile(qafolder,sprintf('QA_TIMEART_functional.subject%03d.session%03d.jpg',nsub,nses));
-                fh=conn('gui_setupgo',6,14,2,icov,nsub,[],nslice,validsets,false);
+                fh=conn('gui_setupgo',8,14,2,icov,nsub,[],nslice,validsets,false);
                 filename=fullfile(qafolder,sprintf('QA_TIMEART_functional.subject%03d.jpg',nsub));
                 fh('print',filename,'-nogui','-noerror',dpires,'-ADDnoui','-nopersistent');
                 state=fh('getstate');
@@ -468,7 +474,9 @@ if any(procedures==Iprocedure) % QA_REG functional-structural
                 if ~sessionspecific, nsess=1; end
                 %nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
                 for nses=1:nsess,
-                    fhset=conn('gui_setupgo',3,14,3,nsub,nses,validsets);
+                    if all(validsets==0), fhset=conn('gui_setupgo',3,14,3,nsub,nses,validsets);
+                    else fhset=conn('gui_setupgo',5,14,3,nsub,nses,validsets);
+                    end
                     for nset=1:numel(fhset)
                         fh=fhset{nset};
                         filename=fullfile(qafolder,sprintf('QA_REG_functionalDataset%d.subject%03d.session%03d.jpg',validsets(nset),nsub,nses));

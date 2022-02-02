@@ -154,16 +154,16 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     clear conn_filesearchtool
     try, if CONN_gui.checkupdates, [nill,CONN_gui.newversionavailable]=conn_update([],[],2); end; end
 	conn_menumanager on;
-	CONN_h.menus.m_setup_02sub=conn_menumanager([], 'n',8,...
-									'string',{'Basic','Structural','Functional','ROIs','Conditions','Covariates (1st-level)','Covariates (2nd-level)','Options'},...%,'Preprocessing','QA plots'},...
-									'help',{'Defines basic acquisition information','Defines structural/anatomical data source files','Defines functional data source files','Defines regions of interest','Defines within-subject experiment conditions (e.g. rest, task, or longitudinal conditions)','Defines 1st level (within subject) variables (a timeseries for each subject/session; e.g. subject movement parameters)','Defines 2nd level (between subjects) variables (one value per subject; e.g. group membership)','Defines processing options'},...%,'Define and apply a sequence of preprocessing steps to the structural/functional volumes defined above (e.g. realignment, slice-timing correction, normalization, etc.)','Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
-									'position',[.235+0.5*.765/4-.135/2,.955-8*.045,.135,8*.045],...%'position',[.00,.42-.06,.095,7*.06],...
+	CONN_h.menus.m_setup_02sub=conn_menumanager([], 'n',9,...
+									'string',{'Basic','Structural','Functional','ROIs','Other','Conditions','Covariates (1st-level)','Covariates (2nd-level)','Options'},...%,'Preprocessing','QA plots'},...
+									'help',{'Defines basic acquisition information','Defines structural/anatomical data source files','Defines functional data source files','Defines regions of interest','Defines other/secondary image files','Defines within-subject experiment conditions (e.g. rest, task, or longitudinal conditions)','Defines 1st level (within subject) variables (a timeseries for each subject/session; e.g. subject movement parameters)','Defines 2nd level (between subjects) variables (one value per subject; e.g. group membership)','Defines processing options'},...%,'Define and apply a sequence of preprocessing steps to the structural/functional volumes defined above (e.g. realignment, slice-timing correction, normalization, etc.)','Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
+									'position',[.235+0.5*.765/4-.135/2,.955-9*.045,.135,9*.045],...%'position',[.00,.42-.06,.095,7*.06],...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_setupgo',1},{@conn,'gui_setupgo',2},{@conn,'gui_setupgo',3},{@conn,'gui_setupgo',4},{@conn,'gui_setupgo',5},{@conn,'gui_setupgo',6},{@conn,'gui_setupgo',7},{@conn,'gui_setupgo',8}} ); %,{@conn,'gui_setup_preproc','multiplesteps',1},{@conn,'gui_setup_qadisplay'}} );
+									'callback',{{@conn,'gui_setupgo',1},{@conn,'gui_setupgo',2},{@conn,'gui_setupgo',3},{@conn,'gui_setupgo',4},{@conn,'gui_setupgo',5},{@conn,'gui_setupgo',6},{@conn,'gui_setupgo',7},{@conn,'gui_setupgo',8},{@conn,'gui_setupgo',9}} ); %,{@conn,'gui_setup_preproc','multiplesteps',1},{@conn,'gui_setup_qadisplay'}} );
 	CONN_h.menus.m_analyses_03sub=conn_menumanager([], 'n',1,...
 									'string',{'All analyses'},...%,{'Seed-to-Voxel','ROI-to-ROI'},{'Voxel-to-Voxel','ICA networks'},'dyn-ICA circuits'},...
 									'help',{'Display all current analyses'},...%,'Define/explore ROI-to-ROI and Seed-to-Voxel first-level analyses','Define/explore voxel-to-voxel and ICA first-level analyses','Define Dynamic ICA first-level analyses'},...
@@ -411,22 +411,22 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'state',[1,0,0],...
 									'value',1,...
                                     'toggle',1,...
-									'position',[.005,.825-3*.06,.13,3*.06],...%'position',[.00,.42-.06,.095,7*.06],...
+									'position',[.005,.855-3*.06,.13,3*.06],...%'position',[.00,.42-.06,.095,7*.06],...
 									'fontsize',8,...
                                     'dfont',2,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setupgo',1},{@conn,'gui_setupgo',2},{@conn,'gui_setupgo',3}} );
-	CONN_h.menus.m_setup_02b=conn_menumanager([], 'n',5,...
-									'string',{'ROIs','Conditions','Covariates (1st-level)','Covariates (2nd-level)','Options'},...
-									'help',{'Defines regions of interest','Defines experiment conditions (e.g. rest, task, or longitudinal conditions)','Defines 1st level (within subject) variables (a timeseries for each subject/session; e.g. subject movement parameters)','Defines 2nd level (between subjects) variables (one value per subject; e.g. group membership)','Defines processing options'},...
-									'state',[0,0,0,0,0],...
+	CONN_h.menus.m_setup_02b=conn_menumanager([], 'n',6,...
+									'string',{'ROIs','Other','Conditions','Covariates (1st-level)','Covariates (2nd-level)','Options'},...
+									'help',{'Defines regions of interest','Defines other/secondary image files','Defines experiment conditions (e.g. rest, task, or longitudinal conditions)','Defines 1st level (within subject) variables (a timeseries for each subject/session; e.g. subject movement parameters)','Defines 2nd level (between subjects) variables (one value per subject; e.g. group membership)','Defines processing options'},...
+									'state',[0,0,0,0,0,0],...
 									'value',1,...
                                     'toggle',1,...
-									'position',[.005,.665-5*.06-.06,.13,5*.06],...%'position',[.00,.42-.06,.095,7*.06],...
+									'position',[.005,.695-6*.06-.06,.13,6*.06],...%'position',[.00,.42-.06,.095,7*.06],...
 									'fontsize',8,...
                                     'dfont',1,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_setupgo',4},{@conn,'gui_setupgo',5},{@conn,'gui_setupgo',6},{@conn,'gui_setupgo',7},{@conn,'gui_setupgo',8}} );
+									'callback',{{@conn,'gui_setupgo',4},{@conn,'gui_setupgo',5},{@conn,'gui_setupgo',6},{@conn,'gui_setupgo',7},{@conn,'gui_setupgo',8},{@conn,'gui_setupgo',9}} );
 	CONN_h.menus.m_setup_04=conn_menumanager([], 'n',1,...
 									'string',{'Done'},...
 									'help',{'Imports SPM.mat files and updates Setup information for each subject'},...
@@ -2063,10 +2063,14 @@ else
                             case 4, value=get(CONN_h.menus.m_setup_00{4},'value'); CONN_x.Setup.acquisitiontype=value;
                         end
                     end
-                case 3, %functional
-                    boffset=[.04 -.045 0 0];
+                case {3,5} %functional
+                    if state==3, boffset=[.04 .045 0 0];
+                    else boffset=[.04 -.045 0 0];
+                    end
                     if nargin<2,
-                        conn_menu('frame',boffset+[.19,.20,.45,.625],'Functional data');
+                        if state==3, conn_menu('frame',boffset+[.19,.20,.45,.525],'Functional data');
+                        else conn_menu('frame',boffset+[.19,.20,.45,.625],'Other imaging data');
+                        end
                         %conn_menu('frame',boffset+[.19,.03,.50,.08],'Secondary datasets');
                         %global tmp;
 						%tmp=conn_menu('text',boffset+[.20,.75,.40,.04],'','Functional data for voxel-level analyses:');
@@ -2075,7 +2079,9 @@ else
                         %tmp=conn_menu('popupblue',boffset+[.56,.77,.129,.04],'',{'(dataset 0)'},'Primary functional dataset','');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.200,.30,.075,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
 						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.30,.075,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import functional data files','*.img; *.nii; *.gii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
+						if state==3, CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import functional data files','*.img; *.nii; *.gii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
+                        else         CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import other imaging data files','*.img; *.nii; *.gii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
+                        end
 						CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton',boffset+[.36,.60,.26,.09],'','','','conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.40,.35,.22,.25],'','','',[],@conn_callbackdisplay_functionalclick);
                         conn_menu('nullstr',' ');
@@ -2088,13 +2094,19 @@ else
 						%CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.39,.26,.25,.05],'Experiment data  (scans/sessions)','','',@conn_callbackdisplay_conditiondesign);
                         CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.41,.34,.20,.01],'','','',@conn_callbackdisplay_conditiondesign);
                         %conn_menu('nullstr',{'No functional','data selected'});
-                        CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.20,.19,.25,.05],'',{'<HTML><i> - functional tools -</i></HTML>','Display slice viewer','Display slice viewer with anatomical overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display functional/anatomical coregistration (SPM)','Display functional/MNI coregistration (SPM)','Display single-slice for all subjects (montage)','Display single-slice for all timepoints (movie)', 'Apply individual preprocessing step','Reassign all functional files simultaneously'},'<HTML> - <i>slice viewer</i> displays functional dataset slices<br/> - <i>slice viewer with anatomical overlay</i>displays mean functional overlaid with same-subject structural volume<br/> - <i>slice viewer with MNI boundaries</i> displays mean functional volume slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/> - <i>display registration</i> checks the coregistration of the selected subject functional/anatomical files <br/> - <i>preprocessing</i> runs individual preprocessing step on functional volumes (e.g. realignment, slice-timing correction, etc.)<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space)<br/> - <i>reassign all functional files simultaneously</i> reassigns current dataset functional volumes using a user-generated search/replace filename rule</HTML>','conn(''gui_setup'',14);');
+                        if state==3, CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.20,.19,.25,.05],'',{'<HTML><i> - functional tools -</i></HTML>','Display slice viewer','Display slice viewer with anatomical overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display functional/anatomical coregistration (SPM)','Display functional/MNI coregistration (SPM)','Display single-slice for all subjects (montage)','Display single-slice for all timepoints (movie)', 'Apply individual preprocessing step','Reassign all functional files simultaneously'},'<HTML> - <i>slice viewer</i> displays functional dataset slices<br/> - <i>slice viewer with anatomical overlay</i>displays mean functional overlaid with same-subject structural volume<br/> - <i>slice viewer with MNI boundaries</i> displays mean functional volume slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/> - <i>display registration</i> checks the coregistration of the selected subject functional/anatomical files <br/> - <i>preprocessing</i> runs individual preprocessing step on functional volumes (e.g. realignment, slice-timing correction, etc.)<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space)<br/> - <i>reassign all functional files simultaneously</i> reassigns current dataset functional volumes using a user-generated search/replace filename rule</HTML>','conn(''gui_setup'',14);');
+                        else CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.20,.19,.25,.05],'',{'<HTML><i> - other imaging tools -</i></HTML>','Display slice viewer','Display slice viewer with anatomical overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display functional/anatomical coregistration (SPM)','Display functional/MNI coregistration (SPM)','Display single-slice for all subjects (montage)','Display single-slice for all timepoints (movie)', 'Apply individual preprocessing step','Reassign all functional files simultaneously'},'<HTML> - <i>slice viewer</i> displays functional dataset slices<br/> - <i>slice viewer with anatomical overlay</i>displays mean functional overlaid with same-subject structural volume<br/> - <i>slice viewer with MNI boundaries</i> displays mean functional volume slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/> - <i>display registration</i> checks the coregistration of the selected subject functional/anatomical files <br/> - <i>preprocessing</i> runs individual preprocessing step on functional volumes (e.g. realignment, slice-timing correction, etc.)<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space)<br/> - <i>reassign all functional files simultaneously</i> reassigns current dataset functional volumes using a user-generated search/replace filename rule</HTML>','conn(''gui_setup'',14);');
+                        end
                         nset=1;
-                        conn_menu('framewhitehighlight',boffset+[.20,.77,.43,.03],'');
-                        newdelete={'<HTML><i>new</i></HTML>','<HTML><i>move</i></HTML>','<HTML><i>label</i></HTML>','<HTML><i>delete</i></HTML>'}; if numel(CONN_x.Setup.secondarydataset)==1, newdelete=newdelete(1:3); end
-                        CONN_h.menus.m_setup_00{7}=conn_menu('popupbigblue',boffset+[.20,.76,.43,.05],'',[{'primary dataset'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),newdelete],'<HTML>Manage multiple versions of your functional data<br/> - select the dataset that you wish to edit, or new/move/label/delete to manage the current list of datasets<br/><br/><b>Primary dataset</b>: (mandatory) source of functional data, defining voxel-level BOLD timeseries.<br/><b>Secondary datasets</b>: (optional) may be used as alternative sources to compute ROI-level BOLD timeseres (e.g. for ROIs defined in other spaces; see <i>Setup.ROIs</i> tab).<br/>Secondary datasets that are not explicitly selected by any ROI will be simply disregarded by CONN''s Setup/Denoising/Analysis pipeline<br/> <br/> additional information: <br/>Always enter your main/primary functional data as <i><b>primary dataset</b></i><br/>Secondary datasets (<i>secondary dataset #1</i> and above) may be defined as a way of keeping track of (and easily switching between) alternative versions of your functional <br/>data (e.g. an original dataset before all preprocessing steps, and a fully preprocessed smoothed MNI-space dataset). Secondary datasets may also be used, in conjunction <br/>with dataset-specific ROIs, as a way of using in the same CONN project different types of ROIs (e.g. subject-space ROIs and MNI-space ROIs)<br/><br/>Example1 (MNI-space analyses): <i>Primary dataset</i>: MNI-space spatially-smoothed data; <i>Secondary dataset #1</i>: MNI-space raw (non-smoothed) data<br/> Example2 (surface-based analyses): <i>Primary dataset</i>: subject-space raw data; <i>Secondary dataset #1</i>: MNI-space raw (non-smoothed) data (to be used with MNI-space ROIs)</HTML>','conn(''gui_setup'',7);');
-                        analysistypes={sprintf('secondary dataset #%d is equal to primary dataset',nset),sprintf('secondary dataset #%d is derived from primary dataset: same filenames without leading ''s'' (SPM convention for non-smoothed volumes)',nset),sprintf('secondary dataset #%d is derived from primary dataset: user-defined filename differences',nset),sprintf('secondary dataset #%d is independent of primary dataset: explicitly select functional files',nset)};
-                        CONN_h.menus.m_setup_00{6}=conn_menu('popup',boffset+[.20,.69,.43,.05],'',analysistypes,'<HTML>Define contents of secondary functional datasets (dataset #1 and above), either explicitly or in relation to the primary dataset:<br/>note1: ''same filenames without leading s'' uses SPM convention for naming spatially smoothed volumes to identify the original raw (non-smoothed) functional data from the smoothed filenames<br/>note2: ROIs may be associated with individual datasets (see <i>Setup.ROIs</i> tab); e.g. a normalized functional dataset for MNI-space ROIs vs. a coregistered functional dataset for subject-space ROIs</HTML>','conn(''gui_setup'',6);');
+                        if state==5, % other
+                            conn_menu('framewhitehighlight',boffset+[.20,.77,.43,.03],'');
+                            newdelete={'<HTML><i>new</i></HTML>','<HTML><i>move</i></HTML>','<HTML><i>label</i></HTML>','<HTML><i>delete</i></HTML>'}; if numel(CONN_x.Setup.secondarydataset)==1, newdelete=newdelete(1:3); end
+                            CONN_h.menus.m_setup_00{7}=conn_menu('popupbigblue',boffset+[.20,.76,.43,.05],'',[arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),newdelete],'<HTML>Manage additional imaging data (e.g. Fieldmap files, Voxel Displacement Map files, Tissue Probability Map files, other functional datasets, etc.)<br/> <br/> - select the dataset that you wish to edit, or new/move/label/delete to manage the current list of datasets<br/><br/>Suggested optional datasets:<br/> - <b>unsmoothed volumes</b> : enter functional data that has not been spatially smoothed (e.g. for more accurate ROI BOLD-signal extraction)<br/> - <b>fmap</b> : enter fieldmap files for susceptibility distortion correction (e.g. phasediff and magnitude volumes)<br/> - <b>vdm</b> : enter voxel displacement maps for susceptibility distortion correction (e.g. vdm5_* volumes)<br/> - <b>tpm</b> : enter subject-specific tissue probability maps for anatomical/functional segmentation and normalization<br/><br/>Secondary datasets may also be used as alternative functional-data sources to compute ROI-level BOLD timeseres (e.g. for ROIs defined in other spaces; see <i>Setup.ROIs</i> tab).<br/>Secondary datasets that are not explicitly used during preprocessing or explicitly selected by any ROI will be simply disregarded by CONN''s Setup/Denoising/Analysis pipeline.<br/>Last, secondary datasets may also be defined as a way of keeping track of (and easily switching between) alternative versions of your functional data (e.g. an original dataset before all preprocessing steps)</HTML>','conn(''gui_setup'',7);');
+                            analysistypes={sprintf('secondary dataset #%d is equal to functional data',nset),sprintf('secondary dataset #%d is implicitly related to functional data: same filenames without leading ''s'' (SPM convention for non-smoothed volumes)',nset),sprintf('secondary dataset #%d is implicitly related to functional data: user-defined filename differences',nset),sprintf('secondary dataset #%d is explicitly defined: selected imaging files',nset)};
+                            CONN_h.menus.m_setup_00{6}=conn_menu('popup',boffset+[.20,.69,.43,.05],'',analysistypes,'<HTML>Define contents of secondary datasets (dataset #1 and above), either explicitly or in relation to the functional data:<br/>note1: ''same filenames without leading s'' uses SPM convention for naming spatially smoothed volumes to identify the original raw (non-smoothed) functional data from the smoothed filenames<br/>note2: ROIs may be associated with individual datasets (see <i>Setup.ROIs</i> tab); e.g. a normalized functional dataset for MNI-space ROIs vs. a coregistered functional dataset for subject-space ROIs</HTML>','conn(''gui_setup'',6);');
+                        else
+                            CONN_h.menus.m_setup_00{6}=[];CONN_h.menus.m_setup_00{7}=[];
+                        end
                         %CONN_h.menus.m_setup_00{14}=uicontrol('style','pushbutton','units','norm','position',boffset+[.37,.20,.15,.04],'string','Check registration','tooltipstring','Check coregistration of functional and structural files for selected subject(s)/session(s)','callback','conn(''gui_setup'',14);','fontsize',8+CONN_gui.font_offset);
                         %CONN_h.menus.m_setup_00{14}=uicontrol('style','popupmenu','units','norm','position',boffset+[.37,.16,.15,.04],'string',{'<HTML><i> - options:</i></HTML>','check registration','preprocessing steps'},'foregroundcolor','w','backgroundcolor',CONN_gui.backgroundcolorA,'fontsize',8+CONN_gui.font_offset,'callback','conn(''gui_setup'',14);','tooltipstring','Functional volumes additional options');
 						%CONN_h.menus.m_setup_00{11}=conn_menu('checkbox',boffset+[.38,.205,.02,.04],'spatially-normalized images','','','conn(''gui_setup'',11);');
@@ -2118,7 +2130,7 @@ else
                             case 3,
 								set(CONN_h.screen.hfig,'pointer',CONN_gui.waiticon);
                                 nsubs=get(CONN_h.menus.m_setup_00{1},'value');
-                                nset=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                if state==3, nset=0; else nset=get(CONN_h.menus.m_setup_00{7},'value'); end
                                 nsessall=get(CONN_h.menus.m_setup_00{2},'value'); 
                                 nsessmax=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsubs));
                                 nfields=sum(sum(conn_bsxfun(@le,nsessall(:),nsessmax(:)')));
@@ -2204,7 +2216,7 @@ else
 								set(CONN_h.screen.hfig,'pointer','arrow');
                             case 4,
                                 nsubs=get(CONN_h.menus.m_setup_00{1},'value');nsess=get(CONN_h.menus.m_setup_00{2},'value');
-                                nset=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                if state==3, nset=0; else nset=get(CONN_h.menus.m_setup_00{7},'value'); end
                                 filename=conn_get_functional(nsubs(1),nsess(1),nset);
                                 if ~isempty(filename)
                                     tempstr=cellstr(filename);
@@ -2216,7 +2228,7 @@ else
                                     conn_filesearchtool(CONN_h.menus.m_setup_00{3}.folder,[],'folder',true);
                                 end
                             case 6,
-                                nset=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                if state==3, nset=0; else nset=get(CONN_h.menus.m_setup_00{7},'value'); end
                                 functionals_type=get(CONN_h.menus.m_setup_00{6},'value');
                                 if functionals_type==3, 
                                     nsubs=get(CONN_h.menus.m_setup_00{1},'value');nsess=get(CONN_h.menus.m_setup_00{2},'value');
@@ -2230,7 +2242,7 @@ else
                                     CONN_x.Setup.secondarydataset(nset).functionals_type=functionals_type;
                                 end
                             case 7,
-                                nset=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                if state==3, nset=0; else nset=get(CONN_h.menus.m_setup_00{7},'value'); end
                                 if nset==numel(CONN_x.Setup.secondarydataset)+1, %add
                                     CONN_x.Setup.secondarydataset(nset)=CONN_x.Setup.secondarydataset(nset-1);
                                     CONN_x.Setup.secondarydataset(nset).label='';
@@ -2253,7 +2265,7 @@ else
                                     nset=0;
                                 end
                                 newdelete={'<HTML><i>new</i></HTML>','<HTML><i>move</i></HTML>','<HTML><i>label</i></HTML>','<HTML><i>delete</i></HTML>'}; if numel(CONN_x.Setup.secondarydataset)==1, newdelete=newdelete(1:3); end
-                                set(CONN_h.menus.m_setup_00{7},'string',[{'primary dataset'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),newdelete],'value',nset+1);
+                                if state==5, set(CONN_h.menus.m_setup_00{7},'string',[arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),newdelete],'value',max(1,nset)); end
                             case 14,
                                 if numel(varargin)>=3, val=varargin{3};
                                 else val=get(CONN_h.menus.m_setup_00{14},'value');
@@ -2269,7 +2281,7 @@ else
                                         end
                                         if numel(varargin)>=6, nsets=varargin{6};
                                         else
-                                            nsets=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                            if state==3, nsets=0; else nsets=get(CONN_h.menus.m_setup_00{7},'value'); end
                                             %nsets=listdlg('liststring',arrayfun(@(n)sprintf('dataset #%d',n),0:numel(CONN_x.Setup.secondarydataset),'uni',0),'selectionmode','single','initialvalue',1,'promptstring',{'Select functional dataset for display'},'ListSize',[300 200]);
                                             %if isempty(nsets), return; end
                                             %nsets=nsets-1;
@@ -2324,7 +2336,7 @@ else
                                             if ~conn_existfile(functional_template), functional_template=fullfile(fileparts(which('spm')),'toolbox','OldNorm','EPI.nii'); end
                                             files={spm_vol(functional_template)}; filenames={functional_template};
                                         end
-                                        nsets=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                        if state==3, nsets=0; else nsets=get(CONN_h.menus.m_setup_00{7},'value'); end
                                         for nsub=nsubs(:)',
 %                                             try
                                                 for nses=nsess(:)',
@@ -2370,8 +2382,8 @@ else
                                             txyz=data.buttondown.matdim.mat*[tx(:) ty(:) zslice+zeros(numel(tx),1) ones(numel(tx),1)]';
                                         end
                                         if numel(varargin)>=6, nsets=varargin{6};
-                                        else nsets=0;
-                                            nsets=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                        else 
+                                            if state==3, nsets=0; else nsets=get(CONN_h.menus.m_setup_00{7},'value'); end
                                             %nsets=listdlg('liststring',arrayfun(@(n)sprintf('dataset %d',n),0:numel(CONN_x.Setup.secondarydataset),'uni',0),'selectionmode','single','initialvalue',1,'promptstring',{'Select functional dataset for display'},'ListSize',[300 200]);
                                             %if isempty(nsets), return; end
                                             %nsets=nsets-1;
@@ -2435,7 +2447,7 @@ else
                                         end
                                         if numel(varargin)>=7, nsets=varargin{7};
                                         else 
-                                            nsets=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                            if state==3, nsets=0; else nsets=get(CONN_h.menus.m_setup_00{7},'value'); end
                                             %nsets=listdlg('liststring',arrayfun(@(n)sprintf('dataset %d',n),0:numel(CONN_x.Setup.secondarydataset),'uni',0),'selectionmode','single','initialvalue',1,'promptstring',{'Select functional dataset for display'},'ListSize',[300 200]);
                                             %if isempty(nsets), return; end
                                             %nsets=nsets-1;
@@ -2483,7 +2495,7 @@ else
                                         return;
                                     case 9, % apply individual preprocessing step
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
-                                        nset=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                        if state==3, nset=0; else nset=get(CONN_h.menus.m_setup_00{7},'value'); end
                                         if nset==0&&isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_msgbox({'This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'},'',true); 
                                         else
                                             ok=conn_setup_preproc('','select','functional','sets',nset);
@@ -2497,7 +2509,7 @@ else
                                         end
                                     case 10, % reassign all functional
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
-                                        nset=get(CONN_h.menus.m_setup_00{7},'value')-1;
+                                        if state==3, nset=0; else nset=get(CONN_h.menus.m_setup_00{7},'value'); end
                                         conn_rulebasedfilename(sprintf('dataset%d',nset));
                                     otherwise
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
@@ -2509,12 +2521,15 @@ else
 %                                 CONN_x.Setup.normalized=normalized;
                         end
                     end
-                    nset=get(CONN_h.menus.m_setup_00{7},'value')-1;
-                    if ~nset
-                        set(CONN_h.menus.m_setup_00{6},'visible','off','string',{'explicitly select functional files'});
-                    else
-                        analysistypes={sprintf('secondary dataset #%d is equal to primary dataset',nset),sprintf('secondary dataset #%d is derived from primary dataset: same filenames without leading ''s''',nset),sprintf('secondary dataset #%d is derived from primary dataset: user-defined filename differences',nset),sprintf('secondary dataset #%d is independent of primary dataset: explicitly select functional files',nset)};
-                        set(CONN_h.menus.m_setup_00{6},'visible','on','string',analysistypes,'value',CONN_x.Setup.secondarydataset(nset).functionals_type);
+                    if state==5
+                        nset=get(CONN_h.menus.m_setup_00{7},'value');
+                        %if ~nset
+                        %    set(CONN_h.menus.m_setup_00{6},'visible','off','string',{'explicitly select functional files'});
+                        %else
+                            analysistypes={sprintf('secondary dataset #%d is equal to functional data',nset),sprintf('secondary dataset #%d is implicitly related to functional data: same filenames without leading ''s''',nset),sprintf('secondary dataset #%d is implicitly related to functional data: user-defined filename differences',nset),sprintf('secondary dataset #%d is explicitly defined: selected imaging files',nset)};
+                            set(CONN_h.menus.m_setup_00{6},'visible','on','string',analysistypes,'value',CONN_x.Setup.secondarydataset(nset).functionals_type);
+                        %end
+                    else nset=0;
                     end
                     if ~nset||CONN_x.Setup.secondarydataset(nset).functionals_type==4, set(CONN_h.menus.m_setup_00{11},'visible','off'); else set(CONN_h.menus.m_setup_00{11},'visible','on'); end
                     nsubs=get(CONN_h.menus.m_setup_00{1},'value');nsess=get(CONN_h.menus.m_setup_00{2},'value');
@@ -2988,8 +3003,8 @@ else
 						CONN_h.menus.m_setup_00{6}=conn_menu('edit',boffset+[.40,.56,.08,.04],'ROI name','','ROI name','conn(''gui_setup'',6);');
                         fields={'Compute average timeseries','Compute PCA decomposition','Compute weighted sum timeseries','Compute weighted PCA decomposition'};
 						CONN_h.menus.m_setup_00{7}=conn_menu('popup',boffset+[.48,.595,.19,.03],'',fields,'<HTML>Measure characterizing the ROI activation <br/> - use <i>average</i> to extract the mean BOLD timeseries within the ROI voxels <br/> - use <i>PCA</i> to extract one or several PCA components in addition to the average timeseries within the ROI voxels (e.g. for aCompCor) <br/> - use <i>weighted sum</i> to extract a weighted sum timeries within the ROI voxels (voxels are weighted by ROI mask values) (e.g. for dual-regression or probabilistic ROI definitions)<br/> - use <i>weighted PCA</i> to extract one or several weighted PCA components in addition to the weighted average timeseries within the ROI voxels (voxels are weighted by ROI mask values)</HTML>','conn(''gui_setup'',7);');
-                        str=[{'from primary functional dataset'},arrayfun(@(n)sprintf('from secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:max(numel(CONN_x.Setup.secondarydataset),max(CONN_x.Setup.rois.unsmoothedvolumes)),'uni',0)];
-						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.482,.56,.19,.03],'',str,'<HTML>source of functional data for ROI timeseries extraction<br/> - Select <b>secondary datasets</b> to extract ROI BOLD timeseries from any of the secondary datasets defined in <i>Setup.Functional</i> (default behavior; e.g. non-smoothed volumes)<br/> - Select <b>primary dataset</b> to extract ROI BOLD timeseries from the primary dataset defined in <i>Setup.Functional</i> (e.g. smoothed volumes)</HTML>','conn(''gui_setup'',13);');
+                        str=[{'from functional data'},arrayfun(@(n)sprintf('from secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:max(numel(CONN_x.Setup.secondarydataset),max(CONN_x.Setup.rois.unsmoothedvolumes)),'uni',0)];
+						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.482,.56,.19,.03],'',str,'<HTML>source of functional data for ROI timeseries extraction<br/> - Select <b>secondary datasets</b> to extract ROI BOLD timeseries from any of the secondary datasets defined in <i>Setup.Other</i> (default behavior; e.g. non-smoothed volumes)<br/> - Select <b>functional data</b> to extract ROI BOLD timeseries from the functional data defined in <i>Setup.Functional</i> (e.g. smoothed volumes)</HTML>','conn(''gui_setup'',13);');
 						%CONN_h.menus.m_setup_00{7}=conn_menu('edit',boffset+[.49,.71,.06,.04],'Dimensions','','<HTML>number of dimensions characterizing the ROI activation <br/> - use <b>1</b> to extract only the mean BOLD timeseries within the ROI <br/> - use <b>2</b> or above to extract one or several PCA components as well</HTML>','conn(''gui_setup'',7);');
                         CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.12,.01,.27,.05],'',{'<HTML><i> - ROI tools -</i></HTML>','Display slice viewer','Display slice viewer with functional overlay (QA_REG)','Display slice viewer with structural overlay (QA_REG)','Display slice viewer with MNI reference template overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display 3d-volume viewer','Display 3d-surface-projection viewer','Display ROI/functional coregistration (SPM)','Display ROI/anatomical coregistration (SPM)','Display single-slice for all subjects (montage)','Display ROI labels','Create new ROI(s) from MNI coordinates','Create new ROI(s) from ICA results','Create new single-voxel-ROI(s) from mask','Reassign all ROI files simultaneously','Update changes from Setup to Denoising tab'},'<HTML> - <i>slice viewer</i> displays ROI slices<br/> - <i>slice viewer with functional/structural overlay</i> displays ROI contours overlaid with mean functional or same-subject anatomical volume<br/> - <i>slice viewer with MNI reference template overlay</i> displays ROI contours overlaid with reference MNI-space structural template<br/> - <i>slice viewer with MNI boundaries</i> displays ROI slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/>  - <i>3d viewer</i> displays ROI file on the volume or projected to the cortical surface<br/> - <i>display registration</i> checks the coregistration of the selected subject ROI and anatomical/functional files<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space) for the selected ROI<br/> - <i>display ROI labels</i> displays ROI labels for ROI atlas files and allows editing the associated labels file<br/> - <i>create new ROI from MNI coordinates</i> creates a new spherical-ROI file from a set of user-defined MNI coordinates<br/>  - <i>Create new ROI(s) from ICA results</i> adds ICA networks (spatial components from group-ICA analysis results) as a new ROI atlas<br/> - <i>Create new single-voxel-ROI(s) from mask</i> creates a new set of individual-voxel-ROIs from all voxels within a user-defined mask<br/> - <i>reassign all ROI files simultaneously</i> reassigns files associated with the selected ROI using a user-generated search/replace filename rule<br/> - <i>update changes</i> updates the Denoising tab information to reflect any modifications in ROI definitions or options performed here in the Setup tab</HTML>','conn(''gui_setup'',14);');
 						%conn_menu('frame',boffset+[.38,.03,.30,.12]);
@@ -3855,7 +3870,7 @@ else
 						conn_menu('update',CONN_h.menus.m_setup_00{5},[]);
 						set(CONN_h.menus.m_setup_00{4},'string','multiple files','tooltipstring','');
 					end
-                case 5, %conditions
+                case 6, %conditions
                     boffset=[.02 -.01 0 0];
                     if nargin<2,
                         conn_menu('nullstr',{'Display not','available'});
@@ -4309,7 +4324,7 @@ else
                        CONN_h.menus.m_setup_11e={};
                     end
                     
-				case 6, % covariates first-level
+				case 7, % covariates first-level
                     boffset=[.03 -.03 0 0];
 					if nargin<2,
 						conn_menu('frame',boffset+[.17,.18,.50,.64],'First-level covariates / timeseries');
@@ -4452,7 +4467,7 @@ else
                                         end
                                         if numel(varargin)>=8, nsets=varargin{8};
                                         else 
-                                            nsets=listdlg('liststring',[{'primary dataset'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)],'selectionmode','single','initialvalue',1,'promptstring',{'Select functional dataset for display'},'ListSize',[300 200]);
+                                            nsets=listdlg('liststring',[{'functional data'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)],'selectionmode','single','initialvalue',1,'promptstring',{'Select functional dataset for display'},'ListSize',[300 200]);
                                             if isempty(nsets), return; end
                                             nsets=nsets-1;
                                         end
@@ -4635,7 +4650,7 @@ else
                     else set(CONN_h.menus.m_setup_00{7},'string',deblank(names{nl1covariates(1)}));
                     end
                     
-                case 7, % covariates second-level
+                case 8, % covariates second-level
                     boffset=[.02 -.01 0 0];
 					if nargin<2,
 						conn_menu('frame',boffset+[.21,.15,.60,.67],'Second-level covariates (between-subject effects)');
@@ -5093,7 +5108,7 @@ else
                     %set(CONN_h.menus.m_setup_00{2},'string',num2str(t,['%0.',num2str(n),'f ']));
                     %if numel(CONN_x.Setup.l2covariates.names)<=1+numel(nl2covariates), set(CONN_h.menus.m_setup_00{9},'visible','off'); else set(CONN_h.menus.m_setup_00{9},'visible','on'); end
                     
-                case 8, % options
+                case 9, % options
                     boffset=[.05 -.05 0 0];
                     if nargin<2,
                         conn_menu('frame',boffset+[.19,.20,.57,.65],'Processing options');
@@ -5544,7 +5559,7 @@ else
                         CONN_h.menus.m_setup_00{9}=conn_menu('pushbuttonblue',boffset+[.3,.18,.10,.04],'','Import','<HTML>Imports SPM information into CONN Setup <b>for selected subject(s)</b></HTML>','conn(''gui_setup_import'',9)');
                         CONN_h.menus.m_setup_00{10}=conn_menu('popup',boffset+[.3,.14,.15,.04],'',{'import selected files','copy to project BIDS folder and import'},'<HTML>Controls behavior of ''Import'' button:<br/> - <i>import selected files</i> : (default) selected functional files will be imported into your CONN project directly from their original locations/folders<br/> - <i>copy first to project BIDS folder</i> : selected functional files will be first copied to your project conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified, uncompressed, or processed)</HTML>');
                         %'breakconditionsbysession',false,...
-                        h=conn_menu('checkbox',boffset+[.45,.18,.02,.035],'functional volumes','','<HTML>When checked, source functional volumes (in SPM.xY.VY) will be imported in CONN Setup.functional (as Primary Dataset) for the selected subjects</HTML>');set(h,'value',1);CONN_h.menus.m_setup_00{11}=h;
+                        h=conn_menu('checkbox',boffset+[.45,.18,.02,.035],'functional volumes','','<HTML>When checked, source functional volumes (in SPM.xY.VY) will be imported in CONN Setup.functional for the selected subjects</HTML>');set(h,'value',1);CONN_h.menus.m_setup_00{11}=h;
                         h=conn_menu('checkbox',boffset+[.45,.14,.02,.035],'study conditions','','When checked, SPM conditions (in SPM.Sess.U) will be imported in CONN Setup.conditions for the selected subjects');set(h,'value',1);CONN_h.menus.m_setup_00{12}=h;
                         h=conn_menu('checkbox',boffset+[.45,.10,.02,.035],'session-specific','','When checked, SPM conditions (in SPM.Sess.U) will be broken down into session-specific conditions before imported in CONN Setup.conditions for the selected subjects');set(h,'value',0);CONN_h.menus.m_setup_00{18}=h;
                         h=conn_menu('checkbox',boffset+[.56,.18,.02,.035],'SPM covariates','','When checked, SPM covariates (in SPM.Sess.C) will be imported in CONN as a first-level covariate named "SPM covariates" for the selected subjects');set(h,'value',1);CONN_h.menus.m_setup_00{13}=h;
@@ -5906,7 +5921,7 @@ else
                             CONN_h.menus.m_setup_00{18}=conn_menu('text',boffset+[.325,.40,.16,.15],'');
                             CONN_h.menus.m_setup_00{19}=conn_menu('text',boffset+[.51,.40,.16,.15],'');
                             h=conn_menu('checkbox',boffset+[.50,.18,.02,.035],'structural volumes','','<HTML>When checked, source structural volumes (in sub-#/anat folders) will be imported in CONN Setup.structural for the selected subjects</HTML>');set(h,'value',1);CONN_h.menus.m_setup_00{11}=h;
-                            h=conn_menu('checkbox',boffset+[.50,.14,.02,.035],'functional volumes','','<HTML>When checked, source functional volumes (in sub-#/func folders) will be imported in CONN Setup.functional (as Primary Dataset) for the selected subjects</HTML>');set(h,'value',1);CONN_h.menus.m_setup_00{12}=h;
+                            h=conn_menu('checkbox',boffset+[.50,.14,.02,.035],'functional volumes','','<HTML>When checked, source functional volumes (in sub-#/func folders) will be imported in CONN Setup.functional for the selected subjects</HTML>');set(h,'value',1);CONN_h.menus.m_setup_00{12}=h;
                             h=conn_menu('checkbox',boffset+[.50,.10,.02,.035],'study conditions','','When checked, BIDS tasks (in _events.tsv files) will be imported in CONN Setup.conditions for the selected subjects');set(h,'value',1);CONN_h.menus.m_setup_00{13}=h;
                             CONN_h.menus.m_setup_00{9}=conn_menu('pushbuttonblue',boffset+[.3,.18,.10,.04],'','Import','Imports selected BIDS information into CONN Setup','conn(''gui_setup_import'',9)');
                         end

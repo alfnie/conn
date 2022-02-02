@@ -85,9 +85,9 @@ function varargout=conn_batch(varargin)
 %       Setup.secondarydatasets.functionals_label : label of secondary functional dataset (e.g. 'fmap', 'vdm', ...)
 %       Setup.secondarydatasets.functionals_explicit : functionals_explicit{nsub}{nses} char array of volume files (only for functionals_type==4 only) 
 %       Setup.secondarydatasets.functionals_type : alternative option for defining files in secondary functional dataset (1-4) [2]: 
-%                                          1: same files as Primary dataset
-%                                          2: same files as Primary dataset field after removing leading 's' from filename
-%                                          3: other (same as Primary dataset field but using alternative filename-change rule; 
+%                                          1: same files as functional data
+%                                          2: same files as functional data field after removing leading 's' from filename
+%                                          3: other (same as functional data field but using alternative filename-change rule; 
 %                                             see functionals_rule above and help conn_rulebasedfilename); 
 %                                          4: other (explicitly specify the functional volume files using functionals_explicit field above)
 %       Setup.secondarydatasets.functionals_rule : (only for functionals_type==3 only) regexprep(filename,functionals_rule{2},functionals_rule{3})  
@@ -136,7 +136,7 @@ function varargout=conn_batch(varargin)
 %                                         decomposition of BOLD signal within ROI [1 if dimensions>1; 0 otherwise] 
 %      Setup.rois.dataset               : rois.dataset(nroi) index n to Secondary Dataset #n identifying the version of functional data 
 %                                         coregistered  to this ROI to extract BOLD timeseries from [1] (set to 0 to extract BOLD signal 
-%                                         from Primary Dataset instead; secondary datasets may be identified by their index or by their 
+%                                         from functional data instead; secondary datasets may be identified by their index or by their 
 %                                         label -see 'functional_label' preprocessing step)
 %      Setup.rois.add                   : 1/0; use 0 (default) to define the full set of ROIs to be used in your analyses; use 1 to define 
 %                                         an additional set of ROIs (to be added to any already-existing ROIs in your project) [0]
@@ -454,7 +454,7 @@ function varargout=conn_batch(varargin)
 %      Setup.preprocessing.voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [1]
 %      Setup.preprocessing.voxelsize_func  : (functional normalization) target voxel size for resliced volumes (mm) [2]
 %      Setup.preprocessing.sessions        : defines functional sessions to preprocess [1:max # of sessions]
-%      Setup.preprocessing.sets            : defines functional dataset to preprocess (0 for Primary Dataset; [1-N] or labels for Secondary 
+%      Setup.preprocessing.sets            : defines functional dataset to preprocess (0 for functional data; [1-N] or labels for Secondary 
 %                                             Datasets) [0]
 %  
 %  

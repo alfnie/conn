@@ -13,7 +13,7 @@ if ischar(dataset_to), dataset_to=conn_datasetlabel(dataset_to,'add'); end
 if isempty(dataset_to)||isempty(dataset_from)
     if isempty(dataset_to), dataset_to=1; end
     if isempty(dataset_from), dataset_from=0; end
-    dnames=[{'primary dataset'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)];
+    dnames=[{'functional data'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)];
     hfig=figure('units','norm','position',[.1,.3,.4,.3],'numbertitle','off','name','Copy/Exchange datasets','menubar','none','color','w');
     uicontrol('style','frame','units','norm','position',[.0,.30,1,.70],'backgroundcolor',.9*[1 1 1],'foregroundcolor',.9*[1 1 1],'fontsize',9+CONN_gui.font_offset);    
     uicontrol('units','norm','position',[.05,.85,.9,.10],'style','text','string','Reassign all functional files between different datasets','backgroundcolor',.9*[1 1 1],'horizontalalignment','left','fontweight','bold','fontsize',8+CONN_gui.font_offset);
