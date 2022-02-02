@@ -2182,11 +2182,6 @@ for iSTEP=1:numel(STEPS)
                             if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{nses}(1:4)';
                             else matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=[outputfiles{isubject}{nses}(1:4)';outputfiles{isubject}{nses}(8:end)'];
                             end
-                            % note: change w prefix to avoid 
-                            try
-                                conn_fileutils('movefile',conn_prepend('w',outputfiles{isubject}{nses}(8:end)),conn_prepend('wcL_',outputfiles{isubject}{nses}(8:end)));
-                                outputfiles{isubject}{nses}(8:end)=conn_prepend('wcL_',outputfiles{isubject}{nses}(8:end));
-                            end
                         end
                         %outputfiles{isubject}{nses}=outputfiles{isubject}{nses}(1:4);
                     end
@@ -3960,7 +3955,12 @@ for iSTEP=1:numel(STEPS)
                         if applytofunctional||strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_|_withlesion$',''),'functional_segment&normalize_indirect'),
                             conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{6});
                         end
-                        if ~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion)&&nses==nses_struct
+                        if 0,%~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion)&&nses==nses_struct
+                            % note: change w prefix to avoid re-using
+                            try
+                                conn_fileutils('movefile',conn_prepend('w',outputfiles{isubject}{nses}(8:end)),conn_prepend('wcL_',outputfiles{isubject}{nses}(8:end)));
+                                outputfiles{isubject}{nses}(8:end)=conn_prepend('wcL_',outputfiles{isubject}{nses}(8:end));
+                            end
                             % create new TPM file with lesion mask
                             normLESIONfile=outputfiles{isubject}{nses}(8:end);
                             if isempty(input_tpm_template), origTPMfile=fullfile(fileparts(which('spm')),'tpm','TPM.nii');
