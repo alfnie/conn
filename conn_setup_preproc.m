@@ -2149,77 +2149,77 @@ for iSTEP=1:numel(STEPS)
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
             end
             
-%             if DOSPM12
-%                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
-%                 matlabbatch{end}.spm.spatial.normalise.write.woptions.vox=voxelsize_anat.*[1 1 1];
-%                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp;
-%                 else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1;
-%                 end
-%             else
-%                 matlabbatch{end+1}.spm.spatial.normalise.write.roptions.bb=boundingbox;
-%                 matlabbatch{end}.spm.spatial.normalise.write.roptions.vox=voxelsize_anat.*[1 1 1];
-%                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp;
-%                 else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1;
-%                 end
-%             end
-%             
-%             jsubject=0;
-%             for isubject=1:numel(subjects), % normalize write structural
-%                 nsubject=subjects(isubject);
-%                 if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
-%                 else nsess_struct=1;
-%                 end
-%                 for nses=nsess_struct(:)' %note: any structural targets for in-sessions functionals
-%                     if CONN_x.Setup.structural_sessionspecific, nsess_func=nses;
-%                     else nsess_func=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
-%                     end
-%                     if ismember(nses,sessions),%||(doapplyfunctional&&any(ismember(nsess_func,sessions)))
-%                         jsubject=jsubject+1;
-%                         if DOSPM12, matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).def=outputfiles{isubject}{nses}(5);
-%                         else        matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).matname=outputfiles{isubject}{nses}(5);
-%                         end
-%                         matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample={};
-%                         if ismember(nses,sessions)
-%                             if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{nses}(1:4)';
-%                             else matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=[outputfiles{isubject}{nses}(1:4)';outputfiles{isubject}{nses}(8:end)'];
-%                             end
-%                         end
-%                         %outputfiles{isubject}{nses}=outputfiles{isubject}{nses}(1:4);
-%                     end
-%                 end
-%                 if CONN_x.Setup.structural_sessionspecific, nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)); else nsess=1; end
-%                 for nses=1:nsess
-%                     outputfiles{isubject}{nses}{1}=conn_prepend('w',outputfiles{isubject}{nses}{1});
-%                     outputfiles{isubject}{nses}{2}=conn_prepend('w',outputfiles{isubject}{nses}{2});
-%                     outputfiles{isubject}{nses}{3}=conn_prepend('w',outputfiles{isubject}{nses}{3});
-%                     outputfiles{isubject}{nses}{4}=conn_prepend('w',outputfiles{isubject}{nses}{4});
-%                 end
-%             end
-%             if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
-%             
-%             jsubject=0;
-%             for isubject=1:numel(subjects), % imcalc
-%                 nsubject=subjects(isubject);
-%                 if CONN_x.Setup.structural_sessionspecific, nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)); else nsess=1; end
-%                 for nses=1:nsess
-%                     if ismember(nses,sessions)
-%                         jsubject=jsubject+1;
-%                         matlabbatch{end+1}.spm.util.imcalc.expression='(i2+i3+i4).*i1';
-%                         matlabbatch{end}.spm.util.imcalc.input=reshape(outputfiles{isubject}{nses}(1:4),[],1);
-%                         if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0',CONN_x.Setup.structural{nsubject}{nses}{1});
-%                         else matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0m',CONN_x.Setup.structural{nsubject}{nses}{1});
-%                         end
-%                         matlabbatch{end}.spm.util.imcalc.options.dtype=spm_type('float32');
-%                         matlabbatch{end+1}.spm.util.imcalc.expression='(i2+i3+i4)';
-%                         matlabbatch{end}.spm.util.imcalc.input=reshape(outputfiles{isubject}{nses}(1:4),[],1);
-%                         if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0mask',CONN_x.Setup.structural{nsubject}{nses}{1});
-%                         else matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0maskm',CONN_x.Setup.structural{nsubject}{nses}{1});
-%                         end
-%                         matlabbatch{end}.spm.util.imcalc.options.dtype=spm_type('float32');
-%                     end
-%                     outputfiles{isubject}{nses}{1}=conn_prepend('wc0',conn_prepend(-1,outputfiles{isubject}{nses}{1}));
-%                 end
-%             end
+            if DOSPM12
+                matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
+                matlabbatch{end}.spm.spatial.normalise.write.woptions.vox=voxelsize_anat.*[1 1 1];
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1;
+                end
+            else
+                matlabbatch{end+1}.spm.spatial.normalise.write.roptions.bb=boundingbox;
+                matlabbatch{end}.spm.spatial.normalise.write.roptions.vox=voxelsize_anat.*[1 1 1];
+                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp;
+                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1;
+                end
+            end
+            
+            jsubject=0;
+            for isubject=1:numel(subjects), % normalize write structural
+                nsubject=subjects(isubject);
+                if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                else nsess_struct=1;
+                end
+                for nses=nsess_struct(:)' %note: any structural targets for in-sessions functionals
+                    if CONN_x.Setup.structural_sessionspecific, nsess_func=nses;
+                    else nsess_func=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                    end
+                    if ismember(nses,sessions),%||(doapplyfunctional&&any(ismember(nsess_func,sessions)))
+                        jsubject=jsubject+1;
+                        if DOSPM12, matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).def=outputfiles{isubject}{nses}(5);
+                        else        matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).matname=outputfiles{isubject}{nses}(5);
+                        end
+                        matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample={};
+                        if ismember(nses,sessions)
+                            if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{nses}(1:4)';
+                            else matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=[outputfiles{isubject}{nses}(1:4)';outputfiles{isubject}{nses}(8:end)'];
+                            end
+                        end
+                        %outputfiles{isubject}{nses}=outputfiles{isubject}{nses}(1:4);
+                    end
+                end
+                if CONN_x.Setup.structural_sessionspecific, nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)); else nsess=1; end
+                for nses=1:nsess
+                    outputfiles{isubject}{nses}{1}=conn_prepend('w',outputfiles{isubject}{nses}{1});
+                    outputfiles{isubject}{nses}{2}=conn_prepend('w',outputfiles{isubject}{nses}{2});
+                    outputfiles{isubject}{nses}{3}=conn_prepend('w',outputfiles{isubject}{nses}{3});
+                    outputfiles{isubject}{nses}{4}=conn_prepend('w',outputfiles{isubject}{nses}{4});
+                end
+            end
+            if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
+            
+            jsubject=0;
+            for isubject=1:numel(subjects), % imcalc
+                nsubject=subjects(isubject);
+                if CONN_x.Setup.structural_sessionspecific, nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)); else nsess=1; end
+                for nses=1:nsess
+                    if ismember(nses,sessions)
+                        jsubject=jsubject+1;
+                        matlabbatch{end+1}.spm.util.imcalc.expression='(i2+i3+i4).*i1';
+                        matlabbatch{end}.spm.util.imcalc.input=reshape(outputfiles{isubject}{nses}(1:4),[],1);
+                        if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        else matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0m',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        end
+                        matlabbatch{end}.spm.util.imcalc.options.dtype=spm_type('float32');
+                        matlabbatch{end+1}.spm.util.imcalc.expression='(i2+i3+i4)';
+                        matlabbatch{end}.spm.util.imcalc.input=reshape(outputfiles{isubject}{nses}(1:4),[],1);
+                        if isempty(regexp(lower(STEP),'_withlesion$'))||isempty(tpm_structlesion), matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0mask',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        else matlabbatch{end}.spm.util.imcalc.output=conn_prepend('wc0maskm',CONN_x.Setup.structural{nsubject}{nses}{1});
+                        end
+                        matlabbatch{end}.spm.util.imcalc.options.dtype=spm_type('float32');
+                    end
+                    outputfiles{isubject}{nses}{1}=conn_prepend('wc0',conn_prepend(-1,outputfiles{isubject}{nses}{1}));
+                end
+            end
             
 
         case {'functional_coregister_nonlinear'}
@@ -3934,7 +3934,7 @@ for iSTEP=1:numel(STEPS)
                         if applytofunctional||strcmp(regexprep(lower(STEP),'^run_|^update_|^interactive_|_withlesion$',''),'functional_segment&normalize_indirect'),
                             conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{6});
                         end
-                        if 0,%~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion)&&nses==nses_struct
+                        if ~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion)&&nses==nses_struct
                             % note: change w prefix to avoid re-using
                             try
                                 conn_fileutils('movefile',conn_prepend('w',outputfiles{isubject}{nses}(8:end)),conn_prepend('wcL_',outputfiles{isubject}{nses}(8:end)));
