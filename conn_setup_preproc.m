@@ -2149,20 +2149,20 @@ for iSTEP=1:numel(STEPS)
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
             end
             
-            if DOSPM12
-                matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
-                matlabbatch{end}.spm.spatial.normalise.write.woptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp;
-                else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1;
-                end
-            else
-                matlabbatch{end+1}.spm.spatial.normalise.write.roptions.bb=boundingbox;
-                matlabbatch{end}.spm.spatial.normalise.write.roptions.vox=voxelsize_anat.*[1 1 1];
-                if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp;
-                else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1;
-                end
-            end
-            
+%             if DOSPM12
+%                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
+%                 matlabbatch{end}.spm.spatial.normalise.write.woptions.vox=voxelsize_anat.*[1 1 1];
+%                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=interp;
+%                 else matlabbatch{end}.spm.spatial.normalise.write.woptions.interp=1;
+%                 end
+%             else
+%                 matlabbatch{end+1}.spm.spatial.normalise.write.roptions.bb=boundingbox;
+%                 matlabbatch{end}.spm.spatial.normalise.write.roptions.vox=voxelsize_anat.*[1 1 1];
+%                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp;
+%                 else matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=1;
+%                 end
+%             end
+%             
 %             jsubject=0;
 %             for isubject=1:numel(subjects), % normalize write structural
 %                 nsubject=subjects(isubject);
