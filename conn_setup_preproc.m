@@ -2163,16 +2163,13 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             
-            jsubject=0;
+            jsubject=0; 
             for isubject=1:numel(subjects), % normalize write structural
                 nsubject=subjects(isubject);
                 if CONN_x.Setup.structural_sessionspecific, nsess_struct=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
                 else nsess_struct=1;
                 end
                 for nses=nsess_struct(:)' %note: any structural targets for in-sessions functionals
-                    if CONN_x.Setup.structural_sessionspecific, nsess_func=nses;
-                    else nsess_func=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
-                    end
                     if ismember(nses,sessions),%||(doapplyfunctional&&any(ismember(nsess_func,sessions)))
                         jsubject=jsubject+1;
                         if DOSPM12, matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).def=outputfiles{isubject}{nses}(5);
