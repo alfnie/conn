@@ -335,6 +335,7 @@ ________________________________________________________________________________
 21.b Cumulative patch, bug fixes and improvements
      Added support for Secure Shell on remote connections from clients running PC/Windows
      Added 'Real ROI shape' option to second-level ROI displays (see "help conn_mesh_display")
+     Added 'defaultMNI_withlesion' preprocessing pipeline to incorporate lesion masks in CONN preprocessing steps
      Added 'structural_segmentation&normalization_withlesion' preprocessing step: uses a subject-space lesion mask as part of structural normalization, normalizes subject-space lesion ROI (e.g. to be used as seeds or masks), and creates a new subject-specific TPM dataset incorporating a lesion tissue class (e.g. to be used by functional normalization during a direct normalization pipeline)
      Added 'functional_segment&normalize_indirect_withlesion' preprocessing step: uses a subject-space lesion mask as part of an indirect normalization pipeline (outputs as above)
      Added 'functional_mask' preprocessing step: implicit or explicit masking of functional data

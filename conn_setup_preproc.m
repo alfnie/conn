@@ -653,7 +653,7 @@ if any(ismember('functional_mask',lSTEPS))
     if isempty(mask_names_func)||dogui
         temp_mask_names_func=reshape(CONN_x.Setup.rois.names(1:end-1),1,[]);
         temp_mask_names_func0=reshape([temp_mask_names_func; temp_mask_names_func],1,[]);
-        temp_mask_names_func1=reshape([cellfun(@(x)[x ' (inclusive mask)'],temp_mask_names_func,'uni',0); cellfun(@(x)[x ' (exclusive mask)'], temp_mask_names_func,'uni',0)],1,[]);
+        temp_mask_names_func1=reshape([cellfun(@(x)[x ' (inclusive mask; keep only voxels within this ROI)'],temp_mask_names_func,'uni',0); cellfun(@(x)[x ' (exclusive mask; exclude only voxels within this ROI)'], temp_mask_names_func,'uni',0)],1,[]);
         if isempty(mask_names_func),
             answ=false(size(temp_mask_names_func0));
         else
@@ -672,7 +672,7 @@ if any(ismember('structural_mask',lSTEPS))
     if isempty(mask_names_anat)||dogui
         temp_mask_names_anat=reshape(CONN_x.Setup.rois.names(1:end-1),1,[]);
         temp_mask_names_anat0=reshape([temp_mask_names_anat; temp_mask_names_anat],1,[]);
-        temp_mask_names_anat1=reshape([cellfun(@(x)[x ' (inclusive mask)'],temp_mask_names_anat,'uni',0); cellfun(@(x)[x ' (exclusive mask)'], temp_mask_names_anat,'uni',0)],1,[]);
+        temp_mask_names_anat1=reshape([cellfun(@(x)[x ' (inclusive mask; keep only voxels within this ROI)'],temp_mask_names_anat,'uni',0); cellfun(@(x)[x ' (exclusive mask; exclude only voxels within this ROI)'], temp_mask_names_anat,'uni',0)],1,[]);
         if isempty(mask_names_anat),
             answ=false(size(temp_mask_names_anat0));
         else
