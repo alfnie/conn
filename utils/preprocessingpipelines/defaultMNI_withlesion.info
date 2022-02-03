@@ -1,6 +1,7 @@
 Default MNI Direct-normalization pipeline with structural lesions
-Suggested for cases when subjects present structural lesions that may negatively
-impact the quality of preprocessing normalization/segmentation steps
+Suggested for cases when subjects present structural lesions that we want to
+take into accoutn during preprocessing normalization/segmentation steps and 
+to discard from voxel- and ROI-level analyses
 
 In addition to the default MNI pipeline steps this pipeline uses a mask of 
 each subject structural lesion to improve the structural and functional 
@@ -8,9 +9,11 @@ normalization steps. It does so by masking the lesion area during the
 structural normalization step and creating an extended Tissue Probability 
 Map that incorporates a lesion tissue class to improve the functional
 normalization step. This pipeline also normalizes the lesion ROI to
-MNI space for further analyses
+MNI space for further analyses and masks the functional data after normalization
 
 Before running this pipeline enter your lesion mask in CONN Setup.ROIs tab
-as a new ROI, and then select this ROI when prompted during the normalization 
-step (and keep the default "TPM secondary dataset" option there unless you
-need to specify an alternative TPM map)
+as a new ROI, and then select:
+  - in the normalization settings gui select this ROI as lesion mask
+  - in the normalization settings gui select "TPM secondary dataset" option (unless
+     you need to specify an alternative TPM map)
+  - in the functional masking gui select this ROI and the "exclusive" masking option

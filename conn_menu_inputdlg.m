@@ -14,8 +14,8 @@ if N<=16&&(numel(varargin)<3||isequal(varargin{3},1))
     ANSW={};
     thfig=figure('units','norm','position',[.4,.6-.1*scale,.35,.15*scale],'color',1*[1 1 1],'name',NAME,'numbertitle','off','menubar','none');
     for n1=1:N
-        ht1a(n1)=uicontrol('style','text','units','norm','position',[.1,.45/scale+(2*n1-1)*dy,.8,.7*dy],'string',char(PROMPT{n1}),'horizontalalignment','left','backgroundcolor',1*[1 1 1],'fontweight','bold');
-        ht1(n1)=uicontrol('style','edit','units','norm','position',[.11,.45/scale+(2*n1-2)*dy,.78,dy],'string',char(DEFAULTANSWER{n1}),'tooltipstring',char(PROMPT{n1}));
+        ht1a(n1)=uicontrol('style','text','units','norm','position',[.1,.45/scale+(2*(N+1-n1)-1)*dy,.8,.7*dy],'string',char(PROMPT{n1}),'horizontalalignment','left','backgroundcolor',1*[1 1 1],'fontweight','bold');
+        ht1(n1)=uicontrol('style','edit','units','norm','position',[.11,.45/scale+(2*(N+1-n1)-2)*dy,.78,dy],'string',char(DEFAULTANSWER{n1}),'tooltipstring',char(PROMPT{n1}));
     end
     if N==1, set(ht1,'horizontalalignment','center'); else set(ht1,'horizontalalignment','left'); end
     uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.25/scale],'callback','uiresume');
