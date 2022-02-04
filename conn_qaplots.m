@@ -438,7 +438,7 @@ if any(procedures==Iprocedure) % QA_TIMEART functional
                 %                 fh=conn('gui_setupgo',6,14,2,icov,nsub,nses,nslice,validsets,false);
                 %                 fh('style','timeseries');
                 %                 filename=fullfile(qafolder,sprintf('QA_TIMEART_functional.subject%03d.session%03d.jpg',nsub,nses));
-                fh=conn('gui_setupgo',8,14,2,icov,nsub,[],nslice,validsets,false);
+                fh=conn('gui_setupgo',7,14,2,icov,nsub,[],nslice,validsets,false);
                 filename=fullfile(qafolder,sprintf('QA_TIMEART_functional.subject%03d.jpg',nsub));
                 fh('print',filename,'-nogui','-noerror',dpires,'-ADDnoui','-nopersistent');
                 state=fh('getstate');

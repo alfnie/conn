@@ -88,6 +88,7 @@ varargout={};
 if isempty(params)
     params=struct(...
         'isserver',false,...
+        'mnt','CONNSERVER',...
         'state','off');
 end
 if isempty(local_vars), local_vars=struct; end
@@ -150,6 +151,13 @@ switch(lower(option))
         end
         varargout={ok};
         
+%     case 'uirun'
+%         [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
+%         if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,varargin{:});
+%         else [varargout{1:nargout}]=conn_server('run',varargin{:});
+%         end
+%         if ~isempty(hmsg)&&ishandle(hmsg), delete(hmsg); end
+%         
     case {'run','run_immediatereturn','run_withwaitbar','run_keep','run_keepas'}
         data.type='run';
         data.id=char(conn_tcpip('hash',mat2str(now)));
@@ -391,7 +399,7 @@ switch(lower(option))
         filename2=varargin{2};
         if ischar(filename1), filename1=cellstr(filename1); end
         if ischar(filename2), filename2=cellstr(filename2); end
-        filename2=regexprep(filename2,'[\\\/]CONNSERVER','');
+        filename2=regexprep(filename2,['[\\\/]',regexprep(params.mnt,'[\\\/]','[\\\\\\\/]')],'');
         assert(numel(filename1)==numel(filename2), 'mismatched number of source/destination files');
         filename1=conn_server('util_localfile',filename1);
         ok=false(1,numel(filename1));
@@ -413,7 +421,7 @@ switch(lower(option))
         filename2=varargin{2};
         if ischar(filename1), filename1=cellstr(filename1); end
         if ischar(filename2), filename2=cellstr(filename2); end
-        filename1=regexprep(filename1,'[\\\/]CONNSERVER','');
+        filename1=regexprep(filename1,['[\\\/]',regexprep(params.mnt,'[\\\/]','[\\\\\\\/]')],'');
         assert(numel(filename1)==numel(filename2), 'mismatched number of source/destination files');
         hash=cell(1,numel(filename1));
         ok=false(1,numel(filename1));
@@ -548,6 +556,10 @@ switch(lower(option))
         if numel(varargin)>=1, params.state=varargin{1}; end
         varargout={params.state};
         
+    case 'mnt'
+        if numel(varargin)>=1, params.mnt=regexprep(varargin{1},'^\s*[\\\/]*|[\\\/]*\s*$',''); end
+        varargout={params.mnt};
+        
     case 'ping'
         if nargout>0
             t1=clock;
@@ -609,15 +621,15 @@ switch(lower(option))
         
     case 'util_isremotefile'
         varargout={false};
-        try, varargout={cellfun(@(x)~isempty(regexp(x,'^\s*[\\\/]CONNSERVER')),cellstr(varargin{1}))};
+        try, varargout={cellfun(@(x)~isempty(regexp(x,['^\s*[\\\/]+',regexprep(params.mnt,'[\\\/]','[\\\\\\\/]'),'[\\\/]'])),cellstr(varargin{1}))};
         end
         
     case 'util_localfile'
         varargout=varargin;
         try
             ischarfilename=ischar(varargin{1});
-            filename=regexprep(cellstr(varargin{1}),'^\s*[\\\/]CONNSERVER','');
-            filename=regexprep(filename,'\\|\/',['\',filesep]); % localfiles use convention of this computer
+            filename=regexprep(cellstr(varargin{1}),['^\s*[\\\/]+',regexprep(params.mnt,'[\\\/]','[\\\\\\\/]'),'([\\\/])'],'$1');
+            filename=regexprep(filename,'\\+|\/+',['\',filesep]); % localfiles use convention of this computer
             if ischarfilename, filename=char(filename); end
             varargout={filename};
         end
@@ -628,8 +640,8 @@ switch(lower(option))
         if isempty(tfilesep), tfilesep=conn_projectmanager('filesep'); end
         try
             ischarfilename=ischar(varargin{2});
-            filename=regexprep(cellstr(varargin{2}),'^\s*[\\\/]CONNSERVER','');
-            filename=regexprep(filename,'\\|\/',['\',tfilesep]); % localfiles use manually-defined convention
+            filename=regexprep(cellstr(varargin{2}),['^\s*[\\\/]+',regexprep(params.mnt,'[\\\/]','[\\\\\\\/]'),'([\\\/])'],'$1');
+            filename=regexprep(filename,'\\+|\/+',['\',tfilesep]); % localfiles use manually-defined convention
             if ischarfilename, filename=char(filename); end
             varargout={filename};
         end        
@@ -642,9 +654,9 @@ switch(lower(option))
             if strcmpi(option,'util_remotefile_keeprelative'), change=cellfun('length',regexp(filename,'[\\\/]'))>0;
             else change=true(size(filename));
             end
-            filename(change)=regexprep(filename(change),'^\s*[\\\/]CONNSERVER','');
-            filename(change)=regexprep(filename(change),'^\s*[\\\/]*(.*)',['\',filesep,'CONNSERVER','\',filesep,'$1']);
-            filename(change)=regexprep(filename(change),'\\|\/','/'); % remotefiles use common / convention
+            filename(change)=regexprep(filename(change),['^\s*[\\\/]+',regexprep(params.mnt,'[\\\/]','[\\\\\\\/]'),'([\\\/])'],'$1');
+            filename(change)=regexprep(filename(change),'^\s*[\\\/]*(.*)',['\',filesep,params.mnt,'\',filesep,'$1']);
+            filename(change)=regexprep(filename(change),'\\+|\/+','/'); % remotefiles use common / convention
             if ischarfilename, filename=char(filename); end
             varargout={filename};
         end
