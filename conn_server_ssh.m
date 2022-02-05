@@ -7,7 +7,7 @@ function varargout = conn_server_ssh(option, varargin)
 %   conn_server_ssh('save' [, fileout])             : server configuration (run only once in order to configure this computer), creates a .json file with basic information necessary to connect to this server (machine IP, and where to find Matlab/SPM/CONN) [~/connserverinfo.json]
 %
 % commands from client side: (from a computer with a SSH client)
-%   conn_server_ssh('start' [, IP])                 : SSH to network login node, submits a job to start a CONN server, and connects this computer to that remote server (note: expects to find IP:~/connserverinfo.json file; run "conn_server_ssh setup" in server once)
+%   conn_server_ssh('start' [, IP])                 : SSH to network login node, submits a job to start a CONN server, and connects this computer to that remote server (note: expects to find IP:~/connserverinfo.json file; run "conn_server_ssh install" in server once)
 %   conn_server_ssh('start' [, filein])             : same as above but loading CONN server information explicitly from the provided .json file
 %   conn_server_ssh('submitstart', P, K)            : submits a job to start a new CONN server (this function is run internally by SSH_start)
 %                                                     P: profile name used to submit jobs (e.g. 'background'; see "conn_jobmanager profiles")
@@ -25,10 +25,10 @@ if isempty(params)
     %'isserver',false,...
     params=struct(...
         'info',struct(),...
-        'options',struct(),...
+        'options',struct('use_ssh',true,'cmd_ssh','ssh','cmd_scp','scp'),...
         'state','off');
     filename=fullfile(conn_fileutils('homedir'),'connclientinfo.json');
-    if conn_existfile(filename), params.options=conn_jsonread(filename); else params.options=struct; end
+    if conn_existfile(filename), params.options=conn_jsonread(filename); end
     if ~isfield(params.options,'use_ssh'), params.options.use_ssh=true; end
     if ~isfield(params.options,'cmd_ssh'), params.options.cmd_ssh='ssh'; end
     if ~isfield(params.options,'cmd_scp'), params.options.cmd_scp='scp'; end
@@ -235,7 +235,7 @@ switch(lower(option))
             end
         end
         
-     case 'setup' % saves .json info
+     case {'setup','install'} % saves .json info
         if numel(varargin)>=1&&~isempty(varargin{1}), filename=varargin{1};
         else filename=fullfile(conn_fileutils('homedir'),'connserverinfo.json');
         end
@@ -413,7 +413,7 @@ switch(lower(option))
         
     case {'pull','folderpull'}
         fileremote=conn_server('util_localfile_filesep','/',regexprep(varargin{1},'^(\w*):',''));
-        filelocal=conn_server('util_localfile+filesep','/',regexprep(varargin{2},'^(\w*):',''));
+        filelocal=conn_server('util_localfile_filesep','/',regexprep(varargin{2},'^(\w*):',''));
         if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
             if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('%s -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
             else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));

@@ -27,7 +27,7 @@ function varargout=conn_remotely(option,varargin)
 %      part of the operating system in most Linux/Mac/Windows computers)
 %
 % Installation in the 'host' computer requires the standard installation of SPM/CONN, and also running
-% just once as part of the installation procedure the Matlab command "conn_remotely setup" (without quotes),
+% just once as part of the installation procedure the Matlab command "conn_remotely install" (without quotes),
 % which will create a file in your home directory [~/connserverinfo.json] describing the location of
 % Matlab, CONN, and SPM packages (note: this command needs to be run for any user that wishes to access this
 % computer remotely; or alternatively a fixed ~/connserverinfo.json file may be manually copied to the home
@@ -62,7 +62,7 @@ function varargout=conn_remotely(option,varargin)
 %
 % Additional options: %!
 %
-%    conn remotely setup       : (run in 'host' computer just once to configure this host to accept incoming requests)
+%    conn remotely install     : (run in 'host' computer just once to configure this host to accept incoming requests)
 %                                This step simply creates a file ~/connserverinfo.json with the following information:
 %                                 CONNcmd     : OS-level command used to start/run CONN on 'host' computer
 %                                 host        : name of 'host' computer (or login-node for HPC/cluster environments)
@@ -477,7 +477,7 @@ switch(option)
     case {'off','softoff','forceoff'}
         conn_server_ssh(regexprep(option,'off$','exit'),varargin{:});
         CONN_gui.isremote=false;
-    case {'push','pull','folderpush','folderpull','info','details','setup'}
+    case {'push','pull','folderpush','folderpull','info','details','setup','install'}
         if nargout>0, [varargout{1:nargout}]=conn_server_ssh(option,varargin{:});
         else conn_server_ssh(option,varargin{:});
         end
