@@ -1068,7 +1068,11 @@ if ishandle(hmsg), delete(hmsg); end
                         if ischar(state.sphplots.sph_shapes{n1}),
                             t1=regexprep(state.sphplots.sph_shapes{n1},'\..*$','');
                             t2=regexprep(state.sphplots.sph_shapes{n1},'^[^\.]*\.','');
-                            if isempty(troifiles), [troifiles,troinames]=conn_module('get','rois'); end
+                            if isempty(troifiles), 
+                                try, [troifiles,troinames]=conn_module('get','rois'); 
+                                catch, fprintf('Unable to find ROIs in current CONN project\n'); return;
+                                end
+                            end
                             [tok,troiidx]=ismember(t1,troinames);
                             if tok, t0=[t0; {troifiles{troiidx}{1}{1}, t2, n1}];
                             else fprintf('Unable to find ROI %s in current CONN project\n',state.sphplots.sph_shapes{n1});

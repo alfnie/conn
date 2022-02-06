@@ -2,7 +2,7 @@ function [ANSW]=conn_menu_inputdlg(varargin) %PROMPT,NAME,NUMLINES,DEFAULTANSWER
 % internal fcn
 if numel(varargin)<1||isempty(varargin{1}), PROMPT={'Input:'}; else PROMPT=varargin{1}; end
 if ~iscell(PROMPT), PROMPT={PROMPT}; end
-    N=numel(PROMPT);
+N=numel(PROMPT);
 
 if N<=16&&(numel(varargin)<3||isequal(varargin{3},1))
     if numel(varargin)<2||isempty(varargin{2}), NAME=''; else NAME=varargin{2}; end
@@ -32,6 +32,3 @@ if N<=16&&(numel(varargin)<3||isequal(varargin{3},1))
 else
     ANSW=inputdlg(varargin{:});
 end
-
-
-2*(.45+.2*N)/(1+N)

@@ -1,7 +1,7 @@
 function fh=conn_montage_display(x,xlabels,style, xcovariate, xcovariate_name, xborders, xborders_name, xclusters, xclusters_name, xrois, xrois_name)
 
 % CONN_MONTAGE_DISPLAY displays 3d data as montage
-% conn_montage_display(x [,labels]);
+% fh = conn_montage_display(x [,labels]);
 %   displays a montage of each matrix x(:,:,:,i), labeled by labels{i}
 %   size(x,3)==3 : for rgb values
 %   size(x,3)==1 : for colormap scaling

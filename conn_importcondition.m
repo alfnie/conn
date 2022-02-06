@@ -112,7 +112,7 @@ else
 end
 switch(filetype)
     case 1, % CONN-legacy
-        [conditions,nsubs,nsess,onsets,durations]=textread(filename, '%s%d%d%s%s','delimiter',',','headerlines',1);
+        [conditions,nsubs,nsess,onsets,durations]=textread(filename, '%s%d%d%s%s','delimiter',',','headerlines',1,'bufsize',65535);
         try, % note: allow "one line per event" instead of "one line per condition"
             singleonsets=str2double(onsets); 
             singledurations=str2double(durations); 
