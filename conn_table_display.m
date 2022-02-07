@@ -30,8 +30,9 @@ options=struct(...
     'fontcolor',.25*[1 1 1],...     
     'facealpha',.5,...
     'separation',.25,...            % separation between levels of each factor
-    'showval',true,...              % also show values within lines
+    'showval',[],...                % also show values within lines
     'showtril',true,...             % also show lower triangular
+    'showtril_idx',[],...
     'showalllabels',false,...       % also show labels with 0 values
     'rlabel',{{}},...               % left labels
     'clabel',{{}} );                % right labels
@@ -46,6 +47,8 @@ data(isnan(data))=0;
 issquare=size(data,1)==size(data,2);
 signdata=sign(data);
 if isempty(options.colorsign), options.colorsign=any(data(:)<0)&any(data(:)>0); end
+if isempty(options.showtril), if isequal(data,data'), [options.showtril_idx,nill]=dmperm((data'*data)~=0); [i,j]=find(triu(data(options.showtril_idx,options.showtril_idx))); options.showtril=~isempty(intersect(i,j)); else; options.showtril=true; end; end
+if isempty(options.showval), options.showval=numel(unique(data(data~=0)))>1; end
 data=abs(data);
 N1=size(data,1);
 N2=size(data,2);
@@ -93,8 +96,15 @@ end
                 hstruct.hlines=[];
                 hstruct.vtext=[];
                 cla(hstruct.hax);
-                if options.showtril, thisdata=data;
-                else thisdata=triu(data);
+                if options.showtril, 
+                    thisdata=data;
+                    thisrlabel=options.rlabel;
+                    thisclabel=options.clabel;
+                else
+                    if isempty(options.showtril_idx), [options.showtril_idx,nill]=dmperm((data'*data)~=0); end
+                    thisdata=triu(data(options.showtril_idx,options.showtril_idx));
+                    thisrlabel=options.rlabel(options.showtril_idx);
+                    thisclabel=options.clabel(options.showtril_idx);
                 end
                 sx1=sum(thisdata,2)';
                 sx2=sum(thisdata,1);
@@ -139,17 +149,17 @@ end
                 end
                 hstruct.xtext=[];
                 hstruct.ytext=[];
-                if ~isempty(options.rlabel)
+                if ~isempty(thisrlabel)
                     for n1=1:N1,
                         if options.showalllabels||sx1(n1)>0
-                            hstruct.xtext(end+1)=text(-.025,.5*x1(n1)+.5*x1(n1+1),options.rlabel{n1},'horizontalalignment','right','fontsize',max(1,options.rfontsize+options.dfontsize*(-1+2*sx1(n1)/max(sx1))),'color',options.fontcolor,'parent',hstruct.hax);
+                            hstruct.xtext(end+1)=text(-.025,.5*x1(n1)+.5*x1(n1+1),thisrlabel{n1},'horizontalalignment','right','fontsize',max(1,options.rfontsize+options.dfontsize*(-1+2*sx1(n1)/max(sx1))),'color',options.fontcolor,'parent',hstruct.hax);
                         end
                     end
                 end
-                if ~isempty(options.clabel)
+                if ~isempty(thisclabel)
                     for n2=1:N2,
                         if options.showalllabels||sx2(n2)>0
-                            hstruct.ytext(end+1)=text(1.025,.5*x2(n2)+.5*x2(n2+1),options.clabel{n2},'horizontalalignment','left','fontsize',max(1,options.cfontsize+options.dfontsize*(-1+2*sx2(n2)/max(sx2))),'color',options.fontcolor,'parent',hstruct.hax);
+                            hstruct.ytext(end+1)=text(1.025,.5*x2(n2)+.5*x2(n2+1),thisclabel{n2},'horizontalalignment','left','fontsize',max(1,options.cfontsize+options.dfontsize*(-1+2*sx2(n2)/max(sx2))),'color',options.fontcolor,'parent',hstruct.hax);
                         end
                     end
                 end
@@ -163,7 +173,7 @@ end
                 if isempty(cmap)||isempty(colordim)
                     if isempty(cmap), cmap=options.color; end
                     if isempty(colordim), if options.colorsign, colordim=0; else colordim=options.colordim; end; end
-                    s=conn_menu_inputdlg({'Enter colors (Nx3)','Select data dimension (1:rows, 2:columns; 0:sign)'},'conn_table_display',1,{mat2str(cmap),mat2str(colordim)});
+                    s=conn_menu_inputdlg({'Enter colors: (Nx3 rgb)','Colors represent: (1:rows, 2:columns; 0:sign)'},'conn_table_display',1,{mat2str(cmap),mat2str(colordim)});
                     if isempty(s), return; end
                     cmap=str2num(s{1});
                     colordim=str2num(s{2});
