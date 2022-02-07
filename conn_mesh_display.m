@@ -365,6 +365,9 @@ if ~isempty(state.act_color),
 end
 set([state.handles.patchblob1 state.handles.patchblob2],'tag','activation_positive_surface');
 set([state.handles.patchblob3 state.handles.patchblob4],'tag','activation_negative_surface');
+hold(state.handles.hax,'on');
+state.handles.leftrightlabel=text([-60 60],55+[0 0],70+[0 0],{'L','R'},'fontsize',12,'color',.5*[1 1 1],'parent',state.handles.hax,'visible','off');
+hold(state.handles.hax,'off');
 if ~isempty(state.pVOLother)
     state.handles.patchblobother=[]; 
     state.patchblobother_x=[];
@@ -385,7 +388,7 @@ if ~isempty(state.pVOLother)
 else state.handles.patchblobother=[];state.patchblobother_x=[];
 end
 grid(state.handles.hax,'on');
-th1=xlabel(state.handles.hax,'X (mm)');th2=ylabel(state.handles.hax,'Y (mm)');th3=zlabel(state.handles.hax,'Z (mm)');set([th1,th2,th3],'fontsize',8);
+th1=xlabel(state.handles.hax,{'X (mm)','left - right'});th2=ylabel(state.handles.hax,{'Y (mm)','posterior - anterior'});th3=zlabel(state.handles.hax,{'Z (mm)','inferior - superior'});set([th1,th2,th3],'fontsize',8);
 axis(state.handles.hax,'off');
 view(state.handles.hax,state.position);
 if isempty(hax0), set(state.handles.hax,'units','norm','position',[0,0,1,1],'color',get(state.handles.hfig,'color'),'xcolor',.5*[1 1 1],'ycolor',.5*[1 1 1],'zcolor',.5*[1 1 1],'box','on'); end
@@ -415,7 +418,7 @@ if ~isempty(state.sphplots)
     end
     x=sign(x).*abs(x).^f;y=sign(y).*abs(y).^f;z=sign(z).*abs(z).^f;
     bgc=1-round(mean(state.background))*[1 1 1];
-    hold on;
+    hold(state.handles.hax,'on');
     for n1=1:size(state.sphplots.sph_xyz,1),
         cdata=.6+.4*(state.sphplots.sph_xyz(n1,1)*x+state.sphplots.sph_xyz(n1,2)*y+state.sphplots.sph_xyz(n1,3)*z)/sqrt(sum(abs(state.sphplots.sph_xyz(n1,:)).^2));
         %cdata=max(0,min(1,bsxfun(@plus,cdata,shiftdim(state.sphplots.sph_c{n1}(:),-2)) ));
@@ -429,7 +432,7 @@ if ~isempty(state.sphplots)
             state.handles.sphplots_shapesok(n1)=false;
         end
     end
-    hold off;
+    hold(state.handles.hax,'off');
     if isempty(state.roi_color),
         try, state.roi_color=cell2mat(state.sphplots.sph_c(:)); end
     else
@@ -1016,6 +1019,13 @@ if ishandle(hmsg), delete(hmsg); end
                 end
                 if side==0, set(state.handles.connplots(state.handles.connplots~=0),'visible','on'); end
                 for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
+                if ~isempty(state.handles.leftrightlabel)
+                    if 1,%isequal(get(state.handles.hax,'visible'),'on')
+                        if abs(v(1))/max(eps,norm(v))>.1, set(state.handles.leftrightlabel,'visible','off');
+                        else set(state.handles.leftrightlabel,'visible','on');
+                        end
+                    end
+                end
             case 'copy'
                 for n=1:numel(cameraviewfields)
                     tempv.(cameraviewfields{n})=get(state.handles.hax,cameraviewfields{n});
@@ -1229,6 +1239,7 @@ if ishandle(hmsg), delete(hmsg); end
             case 'axis',
                 str=varargin{1};
                 set(state.handles.hax,'visible',str);
+                set(state.handles.leftrightlabel,'visible',str);
                 if strcmp(str,'on'), set(state.handles.hax,'projection','orth'); %perspective'); 
                 else set(state.handles.hax,'projection','orth'); 
                 end
@@ -1533,12 +1544,19 @@ if ishandle(hmsg), delete(hmsg); end
                 state.Vrange=[];
                 conn_mesh_display_refresh([],[],'remap&draw');
             case 'position'
-                v=get(gca,'cameraposition'); 
+                v=get(state.handles.hax,'cameraposition'); 
                 h=findobj(gcbf,'type','light');
                 set(h,'position',v);
                 if ~isempty(state.handles.sphplots_txt)
                     state.up=reshape(v(1:3),1,3)/norm(v(1:3));
                     for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
+                end
+                if ~isempty(state.handles.leftrightlabel)
+                    if 1,%isequal(get(state.handles.hax,'visible'),'on')
+                        if abs(v(1))/max(eps,norm(v))>.1, set(state.handles.leftrightlabel,'visible','off');
+                        else set(state.handles.leftrightlabel,'visible','on');
+                        end
+                    end
                 end
 
             case 'print'
