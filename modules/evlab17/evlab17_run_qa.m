@@ -156,7 +156,12 @@ if parallel.N>0, batch_qa.filename=evlab17_module('filename'); end
 if ~isempty(subjects), batch_qa.subjects=subjects; end
 
 if any(ismember(qa_plist,plots1))
-    if ~isempty(qa_folder), qafolder=qa_folder;
+    if ~isempty(qa_folder), 
+        if isempty(qa_folder)||isequal(qa_folder,'root'), % back-compatibility
+            qa_folder=fullfile(fileparts(evlab17_module('filename')));
+            [tpath,tname]=fileparts(qa_folder); if isequal(tname,'nii'), qa_folder=tpath; end
+        end
+        qafolder=qa_folder;
     elseif evlab17_module('inconnfolders'), try, qafolder=fullfile(evlab17_module('get','folders.qa'),['QA_','PREPROC_',tag]); end
     end
     batch_qa.QA.plots=qa_plist(ismember(qa_plist,plots1));
@@ -166,7 +171,12 @@ if any(ismember(qa_plist,plots1))
 end
 
 if any(ismember(qa_plist,plots2))
-    if ~isempty(qa_folder), qafolder=qa_folder;
+    if ~isempty(qa_folder), 
+        if isempty(qa_folder)||isequal(qa_folder,'root'), % back-compatibility
+            qa_folder=fullfile(fileparts(evlab17_module('filename')));
+            [tpath,tname]=fileparts(qa_folder); if isequal(tname,'nii'), qa_folder=tpath; end
+        end
+        qafolder=qa_folder;
     elseif evlab17_module('inconnfolders'), try, qafolder=fullfile(evlab17_module('get','folders.qa'),['QA_','MODEL_',tag]); end
     end
     batch_qa.QA.plots=qa_plist(ismember(qa_plist,plots2));
