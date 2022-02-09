@@ -412,12 +412,12 @@ switch(lower(option)),
         temp=imread(fullfile(fileparts(which(mfilename)),sprintf('conn_vproject_icon%02d.jpg',0))); temp=double(temp); printmask=round(temp/255);
         for n1=1:numel(bp),
             set(data.handles(bp(n1)),'units','pixel'); pt=get(data.handles(bp(n1)),'position'); set(data.handles(bp(n1)),'units','norm');
-            temp=imread(fullfile(fileparts(which(mfilename)),sprintf('conn_displayroi_icon%02d.jpg',n1))); temp=double(temp); temp=temp/255; temp=max(0,min(1,(temp).^.5)); ft=min(size(temp,1)/ceil(pt(4)),size(temp,2)/ceil(pt(3))); if any(n1==[1,2]), ft=0.95*ft; elseif any(n1==[7,8]), ft=.90*ft; else ft=.70*ft; end;
+            temp=imread(fullfile(fileparts(which(mfilename)),sprintf('conn_displayroi_icon%02d.jpg',n1))); temp=double(temp); temp=temp/255; temp=max(0,min(1,(temp).^.5)); ft=min(size(temp,1)/ceil(pt(4)),size(temp,2)/ceil(pt(3))); if any(n1==[1,2]), ft=0.95*ft; elseif any(n1==[9,10]), ft=.90*ft; else ft=.70*ft; end;
             maxtemp=1;%mode(round(temp(:)*100))/100;
             if maxtemp<.5, temp=1-temp; maxtemp=1-maxtemp; end
             temp=max(0,min(.95, .75*temp+.25*temp/maxtemp.*repmat(shiftdim(color1,-1),[size(temp,1),size(temp,2),1,size(temp,4)]) ));
             if bp_isprint(n1)
-                if ismember(n1,[2,4,6]), tempprintmask=printmask(ceil(size(printmask,1)/4)+(1:ceil(size(printmask,1)/2)),ceil(size(printmask,2)/4)+(1:ceil(size(printmask,2)/2))); else tempprintmask=printmask; end
+                if ismember(n1,[2,4,6,10]), tempprintmask=printmask(ceil(size(printmask,1)/4)+(1:ceil(size(printmask,1)/2)),ceil(size(printmask,2)/4)+(1:ceil(size(printmask,2)/2))); else tempprintmask=printmask; end
                 temp=.75*mean(color1)+.25*temp;
                 if size(temp,1)>size(temp,2), temp=temp(1:size(temp,2),:,:); end
                 temp(:,ceil(size(temp,2)/2+(1:size(temp,1))-size(temp,1)/2),:)=max(0,temp(:,ceil(size(temp,2)/2+(1:size(temp,1))-size(temp,1)/2),:)+(1-2*mean(color1))*repmat(.5*tempprintmask(round(linspace(1,size(tempprintmask,1),size(temp,1))),round(linspace(1,size(tempprintmask,2),size(temp,1)))),[1,1,3]));
