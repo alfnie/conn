@@ -880,7 +880,7 @@ if any(procedures==Iprocedure) % QA_SPM_RESULTS
                 if isfield(SPM,'xCon')&&~isempty(SPM.xCon)&&isfield(SPM.xCon,'Vcon')
                     if isempty(nl1contrasts), nl1contrasts=1; end
                     if ischar(nl1contrasts), [ok,nl1contrasts]=ismember(nl1contrasts,{SPM.xCon.name}); end
-                    if nl1contrasts<1||nl1contrasts>numel(SPM.xCon), nl1contrasts=listdlg('liststring',{SPM.xCon.name},'selectionmode','single','initialvalue',1,'promptstring',{'Select contrast to display'},'ListSize',[400 150]); end
+                    if nl1contrasts<1||nl1contrasts>numel(SPM.xCon), nl1contrasts=1; end %nl1contrasts=listdlg('liststring',{SPM.xCon.name},'selectionmode','single','initialvalue',1,'promptstring',{'Select contrast to display'},'ListSize',[400 150]); end
                     filecon=fullfile(pwd1,SPM.xCon(nl1contrasts).Vcon.fname);
                     filename=fullfile(qafolder,sprintf('QA_SPM_results_%s_%s.subject%03d.jpg',pwd1name,regexprep(SPM.xCon(nl1contrasts).name,'[^\w-_]',''),nsub));                    
                     if conn_surf_dimscheck(SPM.xCon(nl1contrasts).Vcon) % surface

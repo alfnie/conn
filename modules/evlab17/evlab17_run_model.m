@@ -143,6 +143,9 @@ if isfield(options,'model_folder'),
     if isempty(model_folder)||isequal(model_folder,'root'), % back-compatibility
         model_folder=fullfile(fileparts(evlab17_module('filename'))); 
         [tpath,tname]=fileparts(model_folder); if isequal(tname,'nii'), model_folder=tpath; end
+    elseif isequal(model_folder,'preproc')
+        model_folder=fullfile(conn_prepend('',evlab17_module('filename'),''),'results','firstlevel');
+        prependmodelname=false;
     end
     if numel(model_folder)>=1&&model_folder(1)=='.',model_folder=fullfile(fileparts(evlab17_module('filename')),model_folder); end
     options=rmfield(options,'model_folder');

@@ -104,7 +104,7 @@ conn_module('evlab17','init','silent');
 fileout=[];
 varargout=cell(1,nargout);
 
-if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','root.pipelines','remote','init','initforce','default','model.stats'})); % run these locally
+if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','root.pipelines','remote','remotely','init','initforce','default','model.stats'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,option,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{:}); 
@@ -136,7 +136,7 @@ switch(lower(option))
         else varargout={defaults.folder_pipelines};
         end
         
-    case 'remote'
+    case {'remote','remotely'}
         if nargin>1&&~isempty(varargin{1}), 
             defaults.isremote=varargin{1}; 
             if ischar(defaults.isremote)
@@ -491,6 +491,11 @@ dataset=char(dataset);
 if isempty(dataset)
     files=conn_dir(fullfile(subject_path,'*.mat'),'-ls');
     assert(~isempty(files), 'unable to find any *.mat files in %s\n',subject_path);
+    if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
+    dataset=files{end};
+elseif isequal(dataset,'nii')
+    files=conn_dir(fullfile(subject_path,'nii','evlab17*.mat'),'-ls');
+    assert(~isempty(files), 'unable to find any evlab17*.mat files in %s\n',fullfile(subject_path,'nii'));
     if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
     dataset=files{end};
 elseif ~isempty(regexp(dataset,'\.mat$')) % .mat file
