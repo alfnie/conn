@@ -283,7 +283,7 @@ if doinit
     state.ud_color=[];
     state.roi_color=[];
     state.con_color=[];
-    state.light_color=.5*[1 1 1];
+    state.light_color=1*[1 1 1];
     state.material='dull';
     state.showaxref=[0 0 0];
     state.fontsize=10;
@@ -392,7 +392,7 @@ th1=xlabel(state.handles.hax,{'X (mm)','left - right'});th2=ylabel(state.handles
 axis(state.handles.hax,'off');
 view(state.handles.hax,state.position);
 if isempty(hax0), set(state.handles.hax,'units','norm','position',[0,0,1,1],'color',get(state.handles.hfig,'color'),'xcolor',.5*[1 1 1],'ycolor',.5*[1 1 1],'zcolor',.5*[1 1 1],'box','on'); end
-state.handles.light=[light light];set(state.handles.light,'position',state.position,'visible','on','color',state.light_color);
+state.handles.light=[light light];set(state.handles.light,'position',state.position,'visible','on','color',state.light_color);set(state.handles.light(end),'position',-state.position);
 tgca=state.handles.hax;
 %axes(tgca);
 
@@ -729,8 +729,8 @@ uimenu(hc1,'Label','sketch','callback',{@conn_mesh_display_refresh,'material',[.
 uimenu(hc1,'Label','shiny','callback',{@conn_mesh_display_refresh,'material',[.3 .6 .9 20 1]},'tag','material');
 uimenu(hc1,'Label','metal','callback',{@conn_mesh_display_refresh,'material',[.3 .3 1 25 .5]},'tag','material');
 uimenu(hc1,'Label','flat','callback',{@conn_mesh_display_refresh,'material',[]},'tag','material');
-uimenu(hc1,'Label','bright','callback',{@conn_mesh_display_refresh,'light',1},'separator','on','tag','light');
-uimenu(hc1,'Label','medium','callback',{@conn_mesh_display_refresh,'light',.5},'tag','light','checked','on');
+uimenu(hc1,'Label','bright','callback',{@conn_mesh_display_refresh,'light',1},'separator','on','tag','light','checked','on');
+uimenu(hc1,'Label','medium','callback',{@conn_mesh_display_refresh,'light',.5},'tag','light');
 uimenu(hc1,'Label','dark','callback',{@conn_mesh_display_refresh,'light',.2},'tag','light');
 uimenu(hc1,'Label','white background','callback',{@conn_mesh_display_refresh,'background',[1 1 1]},'separator','on','tag','background');
 uimenu(hc1,'Label','light background','callback',{@conn_mesh_display_refresh,'background',[.95 .95 .9]},'tag','background');
@@ -967,7 +967,9 @@ if ishandle(hmsg), delete(hmsg); end
                 %up=null(v); up=sum(up,2)'; state.up=1.5*up/norm(up);
                 state.up=v(:)'/norm(v);
                 %up=get(state.handles.hax,'cameraup'); up=up(:)';
-                set(state.handles.light,'position',vl); 
+                if numel(state.handles.light)>2, set(state.handles.light(2:end-1),'position',vl); end
+                set(state.handles.light(1),'position',1000*(vl(:)'/norm(vl)-state.up(:)'));
+                set(state.handles.light(end),'position',1000*(vl(:)'/norm(vl)+state.up(:)'));
                 set(state.handles.patch,'visible','off'); 
                 set(state.handles.subpatch,'visible','off'); 
                 set(state.handles.maskpatch,'visible','off');
@@ -1021,8 +1023,8 @@ if ishandle(hmsg), delete(hmsg); end
                 for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
                 if ~isempty(state.handles.leftrightlabel)
                     if 1,%isequal(get(state.handles.hax,'visible'),'on')
-                        if abs(v(1))/max(eps,norm(v))>.1, set(state.handles.leftrightlabel,'visible','off');
-                        else set(state.handles.leftrightlabel,'visible','on');
+                        if abs(v(1))/max(eps,norm(v))>.10, set(state.handles.leftrightlabel,'visible','off','color',.5*[1 1 1]);
+                        else, set(state.handles.leftrightlabel,'visible','on','color',.5*[1 1 1]+(abs(v(1))/max(eps,norm(v))-.01)/(.10-.01)*(state.background-.5*[1 1 1]));
                         end
                     end
                 end
@@ -1239,7 +1241,7 @@ if ishandle(hmsg), delete(hmsg); end
             case 'axis',
                 str=varargin{1};
                 set(state.handles.hax,'visible',str);
-                set(state.handles.leftrightlabel,'visible',str);
+                %set(state.handles.leftrightlabel,'visible',str);
                 if strcmp(str,'on'), set(state.handles.hax,'projection','orth'); %perspective'); 
                 else set(state.handles.hax,'projection','orth'); 
                 end
@@ -1545,16 +1547,20 @@ if ishandle(hmsg), delete(hmsg); end
                 conn_mesh_display_refresh([],[],'remap&draw');
             case 'position'
                 v=get(state.handles.hax,'cameraposition'); 
-                h=findobj(gcbf,'type','light');
-                set(h,'position',v);
+                try, h=state.handles.light;
+                catch, h=findobj(gcbf,'type','light');
+                end
+                if numel(h)>2, set(h(2:end-1),'position',v); end
+                set(h(1),'position',1000*(v(:)'/norm(v)-state.up(:)'));
+                set(h(end),'position',1000*(v(:)'/norm(v)+state.up(:)'));
                 if ~isempty(state.handles.sphplots_txt)
                     state.up=reshape(v(1:3),1,3)/norm(v(1:3));
                     for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
                 end
                 if ~isempty(state.handles.leftrightlabel)
                     if 1,%isequal(get(state.handles.hax,'visible'),'on')
-                        if abs(v(1))/max(eps,norm(v))>.1, set(state.handles.leftrightlabel,'visible','off');
-                        else set(state.handles.leftrightlabel,'visible','on');
+                        if abs(v(1))/max(eps,norm(v))>.10, set(state.handles.leftrightlabel,'visible','off');
+                        else set(state.handles.leftrightlabel,'visible','on','color',.5*[1 1 1]+(abs(v(1))/max(eps,norm(v))-.01)/(.10-.01)*(state.background-.5*[1 1 1]));
                         end
                     end
                 end
