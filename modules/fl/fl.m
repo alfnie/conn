@@ -200,7 +200,7 @@ if isremote, OUTPUT_FOLDER=fullfile('/CONNSERVER',rootfolder);
 else OUTPUT_FOLDER=rootfolder; 
 end
 
-if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','remotely','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete','firstlevel.stats'})); % run these locally
+if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','remotely','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete','firstlevel.stats','voice'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,STEPS,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,STEPS,varargin{:}); 
@@ -209,7 +209,7 @@ if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$')
     return
 end
 
-if ~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~ismember(lower(char(STEPS)),{'init','initforce','root','remote','remotely','qa.plots','qaplots'}); %,'list'}) % exceptions to subject-expansion
+if ~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~ismember(lower(char(STEPS)),{'init','initforce','root','remote','remotely','qa.plots','qaplots','voice'}); %,'list'}) % exceptions to subject-expansion
     subject_id=varargin{1};
     if ischar(subject_id)&&any(ismember(subject_id,'*?'))
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
@@ -865,6 +865,9 @@ switch(lower(STEPS))
                 end
             end
         end
+        
+    case 'voice'
+        [varargout{1:nargout}]=flvoice(varargin{:});
         
     otherwise
         disp(sprintf('unrecognized option %s',STEPS));
