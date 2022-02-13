@@ -411,6 +411,7 @@ if ~isempty(state.sphplots)
     if ~isfield(state.sphplots,'sph_names'), state.sphplots.sph_names=repmat({''},1,size(state.sphplots.sph_xyz,1)); end
     state.sphplots.sph_xyz(isnan(state.sphplots.sph_xyz))=0;
     [x,y,z]=sphere(32);
+    f=1;
     switch(state.roishape)
         case 'sphere', f=1;
         case 'cube', f=.25;
@@ -475,7 +476,11 @@ if ~isempty(state.connplots)
             lines=conn_bsxfun(@times,1-.25*sin(linspace(0,pi,size(lines,1))'),lines);
         end
         if isempty(state.bundling), if size(lines,3)<1e3, state.bundling=5; else state.bundling=0; end; end
-        [state.Lines,state.WidthLines] = conn_menu_bundle(lines,[],state.ValueLines,state.bundling);
+        if ~isfield(state,'Lines')||isempty(state.Lines), state.Lines=lines; end
+        if ~isfield(state,'WidthLines'), state.WidthLines=[]; end
+        if state.bundling==0||(1+max([0,state.bundling])>size(state.Lines,4)),
+            [state.Lines,state.WidthLines] = conn_menu_bundle(state.Lines,state.WidthLines,state.ValueLines,max([0,state.bundling]));
+        end
         nlines=0;
         done=false(max(size(state.connplots)));
         for n1=1:size(state.connplots,1)
@@ -1667,9 +1672,10 @@ if isempty(tstruct)
     temp=[reshape([1:Np-1; 2:Np],1,[])' reshape([2:Np; 2*Np-1:-1:Np+1],1,[])' reshape([2*Np:-1:Np+2;2*Np:-1:Np+2],1,[])'];
     i1=[2*Np:-1:Np+1 3*Np:-1:2*Np+1];
     i2=[2*Np+1:3*Np Np:-1:1];
-    tstruct=struct('vertices',zeros(3*Np,3), 'faces',[temp;i1(temp);i2(temp)]);
+    tstruct=struct('vertices',zeros(3*Np,3), 'faces',fliplr([temp;i1(temp);i2(temp)]));
 end
 if nargin<4||isempty(w), w=ones(size(x)); end
+w(1)=0;w(end)=0;
 xyz=[x(:) y(:) z(:)];
 dx=xyz(end,:)-xyz(1,:);
 ndx=null(dx)'; 
