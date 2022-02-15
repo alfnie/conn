@@ -268,6 +268,7 @@ function varargout=conn_batch(varargin)
 %                        'structural_center'                     : centers structural data to origin (0,0,0) coordinates
 %                        'structural_manualorient'               : applies user-defined affine transformation to structural data
 %                        'structural_manualspatialdef'           : applies user-defined spatial deformation to structural data
+%                        'structural_mask'                       : masks structural data using inclusive or exclusive mask
 %                        'structural_segment&normalize'          : structural unified normalization and segmentation 
 %                        'structural_segment&normalize&lesion'   : structural unified normalization and segmentation with lesion mask
 %                                                                   (normalizes structural data and creates a modified TPM for functional
@@ -287,7 +288,8 @@ function varargout=conn_batch(varargin)
 %                        'functional_label'                      : labels current functional files (to list of Secondary Datasets)
 %                        'functional_load'                       : assigns current functional files (from list of Secondary Datasets)
 %                        'functional_manualorient'               : applies user-defined affine transformation to functional data
-%                        'functional_manualspatialdef'           : applies user-defined spatial deformation to functional data%                        'functional_mask'                       : masks functional data using inclusive or exclusive mask
+%                        'functional_manualspatialdef'           : applies user-defined spatial deformation to functional data
+%                        'functional_mask'                       : masks functional data using inclusive or exclusive mask
 %                        'functional_motionmask'                 : creates functional motion masks (mean BOLD signal spatial 
 %                                                                   derivatives wrt motion parameters)
 %                        'functional_normalize_direct'           : functional direct normalization
@@ -578,18 +580,18 @@ function varargout=conn_batch(varargin)
 %      Results.between_subjects.contrast : contrast vector (same size as effect_names)
 %  
 %    Results.between_conditions [defaults to multiple analyses, one per condition]
-%      Results.between_conditionseffect_names : cell array of condition names (as in Setup.conditions.names)
-%      Results.between_conditionscontrast : contrast vector (same size as effect_names)
+%      Results.between_conditions.effect_names : cell array of condition names (as in Setup.conditions.names)
+%      Results.between_conditions.contrast : contrast vector (same size as effect_names)
 %  
 %    Results.between_sources  [if analysis includes multiple sources or multiple measures defaults to one analysis per source/measure]
-%      Results.between_sourceseffect_names : cell array of source names 
+%      Results.between_sources.effect_names : cell array of source names 
 %                                     (as in Analysis.regressors for seed-to-voxel analyses), for multivariate sources 
 %                                     they are appended with _N_M -where N is an index ranging from 1 to 1+derivative order, and M 
 %                                     is an index ranging from 1 to the number of dimensions specified for each ROI; for example 
 %                                     ROINAME_2_3 corresponds to the first derivative of the third PCA component extracted from the 
 %                                     roi ROINAME) 
 %                                     (as in Analysis.measures for voxel-to-voxel analyses)
-%      Results.between_sourcescontrast : contrast vector (same size as effect_names)
+%      Results.between_sources.contrast : contrast vector (same size as effect_names)
 %  
 %  
 %

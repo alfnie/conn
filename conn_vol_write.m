@@ -3,14 +3,15 @@ function a = conn_vol_write(filename,data,M,ftype)
 % conn_vol_write(filename, data [, mat, ftype])
 %  filename : *.nii
 %  data     : [Ni, Nj, Nk, nobservations] data 3D/4D matrix
-%  mat      : [4,4] affine voxel-to-world transformation matrix (see "help spm_vol")
-%  ftype    : datatype (see "help spm_type")
+%  mat      : [4,4] affine voxel-to-world transformation matrix (e.g. vol.mat; see "help spm_vol")
+%  ftype    : datatype (e.g. vol.dt(1); see "help spm_type")
 
 
 if ~nargin, help(mfilename); return; end
 
 if nargin<3||isempty(M), M=eye(4); end
-if nargin<4||isempty(ftype), ftype=spm_type('float32'); end
+if nargin<4||isempty(ftype), if isstruct(M), ftype=M.dt(1); else ftype=spm_type('float32'); end; end
+if isstruct(M), M=M.mat; end
 isremotefile=conn_server('util_isremotefile',filename);
 if isremotefile, remotefilename=filename; filename=conn_cache('new',remotefilename); end
 

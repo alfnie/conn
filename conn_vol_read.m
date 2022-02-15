@@ -5,6 +5,8 @@ function [data, vol] = conn_vol_read(filename)
 %  filename : input filename *.nii
 %  data     : output data [Ni, Nj, Nk, nobservations]
 %  vol      : header information (see "help spm_vol")
+%              vol.mat      : [4,4] affine voxel-to-world transformation matrix
+%              vol.dt(1)    : datatype (see "help spm_type")
 %
 
 if ~nargin, help(mfilename); return; end
