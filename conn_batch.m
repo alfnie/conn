@@ -317,7 +317,7 @@ function varargout=conn_batch(varargin)
 %                        'functional_slicetime'                  : functional slice-timing correction
 %                        'functional_smooth'                     : functional spatial smoothing
 %                        'functional_smooth_masked'              : functional spatial masked-smoothing (spatial convolution with Gaussian kernel 
-%                                                                   restricted to voxels within Grey Matter mask)
+%                                                                   restricted to voxels within custom functional mask
 %                        'functional_vdm_create'                 : creation of vdm (voxel-displacement-map) from fieldmap dataset (reads 'fmap' 
 %                                                                   secondary functional dataset containing magnitude and phasediff images and 
 %                                                                   creates 'vdm' secondary functional dataset containing voxel-displacement map)
@@ -379,9 +379,9 @@ function varargout=conn_batch(varargin)
 %                                            explicit continue field: 'functional_load_from_original', 'functional_load_from_subjectspace', 
 %                                            'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed')
 %      Setup.preprocessing.mask_names_anat : (strucutral_mask) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
-%      Setup.preprocessing.mask_names_func : (functional_mask) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
+%      Setup.preprocessing.mask_names_func : (functional_mask, functional_smooth_masked) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
 %      Setup.preprocessing.mask_inclusive_anat : (strucutral_mask) 1: inclusive ROI mask (keep voxels inside ROI); 0: exclusive ROI mask (keep voxels outside ROI) [1]
-%      Setup.preprocessing.mask_inclusive_func : (functional_mask) 1: inclusive ROI mask (keep voxels inside ROI); 0: exclusive ROI mask (keep voxels outside ROI) [1]
+%      Setup.preprocessing.mask_inclusive_func : (functional_mask, functional_smooth_masked) 1: inclusive ROI mask (keep voxels inside ROI); 0: exclusive ROI mask (keep voxels outside ROI) [1]
 %      Setup.preprocessing.reg_names       : (functional_regression) list of first-level covariates to use as model regressors / design matrix (valid 
 %                                            entries are first-level covariate names or ROI names)
 %      Setup.preprocessing.reg_dimensions  : (functional_regression) list of maximum number of dimensions (one value for each model regressor in 

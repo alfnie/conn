@@ -100,7 +100,7 @@ steps_names={'<HTML><b>default preprocessing pipeline</b> for volume-based analy
     'functional Load functional data from "mni-space data" dataset', ...
     'functional Load functional data from "surface-space data" dataset', ...
     'functional Load functional data from "smoothed data" dataset', ...
-    'functional Masked Smoothing (spatial convolution with Gaussian kernel restricted to voxels within Grey Matter mask)', ...
+    'functional Masked Smoothing (spatial convolution with Gaussian kernel restricted to voxels within a custom mask)', ...
     'functional Resampling of functional data at the location of FreeSurfer subject-specific structural cortical surface (converts volume- to surface- level data)', ...
     'functional Smoothing of surface-level functional data (spatial diffusion on surface tessellation)', ...
     'functional Susceptibility Distortion Correction using voxel-displacement maps (VDM)', ...
@@ -143,7 +143,7 @@ steps_descr={{'INPUT: structural&functional volumes','OUTPUT (all in MNI-space):
     {'INPUT: other imaging volumes (in secondary dataset)','OUTPUT: functional volumes (current functional volumes will point to same files as "mni-space data" secondary dataset)'}, ...
     {'INPUT: other imaging volumes (in secondary dataset)','OUTPUT: functional volumes (current functional volumes will point to same files as "surface-space data" secondary dataset)'}, ...
     {'INPUT: other imaging volumes (in secondary dataset)','OUTPUT: functional volumes (current functional volumes will point to same files as "smoothed data" secondary dataset)'}, ...
-    {'INPUT: functional volumes; Grey Matter ROI','OUTPUT: smoothed functional volumes'}, ...
+    {'INPUT: functional volumes; ROIs (in same space as functional volumes)','OUTPUT: smoothed functional volumes (smoothing restricted within ROI mask -or union of multiple ROIs-)'}, ...
     {'INPUT: functional data (volume files coregistered to structural); FreeSurfer-processed structural volume','OUTPUT: functional data (surface files)'}, ...
     {'INPUT: functional data (surface files)','OUTPUT: smoothed functional data (surface files)'}, ...
     {'INPUT: functional volumes & VDM maps','OUTPUT: Distortion corrected functional volumes'}, ...
@@ -649,7 +649,7 @@ if any(ismember('functional_roiextract',lSTEPS))
     end
 end
 
-if any(ismember('functional_mask',lSTEPS))
+if any(ismember({'functional_mask','functional_smooth_masked'},lSTEPS))
     if isempty(mask_names_func)||dogui
         temp_mask_names_func=reshape(CONN_x.Setup.rois.names(1:end-1),1,[]);
         temp_mask_names_func0=reshape([temp_mask_names_func; temp_mask_names_func],1,[]);
@@ -3085,6 +3085,8 @@ for iSTEP=1:numel(STEPS)
                 if isempty(this_fwhm), return; end
                 this_fwhm=str2num(this_fwhm{1});
             end
+            if ~iscell(mask_names_func), mask_names_func={mask_names_func}; end
+            conn_disp('fprintf','functional smoothing %smm masked (%s); inclusive = %s\n',sprintf('%s ',mat2str(this_fwhm),mask_names_func{:}),mat2str(mask_inclusive_func));
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
@@ -3095,12 +3097,27 @@ for iSTEP=1:numel(STEPS)
                         filename=conn_get_functional(nsubject,nses,sets);
                         if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
                         temp=cellstr(filename);
-                        if CONN_x.Setup.structural_sessionspecific, nses_struct=nses;
-                        else nses_struct=1;
+                        
+                        vmask=[];
+                        for nmask=1:numel(mask_names_func)
+                            nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),mask_names_func{nmask}));
+                            if isempty(nroi)&&conn_existfile(mask_names_func{nmask})
+                                temp=mask_names_func{nmask};
+                                vmask=cat(1,vmask,reshape(spm_vol(temp),[],1));
+                            else
+                                assert(~isempty(nroi),'unable to find ROI named %s',mask_names_func{nmask});
+                                if (nroi>3&&~CONN_x.Setup.rois.sessionspecific(nroi))||(nroi<=3&&~CONN_x.Setup.structural_sessionspecific), nsesstemp=1; else nsesstemp=nsess; end
+                                temp=conn_maskserode(nsubject,nroi,false);
+                                vmask=cat(1,vmask,reshape(spm_vol(temp{nsubject}{nroi}{min(nses,nsesstemp)}),[],1));
+                            end
                         end
-                        fmask=CONN_x.Setup.rois.files{nsubject}{1}{nses_struct}{1};
-                        if isempty(fmask), error('Grey Matter ROI data not yet defined for subject %d session %d',nsubject,nses); end
-                        vmask=spm_vol(fmask);
+                        %if CONN_x.Setup.structural_sessionspecific, nses_struct=nses;
+                        %else nses_struct=1;
+                        %end
+                        %fmask=CONN_x.Setup.rois.files{nsubject}{1}{nses_struct}{1};
+                        %if isempty(fmask), error('Grey Matter ROI data not yet defined for subject %d session %d',nsubject,nses); end
+                        %vmask=spm_vol(fmask);
+                        
                         vol=spm_vol(char(temp));
                         volout=vol;
                         %voloutmask=vol(1); voloutmask.fname=conn_prepend('p',vol(1).fname); voloutmask.mat=vol(1).mat; voloutmask.dim=vol(1).dim; voloutmask.pinfo=[1;0;0]; voloutmask.dt=[spm_type('float32') spm_platform('bigend')];
@@ -3109,7 +3126,14 @@ for iSTEP=1:numel(STEPS)
                         tempout=conn_prepend('m',temp); spm_unlink(tempout{:});
                         volout=spm_create_vol(volout);
                         vox=sqrt(sum(vol(1).mat(1:3,1:3).^2));
-                        mask=max(0,min(1,double(reshape(spm_get_data(vmask,pinv(vmask.mat)*xyz),vol(1).dim))));
+                        %mask=max(0,min(1,double(reshape(spm_get_data(vmask,pinv(vmask.mat)*xyz),vol(1).dim))));
+                        mask=false;
+                        for nmask=1:numel(vmask)
+                            xyz=pinv(vmask(nmask).mat)*gridxyz;
+                            %mask=mask&reshape(spm_get_data(vmask, pinv(vmask.mat)*xyz),vol(1).dim)>0; % intersection-mask
+                            mask=mask|reshape(spm_get_data(vmask, pinv(vmask.mat)*xyz),vol(1).dim)>0;  % union-mask
+                        end
+                        if ~mask_inclusive_func, mask=~mask; end
                         smask=zeros(size(mask));
                         spm_smooth(mask,smask,[1 1 1].*this_fwhm./vox);
                         mask0=(1-smask).^LAMBDA;

@@ -340,6 +340,7 @@ ________________________________________________________________________________
      Added 'functional_segment&normalize_indirect_withlesion' preprocessing step: uses a subject-space lesion mask as part of an indirect normalization pipeline (outputs as above)
      Added 'functional_mask' preprocessing step: implicit or explicit masking of functional data
      Added 'structural_mask' preprocessing step: implicit or explicit masking of structural volume
+     Extended 'functional_smooth_masked' preprocessing step to use any custom mask (same as 'functional_mask' step; see mask_names_func and mask_inclusive_func fields)
      Added 'functional_roiextract' preprocessing step: import ROI BOLD timeseries as 1st-level covariates
      Added ability to model acquisition/scan time for sparse-acquisition task-activation analyses in EL/FL modules
      Simplified Setup.functional gui by moving secondary-datasets into a new Setup.other tab
