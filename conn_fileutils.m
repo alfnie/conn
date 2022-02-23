@@ -265,6 +265,22 @@ switch(lower(option))
         else [ok,msg]=system(sprintf('open %s',conn_server('util_localfile',varargin{1})));
         end
         
+    case 'savefig',
+        if ischar(varargin{1})
+            if any(conn_server('util_isremotefile',varargin{1})), 
+                savefig(conn_cache('pull',varargin{1}),varargin{2:end});
+                conn_cache('push',varargin{1});
+            else savefig(conn_server('util_localfile',varargin{1}),varargin{2:end});
+            end
+        elseif ischar(varargin{2})
+            if any(conn_server('util_isremotefile',varargin{2})), 
+                savefig(varargin{1},conn_cache('pull',varargin{2}),varargin{3:end});
+                conn_cache('push',varargin{2});
+            else savefig(varargin{1},conn_server('util_localfile',varargin{2}),varargin{3:end});
+            end
+        else error('unsupported savefig syntax');
+        end
+        
     case 'uigetfile'
         if conn_projectmanager('inserver')
             if 1 % type-in remote or local file
