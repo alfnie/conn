@@ -880,6 +880,7 @@ else
                                         %else [ok,nill]=system(sprintf('rm -f ''%s''*',localfilename));
                                         %end
                                     end
+                                    if strcmp(lower(option),'rexec'), conn_projectmanager('qlogdir',fileparts(filename)); end % sets .qlog directory root one step above current
                                 end
                             end
                             conn('load',job(n).project);
@@ -936,7 +937,7 @@ else
             end
             tag=datestr(now,'yymmddHHMMSSFFF');
             tpname=conn_jobmanager('conn_x_filename');
-            if isempty(tpname), pathname=fullfile(conn_projectmanager('homedir'),'.qlog',tag); 
+            if isempty(tpname), pathname=fullfile(conn_projectmanager('qlogdir'),tag); 
             else pathname=fullfile(conn_prepend('',tpname,'.qlog'),tag);
             end
             conn_fileutils('mkdir',pathname);

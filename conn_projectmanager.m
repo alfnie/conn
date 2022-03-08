@@ -4,6 +4,7 @@ function varargout = conn_projectmanager(option,varargin)
 % internal function: manages project access, delayed processing steps and parallelization/synchronization options
 %
 
+persistent qlogdir;
 global CONN_x CONN_gui;
 switch(lower(option))
     case 'null'
@@ -136,6 +137,16 @@ switch(lower(option))
             try, [nill,str2]=system('whoami'); out=regexprep(char(str2),'\n',''); end
         end
         varargout={out};
+        
+    case 'qlogdir'
+        if conn_projectmanager('inserver'), 
+            a=conn_server('util_remotefile',conn_server('run',mfilename,option,varargin{:})); 
+        else
+            if nargin>1, qlogdir=varargin{1}; end
+            a=qlogdir;
+            if isempty(a), a=fullfile(conn_projectmanager('homedir'),'.qlog'); end
+        end
+        varargout={a};
         
     case 'homedir'
         if conn_projectmanager('inserver'), 

@@ -590,7 +590,7 @@ switch(option),
                         elseif isfield(data.params,'gui')&&~data.params.gui&&isfield(data.params.SPM.SPM,'xCon')&&numel(data.params.SPM.SPM.xCon)==1, Ic=1;
                         else [Ic,data.params.SPM.SPM.xCon] = spm_conman(data.params.SPM.SPM,'T|F',inf,'Select contrast','',1);
                         end
-                        c=[data.params.SPM.SPM.xCon(Ic).c];
+                        c=[data.params.SPM.SPM.xCon(Ic).c'];
                         if isempty(cname), cname={data.params.SPM.SPM.xCon(Ic).name}; end
                         xX=data.params.SPM.SPM.xX;
                         mcon=1;
@@ -1381,15 +1381,15 @@ SMPDISP=true; % simplified display
 F_c=c;
 idxc=find(any(c,1));
 c=full(sparse(1:numel(idxc),idxc,1,numel(idxc),size(c,2)));
-try
+if 0
     [beta,ResMS]=rex_modelestimate(xX,Y);
-    cbeta=c'*beta;
-    SE=sqrt(diag(c'*xX.Bcov*c)*ResMS);
+    cbeta=c*beta;
+    SE=sqrt(diag(c*xX.Bcov*c')*ResMS);
     dof=xX.erdf;
     T=cbeta./SE;
     p=nan+zeros(size(T));idxvalidT=find(~isnan(T));p(idxvalidT)=1-spm_Tcdf(T(idxvalidT),dof);
     statsname='T';
-catch
+else
     [cbeta,T,p,dof,statsname]=conn_glm(xX.X,reshape(Y,size(xX.X,1),[],size(Y,2)),c,[],'AA');
     cbeta=reshape(cbeta,[],size(cbeta,3));
     T=reshape(T,[],size(T,3));
