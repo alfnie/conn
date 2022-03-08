@@ -1,5 +1,6 @@
-function data = conn_loadcsvfile(tfilename,doheader)
+function data = conn_loadcsvfile(tfilename,doheader, showlines)
 if nargin<2||isempty(doheader), doheader=true; end
+if nargin<3||isempty(showlines), showlines=false; end
 if any(conn_server('util_isremotefile',tfilename)), data=conn_server('run',mfilename,conn_server('util_localfile',tfilename),doheader); return; end
 tfilename=conn_server('util_localfile',tfilename);
 
@@ -8,6 +9,7 @@ tdata=tdata(cellfun('length',tdata)>0);
 tdata=regexp(tdata,',','split');
 nfields=cellfun('length',tdata);
 Nfields=mode(nfields);
+if showlines&&~all(nfields==Nfields), fprintf('warning: not all lines contain the same number of fields (lines %s)\n',mat2str(find(nfields~=Nfields))); end
 tdata=tdata(nfields==Nfields);
 tdata=cat(1,tdata{:});
 tdata=regexprep(tdata,'^\s+|\s+$','');
@@ -18,7 +20,7 @@ isndata=cellfun('length',regexpi(tdata,'^\s*([\-\+\d\.e]+|nan)\s*$'))|~cellfun('
 fieldnames=tdata(1,:);
 for n=1:numel(fieldnames),
     if doheader
-        name=regexprep(fieldnames{n},'[^\w\d]','');
+        name=regexprep(fieldnames{n},{'\([^\(\)]*\)','[^\w\d]'},'');
         val=tdata(2:end,n);
         if all(isndata(2:end,n)), val=str2double(val); end
     else

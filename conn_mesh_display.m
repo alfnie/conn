@@ -56,6 +56,9 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('ref_ax',state)                    : displays reference axial slice (state: 'on' 'off')
 %  fh('ref_transparency',val)            : set reference slices transparency level (val: 0-1)
 %  fh('ref_pos',pos)                     : set reference slices position (pos: [1x3] vector of x/y/z coordinates)
+%  fh('ref_file',file)                   : set reference slices file (default: referenceT1_icbm)
+%  fh('ref_method',val)                  : set reference slices display method; 1: sample values at each individual slice; 
+%                                           2: Maximum Intensity Projection for each slide direction (default 1)
 %  fh('ud_select',filename)              : adds custom reference surface (filename: NIFTI mask file)
 %  fh('ud_delete')                       : removes last custom reference surface
 %  fh('ud_transparency',val)             : set custom reference surface transparency level (val: 0-1)
@@ -110,6 +113,7 @@ if nargin==1&&isstruct(filenameSURF)&&isfield(filenameSURF,'structural'), % stru
     if ~conn_fileutils('isdir',state.defaultfilepath), state.defaultfilepath=pwd; end
     if ~conn_fileutils('isdir',state.FSfolder), state.FSfolder=fullfile(fileparts(which('conn')),'utils','surf'); end
     if ~isfield(state,'fontclose'), state.fontclose=1; end
+    if ~isfield(state,'Prange'), state.Prange=[]; end
     doinit=false;
 elseif nargin>0&&isstruct(filenameSURF),data=filenameSURF;return
 end
@@ -143,6 +147,7 @@ if doinit
     state.defaultcolors=defaultcolors;
     state.defaultfilepath=defaultfilepath;
     state.Vrange=Vrange;
+    state.Prange=[];
     state.domask=domask;
     state.dosub=dosub;
 end
@@ -200,6 +205,7 @@ if doinit
         end
         if ~isempty(filepath), state.defaultfilepath=filepath; end
         V=conn_mesh_display_getV(filenameSURF,a,state.FSfolder);
+        state.Vrange=[min(V(V~=0)) max(V(V~=0))];
         state.reducedpatch=1;
     else
         state.info.surf='none';
@@ -241,6 +247,8 @@ if doinit
     
     cmapstart=repmat(1-linspace(1,0,96)'.^8,[1,3]).*autumn(96);
     cmapstart=[flipud(cmapstart(:,[2,3,1]));cmapstart];
+    %cmapstart=linspace(-1,1,128)'; 
+    %cmapstart=cat(2,1-(cmapstart<0)-cmapstart.*max(0,cmapstart-.5),max(0,1-2*abs(cmapstart)),1-(cmapstart>0)-cmapstart.*min(0,cmapstart+.5));
     cmapdefault=repmat(1-linspace(1,0,128)'.^2,[1,3]).*hot(128)+repmat(linspace(1,0,128)'.^2,[1,3])*.1;
     cmapdefault=cmapdefault(33:end,:);
     %cmapdefault=cmapdefault([1,34:end],:);
@@ -536,6 +544,7 @@ else
 end
 if 1 % reference axes
     state.structural=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
+    state.structural_method=1;
     %state.structural=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_trans.nii');
     if isfield(CONN_gui,'refs')&&isfield(CONN_gui.refs,'canonical')&&isfield(CONN_gui.refs.canonical,'filename')&&~isempty(CONN_gui.refs.canonical.filename)
         if ~isequal(CONN_gui.refs.canonical.filename,fullfile(fileparts(which('conn')),'utils','surf','referenceT1_trans.nii')), %handles conn defaults (high-res for slice display)
@@ -545,7 +554,7 @@ if 1 % reference axes
     state.strvol=conn_fileutils('spm_vol',state.structural);
     state.structuraldata=conn_fileutils('spm_read_vols',state.strvol);
     %state.structuraldata(isnan(state.structuraldata))=0; %%
-    hpatch=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm);
+    [hpatch,state.Prange]=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm, state.structural_method,state.Prange);
     for nview=1:3
         state.handles.patchref(nview)=patch;
         if isfield(state,'showaxref')&&numel(state.showaxref)>=nview&&state.showaxref(nview), onoff='on'; else onoff='off'; end
@@ -1334,6 +1343,9 @@ if ishandle(hmsg), delete(hmsg); end
                 end
                 set(state.handles.patchref,'facecolor',color); 
                 state.ref_color=color;
+            case 'ref_material',
+                str=varargin{1};
+                material(state.handles.patchref,str);
             case 'ud_transparency'
                 scale=varargin{1};
                 state.facealphaud=max(eps,scale);
@@ -1440,11 +1452,12 @@ if ishandle(hmsg), delete(hmsg); end
                         state.pVOLother=[state.pVOLother tpVOLother(np)];
                     end
                 end
-            case {'ax_ref', 'sag_ref', 'cor_ref', 'ref_ax', 'ref_sag', 'ref_cor'}
+            case {'ax_ref', 'sag_ref', 'cor_ref', 'ref_ax', 'ref_sag', 'ref_cor', 'ref_all'}
                 switch(option)
                     case {'ref_sag','sag_ref'}, nref=1;
                     case {'ref_cor','cor_ref'}, nref=2;
                     case {'ref_ax','ax_ref'},  nref=3;
+                    case 'ref_all', nref=1:3;
                 end
                 axtemp=varargin{1};
                 if ischar(axtemp), axtemp=strcmp(axtemp,'on'); end
@@ -1459,13 +1472,28 @@ if ishandle(hmsg), delete(hmsg); end
                     end
                 else state.structural=varargin{1};
                 end
+                if numel(varargin)>1&&~isempty(varargin{2}), state.structural_method=varargin{2}; end
                 state.strvol=conn_fileutils('spm_vol',state.structural);
                 state.structuraldata=conn_fileutils('spm_read_vols',state.strvol);
                 %state.structuraldata(isnan(state.structuraldata))=0; %%
-                thpatch=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm);
+                [thpatch,state.Prange]=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm, state.structural_method);
                 for tnview=1:3
                     set(state.handles.patchref(tnview),'faces',thpatch(tnview).faces,'vertices',thpatch(tnview).vertices,'facevertexcdata',thpatch(tnview).facevertexcdata,'facevertexalpha',state.facealpharef*thpatch(tnview).facevertexalpha,'userdata',thpatch(tnview).facevertexalpha,'facecolor','flat');
                 end
+                redrawnowcolorbar=true;
+            case {'ref_method'}
+                if isempty(varargin)
+                    answer=conn_menu_inputdlg({'Reference axes position (x/y/z coordinates in mm)'},'',1,{num2str(state.pointer_mm)});
+                    if isempty(answer), return; end
+                    state.structural_method=answer{1};
+                else state.structural_method=varargin{1};
+                end
+                if ischar(state.structural_method), state.structural_method=str2num(state.structural_method); end
+                [thpatch,state.Prange]=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm, state.structural_method,state.Prange);
+                for tnview=1:3
+                    set(state.handles.patchref(tnview),'faces',thpatch(tnview).faces,'vertices',thpatch(tnview).vertices,'facevertexcdata',thpatch(tnview).facevertexcdata,'facevertexalpha',state.facealpharef*thpatch(tnview).facevertexalpha,'userdata',thpatch(tnview).facevertexalpha,'facecolor','flat');
+                end
+                redrawnowcolorbar=true;
             case {'ref_pos','pos_ref'}
                 if isempty(varargin)
                     answer={''};
@@ -1485,21 +1513,32 @@ if ishandle(hmsg), delete(hmsg); end
                     end
                 else state.pointer_mm=varargin{1};
                 end
-                thpatch=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm);
+                [thpatch,state.Prange]=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm, state.structural_method,state.Prange);
                 for tnview=1:3
                     set(state.handles.patchref(tnview),'faces',thpatch(tnview).faces,'vertices',thpatch(tnview).vertices,'facevertexcdata',thpatch(tnview).facevertexcdata,'facevertexalpha',state.facealpharef*thpatch(tnview).facevertexalpha,'userdata',thpatch(tnview).facevertexalpha,'facealpha','flat');
                 end
             case 'colorbar',
-                if isempty(state.Vrange), conn_msgbox({'No activation overlay present','Use menu Surface.BrainSurface.BrainSurfaceActivation to define a new activation overlay'},'',2); return; end
+                if isempty(state.Vrange)&&isempty(state.Prange), conn_msgbox({'No activation overlay present','Use menu Surface.BrainSurface.BrainSurfaceActivation to define a new activation overlay'},'',2); return; end
                 if strcmp(varargin{1},'rescale')
+                    if isempty(state.Prange), Vrange=state.Vrange; else Vrange=state.Prange; end
                     if numel(varargin)>1, answ=varargin{2}; 
-                    else answ=conn_menu_inputdlg({'Enter new colorbar limits:'},'Rescale colorbar',1,{mat2str(state.Vrange([1 end]),6)});
+                    else answ=conn_menu_inputdlg({'Enter new colorbar limits:'},'Rescale colorbar',1,{mat2str(Vrange([1 end]),6)});
                         if ~isempty(answ), answ=str2num(answ{1}); end
                     end
                     if ~isempty(answ)&&numel(answ)==2
-                        state.Vrange([1 end])=answ;
-                        conn_mesh_display_refresh([],[],'remap&draw');
+                        if isempty(state.Prange), 
+                            state.Vrange([1 end])=answ;
+                            conn_mesh_display_refresh([],[],'remap&draw');
+                        else
+                            state.Prange([1 end])=answ;
+                            [thpatch,state.Prange]=conn_mesh_display_axref(state.strvol,state.structuraldata,state.pointer_mm, state.structural_method, state.Prange);
+                            for tnview=1:3
+                                set(state.handles.patchref(tnview),'faces',thpatch(tnview).faces,'vertices',thpatch(tnview).vertices,'facevertexcdata',thpatch(tnview).facevertexcdata,'facevertexalpha',state.facealpharef*thpatch(tnview).facevertexalpha,'userdata',thpatch(tnview).facevertexalpha,'facecolor','flat');
+                            end
+                        end
                     end
+                elseif isempty(state.Vrange)
+                    set(state.handles.colorbar,'visible',varargin{1});
                 else
                     set(state.handles.colorbar,'visible',varargin{1});
                 end
@@ -1589,7 +1628,21 @@ if ishandle(hmsg), delete(hmsg); end
                 if back~=1, conn_mesh_display_refresh([],[],'brain',[],back); end
         end
         if redrawnowcolorbar&&~isempty(state.handles.colorbar)
-            if state.dotwosided,
+            if ~isempty(state.Prange)
+                c1=linspace(-1,1,127)'; 
+                cmap=cat(2,1-(c1<0)-c1.*max(0,c1-.5),max(0,1-2*abs(c1)),1-(c1>0)-c1.*min(0,c1+.5));
+                %cmap=cat(2,.5+.5*tanh(50*(c1+.05))-c1.*max(0,c1-.5),max(0,1-2*abs(c1)),.5-.5*tanh(50*(c1-.05))-c1.*min(0,c1+.5));
+                if sign(state.Prange(1))*sign(state.Prange(end))==-1,
+                    set(state.handles.colorbar(1),'ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Prange,'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
+                    set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(cmap,1)+1)/2+emph*(size(cmap,1)-1)/2*linspace(-1,1,128)'),cmap))));
+                elseif any(state.Prange>0)
+                    set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Prange) max(state.Prange)],'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
+                    set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(cmap,1)+1)/2+1+emph*(size(cmap,1)-3)/2*linspace(0,1,128)'),cmap))));
+                elseif any(state.Prange<0)
+                    set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Prange) max(state.Prange)],'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
+                    set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(cmap,1)+1)/2-1+emph*(size(cmap,1)-3)/2*linspace(-1,0,128)'),cmap))));
+                end
+            elseif state.dotwosided,
                 set(state.handles.colorbar(1),'ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
                 set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
             elseif any(state.Vrange>0)
@@ -1724,7 +1777,9 @@ for n=1:numel(varargin),
 end
 end
 
-function hpatch = conn_mesh_display_axref(strvol,structural,pointer_mm)
+function [hpatch,Vrange] = conn_mesh_display_axref(strvol,structural,pointer_mm, proj_type, Vrange)
+if nargin<4||isempty(proj_type), proj_type=1; end % 1: value at slice; 2: max value in direction orth to slice
+if nargin<5, Vrange=[]; end
 nslices=1;
 dslices=1;
 time=1;
@@ -1735,33 +1790,105 @@ xyz_x=reshape(xyz(1,:),strvol.dim(1:3));
 xyz_y=reshape(xyz(2,:),strvol.dim(1:3));
 xyz_z=reshape(xyz(3,:),strvol.dim(1:3));
 kslices=1;
+if proj_type>1, pointer_vox(:)=1; end
 for nview=1:3
     tslices=dslices*((1:nslices)-round((nslices+1)/2));
     switch nview
         case 1,
-            tslices(pointer_vox(1)+tslices<1|pointer_vox(1)+tslices>size(xyz_x,1))=[];
+            if proj_type==1, tslices(pointer_vox(1)+tslices<1|pointer_vox(1)+tslices>size(xyz_x,1))=[];
+            else tslices=[0 size(xyz_x,1)-1];
+            end
             x=permute(xyz_x(max(1,min(size(xyz_x,1),pointer_vox(1)+kslices*tslices)),:,:),[2 3 1]);
             y=permute(xyz_y(max(1,min(size(xyz_x,1),pointer_vox(1)+tslices)),:,:),[2 3 1]);
             z=permute(xyz_z(max(1,min(size(xyz_x,1),pointer_vox(1)+tslices)),:,:),[2 3 1]);
-            z1=permute(structural(max(1,min(size(xyz_x,1),pointer_vox(1)+tslices)),:,:,min(size(structural,4),time)),[2 3 1]);
+            if proj_type==1, 
+                z1=permute(structural(max(1,min(size(xyz_x,1),pointer_vox(1)+tslices)),:,:,min(size(structural,4),time)),[2 3 1]);
+            else
+                z1=permute(max(structural(:,:,:,min(size(structural,4),time)),[],1),[2 3 1]); 
+                z1min=permute(min(structural(:,:,:,min(size(structural,4),time)),[],1),[2 3 1]);
+                z1(-z1min>z1)=z1min(-z1min>z1); %x(:)=pointer_mm(1);
+                z1=repmat(z1,[1 1 2]);
+            end
         case 2,
-            tslices(pointer_vox(2)+tslices<1|pointer_vox(2)+tslices>size(xyz_x,2))=[];
+            if proj_type==1, tslices(pointer_vox(2)+tslices<1|pointer_vox(2)+tslices>size(xyz_x,2))=[];
+            else tslices=[0 size(xyz_x,2)-1];
+            end
             x=permute(xyz_x(:,max(1,min(size(xyz_x,2),pointer_vox(2)+tslices)),:),[1 3 2]);
             y=permute(xyz_y(:,max(1,min(size(xyz_x,2),pointer_vox(2)+kslices*tslices)),:),[1 3 2]);
             z=permute(xyz_z(:,max(1,min(size(xyz_x,2),pointer_vox(2)+tslices)),:),[1 3 2]);
-            z1=permute(structural(:,max(1,min(size(xyz_x,2),pointer_vox(2)+tslices)),:,min(size(structural,4),time)),[1 3 2]);
+            if proj_type==1, 
+                z1=permute(structural(:,max(1,min(size(xyz_x,2),pointer_vox(2)+tslices)),:,min(size(structural,4),time)),[1 3 2]);
+            else
+                z1=permute(max(structural(:,:,:,min(size(structural,4),time)),[],2),[1 3 2]); 
+                z1min=permute(min(structural(:,:,:,min(size(structural,4),time)),[],2),[1 3 2]); 
+                z1(-z1min>z1)=z1min(-z1min>z1); %y(:)=pointer_mm(2);
+                z1=repmat(z1,[1 1 2]);
+            end
         case 3,
-            tslices(pointer_vox(3)+tslices<1|pointer_vox(3)+tslices>size(xyz_x,3))=[];
+            if proj_type==1, tslices(pointer_vox(3)+tslices<1|pointer_vox(3)+tslices>size(xyz_x,3))=[];
+            else tslices=[0 size(xyz_x,3)-1];
+            end
             x=permute(xyz_x(:,:,max(1,min(size(xyz_x,3),pointer_vox(3)+tslices))),[1 2 3]);
             y=permute(xyz_y(:,:,max(1,min(size(xyz_x,3),pointer_vox(3)+tslices))),[1 2 3]);
             z=permute(xyz_z(:,:,max(1,min(size(xyz_x,3),pointer_vox(3)+kslices*tslices))),[1 2 3]);
-            z1=permute(structural(:,:,max(1,min(size(xyz_x,3),pointer_vox(3)+tslices)),min(size(structural,4),time)),[1 2 3]);
+            if proj_type==1, 
+                z1=permute(structural(:,:,max(1,min(size(xyz_x,3),pointer_vox(3)+tslices)),min(size(structural,4),time)),[1 2 3]);
+            else
+                z1=permute(max(structural(:,:,:,min(size(structural,4),time)),[],3),[1 2 3]); 
+                z1min=permute(min(structural(:,:,:,min(size(structural,4),time)),[],3),[1 2 3]); 
+                z1(-z1min>z1)=z1min(-z1min>z1); %z(:)=pointer_mm(3);
+                z1=repmat(z1,[1 1 2]);
+            end
     end
-    [f1,f2]=conn_mesh_display_surf2patch(x,y,z,find(tslices==0),z1,convn(convn(isnan(z1),conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same'));
+    if proj_type==1, z2=convn(convn(isnan(z1),conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same');
+    else
+        if ~isempty(Vrange)
+            if all(Vrange>=0), minc1=Vrange(1); maxc1=Vrange(end);
+            elseif all(Vrange<=0), minc1=-Vrange(2); maxc1=-Vrange(1);
+            else minc1=0; maxc1=Vrange(end);
+            end
+        else
+            minc1=min(abs(z1(z1~=0))); maxc1=max(abs(z1(:)));
+            if nnz(z1<0)&nnz(z1>0), minc1=0; end
+        end
+        if 1,%state.smoother
+            x=cat(3,interp2(x(:,:,1),2),interp2(x(:,:,2),2));
+            y=cat(3,interp2(y(:,:,1),2),interp2(y(:,:,2),2));
+            z=cat(3,interp2(z(:,:,1),2),interp2(z(:,:,2),2));
+            z1=interp2(z1(:,:,1),2,'nearest');
+            mz1=z1(:,:,1)~=0;
+            z1=convn(convn(z1,conn_hanning(9)/5,'same'),conn_hanning(9)'/5,'same');
+            mz1=convn(convn(mz1,conn_hanning(9)/5,'same'),conn_hanning(9)'/5,'same');
+            z1=(mz1>.5).*z1./max(eps,mz1);
+            z1=repmat(z1,[1 1 2]);
+        end
+        z2=1-abs(convn(convn(sign(max(-1e16,z1)),conn_hanning(7)/4,'same'),conn_hanning(7)'/4,'same')); z1(z1==0)=nan;
+    end
+    [f1,f2]=conn_mesh_display_surf2patch(x,y,z,find(tslices==0),z1,z2);
     c1=f1.facevertexcdata;
-    c1=(c1-min(c1))/max(eps,max(c1)-min(c1));
-    c=repmat(c1,[1 3]);
-    hpatch(nview)=struct('faces',f1.faces,'vertices',f1.vertices,'facevertexcdata',c,'facevertexalpha',max(0,1-2*f2.facevertexcdata));
+    if proj_type==1, 
+        c1=(c1-min(c1))/max(eps,max(c1)-min(c1)); % min:black, max:white
+        c=repmat(c1,[1 3]);
+        hpatch(nview)=struct('faces',f1.faces,'vertices',f1.vertices,'facevertexcdata',c,'facevertexalpha',max(0,1-2*f2.facevertexcdata));
+        Vrange=[];
+    else
+        %c1=c1/max(abs(c1)); % positive:red, negative:blue
+        c1=sign(c1).*max(0,min(1,(abs(c1)-minc1)/max(eps,maxc1-minc1)));
+        c=cat(2,1-(c1<0)-c1.*max(0,c1-.5),max(0,1-2*abs(c1)),1-(c1>0)-c1.*min(0,c1+.5));
+        %c=cat(2,.5+.5*tanh(50*(c1+.05))-c1.*max(0,c1-.5),max(0,1-2*abs(c1)),.5-.5*tanh(50*(c1-.05))-c1.*min(0,c1+.5));
+        %c=cat(2,(c1>0),abs(c1),(c1<0));
+        hpatch(nview)=struct('faces',f1.faces,'vertices',f1.vertices,'facevertexcdata',c,'facevertexalpha',.25*(c1~=0)+.75*abs(c1).*(1-1*f2.facevertexcdata)); %max(0,min(1, 2*abs(c1).*(1-.1*f2.facevertexcdata))));
+        %hpatch(nview).faces=[hpatch(nview).faces;size(hpatch(nview).vertices,1)+hpatch(nview).faces];
+        %hpatch(nview).vertices=[hpatch(nview).vertices;hpatch(nview).vertices]; hpatch(nview).vertices(end/2+1,nview)=size(xyz_x,nview);
+        %hpatch(nview).facevertexcdata=[hpatch(nview).facevertexcdata;hpatch(nview).facevertexcdata];
+        %hpatch(nview).facevertexalpha=[hpatch(nview).facevertexalpha;hpatch(nview).facevertexalpha];
+        if isempty(Vrange)
+            if ~any(c1<0), Vrange=[minc1 maxc1];
+            elseif ~any(c1>0), Vrange=[-maxc1 -minc1];
+            else Vrange=[-maxc1 0 maxc1];
+            end
+        end
+    end
 end
 end
 
