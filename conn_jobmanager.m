@@ -865,6 +865,7 @@ else
                 conn_loadmatfile(filename,'job','-mat');
                 conn_jobmanager('tag',job(1).tag,'running'); 
                 %if strcmp(lower(option),'rexec'), conn_jobmanager('tag',job(1).tag,'running'); end
+                if strcmp(lower(option),'rexec'), conn_projectmanager('qlogdir',fileparts(filename)); end % sets .qlog directory root one step above current
                 for n=1:numel(job)
                     switch(job(n).type)
                         case 'process'
@@ -880,7 +881,6 @@ else
                                         %else [ok,nill]=system(sprintf('rm -f ''%s''*',localfilename));
                                         %end
                                     end
-                                    if strcmp(lower(option),'rexec'), conn_projectmanager('qlogdir',fileparts(filename)); end % sets .qlog directory root one step above current
                                 end
                             end
                             conn('load',job(n).project);
