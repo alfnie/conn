@@ -339,7 +339,13 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 filename=fullfile(fileparts(spmfile),'results.nii');
                 conn_vproject(GCF,[],'export_mask_selected',filename);
                 fh=conn_mesh_display(filename,'');
-                if ~isempty(regexp(OPTION,'print$')), fh('colorbar','on'); fh('background',[1 1 1]); fh('print',4,options{:}); fh('close'); end
+                if (DATA.thres{2}==3||DATA.thres{2}==4), tstr='TFCE';
+                elseif numel(DATA.mat{3})>1&&isequal(DATA.mat{6},'T'), tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}(end)),')'];
+                elseif numel(DATA.mat{3})>1, tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}(1)),',',num2str(DATA.mat{3}(2)),')'];
+                else tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}),')'];
+                end
+                fh('colorbar','on', tstr);
+                if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',4,options{:}); fh('close'); end
                 %fh('zoomin');
                 return;
 
@@ -399,8 +405,14 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                         fh('material',[]);
                     end
                     fh('axis','on');
+                    if (DATA.thres{2}==3||DATA.thres{2}==4), tstr='TFCE';
+                    elseif numel(DATA.mat{3})>1&&isequal(DATA.mat{6},'T'), tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}(end)),')'];
+                    elseif numel(DATA.mat{3})>1, tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}(1)),',',num2str(DATA.mat{3}(2)),')'];
+                    else tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}),')'];
+                    end
+                    fh('colorbar','on', tstr);
                 end
-                if ~isempty(regexp(OPTION,'print$')), fh('colorbar','on'); fh('background',[1 1 1]); fh('print',3,options{:}); fh('close'); end
+                if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',3,options{:}); fh('close'); end
                 return;
                 
             case 'spm_view'

@@ -81,7 +81,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('material',option)                 : sets material reflectance mode (option: 'dull' 'shiny' 'metal' [1x5]; see "help material")
 %  fh('light',level)                     : sets lighting strength (level: 0-1)
 %  fh('background',color)                : sets background color (color: [1x3] RGB values)
-%  fh('colorbar',state)                  : displays reference colorbar (state: 'on' 'off')
+%  fh('colorbar',state [, title])        : displays reference colorbar (state: 'on' 'off')
 %  fh('colorbar','rescale',lim)          : changes colorbar limits (lim: [1x2] values in fileSURF NIFTI file)
 %  fh('colormap',type)                   : changes colormap (type: 'normal','red','jet','hot','gray','bone','cool','hsv','spring',
 %                                           'summer','autumn','winter','random','brighter','darker','manual','color')
@@ -321,16 +321,16 @@ else
 end
 if state.dotwosided,
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
-    set(gca,'ydir','normal','ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on');
+    set(gca,'ydir','normal','ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on','fontsize',8);
 elseif any(state.Vrange>0)
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(0,1,128)'),state.colormap))));
-    set(gca,'ydir','normal','ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on');
+    set(gca,'ydir','normal','ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on','fontsize',8);
 elseif any(state.Vrange<0)
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,0,128)'),state.colormap))));
-    set(gca,'ydir','normal','ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on');
+    set(gca,'ydir','normal','ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on','fontsize',8);
 else
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
-    set(gca,'ydir','normal','xtick',[],'ytick',[],'box','on');
+    set(gca,'ydir','normal','xtick',[],'ytick',[],'box','on','fontsize',8);
 end
 state.handles.colorbar=[gca temp];
 set(state.handles.colorbar,'visible','off');
@@ -1541,6 +1541,7 @@ if ishandle(hmsg), delete(hmsg); end
                 %    set(state.handles.colorbar,'visible',varargin{1});
                 else
                     set(state.handles.colorbar,'visible',varargin{1});
+                    if numel(varargin)>1, ylabel(varargin{2},'parent',state.handles.colorbar(1)); end
                 end
                 redrawnowcolorbar=true;
             case 'repaint'
@@ -1641,23 +1642,23 @@ if ishandle(hmsg), delete(hmsg); end
                 cmap=cat(2,1-(c1<0)-c1.*max(0,c1-.5),max(0,1-2*abs(c1)),1-(c1>0)-c1.*min(0,c1+.5));
                 %cmap=cat(2,.5+.5*tanh(50*(c1+.05))-c1.*max(0,c1-.5),max(0,1-2*abs(c1)),.5-.5*tanh(50*(c1-.05))-c1.*min(0,c1+.5));
                 if sign(state.Prange(1))*sign(state.Prange(end))==-1,
-                    set(state.handles.colorbar(1),'ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Prange,'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
+                    set(state.handles.colorbar(1),'ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Prange,'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
                     set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(cmap,1)+1)/2+emph*(size(cmap,1)-1)/2*linspace(-1,1,128)'),cmap))));
                 elseif any(state.Prange>0)
-                    set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Prange) max(state.Prange)],'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
+                    set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Prange) max(state.Prange)],'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
                     set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(cmap,1)+1)/2+1+emph*(size(cmap,1)-3)/2*linspace(0,1,128)'),cmap))));
                 elseif any(state.Prange<0)
-                    set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Prange) max(state.Prange)],'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
+                    set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Prange) max(state.Prange)],'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
                     set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(cmap,1)+1)/2-1+emph*(size(cmap,1)-3)/2*linspace(-1,0,128)'),cmap))));
                 end
             elseif state.dotwosided,
-                set(state.handles.colorbar(1),'ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
+                set(state.handles.colorbar(1),'ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
                 set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
             elseif any(state.Vrange>0)
-                set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Vrange) max(state.Vrange)],'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
+                set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Vrange) max(state.Vrange)],'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
                 set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(0,1,128)'),state.colormap))));
             elseif any(state.Vrange<0)
-                set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Vrange) max(state.Vrange)],'uni',0),'ycolor',1-round(mean(state.background))*[1 1 1]);
+                set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Vrange) max(state.Vrange)],'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
                 set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,0,128)'),state.colormap))));
             end
         end
