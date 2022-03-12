@@ -443,7 +443,7 @@ switch(lower(option))
         assert(ok(1), 'communication with server interrupted during file pull');
         varargout=hash;
         
-    case {'cmd','command'}
+    case {'cmd','command','cmd_capture'}
         singlecommand=nargout>0|~isempty(varargin);
         tnameserver=conn_tcpip('private.ip');
         while 1
@@ -662,7 +662,14 @@ switch(lower(option))
         end
         
     otherwise,
-        error('unrecognized option %s',option);
+        if ~isempty(which(sprintf('conn_server_%s',option))), % child conn_server_* functions
+            fh=eval(sprintf('@conn_server_%s',option));
+            if nargout, [varargout{1:nargout}]=feval(fh,varargin{:});
+            else feval(fh,varargin{:});
+            end
+        else
+            error('unrecognized option %s',option);
+        end
 end
 end
 

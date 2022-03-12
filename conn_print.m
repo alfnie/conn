@@ -164,6 +164,7 @@ if ~isempty(answ)
                 end
             case 4,%mosaic8
                 if domosaiccrop
+                    a=a([1,2,3,6,7,8,4,5]); cropt_idx=cropt_idx([1,2,3,6,7,8,4,5],:); % note: resorts inputs
                     cropt_idx14=union(cropt_idx{1,1},cropt_idx{3,1});
                     cropt_idx25=union(cropt_idx{2,1},cropt_idx{4,1});
                     cropt_idx36=union(cropt_idx{3,1},cropt_idx{6,1});

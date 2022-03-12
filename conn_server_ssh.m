@@ -91,7 +91,7 @@ switch(lower(option))
             error('No SSH client found (see Tools.RemoteOptions.Configuration)');
         else
             if ~isempty(params.info.host)
-                params.info.filename_ctrl=fullfile(localcachefolder,sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user));
+                params.info.filename_ctrl=fullfile(localcachefolder,conn_tcpip('hash',sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user)));
                 try, conn_fileutils('deletefile',params.info.filename_ctrl); end
                 % starts a shared SSH connection
                 if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
@@ -296,7 +296,7 @@ switch(lower(option))
     case 'forceexit' % run remotely a command to forcibly delete the server's job
         if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'login_ip')&&~isempty(params.info.login_ip)&&isfield(params.info,'remote_log')&&~isempty(params.info.remote_log)
             localcachefolder=conn_cache('private.local_folder');
-            params.info.filename_ctrl=fullfile(localcachefolder,sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user));
+            params.info.filename_ctrl=fullfile(localcachefolder,conn_tcpip('hash',sprintf('connserver_ctrl_%s_%s',params.info.host,params.info.user)));
             if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
                 fprintf('Connecting to %s... ',params.info.login_ip);
                 % starts a shared SSH connection

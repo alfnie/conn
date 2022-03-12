@@ -1579,7 +1579,8 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 	nconditions=length(CONN_x.Setup.conditions.names)-1;
-    if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'conditions')&&~isempty(CONN_x.gui.conditions), validconditions=CONN_x.gui.conditions; else validconditions=1:length(CONN_x.Setup.conditions.names)-1; end
+    runallconditions=true;
+    if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'conditions')&&~isempty(CONN_x.gui.conditions), validconditions=CONN_x.gui.conditions; runallconditions=false; else validconditions=1:length(CONN_x.Setup.conditions.names)-1; end
     icondition=[];isnewcondition=[];for ncondition=validconditions,[icondition(ncondition),isnewcondition(ncondition)]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition},'+'); end
     validconditions=validconditions(cellfun('length',CONN_x.Setup.conditions.model(validconditions))==0);     
 	h=conn_waitbar(0,['Step ',num2str(sum(options<=7)),'/',num2str(length(options)),': Denoising ROI data']);
@@ -1797,15 +1798,17 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
 %                 if str2num(version('-release'))>=14, save(filename,'-V6','data','names','xyz','source','conditionweights','conditionname');
 %                 else, save(filename,'data','names','xyz','source','conditionweights','conditionname');end
             end
-            names=X1{1}.names;
-            xyz=X1{1}.xyz;
-            filename=fullfile(filepathresults,['ROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(0,'%03d'),'.mat']);
-            source=X1{1}.source;
-            data=dataroiall;
-            data_sessions=dataroiall_sessions;
-            conditionsnames=C{1}.names;
-            conditionsnamesvalid=C{1}.names(validconditions);
-            save(filename,'data','names','xyz','source','crop','data_sessions',   'conditionsweights','conditionsnames','conditionsnamesvalid');
+            if runallconditions
+                names=X1{1}.names;
+                xyz=X1{1}.xyz;
+                filename=fullfile(filepathresults,['ROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(0,'%03d'),'.mat']);
+                source=X1{1}.source;
+                data=dataroiall;
+                data_sessions=dataroiall_sessions;
+                conditionsnames=C{1}.names;
+                conditionsnamesvalid=C{1}.names(validconditions);
+                save(filename,'data','names','xyz','source','crop','data_sessions',   'conditionsweights','conditionsnames','conditionsnamesvalid');
+            end
         end
         
         n=n+1;
@@ -3940,7 +3943,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     Xfilter=[Xfilter sparse(size(Xfilter,1),size(xfilter,2)); sparse(size(xfilter,1),size(Xfilter,2)) xfilter];
                     IDX_subject=cat(1,IDX_subject,nsub+zeros(size(y,1),1));
                     IDX_session=cat(1,IDX_session,X1.data_sessions);
-                    ok=cellfun(@(x)numel(x{1})==numel(X1.data_sessions),X1.conditionsweights);
+                    ok=cellfun(@(x)numel(x{1})==numel(X1.data_sessions),X1.conditionsweights,'ErrorHandler',@(varargin)false);
                     %if nsub==validsubjects(1), COND_names=X1.conditionsnames(ok); COND_weights=cell(1,nnz(ok)); end
                     ok1=find(ok&ismember(X1.conditionsnames(1:numel(ok)),COND_names));
                     [ok2,iok2]=ismember(COND_names,X1.conditionsnames(ok1));

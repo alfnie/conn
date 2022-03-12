@@ -1537,8 +1537,8 @@ if ishandle(hmsg), delete(hmsg); end
                             end
                         end
                     end
-                elseif isempty(state.Vrange)
-                    set(state.handles.colorbar,'visible',varargin{1});
+                %elseif isempty(state.Vrange)
+                %    set(state.handles.colorbar,'visible',varargin{1});
                 else
                     set(state.handles.colorbar,'visible',varargin{1});
                 end
@@ -1609,6 +1609,11 @@ if ishandle(hmsg), delete(hmsg); end
                     end
                 end
 
+            case 'print_fcn1'
+                fcn=varargin{1};
+                feval(fcn{1},[],[],fcn{2:end});
+                conn_mesh_display_refresh([],[],'colorbar','on');
+                
             case 'print'
                 str=varargin{1};
                 if numel(varargin)>1, pfilename=varargin{2}; options=varargin(3:end);
@@ -1616,14 +1621,17 @@ if ishandle(hmsg), delete(hmsg); end
                 end
                 back=state.reducedpatch;
                 conn_mesh_display_refresh([],[],'brain',[],1);
+                if str~=1&&isequal(get(state.handles.colorbar(1),'visible'),'on'), colorbaron=true; conn_mesh_display_refresh([],[],'colorbar','off'); addcolorbar=@(x){@conn_mesh_display_refresh,'print_fcn1',x};
+                else colorbaron=false; addcolorbar=@(x)x;
+                end
                 switch(str)
                     case 1, conn_print(state.handles.hfig,pfilename,options{:});
-                    case 2, conn_print(state.handles.hfig,pfilename,options{:},'-row',get(findobj(state.handles.hfig,'label','Left view'),'callback'),get(findobj(state.handles.hfig,'label','Right view'),'callback'));
-                    case 3, conn_print(state.handles.hfig,pfilename,options{:},'-mosaic3',get(findobj(state.handles.hfig,'label','Right view (both hem)'),'callback'),get(findobj(state.handles.hfig,'label','Superior view (flip)'),'callback'),get(findobj(state.handles.hfig,'label','Posterior view'),'callback'));
-                    case 4, conn_print(state.handles.hfig,pfilename,options{:},'-mosaic',get(findobj(state.handles.hfig,'label','Left view'),'callback'),get(findobj(state.handles.hfig,'label','Left medial view'),'callback'),get(findobj(state.handles.hfig,'label','Right view'),'callback'),get(findobj(state.handles.hfig,'label','Right medial view'),'callback'));
-                    case 5, conn_print(state.handles.hfig,pfilename,options{:},'-column',get(findobj(state.handles.hfig,'label','Left view'),'callback'),get(findobj(state.handles.hfig,'label','Right view'),'callback'),get(findobj(state.handles.hfig,'label','Left medial view'),'callback'),get(findobj(state.handles.hfig,'label','Right medial view'),'callback'));
-                    case 6, conn_print(state.handles.hfig,pfilename,options{:},'-row',get(findobj(state.handles.hfig,'label','Left view'),'callback'),get(findobj(state.handles.hfig,'label','Left medial view'),'callback'),get(findobj(state.handles.hfig,'label','Right medial view'),'callback'),get(findobj(state.handles.hfig,'label','Right view'),'callback'));
-                    case 7, conn_print(state.handles.hfig,pfilename,options{:},'-mosaic8',get(findobj(state.handles.hfig,'label','Left view'),'callback'),get(findobj(state.handles.hfig,'label','Left medial view'),'callback'),get(findobj(state.handles.hfig,'label','Anterior view'),'callback'),get(findobj(state.handles.hfig,'label','Right view'),'callback'),get(findobj(state.handles.hfig,'label','Right medial view'),'callback'),get(findobj(state.handles.hfig,'label','Posterior view'),'callback'),get(findobj(state.handles.hfig,'label','Superior view'),'callback'),get(findobj(state.handles.hfig,'label','Inferior view'),'callback'));
+                    case 2, conn_print(state.handles.hfig,pfilename,options{:},'-row',get(findobj(state.handles.hfig,'label','Left view'),'callback'),addcolorbar(get(findobj(state.handles.hfig,'label','Right view'),'callback')));
+                    case 3, conn_print(state.handles.hfig,pfilename,options{:},'-mosaic3',get(findobj(state.handles.hfig,'label','Right view (both hem)'),'callback'),get(findobj(state.handles.hfig,'label','Superior view (flip)'),'callback'),addcolorbar(get(findobj(state.handles.hfig,'label','Posterior view'),'callback')));
+                    case 4, conn_print(state.handles.hfig,pfilename,options{:},'-mosaic',get(findobj(state.handles.hfig,'label','Left view'),'callback'),get(findobj(state.handles.hfig,'label','Left medial view'),'callback'),get(findobj(state.handles.hfig,'label','Right view'),'callback'),addcolorbar(get(findobj(state.handles.hfig,'label','Right medial view'),'callback')));
+                    case 5, conn_print(state.handles.hfig,pfilename,options{:},'-column',get(findobj(state.handles.hfig,'label','Left view'),'callback'),get(findobj(state.handles.hfig,'label','Right view'),'callback'),get(findobj(state.handles.hfig,'label','Left medial view'),'callback'),addcolorbar(get(findobj(state.handles.hfig,'label','Right medial view'),'callback')));
+                    case 6, conn_print(state.handles.hfig,pfilename,options{:},'-row',get(findobj(state.handles.hfig,'label','Left view'),'callback'),get(findobj(state.handles.hfig,'label','Left medial view'),'callback'),get(findobj(state.handles.hfig,'label','Right medial view'),'callback'),addcolorbar(get(findobj(state.handles.hfig,'label','Right view'),'callback')));
+                    case 7, conn_print(state.handles.hfig,pfilename,options{:},'-mosaic8',get(findobj(state.handles.hfig,'label','Left view'),'callback'),get(findobj(state.handles.hfig,'label','Left medial view'),'callback'),get(findobj(state.handles.hfig,'label','Anterior view'),'callback'),get(findobj(state.handles.hfig,'label','Superior view'),'callback'),get(findobj(state.handles.hfig,'label','Inferior view'),'callback'),get(findobj(state.handles.hfig,'label','Right view'),'callback'),get(findobj(state.handles.hfig,'label','Right medial view'),'callback'),addcolorbar(get(findobj(state.handles.hfig,'label','Posterior view'),'callback')));
                 end
                 if back~=1, conn_mesh_display_refresh([],[],'brain',[],back); end
         end
@@ -1845,11 +1853,12 @@ for nview=1:3
         if ~isempty(Vrange)
             if all(Vrange>=0), minc1=Vrange(1); maxc1=Vrange(end);
             elseif all(Vrange<=0), minc1=-Vrange(2); maxc1=-Vrange(1);
-            else minc1=0; maxc1=Vrange(end);
+            else minc1=Vrange(1); maxc1=Vrange(end);
             end
         else
-            minc1=min(abs(z1(z1~=0))); maxc1=max(abs(z1(:)));
-            if nnz(z1<0)&nnz(z1>0), minc1=0; end
+            if nnz(z1<0)&nnz(z1>0), minc1=min(z1(:)); maxc1=max(z1(:));
+            else minc1=min(abs(z1(z1~=0))); maxc1=max(abs(z1(:)));
+            end
         end
         if 1,%state.smoother
             x=cat(3,interp2(x(:,:,1),2),interp2(x(:,:,2),2));
@@ -1873,7 +1882,9 @@ for nview=1:3
         Vrange=[];
     else
         %c1=c1/max(abs(c1)); % positive:red, negative:blue
-        c1=sign(c1).*max(0,min(1,(abs(c1)-minc1)/max(eps,maxc1-minc1)));
+        if nnz(z1<0)&nnz(z1>0), c1(c1>0)=c1(c1>0)/abs(maxc1); c1(c1<0)=c1(c1<0)/abs(minc1);
+        else c1=sign(c1).*max(0,min(1,(abs(c1)-minc1)/max(eps,maxc1-minc1)));
+        end
         c=cat(2,1-(c1<0)-c1.*max(0,c1-.5),max(0,1-2*abs(c1)),1-(c1>0)-c1.*min(0,c1+.5));
         %c=cat(2,.5+.5*tanh(50*(c1+.05))-c1.*max(0,c1-.5),max(0,1-2*abs(c1)),.5-.5*tanh(50*(c1-.05))-c1.*min(0,c1+.5));
         %c=cat(2,(c1>0),abs(c1),(c1<0));
@@ -1885,7 +1896,7 @@ for nview=1:3
         if isempty(Vrange)
             if ~any(c1<0), Vrange=[minc1 maxc1];
             elseif ~any(c1>0), Vrange=[-maxc1 -minc1];
-            else Vrange=[-maxc1 0 maxc1];
+            else Vrange=[minc1 0 maxc1];
             end
         end
     end

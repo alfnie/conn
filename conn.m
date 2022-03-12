@@ -1661,7 +1661,7 @@ else
             str={}; 
             try, str{end+1}=sprintf('Remote session address: %s',info.remote_ip); end
             try, str{end+1}=sprintf('Remote session access port: TCP/%d',info.remote_port); end
-            try, str{end+1}=sprintf('Remote session id: %s',info.remote_id); end
+            %try, str{end+1}=sprintf('Remote session id: %s',info.remote_id); end
             try, str{end+1}=sprintf('Remote session log folder: %s',info.remote_log); end
             try, str{end+1}=sprintf('Remote session start time: %s (%d minutes ago)',info.start_time,round((now-datenum(info.start_time))*24*60)); end
             try, str{end+1}=sprintf('SSH tunnel local port: TCP/%d',info.local_port); end

@@ -339,7 +339,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 filename=fullfile(fileparts(spmfile),'results.nii');
                 conn_vproject(GCF,[],'export_mask_selected',filename);
                 fh=conn_mesh_display(filename,'');
-                if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',4,options{:}); fh('close'); end
+                if ~isempty(regexp(OPTION,'print$')), fh('colorbar','on'); fh('background',[1 1 1]); fh('print',4,options{:}); fh('close'); end
                 %fh('zoomin');
                 return;
 
@@ -400,7 +400,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     end
                     fh('axis','on');
                 end
-                if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',3,options{:}); fh('close'); end
+                if ~isempty(regexp(OPTION,'print$')), fh('colorbar','on'); fh('background',[1 1 1]); fh('print',3,options{:}); fh('close'); end
                 return;
                 
             case 'spm_view'
