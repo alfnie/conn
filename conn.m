@@ -41,7 +41,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
          warning('off','MATLAB:DELETE:FileNotFound');
     end
     conn_backgroundcolor=.08*[1 1.05 1.1];                 % backgroundcolor
-    conn_backgroundcolorA=.14*[1 1.05 1.1];                % highlight
+    conn_backgroundcolorA=.12*[1 1.05 1.1];                % highlight
     if ismac, CONN_gui.uicontrol_border=2;            % crops borders GUI elements
     else      CONN_gui.uicontrol_border=2;
     end
@@ -127,7 +127,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
         drawnow;
         set(h,'fontunits','points');
         tfontsize=get(h,'fontsize');
-        conn_font_offset=max(-4,floor(tfontsize-8));
+        conn_font_offset=max(-4,floor(.8*(tfontsize-8)));
         %fprintf('Font size change %dpts to %dpts (%f %s)\n',8+CONN_gui.font_offset,8+conn_font_offset,tfontsize,mat2str([get(0,'screensize') get(gca,'position')]));
         CONN_gui.font_offset=conn_font_offset;
     end
@@ -2725,7 +2725,7 @@ else
                                             for n1=1:length(nsubs),
                                                 nsub=nsubs(n1);
                                                 if nses<=nsessmax(n1)
-                                                    if localcopy, conn_importvol2bids(deblank(filename(n1,:)),nsub,nses,'anat');
+                                                    if localcopy, conn_importvol2bids(deblank(filename(n0,:)),nsub,nses,'anat'); 
                                                     else CONN_x.Setup.structural{nsub}{nses}=conn_file(deblank(filename(n0,:)));
                                                     end
                                                     %V=conn_file(deblank(filename(n0,:)));
@@ -2756,7 +2756,7 @@ else
                                             nsess=intersect(nsessall,1:nsessmax(n1));
                                             for n2=1:length(nsess)
                                                 nses=nsess(n2);
-                                                if localcopy, conn_importvol2bids(deblank(filename(n1,:)),nsub,nses,'anat');
+                                                if localcopy, conn_importvol2bids(deblank(filename(n0,:)),nsub,nses,'anat');
                                                 else CONN_x.Setup.structural{nsub}{nses}=conn_file(deblank(filename(n0,:)));
                                                 end
                                                 %V=conn_file(deblank(filename(n0,:)));

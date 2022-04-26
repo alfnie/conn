@@ -55,6 +55,7 @@ switch(lower(option))
         else basefilename=CONN_x.filename;
         end
         if nargin>2, pobj=varargin{2};
+        elseif ~isfield(CONN_x,'pobj'), pobj=conn_projectmanager('null');
         else pobj=CONN_x.pobj;
         end
         if nargin>3, fext=varargin{3};
@@ -71,6 +72,7 @@ switch(lower(option))
         else localfilename=CONN_x.filename;
         end
         if nargin>2, pobj=varargin{2};
+        elseif ~isfield(CONN_x,'pobj'), pobj=conn_projectmanager('null');
         else pobj=CONN_x.pobj;
         end
         if nargin>3, fext=varargin{3};

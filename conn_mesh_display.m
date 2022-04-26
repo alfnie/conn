@@ -314,7 +314,7 @@ if isempty(hax0)
 else
     state.handles.hfig=hax0; while ~isequal(get(state.handles.hfig,'type'),'figure'), state.handles.hfig=get(state.handles.hfig,'parent'); end
     figure(state.handles.hfig);
-    set(state.handles.hfig,'menubar','none'); delete(findobj(hc,'type','uimenu')); 
+    set(state.handles.hfig,'menubar','none'); delete(findobj(state.handles.hfig,'type','uimenu')); 
     figname=get(state.handles.hfig,'name');
     phax0=get(hax0,'position');
     axes('units','norm','position',[phax0(1)+phax0(3) phax0(2) .05*phax0(3) phax0(4)]);

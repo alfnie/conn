@@ -33,6 +33,8 @@ function varargout=el(option,varargin)
 %           >> el preprocessing 408_FED_20160617a_3T2
 %
 %
+%   el('preprocessing.main',...) saves the output files in the same folder as the input data (typically a common "nii" directory within the subject folder)
+%   el('preprocessing.alt',...) saves the output files in a pipeline-specific directory named <pipelineID> within the subject folder
 %   el('preprocessing.append',subjectID, pipelineID, pipelineID_append) runs additional preprocessing steps to the (already previously preprocessed) functional&anatomical data
 %
 %      e.g.
@@ -43,7 +45,7 @@ function varargout=el(option,varargin)
 %   submitID = el('submit','preprocessing.append',subjectID, preprocessing_pipeline, preprocessing_pipeline_append) runs additional preprocessing steps on remote node
 %
 %      e.g.  
-%           >> el submit preprocessing 408_FED_20160617a_3T2
+%           >> el submit preprocessing.alt 408_FED_20160617a_3T2
 %      e.g.  
 %           >> el submit preprocessing.append 408_FED_20160617a_3T2 DefaultMNI_PlusStructural OnlyDenoise
 %
@@ -55,7 +57,7 @@ function varargout=el(option,varargin)
 %
 %   el('model',subjectID, pipelineID, experimentID [, modelOPTIONS]) runs first-level GLM model estimation step
 %      subjectID                : subject folder name (e.g. '408_FED_20160617a_3T2')
-%      pipelineID               : preprocessing pipeline that will be used as source of data in this analysis
+%      pipelineID               : preprocessing pipeline name that will be used as source of data in this analysis (use keyword 'main' or 'nii' to refer to preprocessing.main data output) 
 %      experimentID             : .cat file defining the experimental design associated with each functional run
 %                                   Alternatively, a experimentID is just a shortcut to a .cat file located in the subject directory and named "*_<experimentID>.cat"
 %      modelOPTIONS             : (optional) 
@@ -190,7 +192,7 @@ switch(lower(option))
         else [varargout{1:nargout}]=conn('submit',mfilename,varargin{:});
         end
         
-    case 'preprocessing'
+    case {'preprocessing','preprocessing.main','preprocessing.alt'}
         assert(numel(varargin)>=1,'incorrect usage >> el preprocessing subject_id [, pipeline_id]');
         % adapted from msieg preprocess_PL2017
         % el('preprocessing',subject_id [, preprocessing_pipeline])
@@ -216,8 +218,8 @@ switch(lower(option))
         
         %run preproc
         if strcmpi(option,'preprocessing.main')
-            [ok,msg]=mkdir(fullfile(subject_path,'nii'));
-            cd(fullfile(subject_path,'nii'));
+            % [ok,msg]=mkdir(fullfile(subject_path,'nii'));
+            % cd(fullfile(subject_path,'nii'));
             fileout=conn_module('evlab17','run_preproc',data_config_file,preproc_config_file,[],...
                 'alt_functionals_path', fullfile(subject_path,'func'), ...
                 'alt_structurals_path', fullfile(subject_path,'anat'), ...
@@ -406,7 +408,7 @@ switch(lower(option))
             cons=reshape(str(cellfun('length',str)>0),1,[]);
         else % back-compatibility
             all_contrasts_files=fullfile(el_readtaskfolder(defaults),'contrasts_by_expt.txt'); % single-file, all expt contrasts
-            assert(conn_existfile(all_contrasts_files), 'no contrast-file found\n');
+            assert(conn_existfile(all_contrasts_files), 'no contrast-file found in %s or in %s',contrasts_file,all_contrasts_files);
             fprintf('contrast file %s found\n',all_contrasts_files); 
             %if ~conn_existfile(all_contrasts_files), all_contrasts_files=fullfile(defaults.folder_subjects,'..','ANALYSIS','contrasts_by_expt.txt'); end
             str=conn_fileutils('fileread',all_contrasts_files);
@@ -423,6 +425,7 @@ switch(lower(option))
         cat_info=conn_loadcfgfile(char(cat_file),struct('path',el_readtaskfolder(defaults)));
         DOSAVECFG=defaults.create_model_cfg_files;
         opts=struct('dataset',char(dataset),'design',char(cat_file),'model_folder','root','model_name',expt,'contrasts',{cons});
+        if isequal(pipeline,'main')||isequal(pipeline,'nii'), opts.model_folder='root'; else opts.model_folder='preproc'; end
         if DOSAVECFG
             model_definition_file=conn_prepend('',char(cat_file),'.cfg');
             conn_savecfgfile(model_definition_file,opts);            
@@ -493,16 +496,22 @@ if isempty(dataset)
     assert(~isempty(files), 'unable to find any *.mat files in %s\n',subject_path);
     if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
     dataset=files{end};
+elseif isequal(dataset,'main')
+    files=conn_dir(fullfile(subject_path,'evlab17_*.mat'),'-cell');
+    assert(~isempty(files), 'unable to find any evlab17_*.mat files in %s\n',subject_path);
+    if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); fprintf('warning: multiple evlab17_*.mat files found, selecting last one %s\n',files{end}); end
+    dataset=files{end};
 elseif isequal(dataset,'nii')
-    files=conn_dir(fullfile(subject_path,'nii','evlab17*.mat'),'-ls');
-    assert(~isempty(files), 'unable to find any evlab17*.mat files in %s\n',fullfile(subject_path,'nii'));
-    if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); end
+    files=conn_dir(fullfile(subject_path,'nii','evlab17_*.mat'),'-ls');
+    assert(~isempty(files), 'unable to find any evlab17_*.mat files in %s\n',fullfile(subject_path,'nii'));
+    if numel(files)>1, [nill,tnames]=cellfun(@fileparts,files,'uni',0); [nill,idx]=sort(tnames); files=files(idx); fprintf('warning: multiple evlab17_*.mat files found, selecting last one %s\n',files{end}); end
     dataset=files{end};
 elseif ~isempty(regexp(dataset,'\.mat$')) % .mat file
     dataset=conn_fullfile(dataset);
 else % pipeline id
-    dataset=fullfile(defaults.folder_subjects,subject,[dataset,'.mat']);
-    if defaults.isremote, dataset=fullfile('/CONNSERVER',dataset); end
+    dataset=fullfile(subject_path,[dataset,'.mat']);
+    %dataset=fullfile(defaults.folder_subjects,subject,[dataset,'.mat']);
+    %if defaults.isremote, dataset=fullfile('/CONNSERVER',dataset); end
 end
 end
 

@@ -40,7 +40,7 @@ switch(option)
         end
         pos=get(CONN_h.screen.hfig,'position');
         if max(a(:))>1, a=double(a)/255; end
-        if ~strcmp(option,'setfilecolor')
+        if ~strcmp(option,'setfilecolor')&~strcmp(option,'setfiledefault')
             answer=conn_menu_inputdlg('Background image smoothing? (set to 0 for no smoothing)','',1,{'20'});
             if ~isempty(answer)&&~isempty(str2num(answer{1})), a=conn_guibackground_filter(a,str2num(answer{1})); end
         end

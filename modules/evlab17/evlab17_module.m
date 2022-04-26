@@ -237,7 +237,9 @@ switch(lower(option))
         varargout={false};
         try,
             %varargout={isdir(fullfile(conn_prepend('',filename,''),'results','firstlevel'))};
-            varargout={~isempty(conn_module('get','filename'))};
+            %varargout={~isempty(conn_module('get','filename'))};
+            tfilename=conn_module('get','filename'); 
+            varargout={~isempty(tfilename)&&isempty(regexp(tfilename,'[\\\/]evlab17_[^\\\/]*$'))}; % note: unnamed projects or projects named evlab17_* have their own (non-CONN) folder structure
         end
     case 'spm'
         evlab17_module init silent;

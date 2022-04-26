@@ -3,6 +3,7 @@ function [dataplot,infoplot,data1plot]=conn_vproject(param,nonparam,views,projec
 %
 global CONN_gui CONN_x;
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
+if isempty(CONN_gui)||~isfield(CONN_gui,'isremote'), CONN_gui.isremote=false; end
 %CONN_VPROJECT Volume display
 %
 
