@@ -213,6 +213,7 @@ reorient=[];
 respatialdef=[];
 coregtomean=1;
 rtm=0;
+rmask=1;
 coregsource={};
 applytofunctional=false;
 tpm_template=[];
@@ -341,6 +342,8 @@ for n1=1:2:numel(options)-1,
             coregtomean=options{n1+1};
         case 'rtm',
             rtm=options{n1+1};
+        case 'rmask',
+            rmask=options{n1+1};
         case 'coregsource', % note: deprecated over CONN_x.Setup.coregsource_functional field
             coregsource=options{n1+1};
         case 'reorient',
@@ -1009,7 +1012,7 @@ if parallel_N>0,
     info=conn_jobmanager('submit','setup_preprocessing',subjects,parallel_N,[],...
         STEPS,...
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
-        'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
+        'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
         'affreg',affreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
     if isequal(parallel_profile,find(strcmp('Null profile',conn_jobmanager('profiles')))),
@@ -1029,7 +1032,7 @@ elseif conn_projectmanager('inserver'),
     conn_process('setup_preprocessing',...
         STEPS,...
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
-        'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
+        'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
         'affreg',affreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
     return;
@@ -1039,7 +1042,7 @@ else
     CONN_x.SetupPreproc.log{end+1}={'timestamp',datestr(now),'ver_CONN',conn('ver'),'ver_SPM',spmver,'steps',...
         STEPS,...
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'sliceorder_select',sliceorder_select,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
-        'coregtomean',coregtomean,'rtm',rtm,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
+        'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
         'affreg',affreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func};
 end
@@ -2541,6 +2544,7 @@ for iSTEP=1:numel(STEPS)
                 end
                 matlabbatch{end}.spm.spatial.realign.estwrite.eoptions.rtm=rtm;
                 matlabbatch{end}.spm.spatial.realign.estwrite.roptions.which=[0,1];
+                matlabbatch{end}.spm.spatial.realign.estwrite.roptions.mask=rmask;
                 if isempty(matlabbatch{end}.spm.spatial.realign.estwrite.data), matlabbatch=matlabbatch(1:end-1); end
             end
             
@@ -2562,6 +2566,7 @@ for iSTEP=1:numel(STEPS)
                 end
                 matlabbatch{end}.spm.spatial.realign.estwrite.eoptions.rtm=rtm;
                 matlabbatch{end}.spm.spatial.realign.estwrite.roptions.which=[2,1];
+                matlabbatch{end}.spm.spatial.realign.estwrite.roptions.mask=rmask;
                 if isempty(matlabbatch{end}.spm.spatial.realign.estwrite.data), matlabbatch=matlabbatch(1:end-1); end
             end
             
@@ -2569,6 +2574,7 @@ for iSTEP=1:numel(STEPS)
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
                 matlabbatch{end+1}.spm.spatial.realignunwarp.eoptions.rtm=rtm;
+                matlabbatch{end}.spm.spatial.realignunwarp.uwroptions.mask=rmask; 
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
                 jses=0;
                 for nses=1:nsess
@@ -2590,6 +2596,7 @@ for iSTEP=1:numel(STEPS)
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
                 matlabbatch{end+1}.spm.spatial.realignunwarp.eoptions.rtm=rtm;
+                matlabbatch{end}.spm.spatial.realignunwarp.uwroptions.mask=rmask; 
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
                 jses=0;
                 for nses=1:nsess

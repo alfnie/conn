@@ -411,6 +411,7 @@ function varargout=conn_batch(varargin)
 %      Setup.preprocessing.roi_detrend     : (functional_roiextract) 1: detrends extracted BOLD timeseries [0]
 %      Setup.preprocessing.roi_scale       : (functional_roiextract) 1: scales extracted BOLD timeseries to PSC units (within each ROI) [1]
 %      Setup.preprocessing.rtm             : (functional_realign) 0: use first volume; 1: use mean volume [0]
+%      Setup.preprocessing.rmask           : (functional_realign) 1: applies implicit masking (voxels outside of field of view in >=1 image are set to NaN); [1]
 %      Setup.preprocessing.sliceorder      : (functional_slicetime) acquisition order (vector of indexes; 1=first slice in image; note: use cell
 %                                             array for subject-specific vectors)
 %                                            alternatively sliceorder may also be defined as one of the following strings: 'ascending',
