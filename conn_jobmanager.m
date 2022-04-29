@@ -554,8 +554,10 @@ else
                     end
                 end
                 if nargout, varargout={CFG}; end
-            else
+            elseif numel(varargin)>0
                 varargout={CFG.(varargin{1})};
+            else
+                varargout={CFG};
             end
             
         case 'submit' %('submit',strprocess,subjects,N,options)     ('submit',batch,[],N,options) 
