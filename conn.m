@@ -2686,11 +2686,11 @@ else
                                         nsess=intersect(nsessall,1:nsessmax(n1));
                                         for n2=1:length(nsess)
                                             nses=nsess(n2);
-                                            if localcopy, conn_importvol2bids(deblank(filename(n1,:)),nsub,[1,nses],'anat');
+                                            if localcopy, conn_importvol2bids(deblank(filename(n1,:)),nsub,[1,nses],'anat'); % note: importvol2bids will automatically import gray/white/csf files
                                             else CONN_x.Setup.structural{nsub}{nses}=conn_file(deblank(filename(n1,:)));
                                             end
                                             if conn_importaseg(fileparts(CONN_x.Setup.structural{nsub}{nses}{1}),[],true)
-                                                if isempty(askimport)
+                                                if isempty(askimport)&~localcopy
                                                     answ=conn_questdlg('Freesurfer aseg.mgz segmentation files found. Do you want to import Grey/White/CSF masks from these files?','','Yes','No','Yes');
                                                     if strcmp(answ,'Yes'), askimport=true;
                                                     else askimport=false;

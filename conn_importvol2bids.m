@@ -280,6 +280,14 @@ if docopy&&changed
 %                 else, [ok,nill]=system(['cp ''',tfilename,''' ''',outfile,'''']);
 %                 end
             end
+            if conn_importaseg(fileparts(filename),[],true), % import gray/white/csf masks from aseg.mgz
+                try,
+                    tfilename=conn_importaseg(fileparts(filename));
+                    for nseg=1:3
+                        CONN_x.Setup.rois.files{nsub(end)}{nseg}{nses(end)}=conn_file(tfilename{nseg});
+                    end
+                end
+            end
         end
     end
 end
