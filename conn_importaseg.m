@@ -35,7 +35,7 @@ else
     elseif ok2, 
         conn_disp('fprintf','Note: Files %s already exist. Skipping conversion\n',sprintf('%s ',filenames{:}));
     else
-        [nill,nill,filename]=conn_file(filename)
+        [nill,nill,filename]=conn_file(filename);
         a=spm_vol(filename);
         b=spm_read_vols(a);
         idxvoxels=b>0;
