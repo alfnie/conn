@@ -177,7 +177,9 @@ switch(lower(option))
                 try
                     var=conn_tcpip('read');
                 catch me,
-                    if ~isempty(regexp(me.message,'SocketTimeoutException')), fprintf('.');  % timeout
+                    if ~isempty(regexp(me.message,'SocketTimeoutException')), 
+                        fprintf('.');  % timeout
+                        conn_tcpip('writekeepalive');
                     elseif ~isempty(regexp(me.message,'EOFException|IOException|SocketException'))
                         error('ERROR: connection may be down');
                         %% restart
@@ -446,6 +448,7 @@ switch(lower(option))
     case {'cmd','command','cmd_capture'}
         singlecommand=nargout>0|~isempty(varargin);
         tnameserver=conn_tcpip('private.ip');
+        docapture=strcmpi(option,'cmd_capture');
         while 1
             if ~isempty(varargin), cmd=varargin{1}; opts=varargin(2:end);
             else
@@ -457,13 +460,15 @@ switch(lower(option))
                 case {'quit','exit'}, break;
                 otherwise
                     try
-                        if singlecommand,
+                        if singlecommand&&~docapture,
                             [varargout{1:nargout}]=conn_server('run','conn_server_cmd',cmd,opts{:});
                             %[varargout{1:nargout}]=conn_server('run','conn','cmd',cmd,opts{:});
                         else
                             str=conn_server('run','conn_server_cmd_capture',cmd);
                             %str=conn_server('run','conn','cmd_capture',cmd);
-                            disp(str);
+                            if docapture&&nargout>0, varargout={str};
+                            else disp(str);
+                            end
                         end
                     catch me
                         str=regexprep(char(getReport(me,'extended','hyperlinks','off')),'[\t ]+',' ');

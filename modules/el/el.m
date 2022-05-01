@@ -14,6 +14,7 @@ function varargout=el(option,varargin)
 %                                    By default this points to .../conn/modules/el, where several default pipelines already exist
 %   el remote on                         : work remotely (default 'off') (0/'off': when working with data stored locally on your computer; 1/'on': when working with data stored in a remote server -to enable this functionality on a remote server run on the remote server the command "conn remotely setup")
 %
+%
 % PREPROCESSING SYNTAX:
 %
 %   el('preprocessing',subjectID [, pipelineID]) imports (e.g. from DICOM) and preprocesses the functional&structural data for subject 'subjectID'
@@ -51,6 +52,7 @@ function varargout=el(option,varargin)
 %
 %   el('preprocessing.qa',subjectID, pipelineID) creates QA plots on already-preprocessed dataset
 %   el('preprocessing.qa.plot',subjectID, pipelineID) displays already-created QA plots
+%   el('preprocessing.open',subjectID, pipelineID) displays subject's data in CONN gui
 %
 %
 % MODEL SYNTAX:
@@ -106,7 +108,7 @@ conn_module('evlab17','init','silent');
 fileout=[];
 varargout=cell(1,nargout);
 
-if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','root.pipelines','remote','remotely','init','initforce','default','model.stats'})); % run these locally
+if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','root.pipelines','remote','remotely','init','initforce','default','model.stats','open','preprocessing.open'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,option,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{:}); 
@@ -382,6 +384,18 @@ switch(lower(option))
         dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
         assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
         conn_module('evlab17','qaplots',dataset,varargin{4:end});
+        
+    case {'open','preprocessing.open'}
+        assert(numel(varargin)>=1,'incorrect usage >> el open subject_id [,pipeline_id]');
+        [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
+        if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
+        dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
+        assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
+        conn_module evlab17 init silent;
+        conn_module('evlab17','load',dataset);
+        conn;
+        conn('load',conn_prepend('',dataset,'.mat'));
+        conn gui_setup;
         
     case {'model','firstlevel'}
         assert(numel(varargin)>=2,'incorrect usage >> el model subject_id, pipeline_id, model_id [, modeloptions]');

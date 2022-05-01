@@ -132,6 +132,8 @@ switch(lower(option))
                 end
             end
             connection.socket.setSoTimeout(1000*10);
+            %connection.socket.setReceiveBufferSize(1024*1024);
+            %connection.socket.setSendBufferSize(1024*1024);
             if disphelp
                 if ispc, [nill,str1]=system('hostname');
                 else [nill,str1]=system('hostname -f');
@@ -177,6 +179,8 @@ switch(lower(option))
             fprintf('Connecting to %s:%d...\n',connection.ip,connection.port);
             connection.channel=java.net.Socket();
             connection.channel.setSoTimeout(1000*60);
+            %connection.channel.setReceiveBufferSize(1024*1024);
+            %connection.channel.setSendBufferSize(1024*1024);
             addr=java.net.InetSocketAddress(connection.ip,connection.port);
             connection.channel.connect(addr);
             %connection.channel=java.net.Socket(connection.ip,connection.port);
