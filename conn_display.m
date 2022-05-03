@@ -197,7 +197,11 @@ if strcmp([filename,fileext],'ROI.mat'), % ROI-to-ROI analyses
 end
 hm=conn_msgbox({sprintf('Loading %s',SPMfilename),'please wait...'},''); 
 if fulld, SPM=struct; conn_loadmatfile(fullfile(filepath,[filename,fileext]),'SPM'); end
-if ~isfield(SPM.xX,'isSurface'), SPM.xX.isSurface=false; end
+if ~isfield(SPM.xX,'isSurface'), 
+    try, [SPM.xX.isSurface,SPM.xX.isMtx]=conn_surf_dimscheck(SPM.xY.VY(1).dim);
+    catch, SPM.xX.isSurface=false; 
+    end
+end
 issurface=SPM.xX.isSurface;
 if issurface&~iscell(THR), THR=max(2,THR); end % skips parametric options
 if isfield(SPM.xX,'isMtx')&&SPM.xX.isMtx % ROI-to-ROI analyses
