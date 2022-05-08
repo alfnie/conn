@@ -479,20 +479,24 @@ else
                 x=1+(CONN_MM.MENU{thishandle}.value==n1 & ~CONN_MM.MENU{thishandle}.state(n1))+2*CONN_MM.MENU{thishandle}.state(n1);
                 ximage=CONN_MM.CDATA{thishandle}{n1}{x};
                 if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, 
-                    ximage0=round(ximage);
                     ximage=max(0,min(1,ximage*1.5)); ximage=ximage.*repmat(.6+.3*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
                     if 0,%CONN_MM.MENU{thishandle}.order(1)~='h'
-                        ximagei=1;
-                        ximage(:,ximagei,:)=ximage0(:,ximagei,:); % left
-                        ximagei=size(ximage,2);
-                        ximage(:,ximagei,:)=ximage0(:,ximagei,:); % right
+                        ximage0=.5+0*round(ximage);
+                        if t4(n1)==0, ximagei1=ceil(min(size(ximage,1)*.05,8));
+                        else ximagei1=1;
+                        end
+                        if t4(n1)==1, ximagei3=size(ximage,1)+1-ceil(min(size(ximage,1)*.15,8));
+                        else ximagei3=size(ximage,1);
+                        end
+                        ximagei2=1;
+                        ximagei4=size(ximage,2)+1-ximagei2;
+                        ximage(ximagei1:ximagei3,ximagei2,:)=ximage0(ximagei1:ximagei3,ximagei2,:); % left
+                        ximage(ximagei1:ximagei3,ximagei4,:)=ximage0(ximagei1:ximagei3,ximagei4,:); % right
                         if t4(n1)==0, % top
-                            ximagei=1; 
-                            ximage(ximagei,:,:)=ximage0(ximagei,:,:);
+                            ximage(ximagei1,ximagei2:ximagei4,:)=ximage0(ximagei1,ximagei2:ximagei4,:);
                         end
                         if t4(n1+1)==1 % bottom
-                            ximagei=size(ximage,1); 
-                            ximage(ximagei,:,:)=ximage0(ximagei,:,:);
+                            ximage(ximagei3,ximagei2:ximagei4,:)=ximage0(ximagei3,ximagei2:ximagei4,:);
                         end
                     end
                 end
