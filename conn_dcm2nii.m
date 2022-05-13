@@ -270,7 +270,10 @@ if ~isfield(info,'SliceTiming') % slice-timing information info
     end
 end
 if ~isfield(info,'TotalReadoutTime') % total readout time info
-    if isfield(info,'BandwidthPerPixelPhaseEncode')&&numel(info.BandwidthPerPixelPhaseEncode)==1, 
+    if isfield(info,'EstimatedTotalReadoutTime'), 
+        info.TotalReadoutTime=info.EstimatedTotalReadoutTime;
+        info=rmfield(info,'EstimatedTotalReadoutTime');
+    elseif isfield(info,'BandwidthPerPixelPhaseEncode')&&numel(info.BandwidthPerPixelPhaseEncode)==1, 
         info.TotalReadoutTime=1/info.BandwidthPerPixelPhaseEncode;
         info=rmfield(info,'BandwidthPerPixelPhaseEncode');
     elseif isfield(info,'Private_0019_1028')&&~isempty(info.Private_0019_1028),

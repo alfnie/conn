@@ -179,12 +179,25 @@ if strcmp(fext,'.nii')&&((size(filename,1)>1) || (strcmp(tfileext1,'.img')&&isem
             conn_fileutils('spm_unlink',f{:});
         end
         changed=true;
+        if size(filename,1)>1 % if merging multiple compressed files, decompress first to temporal files in target folder
+            filename=cellstr(filename);
+            for n1=1:numel(filename)
+                [nill,tfileext1,tfileext2,tfilenum]=conn_fileparts(filename{n1});
+                if isequal(tfileext2,'.gz') 
+                    tfilename=conn_prepend('',out,['.part',num2str(n1),tfileext1,tfileext2]);
+                    conn_fileutils('copyfile',filename{n1},tfilename);
+                    filename{n1}=conn_gz2nii(tfilename);
+                    conn_fileutils('spm_unlink',tfilename);
+                end
+            end
+            filename=char(filename);
+        end
         a=conn_fileutils('spm_vol',filename);
         conn_fileutils('spm_file_merge',a,out);
         filename=out;
     end
 else % copy/link file
-    out=conn_prepend('',fullfile(newfilepath,newfilename),[tfileext1,tfileext2,tfilenum]); % keep extension of input file
+    out=conn_prepend('',fullfile(newfilepath,newfilename),[tfileext1,tfileext2,tfilenum]); % keep extension of input file (note: possible .gz included)
     if docopy && ~isequal(filename, out)
         f=conn_dir(conn_prepend('',out,'.*'),'-R');
         if ~isempty(f)

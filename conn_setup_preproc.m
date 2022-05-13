@@ -6,7 +6,10 @@ function [ok,matlabbatch,outputfiles,job_id]=conn_setup_preproc(STEPS,varargin)
 % runs preprocessing pipeline (default_*) or one/multiple individual preprocessing steps (structural_* and functional_*). Valid step names are (enter as cell array to run multiple sequential steps):
 %
 % conn_setup_preproc(steps,'param1_name',param1_value,'param2_name',param2_value,...)
-% defines additional non-default values for parameters specific to individual steps
+% defines additional non-default values for parameters specific to individual steps to be used in this preprocessing run
+%
+% conn_setup_preproc('settings', 'param1_name', param1_value, 'param2_name', param2_value, ...)
+% defines additional non-default values for parameters specific to individual steps to be used in ALL future calls to conn_setup_preproc (during the current Matlab session, or until a new conn_setup_preproc('settings',...) command)
 %
 % conn_setup_preproc('steps')
 % returns the full list of valid preprocessing-step names
@@ -16,6 +19,8 @@ function [ok,matlabbatch,outputfiles,job_id]=conn_setup_preproc(STEPS,varargin)
 
 
 global CONN_x CONN_gui;
+persistent fixed_options;
+
 PREFERSPM8OVERSPM12=false; % set to true if you prefer to use SPM8 procedures over SPM12 ones (when SPM12 is installed)
 ALLSETSPERMISSIONS=false;  % set to true if you want to allow dataset-1 or above preprocessing steps to import new ROIs, first-level covariates, or second-level covariates into your project
 if isdeployed, spmver12=true;
@@ -24,7 +29,10 @@ end
 if isfield(CONN_gui,'font_offset'),font_offset=CONN_gui.font_offset; else font_offset=0; end
 %if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, error('This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'); end
 if ~nargin, STEPS=''; varargin={'multiplesteps',1}; end
-options=varargin;
+if isequal(STEPS,'settings'), fixed_options=varargin; return; end
+if isempty(fixed_options), options=varargin;
+else options=[fixed_options, varargin]; 
+end
 steps={'default_mni','default_mnifield','default_mnidirectfield','default_ss','default_ssfield','default_ssnl',...
     'functional_surface_coreg&resample',...
     'structural_manualorient','structural_center','structural_segment',...
