@@ -3291,6 +3291,7 @@ for iSTEP=1:numel(STEPS)
                                 try, conn_setup_preproc_filedelete(fmap{1}); end
                                 spm_write_vol(newvol,pdemeaned);
                                 if isempty(ERT), ERT=1000*conn_jsonread(filename,'TotalReadoutTime'); end
+                                if isempty(ERT), ERT=1000*conn_jsonread(filename,'EstimatedTotalReadoutTime'); end
                                 if isempty(ERT), ERT=1000./conn_jsonread(filename,'BandwidthPerPixelPhaseEncode'); end
                                 if nses==1&&isempty(ERT), conn_disp('fprintf','warning: unable to find TotalReadoutTime or BandwidthPerPixelPhaseEncode information in %s\n',filename); end
                                 if isempty(ET1), ET1=1000*conn_jsonread(fmap{1},'EchoTime1'); end
@@ -3359,6 +3360,7 @@ for iSTEP=1:numel(STEPS)
                                 end
                                 fmap{1}=newfmap1; % avoids potential issues when using the same file across different sessions
                                 if isempty(ERT), ERT=1000*conn_jsonread(filename,'TotalReadoutTime'); end
+                                if isempty(ERT), ERT=1000*conn_jsonread(filename,'EstimatedTotalReadoutTime'); end
                                 if isempty(ERT), ERT=1000./conn_jsonread(filename,'BandwidthPerPixelPhaseEncode'); end
                                 if isempty(ERT), 
                                     PED=conn_jsonread(filename,'PhaseEncodingDirection',false); 
@@ -3398,6 +3400,7 @@ for iSTEP=1:numel(STEPS)
                                 end
                             elseif isequal(vdm_type,2)||(isempty(vdm_type)&&numel(fmap)==4), % Real1+Imag1+Real2+Imag2 [note: work in progress; needs further testing]
                                 if isempty(ERT), ERT=1000*conn_jsonread(filename,'TotalReadoutTime'); end
+                                if isempty(ERT), ERT=1000*conn_jsonread(filename,'EstimatedTotalReadoutTime'); end
                                 if isempty(ERT), ERT=1000./conn_jsonread(filename,'BandwidthPerPixelPhaseEncode'); end
                                 if nses==1&&isempty(ERT), conn_disp('fprintf','warning: unable to find TotalReadoutTime or BandwidthPerPixelPhaseEncode information in %s\n',filename); end
                                 if isempty(ET1), ET1=1000*conn_jsonread(fmap{1},'EchoTime'); end
