@@ -118,6 +118,7 @@ if keepnames
         end
     end
     newfilename=regexprep(newfilename,'\.gz$','');
+    % if isequal(fmod,'fmap'), end % placeholder: rename to single fieldmap file?
     out=fullfile(newfilepath,newfilename);
     [fpath,nill,nill]=fileparts(out);
     conn_fileutils('mkdir',fpath);
@@ -182,7 +183,7 @@ if strcmp(fext,'.nii')&&((size(filename,1)>1) || (strcmp(tfileext1,'.img')&&isem
         if size(filename,1)>1 % if merging multiple compressed files, decompress first to temporal files in target folder
             filename=cellstr(filename);
             for n1=1:numel(filename)
-                [nill,tfileext1,tfileext2,tfilenum]=conn_fileparts(filename{n1});
+                [tfileroot,tfileext1,tfileext2,tfilenum]=conn_fileparts(filename{n1});
                 if isequal(tfileext2,'.gz') 
                     tfilename=conn_prepend('',out,['.part',num2str(n1),tfileext1,tfileext2]);
                     conn_fileutils('copyfile',filename{n1},tfilename);
