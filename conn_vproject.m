@@ -2898,8 +2898,11 @@ h6=uicontrol('units','norm','position',[.1,.025,.4,.175],'style','pushbutton','s
 h7=uicontrol('units','norm','position',[.5,.025,.4,.175],'style','pushbutton','string','Cancel','callback','close(gcbf)');
 if nargin>=4&&isstruct(dogui), % run in parallel without prompting gui
     set(h2,'string',num2str(dogui.number_of_simulations));
-    set(h3,'value',1+~isremote);
     set(h5,'string',num2str(dogui.number_of_parallel_jobs));
+    assert(dogui.number_of_parallel_jobs>0 | ~isremote, 'Not possible to run this locally when working with remote projects, please specify a value greater than zero in ''number_of_parallel_jobs''');
+    if dogui.number_of_parallel_jobs>0, set(h3,'value',1+~isremote);
+    else set(h3,'value',1);
+    end
     dogui=false;
 end
 if nargin<4||dogui, uiwait(fh); end
