@@ -78,7 +78,7 @@ function hfigure=conn_display(SPMfilename,varargin)
 %                   [style=6] for alternative settings for network-level inferences: non-parametric statistics (network-level inferences, Network Based Statistics, Zalesky et al., 2010)
 %   hf          : output results explorer window handle (which can be used in advanced options described below)
 %
-% e.g. conn_display('/results/SPM.mat',1,3);
+% e.g. conn_display('/results/ROI.mat',1,3);
 %
 % ADVANCED OPTIONS FOR ROI-to-ROI RESULTS FIGURES (applied to an existing results figure)
 %

@@ -742,7 +742,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                         DATA.selectcluster=[];
                     end
                 end
-            case 'computeparametric'
+            case {'computenonparametric','computeparametric'}
                 if isempty(OPTION2), skipgui=false;
                 else skipgui=OPTION2;
                 end
@@ -756,7 +756,10 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 end
                 THR=DATA.thres{1};
                 SIDE=DATA.side;
-                if conn_vproject_randomise(spmfile,THR_TYPE,THR,~skipgui,CONN_gui.isremote);
+                if isstruct(skipgui), guiparams=skipgui;
+                else guiparams=~skipgui; 
+                end
+                if conn_vproject_randomise(spmfile,THR_TYPE,THR,guiparams,CONN_gui.isremote);
                     try, 
                         SIM=conn_loadmatfile(conn_vproject_simfilename(spmfile,THR_TYPE,THR)); 
                         if ~isfield(SIM,'VERSION'), SIM.VERSION=0; end
@@ -2890,9 +2893,15 @@ h3=uicontrol('style','popupmenu','units','norm','position',[.1,.2,.8,.15],'strin
 %h3=uicontrol('style','popupmenu','units','norm','position',[.1,.2,.8,.15],'string',[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)],'value',1,'callback',@conn_vproject_randomise_nowlater); 
 %h3=uicontrol('units','norm','position',[.1,.5,.8,.25],'style','popupmenu','string',{'Run simulations now','Run simulations later'},'callback',@conn_vproject_randomise_nowlater);
 h4=uicontrol('units','norm','position',[.1,.5,.4,.15],'style','text','string','# of parallel jobs: ','fontweight','bold','backgroundcolor',get(fh,'color'),'visible','off');
-h5=uicontrol('units','norm','position',[.5,.5,.4,.15],'style','edit','string',1,'visible','off','tooltipString','Number of parallel jobs to divide the permutation/randomization analyses');
+h5=uicontrol('units','norm','position',[.5,.5,.4,.15],'style','edit','string','1','visible','off','tooltipString','Number of parallel jobs to divide the permutation/randomization analyses');
 h6=uicontrol('units','norm','position',[.1,.025,.4,.175],'style','pushbutton','string','Start','callback','uiresume(gcbf)');
 h7=uicontrol('units','norm','position',[.5,.025,.4,.175],'style','pushbutton','string','Cancel','callback','close(gcbf)');
+if nargin>=4&&isstruct(dogui), % run in parallel without prompting gui
+    set(h2,'string',num2str(dogui.number_of_simulations));
+    set(h3,'value',1+~isremote);
+    set(h5,'string',num2str(dogui.number_of_parallel_jobs));
+    dogui=false;
+end
 if nargin<4||dogui, uiwait(fh); end
 if ishandle(fh),
     v2=str2num(get(h2,'string'));
