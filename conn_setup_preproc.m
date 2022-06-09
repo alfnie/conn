@@ -1128,7 +1128,7 @@ for iSTEP=1:numel(STEPS)
                         if numel(fileout)>1, fileout=fileout(1); end
                         Vin=spm_vol(char(filein));
                         Vout=Vin;
-                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[inf;inf;0]; Vout(nt).descrip='band-pass filtered'; end
+                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).dt=[spm_type('float32'),spm_platform('bigend')]; Vout(nt).descrip='band-pass filtered'; end
                         %Vout=struct('fname',char(fileout),...
                         %    'mat',Vin(1).mat,...
                         %    'dim',Vin(1).dim,...
@@ -1137,6 +1137,7 @@ for iSTEP=1:numel(STEPS)
                         %    'dt',[spm_type('float32'),spm_platform('bigend')],...
                         %    'descrip','band-pass filtered');
                         %Vout=repmat(Vout,[numel(Vin),1]);for nt=1:numel(Vin),Vout(nt).n=[nt,1];end
+                        spm_unlink(fileout{:});
                         Vout=spm_create_vol(Vout);
                         tr=conn_get_rt(nsubject,nses,sets);
                         [gridx,gridy]=ndgrid(1:Vin(1).dim(1),1:Vin(1).dim(2));
@@ -1177,11 +1178,15 @@ for iSTEP=1:numel(STEPS)
                         if numel(fileout)>1, fileout=fileout(1); end
                         Vin=spm_vol(char(filein));
                         Vout=Vin;
-                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[inf;inf;0]; Vout(nt).descrip='linear regressed'; end
+                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).dt=[spm_type('float32'),spm_platform('bigend')]; Vout(nt).descrip='linear regressed'; end
                         if any(reg_lag), Vlag=struct('fname',conn_prepend('lag_',filein{1}),'mat',Vin(1).mat,'dim',Vin(1).dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip','lag (samples)'); end % note: lag in target wrt regressors
                         if ~reg_skip,
+                            spm_unlink(fileout{:});
                             Vout=spm_create_vol(Vout);
-                            if any(reg_lag), Vlag=spm_create_vol(Vlag); end
+                            if any(reg_lag), 
+                                spm_unlink(conn_prepend('lag_',filein{1}));
+                                Vlag=spm_create_vol(Vlag); 
+                            end
                         end
                         lagidx=[];
                         lagmax=[];
@@ -1420,6 +1425,7 @@ for iSTEP=1:numel(STEPS)
                         Vin=spm_vol(char(filein));
                         Vout=Vin;
                         for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).descrip='masked'; end
+                        spm_unlink(fileout{:});
                         Vout=spm_create_vol(Vout);
                         if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
                         else maskval=0;
@@ -1483,6 +1489,7 @@ for iSTEP=1:numel(STEPS)
                         Vin=spm_vol(char(filein));
                         Vout=Vin;
                         for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).descrip='masked'; end
+                        spm_unlink(fileout{:});
                         Vout=spm_create_vol(Vout);
                         if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
                         else maskval=0;
@@ -1947,6 +1954,7 @@ for iSTEP=1:numel(STEPS)
                             if numel(fileout)>1, fileout=fileout(1); end
                             Vout=Vin;
                             for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).descrip='masked'; end
+                            spm_unlink(fileout{:});
                             Vout=spm_create_vol(Vout);
                             if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
                             else maskval=0;
@@ -1966,6 +1974,7 @@ for iSTEP=1:numel(STEPS)
                                 Vmask=cat(1,Vmask,reshape(spm_vol(temp),[],1));
                                 Vmaskout{nmask}=Vin(1);
                                 Vmaskout{nmask}.fname=char(conn_prepend('cL_',temp)); Vmaskout{nmask}.pinfo=[1;0;0]; Vmaskout{nmask}.descrip='lesion mask';
+                                spm_unlink(char(conn_prepend('cL_',temp)));
                                 Vmaskout{nmask}=spm_create_vol(Vmaskout{nmask});
                                 outputfiles{isubject}{nses}{8+nmask-1}=char(conn_prepend('cL_',temp));
                             end
