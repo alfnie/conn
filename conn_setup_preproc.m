@@ -1128,7 +1128,7 @@ for iSTEP=1:numel(STEPS)
                         if numel(fileout)>1, fileout=fileout(1); end
                         Vin=spm_vol(char(filein));
                         Vout=Vin;
-                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).descrip='band-pass filtered'; end
+                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[inf;inf;0]; Vout(nt).descrip='band-pass filtered'; end
                         %Vout=struct('fname',char(fileout),...
                         %    'mat',Vin(1).mat,...
                         %    'dim',Vin(1).dim,...
@@ -1177,7 +1177,7 @@ for iSTEP=1:numel(STEPS)
                         if numel(fileout)>1, fileout=fileout(1); end
                         Vin=spm_vol(char(filein));
                         Vout=Vin;
-                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).descrip='linear regressed'; end
+                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[inf;inf;0]; Vout(nt).descrip='linear regressed'; end
                         if any(reg_lag), Vlag=struct('fname',conn_prepend('lag_',filein{1}),'mat',Vin(1).mat,'dim',Vin(1).dim,'n',[1,1],'pinfo',[1;0;0],'dt',[spm_type('float32'),spm_platform('bigend')],'descrip','lag (samples)'); end % note: lag in target wrt regressors
                         if ~reg_skip,
                             Vout=spm_create_vol(Vout);
@@ -1419,7 +1419,7 @@ for iSTEP=1:numel(STEPS)
                         if numel(fileout)>1, fileout=fileout(1); end
                         Vin=spm_vol(char(filein));
                         Vout=Vin;
-                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).descrip='masked'; end
+                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).descrip='masked'; end
                         Vout=spm_create_vol(Vout);
                         if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
                         else maskval=0;
@@ -1482,7 +1482,7 @@ for iSTEP=1:numel(STEPS)
                         if numel(fileout)>1, fileout=fileout(1); end
                         Vin=spm_vol(char(filein));
                         Vout=Vin;
-                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).descrip='masked'; end
+                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).descrip='masked'; end
                         Vout=spm_create_vol(Vout);
                         if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
                         else maskval=0;
@@ -1946,7 +1946,7 @@ for iSTEP=1:numel(STEPS)
                             fileout=conn_prepend('m',filein);
                             if numel(fileout)>1, fileout=fileout(1); end
                             Vout=Vin;
-                            for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).pinfo=[1;0;0]; Vout(nt).descrip='masked'; end
+                            for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).descrip='masked'; end
                             Vout=spm_create_vol(Vout);
                             if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
                             else maskval=0;
@@ -3136,7 +3136,7 @@ for iSTEP=1:numel(STEPS)
                         vol=spm_vol(char(temp));
                         volout=vol;
                         %voloutmask=vol(1); voloutmask.fname=conn_prepend('p',vol(1).fname); voloutmask.mat=vol(1).mat; voloutmask.dim=vol(1).dim; voloutmask.pinfo=[1;0;0]; voloutmask.dt=[spm_type('float32') spm_platform('bigend')];
-                        for n=1:numel(vol),volout(n).fname=conn_prepend('m',vol(n).fname); volout(n).mat=vol(1).mat; volout(n).dim=vol(1).dim; volout(n).pinfo=[1;0;0]; end
+                        for n=1:numel(vol),volout(n).fname=conn_prepend('m',vol(n).fname); volout(n).mat=vol(1).mat; volout(n).dim=vol(1).dim; end
                         [gridx,gridy,gridz]=ndgrid(1:vol(1).dim(1),1:vol(1).dim(2),1:vol(1).dim(3));xyz=vol(1).mat*[gridx(:),gridy(:),gridz(:),ones(numel(gridx),1)]';
                         tempout=conn_prepend('m',temp); spm_unlink(tempout{:});
                         volout=spm_create_vol(volout);
