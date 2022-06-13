@@ -21,6 +21,9 @@ function varargout=fl(STEPS,varargin)
 %       [subject_id].cfg file in $FLDATA/[Experiment_code]/config/FL/IMPORT detailing original functional/structural files and first-level design information (see subject_info in HELP FL)
 %   Output in $FLDATA/[Experiment_code]/sub-[subject_id]
 %
+%   fl('IMPORT.BIDS2DERIV',subject_id)
+%      same as above but outputs data in $FLDATA/[Experiment_code]/derivatives/FL/raw/sub-[subject_id]
+%
 %   fl('IMPORT.DICOM2NII',subject_id) 
 %      performs only the dicom-to-nifti conversion of subject /scanner/dicom folder
 %
@@ -349,11 +352,13 @@ switch(lower(STEPS))
         conn_dcmconvert(fullfile(dataset,'scanner','*'),'folderout',fullfile(dataset,'scanner'));
         %if strcmpi(STEPS,'import.dicom'), fl('import.func',varargin{:}); end
         
-    case {'import','import.func','import.anat','import.dicoms','import.dicom'}  % import ACE01
+    case {'import','import.func','import.anat','import.dicoms','import.dicom','import.bids2deriv'}  % import ACE01
         assert(numel(varargin)>=1,'incorrect usage: please specify subject_id')
         subject_id=varargin{1};
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
-        dataset=fullfile(OUTPUT_FOLDER,project_id,sprintf('sub-%s',subject_id));
+        if strcmpi(STEPS,'import.bids2deriv'), dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL','raw',sprintf('sub-%s',subject_id));
+        else dataset=fullfile(OUTPUT_FOLDER,project_id,sprintf('sub-%s',subject_id));
+        end
         subject_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('',subject_id,'.cfg'));
         issubject_info=conn_existfile(subject_info);
         opts={};

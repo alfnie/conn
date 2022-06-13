@@ -1851,7 +1851,9 @@ if isfield(batch,'Results'),
                     CONN_x.Results.xX.nmeasures=zeros(1,length(batch.Results.between_measures.effect_names));
                     CONN_x.Results.xX.nmeasuresbyname=cell(1,length(batch.Results.between_measures.effect_names));
                     for neffect=1:length(batch.Results.between_measures.effect_names),
-                        idx=strmatch(batch.Results.between_measures.effect_names{neffect},conn_v2v('cleartext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures),'exact');
+                        if isnumeric(batch.Results.between_measures.effect_names), idx=batch.Results.between_measures.effect_names(neffect);
+                        else idx=strmatch(batch.Results.between_measures.effect_names{neffect},conn_v2v('cleartext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures),'exact');
+                        end
                         if isempty(idx), error(['unknown measure ',batch.Results.between_measures.effect_names{neffect}]); return;
                         else
                             CONN_x.Results.xX.nmeasuresbyname(neffect)=conn_v2v('cleartext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures(idx(1)));
@@ -1886,7 +1888,9 @@ if isfield(batch,'Results'),
                     CONN_x.Results.xX.nsources=zeros(1,length(batch.Results.between_sources.effect_names));
                     CONN_x.Results.xX.nsourcesbyname=cell(1,length(batch.Results.between_sources.effect_names));
                     for neffect=1:length(batch.Results.between_sources.effect_names),
-                        idx=strmatch(batch.Results.between_sources.effect_names{neffect},CONN_x.Analyses(CONN_x.Analysis).sources,'exact');
+                        if isnumeric(batch.Results.between_measures.effect_names), idx=batch.Results.between_sources.effect_names(neffect);
+                        else idx=strmatch(batch.Results.between_sources.effect_names{neffect},CONN_x.Analyses(CONN_x.Analysis).sources,'exact');
+                        end
                         if isempty(idx), idx=strmatch(batch.Results.between_sources.effect_names{neffect},CONN_x.Analyses(CONN_x.Analysis).sources); end
                         if isempty(idx), error(['unknown source ',batch.Results.between_sources.effect_names{neffect}]); return;
                         elseif numel(idx)>1, error(['multiple possible matches to source ',batch.Results.between_sources.effect_names{neffect}]); return;
