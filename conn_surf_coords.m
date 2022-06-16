@@ -4,7 +4,7 @@ function xyz_vol = conn_surf_coords(xyz_surf,ctype)
 % xyz_vol = conn_surf_coords(xyz_surf,ctype)
 %   xyz_surf : [Nx1] 1d index to node in two-hemisphere surface (indexes from 1 to 163842*2)
 %              OR [Nx3] 3d index to node in two-hemisphere surface volume (indexes from [1 1 1] to [42 83 94])
-%   ctype    : reference surface: 'volume','sphere','inflated','semiinflated'
+%   ctype    : reference surface: 'volume' (lh|rh.mid.surf), 'sphere' (conn_surf_sphere),'inflated' (lh|rh.inflated.surf), 'semiinflated' (lh|rh.pial.smoothed.surf)
 %   xyz_vol  : [Nx3] 3d world-coordinates of corresponding node in reference surface
 %
 
@@ -14,8 +14,8 @@ if nargin<2||isempty(ctype), ctype='inflated'; end
 if isempty(xyz_sphere),
     xyz_sphere=conn_surf_sphere;
     xyz_sphere=60*[xyz_sphere.vertices',xyz_sphere.vertices'];
-    xyz_volume_left=conn_surf_readsurf(fullfile(fileparts(which('conn')),'utils','surf','lh.white.surf'));
-    xyz_volume_right=conn_surf_readsurf(fullfile(fileparts(which('conn')),'utils','surf','rh.white.surf'));
+    xyz_volume_left=conn_surf_readsurf(fullfile(fileparts(which('conn')),'utils','surf','lh.mid.surf'));
+    xyz_volume_right=conn_surf_readsurf(fullfile(fileparts(which('conn')),'utils','surf','rh.mid.surf'));
     xyz_volume=[xyz_volume_left.vertices',xyz_volume_right.vertices'];
     xyz_inflated_left=conn_surf_readsurf(fullfile(fileparts(which('conn')),'utils','surf','lh.inflated.surf'));
     xyz_inflated_right=conn_surf_readsurf(fullfile(fileparts(which('conn')),'utils','surf','rh.inflated.surf'));

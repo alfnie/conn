@@ -13,6 +13,10 @@ options=struct(...
     'plotsamples',true,...
     'plotmeans',true,...
     'plotmedians',false,...
+    'plothist',true,...
+    'plotquart',false,...
+    'styleviolin',true,...
+    'forcekernel',false,...
     'colors',[],...
     'edgecolor','none');
 if numel(varargin)>0, for n=2:2:numel(varargin), assert(isfield(options,varargin{n-1}),'unrecognized option %s',varargin{n-1}); options.(varargin{n-1})=varargin{n}; end; end
@@ -32,21 +36,23 @@ for nvar=1:nx
     if isequal(options.convert,'logit100'), tx=cellfun(@(x)2*atanh(2*max(.5/numel(x),min(1-.5/numel(x),x/100))-1),tx,'uni',0); end
     minx=min(cellfun(@min,tx));
     maxx=max(cellfun(@max,tx));
-    if nargin<2||isempty(h), th=(maxx-minx)/sqrt(max(cellfun(@numel,tx)));
+    if nargin<2||isempty(h), th=(maxx-minx)/sqrt(max(cellfun(@numel,tx)))
     else th=h;
     end
-    X=linspace(minx-3*th,maxx+3*th,options.nsamples);
+    X=linspace(minx-1*th,maxx+1*th,options.nsamples);
     P=zeros(numel(tx),options.nsamples);
     for ngroup=1:numel(tx)
         ttx=reshape(tx{ngroup},[],1);
-        if numel(ttx)>10*options.nsamples
-            P(ngroup,:)=hist(ttx,X);
-        elseif numel(ttx)<numel(X)
-            p=0;
-            for n=1:numel(ttx), p=p+exp(-(X-ttx(n)).^2/th^2/2); end
-            P(ngroup,:)=p;
-        else
-            for n=1:numel(X), P(ngroup,n)=sum(exp(-(X(n)-ttx).^2/th^2/2)); end
+        if options.plothist
+            if ~options.forcekernel&&numel(ttx)>10*options.nsamples
+                P(ngroup,:)=hist(ttx,X);
+            elseif numel(ttx)<numel(X)
+                p=0;
+                for n=1:numel(ttx), p=p+exp(-(X-ttx(n)).^2/th^2/2); end
+                P(ngroup,:)=p;
+            else
+                for n=1:numel(X), P(ngroup,n)=sum(exp(-(X(n)-ttx).^2/th^2/2)); end
+            end
         end
     end
     if isequal(options.convert,'logit100'), X=100*(1+tanh(X/2))/2; tx=cellfun(@(x)100*(1+tanh(x/2))/2,tx,'uni',0); end
@@ -57,16 +63,20 @@ for nvar=1:nx
         Xall=cat(3,Xall,X');
     else
         maxp=max(sum(P,1));
-        pleft=-sum(P,1)/maxp/2;
+        if options.styleviolin, pleft=-sum(P,1)/maxp/2;
+        else pleft=zeros(1,size(P,2)); 
+        end
         for n=1:size(P,1)
             p=P(n,:)/maxp;
-            patch(nvar+options.offset+options.scale*[pleft,fliplr(pleft+p)],[X,fliplr(X)],'k','facecolor',options.colors(n,:),'edgecolor',options.edgecolor);
+            if options.plothist, patch(nvar+options.offset+options.scale*[pleft,fliplr(pleft+p)],[X,fliplr(X)],'k','facecolor',options.colors(n,:),'edgecolor',options.edgecolor); end
             pleft=pleft+p;
         end
         ttx=[]; for n=1:numel(tx), ttx=[ttx,tx{n}(:)']; end
-        if options.plotsamples, hold on; plot(nvar+zeros(numel(ttx),1),sort(ttx(:)),'b.'); hold off; end
-        if options.plotmeans, hold on; plot(nvar,mean(ttx(:)),'ko','markerfacecolor','k'); hold off; end
-        if options.plotmedians, hold on; plot(nvar,median(ttx(:)),'ko','markerfacecolor','k'); hold off; end
+        if options.plotsamples, hold on; plot(nvar+options.offset+zeros(numel(ttx),1),sort(ttx(:)),'b.','markersize',1); hold off; end
+        if options.plotmeans, hold on; plot(nvar+options.offset,mean(ttx(:)),'wo','markerfacecolor',options.colors(end,:)); hold off; end
+        if options.plotmedians, hold on; plot(nvar+options.offset,median(ttx(:)),'wo','markerfacecolor',options.colors(end,:)); hold off; end
+        %if options.plotmedians, [nill,idx]=max(pleft); hold on; plot(nvar+options.offset,X(idx),'wo','markerfacecolor',options.colors(end,:)); hold off; end
+        if options.plotquart, hold on; plot(nvar+options.offset+[0 0],[prctile(ttx(:),25) prctile(ttx(:),75)],'k','linewidth',2,'color',options.colors(end,:)); hold off; end
         drawnow
     end
 end

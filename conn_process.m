@@ -3361,7 +3361,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 if ~ismtxC, C=permute(C,[1,4,2,3,5,6]); end
                                 clear filesout filesoutCov cache;
                                 for nsub=1:CONN_x.Setup.nsubjects
-                                    for ncondition=1:nconditions,
+                                    for ncondition=validconditions,
                                         for ndim=1:NdimsOut
                                             filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
                                             conn_fileutils('deletefile',filename); % delete all conditions to avoid mix-up of different models
@@ -3438,12 +3438,12 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                             Q=Q(:,1:NdimsOut);
                                             %dr=sqrt(abs(d(1:NdimsOut)));
                                             %dr=1./sqrt(mean(abs(Q-repmat(mean(Q,1),size(Q,1),1)).^2,1))';
-                                            dr=sqrt(size(Q,1))+zeros(NdimsOut,1);
+                                            dr=sqrt(size(Q,1))+zeros(NdimsOut,1); % note: scaled to mean(q^2)=1
                                             doflip=mean(sign(Q(1:end-1+rem(size(Q,1),2),:)),1)<0;
                                             dr(doflip)=-dr(doflip);
                                             Q=conn_bsxfun(@times,Q,dr');
                                             xEig(:,:,ivox(nvox))=Q;
-                                            dCov(:,ivox(nvox))=cumsum(d(1:NdimsOut).^2)./max(eps,sum(d.^2));
+                                            dCov(:,ivox(nvox))=cumsum(d(1:NdimsOut))./max(eps,sum(d)); % note: this d corresponds to D^2 in manuscript (as c1 above is R*R')
                                             if maxvoxels>=NdimsOut, for ndim=1:NdimsOut, Qglobal(:,:,ndim)=Qglobal(:,:,ndim)+Q(:,ndim)*Q(:,ndim)'; end; 
                                             else for ndim=1:NdimsOut, conn_mtx('addtoblock',Qglobal,ndim,Q(:,ndim)*Q(:,ndim)'); end; 
                                             end
@@ -3497,7 +3497,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                         elseif measures.measuretype{nmeasure}==3||measures.measuretype{nmeasure}==4 % group-ICA, group-PCA
                             clear filesout cache;
                             for nsub=1:CONN_x.Setup.nsubjects % note: delete/reset these files even if only computing group-level analyses
-                                for ncondition=1:nconditions,
+                                for ncondition=validconditions,
                                     for ndim=1:NdimsOut
                                         filename=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'_Measure',num2str(imeasure(nmeasure),'%03d'),'_Component',num2str(ndim,'%03d'),'.nii']);
                                         conn_fileutils('deletefile',filename); % delete all conditions to avoid mix-up of different models
@@ -5089,17 +5089,23 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                             SPM.xX_multivariate.F=zeros([size(results_F,1),size(results_F,2),SPM.xY.VY(1).dim(1:3)]); SPM.xX_multivariate.F(:,:,mask)=results_F;
                         else
                             mask=ones(SPM.xY.VY(1).dim(1:3));
-                            [gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(2),1:SPM.xY.VY(1).dim(3));
+                            %[gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(2),1:SPM.xY.VY(1).dim(3));
+                            [gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(1),1:SPM.xY.VY(1).dim(2));
                             xyz0=[gridx(:),gridy(:)]';
                             DOINCLUDEDOF=false; % note: placeholder for future voxel-specific dof values implementation
                             donefirst=false;
-                            for n2=1:SPM.xY.VY(1).dim(1)
-                                xyz=[n2+zeros(1,size(xyz0,2)); xyz0; ones(1,size(xyz0,2))];
+                            %for n2=1:SPM.xY.VY(1).dim(1)
+                            for n2=1:SPM.xY.VY(1).dim(3)
+                                %xyz=[n2+zeros(1,size(xyz0,2)); xyz0; ones(1,size(xyz0,2))];
+                                xyz=[xyz0; n2+zeros(1,size(xyz0,2)); ones(1,size(xyz0,2))];
                                 y=spm_get_data(SPM.xY.VY(:)',xyz);
                                 maskthis=~any(isnan(y),1)&any(diff(y,1,1)~=0,1);
-                                mask(n2,:,:)=reshape(maskthis,[1 SPM.xY.VY(1).dim(2:3)]);
+                                %mask(n2,:,:)=reshape(maskthis,[1 SPM.xY.VY(1).dim(2:3)]);
+                                mask(:,:,n2)=reshape(maskthis,[SPM.xY.VY(1).dim(1:2)]);
                                 if any(maskthis)
-                                    y=reshape(y,size(SPM.xY.VY,1),size(SPM.xY.VY,2),SPM.xY.VY(1).dim(2),SPM.xY.VY(1).dim(3));
+                                    fmaskthis=find(maskthis);
+                                    %y=reshape(y,size(SPM.xY.VY,1),size(SPM.xY.VY,2),SPM.xY.VY(1).dim(2),SPM.xY.VY(1).dim(3));
+                                    y=reshape(y,size(SPM.xY.VY,1),size(SPM.xY.VY,2),SPM.xY.VY(1).dim(1),SPM.xY.VY(1).dim(2));
                                     results_p=[];
                                     if ~donefirst
                                         donefirst=true;
@@ -5114,14 +5120,18 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                                         else [results_h,results_F]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M); 
                                         end
                                     end
-                                    SPM.xX_multivariate.h(:,:,n2,maskthis)=results_h;
-                                    SPM.xX_multivariate.F(:,:,n2,maskthis)=results_F;
+                                    %SPM.xX_multivariate.h(:,:,n2,maskthis)=results_h;
+                                    %SPM.xX_multivariate.F(:,:,n2,maskthis)=results_F;
+                                    SPM.xX_multivariate.h(:,:,(n2-1)*prod(SPM.xY.VY(1).dim(1:2))+fmaskthis)=results_h;
+                                    SPM.xX_multivariate.F(:,:,(n2-1)*prod(SPM.xY.VY(1).dim(1:2))+fmaskthis)=results_F;                                    
                                     if DOINCLUDEDOF, 
                                         if size(results_dof,3)==1&&nnz(maskthis)>1, results_dof=repmat(results_dof,[1,1,nnz(maskthis)]); end
-                                        SPM.xX_multivariate.dof(:,:,n2,maskthis)=results_dof; 
+                                        %SPM.xX_multivariate.dof(:,:,n2,maskthis)=results_dof; 
+                                        SPM.xX_multivariate.dof(:,:,(n2-1)*prod(SPM.xY.VY(1).dim(1:2))+fmaskthis)=results_dof;
                                     end
                                 end
-                                conn_waitbar(1/2+1/2*((n1-1+(.5+.5*~doboth)*(n2/SPM.xY.VY(1).dim(1)))/(length(SPMall))),h,sprintf('Analysis %d',n1));
+                                %conn_waitbar(1/2+1/2*((n1-1+(.5+.5*~doboth)*(n2/SPM.xY.VY(1).dim(1)))/(length(SPMall))),h,sprintf('Analysis %d',n1));
+                                conn_waitbar(1/2+1/2*((n1-1+(.5+.5*~doboth)*(n2/SPM.xY.VY(1).dim(3)))/(length(SPMall))),h,sprintf('Analysis %d',n1));
                             end
                         end
                         if size(SPM.xX_multivariate.F,1)==1&&size(SPM.xX_multivariate.F,2)==1

@@ -203,7 +203,7 @@ if isremote, OUTPUT_FOLDER=fullfile('/CONNSERVER',rootfolder);
 else OUTPUT_FOLDER=rootfolder; 
 end
 
-if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','remotely','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete','firstlevel.stats','voice'})); % run these locally
+if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','remotely','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete','firstlevel.stats','voice','secondlevel.plot'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,STEPS,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,STEPS,varargin{:}); 
@@ -847,7 +847,7 @@ switch(lower(STEPS))
                     end
                 elseif numel(varargin)>1, % subj_id pipeline_id
                     pipeline_id=varargin{2};
-                    files=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,'SPM.mat'),'-cell','-sort');
+                    files=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id),'SPM.mat'),'-cell','-sort');
                     [files,nill]=cellfun(@fileparts,files,'uni',0);
                     firstlevel_id=regexprep(files,'^.*[\\\/]derivatives[\\\/]FL[\\\/]',''); %[nill,firstlevel_id]=cellfun(@fileparts,files,'uni',0);
                     firstlevel_id=unique(firstlevel_id);
@@ -861,7 +861,7 @@ switch(lower(STEPS))
                     pipeline_id=conn_dir(fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL','*'),'-cell','-sort','-R','-dir');
                     [nill,pipeline_id]=cellfun(@fileparts,pipeline_id,'uni',0);
                     pipeline_id=pipeline_id(cellfun('length',regexprep(pipeline_id,'^\.+',''))>0);
-                    if isempty(pipeline_id), fprintf('no preprocessing pipelines run\n')
+                    if isempty(pipeline_id), fprintf('no preprocessing pipelines found in %s\n',fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL','*'))'
                     else
                         if ~nargout, disp(char(pipeline_id));
                         else varargout={pipeline_id};

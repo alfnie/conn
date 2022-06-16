@@ -10,7 +10,7 @@ evlab17_module init silent;
 
 % interprets info
 cwd=pwd;
-if isdir(filename), filename=fullfile(filename,'SPM.mat'); end
+if conn_existfile(filename,2), filename=fullfile(filename,'SPM.mat'); end
 assert(conn_existfile(filename),'file %s not found',filename);
 [nill,nill,ext]=spm_fileparts(filename);
 if strcmp(ext,'.cfg')

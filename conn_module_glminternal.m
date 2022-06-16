@@ -231,17 +231,23 @@ if issurface&&isempty(maskfile), maskfile=fullfile(fileparts(which(mfilename)),'
 if ~isempty(maskfile), vmaskfile=spm_vol(char(maskfile)); end
 if issurface||ismatrix||ismember(secondlevelanalyses,[1 3]) % nonparametric stats
     mask=ones(SPM.xY.VY(1).dim(1:3));
-    [gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(2),1:SPM.xY.VY(1).dim(3));
+    %[gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(2),1:SPM.xY.VY(1).dim(3));
+    [gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(1),1:SPM.xY.VY(1).dim(2));
     xyz0=[gridx(:),gridy(:)]';
     donefirst=false;
-    for n2=1:SPM.xY.VY(1).dim(1)
-        xyz=[n2+zeros(1,size(xyz0,2)); xyz0; ones(1,size(xyz0,2))];
+    %for n2=1:SPM.xY.VY(1).dim(1)
+    for n2=1:SPM.xY.VY(1).dim(3)
+        %xyz=[n2+zeros(1,size(xyz0,2)); xyz0; ones(1,size(xyz0,2))];
+        xyz=[xyz0; n2+zeros(1,size(xyz0,2)); ones(1,size(xyz0,2))];
         y=spm_get_data(SPM.xY.VY(:)',xyz);
         maskthis=~any(isnan(y),1)&any(diff(y,1,1)~=0,1);
         if ~isempty(maskfile), maskthis=maskthis&all(spm_get_data(vmaskfile,pinv(vmaskfile(1).mat)*SPM.xY.VY(1).mat*xyz)>0,1); end
-        mask(n2,:,:)=reshape(maskthis,[1 SPM.xY.VY(1).dim(2:3)]);
+        %mask(n2,:,:)=reshape(maskthis,[1 SPM.xY.VY(1).dim(2:3)]);
+        mask(:,:,n2)=reshape(maskthis,[SPM.xY.VY(1).dim(1:2)]);
         if any(maskthis)
-            y=reshape(y,size(SPM.xY.VY,1),size(SPM.xY.VY,2),SPM.xY.VY(1).dim(2),SPM.xY.VY(1).dim(3));
+            fmaskthis=find(maskthis);
+            %y=reshape(y,size(SPM.xY.VY,1),size(SPM.xY.VY,2),SPM.xY.VY(1).dim(2),SPM.xY.VY(1).dim(3));
+            y=reshape(y,size(SPM.xY.VY,1),size(SPM.xY.VY,2),SPM.xY.VY(1).dim(1),SPM.xY.VY(1).dim(2));
             if ~donefirst
                 donefirst=true;
                 [results_h,results_F,nill,SPM.xX_multivariate.dof,SPM.xX_multivariate.statsname]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M);
@@ -250,8 +256,10 @@ if issurface||ismatrix||ismember(secondlevelanalyses,[1 3]) % nonparametric stat
             else
                 [results_h,results_F]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M);
             end
-            SPM.xX_multivariate.h(:,:,n2,maskthis)=results_h;
-            SPM.xX_multivariate.F(:,:,n2,maskthis)=results_F;
+            %SPM.xX_multivariate.h(:,:,n2,maskthis)=results_h;
+            %SPM.xX_multivariate.F(:,:,n2,maskthis)=results_F;
+            SPM.xX_multivariate.h(:,:,(n2-1)*prod(SPM.xY.VY(1).dim(1:2))+fmaskthis)=results_h;
+            SPM.xX_multivariate.F(:,:,(n2-1)*prod(SPM.xY.VY(1).dim(1:2))+fmaskthis)=results_F;
         end
     end
     if ~donefirst, error('Please check your data: There are no inmask voxels'); end
@@ -276,14 +284,18 @@ elseif ismember(secondlevelanalyses,[1 2]) % volume-based parametric stats
     if ~isempty(maskfile), 
         if isempty(mask)
             mask=ones(SPM.xY.VY(1).dim(1:3));
-            [gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(2),1:SPM.xY.VY(1).dim(3));
+            %[gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(2),1:SPM.xY.VY(1).dim(3));
+            [gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(1),1:SPM.xY.VY(1).dim(2));
             xyz0=[gridx(:),gridy(:)]';
-            for n2=1:SPM.xY.VY(1).dim(1)
-                xyz=[n2+zeros(1,size(xyz0,2)); xyz0; ones(1,size(xyz0,2))];
+            %for n2=1:SPM.xY.VY(1).dim(1)
+            for n2=1:SPM.xY.VY(1).dim(3)
+                %xyz=[n2+zeros(1,size(xyz0,2)); xyz0; ones(1,size(xyz0,2))];
+                xyz=[xyz0; n2+zeros(1,size(xyz0,2)); ones(1,size(xyz0,2))];
                 y=spm_get_data(SPM.xY.VY(:)',xyz);
                 maskthis=~any(isnan(y),1)&any(diff(y,1,1)~=0,1);
                 if ~isempty(maskfile), maskthis=maskthis&all(spm_get_data(vmaskfile,pinv(vmaskfile(1).mat)*SPM.xY.VY(1).mat*xyz)>0,1); end
-                mask(n2,:,:)=reshape(maskthis,[1 SPM.xY.VY(1).dim(2:3)]);
+                %mask(n2,:,:)=reshape(maskthis,[1 SPM.xY.VY(1).dim(2:3)]);
+                mask(:,:,n2)=reshape(maskthis,[SPM.xY.VY(1).dim(1:2)]);
             end
         end
         V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','originalmask.nii','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('uint8') spm_platform('bigend')]);

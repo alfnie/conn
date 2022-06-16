@@ -72,7 +72,7 @@ ht5=conn_menu('hist',boffset+[.57,.15,.21,.16],''); %'Cumulative percent varianc
 uicontrol('style','text','units','norm','position',boffset+[.57,.080,.21,.045],'string','explained variance (%)','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB); 
 %ht5=conn_menu('image2',boffset+[.62,.09,.21,.22],''); %'Cumulative percent variance (%)');
 conn_menu('update',ht4,{permute(Bref,[2,1,3]),permute(B(:,:,:,1),[2,1,3,4]),permute(abs(B(:,:,:,1)),[2,1,3,4])},{struct('mat',vol(1).mat,'dim',vol(1).dim),[]});
-set(ht4.h10,'string',num2str(80));
+set(ht4.h10,'string',num2str(50));
 conn_menu('updatethr',[],[],ht4.h10);
 % set(ht1,'max',2,'value',1);
 % set(ht2,'max',2,'value',1);
@@ -167,7 +167,7 @@ fh=@conn_mvpaexplore_update;
         end
 
         if doreset(3)
-            thr=str2num(get(ht4.h10,'string')); if isempty(thr), thr=80; end
+            thr=str2num(get(ht4.h10,'string')); if isempty(thr), thr=50; end
             thr=max(1,min(100,round(thr)));
             conn_menu('updatehist',ht5,{[0,0:100,100],[0,prctBgm(:,max(nfacselected))',0],[0,prctBwm(:,max(nfacselected))',0]});
             maxnfacselected=max(nfacselected);

@@ -654,7 +654,10 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                         if iscell(validconditions), validconditions=find(ismember(CONN_x.Setup.conditions.names(1:end-1),validconditions)); end
                         if isempty(validconditions)||any(arrayfun(@(n)any(C{nses}.weights{n}{1}>0),validconditions))
                             if numel(k)~=numel(x0valid)
-                                if numel(x0valid)^2*numel(nsubs)>1e8, k=randperm(numel(x0valid))<=sqrt(1e8/numel(nsubs));
+                                if numel(x0valid)^2*numel(nsubs)>1e8, 
+                                    rscurrent=rand('seed');rand('seed',0);
+                                    k=randperm(numel(x0valid))<=sqrt(1e8/numel(nsubs));
+                                    rand('seed',rscurrent);
                                 else k=true(size(x0valid));
                                 end
                             end
@@ -697,8 +700,10 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
         FC_X0=FC_X0./max(eps,FC_N); FC_X0(FC_N==0)=nan;
         FC_X1=FC_X1./max(eps,FC_N); FC_X1(FC_N==0)=nan;
         measures={FC_X0,FC_X1};
+        rscurrent=rand('seed');rand('seed',0); 
         temp=reshape(FC_X0,[],size(FC_X0,3))';[nill,idx]=sort(rand(size(temp)),1); temp=temp(idx+repmat(size(temp,1)*(0:size(temp,2)-1),size(temp,1),1)); measures{3}=reshape(temp',size(FC_X0));
         temp=reshape(FC_X1,[],size(FC_X1,3))';[nill,idx]=sort(rand(size(temp)),1); temp=temp(idx+repmat(size(temp,1)*(0:size(temp,2)-1),size(temp,1),1)); measures{4}=reshape(temp',size(FC_X1));
+        rand('seed',rscurrent);
         R={};D={};P={};
         for nmeasure=1:numel(measures)
             y=measures{nmeasure};

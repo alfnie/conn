@@ -246,22 +246,33 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'dt',[spm_type('float32') spm_platform('bigend')],'fname',fullfile(filepath,filename),'descrip',descrip);
                     V=conn_fileutils('spm_write_vol',V,maskselected.*tempT.*double(b(:,:,:,end)>0));
                     try, conn_fileutils('spm_jsonwrite',conn_prepend('',fullfile(filepath,filename),'.json'),struct('description',sprintf('%s ; %s ; %s',descrip1,descrip2,descrip3)),struct('indent',' ')); end
-                    conn_disp('fprintf','Suprathreshold stats file saved as %s\n',V.fname);
+                    conn_disp('fprintf','Results suprathreshold stats file (with voxel-level stats at each suprathreshold voxel) saved as %s\n',V.fname);
                     
-                    V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'dt',[spm_type('float32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.Mask.nii']),'descrip',descrip);
-                    V=conn_fileutils('spm_write_vol',V,maskselected.*double(b(:,:,:,end)>0));
-                    %conn_disp('fprintf','Mask file saved as %s\n',V.fname);
-                    try, conn_fileutils('spm_jsonwrite',fullfile(filepath,[filename_name,'.json']),struct('HeightThreshold',descrip1,'SizeThreshold',descrip2,'Stats',descrip3)); end
-                    
-                    V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'dt',[spm_type('float32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.nonthr.nii']),'descrip',descrip);
-                    V=conn_fileutils('spm_write_vol',V,tempT);
-                    %conn_disp('fprintf','Non-thresholded stats file saved as %s\n',V.fname);
-                    
+                    try, 
+                        conn_exportlist(DATA.handles(8),fullfile(filepath,[filename_name,'.Table.tsv']),get(DATA.handles(7),'string'),[],false,true); 
+                        conn_disp('__nolog','fprintf','Results table saved as %s\n',fullfile(filepath,[filename_name,'.Table.tsv']));
+                    end
+%                         %fh=fopen(fullfile(filepath,[filename_name,'.Table.txt']),'at');
+%                         str={};
+%                         str{end+1}=sprintf('\n\n');
+%                         for nbtemp=1:numel(DATA.clusters),
+%                             str{end+1}=sprintf('\nCluster ');
+%                             str{end+1}=sprintf('%+d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)');
+%                             str{end+1}=sprintf(' :\n');
+%                             tstr=DATA.clusternames{nbtemp}.txt;
+%                             for n=1:numel(tstr),str{end+1}=sprintf('%s\n',tstr{n});end
+%                         end
+%                         str{end+1}=sprintf('\nAll clusters combined :\n');
+%                         tstr=DATA.clusternames{end}.txt;
+%                         for n=1:numel(tstr),str{end+1}=sprintf('%s\n',tstr{n});end
+%                         %fclose(fh);
+%                         conn_fileutils('fileappend_raw',fullfile(filepath,[filename_name,'.Table.txt']),str);
+%                     end
+
                     V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'pinfo',[1;0;0],'dt',[spm_type('uint32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.ROIs.nii']),'descrip',descrip);
                     btemp=zeros(size(b(:,:,:,1)));
                     for nbtemp=1:numel(DATA.clusters), btemp(DATA.clusters{nbtemp})=nbtemp; end
                     V=conn_fileutils('spm_write_vol',V,btemp);
-                    conn_disp('fprintf','ROI file saved as %s\n',V.fname);
                     str={};
                     %fh=fopen(fullfile(filepath,[filename_name,'.ROIs.txt']),'wt');
                     for nbtemp=1:numel(DATA.clusters),
@@ -270,32 +281,58 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     end
                     %fclose(fh);
                     conn_fileutils('filewrite_raw',fullfile(filepath,[filename_name,'.ROIs.txt']),str);
+                    conn_disp('__nolog','fprintf','Results ROI file (defining one ROI for each suprathreshold cluster) saved as %s\n',V.fname);
 
+                    V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'dt',[spm_type('float32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.Mask.nii']),'descrip',descrip);
+                    V=conn_fileutils('spm_write_vol',V,maskselected.*double(b(:,:,:,end)>0));
+                    %conn_disp('fprintf','Mask file saved as %s\n',V.fname);
+                    try, conn_fileutils('spm_jsonwrite',fullfile(filepath,[filename_name,'.json']),struct('HeightThreshold',descrip1,'SizeThreshold',descrip2,'Stats',descrip3)); end
+                    conn_disp('__nolog','fprintf','Results suprathreshold mask file (with 1/0 values identifying suprathreshold voxels) saved as %s\n',V.fname);
+                    
+                    V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'dt',[spm_type('float32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.nonthr.nii']),'descrip',descrip);
+                    V=conn_fileutils('spm_write_vol',V,tempT);
+                    conn_disp('__nolog','fprintf','Results unthresholded stats file (with voxel-level stats at all voxels) saved as %s\n',V.fname);
+                    
+                    V=struct('mat',mat{1},'dim',size(b(:,:,:,1)),'pinfo',[1;0;0],'dt',[spm_type('uint32') spm_platform('bigend')],'fname',fullfile(filepath,[filename_name,'.anat.nii']),'descrip',descrip);
+                    btemp=zeros(size(b(:,:,:,1)));
+                    mbtemp=0; sizebtemp=[]; 
+                    for nbtemp=1:numel(DATA.clusters), 
+                        %tempsizebtemp=accumarray(DATA.clusternames{nbtemp}.anat(:),1)'; % measure to sort: size
+                        tempsizebtemp=accumarray(DATA.clusternames{nbtemp}.anat(:),abs(tempT(DATA.clusters{nbtemp}(:))),[],@max)'; % measure to sort: maximum voxel-level stats
+                        sizebtemp=[sizebtemp, [nbtemp+0*tempsizebtemp; 1:numel(tempsizebtemp); tempsizebtemp]]; mbtemp=mbtemp+numel(tempsizebtemp); 
+                    end
+                    [nill,idxbtemp]=sort(-sizebtemp(end,:)); rankbtemp=idxbtemp; rankbtemp(idxbtemp)=1:numel(idxbtemp);  % sort output regions by measure above
+                    mbtemp=0; for nbtemp=1:numel(DATA.clusters), btemp(DATA.clusters{nbtemp})=rankbtemp(mbtemp+DATA.clusternames{nbtemp}.anat); mbtemp=mbtemp+sum(sizebtemp(1,:)==nbtemp); end
+                    V=conn_fileutils('spm_write_vol',V,btemp);
+                    str={};
+                    %fh=fopen(fullfile(filepath,[filename_name,'.ROIs.txt']),'wt');
+                    for ibtemp=reshape(idxbtemp,1,[])
+                        str{end+1}=[sprintf('cluster %d/%d peak %.1f: ',sizebtemp(1,ibtemp),numel(DATA.clusters),sizebtemp(3,ibtemp)),DATA.clusternames{sizebtemp(1,ibtemp)}.txt{sizebtemp(2,ibtemp)}];
+                        str{end+1}=sprintf('\n');
+                    end
+                    %fclose(fh);
+                    conn_fileutils('filewrite_raw',fullfile(filepath,[filename_name,'.anat.txt']),str);
+                    conn_disp('__nolog','fprintf','Results anatomical reference atlas file (conjunction of anatomical reference atlas and suprathreshold clusters) saved as %s\n',V.fname);
+
+                    str={sprintf('ROI\tVoxels\tPeak statistics\tMNI coordinates (mm)\n')};
+                    for ibtemp=reshape(idxbtemp,1,[])
+                        tn=str2double(regexp(DATA.clusternames{sizebtemp(1,ibtemp)}.txt{sizebtemp(2,ibtemp)},'^\d+','match','once'));
+                        tstr=regexprep(DATA.clusternames{sizebtemp(1,ibtemp)}.txt{sizebtemp(2,ibtemp)},'^\d+ voxels \(\d+%\) covering ','');
+                        tstr=regexp(tstr,' with center at ','split');
+                        str{end+1}=sprintf('%s\t%d\t%.1f\t%s\n',tstr{1},tn(1),sizebtemp(3,ibtemp),tstr{2});
+                    end
+                    conn_fileutils('filewrite_raw',fullfile(filepath,[filename_name,'.anat.tsv']),str);
+                    conn_disp('__nolog','fprintf','Results anatomical reference table saved as %s\n',fullfile(filepath,[filename_name,'.anat.tsv']));
 
                     if (DATA.thres{2}==3||DATA.thres{2}==4), 
-                        [tx,ty,tz]=ind2sub(size(b(:,:,:,1)), find(DATA.f&b(:,:,:,end)>0));
+                        tidx=find(DATA.f&b(:,:,:,end)>0);
+                        [tx,ty,tz]=ind2sub(size(b(:,:,:,1)), tidx);
                         txyz=mat{1}*[tx(:) ty(:) tz(:) ones(numel(tx),1)]';
+                        [nill,tidx]=sort(-abs(tempT(tidx))); % sorts TFCE scores in in descending order
+                        txyz=txyz(:,tidx);
                         conn_createmniroi(fullfile(filepath,[filename_name,'.PEAKs.nii']),txyz(1:3,:)',5);
                     end
                     
-                    try, conn_exportlist(DATA.handles(8),fullfile(filepath,[filename_name,'.Table.txt']),get(DATA.handles(7),'string')); end
-                    try
-                        %fh=fopen(fullfile(filepath,[filename_name,'.Table.txt']),'at');
-                        str={};
-                        str{end+1}=sprintf('\n\n');
-                        for nbtemp=1:numel(DATA.clusters),
-                            str{end+1}=sprintf('\nCluster ');
-                            str{end+1}=sprintf('%+d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)');
-                            str{end+1}=sprintf(' :\n');
-                            tstr=cellstr(DATA.clusternames{nbtemp}.txt);
-                            for n=1:numel(tstr),str{end+1}=sprintf('%s\n',tstr{n});end
-                        end
-                        str{end+1}=sprintf('\nAll clusters combined :\n');
-                        tstr=cellstr(DATA.clusternames{end}.txt);
-                        for n=1:numel(tstr),str{end+1}=sprintf('%s\n',tstr{n});end
-                        %fclose(fh);
-                        conn_fileutils('fileappend_raw',fullfile(filepath,[filename_name,'.Table.txt']),str);
-                    end
 
 %                     [peaks,peaks_idx]=conn_peaks({tempT,mat{1}},12);
 %                     peaks_suprathreshold=b(peaks_idx+size(b,1)*size(b,2)*size(b,3))>0;
@@ -1236,7 +1273,7 @@ if strcmp(views,'full'),
             %if isempty(selectcluster), selectcluster=length(clusters)+1; end
             if selectcluster<=length(clusters), select=clusters{selectcluster}; clusternames=clusternames{selectcluster}.txt; titleclusternames=sprintf('Selected cluster %d/%d',selectcluster,length(clusters));
             elseif (isempty(selectcluster)||selectcluster==length(clusters)+1)&&~isempty(clusternames), select=[]; clusternames=clusternames{length(clusters)+1}.txt; titleclusternames=''; %'All suprathreshold voxels:';
-            else, select=[]; clusternames=[]; titleclusternames=''; end
+            else, select=[]; clusternames={}; titleclusternames=''; end
         end
         %M={[-1,0,0;0,0,-1;0,-1,0],[0,-1,0;0,0,-1;-1,0,0],[-1,0,0;0,1,0;0,0,1]};
         M={[1,0,0;0,0,-1;0,1,0],[0,-1,0;0,0,-1;1,0,0],[1,0,0;0,-1,0;0,0,-1]};
@@ -1277,7 +1314,7 @@ if strcmp(views,'full'),
         %image(round(convn(convn(tplot(round(1:.5:end),round(1:.5:end),:),conn_hanning(3)/2,'same'),conn_hanning(3)'/2,'same')));axis equal; axis off;
         %image(tplot);axis equal; axis off;
         data1plot=DATA.stdprojections{4};
-        if ~isempty(clusternames),set(DATA.handles(12),'string',cellstr(clusternames),'value',[],'visible','on'); %set(DATA.handles(10),'string',titleclusternames); 
+        if ~isempty(clusternames),set(DATA.handles(12),'string',clusternames,'value',[],'visible','on'); %set(DATA.handles(10),'string',titleclusternames); 
         else, set(DATA.handles(12),'string','','value',1,'visible','off'); %set(DATA.handles(10),'string',''); 
         end
         if (DATA.thres{2}==3||DATA.thres{2}==4), set(DATA.handles(13),'string',['TFCE > ',num2str(DATA.ithres(1),'%0.2f')]);
@@ -2109,16 +2146,26 @@ if ~isempty(idxvoxels),
         for n1=1:length(idxclu)+1,
             if n1<=length(idxclu),xyztemp=xyzrois(idx2{sidxn(idxclu(n1))},:);
             else, xyztemp=xyzrois(cat(2,idx2{sidxn(idxclu)}),:); end;
-            v=spm_get_data(refsrois.V,pinv(refsrois.V(1).mat)*mat{1}*[xyztemp,ones(size(xyztemp,1),1)]');
+            xyztemp=mat{1}*[xyztemp,ones(size(xyztemp,1),1)]';
+            v=spm_get_data(refsrois.V,pinv(refsrois.V(1).mat)*xyztemp);
             if numel(refsrois.V)>1, [nill,v]=max(v,[],1); v(~nill)=0; end
-            uv=unique(v);
+            [uv,nill,iv]=unique(v);
             clusternames{n1}.uvb=zeros(1,length(uv));for n2=1:length(uv),clusternames{n1}.uvb(n2)=sum(v==uv(n2));end
+            clusternames{n1}.anat=iv;
+            clusternames{n1}.xyz=zeros(3,length(uv)); 
+            for n2=1:length(uv), 
+                txyz=xyztemp(1:3,v==uv(n2));
+                mxyz=mean(txyz,2);
+                [nill,i]=min(sum(abs(txyz-repmat(mxyz,1,size(txyz,2))).^2,1));
+                clusternames{n1}.xyz(:,n2)=round(txyz(1:3,i)); % return point within ROI closest to ROI-centroid
+            end
             clusternames{n1}.uvc=refsrois.count(1+uv);
             clusternames{n1}.uvd={refsrois.labels{refsrois.labelsidx(1+uv)}};
-            [nill,uvidx]=sort(-clusternames{n1}.uvb+1e10*(uv==0));
-            clusternames{n1}.uvb=clusternames{n1}.uvb(uvidx);clusternames{n1}.uvc=clusternames{n1}.uvc(uvidx);clusternames{n1}.uvd={clusternames{n1}.uvd{uvidx}};
-            clusternames{n1}.txt=cell(1,length(uv)); for n2=1:length(uv),clusternames{n1}.txt{n2}=[num2str(clusternames{n1}.uvb(n2)),' voxels (',num2str(round(100*clusternames{n1}.uvb(n2)/size(xyztemp,1))),'%) covering ',num2str(clusternames{n1}.uvb(n2)/clusternames{n1}.uvc(n2)*100,'%0.0f'),'% of ',refsrois.filenameshort,'.',clusternames{n1}.uvd{n2}]; end
-            clusternames{n1}.txt=strvcat(clusternames{n1}.txt{:});
+            [nill,uvidx]=sort(-clusternames{n1}.uvb+1e10*(uv==0)); rankvidx=uvidx; rankvidx(uvidx)=1:numel(uvidx);
+            clusternames{n1}.uvb=clusternames{n1}.uvb(uvidx);clusternames{n1}.uvc=clusternames{n1}.uvc(uvidx);clusternames{n1}.uvd={clusternames{n1}.uvd{uvidx}};clusternames{n1}.xyz=clusternames{n1}.xyz(:,uvidx);clusternames{n1}.anat=rankvidx(clusternames{n1}.anat);
+            clusternames{n1}.txt=cell(1,length(uv)); for n2=1:length(uv),clusternames{n1}.txt{n2}=sprintf('%d voxels (%d%%) covering %0.0f%% of %s with center at (%+d,%+d,%+d)',clusternames{n1}.uvb(n2),round(100*clusternames{n1}.uvb(n2)/size(xyztemp,2)),clusternames{n1}.uvb(n2)/clusternames{n1}.uvc(n2)*100,clusternames{n1}.uvd{n2}, clusternames{n1}.xyz(1,n2),clusternames{n1}.xyz(2,n2),clusternames{n1}.xyz(3,n2)); end
+            %clusternames{n1}.txt=cell(1,length(uv)); for n2=1:length(uv),clusternames{n1}.txt{n2}=[num2str(clusternames{n1}.uvb(n2)),' voxels (',num2str(round(100*clusternames{n1}.uvb(n2)/size(xyztemp,1))),'%) covering ',num2str(clusternames{n1}.uvb(n2)/clusternames{n1}.uvc(n2)*100,'%0.0f'),'% of ',refsrois.filenameshort,'.',clusternames{n1}.uvd{n2}]; end
+            %clusternames{n1}.txt=strvcat(clusternames{n1}.txt{:});
         end
     end
 %     clusternames={clusternames{idxclu,1},clusternames{idxclu(idxclulast),2}};

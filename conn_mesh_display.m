@@ -259,8 +259,9 @@ if doinit
     else
         V=V.*(abs(V)>THR);
     end
+    %conn_surf_write('test.surf.nii',V);
     if size(V,3)==2, V=abs(V(:,:,1))-abs(V(:,:,2));
-    elseif size(V,3)>2, [nill,V]=max(abs(conn_surf_smooth(V)),[],3); V(nill==0)=0; cmapstart=rand(size(cmapstart)); 
+    elseif size(V,3)>2, [nill,V]=max(abs(conn_surf_smooth(V)),[],3); V(nill==0)=0; cmapstart=rand(size(cmapstart)); state.Vrange=[min(V(V~=0)) max(V(V~=0))];
     end
     
     if any(V(:)<0)&&any(V(:)>0),
@@ -1151,7 +1152,7 @@ if ishandle(hmsg), delete(hmsg); end
                     end
                     x=sign(x).*abs(x).^f;y=sign(y).*abs(y).^f;z=sign(z).*abs(z).^f;
                     for n=1:numel(state.handles.sphplots),
-                        set(state.handles.sphplots(n),'xdata',state.sphplots.sph_xyz(n,1)+state.sphplots.sph_r(n)*x,'ydata',state.sphplots.sph_xyz(n,2)+state.sphplots.sph_r(n)*y,'zdata',state.sphplots.sph_xyz(n,3)+state.sphplots.sph_r(n)*z,'facealpha',state.facealpharoi,'facecolor',state.roi_color(1+rem(n1-1,size(state.roi_color,1)),:));
+                        set(state.handles.sphplots(n),'xdata',state.sphplots.sph_xyz(n,1)+state.sphplots.sph_r(n)*x,'ydata',state.sphplots.sph_xyz(n,2)+state.sphplots.sph_r(n)*y,'zdata',state.sphplots.sph_xyz(n,3)+state.sphplots.sph_r(n)*z,'facealpha',state.facealpharoi,'facecolor',state.roi_color(1+rem(n-1,size(state.roi_color,1)),:));
                     end
                     for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
                     for n1=1:numel(state.handles.sphplots)
@@ -1590,6 +1591,24 @@ if ishandle(hmsg), delete(hmsg); end
                 state.V0=V;
                 state.Vrange=[];
                 conn_mesh_display_refresh([],[],'remap&draw');
+                
+            case 'repaintborder'
+                %values=round(state.V0);
+                values=double(state.V0~=0);
+                faces=state.selected_faces{1};
+                border=zeros(size(values));
+                A=spm_mesh_adjacency(faces);
+                for n=1:2
+                    for n1=1:size(border,1), border(n1,n)=any(values(n1,n)~=values(A(:,n1)>0,n)); end
+                    %for n2=2:4, for n1=find(border(:,n)==n2-1)'; border(~border(:,n)&A(:,n1)>0,n)=n2; end; end
+                end
+                border=1+border;
+                %border=(5-border)/5; % plot background
+                state.dotwosided=false;
+                state.V0=border;
+                state.Vrange=[];
+                conn_mesh_display_refresh([],[],'remap&draw');
+                
             case 'position'
                 v=get(state.handles.hax,'cameraposition'); 
                 try, h=state.handles.light;

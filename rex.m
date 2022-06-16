@@ -1047,7 +1047,7 @@ for r=1:size(params.rois,1)
             txt{end+1}=' ';
             if ~isempty(strmatch('roi#.img',params.output_files,'exact')),
                 name_dat=fullfile(params.output_folder,[ROInames{rr},'.rex.roi.img']);
-                ROIa=struct('fname',name_dat,'mat',ROIA{r}.mat,'dim',ROIA{r}.dim,'dt', [spm_type('uint8') spm_platform('bigend')]);
+                ROIa=struct('fname',name_dat,'pinfo',[1;0;0],'mat',ROIA{r}.mat,'dim',ROIA{r}.dim,'dt', [spm_type('uint8') spm_platform('bigend')]);
                 spm_write_vol(ROIa,ROIB{r}==nclusters);
                 txt{end+1}=['OUTPUT ROI FILE : ',char(name_dat)];
                 txt{end+1}=['LOCATION: ',params.output_folder];
@@ -1058,7 +1058,7 @@ for r=1:size(params.rois,1)
     end
     if (strcmpi(params.output_type,'save')||strcmpi(params.output_type,'savefiles'))&&~isempty(strmatch('roi.img',params.output_files,'exact')),
         name_dat=fullfile(params.output_folder,[roi_path_name,'.rex.roi.img']);
-        ROIa=struct('fname',name_dat,'mat',ROIA{r}.mat,'dim',ROIA{r}.dim);
+        ROIa=struct('fname',name_dat,'pinfo',[1;0;0],'mat',ROIA{r}.mat,'dim',ROIA{r}.dim);
         %ROIa.fname=name_dat;
         maxa=max(ROIB{r}(:));
         if maxa<=spm_type('uint8','maxval'),ROIa.dt=[spm_type('uint8') spm_platform('bigend')];
