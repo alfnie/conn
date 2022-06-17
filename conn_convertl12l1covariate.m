@@ -79,7 +79,7 @@ if ~nargin||isequal(option,'?')
             answ(1)=cellfun(@str2num,answ(1),'uni',0);
             ocov=conn_convertl12l1covariate('FD_power',answ{:});
         case opts{4}, % scrubbing
-            fields={'Threshold values for each input covariate timeseries (e.g. [9 2] liberal; [5 0.9] intermediate; [3 0.5] conservative)','Window-size around each supra-threshold value (scans)','Name of input first-level covariate(s)','Name of output first-level covariate'};
+            fields={'Threshold values for each input covariate timeseries (e.g. [9 2] liberal; [5 0.9] intermediate; [3 0.5] conservative)','Window-size around each supra-threshold value (scans, e.g. 1) (enter two values before/after for asymmetric windows, e.g. 1 3)','Name of input first-level covariate(s)','Name of output first-level covariate'};
             values={'[5 0.9]','1','QC_timeseries','scrubbing'};
             answ=conn_menu_inputdlg(fields,'scrubbing options',1,values,struct('Resize','on'));
             if numel(answ)~=numel(fields)||isempty(answ{1}),return; end
@@ -266,7 +266,9 @@ switch(lower(option))
                 end
                 if isempty(data), conn_disp('__nolog','fprintf','warning: missing %s data for subject %d session %d\n',sprintf('%s ',icov{:}),nsub,nses); data=zeros(1,numel(thr)); end
                 idx=find(any(data>repmat(thr(:)',size(data,1),1),2));
-                if ext>0, idx=repmat(idx(:),1,2*ext)+repmat(-ext:ext-1,numel(idx),1); end
+                if numel(ext)>2&&any(ext>0), idx=repmat(idx(:),1,sum(ext))+repmat(-ext(1):ext(2)-1,numel(idx),1); 
+                elseif ext>0, idx=repmat(idx(:),1,2*ext)+repmat(-ext:ext-1,numel(idx),1); 
+                end
                 idx=unique(idx(idx>0&idx<=size(data,1)));
                 e=full(sparse(idx,1:numel(idx),1,size(data,1),numel(idx)));
                 if isnumeric(filename)
