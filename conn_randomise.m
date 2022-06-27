@@ -1,26 +1,29 @@
-function data=conn_randomise(X,Y,c1,c2,Pthr,Pthr_type,Pthr_side,niters,filename,overwrite,datatype,analysismask,groupingsamples,isdisplay)
-% conn_randomise(X,Y,C1,C2,Pthr,Pthr_type,Pthr_side,niters,
+function data=conn_randomise(X,Y,c1,c2,aopt,Pthr,Pthr_type,Pthr_side,niters,filename,overwrite,datatype,analysismask,groupingsamples,isdisplay)
+% conn_randomise(X,Y,C1,C2,opt,Pthr,Pthr_type,Pthr_side,niters,
 % X: [n,m] (# of samples x # of effects) design matrix
 % Y: [n,v,r1,r2] (# of samples x # of variables x # of seed ROIs x # of target ROIs) data matrix
 % Y: [n,v,r...]  (# of samples x # of variables x # of voxels) data matrix
 % C1: [a,m] left-hand contrast matrix
 % C2: [b,v] right-hand contrast matrix
+% opt: conn_glm analysis option ([], 'collapse_none', 'collapse_predictors', 'collapse_outcomes', 'collapse_all', 'collapse_all_rao', 'collapse_all_bartlett', 'collapse_all_satterthwaite', 'collapse_all_sphericity')
 %    Y(:,:,k) = X*B+e
 %    C1*B*C2' = 0
 % Pthr: height threshold [.05 .01 .005 .001 .0005 .0001]
 % Pthr_type: threshold type 1 (p-unc) 2 (p-fdr rows -obsolete-) 3 (p-fdr all) 4 (T/F/X stat) 5 (p-TFCE)
 % Pthr_side: threshold direction 1 (one-sided positive), 2 (one-sided negative), 3 (two-sided)
 
-if nargin<5||isempty(Pthr), Pthr=[.05 .01 .005 .001 .0005 .0001]; end
-if nargin<6||isempty(Pthr_type), Pthr_type=ones(size(Pthr)); end
-if nargin<7||isempty(Pthr_side), Pthr_side=ones(size(Pthr)); end
-if nargin<8||isempty(niters), niters=1000; end
-if nargin<9||(ischar(filename)&&isempty(filename)), filename='temporal_conn_randomise.mat'; end
-if nargin<10||isempty(overwrite), overwrite=false; end
-if nargin<11||isempty(datatype), datatype='none'; end % 'none'|'matrix'|'surface'|volumecoords or [3xN] voxel indices
-if nargin<12, analysismask=[]; end 
-if nargin<13, groupingsamples=[]; end
-if nargin<14, isdisplay=[]; end
+
+if nargin<5||isempty(aopt), aopt=[]; end
+if nargin<6||isempty(Pthr), Pthr=[.05 .01 .005 .001 .0005 .0001]; end
+if nargin<7||isempty(Pthr_type), Pthr_type=ones(size(Pthr)); end
+if nargin<8||isempty(Pthr_side), Pthr_side=ones(size(Pthr)); end
+if nargin<9||isempty(niters), niters=1000; end
+if nargin<10||(ischar(filename)&&isempty(filename)), filename='temporal_conn_randomise.mat'; end
+if nargin<11||isempty(overwrite), overwrite=false; end
+if nargin<12||isempty(datatype), datatype='none'; end % 'none'|'matrix'|'surface'|volumecoords or [3xN] voxel indices
+if nargin<13, analysismask=[]; end 
+if nargin<14, groupingsamples=[]; end
+if nargin<15, isdisplay=[]; end
 if numel(niters)==1, BlockDistributed=0; Nseed0=0; 
 else BlockDistributed=niters(2); niters=niters(1); Nseed0=(BlockDistributed-1)*niters; 
 end
@@ -38,7 +41,7 @@ doflipsigninsteadofrand=false;
 randdatainsteadofdesign=false;
 
 % baseline results
-model=struct('X',X,'c1',c1,'c2',c2,'dims',size(Y));
+model=struct('X',X,'c1',c1,'c2',c2,'dims',size(Y),'opts',aopt);
 results=[]; % [results.h,results.F,results.p,results.dof,results.statsname]=conn_glm(X,Y,c1,c2);
 
 % remove orthogonal contrasts
@@ -54,7 +57,7 @@ for nr=1:Nr
     %s(:,:,nr)=xnc*(ix*(xnc'*Y(:,:,nr)*c2'));
 end
 x=X*c1'-xnc*(ix*(xnc'*X*c1'));        % removes from X
-univariate=size(c1,1)==1&size(c2,1)==1;
+univariate=size(c1,1)==1&size(c2,1)==1&isempty(aopt);
 if univariate&&numel(Pthr)==1, Pthr=repmat(Pthr,[1 3]); Pthr_type=repmat(Pthr_type,[1 3]); Pthr_side=1:3; end
 
 % initialize
@@ -192,7 +195,7 @@ Nx=rank(X);
 Nc0=rank(x);
 Ns=rank(c2);
 dof=size(Y,1)-Nx;
-[nill,nill,nill,statsdof,statsname]=conn_glm(X,r(:,:,find(~any(any(isnan(r),1),2),1)),c1);
+[nill,nill,nill,statsdof,statsname]=conn_glm(X,r(:,:,find(~any(any(isnan(r),1),2),1)),c1,[],aopt);
 switch(statsname)
     case 'T'
         Xthr(thridx)=spm_invTcdf(max(0,min(1,1-Pthr(thridx))),statsdof);
@@ -317,8 +320,8 @@ for niter=1:niters
         end
         %rnew=rnew*sqrt(size(r,1)/(size(r,1)-1))+s;
         %[h,f]=conn_glm_steps(2,X,rnew,analysismask);
-        if ~isempty(analysismask), [h,f]=conn_glm(X,rnew(:,:,analysismask),c1);
-        else                       [h,f]=conn_glm(X,rnew,c1);
+        if ~isempty(analysismask), [h,f]=conn_glm(X,rnew(:,:,analysismask),c1,[],aopt);
+        else                       [h,f]=conn_glm(X,rnew,c1,[],aopt);
         end
         f=f(:);
     else
@@ -336,8 +339,8 @@ for niter=1:niters
             else xnew=full(groupingsamples)*orth(rand(size(groupingsamples,2))-.5)'*pinv(full(groupingsamples))*xnew;
             end
         end
-        if ~isempty(analysismask), [h,f]=conn_glm(xnew,r(:,:,analysismask),c1);
-        else                       [h,f]=conn_glm(xnew,r,c1);
+        if ~isempty(analysismask), [h,f]=conn_glm(xnew,r(:,:,analysismask),c1,[],aopt);
+        else                       [h,f]=conn_glm(xnew,r,c1,[],aopt);
         end
         f=f(:);
     end

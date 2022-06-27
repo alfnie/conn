@@ -1,4 +1,4 @@
-function SPM = conn_module_glminternal(X,filenames,C1,C2,swd,effectnames,datanames,secondlevelanalyses,maskfile,subjectids)
+function SPM = conn_module_glminternal(X,filenames,C1,C2,swd,effectnames,datanames,secondlevelanalyses,maskfile,subjectids,analysistype)
 % CONN_MODULE_GLMINTERNAL second-level model estimation internal function
 
 %
@@ -27,11 +27,13 @@ function SPM = conn_module_glminternal(X,filenames,C1,C2,swd,effectnames,datanam
 %    [1 -1]);
 %     performs a paired t-test and stores the analysis results in the current folder
 %
-% additional inputs: conn_module_glminternal(X,Y,c1,c2,folder,effectnames,datanames,secondlevelanalyses,maskfile)
+% additional inputs: conn_module_glminternal(X,Y,c1,c2,folder,effectnames,datanames,secondlevelanalyses,maskfile,subjectids,analysistype)
 %   effectnames         : names of subject effects (one name per column of X)
 %   datanames           : names of measures (one name per column of Y)
 %   secondlevelanalyses : type of second-level analyses  (1:all; 2:parametric only; 3:nonparametric only)
 %   maskfile            : analysis mask
+%   subjectids          : subject labels
+%   analysistype        : conn_glm options (default [], see help conn_glm) ([], 'collapse_none', 'collapse_predictors', 'collapse_outcomes', 'collapse_all', 'collapse_all_rao', 'collapse_all_bartlett', 'collapse_all_satterthwaite', 'collapse_all_sphericity')
 %
 
 askall=~nargin;
@@ -106,11 +108,12 @@ if nargin<7||isempty(datanames), datanames={}; end
 if nargin<8||isempty(secondlevelanalyses), secondlevelanalyses=1; end % type of second-level analysis: 1:all; 2:param only; 3:nonparam only
 if nargin<9, maskfile=''; end                                         % analysis mask file (restricts analyses to only within-mask voxels)
 if nargin<10, subjectids=''; end                                      % subject id's (keeps track in SPM.xX.SubjectIDs field of subject IDs used in this analysis)
+if nargin<11||isempty(analysistype), analysistype=[]; end             % analysis type (see help conn_glm)
 if size(C1,2)~=Nx, error('Incorrect dimensions (X and C1 should have the same number of columns)'); end
 if size(C2,2)~=Ny, error('Incorrect dimensions (filenames and C2 should have the same number of columns)'); end
 
 if any(conn_server('util_isremotefile',swd)), 
-    SPM=conn_server('run',mfilename,X,conn_server('util_localfile',filenames),C1,C2,conn_server('util_localfile',swd),effectnames,datanames,secondlevelanalyses,maskfile,subjectids); 
+    SPM=conn_server('run',mfilename,X,conn_server('util_localfile',filenames),C1,C2,conn_server('util_localfile',swd),effectnames,datanames,secondlevelanalyses,maskfile,subjectids,analysistype); 
     SPM.swd=conn_server('util_remotefile',SPM.swd);
     %if ~nargout, conn_display(fullfile(SPM.swd,'SPM.mat'),1);end
     return
@@ -183,6 +186,7 @@ if ~ismatrix&&(NANTO0||~isequal(C2,eye(Ny))) % two-step procedure for SPM
             a.fname=fullfile(swd,sprintf('data_%04d_%04d.nii',nsub,nw));
             a.n=[1 1];
             a.pinfo=[1;0;0];
+            a.dt=[spm_type('float32'),spm_platform('bigend')]; 
             a.descrip=sprintf('within-subject contrast %s',mfilename);
             a=spm_write_vol(a,b);
             VY(nsub,nw)=a;
@@ -205,6 +209,7 @@ end
 SPM.xX_multivariate.X=X;
 SPM.xX_multivariate.C=C1;
 SPM.xX_multivariate.M=C2;
+SPM.xX_multivariate.type=analysistype;
 SPM.xX_multivariate.Xnames=effectnames;
 SPM.xX_multivariate.Ynames=datanames;
 SPM.xX.SelectedSubjects=logical(full(sparse(1:Ns,1,1,Ns,1)));
@@ -250,11 +255,11 @@ if issurface||ismatrix||ismember(secondlevelanalyses,[1 3]) % nonparametric stat
             y=reshape(y,size(SPM.xY.VY,1),size(SPM.xY.VY,2),SPM.xY.VY(1).dim(1),SPM.xY.VY(1).dim(2));
             if ~donefirst
                 donefirst=true;
-                [results_h,results_F,nill,SPM.xX_multivariate.dof,SPM.xX_multivariate.statsname]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M);
+                [results_h,results_F,nill,SPM.xX_multivariate.dof,SPM.xX_multivariate.statsname]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M,SPM.xX_multivariate.type);
                 SPM.xX_multivariate.h=zeros([size(results_h,1),size(results_h,2),SPM.xY.VY(1).dim(1:3)]);
                 SPM.xX_multivariate.F=zeros([size(results_F,1),size(results_F,2),SPM.xY.VY(1).dim(1:3)]);
             else
-                [results_h,results_F]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M);
+                [results_h,results_F]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M,SPM.xX_multivariate.type);
             end
             %SPM.xX_multivariate.h(:,:,n2,maskthis)=results_h;
             %SPM.xX_multivariate.F(:,:,n2,maskthis)=results_F;

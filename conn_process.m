@@ -2189,7 +2189,7 @@ if any(floor(options)==9),
                 if ~isempty(idx)
                     optionsnames=fieldnames(initial);
                     for n2=1:numel(optionsnames), initial.(optionsnames{n2})=initial.(optionsnames{n2})(idx); end
-                    initial.dimensions_out{1}=max(1,min(20,round(CONN_x.Setup.nsubjects/5)));
+                    initial.dimensions_out{1}=max(1,min(100,round(CONN_x.Setup.nsubjects/5))); % rule of thumb for number of dimensions
                 end
             end
             CONN_x.vvAnalyses(ianalysis).regressors=conn_v2v('empty');
@@ -4852,6 +4852,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
             SPMall(1).xX_multivariate.X=X(nsubjects,nsubjecteffects); 
             SPMall(1).xX_multivariate.C=csubjecteffects;
             SPMall(1).xX_multivariate.M=contrast;
+            SPMall(1).xX_multivariate.type=[];
             SPMall(1).xX_multivariate.Xnames=CONN_x.Setup.l2covariates.names(nsubjecteffects);
             SPMall(1).xX_multivariate.Ynames=contrastname;
             SPMall(1).xX_multivariate.Znames=Znames;
@@ -5022,6 +5023,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
             SPMall(n1).xX_multivariate.X=X(nsubjects,nsubjecteffects);
             SPMall(n1).xX_multivariate.C=csubjecteffects;
             SPMall(n1).xX_multivariate.M=contrast;
+            SPMall(n1).xX_multivariate.type=[];
             SPMall(n1).xX_multivariate.Xnames=CONN_x.Setup.l2covariates.names(nsubjecteffects);
             SPMall(n1).xX_multivariate.Ynames=contrastname;
             SPMall(n1).xX_multivariate.Znames=Znames;
@@ -5079,12 +5081,13 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                     end
                     doboth=~issurface&&CONN_x.Setup.secondlevelanalyses==1;
                     if issurface||ismember(CONN_x.Setup.secondlevelanalyses,[1 3]) % nonparametric stats
+                        if ~isfield(SPM.xX_multivariate,'type'), SPM.xX_multivariate.type=[]; end
                         if 0,% faster but requires more memory
                             Y=spm_read_vols(SPM.xY.VY);
                             mask=~any(isnan(Y),4)&any(diff(Y,1,4)~=0,4);
                             Y=permute(reshape(Y,[SPM.xY.VY(1).dim(1:3) size(SPM.xY.VY)]),[4,5,1,2,3]);
                             SPM.xX_multivariate.mask=mask;
-                            [results_h,results_F,nill,SPM.xX_multivariate.dof,SPM.xX_multivariate.statsname]=conn_glm(SPM.xX_multivariate.X,Y(:,:,mask),SPM.xX_multivariate.C,SPM.xX_multivariate.M,[],false);
+                            [results_h,results_F,nill,SPM.xX_multivariate.dof,SPM.xX_multivariate.statsname]=conn_glm(SPM.xX_multivariate.X,Y(:,:,mask),SPM.xX_multivariate.C,SPM.xX_multivariate.M,SPM.xX_multivariate.type,false);
                             SPM.xX_multivariate.h=zeros([size(results_h,1),size(results_h,2),SPM.xY.VY(1).dim(1:3)]); SPM.xX_multivariate.h(:,:,mask)=results_h;
                             SPM.xX_multivariate.F=zeros([size(results_F,1),size(results_F,2),SPM.xY.VY(1).dim(1:3)]); SPM.xX_multivariate.F(:,:,mask)=results_F;
                         else
@@ -5109,15 +5112,15 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                                     results_p=[];
                                     if ~donefirst
                                         donefirst=true;
-                                        [results_h,results_F,results_p,results_dof,SPM.xX_multivariate.statsname]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M);
+                                        [results_h,results_F,results_p,results_dof,SPM.xX_multivariate.statsname]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M,SPM.xX_multivariate.type);
                                         SPM.xX_multivariate.h=zeros([size(results_h,1),size(results_h,2),SPM.xY.VY(1).dim(1:3)]);
                                         SPM.xX_multivariate.F=zeros([size(results_F,1),size(results_F,2),SPM.xY.VY(1).dim(1:3)]);
                                         if DOINCLUDEDOF, SPM.xX_multivariate.dof=zeros([size(results_dof,1),size(results_dof,2),SPM.xY.VY(1).dim(1:3)]);
                                         else SPM.xX_multivariate.dof=results_dof;
                                         end
                                     else
-                                        if DOINCLUDEDOF, [results_h,results_F,results_p,results_dof]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M,[],false);
-                                        else [results_h,results_F]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M); 
+                                        if DOINCLUDEDOF, [results_h,results_F,results_p,results_dof]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M,SPM.xX_multivariate.type,false);
+                                        else [results_h,results_F]=conn_glm(SPM.xX_multivariate.X,y(:,:,maskthis),SPM.xX_multivariate.C,SPM.xX_multivariate.M,SPM.xX_multivariate.type); 
                                         end
                                     end
                                     %SPM.xX_multivariate.h(:,:,n2,maskthis)=results_h;
@@ -5658,12 +5661,13 @@ end
 % permutation/randomization anaylses
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if any(options==20) % randomise voxel-level
-    % 'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples'
+    % 'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples','opt'
     filename=varargin{1}; 
     if numel(varargin)>1, BlockDistributed=varargin{2}; 
     elseif isfield(CONN_x.pobj,'partition')&&numel(CONN_x.pobj.partition)>=1, BlockDistributed=CONN_x.pobj.partition(1); 
     else BlockDistributed=[];
     end
+    opt=[];
     load(filename);
     a=spm_vol(Y);
     y=[];
@@ -5684,7 +5688,7 @@ if any(options==20) % randomise voxel-level
         adj=adj(fmask,fmask);
     else adj=xyz;
     end
-    conn_randomise(X,y,c,m,THR,THR_TYPE,SIDE,[niters BlockDistributed],simfilename,[],adj,[],groupingsamples,false);
+    conn_randomise(X,y,c,m,opt,THR,THR_TYPE,SIDE,[niters BlockDistributed],simfilename,[],adj,[],groupingsamples,false);
 end
 if any(options==21) % randomise ROI-to-ROI
     % 'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename'
@@ -5693,8 +5697,9 @@ if any(options==21) % randomise ROI-to-ROI
     elseif isfield(CONN_x.pobj,'partition')&&numel(CONN_x.pobj.partition)>=1, BlockDistributed=CONN_x.pobj.partition(1); 
     else BlockDistributed=[];
     end
+    opt=[];
     load(filename);
-    conn_randomise(X,Y,c,m,THR,THR_TYPE,SIDE,[niters BlockDistributed],simfilename,[],'matrix');
+    conn_randomise(X,Y,c,m,opt,THR,THR_TYPE,SIDE,[niters BlockDistributed],simfilename,[],'matrix');
 end
 if any(options==22), % merges permutation/randomization results
     filename=varargin{1};

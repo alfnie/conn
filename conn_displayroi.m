@@ -922,9 +922,9 @@ switch(lower(option)),
         if margin<=1, h=conn_msgbox('Updating ROI-level results. Please wait...','conn_displayroi',-1); 
         else h=[]; 
         end
-        for nresults=1:size(data.results(1).data,4), %numel(data.results)
+        for nresults=1:size(data.results(1).data,4), %numel(data.results) % note: obsolete?
             domvpa=data.displaytheserois;
-            ndims=ceil(sqrt(size(data.results(1).data,1))/2);
+            ndims=min(4,ceil(sqrt(size(data.results(1).data,1))/4));
             ndims=max(1,min(min(numel(domvpa),size(data.results(1).data,2)), ndims ));
             if ndims<numel(domvpa)
                 y=data.results(1).data(:,domvpa,:,nresults);
@@ -934,7 +934,7 @@ switch(lower(option)),
                 [Q,D,R]=svd(y,0);
                 ndims=max(1,min(size(R,2),ndims));
                 d=D(1:size(D,1)+1:size(D,1)*min(size(D))).^2;
-                %ndims=min([ndims,find(cumsum(d)/sum(d)>.95,1)]); % 95 percent variance
+                ndims=min([ndims,find(cumsum(d)/sum(d)>.95,1)]); % 95 percent variance
                 y=y*R(:,1:ndims);
                 MVPAy=permute(reshape(y,[sy(1),sy(3),ndims]),[1,3,2]);
                 %data.results(nresults).MVPApcacov=d(1:ndims)/sum(d);
@@ -1144,9 +1144,9 @@ switch(lower(option)),
             h=conn_msgbox('updating ROI-level results, please wait...','conn_displayroi');
             %f=conn_dir(conn_displayroi_simfilename(data.roifile,'all'),'-R','-cell');
             %if ~isempty(f), conn_fileutils('spm_unlink',f{:}); end
-            for nresults=1:size(data.results(1).data,4), %numel(data.results)
+            for nresults=1:size(data.results(1).data,4), %numel(data.results) % note: obsolete?
                 domvpa=data.displaytheserois;
-                ndims=ceil(sqrt(size(data.results(1).data,1))/2);
+                ndims=min(4,ceil(sqrt(size(data.results(1).data,1))/4)); % rule of thumb for number of dimensions
                 ndims=max(1,min(min(numel(domvpa),size(data.results(1).data,2)), ndims ));
                 if ndims<numel(domvpa)
                     y=data.results(1).data(:,domvpa,:,nresults);
@@ -1156,7 +1156,7 @@ switch(lower(option)),
                     [Q,D,R]=svd(y,0);
                     ndims=max(1,min(size(R,2),ndims));
                     d=D(1:size(D,1)+1:size(D,1)*min(size(D))).^2;
-                    %ndims=min([ndims,find(cumsum(d)/sum(d)>.95,1)]); % 95 percent variance
+                    ndims=min([ndims,find(cumsum(d)/sum(d)>.95,1)]); % 95 percent variance
                     y=y*R(:,1:ndims);
                     MVPAy=permute(reshape(y,[sy(1),sy(3),ndims]),[1,3,2]);
                     %data.results(nresults).MVPApcacov=d(1:ndims)/sum(d);
@@ -2164,7 +2164,7 @@ switch(data.display),
         
         if isempty(data.cMVPAF)&&~isempty(data.clusters)
             numc=max(data.clusters(data.displaytheserois));
-            ndims=min(4,ceil(sqrt(size(data.results(1).data,1))/4));
+            ndims=min(4,ceil(sqrt(size(data.results(1).data,1))/4)); % rule of thumb for number of dimensions
             data.cMVPAF=nan(numc,numc);
             data.cMVPAp=nan(numc,numc);
             data.cMVPAstatsname=repmat({''},[numc,numc]);
@@ -4560,7 +4560,7 @@ end
 Y=Y(:,:,data.displaytheserois(data.displaytheserois<=N),data.displaytheserois);
 if ~isempty(mask), mask=mask(data.displaytheserois(data.displaytheserois<=N),data.displaytheserois); end
 try
-    conn_randomise(data.results(1).xX.X,Y,data.results(1).c,data.results(1).c2,THR,THR_TYPE,SIDE,niters,simfilename,[],'matrix',mask);
+    conn_randomise(data.results(1).xX.X,Y,data.results(1).c,data.results(1).c2,[],THR,THR_TYPE,SIDE,niters,simfilename,[],'matrix',mask);
     ok=true;
 catch
    ok=false;

@@ -2975,12 +2975,16 @@ if ishandle(fh),
         X=SPM.xX_multivariate.X;
         c=SPM.xX_multivariate.C;
         m=SPM.xX_multivariate.M;
+        if isfield(SPM.xX_multivariate,'type'), opt=SPM.xX_multivariate.type; 
+        else opt=[];
+        end
     else
         conn_disp('Warning: xX_multivariate design info not found. Assuming no covariance modeling design. First contrast only');
         ncon=1;
         X=SPM.xX.X;
         c=SPM.xCon(ncon).c';
         m=1;
+        opt=[];
     end
     if isfield(SPM,'repeatedsubjects'), groupingsamples=SPM.repeatedsubjects; else groupingsamples=[]; end
     if v3==1, % now
@@ -3012,7 +3016,7 @@ if ishandle(fh),
         end
         if ishandle(ht), delete(ht); end 
         try
-            conn_randomise(X,y,c,m,THR,THR_TYPE,SIDE,niters,simfilename,[],adj,[],groupingsamples);
+            conn_randomise(X,y,c,m,opt,THR,THR_TYPE,SIDE,niters,simfilename,[],adj,[],groupingsamples);
             ok=true;
         catch
             ok=false;
@@ -3033,7 +3037,7 @@ if ishandle(fh),
         N=str2num(v5);
         tfilename=fullfile(fileparts(spmfile),'args_nonparam.mat');
         niters=max(1,ceil(niters/N));
-        conn_savematfile(tfilename,'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples');
+        conn_savematfile(tfilename,'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples','opt');
         conn_jobmanager('options','profile',parallel);
         info=conn_jobmanager('submit','orphan_results_nonparametric',N,N,[],conn_server('util_localfile_filesep',tfilesep,tfilename));
         info=conn_jobmanager(info,'','donotupdate'); 
@@ -3051,9 +3055,10 @@ if ishandle(fh),
             answ=conn_questdlg(sprintf('Overwrite %s file?',fullfile(file2_path,[file2_name,'.m'])),'warning','Yes','No','Yes');
             if strcmp(answ,'No'), ok=false; return; end
         end
-        conn_savematfile(fullfile(file2_path,[file2_name,'.mat']),'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples');
+        conn_savematfile(fullfile(file2_path,[file2_name,'.mat']),'X','Y','c','m','THR','THR_TYPE','SIDE','niters','simfilename','mask','groupingsamples','opt');
         conn_disp('fprintf','Created file %s\n',fullfile(file2_path,[file2_name,'.mat']));
         fh=fopen(fullfile(file2_path,[file2_name,'.m']),'wt');
+        fprintf(fh,'opt=[];\n');
         fprintf(fh,'load %s;\n',fullfile(file2_path,[file2_name,'.mat']));
         fprintf(fh,'a=spm_vol(Y);\n');
         fprintf(fh,'y=[];\n');
@@ -3067,7 +3072,7 @@ if ishandle(fh),
         fprintf(fh,'xyz=[i(:) j(:) k(:)]'';\n');
         fprintf(fh,'if isempty(y), y=spm_get_data(a,xyz)''; end\n');
         fprintf(fh,'y=permute(reshape(y,size(y,1),size(X,1),[]),[2,3,1]);\n');
-        fprintf(fh,'conn_randomise(X,y,c,m,THR,THR_TYPE,SIDE,niters,simfilename,[],xyz,[],groupingsamples);\n');
+        fprintf(fh,'conn_randomise(X,y,c,m,opt,THR,THR_TYPE,SIDE,niters,simfilename,[],xyz,[],groupingsamples);\n');
         fclose(fh);
         conn_disp('fprintf','Created file %s\n',fullfile(file2_path,[file2_name,'.m']));
         ok=false;
