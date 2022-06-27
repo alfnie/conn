@@ -1399,7 +1399,8 @@ end
 CI=spm_invTcdf(.95,dof)*SE;
 p=2*min(p,1-p); % two-sided
 if mstats
-    [nill,F_T,F_p,F_dof,F_statsname]=conn_glm(xX.X,reshape(Y,size(xX.X,1),[],size(Y,2)),F_c,mcon);
+    if isfield(xX,'type'), analysistype=xX.type; else analysistype=[]; end
+    [nill,F_T,F_p,F_dof,F_statsname]=conn_glm(xX.X,reshape(Y,size(xX.X,1),[],size(Y,2)),F_c,mcon,analysistype);
     F_T=reshape(F_T,[],size(F_T,3));
     F_p=reshape(F_p,[],size(F_p,3));
     if isequal(F_statsname,'T'), F_p=2*min(F_p,1-F_p); end

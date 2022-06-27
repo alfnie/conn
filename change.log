@@ -332,7 +332,7 @@ ________________________________________________________________________________
      Added "conn_remotely" for working with CONN projects stored remotely using SSH protocol for communications (see "help conn_remotely" for details)
      Added Inter-hemispheric Correlation (IHC) 1st-level analyses (voxel-level correlation between a voxel and its contralateral voxel; note: for 3D volume functionals contralateral voxel is based on voxel coordinates (x,y,z) matched to (-x,y,z); for 2D surface functionals contralateral vertex is based on a non-linear match in spherical coordinates between Freesurfer left- and right- hemisphere surface-curvature templates - vertex i in left-hemisphere surface matched to vertex LEFT2RIGHT(i) in right-hemisphere surface, vertex j in right-hemisphere surface matched to vetex RIGHT2LEFT(j) in left-hemisphere surface; see conn/utils/surf/lhrh.mat)
      Added "view-only" mode for avoiding conflicts when viewing a project while another user may be actively working with the same project
-21.b Cumulative patch, bug fixes and improvements
+22.a Cumulative patch, bug fixes and improvements
      Added support for Secure Shell on remote connections from clients running PC/Windows
      Added 'Real ROI shape' option to second-level ROI displays (see "help conn_mesh_display")
      Added Maximum-Intensity-Projection coloring to results explorer 'Glass display' view
