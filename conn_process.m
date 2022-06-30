@@ -5137,6 +5137,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                                 conn_waitbar(1/2+1/2*((n1-1+(.5+.5*~doboth)*(n2/SPM.xY.VY(1).dim(3)))/(length(SPMall))),h,sprintf('Analysis %d',n1));
                             end
                         end
+                        assert(isfield(SPM.xX_multivariate,'F'),'Empty implicit analysis mask (data from one subject may have all NaN values, or all subjects may have zero or constant values)');
                         if size(SPM.xX_multivariate.F,1)==1&&size(SPM.xX_multivariate.F,2)==1
                             V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','spmF_mv.nii','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')]);
                             V=spm_write_vol(V,shiftdim(SPM.xX_multivariate.F,2));
