@@ -3110,7 +3110,7 @@ for iSTEP=1:numel(STEPS)
                 this_fwhm=str2num(this_fwhm{1});
             end
             if ~iscell(mask_names_func), mask_names_func={mask_names_func}; end
-            conn_disp('fprintf','functional smoothing %smm masked (%s); inclusive = %s\n',sprintf('%s ',mat2str(this_fwhm),mask_names_func{:}),mat2str(mask_inclusive_func));
+            conn_disp('fprintf','functional smoothing %smm masked (%s); inclusive = %s\n',mat2str(this_fwhm),sprintf('%s ',mask_names_func{:}),mat2str(mask_inclusive_func));
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
@@ -3120,7 +3120,7 @@ for iSTEP=1:numel(STEPS)
                     if ismember(nses,sessions)
                         filename=conn_get_functional(nsubject,nses,sets);
                         if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
-                        temp=cellstr(filename);
+                        tempin=cellstr(filename);
                         
                         vmask=[];
                         for nmask=1:numel(mask_names_func)
@@ -3142,27 +3142,30 @@ for iSTEP=1:numel(STEPS)
                         %if isempty(fmask), error('Grey Matter ROI data not yet defined for subject %d session %d',nsubject,nses); end
                         %vmask=spm_vol(fmask);
                         
-                        vol=spm_vol(char(temp));
+                        vol=spm_vol(char(tempin));
                         volout=vol;
                         %voloutmask=vol(1); voloutmask.fname=conn_prepend('p',vol(1).fname); voloutmask.mat=vol(1).mat; voloutmask.dim=vol(1).dim; voloutmask.pinfo=[1;0;0]; voloutmask.dt=[spm_type('float32') spm_platform('bigend')];
-                        for n=1:numel(vol),volout(n).fname=conn_prepend('m',vol(n).fname); volout(n).mat=vol(1).mat; volout(n).dim=vol(1).dim; end
-                        [gridx,gridy,gridz]=ndgrid(1:vol(1).dim(1),1:vol(1).dim(2),1:vol(1).dim(3));xyz=vol(1).mat*[gridx(:),gridy(:),gridz(:),ones(numel(gridx),1)]';
-                        tempout=conn_prepend('m',temp); spm_unlink(tempout{:});
+                        for n=1:numel(vol),volout(n).fname=conn_prepend('s',vol(n).fname); volout(n).mat=vol(1).mat; volout(n).dim=vol(1).dim; end
+                        [gridx,gridy,gridz]=ndgrid(1:vol(1).dim(1),1:vol(1).dim(2),1:vol(1).dim(3));
+                        gridxyz=vol(1).mat*[gridx(:) gridy(:) gridz(:) ones(numel(gridx),1)]';
+                        tempout=conn_prepend('s',tempin); spm_unlink(tempout{:});
                         volout=spm_create_vol(volout);
                         vox=sqrt(sum(vol(1).mat(1:3,1:3).^2));
                         %mask=max(0,min(1,double(reshape(spm_get_data(vmask,pinv(vmask.mat)*xyz),vol(1).dim))));
                         mask=false;
                         for nmask=1:numel(vmask)
                             xyz=pinv(vmask(nmask).mat)*gridxyz;
-                            %mask=mask&reshape(spm_get_data(vmask, pinv(vmask.mat)*xyz),vol(1).dim)>0; % intersection-mask
-                            mask=mask|reshape(spm_get_data(vmask, pinv(vmask.mat)*xyz),vol(1).dim)>0;  % union-mask
+                            %mask=mask&reshape(spm_get_data(vmask, xyz),vol(1).dim)>0; % intersection-mask
+                            mask=mask|reshape(spm_get_data(vmask, xyz),vol(1).dim)>0;  % union-mask
                         end
                         if ~mask_inclusive_func, mask=~mask; end
+                        mask=double(mask);
                         smask=zeros(size(mask));
                         spm_smooth(mask,smask,[1 1 1].*this_fwhm./vox);
                         mask0=(1-smask).^LAMBDA;
                         for n=1:numel(vol)
-                            data=double(reshape(spm_get_data(vol(n),pinv(vol(n).mat)*xyz),vol(1).dim));
+                            xyz=pinv(vol(n).mat)*gridxyz;
+                            data=double(reshape(spm_get_data(vol(n),xyz),vol(1).dim));
                             sdata=zeros(size(data));
                             spm_smooth(data.*mask,sdata,[1 1 1].*this_fwhm./vox);
                             switch(SVARIANT)
@@ -3172,7 +3175,7 @@ for iSTEP=1:numel(STEPS)
                             end
                         end
                         %voloutmask=spm_write_vol(voloutmask,mask);
-                        outputfiles{isubject}{nses}=char(conn_prepend('m',temp));
+                        outputfiles{isubject}{nses}=char(conn_prepend('s',tempin));
                         %outputfiles{isubject}{nses}{2}=conn_prepend('p',vol(1).fname);
                     end
                 end
