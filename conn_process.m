@@ -1024,21 +1024,24 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
                     else,
                         names{nroi1}=CONN_x.Setup.rois.names{nroi};
                         if isempty(params.ROIinfo.trans)
-                            error('Empty ROI mask in Subject %d Session %d ROI %d = %s',nsub,nses,nroi,names{nroi1});
+                            conn_disp('fprintf','WARNING: empty ROI mask in Subject %d Session %d ROI %d = %s. Setting timeseries to 0 values\n',nsub,nses,nroi,names{nroi1});
+                            data{nroi1}=zeros(size(data{nroi1},1),1);
+                            xyz{nroi1}=[0 0 0];
+                        else
+                            n1=1;
+                            Z=params.ROIinfo.basis{params.ROIinfo.trans{n1}{1}}{params.ROIinfo.trans{n1}{2}}(params.ROIinfo.trans{n1}{4},params.ROIinfo.trans{n1}{3});
+                            XYZ=params.ROIinfo.voxels{params.ROIinfo.trans{n1}{1}}{params.ROIinfo.trans{n1}{2}}(params.ROIinfo.trans{n1}{4},:);
+                            if ~isempty(fsanatomical)
+                                sroi=CONN_x.Setup.rois.files{nsubstemp}{nroi}{min(nses,nsesstemp)}{3}(1).dim;
+                                psroi=prod(sroi);
+                                tXYZ=1+(XYZ-1)*[1;sroi(1);sroi(1)*sroi(2)];
+                                them=tXYZ<=psroi/2;
+                                XYZ(them,:)=refpial(1).vertices(tXYZ(them),:);
+                                them=tXYZ>psroi/2;
+                                XYZ(them,:)=refpial(2).vertices(tXYZ(them)-psroi/2,:);
+                            end
+                            xyz{nroi1}=mean(XYZ(Z==max(Z),:),1);
                         end
-                        n1=1;
-                        Z=params.ROIinfo.basis{params.ROIinfo.trans{n1}{1}}{params.ROIinfo.trans{n1}{2}}(params.ROIinfo.trans{n1}{4},params.ROIinfo.trans{n1}{3});
-                        XYZ=params.ROIinfo.voxels{params.ROIinfo.trans{n1}{1}}{params.ROIinfo.trans{n1}{2}}(params.ROIinfo.trans{n1}{4},:);
-                        if ~isempty(fsanatomical)
-                            sroi=CONN_x.Setup.rois.files{nsubstemp}{nroi}{min(nses,nsesstemp)}{3}(1).dim;
-                            psroi=prod(sroi);
-                            tXYZ=1+(XYZ-1)*[1;sroi(1);sroi(1)*sroi(2)];
-                            them=tXYZ<=psroi/2;
-                            XYZ(them,:)=refpial(1).vertices(tXYZ(them),:);
-                            them=tXYZ>psroi/2;
-                            XYZ(them,:)=refpial(2).vertices(tXYZ(them)-psroi/2,:);
-                        end
-                        xyz{nroi1}=mean(XYZ(Z==max(Z),:),1);
                         nroi1=nroi1+1;
                     end
 %                     if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=6&&CONN_x.Setup.outputfiles(6),
