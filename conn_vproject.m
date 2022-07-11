@@ -567,7 +567,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                             elseif isfield(info,'gui')&&~info.gui&&isfield(info.SPM.SPM,'xCon')&&numel(info.SPM.SPM.xCon)==1, Ic=1;
                             else [Ic,info.SPM.SPM.xCon] = spm_conman(info.SPM.SPM,'T|F',inf,'Select contrast','',1);
                             end
-                            c=[info.SPM.SPM.xCon(Ic).c];
+                            c=[info.SPM.SPM.xCon(Ic).c]';
                             if isempty(cname), cname={info.SPM.SPM.xCon(Ic).name}; end
                             xX=info.SPM.SPM.xX;
                             mcon=1;
