@@ -508,7 +508,9 @@ switch(lower(STEPS))
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
         dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
         analysis_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','FIRSTLEVEL',conn_prepend('firstlevel_',design_id,'.cfg'));
-        analysis_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config','FL','FIRSTLEVEL',conn_prepend('firstlevel_',[subject_id,'_',design_id],'.cfg'));
+        
+        analysis_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config','FL','DESIGN',conn_prepend('design_',[subject_id],'.cfg')); % association between runs and experimental paradigms (in config/FL/DESIGN/design_[subjectID].cfg)
+        %analysis_info_opt=fullfile(OUTPUT_FOLDER,project_id,'config','FL','FIRSTLEVEL',conn_prepend('firstlevel_',[subject_id,'_',design_id],'.cfg'));
         subject_info=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('',subject_id,'.cfg'));
         isanalysis_info_opt=conn_existfile(analysis_info_opt);
         design_info=struct;
@@ -516,12 +518,16 @@ switch(lower(STEPS))
         if conn_existfile(analysis_info), design_info=conn_loadcfgfile(analysis_info,design_info); end
         if isanalysis_info_opt, 
             design_info=conn_loadcfgfile(analysis_info_opt,design_info);
-        elseif conn_existfile(subject_info), % note: if no subject-specific (e.g. config/EXAMPLE01_speech.cfg) file is found, it will re-read the info in config/EXAMPLE01.cfg looking for design info there
+        elseif conn_existfile(subject_info), % note: if no design files are found, it will re-read the info in config/EXAMPLE01.cfg looking for design info there
             design_info_temp=conn_loadcfgfile(subject_info,design_info);
             if isfield(design_info_temp,'design'), design_info.design=design_info_temp.design; end
             if isfield(design_info_temp,'files'), design_info.files=design_info_temp.files; end
             if isfield(design_info_temp,'runs'), design_info.runs=design_info_temp.runs; end
             if isfield(design_info_temp,'path'), design_info.path=design_info_temp.path; end
+        end
+        if isfield(design_info,'files')&&isfield(design_info,'paradigm') % adds paradigm name to specified timing files (e.g. config/FL/DESIGN/paradigm[_*]_[paradigm].cfg)
+            design_info.files=conn_prepend('',design_info.files,['_',design_info.paradigm,'.cfg']);
+            design_info=rmfield(design_info,'paradigm');
         end
         if strcmpi(STEPS,'firstlevel.contrast'), 
             if isfield(design_info,'design')&&isfield(design_info.design,'files'), design_info.design=rmfield(design_info.design,'files');  end
