@@ -526,7 +526,7 @@ switch(lower(STEPS))
             if isfield(design_info_temp,'path'), design_info.path=design_info_temp.path; end
         end
         if isfield(design_info,'files')&&isfield(design_info,'paradigm') % adds paradigm name to specified timing files (e.g. config/FL/DESIGN/events[_*]_[paradigm].cfg)
-            design_info.files=conn_prepend('',design_info.files,['_',design_info.paradigm,'.cfg']);
+            design_info.files=conn_prepend('',design_info.files,['_',char(design_info.paradigm),'.cfg']);
             design_info=rmfield(design_info,'paradigm');
         end
         if strcmpi(STEPS,'firstlevel.contrast'), 
