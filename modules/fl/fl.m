@@ -517,7 +517,7 @@ switch(lower(STEPS))
         design_info.design=struct('path',fullfile(OUTPUT_FOLDER,project_id,'config','FL','DESIGN'));
         if conn_existfile(analysis_info), design_info=conn_loadcfgfile(analysis_info,design_info); end
         if isanalysis_info_opt, 
-            design_info=conn_loadcfgfile(analysis_info_opt,design_info);
+            design_info=conn_loadcfgfile(analysis_info_opt,design_info); % expects #files #runs [#path] fields
         elseif conn_existfile(subject_info), % note: if no design files are found, it will re-read the info in config/EXAMPLE01.cfg looking for design info there
             design_info_temp=conn_loadcfgfile(subject_info,design_info);
             if isfield(design_info_temp,'design'), design_info.design=design_info_temp.design; end
@@ -525,7 +525,7 @@ switch(lower(STEPS))
             if isfield(design_info_temp,'runs'), design_info.runs=design_info_temp.runs; end
             if isfield(design_info_temp,'path'), design_info.path=design_info_temp.path; end
         end
-        if isfield(design_info,'files')&&isfield(design_info,'paradigm') % adds paradigm name to specified timing files (e.g. config/FL/DESIGN/paradigm[_*]_[paradigm].cfg)
+        if isfield(design_info,'files')&&isfield(design_info,'paradigm') % adds paradigm name to specified timing files (e.g. config/FL/DESIGN/events[_*]_[paradigm].cfg)
             design_info.files=conn_prepend('',design_info.files,['_',design_info.paradigm,'.cfg']);
             design_info=rmfield(design_info,'paradigm');
         end
@@ -542,7 +542,7 @@ switch(lower(STEPS))
         fprintf('First-level analysis id %s\n',design_id);
         fprintf('Subject folder %s\n',dataset);
         fprintf('First-level model estimation info read from %s\n',analysis_info);
-        if isanalysis_info_opt, fprintf('First-level design info read from %s\n',design_info_opt);
+        if isanalysis_info_opt, fprintf('First-level design info read from %s\n',analysis_info_opt);
         else fprintf('First-level design info read from %s (file %s not found)\n',subject_info);
         end
         fprintf('FL_INTERNAL command syntax:\n'); for n=1:numel(opts), fprintf('   '); disp(opts{n}); end
