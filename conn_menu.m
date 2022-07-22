@@ -139,8 +139,8 @@ switch(lower(type)),
         %uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,.5*tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
         ht=uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
         conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h);
-        uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-        uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-6,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+        %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+        %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-6,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
         ht=uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
         %conn_menumanager('onregion',ht,-1,get(h,'position'),@(x)get(h,'extent')*max(1,(get(h,'max')==1)*numel(cellstr(get(h,'string'))))*[0;0;0;1]>=get(h,'position')*[0;0;0;1]);
         conn_menumanager('onregion',ht,-1,get(h,'position'));
