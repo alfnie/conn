@@ -41,7 +41,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
          warning('off','MATLAB:DELETE:FileNotFound');
     end
     conn_backgroundcolor=.08*[1 1.05 1.1];                 % backgroundcolor
-    conn_backgroundcolorA=.12*[1 1.05 1.1];                % highlight
+    conn_backgroundcolorA=.14*[1 1.05 1.1];                % highlight
     if ismac, CONN_gui.uicontrol_border=2;            % crops borders GUI elements
     else      CONN_gui.uicontrol_border=2;
     end
@@ -2102,7 +2102,7 @@ else
                         nset=1;
                         if state==5, % other
                             conn_menu('framewhitehighlight',boffset+[.20,.77,.43,.03],'');
-                            newdelete={'<HTML><i>new</i></HTML>','<HTML><i>move</i></HTML>','<HTML><i>label</i></HTML>','<HTML><i>delete</i></HTML>'}; if numel(CONN_x.Setup.secondarydataset)==1, newdelete=newdelete(1:3); end
+                            newdelete={'<HTML><i>new</i> dataset</HTML>','<HTML><i>move</i> datasets</HTML>','<HTML><i>label</i> datasets</HTML>','<HTML><i>delete</i> dataset</HTML>'}; if numel(CONN_x.Setup.secondarydataset)==1, newdelete=newdelete(1:3); end
                             CONN_h.menus.m_setup_00{7}=conn_menu('popupbigblue',boffset+[.20,.76,.43,.05],'',[arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),newdelete],'<HTML>Manage additional imaging data (e.g. Fieldmap files, Voxel Displacement Map files, Tissue Probability Map files, other functional datasets, etc.)<br/> <br/> - select the dataset that you wish to edit, or new/move/label/delete to manage the current list of datasets<br/><br/>Suggested optional datasets:<br/> - <b>unsmoothed volumes</b> : enter functional data that has not been spatially smoothed (e.g. for more accurate ROI BOLD-signal extraction)<br/> - <b>fmap</b> : enter fieldmap files for susceptibility distortion correction (e.g. phasediff and magnitude volumes)<br/> - <b>vdm</b> : enter voxel displacement maps for susceptibility distortion correction (e.g. vdm5_* volumes)<br/> - <b>tpm</b> : enter subject-specific tissue probability maps for anatomical/functional segmentation and normalization<br/><br/>Secondary datasets may also be used as alternative functional-data sources to compute ROI-level BOLD timeseres (e.g. for ROIs defined in other spaces; see <i>Setup.ROIs</i> tab).<br/>Secondary datasets that are not explicitly used during preprocessing or explicitly selected by any ROI will be simply disregarded by CONN''s Setup/Denoising/Analysis pipeline.<br/>Last, secondary datasets may also be defined as a way of keeping track of (and easily switching between) alternative versions of your functional data (e.g. an original dataset before all preprocessing steps)</HTML>','conn(''gui_setup'',7);');
                             analysistypes={sprintf('secondary dataset #%d is equal to functional data',nset),sprintf('secondary dataset #%d is implicitly related to functional data: same filenames without leading ''s'' (SPM convention for non-smoothed volumes)',nset),sprintf('secondary dataset #%d is implicitly related to functional data: user-defined filename differences',nset),sprintf('secondary dataset #%d is explicitly defined: selected imaging files',nset)};
                             CONN_h.menus.m_setup_00{6}=conn_menu('popup',boffset+[.20,.69,.43,.05],'',analysistypes,'<HTML>Define contents of secondary datasets (dataset #1 and above), either explicitly or in relation to the functional data:<br/>note1: ''same filenames without leading s'' uses SPM convention for naming spatially smoothed volumes to identify the original raw (non-smoothed) functional data from the smoothed filenames<br/>note2: ROIs may be associated with individual datasets (see <i>Setup.ROIs</i> tab); e.g. a normalized functional dataset for MNI-space ROIs vs. a coregistered functional dataset for subject-space ROIs</HTML>','conn(''gui_setup'',6);');
@@ -2266,7 +2266,7 @@ else
                                     end
                                     nset=0;
                                 end
-                                newdelete={'<HTML><i>new</i></HTML>','<HTML><i>move</i></HTML>','<HTML><i>label</i></HTML>','<HTML><i>delete</i></HTML>'}; if numel(CONN_x.Setup.secondarydataset)==1, newdelete=newdelete(1:3); end
+                                newdelete={'<HTML><i>new</i> dataset</HTML>','<HTML><i>move</i> datasets</HTML>','<HTML><i>label</i> datasets</HTML>','<HTML><i>delete</i> dataset</HTML>'}; if numel(CONN_x.Setup.secondarydataset)==1, newdelete=newdelete(1:3); end
                                 if state==5, set(CONN_h.menus.m_setup_00{7},'string',[arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),newdelete],'value',max(1,nset)); end
                             case 14,
                                 if numel(varargin)>=3, val=varargin{3};
@@ -13098,7 +13098,7 @@ if ~ok, CONN_gui.background_handle=image(shiftdim(CONN_gui.backgroundcolor,-1),'
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,(.85-mean(CONN_gui.backgroundcolor))*.2*[zeros(1,128) sin(linspace(0,pi,128)).^2 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor,-1))))); end
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,conn_bsxfun(@times,max(.05,(1-mean(CONN_gui.backgroundcolor))*.1)*[zeros(1,128) sin(linspace(0,pi,128)).^4 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor/max(.01,mean(CONN_gui.backgroundcolor)),-1)),shiftdim(CONN_gui.backgroundcolor,-1))))); end
 if conn_menumanager('ison')
-    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbuttonblue2',[.0,.920,.236,.037],'','reconnecting...','','conn(''gui_server'');');
+    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbutton2',[.0,.920,.236,.037],'','reconnecting...','','conn(''gui_server'');');
     else hserver=[];
     end
 end

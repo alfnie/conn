@@ -1392,6 +1392,8 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             end
             if any(softlinkoverwrite)
                 B=[]; RT=[]; 
+                summary_norm_post=zeros(1,max(validconditions));
+                summary_nnorm_post=zeros(1,max(validconditions));
                 for slice=1:Y{1}.matdim.dim(3),
                     Bb=[];
                     if 1, % analyses per slice (all sessions together, faster but requires more memory)
@@ -1445,6 +1447,8 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                             norm_post=sqrt(max(0,sum(repmat(Yout{ncondition}.conditionsweights{1},1,size(ytemp,2)).*ytemp.^2,1)/max(eps,sum(Yout{ncondition}.conditionsweights{1}))));
                             conn_write_slice(Yout{ncondition},ytemp,slice);
                             if ~Youtnorm{ncondition}.EmptyData, conn_write_slice(Youtnorm{ncondition},cat(1,norm_pre,norm_post),slice); end
+                            summary_norm_post(ncondition)=summary_norm_post(ncondition)+sum(norm_post);
+                            summary_nnorm_post(ncondition)=summary_nnorm_post(ncondition)+nnz(norm_post);
                         end
                     else, % analyses per slice/session (slower but requires less memory; obsolete now)
                         for nses=1:nsess,
@@ -1543,16 +1547,22 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                     bstd=bstd+outvals{1};
                 end
                 bstd=bstd/nsess;
-                bstd_name='QC_BOLDstd';
-                bstd_icov=find(strcmp(bstd_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
-                if isempty(bstd_icov),
-                    bstd_icov=numel(CONN_x.Setup.l2covariates.names);
-                    CONN_x.Setup.l2covariates.names{bstd_icov}=bstd_name;
-                    CONN_x.Setup.l2covariates.descrip{bstd_icov}='CONN Quality Assurance: BOLD signal standard deviation (after denoising)';
-                    CONN_x.Setup.l2covariates.names{bstd_icov+1}=' ';
-                    for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{bstd_icov}=nan; end
+                for ncondition=validconditions(missingdata), %[0, reshape(validconditions(missingdata),1,[])],
+                    if ncondition==0, bstd_name='QC_BOLDstd';
+                    else bstd_name=['QC_BOLDstd_',CONN_x.Setup.conditions.names{ncondition}];
+                    end
+                    bstd_icov=find(strcmp(bstd_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                    if isempty(bstd_icov),
+                        bstd_icov=numel(CONN_x.Setup.l2covariates.names);
+                        CONN_x.Setup.l2covariates.names{bstd_icov}=bstd_name;
+                        CONN_x.Setup.l2covariates.descrip{bstd_icov}='CONN Quality Assurance: BOLD signal standard deviation (after denoising)';
+                        CONN_x.Setup.l2covariates.names{bstd_icov+1}=' ';
+                        for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{bstd_icov}=nan; end
+                    end
+                    if ncondition==0, CONN_x.Setup.l2covariates.values{nsub}{bstd_icov}=bstd;
+                    else CONN_x.Setup.l2covariates.values{nsub}{bstd_icov}=summary_norm_post(ncondition)/max(eps,summary_nnorm_post(ncondition));
+                    end
                 end
-                CONN_x.Setup.l2covariates.values{nsub}{bstd_icov}=bstd;
             end
             for ncondition=validconditions(missingdata),
                 conn_tempcache(cachenorm(ncondition),'matc');
