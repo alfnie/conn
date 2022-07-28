@@ -438,7 +438,7 @@ switch(lower(option))
         assert(numel(cat_file)==1,'%d %s files found',numel(cat_file),fullfile(subject_path,['*_',expt,'.cat']));
         cat_info=conn_loadcfgfile(char(cat_file),struct('path',el_readtaskfolder(defaults)));
         DOSAVECFG=defaults.create_model_cfg_files;
-        opts=struct('dataset',char(dataset),'design',char(cat_file),'model_folder','root','model_name',expt,'contrasts',{cons});
+        opts=struct('dataset',char(dataset),'design',cat_info,'model_folder','root','model_name',expt,'contrasts',{cons});
         if isequal(pipeline,'main')||isequal(pipeline,'nii'), opts.model_folder='root'; else opts.model_folder='preproc'; end
         if DOSAVECFG
             model_definition_file=conn_prepend('',char(cat_file),'.cfg');

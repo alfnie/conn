@@ -105,8 +105,10 @@ switch(lower(option))
                     tag=varargin{1};
                     str=sprintf('%s @ %s',conn_projectmanager('whoami'),datestr(now));
                     filename=fullfile(filepath,sprintf('statusfile.%s',tag));
-                    rename=true;
-                    try, conn_fileutils('deletefile_multiple',fullfile(filepath,'statusfile.')); rename=~isempty(tag); end
+                    rename=conn_existfile(filepath,2);
+                    if rename
+                        try, conn_fileutils('deletefile_multiple',fullfile(filepath,'statusfile.')); rename=~isempty(tag); end
+                    end
                     if rename
                         try, conn_fileutils('mkdir',filepath); end
                         try, conn_fileutils('filewrite',filename,str);

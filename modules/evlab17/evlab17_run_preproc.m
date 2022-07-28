@@ -570,6 +570,10 @@ end
 if ~isempty(fields), 
     pwd0=pwd;
     cd(niifolder);
+    if ~ismember('filename',fields(1:2:end-1)), 
+        fields{end+1}='filename';
+        fields{end+1}=fileout;
+    end
     evlab17_module('preprocessing',fields{:}); 
     evlab17_module('setinfo','preprocessing',fields);
     if isfield(optionsDesign,'design')||isfield(optionsDesign,'files'), evlab17_module('setinfo','design',optionsDesign); end

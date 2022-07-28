@@ -142,7 +142,7 @@ if isfield(options,'model_folder'),
     model_folder=char(options.model_folder);
     if isempty(model_folder)||isequal(model_folder,'root'), % back-compatibility: input <root>/nii; output <root>/firstlevel_*/
         model_folder=fullfile(fileparts(evlab17_module('filename'))); 
-        [tpath,tname]=fileparts(model_folder); if isequal(tname,'nii'), model_folder=tpath; end
+        [tpath,tname]=fileparts(model_folder); if isequal(tname,'nii')||isequal(tname,'func'), model_folder=tpath; end
     elseif isequal(model_folder,'preproc') % separate folder for each preprocessing pipeline: <preproc>/results/firstlevel/*
         model_folder=fullfile(conn_prepend('',evlab17_module('filename'),''),'results','firstlevel');
         prependmodelname=false;
