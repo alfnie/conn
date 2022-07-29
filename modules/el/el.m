@@ -406,6 +406,7 @@ switch(lower(option))
         if numel(varargin)<3, expt=''; else expt=varargin{3}; end
         expt=el_readexpt(expt,dataset);
         if numel(varargin)<4, model_config_file=''; else model_config_file=varargin{4}; end
+        try, if isempty(model_config_file)&&conn_existfile(fullfile(el_readtaskfolder(defaults),[expt,'.cfg'])), model_config_file=fullfile(el_readtaskfolder(defaults),[expt,'.cfg']); end; end
         try, if isempty(model_config_file)&&conn_existfile(fullfile(subject_path,[expt,'.cfg'])), model_config_file=fullfile(subject_path,[expt,'.cfg']); end; end
         model_config_file=el_readmodelconfig(model_config_file,defaults);
         assert(conn_existfile(model_config_file),'unable to find model estimation options %s',model_config_file);
