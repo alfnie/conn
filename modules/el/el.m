@@ -150,6 +150,7 @@ switch(lower(option))
                     otherwise, defaults.isremote=str2num(defaults.isremote); 
                 end
             end
+            if ~isscalar(defaults.isremote), defaults.isremote=false; end
             if defaults.isremote&&~conn_server('isconnected')
                 fprintf('Starting new remote connection to server\n');
                 conn remotely on;
@@ -231,8 +232,9 @@ switch(lower(option))
             [nill,tname]=fileparts(preproc_config_file);
             tname=regexprep(tname,'^pipeline_preproc_','');
             dataset=fullfile(subject_path,[tname,'.mat']);
-            [ok,msg]=mkdir(fileparts(dataset));
+            conn_fileutils('mkdir',fileparts(dataset));
             cd(fileparts(dataset));
+            conn_fileutils('deletefile',dataset);
             fileout=conn_module('evlab17','run_preproc',data_config_file,[],...
                 'dataset',dataset, ...
                 'alt_functionals_path', fullfile(subject_path,'func'), ...
