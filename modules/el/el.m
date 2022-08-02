@@ -74,6 +74,7 @@ function varargout=el(option,varargin)
 %      e.g.  
 %           >> el submit preprocessing 408_FED_20160617a_3T2
 %
+%   el('model.contrast',subjectID, pipelineID, experimentID) runs only contrast-estimation step (skips first-level analysis estimation step)  
 %   el('model.plot',subjectID, pipelineID, experimentID) displays first-level effect-size estimates
 %   el('model.stats',subjectID, pipelineID, experimentID) displays first-level statistics
 %   el('model.qa',subjectID, pipelineID, experimentID) creates QA plots on first-level GLM analyses
@@ -399,7 +400,7 @@ switch(lower(option))
         conn('load',conn_prepend('',dataset,'.mat'));
         conn gui_setup;
         
-    case {'model','firstlevel'}
+    case {'model','firstlevel', 'model.contrast','firstlevel.contrast'}
         assert(numel(varargin)>=2,'incorrect usage >> el model subject_id, pipeline_id, model_id [, modeloptions]');
         pwd0=pwd;
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
@@ -440,6 +441,10 @@ switch(lower(option))
         if isempty(cat_file), cat_file=conn_dir(fullfile(subject_path,['*_',expt,'.cat']),'-ls'); end
         assert(numel(cat_file)==1,'%d %s files found',numel(cat_file),fullfile(subject_path,['*_',expt,'.cat']));
         cat_info=conn_loadcfgfile(char(cat_file),struct('path',el_readtaskfolder(defaults)));
+        if ~isempty(regexp(lower(option),'\.contrast$')), 
+            if isfield(cat_info,'design')&&isfield(cat_info.design,'files'), cat_info.design=rmfield(cat_info.design,'files');  end
+            if isfield(cat_info,'files'), cat_info=rmfield(cat_info,'files');  end
+        end
         DOSAVECFG=defaults.create_model_cfg_files;
         opts=struct('dataset',char(dataset),'design',cat_info,'model_folder','root','model_name',expt,'contrasts',{cons});
         if isequal(pipeline,'main')||isequal(pipeline,'nii'), opts.model_folder='root'; else opts.model_folder='preproc'; end
