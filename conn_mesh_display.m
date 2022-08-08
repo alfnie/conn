@@ -574,7 +574,9 @@ else
     material(state.material);
 end
 
-hc=state.handles.hfig;
+if state.handles.fullfigure, hc=state.handles.hfig;
+else hc=uicontextmenu(state.handles.hfig);
+end
 hc1=uimenu(hc,'Label','View');
 uimenu(hc1,'Label','Left view','callback',{@conn_mesh_display_refresh,'view',[-1,0,0],[],-1},'tag','view');
 uimenu(hc1,'Label','Right view','callback',{@conn_mesh_display_refresh,'view',[1,0,0],[],1},'tag','view');
