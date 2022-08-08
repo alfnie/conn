@@ -867,7 +867,7 @@ if ishandle(hmsg), delete(hmsg); end
                 conn_msgbox([{'Volume:'},cellstr(state.info.vol),{' ','Activation surface:'},cellstr(state.info.surf)],'3d display info');
                 return;
             case {'mask','remap','remap&draw','colormap','black_transparency','smoother'}
-                if ~strcmp(option,'remap'), set(state.handles.hfig,'name','rendering, please wait...');drawnow; end
+                if ~strcmp(option,'remap')&&~strcmp(option,'remap&draw'), set(state.handles.hfig,'name','rendering, please wait...');drawnow; end
                 if strcmp(option,'colormap')
                     cmap=varargin{1};
                     if ischar(cmap)
@@ -970,7 +970,7 @@ if ishandle(hmsg), delete(hmsg); end
 %                         set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,0,128)'),state.colormap))));
 %                     end
                 end
-                if ~strcmp(option,'remap'), set(state.handles.hfig,'name','conn 3d display'); end
+                if ~strcmp(option,'remap')&&~strcmp(option,'remap&draw'), set(state.handles.hfig,'name','conn 3d display'); end
                 
             case 'view'
                 if numel(varargin)<1||isempty(varargin{1}), v=get(state.handles.hax,'cameraposition');
