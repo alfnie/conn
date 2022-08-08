@@ -312,6 +312,7 @@ if isempty(hax0)
     state.handles.hfig=figure('numbertitle','off','color',state.background,'units','norm','position',[.3 .4 .4 .4],'menubar','none','render','opengl','name','rendering, please wait...','colormap',state.colormap,'visible','off');
     figname='conn 3d display';
     axes('units','norm','position',[.95 .1 .04 .8]);
+    state.handles.fullfigure=true;
 else
     state.handles.hfig=hax0; while ~isequal(get(state.handles.hfig,'type'),'figure'), state.handles.hfig=get(state.handles.hfig,'parent'); end
     figure(state.handles.hfig);
@@ -319,6 +320,7 @@ else
     figname=get(state.handles.hfig,'name');
     phax0=get(hax0,'position');
     axes('units','norm','position',[phax0(1)+phax0(3) phax0(2) .05*phax0(3) phax0(4)]);
+    state.handles.fullfigure=false;
 end
 if state.dotwosided,
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
@@ -400,7 +402,7 @@ grid(state.handles.hax,'on');
 th1=xlabel(state.handles.hax,{'X (mm)','left - right'});th2=ylabel(state.handles.hax,{'Y (mm)','posterior - anterior'});th3=zlabel(state.handles.hax,{'Z (mm)','inferior - superior'});set([th1,th2,th3],'fontsize',8);
 axis(state.handles.hax,'off');
 view(state.handles.hax,state.position);
-if isempty(hax0), set(state.handles.hax,'units','norm','position',[0,0,1,1],'color',get(state.handles.hfig,'color'),'xcolor',.5*[1 1 1],'ycolor',.5*[1 1 1],'zcolor',.5*[1 1 1],'box','on'); end
+if state.handles.fullfigure, set(state.handles.hax,'units','norm','position',[0,0,1,1],'color',get(state.handles.hfig,'color'),'xcolor',.5*[1 1 1],'ycolor',.5*[1 1 1],'zcolor',.5*[1 1 1],'box','on'); end
 state.handles.light=[light light];set(state.handles.light,'position',state.position,'visible','on','color',state.light_color);set(state.handles.light(end),'position',-state.position);
 tgca=state.handles.hax;
 %axes(tgca);
@@ -803,7 +805,7 @@ for n=1:numel(cameraviewfields)
 end
 set(state.handles.hfig,'name',figname);
 conn_mesh_display_refresh([],[],'view',[-1,0,0],[],0);
-set(state.handles.hfig,'visible','on'); drawnow;
+if state.handles.fullfigure, set(state.handles.hfig,'visible','on'); drawnow; end
 if ishandle(hmsg), delete(hmsg); end
 %rotate3d on;
 
@@ -867,7 +869,7 @@ if ishandle(hmsg), delete(hmsg); end
                 conn_msgbox([{'Volume:'},cellstr(state.info.vol),{' ','Activation surface:'},cellstr(state.info.surf)],'3d display info');
                 return;
             case {'mask','remap','remap&draw','colormap','black_transparency','smoother'}
-                if ~strcmp(option,'remap')&&~strcmp(option,'remap&draw'), set(state.handles.hfig,'name','rendering, please wait...');drawnow; end
+                if ~strcmp(option,'remap')&&state.handles.fullfigure, set(state.handles.hfig,'name','rendering, please wait...');drawnow; end
                 if strcmp(option,'colormap')
                     cmap=varargin{1};
                     if ischar(cmap)
@@ -970,7 +972,7 @@ if ishandle(hmsg), delete(hmsg); end
 %                         set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,0,128)'),state.colormap))));
 %                     end
                 end
-                if ~strcmp(option,'remap')&&~strcmp(option,'remap&draw'), set(state.handles.hfig,'name','conn 3d display'); end
+                if ~strcmp(option,'remap')&&state.handles.fullfigure, set(state.handles.hfig,'name','conn 3d display'); end
                 
             case 'view'
                 if numel(varargin)<1||isempty(varargin{1}), v=get(state.handles.hax,'cameraposition');
