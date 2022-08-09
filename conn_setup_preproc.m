@@ -1212,6 +1212,8 @@ for iSTEP=1:numel(STEPS)
                             end
                         end
                         X=[]; Xnames={};
+                        if 1, X=[X, ones(numel(Vin),1)]; Xnames{end+1}='session (1)'; end
+                        if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; Xnames{end+1}='detrend (1)'; end
                         reg_done=false(size(reg_names));
                         Vsource=[];
                         for nl1covariate=1:numel(reg_names)
@@ -1276,8 +1278,6 @@ for iSTEP=1:numel(STEPS)
                                 X=cat(2,X,data-repmat(mean(data,1),size(data,1),1)); Xnames{end+1}=sprintf('%s (%d)',reg_names{nl1covariate},size(data,2));
                             end
                         end
-                        if 1, X=[X, ones(numel(Vin),1)]; Xnames{end+1}='session (1)'; end
-                        if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; Xnames{end+1}='detrend (1)'; end
                         if ~reg_skip
                             [gridx,gridy]=ndgrid(1:Vin(1).dim(1),1:Vin(1).dim(2));
                             xyz0=[gridx(:),gridy(:)]';
@@ -1298,7 +1298,7 @@ for iSTEP=1:numel(STEPS)
                                     Vlag=spm_write_plane(Vlag,reshape(lag,Vin(1).dim(1:2)),slice);
                                 else
                                     b=iX*X'*y;
-                                    b(1,:)=0; % note: keep constant term
+                                    b(1,:)=0; % note: keep constant term (at 0-level of all centered covariates)
                                     y=y-X*b;
                                 end
                                 y=permute(reshape(y,[numel(Vin),Vin(1).dim(1:2)]),[2,3,1]);
