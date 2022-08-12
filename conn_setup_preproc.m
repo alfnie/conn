@@ -4270,7 +4270,7 @@ for iSTEP=1:numel(STEPS)
         end
         if dogui&&ishandle(hmsg), delete(hmsg); end
         ok=2;
-        if isfield(CONN_x,'filename')&&~isempty(CONN_x.filename), conn save; end
+        if isfield(CONN_x,'filename')&&~isempty(CONN_x.filename), disp('-'); conn save; end
     end
     
     if ok<0, return; end
