@@ -546,7 +546,9 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 set(state.handles.hfig,'name',varargin{1});
             case 'info',
                 voxelsize=round(1e3*sqrt(sum(state.mat(1:3,1:3).^2,1)))/1e3;
-                conn_msgbox([{'Background image:'},reshape(cellstr(state.info.structural),1,[]),{' ','Overlay image/contour:'},reshape(cellstr(state.info.vol),1,[]),{' ','Voxel size used for display (mm):'},{mat2str(voxelsize)}],'Slice display info');
+                if nargout>0, out=state.info;
+                else conn_msgbox([{'Background image:'},reshape(cellstr(state.info.structural),1,[]),{' ','Overlay image/contour:'},reshape(cellstr(state.info.vol),1,[]),{' ','Voxel size used for display (mm):'},{mat2str(voxelsize)}],'Slice display info');
+                end
                 return;
             case 'togglepointer'
                 if get(state.handles.mode,'value')==1, set(state.handles.mode,'string','Click on image to select reference point');

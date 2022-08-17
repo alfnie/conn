@@ -116,7 +116,7 @@ if mergeinfo
                 if length(other{REF}.CONN_x.Setup.rois.names)~=length(other{n1}.CONN_x.Setup.rois.names) || any(any(size(strvcat(other{REF}.CONN_x.Setup.rois.names{:}))~=size(strvcat(other{n1}.CONN_x.Setup.rois.names{:})))) || any(any((strvcat(other{REF}.CONN_x.Setup.rois.names{:}))~=(strvcat(other{n1}.CONN_x.Setup.rois.names{:})))), TXT{end+1}=['Mismatched ROI names with project ',other{n1}.CONN_x.filename]; end
                 if length(other{REF}.CONN_x.Setup.conditions.names)~=length(other{n1}.CONN_x.Setup.conditions.names) || any(any(size(strvcat(other{REF}.CONN_x.Setup.conditions.names{:}))~=size(strvcat(other{n1}.CONN_x.Setup.conditions.names{:})))) || any(any((strvcat(other{REF}.CONN_x.Setup.conditions.names{:}))~=(strvcat(other{n1}.CONN_x.Setup.conditions.names{:})))), TXT{end+1}=['Mismatched condition names with project ',other{n1}.CONN_x.filename]; end
                 if length(other{REF}.CONN_x.Setup.l1covariates.names)~=length(other{n1}.CONN_x.Setup.l1covariates.names) || any(any(size(strvcat(other{REF}.CONN_x.Setup.l1covariates.names{:}))~=size(strvcat(other{n1}.CONN_x.Setup.l1covariates.names{:})))) || any(any((strvcat(other{REF}.CONN_x.Setup.l1covariates.names{:}))~=(strvcat(other{n1}.CONN_x.Setup.l1covariates.names{:})))), TXT{end+1}=['Mismatched first-level covariate names with project ',other{n1}.CONN_x.filename]; end
-                if length(other{REF}.CONN_x.Setup.l2covariates.names)~=length(other{n1}.CONN_x.Setup.l2covariates.names) || any(any(size(strvcat(other{REF}.CONN_x.Setup.l2covariates.names{:}))~=size(strvcat(other{n1}.CONN_x.Setup.l2covariates.names{:})))) || any(any((strvcat(other{REF}.CONN_x.Setup.l2covariates.names{:}))~=(strvcat(other{n1}.CONN_x.Setup.l2covariates.names{:})))), TXT{end+1}=['Mismatched second-level covariate names with project ',other{n1}.CONN_x.filename]; end
+                %if length(other{REF}.CONN_x.Setup.l2covariates.names)~=length(other{n1}.CONN_x.Setup.l2covariates.names) || any(any(size(strvcat(other{REF}.CONN_x.Setup.l2covariates.names{:}))~=size(strvcat(other{n1}.CONN_x.Setup.l2covariates.names{:})))) || any(any((strvcat(other{REF}.CONN_x.Setup.l2covariates.names{:}))~=(strvcat(other{n1}.CONN_x.Setup.l2covariates.names{:})))), TXT{end+1}=['Mismatched second-level covariate names with project ',other{n1}.CONN_x.filename]; end
             end
             if ~isempty(TXT),
                 conn_disp(strvcat(TXT{:}));
@@ -187,10 +187,23 @@ if mergeinfo
         CONN_x.Setup.rois.files{nsub}=other{copyfromproject}.CONN_x.Setup.rois.files{copyfromsubject};
         try, CONN_x.Setup.conditions.values{nsub}=other{copyfromproject}.CONN_x.Setup.conditions.values{copyfromsubject}; end
         CONN_x.Setup.l1covariates.files{nsub}=other{copyfromproject}.CONN_x.Setup.l1covariates.files{copyfromsubject};
-        CONN_x.Setup.l2covariates.values{nsub}=other{copyfromproject}.CONN_x.Setup.l2covariates.values{copyfromsubject};
+        %CONN_x.Setup.l2covariates.values{nsub}=other{copyfromproject}.CONN_x.Setup.l2covariates.values{copyfromsubject};
         CONN_x.Setup.nscans{nsub}=other{copyfromproject}.CONN_x.Setup.nscans{copyfromsubject};
         CONN_x.Setup.nsessions(nsub)=other{copyfromproject}.CONN_x.Setup.nsessions(min(numel(other{copyfromproject}.CONN_x.Setup.nsessions),copyfromsubject));
         CONN_x.Setup.RT(nsub)=other{copyfromproject}.CONN_x.Setup.RT(min(numel(other{copyfromproject}.CONN_x.Setup.RT),copyfromsubject));
+        for ncov=1:numel(other{copyfromproject}.CONN_x.Setup.l2covariates.names)-1 % matches by l2covariate name (and adds new covariate if necessary)
+            cov_name=other{copyfromproject}.CONN_x.Setup.l2covariates.names{ncov};
+            cov_desc=other{copyfromproject}.CONN_x.Setup.l2covariates.descrip{ncov};
+            cov_icov=find(strcmp(cov_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+            if isempty(cov_icov),
+                cov_icov=numel(CONN_x.Setup.l2covariates.names);
+                CONN_x.Setup.l2covariates.names{cov_icov}=cov_name;
+                CONN_x.Setup.l2covariates.descrip{cov_icov}=cov_desc;
+                CONN_x.Setup.l2covariates.names{cov_icov+1}=' ';
+                for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{cov_icov}=nan; end
+            end
+            CONN_x.Setup.l2covariates.values{nsub}{cov_icov}=other{copyfromproject}.CONN_x.Setup.l2covariates.values{copyfromsubject}{ncov};
+        end
     end
     if isempty(idx1), tempidx1=1;
     else tempidx1=idx1;

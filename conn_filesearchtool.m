@@ -76,7 +76,7 @@ if nargin<1 || ischar(varargin{1}),
             set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
             h.selectspm=[];
         else
-            h.find=conn_menu('pushbutton2',[1,.50,.33,.45,.05]*M,'','Find','Recursively searchs file names matching the filter starting from the current folder');
+            h.find=conn_menu('pushbutton2',[1,.50,.33,.45,.05]*M,'','Find','Recursively searchs file names matching the files/filter options below starting from the current folder');
             set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
             h.selectspm=conn_menu('pushbutton2',[1,.7,.94,.29,.05]*M,'','ALTselect','<HTML>Alternative GUIs for file selection (OS-specific, spm_select GUI, select data from this or other CONN projects, etc.)</HTML>');
         end
@@ -95,16 +95,23 @@ if nargin<1 || ischar(varargin{1}),
         h.selectspm=[];
     end
     h.find_state=0;
-    h.folder=conn_menu('edit2',[1,.05,.175,.9,.05]*M,'',params.folder,'<HTML>Current folder<br/> - Type a full path to change to a different folder</HTML>');
+    h.titles_folder=conn_menu('text2',[1,.10,.175,.20,.04]*M,'','path : '); set(h.titles_folder,'horizontalalignment','left');
+    h.folder=conn_menu('edit2',[1,.3,.175,.6,.05]*M,'',params.folder,'<HTML>Current folder<br/> - Type a full path to change to a different folder</HTML>');
     str=conn_filesearch_breakfolder(params.folder);
     if h.reduced, h.folderpopup=conn_menu('popup2',[1,.05,.83,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
     else h.folderpopup=conn_menu('popup2',[1,.05,.88,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
     end
     set(h.folderpopup,'value',numel(str));
-    h.filter=conn_menu('edit2',[1,.05,.125,.9,.05]*M,'',params.filter,'<HTML>File name filter (standard format)<br/> - Show only files with names matching any of these patterns<br/> - Use ";" to separate multiple filters</HTML>');
-    h.regexp=conn_menu('edit2',[1,.05,.075,.9,.05]*M,'',params.regexp,'<HTML>Additional full-path filename filter (regexp format)<br/> - Show only files with full-path filename matching this pattern<br/> - See <i>help regexp</i> for additional information');
-    if ~isempty(params.localcopy)&&~h.reduced,  h.localcopy=conn_menu('popup2',[1,.05,.025,.9,.05]*M,'',{'import selected files','copy to project BIDS folder and import'},['<HTML>Controls behavior of ''',h.strbutton,''' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>copy first to project BIDS folder</i> : selected files will be first copied to your project conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified or processed)</HTML>']); set(h.localcopy,'value',params.localcopy);
-    else h.localcopy=[];
+    h.titles_filter=conn_menu('text2',[1,.10,.125,.20,.04]*M,'','files : '); set(h.titles_filter,'horizontalalignment','left');
+    h.filter=conn_menu('edit2',[1,.30,.125,.6,.05]*M,'',params.filter,'<HTML>File name filter (standard format)<br/> - Show only files with names matching any of these patterns<br/> - Use ";" to define multiple filters</HTML>');
+    h.titles_regexp=conn_menu('text2',[1,.10,.075,.20,.04]*M,'','filter : '); set(h.titles_regexp,'horizontalalignment','left');
+    h.regexp=conn_menu('edit2',[1,.30,.075,.6,.05]*M,'',params.regexp,'<HTML>Additional full-path filename filter (regexp format)<br/> - Show only files with full-path filename matching this pattern<br/> - See <i>help regexp</i> for additional information');
+    if ~isempty(params.localcopy)&&~h.reduced,  
+        h.titles_localcopy=conn_menu('text2',[1,.10,.025,.20,.04]*M,'','options : '); set(h.titles_localcopy,'horizontalalignment','left');
+        h.localcopy=conn_menu('popup2',[1,.30,.025,.65,.04]*M,'',{'import selected files','import copy of selected files'},['<HTML>Controls behavior of ''',h.strbutton,''' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>import copy of selected files</i> : selected files will be first copied to your project conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified or processed)</HTML>']); set(h.localcopy,'value',params.localcopy);
+    else 
+        h.titles_localcopy=[];
+        h.localcopy=[];
     end
 %     hc1=uicontextmenu;
 %     h.selectspmalt0=uimenu(hc1,'Label','<HTML>Use OS gui to select individual file(s)</HTML>');%,'callback',{@conn_filesearchtool,'selectspmalt2'});
@@ -116,9 +123,9 @@ if nargin<1 || ischar(varargin{1}),
     set([h.files,h.find,h.folder,h.folderpopup,h.filter,h.regexp,h.localcopy,h.select,h.selectspm, h.filename],'userdata',h);
     names={'files','find','selectspm'}; for n1=1:length(names), set(h.(names{n1}),'callback',{@conn_filesearchtool,names{n1}}); end
     names={'folder','folderpopup','filter','regexp','filename'}; for n1=1:length(names), set(h.(names{n1}),'callback',{@conn_filesearchtool,names{n1},true}); end
-    set([h.find h.select h.selectspm h.filter h.regexp h.localcopy h.folder],'visible','off');
+    set([h.find h.select h.selectspm h.filter h.regexp h.localcopy h.folder h.titles_folder h.titles_filter h.titles_regexp h.titles_localcopy],'visible','off');
     if h.reduced, conn_menumanager('onregion',[h.find h.select h.selectspm h.localcopy],1,params.position+[-.05 -.05 +.10 +.10],h.files);
-    else conn_menumanager('onregion',[h.find h.select h.selectspm h.filter h.regexp h.localcopy h.folder],1,params.position+[-.05 -.05 +.10 +.10],h.files);
+    else conn_menumanager('onregion',[h.find h.select h.selectspm h.filter h.regexp h.localcopy h.folder h.titles_folder h.titles_filter h.titles_regexp h.titles_localcopy],1,params.position+[-.05 -.05 +.10 +.10],h.files);
     end
     conn_filesearchtool(h.folder,[],'folder',true);
 else,

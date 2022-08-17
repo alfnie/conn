@@ -127,6 +127,7 @@ if any(procedures==Iprocedure) % QA_NORM functional
         %if ~nargout, conn_waitbar('redraw',ht); end
         nsubs=validsubjects;
         sessionspecific=CONN_x.Setup.structural_sessionspecific;
+        donemsg=false;
         for isub=1:numel(nsubs)
             nsub=nsubs(isub);
             try
@@ -151,6 +152,25 @@ if any(procedures==Iprocedure) % QA_NORM functional
                     end
                     if ~nargout, conn_waitbar(nprocedures/Nprocedures+1/Nprocedures*(isub-1+(nses)/nsess)/numel(nsubs),ht);
                     else fprintf('.');
+                    end
+
+                    try
+                        info=fhset{1}('info');
+                        [pmatch,nill]=conn_roioverlaps(info.structural,fullfile(fileparts(which(mfilename)),'utils','surf','referenceBM.nii'),nan,.25);
+                        pmatch=2*pmatch.overlap/(pmatch.rows_total+pmatch.cols_total);
+                        if nsess==1, pmatch_name='QC_NORM_functional';
+                        else pmatch_name=sprintf('QC_NORM_functional_session%d',nses);
+                        end
+                        pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                        if isempty(pmatch_icov),
+                            pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
+                            CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
+                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Percent overlap between functional brainmask and analysis mask';
+                            CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
+                            for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                        end
+                        CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
+                        if ~donemsg, conn_disp('fprintf','QC_NORM_functional 2nd-level covariate updated'); donemsg=true; end
                     end
                 end
             catch

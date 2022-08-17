@@ -1,4 +1,4 @@
-function [out_struct, out_txt] = conn_roioverlaps(filename1,filename2,varargin)
+function [out_struct, out_txt] = conn_roioverlaps(filename1,filename2,thr1,thr2, varargin)
 % CONN_ROIOVERLAPS returns overlap between two sets of ROIs
 % [out_struct, out_txt] = conn_roioverlaps(filename1, filename2)
 %  out_struct : structure containing the overlap (in number of voxels) between ROIs in filename1 and filename2
@@ -21,7 +21,11 @@ filename2=conn_server('util_localfile',cellstr(filename2));
 tfilename=cellstr(conn_expandframe(filename1));
 a1=spm_vol(char(filename1));
 b1=spm_read_vols(a1);
-if isempty(ROInames1) %unlabeled atlas
+if ~isempty(thr1), 
+    if isnan(thr1), thr1=0.80*mean(b1(b1>mean(b1(~isnan(b1)&b1~=0))/8)); end
+    ROIdata1={b1>thr1}; 
+    ROInames1={'mask1'};
+elseif isempty(ROInames1) %unlabeled atlas
     maxdata=max(b1(:));
     if all(ismember(unique(b1(b1~=0)),1:maxdata))
         ROIdata1=arrayfun(@(n)b1==n,1:maxdata,'uni',0);
@@ -43,7 +47,11 @@ xyz1=a1(1).mat*[x(:) y(:) z(:) ones(numel(x),1)]';
 tfilename=cellstr(conn_expandframe(filename2));
 a2=spm_vol(char(filename2));
 b2=reshape(spm_get_data(a2,pinv(a2(1).mat)*xyz1),a1(1).dim(1),a1(1).dim(2),a1(1).dim(3),[]);
-if numel(ROInames2)>1&&numel(tfilename)==1, %3d-atlas
+if ~isempty(thr2), 
+    if isnan(thr2), thr2=0.80*mean(b2(b2>mean(b2(~isnan(b2)&b2~=0))/8)); end
+    ROIdata2={b2>thr2}; 
+    ROInames2={'mask2'};
+elseif numel(ROInames2)>1&&numel(tfilename)==1, %3d-atlas
     maxdata=max(b2(:));
     if max(ROIidx2)==maxdata
         ROIdata2=arrayfun(@(n)b2==n,ROIidx2,'uni',0);

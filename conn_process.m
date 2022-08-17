@@ -698,7 +698,7 @@ if any(options==3) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             end
 			n=n+1;
 			conn_waitbar(n/N,h,sprintf('Subject %d Session %d',nsub,nses));
-		end
+        end
 	end
 	conn_waitbar('close',h);
 	clear data;

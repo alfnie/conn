@@ -7324,7 +7324,7 @@ else
                 conn_menu('frame2semiborder',boffset+[.595,.04,.37,.79],''); %Preview first-level analysis');
                 [CONN_h.menus.m_analyses_00{11},temp1]=conn_menu('listbox2',boffset+[.89,.48,.075,.17],'Subjects','','Select subject to display','conn(''gui_analyses'',11);');
                 [CONN_h.menus.m_analyses_00{12},temp2]=conn_menu('listbox2',boffset+[.89,.23,.075,.17],'Conditions','','Select condition to display','conn(''gui_analyses'',12);');
-                CONN_h.menus.m_analyses_00{13}=conn_menu('popup2big',boffset+[.70,.79,.25,.04],'',{'<HTML>Analysis results <small>(from disk)</small></HTML>','<HTML>Analysis results <small>(preview of current settings)</small></HTML>'},'<HTML>Select ''analysis results (preview of current settings)'' to display a preview of the results of this first-level analysis, adapting in real time to the options selected in the ''analysis settings'' tab<br/>Select ''analysis results (from disk)'' to display the results of this first-level analysis (as computed the last time this analysis processing pipeline was run)</HTML>','conn(''gui_analyses'',13);');
+                CONN_h.menus.m_analyses_00{13}=conn_menu('popup2big',boffset+[.70,.79,.25,.04],'',{'<HTML>Analysis results <small>(from disk)</small></HTML>','<HTML>Analysis results <small>(preview)</small></HTML>'},'<HTML>Select ''analysis results (preview)'' to display a preview of the results of this first-level analysis, adapting in real time to the options selected in the ''analysis settings'' tab<br/>Select ''analysis results (from disk)'' to display the results of this first-level analysis (as computed the last time this analysis processing pipeline was run)</HTML>','conn(''gui_analyses'',13);');
                 set(CONN_h.menus.m_analyses_00{13},'value',1);
                 pos=[.65,.30,.20,.39];
                 if any(CONN_x.Setup.steps([2,3])),
@@ -7469,11 +7469,11 @@ else
                     CONN_h.menus.m_analyses_00{23}=uicontrol('style','frame','units','norm','position',boffset+[.37,.31,.175,.24],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                     conn_menumanager('onregion',CONN_h.menus.m_analyses_00{23},-1,boffset+[.175 .31 .38 .24]);
                     
-                    set(CONN_h.menus.m_analyses_00{13},'string',{'<HTML>Analysis results <small>(from disk)</small></HTML>','<HTML>Analysis results <small>(preview of current settings)</small></HTML>'},'value',max(1,min(2,get(CONN_h.menus.m_analyses_00{13},'value'))));
+                    set(CONN_h.menus.m_analyses_00{13},'string',{'<HTML>Analysis results <small>(from disk)</small></HTML>','<HTML>Analysis results <small>(preview)</small></HTML>'},'value',max(1,min(2,get(CONN_h.menus.m_analyses_00{13},'value'))));
 %                     conn_menu('frame2noborder',boffset+[.595,.08,.37,.75],' '); %Preview first-level analysis');
 %                     CONN_h.menus.m_analyses_00{11}=conn_menu('listbox2',boffset+[.89,.48,.075,.17],'Subjects','','Select subject to display','conn(''gui_analyses'',11);');
 %                     CONN_h.menus.m_analyses_00{12}=conn_menu('listbox2',boffset+[.89,.23,.075,.17],'Conditions','','Select condition to display','conn(''gui_analyses'',12);');
-%                     CONN_h.menus.m_analyses_00{13}=conn_menu('popup2big',boffset+[.70,.80,.25,.04],'',{'<HTML>Analysis results <small>(from disk)</small></HTML>','<HTML>Analysis results <small>(preview of current settings)</small></HTML>'},'<HTML>Select ''analysis results (preview of current settings)'' to display a preview of the results of this first-level analysis, adapting in real time to the options selected in the ''analysis settings'' tab<br/>Select ''analysis results (from disk)'' to display the results of this first-level analysis (as computed the last time this analysis processing pipeline was run)','conn(''gui_analyses'',13);');
+%                     CONN_h.menus.m_analyses_00{13}=conn_menu('popup2big',boffset+[.70,.80,.25,.04],'',{'<HTML>Analysis results <small>(from disk)</small></HTML>','<HTML>Analysis results <small>(preview)</small></HTML>'},'<HTML>Select ''analysis results (preview)'' to display a preview of the results of this first-level analysis, adapting in real time to the options selected in the ''analysis settings'' tab<br/>Select ''analysis results (from disk)'' to display the results of this first-level analysis (as computed the last time this analysis processing pipeline was run)','conn(''gui_analyses'',13);');
 %                     set(CONN_h.menus.m_analyses_00{13},'value',1);
 %                     pos=[.65,.30,.20,.39];
 %                     if any(CONN_x.Setup.steps([2,3])),
@@ -7930,7 +7930,7 @@ else
                 %nview=get(CONN_h.menus.m_analyses_00{13},'value')-1;
                 nview=nregressors;
                 if CONN_x.Analyses(ianalysis).type==1, set(CONN_h.menus.m_analyses_00{13},'string',{'<HTML>Analysis results <small>(from disk)</small></HTML>'},'value',1);
-                else set(CONN_h.menus.m_analyses_00{13},'string',{'<HTML>Analysis results <small>(from disk)</small></HTML>','<HTML>Analysis results <small>(preview of current settings)</small></HTML>'});
+                else set(CONN_h.menus.m_analyses_00{13},'string',{'<HTML>Analysis results <small>(from disk)</small></HTML>','<HTML>Analysis results <small>(preview)</small></HTML>'});
                 end
                 nshow=get(CONN_h.menus.m_analyses_00{13},'value'); % 2: preview; 1: results
                 nconditions=CONN_h.menus.m_analyses.listedconditions(get(CONN_h.menus.m_analyses_00{12},'value'));
@@ -9494,7 +9494,8 @@ else
                 CONN_h.menus.m_results.analyses_selected=idx;
                 if DOLIST||isempty(state)
                     %conn_menu('framehighlight',[.06 .23 .10 .57],'');
-                    CONN_h.menus.m_results_00{101}=conn_menu('listbox',[.06 .27 .10 .49],'Analyses',[CONN_h.menus.m_results.analyses_listnames,{' '}],'<HTML>Select first-level analysis</HTML>','conn(''gui_results'',101);');
+                    conn_menu('framewhitehighlight',[.06 .20 .10 .56],' ');
+                    CONN_h.menus.m_results_00{101}=conn_menu('listboxbigblue',[.06 .22 .10 .54],'Analyses',[CONN_h.menus.m_results.analyses_listnames,{' '}],'<HTML>Select first-level analysis</HTML>','conn(''gui_results'',101);');
                     if ~isempty(idx), set(CONN_h.menus.m_results_00{101},'value',idx); end
                 end
             elseif isequal(varargin{2},101)
@@ -10066,8 +10067,8 @@ else
                         conn_menumanager('onregion',CONN_h.menus.m_results_00{15},1,boffset+pos+[0 0 .015 0]);
                         %CONN_h.menus.m_results_00{15}=uicontrol('style','slider','units','norm','position',boffset+[pos(1)+pos(3)-0*.01,pos(2),.015,pos(4)],'callback','conn(''gui_results'',15);','backgroundcolor',CONN_gui.backgroundcolorA);
                         %strstr3={'Preview data (display individual effects in GLM model)','Preview results (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
-                        strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(preview of current settings)</small></HTML>','<HTML>GLM parameters <small>(preview of current settings)</small></HTML>'};
-                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.07,pos(2)+pos(4)+.04,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire brain)<br/>Select <i>''Group-analysis results (preview of current settings)''</i> to display a preview of the results of this group-level analysis for the selected slice, adapting in real time to the options selected in the ''group-analysis settings'' tab<br/>Select <i>''GLM parameters (preview of current settings)''</i> to display a preview of the results of this group-level analysis GLM regressors coefficients for the selected slice, adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
+                        strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(preview)</small></HTML>','<HTML>GLM parameters <small>(preview)</small></HTML>'};
+                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.07,pos(2)+pos(4)+.04,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire brain)<br/>Select <i>''Group-analysis results (preview)''</i> to display a preview of the results of this group-level analysis for the selected slice, adapting in real time to the options selected in the ''group-analysis settings'' tab<br/>Select <i>''GLM parameters (preview)''</i> to display a preview of the results of this group-level analysis GLM regressors coefficients for the selected slice, adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
                         if ~isfield(CONN_h.menus.m_results,'displayoption_voxellevel'), CONN_h.menus.m_results.displayoption_voxellevel=1; end
                         CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3),CONN_h.menus.m_results.displayoption_voxellevel));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
@@ -10121,7 +10122,7 @@ else
                         if ~isfield(CONN_x.Results.xX,'displayrois'), CONN_x.Results.xX.displayrois=2; end
                         strstr3={'<HTML>Group-analysis results: all ROIs <small>(from disk)</small></HTML>','<HTML>Group-analysis results: individual ROIs</HTML>'};
                         if stateb, strstr3=strstr3(1); end
-                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Individual connections (preview of current settings)''</i> to display a preview of the results of this group-level analysis for individual ROI-to-ROI pairs only, and adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
+                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group-analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Individual connections (preview)''</i> to display a preview of the results of this group-level analysis for individual ROI-to-ROI pairs only, and adapting in real time to the options selected in the ''group-analysis settings'' tab</HTML>','conn(''gui_results'',32);');
                         if ~isfield(CONN_h.menus.m_results,'displayoption_roilevel'), CONN_h.menus.m_results.displayoption_roilevel=1; end
                         CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3), CONN_h.menus.m_results.displayoption_roilevel));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
@@ -10554,10 +10555,10 @@ else
                         set(CONN_h.screen.hfig,'pointer','arrow');
                         if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim)&&~CONN_h.menus.m_results_surfhires, %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])&&~CONN_h.menus.m_results_surfhires, 
                             %strstr3={'Preview data low-res (display individual effects in GLM model)','Preview results low-res (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
-                            strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(low-res preview of current settings)</small></HTML>','<HTML>GLM parameters <small>(low-res preview of current settings)</small></HTML>'};
+                            strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(low-res preview)</small></HTML>','<HTML>GLM parameters <small>(low-res preview)</small></HTML>'};
                         else 
                             %strstr3={'Preview data (display individual effects in GLM model)','Preview results (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
-                            strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(preview of current settings)</small></HTML>','<HTML>GLM parameters <small>(preview of current settings)</small></HTML>'};
+                            strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(preview)</small></HTML>','<HTML>GLM parameters <small>(preview)</small></HTML>'};
                         end
                         set(CONN_h.menus.m_results_00{32},'string',strstr3,'value',max(1,min(numel(strstr3),CONN_x.Results.xX.displayvoxels)));
                     elseif state==2||state==3
@@ -11776,9 +11777,9 @@ else
                             
                             if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim)&&~CONN_h.menus.m_results_surfhires, %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])&&~CONN_h.menus.m_results_surfhires, 
                                 %strstr3={'Preview data low-res (display individual effects in GLM model)','Preview results low-res (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
-                                strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(low-res preview of current settings)</small></HTML>','<HTML>GLM parameters <small>(low-res preview of current settings)</small></HTML>'};
+                                strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(low-res preview)</small></HTML>','<HTML>GLM parameters <small>(low-res preview)</small></HTML>'};
                             else 
-                                strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(preview of current settings)</small></HTML>','<HTML>GLM parameters <small>(preview of current settings)</small></HTML>'};
+                                strstr3={'<HTML>Group-analysis results <small>(from disk)</small></HTML>','<HTML>Group-analysis results <small>(preview)</small></HTML>','<HTML>GLM parameters <small>(preview)</small></HTML>'};
                                 %strstr3={'Preview data (display individual effects in GLM model)','Preview results (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
                             end
                             set(CONN_h.menus.m_results_00{32},'string',strstr3,'value',max(1,min(numel(strstr3),CONN_x.Results.xX.displayvoxels)));
