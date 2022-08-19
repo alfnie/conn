@@ -53,7 +53,7 @@ function evlab17_run_model(varargin)
 %      RT              : repetition time (in seconds) (typically this is already defined during evlab17_run_preproc step)
 %      units           : scans / secs : units for onset/duration specification of condition information  (default: scans; note: #units field may alternatively be defined inside .para files)
 %      functional_label: choose version of functional data to enter in first-level analysis: only when used in combination with "functional_label" preprocessing steps: enter Secondary Dataset label identifying the desired functional dataset (default: Primary Dataset, i.e. fully preprocessed functional data)
-%      functional_smoothinglevel: choose version of functional data to enter in first-level analysis: only when used in combination with preprocessing pipelines which implement multiple smoothing steps: enter 0/1/2 (0 unsmoothed data; 1 minimally-smoothed data; 2 fully-smoothed data) (default: 1)
+%      functional_smoothinglevel: choose version of functional data to enter in first-level analysis: only when functional_label is not specified; only when used in combination with preprocessing pipelines which implement multiple smoothing steps: enter 0/1/2 (0 unsmoothed data; 1 minimally-smoothed data; 2 fully-smoothed data) (default: 1)
 %      model_basis     : hrf / hrf+deriv / hrf+derivs / none : response function: enter hrf for hemodynamic response function only; hrf+deriv to add temporal derivative; hrf+derivs to add temporal and dispersion derivatives; none for no hrf convolution (default: hrf+deriv)
 %      model_covariates: list of additional covariates; possible values: motion, motion+deriv, motion+deriv+square, art (for scrubbing), linear (for detrending), denoise (for any functional_regression step), any 1st-level covariate name, or <filename>.mat (one file per run) (default: motion / art)
 %      model_serial    : none / AR(1) : serial correlation modeling (default: AR(1))
@@ -197,6 +197,7 @@ else
     if isfield(options,'functional_label')
         functional_label=options.functional_label;
         options=rmfield(options,'functional_label');
+        smoothinglevel=2;
     else functional_label='';
     end
         
