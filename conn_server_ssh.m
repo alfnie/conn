@@ -110,16 +110,24 @@ switch(lower(option))
                 if 1,%~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
                     filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
                     conn_fileutils('deletefile',filename);
-                    if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
-                        fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
-                        [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
-                            params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
-                    else
-                        tstr=sprintf('SSH downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
-                        [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c "%s -q %s:~/connserverinfo.json %s"',...
-                            tstr, params.options.cmd_scp, params.info.login_ip,filename));
+                    optionrepeat=true;
+                    while optionrepeat
+                        optionrepeat=false;
+                        if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
+                            fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
+                            [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
+                                params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
+                        else
+                            tstr=sprintf('SSH downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
+                            [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c "%s -q %s:~/connserverinfo.json %s"',...
+                                tstr, params.options.cmd_scp, params.info.login_ip,filename));
+                        end
+                        if ~conn_existfile(filename)
+                            fprintf('Unable to find CONN distribution in %s.\nIf this is your first time connecting to %s, please use the following steps to confirm that CONN is available there and then try connecting again:\n   1. Log in to %s as user %s\n   2. Launch Matlab\n   3. From Matlab command-window type "conn remotely setup" (without quotes) and confirm that the file ~/connserverinfo.json is created\n   4. Log out from %s\n(see "in the server computer" section at https://web.conn-toolbox.org/resources/remote-configuration for details)\n\n',params.info.login_ip,params.info.host,params.info.host,params.info.user,params.info.host);
+                            optionrepeat=isequal(input(sprintf('Try connecting again to %s? (yes|no) : ',params.info.login_ip),'s'),'yes');
+                            assert(optionrepeat,'Unable to proceed. Missing ~/connserverinfo.json file in %s',params.info.login_ip);
+                        end
                     end
-                    assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
                     tjson=conn_jsonread(filename);
                     params.info.CONNcmd=tjson.CONNcmd;
                     if isfield(tjson,'SERVERcmd'), params.info.SERVERcmd=tjson.SERVERcmd; end
@@ -270,7 +278,7 @@ switch(lower(option))
             'CONNcmd',cmd,...
             'SERVERcmd',profilename,...
             'SERVERpersistent',ispersistent);
-        if ~isempty(filename), spm_jsonwrite(filename,info,struct('indent',' ')); fprintf('Host information saved in %s\n',filename); end
+        if ~isempty(filename), spm_jsonwrite(filename,info,struct('indent',' ')); fprintf('CONN information saved in %s\n',filename); end
         if nargout>0, varargout={info}; end
         if ~nargout&&isempty(filename), disp(info); end
         
