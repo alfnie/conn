@@ -44,6 +44,7 @@ V.GM=0;
 N=0;
 V.gm=zeros(Nt,1);
 refinfo=[];
+%mV=[];
 if issurface % surface-based extraction
     idx=1:numel(voxels);
     xyz=conn_convertcoordinates('idx2tal',voxels(idx),V.matdim.mat,V.matdim.dim);
@@ -67,6 +68,7 @@ if issurface % surface-based extraction
     V.voxels=voxels(idx(idx0));
 %     try   % faster / more memory
     x=zeros(numel(idx0),numel(V1));
+    %mV=0;
     for nscan=1:numel(V1),
         if issourcesurface
             xt=spm_get_data(V1(nscan),pinv(V1(nscan).mat)*xyzs(idx0,:)');
@@ -79,7 +81,9 @@ if issurface % surface-based extraction
         x(:,nscan)=xt;
         V.gm(nscan)=sum(xt);
         V.GM=V.GM+V.gm(nscan)/length(V1);
+        %mV=mV+xt;
     end
+    %mV=mV/numel(V1);
 %         mx=mean(x,2);
 %         for n1=1:size(x,1), x(n1,:)=x(n1,:)-mx(n1); end
     conn_write_vol(V,x');
@@ -95,6 +99,7 @@ if issurface % surface-based extraction
 %     end
 elseif issourcesurface, error('Mismatch analysis-space: surface-level functional data (%s) cannot be used for volume-level analyses. Please change analysis-space (e.g. in Setup.Options tab) to "surface", or change functional data to 3d/4d nifti volumes',V1(1).fname);
 else % volume-based extraction
+    %mV=[];
     for slice=1:V.matdim.dim(3),
         idx=sum(Nv(1:slice-1))+(1:Nv(slice));
         if ~isempty(idx),
@@ -123,6 +128,7 @@ else % volume-based extraction
                 V.size.Nv(slice)=length(idx0);
                 V.voxels=cat(1,V.voxels,voxels(idx(idx0)));
                 conn_write_slice(V,x,slice);
+                %mV=cat(1,mV, mx(:));
             end
         end
     end

@@ -213,7 +213,9 @@ if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$')
 end
 
 if ~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~ismember(lower(char(STEPS)),{'init','initforce','root','remote','remotely','qa.plots','qaplots','voice'}); %,'list'}) % exceptions to subject-expansion
-    subject_id=varargin{1};
+    if strcmpi(char(STEPS),'submit'), subject_id=varargin{2};
+    else subject_id=varargin{1};
+    end
     if ischar(subject_id)&&any(ismember(subject_id,'*?'))
         project_id=regexprep(subject_id,'[\d\*]+.*$','');
         dataset=fullfile(OUTPUT_FOLDER,project_id,sprintf('sub-%s',subject_id));
@@ -239,7 +241,9 @@ if ~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~isme
     if iscell(subject_id)
         for n=1:numel(subject_id)
             fprintf('PROCESSING SUBJECT %s\n',subject_id{n});
-            fl(STEPS,subject_id{n},varargin{2:end});
+            if strcmpi(char(STEPS),'submit'), fl(STEPS,varargin{1},subject_id{n},varargin{3:end});
+            else fl(STEPS,subject_id{n},varargin{2:end});
+            end
         end
         return
     end
@@ -312,6 +316,11 @@ switch(lower(STEPS))
                 end
             else varargout={isremote};
             end
+        end
+        
+    case 'submit'
+        if ~nargout, conn('submit',mfilename,varargin{:}); % e.g. fl submit preprocessing ... => [fl preprocessing ...]
+        else [varargout{1:nargout}]=conn('submit',mfilename,varargin{:});
         end
         
     case 'open'
