@@ -23,9 +23,9 @@ function varargout=fl(STEPS,varargin)
 %
 %   fl('IMPORT.BIDS2DERIV',subject_id)
 %      same as above but outputs data in $FLDATA/[Experiment_code]/derivatives/FL/raw/sub-[subject_id]
-%
 %   fl('IMPORT.DICOM2NII',subject_id) 
 %      performs only the dicom-to-nifti conversion of subject /scanner/dicom folder
+%   submitID = fl('SUBMIT','IMPORT',subjectID) runs import step on remote node
 %
 %   EXAMPLE: fl IMPORT XMP01
 %
@@ -53,6 +53,7 @@ function varargout=fl(STEPS,varargin)
 %      runs additional preprocessing steps on an existing dataset (results stored in same preprocessing pipeline)
 %   fl('PREPROCESSING.BRANCH',subject_id,pipeline_id,extra_pipeline_id) 
 %      same as preprocessing.append but creating a new preprocessing pipeline "extra_pipeline_id" with the results
+%   submitID = fl('SUBMIT','PREPROCESSING',...) runs preprocessing step on remote node
 %
 %   EXAMPLE: fl PREPROCESSING XMP01 mnispace
 %   EXAMPLE: fl PREPROCESSING XMP* mnispace
@@ -70,12 +71,15 @@ function varargout=fl(STEPS,varargin)
 %       (optional) firstlevel_[subject_id]_[model_id].cfg file in $FLDATA/[Experiment_code]/config/FL/FIRSTLEVEL detailing design information for each subject (if exists, this information will take precedence over information in the original [subject_id].cfg file used during the IMPORT step; see subject_info #design field in HELP FL)
 %   Output in $FLDATA/[Experiment_code]/derivatives/FL/[pipeline_id]/sub-[subject_id]/results/firstlevel/[model_id]
 %
-% fl('FIRSTLEVEL.PLOT',subject_id,pipeline_id,model_id [,contrast_name])
-%   displays first-level contrast estimation of subject data
-% fl('FIRSTLEVEL.STATS',subject_id,pipeline_id,model_id [,contrast_name])
-%   displays first-level contrast statistics
-% fl('FIRSTLEVEL.CONTRAST',subject_id,pipeline_id,model_id [,contrast_name])
-%   runs only contrast-estimation step (skips first-level analysis estimation step)
+%   fl('FIRSTLEVEL.PLOT',subject_id,pipeline_id,model_id [,contrast_name])
+%     displays first-level contrast estimation of subject data
+%   fl('FIRSTLEVEL.STATS',subject_id,pipeline_id,model_id [,contrast_name])
+%     displays first-level contrast statistics (see "help conn_display" for additional options) 
+%   fh = fl('FIRSTLEVEL.STATS',...)
+%     returns handle to conn_display object, allowing additional options interacting with the displayed results (see "help conn_display" for details)
+%   fl('FIRSTLEVEL.CONTRAST',subject_id,pipeline_id,model_id [,contrast_name])
+%     runs only contrast-estimation step (skips first-level analysis estimation step)
+%   submitID = fl('SUBMIT','FIRSTLEVEL',...) runs first-level analysis on remote node
 %
 %   EXAMPLE: fl FIRSTLEVEL XMP01 mnispace speechrate
 %   EXAMPLE: fl FIRSTLEVEL XMP* mnispace speechrate
@@ -94,6 +98,8 @@ function varargout=fl(STEPS,varargin)
 %
 % fl('SECONDLEVEL.PLOT',experiment_id,pipeline_id,model_id,results_id)
 %   displays second-level results (previously computed) 
+% fh = fl('SECONDLEVEL.PLOT',...)
+%   returns handle to conn_display object, allowing additional options interacting with the displayed results (see "help conn_display" for details)
 %
 % fl('SECONDLEVEL.ROI',experiment_id,pipeline_id,model_id,results_id,roi_id)
 %   displays second-level results (previously computed) aggregated within user-defined ROIs
@@ -576,7 +582,9 @@ switch(lower(STEPS))
         fprintf('Experiment folder %s\n',dataset);
         assert(conn_existfile(dataset,1),'file %s not found',dataset);
         conn_module evlab17 init silent;
-        if strcmpi(STEPS,'firstlevel.stats'), conn_module('evlab17','modelplots',opts{:},'stats');
+        if strcmpi(STEPS,'firstlevel.stats'), 
+            fh=conn_module('evlab17','modelplots',opts{:},'stats');
+            varargout={fh};
         else conn_module('evlab17','modelplots',opts{:});
         end
        

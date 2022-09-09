@@ -938,9 +938,13 @@ else
                 ns=Ns/N;
             end
             tag=datestr(now,'yymmddHHMMSSFFF');
-            tpname=conn_jobmanager('conn_x_filename');
-            if isempty(tpname), pathname=fullfile(conn_projectmanager('qlogdir'),tag); 
-            else pathname=fullfile(conn_prepend('',tpname,'.qlog'),tag);
+            if any(arrayfun(@(n)strcmp(job(n).type,'process_orphan'),1:numel(job))) 
+                pathname=fullfile(conn_projectmanager('homedir'),'.qlog',tag); 
+            else 
+                tpname=conn_jobmanager('conn_x_filename');
+                if isempty(tpname), pathname=fullfile(conn_projectmanager('qlogdir'),tag);
+                else pathname=fullfile(conn_prepend('',tpname,'.qlog'),tag);
+                end
             end
             conn_fileutils('mkdir',pathname);
             pathname=conn_fullfile(pathname);
