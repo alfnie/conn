@@ -4713,7 +4713,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
         end
         [ok,nill]=mkdir(filepathresults2,foldername);
         if ok,filepathresults2=fullfile(filepathresults2,foldername);
-        else,filepathresults2=uigetdir(filepathresults2,'Select a directory to write the results');end
+        else,fprintf('Unable to create directory %s\n',fullfile(filepathresults2,foldername)); filepathresults2=uigetdir(filepathresults2,'Select a directory to write the results');end
     end
     if ~ischar(filepathresults2), return; end;
 %     conn_disp(['Second-level results stored in ',filepathresults2]);

@@ -512,11 +512,17 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 return;
                 
             case {'cluster_import','cluster_view'}
-                filename=fullfile(fileparts(spmfile),'results.nii');
-                conn_vproject(GCF,[],'export_mask',filename);
-                filename=fullfile(fileparts(spmfile),'results.ROIs.nii');
-                if strcmpi(OPTION,'cluster_view')&&~conn_server('util_isremotefile',filename), tviewrex=false; else tviewrex=[]; end
-                [tfilename,tspmfile,tviewrex]=conn_vproject_selectfiles(filename,spmfile,tviewrex);
+                if ~isempty(OPTION2), 
+                    tfilename=OPTION2;
+                    tspmfile=spmfile;
+                    tviewrex=false; 
+                else 
+                    filename=fullfile(fileparts(spmfile),'results.nii');
+                    conn_vproject(GCF,[],'export_mask',filename);
+                    filename=fullfile(fileparts(spmfile),'results.ROIs.nii');
+                    if strcmpi(OPTION,'cluster_view')&&~conn_server('util_isremotefile',filename), tviewrex=false; else tviewrex=[]; end
+                    [tfilename,tspmfile,tviewrex]=conn_vproject_selectfiles(filename,spmfile,tviewrex);
+                end
                 if isempty(tfilename), return; end
                 [tspmfile_path,tspmfile_name]=fileparts(tspmfile);
                 cwd=pwd;

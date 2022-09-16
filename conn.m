@@ -1394,9 +1394,9 @@ else
             str{end+1}=sprintf('for details about CONN''s processing pipeline and analysis methods:');
             str{end+1}=sprintf('Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press');
             str{end+1}='';
-            str{end+1}=sprintf('cite as: CONN toolbox (RRID:SCR_009550 www.nitrc.org/projects/conn) release %s',conn('ver'));
-            str{end+1}=sprintf('Whitfield-Gabrieli, S., and Nieto-Castanon, A. (2012). Conn: A functional connectivity toolbox');
+            str{end+1}=sprintf('cite as: Whitfield-Gabrieli, S., and Nieto-Castanon, A. (2012). Conn: A functional connectivity toolbox');
             str{end+1}=sprintf('for correlated and anticorrelated brain networks. Brain connectivity, 2(3), 125-141');
+            str{end+1}=sprintf('CONN toolbox (RRID:SCR_009550 www.nitrc.org/projects/conn) release %s',conn('ver'));
             %for n=1:numel(str), conn_disp('fprintf','%s\n',str{n}); end
             conn_msgbox(str,'');
             
@@ -13099,7 +13099,7 @@ if ~ok, CONN_gui.background_handle=image(shiftdim(CONN_gui.backgroundcolor,-1),'
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,(.85-mean(CONN_gui.backgroundcolor))*.2*[zeros(1,128) sin(linspace(0,pi,128)).^2 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor,-1))))); end
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,conn_bsxfun(@times,max(.05,(1-mean(CONN_gui.backgroundcolor))*.1)*[zeros(1,128) sin(linspace(0,pi,128)).^4 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor/max(.01,mean(CONN_gui.backgroundcolor)),-1)),shiftdim(CONN_gui.backgroundcolor,-1))))); end
 if conn_menumanager('ison')
-    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbutton2',[.0,.920,.236,.037],'','reconnecting...','','conn(''gui_server'');');
+    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbutton2',[.0,.915,.236,.025],'','reconnecting...','','conn(''gui_server'');');
     else hserver=[];
     end
 end
