@@ -34,12 +34,13 @@ for nvar=1:nx
     tx=cellfun(@(x)x(~isnan(x)),tx,'uni',0);
     if isempty(options.colors), options.colors=repmat(linspace(.25,.75,numel(tx))',1,3); end
     if isequal(options.convert,'logit100'), tx=cellfun(@(x)2*atanh(2*max(.5/numel(x),min(1-.5/numel(x),x/100))-1),tx,'uni',0); end
+    %if isequal(options.convert,'logit100'), tx=cellfun(@(x)2*atanh(2*max(eps,min(1-eps,x/100))-1),tx,'uni',0); end
     minx=min(cellfun(@min,tx));
     maxx=max(cellfun(@max,tx));
     if nargin<2||isempty(h), th=(maxx-minx)/sqrt(max(cellfun(@numel,tx)))
     else th=h;
     end
-    X=linspace(minx-1*th,maxx+1*th,options.nsamples);
+    X=linspace(minx-2*th,maxx+2*th,options.nsamples);
     P=zeros(numel(tx),options.nsamples);
     for ngroup=1:numel(tx)
         ttx=reshape(tx{ngroup},[],1);
@@ -72,7 +73,7 @@ for nvar=1:nx
             pleft=pleft+p;
         end
         ttx=[]; for n=1:numel(tx), ttx=[ttx,tx{n}(:)']; end
-        if options.plotsamples, hold on; plot(nvar+options.offset+zeros(numel(ttx),1),sort(ttx(:)),'b.','markersize',1); hold off; end
+        if options.plotsamples, hold on; plot(nvar+options.offset+zeros(numel(ttx),1),sort(ttx(:)),'b.'); hold off; end
         if options.plotmeans, hold on; plot(nvar+options.offset,mean(ttx(:)),'wo','markerfacecolor',options.colors(end,:)); hold off; end
         if options.plotmedians, hold on; plot(nvar+options.offset,median(ttx(:)),'wo','markerfacecolor',options.colors(end,:)); hold off; end
         %if options.plotmedians, [nill,idx]=max(pleft); hold on; plot(nvar+options.offset,X(idx),'wo','markerfacecolor',options.colors(end,:)); hold off; end
