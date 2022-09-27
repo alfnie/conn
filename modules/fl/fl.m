@@ -328,7 +328,21 @@ switch(lower(STEPS))
         if ~nargout, conn('submit',mfilename,varargin{:}); % e.g. fl submit preprocessing ... => [fl preprocessing ...]
         else [varargout{1:nargout}]=conn('submit',mfilename,varargin{:});
         end
+
+    case 'load'
+        assert(numel(varargin)>=1,'incorrect usage: please specify subject_id')
+        subject_id=varargin{1};
         
+        project_id=regexprep(subject_id,'[\d\*]+.*$','');
+        if numel(varargin)>1, 
+            pipeline_id=varargin{2}; 
+            dataset=fullfile(OUTPUT_FOLDER,project_id,'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id));
+        else
+            dataset=fullfile(OUTPUT_FOLDER,project_id,sprintf('sub-%s',subject_id));
+        end
+        conn_module evlab17 init silent;
+        conn_module('evlab17','load',dataset);
+
     case 'open'
         assert(numel(varargin)>=1,'incorrect usage: please specify subject_id')
         subject_id=varargin{1};

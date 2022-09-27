@@ -5094,7 +5094,7 @@ else
                         tstr=CONN_x.Setup.l2covariates.descrip{nl2covariates};
                         if isempty(tstr), tstr='--'; end
                         set(CONN_h.menus.m_setup_00{22},'string',tstr,'visible','on');
-                        set(CONN_h.menus.m_setup_00{2},'visible','on','string',mat2str(tt,max([0,ceil(log10(max(1e-10,abs(tt(:)'))))])+6));
+                        set(CONN_h.menus.m_setup_00{2},'visible','on','string',mat2str(tt,min(20,max([0,ceil(log10(max(1e-10,abs(tt(:)'))))])+6)));
                     else
                         %set(CONN_h.menus.m_setup_00{2},'position',boffset+[.43,.46,.22,.19],'max',2);
                         set([CONN_h.menus.m_setup_00{3} CONN_h.menus.m_setup_00{22}],'visible','off')

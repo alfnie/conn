@@ -283,7 +283,8 @@ function varargout=conn_batch(varargin)
 %                                                                   displacement and global signal changes)
 %                        'functional_bandpass'                   : functional band-pass filtering
 %                        'functional_center'                     : centers functional data to origin (0,0,0) coordinates
-%                        'functional_coregister_affine'          : functional affine coregistration to structural volumes
+%                        'functional_coregister_affine_noreslice': functional affine coregistration to structural volumes
+%                        'functional_coregister_affine_reslice'  : functional affine coregistration and resampling to structural volumes
 %                        'functional_coregister_nonlinear'       : functional non-linear coregistration to structural volumes
 %                        'functional_label'                      : labels current functional files (to list of Secondary Datasets)
 %                        'functional_load'                       : assigns current functional files (from list of Secondary Datasets)
