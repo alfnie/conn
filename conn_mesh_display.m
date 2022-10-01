@@ -84,7 +84,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('colorbar',state [, title])        : displays reference colorbar (state: 'on' 'off')
 %  fh('colorbar','rescale',lim)          : changes colorbar limits (lim: [1x2] values in fileSURF NIFTI file)
 %  fh('colormap',type)                   : changes colormap (type: 'normal','red','jet','hot','gray','bone','cool','hsv','spring',
-%                                           'summer','autumn','winter','random','brighter','darker','manual','color')
+%                                           'summer','autumn','winter','bluewhitered','random','brighter','darker','manual','color')
 %  fh('smoother',state)                  : 'on' for smoother display (interpolates values in fileSURF NIFTI file when displaying on 
 %                                           surface); 'off' for raw-data display
 %  fh('axis',state)                      : display reference axis lines (state: 'on' 'off')
@@ -761,7 +761,7 @@ if ~isempty(state.handles.colorbar)
     uimenu(hc1,'Label','hide colorbar','callback',{@conn_mesh_display_refresh,'colorbar','off'},'tag','colorbar','checked','on');
     uimenu(hc1,'Label','colorbar limits','callback',{@conn_mesh_display_refresh,'colorbar','rescale'});
     hc2=uimenu(hc1,'Label','activation colormap');
-    for n1={'normal','red','jet','hot','gray','bone','cool','hsv','spring','summer','autumn','winter','random','brighter','darker','manual','color'}
+    for n1={'normal','red','jet','hot','gray','bone','cool','hsv','spring','summer','autumn','winter','bluewhitered','random','brighter','darker','manual','color'}
         uimenu(hc2,'Label',n1{1},'callback',{@conn_mesh_display_refresh,'colormap',n1{1}},'tag','overlaycolormap');
     end
     hc2=uimenu(hc1,'Label','smoother display','checked','on','callback',{@conn_mesh_display_refresh,'black_transparency','on'},'tag','black_transparency');
@@ -888,6 +888,8 @@ if ishandle(hmsg), delete(hmsg); end
                             %case 'gray', cmap=gray(2*96);
                             %case 'cool',cmap=cool(96);
                             %case 'hsv',cmap=hsv(2*96);
+                            case 'bluewhitered', cmap=[zeros(1,48) linspace(0,1,48) ones(1,48) linspace(1,.5,48); linspace(0,1,96) linspace(1,0,48) zeros(1,48); linspace(.5,1,48) ones(1,48) linspace(1,0,48) zeros(1,48)]'; cmap=repmat(abs(linspace(-1,1,192)'),1,3).*cmap+(1-repmat(abs(linspace(-1,1,192)'),1,3))*1;
+                            case 'parulawhite', cmap=parula(192); cmap=repmat(abs(linspace(-1,1,192)'),1,3).*cmap+(1-repmat(abs(linspace(-1,1,192)'),1,3))*1;
                             case 'spring',cmap=repmat(1-linspace(1,0,96)'.^8,[1,3]).*spring(96);
                             case 'summer',cmap=repmat(1-linspace(1,0,96)'.^8,[1,3]).*summer(96);
                             case 'autumn',cmap=repmat(1-linspace(1,0,96)'.^8,[1,3]).*autumn(96);

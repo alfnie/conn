@@ -142,6 +142,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
             CONN_h.menus.waiticonObj.useWhiteDots(mean(CONN_gui.backgroundcolor)<.5);
             CONN_h.menus.waiticonObj.start;
             %if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end
+        catch
+            if isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus=rmfield(CONN_h.menus,'waiticonObj'); end
         end
     end
     drawnow;

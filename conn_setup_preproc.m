@@ -2840,6 +2840,7 @@ for iSTEP=1:numel(STEPS)
                             temp=cellstr(filename);
                             if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
                             matlabbatch{end}.spm.spatial.coreg.estwrite.other=cat(1,matlabbatch{end}.spm.spatial.coreg.estwrite.other,ttemp);
+                            outputfiles{isubject}{nsestrue}=char(conn_prepend('r',temp));
                         end
                     end
                 end
@@ -4103,7 +4104,7 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
                 
-            case {'functional_slicetime','functional_normalize','functional_normalize_direct','functional_smooth','functional_smooth_masked','functional_surface_smooth','functional_surface_resample'}
+            case {'functional_slicetime','functional_normalize','functional_normalize_direct','functional_smooth','functional_smooth_masked','functional_surface_smooth','functional_surface_resample','functional_coregister_affine_reslice'}
                 for isubject=1:numel(subjects),
                     nsubject=subjects(isubject);
                     nsess=intersect(1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)),sessions);
@@ -4225,7 +4226,7 @@ for iSTEP=1:numel(STEPS)
                 end
                 
                 
-            case {'functional_coregister','functional_coregister_affine','functional_coregister_affine_noreslice','functional_coregister_affine_reslice'}
+            case {'functional_coregister','functional_coregister_affine','functional_coregister_affine_noreslice'}
                 filename={};
                 for isubject=1:numel(subjects),
                     nsubject=subjects(isubject);
