@@ -86,3 +86,10 @@ if nargout>0
 else
     hold off;
 end
+end
+
+function p=prctile(x,val)
+sx=reshape(sort(x(~isnan(x))),1,[]);
+pp=100*(.5:numel(sx))/numel(sx);
+p=interp1(pp,sx,max(pp(1),min(pp(end),val)));
+end

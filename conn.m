@@ -13233,12 +13233,15 @@ function conn_resizefcn(varargin)
 global CONN_h CONN_gui;
 try
     CONN_gui.isresizing=true;
-    tstate=conn_menumanager(CONN_h.menus.m0,'state');
-    switch(find(tstate))
-        case 1, conn gui_setup;
-        case 2, conn gui_preproc;
-        case 3, conn gui_analyses;
-        case 4, conn gui_results;
+    tstate=find(conn_menumanager(CONN_h.menus.m0,'state'));
+    if isempty(tstate), conn gui_setup; 
+    else
+        switch(tstate)
+            case 1, conn gui_setup;
+            case 2, conn gui_preproc;
+            case 3, conn gui_analyses;
+            case 4, conn gui_results;
+        end
     end
 end
 CONN_gui.isresizing=false;
