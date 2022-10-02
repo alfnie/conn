@@ -332,7 +332,7 @@ function varargout=conn_batch(varargin)
 %                      If steps points to an existing preprocessing-pipeline file (e.g. saved from GUI) the corresponding 
 %                       preprocessing-pipeline will be run
 %   
-%      Setup.preprocessing.affreg          : (normalization) affine registration before normalization ['mni']
+%      Setup.preprocessing.affreg          : (normalization) affine registration before normalization ['mni' for ICBM/MNI regularization, 'none' for no regularization, '' for no registration]
 %      Setup.preprocessing.art_thresholds  : (functional_art) ART thresholds for identifying outlier scans 
 %                                            art_thresholds(1): threshold value for global-signal (z-value; default 5) 
 %                                            art_thresholds(2): threshold value for subject-motion (mm; default .9) 

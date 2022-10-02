@@ -42,10 +42,10 @@ switch(filetype)
         min1=min([inf idx1(i1)]);
         min2=min([inf idx2(i2)]);
         min3=min([inf idx3(i3)]);
-        [nill,i]=min([min1+1 min3 min2]);
+        [nill,i]=min([min3 min1+1 min2]);
         if isinf(nill),   fileout=[];
-        elseif i==1,      fileout=str1{i1};
-        elseif i==2,      fileout=str3{i3};
+        elseif i==1,      fileout=str3{i3};
+        elseif i==2,      fileout=str1{i1};
         elseif i==3,      fileout=str2{i2};
         end
         str=[str1 str2 str3];
