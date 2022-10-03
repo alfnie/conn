@@ -5,13 +5,19 @@ function [out_struct, out_txt] = conn_roioverlaps(filename1,filename2,thr1,thr2,
 %  out_txt    : cell array describing the overlap in text form
 %
 % note: ROIs are expected to be already co-registered (but they may be have different orientations or voxel sizes)
+%
+% [out_struct, out_txt] = conn_roioverlaps(filename1, filename2, thr1, thr2)
+% thresholds the data in filename1|filename2 using thresholds thr1|thr2 to
+% binarize them before computing overlap
 %       
 % e.g.
 % [a,b] = conn_roioverlaps('/software/conn/rois/networks.nii','/software/conn/rois/atlas.nii');
 % disp(char(b));
 
+if nargin<3, thr1=[]; end
+if nargin<4, thr2=[]; end
 
-if any(conn_server('util_isremotefile',filename1))||any(conn_server('util_isremotefile',filename2)), [out_txt, out_struct]=conn_server('run',mfilename,conn_server('util_localfile',filename1),conn_server('util_localfile',filename2),varargin{:}); return; end
+if any(conn_server('util_isremotefile',filename1))||any(conn_server('util_isremotefile',filename2)), [out_struct, out_txt]=conn_server('run',mfilename,conn_server('util_localfile',filename1),conn_server('util_localfile',filename2),thr1,thr2,varargin{:}); return; end
 filename1=conn_server('util_localfile',cellstr(filename1));
 filename2=conn_server('util_localfile',cellstr(filename2));
 

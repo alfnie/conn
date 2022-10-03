@@ -226,7 +226,7 @@ coregsource={};
 applytofunctional=false;
 tpm_template=[];
 tpm_structlesion=[];
-affreg=[];
+affreg='mni';
 tpm_ngaus=[];
 vdm_et1=[]; % eg. 2.84, 4.37;
 vdm_et2=[]; % eg. 5.30, 6.83
@@ -1643,7 +1643,7 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
-                if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
+                matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
@@ -1779,7 +1779,7 @@ for iSTEP=1:numel(STEPS)
                 else matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=1;
                 end
                 if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
-                if ~isempty(affreg), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg; end
+                matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg;
             else
                 %note: tissue probability maps disregarded (using structural template instead)
                 matlabbatch{end+1}.spm.spatial.normalise.estwrite.roptions.bb=boundingbox;
@@ -2105,7 +2105,7 @@ for iSTEP=1:numel(STEPS)
             end
             if DOSPM12
                 if ~isempty(input_tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(input_tpm_template,tpm_ngaus,subjects,sessions); end
-                if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
+                matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
@@ -2280,7 +2280,7 @@ for iSTEP=1:numel(STEPS)
             end
             if DOSPM12,
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
-                if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
+                matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
@@ -2362,7 +2362,7 @@ for iSTEP=1:numel(STEPS)
             end
             if DOSPM12
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
-                if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
+                matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
@@ -2937,7 +2937,7 @@ for iSTEP=1:numel(STEPS)
             end
             if DOSPM12,
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
-                if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
+                matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
             else
@@ -2964,7 +2964,7 @@ for iSTEP=1:numel(STEPS)
                 matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.vox=voxelsize_func.*[1 1 1];
                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=interp; end
                 if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions(1)); end
-                if ~isempty(affreg), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg; end
+                matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg;
             else
                 %note: tissue probability maps disregarded (using functional_template instead)
                 matlabbatch{end+1}.spm.spatial.normalise.estwrite.roptions.bb=boundingbox;
@@ -3052,7 +3052,7 @@ for iSTEP=1:numel(STEPS)
             end
             if DOSPM12,
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
-                if ~isempty(affreg), matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg; end
+                matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;

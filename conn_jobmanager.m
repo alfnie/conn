@@ -1268,7 +1268,7 @@ hold(handles.axes,'on');
 handles.txt=text(.5,1,'','horizontalalignment','center','color','w','parent',handles.axes);
 hold(handles.axes,'off');
 handles.contall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.2,.075,.2,.05],'string','Close','callback','close(gcbf)','tooltipstring','<HTML>Close this GUI but continue running this job in the background <br/> - processes will continue running in their current location (as background processes or in the cluster)<br/> - visit Tools.Cluster/HPC.PendingJobs at any time to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
-handles.stopall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.4,.075,.2,.05],'string','Cancel job','callback',@(varargin)conn_jobmanager_update('cancelall'),'tooltipstring','Cancels all unfinished nodes and finishes this job pipeline');
+handles.stopall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.4,.075,.2,.05],'string','Cancel job','callback',@(varargin)conn_jobmanager_update('cancelallask'),'tooltipstring','Cancels all unfinished nodes and finishes this job pipeline');
 handles.enable=uicontrol(handles.hfig,'style','checkbox','value',0,'units','norm','position',[.64,.075,.3,.05],'string','Advanced options','backgroundcolor','w','callback',@(varargin)conn_jobmanager_update('enable'));
 
 handles.panel=uipanel(handles.hfig,'units','norm','position',[0 .3 1 .7],'backgroundcolor',.9*[1 1 1]);
@@ -1285,12 +1285,13 @@ if ~nogui, set(handles.order(2),'units','characters'); set(handles.order(2),'pos
 handles.order(3)=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.1,.90,.7,.05],'string','job id','userdata',0,'foregroundcolor','k','fontname','monospaced','horizontalalignment','left','callback',@(varargin)conn_jobmanager_update('order',3));
 if ~nogui, set(handles.order(3),'units','characters'); set(handles.order(3),'position',[temp(1)+2*13 temp(2) max(1,temp(3)-2*13) max(1,temp(4))],'units','norm'); end
 handles.jobs=uicontrol(handles.panel,'style','listbox','units','norm','position',[.1,.15,.7,.75],'string','','max',2,'backgroundcolor',.9*[1 1 1],'foregroundcolor','k','fontname','monospaced');
+handles.refresh_status=uicontrol(handles.panel,'style','text','units','norm','position',[.80,.90,.20,.05],'string','','backgroundcolor',.9*[1 1 1],'foregroundcolor','k','fontsize',9,'horizontalalignment','center');
 %handles.refresh=uicontrol(handles.panel,'style','checkbox','units','norm','position',[.825,.825,.15,.075],'string','Refresh','backgroundcolor',.9*[1 1 1],'callback',@(varargin)conn_jobmanager_update('togglerefresh',true),'tooltipstring','Refreshes node''s status information');
 handles.refresh=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.825,.15,.075],'string','Refresh','callback',@(varargin)conn_jobmanager_update('refresh',true),'tooltipstring','Refreshes node''s status information');
 handles.details=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.75,.15,.075],'string','See logs','callback',@(varargin)conn_jobmanager_update('details'),'tooltipstring','See selected node(s) log files');
-handles.stop=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.65,.15,.075],'string','Stop','callback',@(varargin)conn_jobmanager_update('stop'),'tooltipstring','Stop selected node(s)');
-handles.restart=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.575,.15,.075],'string','Restart','callback',@(varargin)conn_jobmanager_update('restart'),'tooltipstring','Restart selected node(s)');
-handles.cancel=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.500,.15,.075],'string','Cancel','callback',@(varargin)conn_jobmanager_update('cancel'),'tooltipstring','Cancel selected node(s)');
+handles.stop=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.55,.15,.075],'string','Stop','callback',@(varargin)conn_jobmanager_update('stop'),'tooltipstring','Stop selected node(s)');
+handles.restart=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.475,.15,.075],'string','Restart','callback',@(varargin)conn_jobmanager_update('restart'),'tooltipstring','Restart selected node(s)');
+handles.cancel=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.400,.15,.075],'string','Cancel','callback',@(varargin)conn_jobmanager_update('cancel'),'tooltipstring','Cancel selected node(s)');
 handles.jobname=uicontrol(handles.panel,'style','text','units','norm','position',[.1,.05,.8,.05],'string','','backgroundcolor',.9*[1 1 1]);
 fliporder=0;
 order=[];
@@ -1368,6 +1369,7 @@ ok=1+handles.finished;
                     else order=1:numel(st); 
                     end
                     if fliporder, order=order(end:-1:1); end
+                    set(handles.refresh_status,'string',sprintf('last update %s',datestr(now,'HH:MM:SS')));
                     set(handles.jobs,'string',txt(order));
                     set(handles.img,'cdata',ind2rgb(1+sort(st),[0 0 0;linspace(0,1,6)'*[5/6,2/6,1.5/6]+linspace(1,0,6)'*[1.5/6,5/6,2/6];1 0 0;1 0 0;1 0 0]));
                     nl=accumarray(reshape(st(st>0),[],1),1,[numel(sortedlabels),1])';
@@ -1420,7 +1422,11 @@ ok=1+handles.finished;
                 set(handles.order(n),'userdata',1);
                 conn_jobmanager_update('refresh',false);
                 
-            case {'cancelall','deleteall'}
+            case {'cancelall','deleteall','cancelallask'}
+                if isequal(option,'cancelallask')
+                    answ=conn_questdlg({'Warning: this will stop all unfinished processes and delete this remote job','','Are you sure you want to proceed?'},'','Yes','No','No');
+                    if ~strcmp(answ,'Yes'), return; end
+                end
                 handles.finished=true;
                 tstr=get(handles.stopall,'string');
                 set(handles.stopall,'string','Canceling...');
