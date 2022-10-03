@@ -1567,6 +1567,8 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             for ncondition=validconditions(missingdata),
                 conn_tempcache(cachenorm(ncondition),'matc');
                 conn_tempcache(cache(ncondition),'matc');
+                filename=fullfile(filepathresults,['NORMS_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
+                [nill,outvals]=conn_matc2nii(filename,0);
             end
             if DONEWOUTPUTCONFCORR~=1&&isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=2&&CONN_x.Setup.outputfiles(2),
                 filename={}; for ncondition=validconditions(missingdata),filename{ncondition}=fullfile(filepathresults,['DATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']); end

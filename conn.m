@@ -2321,7 +2321,8 @@ else
                                                                 fh('colormap',[.85*[1 1 0];gray]); fh('act_transparency',0); fh('contour_transparency',1);fh('background',[0 0 0]);
                                                                 %fh('black_transparency','off');
                                                             end
-                                                        else fh=conn_slice_display(fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii'),temp1,[],.25,sprintf('dataset %d',nset));
+                                                        else 
+                                                            fh=conn_slice_display(fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii'),temp1,[],.25,sprintf('dataset %d',nset));
                                                             fh('colormap',.85*[1 1 0;1 1 0]);fh('contour_transparency',1);fh('act_transparency',0);fh('background',[0 0 0]);
                                                         end
                                                         fhset=[fhset {fh}];

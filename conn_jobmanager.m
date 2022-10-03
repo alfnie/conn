@@ -1270,6 +1270,7 @@ hold(handles.axes,'off');
 handles.contall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.2,.075,.2,.05],'string','Close','callback','close(gcbf)','tooltipstring','<HTML>Close this GUI but continue running this job in the background <br/> - processes will continue running in their current location (as background processes or in the cluster)<br/> - visit Tools.Cluster/HPC.PendingJobs at any time to see this job progress, and merge it when finished<br/> - until this job is finished&merged <b>you may queue but not run/submit other jobs</b> (any modifications will be overwritten when this job is merged)<br/> - note: after one job has finished, re-loading your project will also result in this job being automatically merged (remember to save your project again to keep those changes)</HTML>');
 handles.stopall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.4,.075,.2,.05],'string','Cancel job','callback',@(varargin)conn_jobmanager_update('cancelallask'),'tooltipstring','Cancels all unfinished nodes and finishes this job pipeline');
 handles.enable=uicontrol(handles.hfig,'style','checkbox','value',0,'units','norm','position',[.64,.075,.3,.05],'string','Advanced options','backgroundcolor','w','callback',@(varargin)conn_jobmanager_update('enable'));
+handles.refresh_status=uicontrol(handles.hfig,'style','text','units','norm','position',[0,.26,.99,.04],'string','','backgroundcolor',1*[1 1 1],'foregroundcolor','k','fontsize',9,'horizontalalignment','right');
 
 handles.panel=uipanel(handles.hfig,'units','norm','position',[0 .3 1 .7],'backgroundcolor',.9*[1 1 1]);
 handles.files=[];
@@ -1285,7 +1286,6 @@ if ~nogui, set(handles.order(2),'units','characters'); set(handles.order(2),'pos
 handles.order(3)=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.1,.90,.7,.05],'string','job id','userdata',0,'foregroundcolor','k','fontname','monospaced','horizontalalignment','left','callback',@(varargin)conn_jobmanager_update('order',3));
 if ~nogui, set(handles.order(3),'units','characters'); set(handles.order(3),'position',[temp(1)+2*13 temp(2) max(1,temp(3)-2*13) max(1,temp(4))],'units','norm'); end
 handles.jobs=uicontrol(handles.panel,'style','listbox','units','norm','position',[.1,.15,.7,.75],'string','','max',2,'backgroundcolor',.9*[1 1 1],'foregroundcolor','k','fontname','monospaced');
-handles.refresh_status=uicontrol(handles.panel,'style','text','units','norm','position',[.80,.90,.20,.05],'string','','backgroundcolor',.9*[1 1 1],'foregroundcolor','k','fontsize',9,'horizontalalignment','center');
 %handles.refresh=uicontrol(handles.panel,'style','checkbox','units','norm','position',[.825,.825,.15,.075],'string','Refresh','backgroundcolor',.9*[1 1 1],'callback',@(varargin)conn_jobmanager_update('togglerefresh',true),'tooltipstring','Refreshes node''s status information');
 handles.refresh=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.825,.15,.075],'string','Refresh','callback',@(varargin)conn_jobmanager_update('refresh',true),'tooltipstring','Refreshes node''s status information');
 handles.details=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.75,.15,.075],'string','See logs','callback',@(varargin)conn_jobmanager_update('details'),'tooltipstring','See selected node(s) log files');
@@ -1369,7 +1369,7 @@ ok=1+handles.finished;
                     else order=1:numel(st); 
                     end
                     if fliporder, order=order(end:-1:1); end
-                    set(handles.refresh_status,'string',sprintf('last update %s',datestr(now,'HH:MM:SS')));
+                    set(handles.refresh_status,'string',sprintf('last status update %s',datestr(now)));
                     set(handles.jobs,'string',txt(order));
                     set(handles.img,'cdata',ind2rgb(1+sort(st),[0 0 0;linspace(0,1,6)'*[5/6,2/6,1.5/6]+linspace(1,0,6)'*[1.5/6,5/6,2/6];1 0 0;1 0 0;1 0 0]));
                     nl=accumarray(reshape(st(st>0),[],1),1,[numel(sortedlabels),1])';
