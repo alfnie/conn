@@ -55,7 +55,7 @@ a2=spm_vol(char(filename2));
 b2=reshape(spm_get_data(a2,pinv(a2(1).mat)*xyz1),a1(1).dim(1),a1(1).dim(2),a1(1).dim(3),[]);
 if ~isempty(thr2), 
     if isequal(thr2,'equalsize'), temp=sort(b2(~isnan(b2)),'descend'); thr2=temp(nnz(ROIdata1{1}>0))-eps; end
-    if isnan(thr2)||isequal(thr2,'globalmask'), thr2=0.80*mean(b2(b2>mean(b2(~isnan(b2)&b2~=0))/8)); end
+    if all(isnan(thr2))||isequal(thr2,'globalmask'), thr2=0.80*mean(b2(b2>mean(b2(~isnan(b2)&b2~=0))/8)); end
     ROIdata2={b2>thr2}; 
     ROInames2={'mask2'};
 elseif numel(ROInames2)>1&&numel(tfilename)==1, %3d-atlas
