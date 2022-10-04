@@ -28,7 +28,7 @@ tfilename=cellstr(conn_expandframe(filename1));
 a1=spm_vol(char(filename1));
 b1=spm_read_vols(a1);
 if ~isempty(thr1), 
-    if isnan(thr1)||isequal(thr1,'globalmask'), thr1=0.80*mean(b1(b1>mean(b1(~isnan(b1)&b1~=0))/8)); end
+    if all(isnan(thr1))||isequal(thr1,'globalmask'), thr1=0.80*mean(b1(b1>mean(b1(~isnan(b1)&b1~=0))/8)); end
     ROIdata1={b1>thr1}; 
     ROInames1={'mask1'};
 elseif isempty(ROInames1) %unlabeled atlas
@@ -54,7 +54,7 @@ tfilename=cellstr(conn_expandframe(filename2));
 a2=spm_vol(char(filename2));
 b2=reshape(spm_get_data(a2,pinv(a2(1).mat)*xyz1),a1(1).dim(1),a1(1).dim(2),a1(1).dim(3),[]);
 if ~isempty(thr2), 
-    if isequal(thr2,'equalsize'), temp=b2(~isnan(b2)); randstate=rand('state'); rand('seed',0); temp=sort(temp+eps*rand(size(temp)),'descend'); thr2=temp(nnz(ROIdata1{1}>0))-eps; rand('state',randstate); end
+    if isequal(thr2,'equalsize'), temp=sort(b2(~isnan(b2)),'descend'); thr2=temp(nnz(ROIdata1{1}>thr1))-eps; end
     if all(isnan(thr2))||isequal(thr2,'globalmask'), thr2=0.80*mean(b2(b2>mean(b2(~isnan(b2)&b2~=0))/8)); end
     ROIdata2={b2>thr2}; 
     ROInames2={'mask2'};

@@ -408,7 +408,7 @@ switch(lower(option))
         varargout{1}=data;
         
     case 'spm_get_data'
-        DOCACHE=false;
+        DOCACHE=ischar(varargin{1});
         try, DOCACHE=size(varargin{2},2)>.10*sum(arrayfun(@(n)prod(size(varargin{1}(n).private.dat)),1:numel(varargin{1}))); end
         if DOCACHE
             vol=conn_fileutils('spm_localvol',varargin{1});
