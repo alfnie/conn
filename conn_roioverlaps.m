@@ -56,10 +56,11 @@ b2=reshape(spm_get_data(a2,pinv(a2(1).mat)*xyz1),a1(1).dim(1),a1(1).dim(2),a1(1)
 if ~isempty(thr2), 
     if isequal(thr2,'equalsize'), 
         randstate=rand('state'); rand('seed',0); 
-        [temp,idx]=sort(b2(:)+eps*rand(numel(b2),1),'descend'); 
+        valid=find(~isnan(b2));
+        [temp,idx]=sort(reshape(b2(valid),[],1)+eps*rand(nnz(valid),1),'descend'); 
         ROIdata2={false(size(b2))}; 
-        ROIdata2{1}(idx(1:nnz(ROIdata1{1}>0)))=true;
-        thr2=b2(idx(nnz(ROIdata1{1}>0))); 
+        ROIdata2{1}(valid(idx(1:nnz(ROIdata1{1}>0))))=true;
+        thr2=b2(valid(idx(nnz(ROIdata1{1}>0)))); 
         rand('state',randstate); 
     else
         if all(isnan(thr2))||isequal(thr2,'globalmask'), thr2=0.80*mean(b2(b2>mean(b2(~isnan(b2)&b2~=0))/8)); end
