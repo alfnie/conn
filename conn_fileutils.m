@@ -34,6 +34,7 @@ function varargout=conn_fileutils(option,varargin)
 % conn_fileutils('spm_write_vol',...)
 % conn_fileutils('spm_unlink',...)                      
 % conn_fileutils('spm_file_merge',...)
+% conn_fileutils('spm_check_registration',...)
 % conn_fileutils('spm_jsonwrite',...)
 %
 % note: CONN_FILEUTILS accepts /CONNSERVER/[filepath] nomenclature for remote files or folders in conn_server 
@@ -462,6 +463,10 @@ switch(lower(option))
         else V=spm_write_vol(varargin{:});
         end
         if nargout>=1, varargout{1}=V; end
+        
+    case 'spm_check_registration'
+        vars=cellfun(@(x)conn_fileutils('file',x),varargin,'uni',0);
+        spm_check_registration(vars{:});
         
     case 'spm_file_merge'
         if isstruct(varargin{1})&&isfield(varargin{1},'fname')

@@ -32,6 +32,7 @@ function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois,vali
 
 global CONN_gui CONN_x;
 if nargin<1||isempty(qafolder), qafolder=fullfile(CONN_x.folders.qa,['QA_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]); end
+if isempty(fileparts(qafolder)), qafolder=fullfile(CONN_x.folders.qa,qafolder); end
 if nargin<2||isempty(procedures), procedures=[]; end
 if nargin<3||isempty(validsubjects), validsubjects=1:CONN_x.Setup.nsubjects; end
 if nargin<4||isempty(validrois), validrois=2; end %[2,4:numel(CONN_x.Setup.rois.names)-1]; end

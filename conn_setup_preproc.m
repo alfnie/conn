@@ -907,11 +907,21 @@ if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_pres
     ht2=uicontrol('style','edit','units','norm','position',[.7,.45,.2,.1],'string',num2str(voxelsize_func),'tooltipstring','defines voxel-size of volumes created when resampling the functional volumes to the desired target space (e.g. MNI)');
     ht0a=uicontrol('style','text','units','norm','position',[.1,.35,.6,.1],'string','Bounding box (in mm)','horizontalalignment','left','backgroundcolor',1*[1 1 1]);
     ht0=uicontrol('style','edit','units','norm','position',[.7,.35,.2,.1],'string',mat2str(boundingbox),'tooltipstring','<HTML>defines bounding box of resampled volumes<br/> - enter a 2x3 matrix with minimum xyz values in the top row and maximum xyz values in the bottom row</HTML>');
+    if ~all(ismember(lSTEPS,{'structural_manualspatialdef','functional_manualspatialdef'})), 
+        ht7a=uicontrol('style','text','units','norm','position',[.1,.25,.6,.1],'string','Regularization','horizontalalignment','left','backgroundcolor',1*[1 1 1]);
+        ht7_vals={'mni','eastern','rigid','subj','none',''};
+        [ok,val]=ismember(affreg,ht7_vals);
+        if ~ok, val=1; end
+        ht7=uicontrol('style','popupmenu','units','norm','position',[.7,.25,.2,.1],'string',{'mni','eastern','rigid','subj','no regularization','no coregistration'},'value',val,'tooltipstring','<HTML>defines affine-coregistration regularization options<br/> - choose ''mni'' for registration of European brains with MNI space<br/> - choose ''eastern'' for registration of East Asian brains with MNI space<br/> - choose ''rigid'' for rigid(ish)-body registration<br/> - choose ''subj'' for inter-subject registration<br/> - choose ''no regularisation'' for unregularized affine coregistration<br/> - choose ''no coregistration'' to skip affine coregistration step<br/> - see "help spm_affine_priors" for details-</HTML>');
+    else ht7=[];
+    end
     uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.15],'callback','uiresume');
     uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.15],'callback','delete(gcbf)');
     if ~any(ismember(lSTEPS,{'structural_normalize','structural_normalize_preservemasks','structural_segment&normalize','structural_segment&normalize_withlesion','structural_segment','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_masks','structural_manualspatialdef'})), set([ht1a ht1 ht4],'enable','off'); end
     if ~any(ismember(lSTEPS,{'functional_normalize','functional_segment&normalize','functional_segment','functional_segment&normalize_direct','functional_normalize_direct','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_preservemasks','functional_manualspatialdef'})), set([ht2a ht2 ht5],'enable','off'); end
+    
     if all(ismember(lSTEPS,{'structural_manualspatialdef','functional_manualspatialdef'})), set([ht3 ht4 ht5],'visible','off'); set(thfig,'name','Resample settings'); end
+    
     set(ht3,'callback','val=get(gcbo,''value''); if val==2, [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select TPM file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; else set(gcbo,''userdata'',val); end');
     set(ht4,'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
     set(ht5,'callback','if ~get(gcbo,''value''), [t1,t0]=conn_fileutils(''uigetfile'',''*.nii;*.img'',''Select template file''); if ischar(t1), set(gco,''userdata'',fullfile(t0,t1)); else set(gcbo,''value'',1); end; end');
@@ -925,6 +935,7 @@ if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_pres
     if ~isempty(ht4), val=get(ht4,'value'); if ~val, structural_template=get(ht4,'userdata'); end; end
     if ~isempty(ht5), val=get(ht5,'value'); if ~val, functional_template=get(ht5,'userdata'); end; end
     if ~isempty(ht6), val=get(ht6,'value'); if val>1, tpm_structlesion=get(ht6,'userdata'); if isnumeric(tpm_structlesion), tpm_structlesion=CONN_x.Setup.rois.names{tpm_structlesion-2}; end; end; end
+    if ~isempty(ht7), val=get(ht7,'value'); affreg=ht7_vals{val}; end
     delete(thfig);
     drawnow;
 end

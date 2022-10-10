@@ -455,7 +455,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 
                 nl2covariates=[];
                 [x,nl2covariates]=conn_module('get','l2covariates','^[^_]');
-                il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(QCOR_|MeanMotion|MeanGlobal|MeanGSchange|ValidScans)')));
+                il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(MeanMotion|InvalidScans|ProportionValidScans)')));
                 validconditions=find(cellfun('length',CONN_x.Setup.conditions.model(1:numel(CONN_x.Setup.conditions.names)-1))==0);
                 
                 fh=figure('units','norm','position',[.4,.4,.4,.5],'menubar','none','numbertitle','off','name','compute QA plots','color','w');
@@ -647,6 +647,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                     qanames_parts3=str2double(regexprep(qanames_parts(:,3),'^session',''));
                     qanames_parts4valid=cellfun('length',regexp(qanames_parts(:,2),'^measure'))>0;
                     qanames_parts4=regexprep(qanames_parts(:,2),'^measure','');
+                    if ~qanames_parts2isnumber, [qanames_parts2{qanames_parts4valid}]=deal(''); end
                     if numel(qafolders)>1&any(any(diff(char(qafolders),1,1))),
                         tidx=find(any(diff(char(qafolders),1,1)),1);
                         tidx=max([1,find(ismember(qafolders{1}(1:tidx),'\/'),1,'last')+1]);
@@ -1127,20 +1128,26 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         end
                         dlg.handles.resultsline_add=plot(0,0,'ko-','markeredgecolor',[1 1 1],'visible','off');
                         dlg.handles.resultspatch_add=[];
-                        ht=[];tx=[];
+                        ht=[];tx0=[];
                         for n=1:numel(dlg.results_info),
-                            if ~isequal(tx,dlg.results_info{n}.InterquartilesDisplay)
-                                tx=dlg.results_info{n}.InterquartilesDisplay;
-                                ht(1)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(1,[1 1:end end]),'r--','linewidth',2,'parent',dlg.handles.hax);
-                                ht(2)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(2,[1 1:end end]),'k:','linewidth',1,'parent',dlg.handles.hax);
-                                %ht(3)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(3,[1 1:end end]),'k:','linewidth',1,'parent',dlg.handles.hax);
-                                ht(3)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(4,[1 1:end end]),'k:','linewidth',1,'parent',dlg.handles.hax);
-                                ht(4)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(5,[1 1:end end]),'r--','linewidth',2,'parent',dlg.handles.hax);
-                                text(size(tx,2)+.55+zeros(1,4),tx([5,4,2,1],end)',{'3rd Q + 1.5 IQR','3rd Quartile','1st Quartile','1st Q - 1.5 IQR'},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
+                            if ~isequal(tx0,dlg.results_info{n}.InterquartilesDisplay)
+                                tx0=dlg.results_info{n}.InterquartilesDisplay;
+                                tx=[2*tx0(1,:)-tx0(2,:); tx0; 2*tx0(end,:)-tx0(end-1,:)];
+                                ht(1)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(1,[1 1:end end]),'r:','linewidth',1,'parent',dlg.handles.hax,'color',[.5 0 0]);
+                                ht(2)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(2,[1 1:end end]),'r--','linewidth',2,'parent',dlg.handles.hax);
+                                ht(3)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(3,[1 1:end end]),'k:','linewidth',1,'parent',dlg.handles.hax);
+                                ht(4)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(5,[1 1:end end]),'k:','linewidth',1,'parent',dlg.handles.hax);
+                                ht(5)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(6,[1 1:end end]),'r--','linewidth',2,'parent',dlg.handles.hax);
+                                ht(6)=plot([.5 1:size(tx,2) size(tx,2)+.5],tx(7,[1 1:end end]),'r:','linewidth',1,'parent',dlg.handles.hax,'color',[.5 0 0]);
+                                text(size(tx,2)+.55+zeros(1,6),tx([7,6,5,3,2,1],end)',{'3rd Q + 3 IQR','3rd Q + 1.5 IQR','3rd Quartile','1st Quartile','1st Q - 1.5 IQR','1st Q - 3 IQR'},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
+                                text(ones(1,4)-.55,tx([7,7,1,1],end)'+[.02,-.02,.02,-.02],{'extreme outliers','mild outliers','mild outliers','extreme outliers'},'horizontalalignment','right','color',.5*[1 1 1],'fontsize',5+font_offset,'parent',dlg.handles.hax);
                                 if numel(dlg.results_info{n}.Variables)>1,
                                     ty=dlg.results_info{n}.Interquartiles;
+                                    ty=[2*ty(1,:)-ty(2,:); ty; 2*ty(end,:)-ty(end-1,:)];
+                                    text((1:size(tx,2))+.3,tx(2,:)-.02,arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(2,:),'uni',0),'horizontalalignment','right','color',.5*[1 1 1],'fontsize',5+font_offset,'rotation',90,'parent',dlg.handles.hax);
+                                    text((1:size(tx,2))+.3,tx(6,:)+.02,arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(6,:),'uni',0),'horizontalalignment','left','color',.5*[1 1 1],'fontsize',5+font_offset,'rotation',90,'parent',dlg.handles.hax);
                                     text((1:size(tx,2))+.2,tx(1,:)-.02,arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(1,:),'uni',0),'horizontalalignment','right','color',.5*[1 1 1],'fontsize',5+font_offset,'rotation',90,'parent',dlg.handles.hax);
-                                    text((1:size(tx,2))+.2,tx(5,:)+.02,arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(5,:),'uni',0),'horizontalalignment','left','color',.5*[1 1 1],'fontsize',5+font_offset,'rotation',90,'parent',dlg.handles.hax);
+                                    text((1:size(tx,2))+.2,tx(7,:)+.02,arrayfun(@(x)mat2str(x,max(ceil(log10(abs(x))),2)),ty(7,:),'uni',0),'horizontalalignment','left','color',.5*[1 1 1],'fontsize',5+font_offset,'rotation',90,'parent',dlg.handles.hax);
                                     text((1:size(tx,2)),-.15+zeros(1,size(tx,2)),regexprep(dlg.results_info{n}.Variables,'^QC_',''),'horizontalalignment','right','color','k','fontsize',5+font_offset,'rotation',90,'interpreter','none','parent',dlg.handles.hax);
                                 end
                             end

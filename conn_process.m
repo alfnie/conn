@@ -30,7 +30,8 @@ elseif conn_projectmanager('inserver')&&isnumeric(options)&&nnz(~ismember(option
         end
         [hmsg,hstat]=conn_msgbox({sprintf('Process running remotely (%s)',tnameserver),'Please wait...',' ',' '},[],[],true);
     end
-    if ~isfield(CONN_x,'filename')||isempty(CONN_x.filename), skiploadsave=true; else skiploadsave=false; end
+    skiploadsave=all(ismember(options,[])); % placeholder: list of processes which may be run without remotely save+push+rload sequence
+    if ~isfield(CONN_x,'filename')||isempty(CONN_x.filename), skiploadsave=true; end
     if ~isfield(CONN_x,'gui'), conn_x_gui=0; else conn_x_gui=CONN_x.gui; end
     if ~skiploadsave, conn save; end % note: save+push+rload
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,'conn_process','aminserver',conn_x_gui,skiploadsave,options,varargin{:});

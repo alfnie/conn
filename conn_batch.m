@@ -1673,7 +1673,7 @@ if isfield(batch,'dynAnalysis'),
 end
 
 if isfield(batch,'QA'),
-    if isfield(batch.QA,'foldername'), qafolder=batch.QA.foldername;
+    if isfield(batch.QA,'foldername'), qafolder=batch.QA.foldername; 
     else qafolder=fullfile(CONN_x.folders.qa,['QA_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]); ;
     end
     if isfield(batch.QA,'plots'), procedures=batch.QA.plots; 
