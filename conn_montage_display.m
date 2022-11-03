@@ -48,6 +48,12 @@ else
         x=cat(4,dispdata{:});
         xlabels=displabel;
     end
+    if nargin>=3&&~isempty(style)&&~isempty(regexp(style,'_scaled'))&&size(x,3)==1,
+        tempx=abs(x);
+        tempx(isnan(x))=0; 
+        x=x./repmat(mean(mean(tempx,1),2),[size(x,1),size(x,2),1,1]); 
+        style=regexprep(style,'_scaled','');
+    end
     state.x=x;
     state.xlabels=xlabels;
     cmap2=repmat(1-linspace(1,0,128)'.^2,[1,3]).*hot(128)+repmat(linspace(1,0,128)'.^2,[1,3])*.1;

@@ -11,6 +11,7 @@ isremotefile=conn_server('util_isremotefile',filename);
 if isremotefile, remotefilename=filename; filename=conn_cache('new',remotefilename); end
 
 dims=conn_surf_dims(8);
+if size(data,3)>1, data=reshape(data,[size(data,1)*size(data,2),size(data,3)]); end % converts [163842,2,N] data into [163842*2,N] data
 N=size(data,2);
 switch(size(data,1))
     case prod(dims),    

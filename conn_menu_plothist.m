@@ -37,7 +37,7 @@ for nvar=1:nx
     %if isequal(options.convert,'logit100'), tx=cellfun(@(x)2*atanh(2*max(eps,min(1-eps,x/100))-1),tx,'uni',0); end
     minx=min(cellfun(@min,tx));
     maxx=max(cellfun(@max,tx));
-    if nargin<2||isempty(h), th=(maxx-minx)/sqrt(max(cellfun(@numel,tx)))
+    if nargin<2||isempty(h), th=(maxx-minx)/sqrt(max(cellfun(@numel,tx)));
     else th=h;
     end
     X=linspace(minx-2*th,maxx+2*th,options.nsamples);

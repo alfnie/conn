@@ -3126,7 +3126,7 @@ for iSTEP=1:numel(STEPS)
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
-                SVARIANT=1; % smoothing variant: 1: hard transitions (out-of-mask voxels are always unchanged); 2: smooth transitions (out-of-mask voxels are changed)
+                SVARIANT=1; % smoothing variant: 1: hard transitions (out-of-mask voxels are always unchanged); 2: smooth transitions (out-of-mask voxels are affected by nearby within-mask values)
                 LAMBDA=5;
                 for nses=1:nsess
                     if ismember(nses,sessions)
@@ -3183,6 +3183,7 @@ for iSTEP=1:numel(STEPS)
                             switch(SVARIANT)
                                 case 1, volout(n)=spm_write_vol(volout(n),(1-mask).*data + mask.*sdata./max(eps,smask));
                                 case 2, volout(n)=spm_write_vol(volout(n),(sdata+data.*mask0)./max(eps,smask+mask0));
+                                case 3, volout(n)=spm_write_vol(volout(n),(sdata)./max(eps,smask));
                                     %case 3, volout(n)=spm_write_vol(volout(n),(sdata.*smask+1/LAMBDA*data)./(smask+1/LAMBDA));
                             end
                         end

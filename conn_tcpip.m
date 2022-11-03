@@ -430,7 +430,7 @@ switch(lower(option))
                 end
                 ok=true;
             catch
-                fprintf('Unable to send TCP packet (possibly unresponsive server). Disregarding\n');
+                fprintf('Unable to send TCP packet (possibly unresponsive server)\n');
             end
         else % save to file then send file
             filename=fullfile(connection.cache,['cachetmp_',char(conn_tcpip('hash',mat2str(now))),'.mat']);
@@ -462,7 +462,7 @@ switch(lower(option))
         try
             connection.output.stream.writeUTF(header);
         catch
-            fprintf('Unable to send TCP packet (possibly unresponsive server). Disregarding\n');
+            fprintf('Unable to send TCP packet (possibly unresponsive server)\n');
         end
         while fsize>0&&~ok
             if numel(data)<connection.maxlength, 
@@ -478,7 +478,7 @@ switch(lower(option))
                 connection.output.stream.writeUTF(data(idx));
                 data(idx)=[];
             catch
-                fprintf('Unable to send TCP packet (possibly unresponsive server). Disregarding\n');
+                fprintf('Unable to send TCP packet (possibly unresponsive server)\n');
                 break;
             end
         end

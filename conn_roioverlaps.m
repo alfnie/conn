@@ -28,9 +28,13 @@ tfilename=cellstr(conn_expandframe(filename1));
 a1=spm_vol(char(filename1));
 b1=spm_read_vols(a1);
 if ~isempty(thr1), 
-    if all(isnan(thr1))||isequal(thr1,'globalmask'), thr1=0.80*mean(b1(b1>mean(b1(~isnan(b1)&b1~=0))/8)); end
-    ROIdata1={b1>thr1}; 
-    ROInames1={'mask1'};
+    if numel(ROInames1)>1 && numel(ROInames1)==numel(tfilename), %4d-atlas
+        ROIdata1=reshape(num2cell(b1(:,:,:,ROIidx1)>thr1,1:3),1,[]);
+    else
+        if all(isnan(thr1))||isequal(thr1,'globalmask'), thr1=0.80*mean(b1(b1>mean(b1(~isnan(b1)&b1~=0))/8)); end
+        ROIdata1={b1>thr1};
+        ROInames1={'mask1'};
+    end
 elseif isempty(ROInames1) %unlabeled atlas
     maxdata=max(b1(:));
     if all(ismember(unique(b1(b1~=0)),1:maxdata))
@@ -52,9 +56,11 @@ xyz1=a1(1).mat*[x(:) y(:) z(:) ones(numel(x),1)]';
 
 tfilename=cellstr(conn_expandframe(filename2));
 a2=spm_vol(char(filename2));
-b2=reshape(spm_get_data(a2,pinv(a2(1).mat)*xyz1),a1(1).dim(1),a1(1).dim(2),a1(1).dim(3),[]);
+b2=permute(reshape(spm_get_data(a2,pinv(a2(1).mat)*xyz1),numel(a2),a1(1).dim(1),a1(1).dim(2),a1(1).dim(3)),[2,3,4,1]);
 if ~isempty(thr2), 
-    if isequal(thr2,'equalsize'), 
+    if numel(ROInames2)>1 && numel(ROInames2)==numel(tfilename), %4d-atlas
+        ROIdata2=reshape(num2cell(b2(:,:,:,ROIidx2)>thr2,1:3),1,[]);
+    elseif isequal(thr2,'equalsize'), 
         randstate=rand('state'); rand('seed',0); 
         valid=find(~isnan(b2));
         [temp,idx]=sort(reshape(b2(valid),[],1)+eps*rand(nnz(valid),1),'descend'); 
@@ -62,11 +68,12 @@ if ~isempty(thr2),
         ROIdata2{1}(valid(idx(1:nnz(ROIdata1{1}>0))))=true;
         thr2=b2(valid(idx(nnz(ROIdata1{1}>0)))); 
         rand('state',randstate); 
+        ROInames2={'mask2'};
     else
         if all(isnan(thr2))||isequal(thr2,'globalmask'), thr2=0.80*mean(b2(b2>mean(b2(~isnan(b2)&b2~=0))/8)); end
         ROIdata2={b2>thr2};
+        ROInames2={'mask2'};
     end
-    ROInames2={'mask2'};
 elseif numel(ROInames2)>1&&numel(tfilename)==1, %3d-atlas
     maxdata=max(b2(:));
     if max(ROIidx2)==maxdata

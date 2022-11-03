@@ -984,12 +984,21 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 refshow1=refshow1+dlg.results_patch{n}{4}; refshow1n=refshow1n+1;
                             end
                         end
+                        refshow2=.5*(refshow2+fliplr(refshow2)); % force symmetry
+                        refshow1=.5*(refshow1+fliplr(refshow1)); % force symmetry
+                        minshow2=refshow2/refshow2n/sum(refshow2/refshow2n);
+                        minshow1=refshow1/refshow1n/sum(refshow1/refshow1n);
                         for n=1:numel(dlg.results_patch),
                             if numel(dlg.results_line)>=n&&~isempty(dlg.results_line{n})
                                 dlg.handles.resultsline(n,1)=plot(dlg.results_line{n}{2},dlg.results_line{n}{1},'k.','linewidth',1,'color',.75*[.8 .8 1],'parent',dlg.handles.hax);
                                 dlg.handles.resultsline(n,2)=plot(dlg.results_line{n}{3},dlg.plothistinfo2+dlg.results_line{n}{1},'k.','linewidth',1,'color',.75*[.8 .8 1],'parent',dlg.handles.hax);
                             end
+                            if numel(dlg.results_patch{n})>4
+                                minshow2=min(minshow2, dlg.results_patch{n}{3}/sum(dlg.results_patch{n}{3}));
+                                minshow1=min(minshow1, dlg.results_patch{n}{2}/sum(dlg.results_patch{n}{2}));
+                            end
                         end
+                        %disp([sum(minshow2) sum(minshow1)]);
                         plot([-1 1 nan -1 1],[0 0 nan dlg.plothistinfo2 dlg.plothistinfo2],'k-','linewidth',1,'parent',dlg.handles.hax);
                         if numel(dlg.results_line)>0
                             dlg.handles.resultsline_add=[plot(0,0,'k-','visible','off','parent',dlg.handles.hax), plot(0,0,'k-','visible','off','parent',dlg.handles.hax)];
@@ -1053,6 +1062,9 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                                 end
                             end
                             if ~isempty(ttitle), text(0,dlg.plothistinfo3*1.05,ttitle,'horizontalalignment','center','fontsize',10+font_offset,'fontweight','bold','interpreter','none','parent',dlg.handles.hax); end
+                        elseif ~isempty(dlg.results_info)&&isstruct(dlg.results_info{1})&&isfield(dlg.results_info{1},'IntersectionBefore')&&isfield(dlg.results_info{1},'PercentSignificantBefore')
+                            text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean=%.2f std=%.2f',mean(cellfun(@(x)x.MeanAfter,dlg.results_info)),mean(cellfun(@(x)x.StdAfter,dlg.results_info))),sprintf('combined %.1f%% overlap with NH',100*sum(minshow1))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
+                            text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean=%.2f sd=%.2f',mean(cellfun(@(x)x.MeanBefore,dlg.results_info)),mean(cellfun(@(x)x.StdBefore,dlg.results_info))),sprintf('combined %.1f%% overlap with NH',100*sum(minshow2))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                         elseif ~isempty(dlg.results_info)&&(isfield(dlg.results_info{1},'DofBefore')||isfield(dlg.results_info{1},'MeanBefore'))
                             text(-.95,dlg.plothistinfo2*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean=%.3f%c%.3f sd=%.3f%c%.3f',mean(cellfun(@(x)x.MeanAfter,dlg.results_info)),177,std(cellfun(@(x)x.MeanAfter,dlg.results_info)),mean(cellfun(@(x)x.StdAfter,dlg.results_info)),177,std(cellfun(@(x)x.StdAfter,dlg.results_info)))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);
                             text(-.95,dlg.plothistinfo2+(dlg.plothistinfo3-dlg.plothistinfo2)*.25-min(dlg.plothistinfo2,dlg.plothistinfo3-dlg.plothistinfo2)*.15,{sprintf('mean=%.3f%c%.3f sd=%.3f%c%.3f',mean(cellfun(@(x)x.MeanBefore,dlg.results_info)),177,std(cellfun(@(x)x.MeanBefore,dlg.results_info)),mean(cellfun(@(x)x.StdBefore,dlg.results_info)),177,std(cellfun(@(x)x.StdBefore,dlg.results_info)))},'horizontalalignment','left','fontsize',5+font_offset,'parent',dlg.handles.hax);

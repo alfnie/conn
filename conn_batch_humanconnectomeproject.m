@@ -122,6 +122,7 @@ batch.Setup.covariates.names={'realignment'};
 batch.Setup.covariates.files{1}=repmat({{}},[NSUBJECTS,1]);      
 for nsub=1:NSUBJECTS,for nses=1:nsessions,                  batch.Setup.covariates.files{1}{nsub}{nses}=REALIGNMENT_FILE(nsub,nses);end; end 
 
+batch.Setup.outputfiles=[0,1,0,0,0,0];                  % creates d*.nii denoised output files
 batch.Setup.analyses=[1,2];                             % seed-to-voxel and ROI-to-ROI pipelines
 batch.Setup.overwrite='Yes';                            
 batch.Setup.done=1;

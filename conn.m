@@ -1393,12 +1393,17 @@ else
             try, str{end+1}=sprintf('SPM version %s in %s',spm('version'),fileparts(which('spm')));
             catch, str{end+1}=sprintf('SPM version %s in %s',spm('ver'),fileparts(which('spm'))); end
             str{end+1}='';
+            str{end+1}='';
             str{end+1}=sprintf('for details about CONN''s processing pipeline and analysis methods:');
             str{end+1}=sprintf('Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press');
             str{end+1}='';
-            str{end+1}=sprintf('cite as: Whitfield-Gabrieli, S., and Nieto-Castanon, A. (2012). Conn: A functional connectivity toolbox');
-            str{end+1}=sprintf('for correlated and anticorrelated brain networks. Brain connectivity, 2(3), 125-141');
-            str{end+1}=sprintf('CONN toolbox (RRID:SCR_009550 www.nitrc.org/projects/conn) release %s',conn('ver'));
+            str{end+1}=sprintf('to cite this specific release/version of CONN:');
+            str{end+1}=sprintf('Nieto-Castanon, A., and Whitfield-Gabrieli, S. (2021). CONN toolbox (RRID:SCR_009550)');
+            str{end+1}=sprintf('Version 21. Hilbert Press. doi:10.56441/hilbertpress.2161.7292');
+            str{end+1}='';
+            str{end+1}=sprintf('to cite the CONN toolbox:')
+            str{end+1}=sprintf('Whitfield-Gabrieli, S., and Nieto-Castanon, A. (2012). Conn: A functional connectivity');
+            str{end+1}=sprintf('toolbox for correlated and anticorrelated brain networks. Brain connectivity, 2(3), 125-141');
             %for n=1:numel(str), conn_disp('fprintf','%s\n',str{n}); end
             conn_msgbox(str,'');
             
@@ -1455,7 +1460,7 @@ else
             
         case 'gui_workshop',
             place='Boston MGH/HST';
-            dates={'Nov 22 2021','Dec 20 2021','Nov 22 - Dec 20 2021 (5 weeks, one day per week)'};
+            dates={'Nov 21 2022','Dec 19 2022','Nov 21 - Dec 19 2022 (5 weeks, one day per week)'};
             passed=false;
             try, dates(1:2)=cellfun(@datenum,dates(1:2),'uni',0); end
             if now>=dates{1}
@@ -2427,7 +2432,7 @@ else
                                                 end
                                             end
                                         end
-                                        fh=conn_montage_display(cat(4,dispdata{:}),displabel);
+                                        fh=conn_montage_display(cat(4,dispdata{:}),displabel,'montage_scaled');
                                         fh('colormap','gray'); fh('colormap','darker');
                                         if ishandle(hmsg), delete(hmsg); end
                                         varargout={fh};
@@ -2912,7 +2917,7 @@ else
                                                 end
                                             end
                                         end
-                                        fh=conn_montage_display(cat(4,dispdata{:}),displabel);
+                                        fh=conn_montage_display(cat(4,dispdata{:}),displabel,'montage_scaled');
                                         fh('colormap','gray'); 
                                         if ishandle(hmsg), delete(hmsg); end
                                         varargout={fh};
@@ -3513,7 +3518,7 @@ else
                                                 end
                                             end
                                         end
-                                        fh=conn_montage_display(cat(4,dispdata{:}),displabel);
+                                        fh=conn_montage_display(cat(4,dispdata{:}),displabel,'montage_scaled');
                                         if ishandle(hmsg), delete(hmsg); end
                                         varargout={fh};
                                         return;
