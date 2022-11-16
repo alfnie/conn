@@ -289,7 +289,7 @@ switch(lower(option))
                 connection.buffer=connection.buffer(i2+1:end);
                 connection.header1=connection.header1-i2; connection.header1(connection.header1<=0)=[];
                 connection.header2=connection.header2-i2; connection.header2(connection.header2<=0)=[];
-                fprintf('Incomplete TCP packet. Disregarding\n');
+                fprintf('Incomplete TCP packet (+%db). Disregarding\n',connection.header1(1)-1);
             end
             if ~isnan(connection.length)&&~isempty(connection.header1)&&connection.header1(1)<=connection.length % found a new header, yet incomplete data
                 i2=connection.header1(1)-1;
@@ -297,7 +297,7 @@ switch(lower(option))
                 connection.header1=connection.header1-i2; connection.header1(connection.header1<=0)=[];
                 connection.header2=connection.header2-i2; connection.header2(connection.header2<=0)=[];
                 connection.length=nan;
-                fprintf('Incomplete TCP packet. Disregarding\n');
+                fprintf('Incomplete TCP packet (-%db). Disregarding\n',connection.length-connection.header1(1)+1);
                 break;
             end
             if ~isempty(filename)&&~isnan(connection.length), % writing to file
@@ -310,6 +310,10 @@ switch(lower(option))
                         [tpath,tname,text]=fileparts(filename);
                         cachefilename=fullfile(tpath,['cachetmp_',tname,text]);
                         filehandle=fopen(cachefilename,'wb'); 
+                        if isequal(filehandle,-1)
+                            cachefilename=fullfile(connection.cache,['cachetmp_',tname,text]);
+                            filehandle=fopen(cachefilename,'wb');
+                        end
                     end
                     fwrite(filehandle,tdata,'uint8');
                     if ~isempty(hash), hash.update(tdata); end
@@ -326,6 +330,10 @@ switch(lower(option))
                             [tpath,tname,text]=fileparts(filename);
                             cachefilename=fullfile(tpath,['cachetmp_',tname,text]);
                             filehandle=fopen(cachefilename,'wb');
+                            if isequal(filehandle,-1)
+                                cachefilename=fullfile(connection.cache,['cachetmp_',tname,text]);
+                                filehandle=fopen(cachefilename,'wb');
+                            end
                         end
                         fclose(filehandle);
                         if readtofile

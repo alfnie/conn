@@ -18,7 +18,8 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %      threshold        : only display voxels in 'fileSURF' above 'threshold' (default 0)
 %                           set to NaN for automatic threshold (90% percentile absolute values)
 %
-%  fh = CONN_MESH_DISPLAY(...) returns function handle for additional options
+% fh = CONN_MESH_DISPLAY(...) returns function handle for additional options 
+% note: if a conn_mesh_display window is already open, its function handle can also be read using the syntax fh = gcf().UserData.handles.fh;
 %
 % VIEW OPTIONS
 %  fh('view',viewdir [,viewpos,side])    : controls camera view
@@ -38,7 +39,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %                                           type=3: Semi-inflated WM
 %                                           type=4: Inflated WM
 %  fh('brain_transparency',val)          : set reference brain surface transparency level (val: 0-1)
-%  fh('brain_color')                     : set reference brain surface color
+%  fh('brain_color',color)               : set reference brain surface color (color: [1x3] RGB values) 
 %  fh('repaint',fileSURF [,threshold])   : change reference brain surface activation file (fileSURF: NIFTI file)
 %  fh('mask',state)                      : displays reference brain surface medial mask (state: 'on' 'off')
 %  fh('act_transparency',val)            : set reference brain surface activation transparency level (val: 0-1)
@@ -46,7 +47,6 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('act_neg')                         : reference brain surface activation displays only negative acitivation values
 %  fh('act_posneg')                      : reference brain surface activation displays both positive/negative acitivation values
 %  fh('act_color',color)                 : reference brain surface activation colormap (color: [Mx3] RGB values)
-%  fh('sub',state)                       : displays reference subcortical surface (state: 'on' 'off')
 %  fh('sub_transparency',val)            : set subcortical surface transparency level (val: 0-1)
 %  fh('sub_color',color)                 : set subcortical surface color (color: [1x3] RGB values)
 %  fh('brainmask_transparency',val)      : set brainmask surface transparency level (val: 0-1)
@@ -57,8 +57,9 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('ref_transparency',val)            : set reference slices transparency level (val: 0-1)
 %  fh('ref_pos',pos)                     : set reference slices position (pos: [1x3] vector of x/y/z coordinates)
 %  fh('ref_file',file)                   : set reference slices file (default: referenceT1_icbm)
-%  fh('ref_method',val)                  : set reference slices display method; 1: sample values at each individual slice; 
-%                                           2: Maximum Intensity Projection for each slide direction (default 1)
+%  fh('ref_method',val)                  : set reference slices display method 
+%                                           val=1: sample values at each individual slice; 
+%                                           val=2: Maximum Intensity Projection for each slide direction (default 1)
 %  fh('ud_select',filename)              : adds custom reference surface (filename: NIFTI mask file)
 %  fh('ud_delete')                       : removes last custom reference surface
 %  fh('ud_transparency',val)             : set custom reference surface transparency level (val: 0-1)
@@ -101,6 +102,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %                                           type=7: prints 8-view mosaic display (left, right, medial-left, medial-right, superior, 
 %                                                   inferior, anterior, posterior views)
 %
+
 
 global CONN_x CONN_gui;
 persistent data;

@@ -3974,6 +3974,7 @@ for iSTEP=1:numel(STEPS)
                 end
                 
             case 'structural_segment'
+                y1=zeros(CONN_x.Setup.nsubjects,1);
                 for isubject=1:numel(subjects),
                     nsubject=subjects(isubject);
                     nsess=intersect(1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)),sessions);
@@ -3986,11 +3987,17 @@ for iSTEP=1:numel(STEPS)
                             CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{nses_struct}{2});
                             CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{nses_struct}{3});
                             CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{nses_struct}{4});
+                            [a,b]=conn_roioverlaps(fullfile(fileparts(which('conn')),'utils','surf','referenceGM.nii'),CONN_x.Setup.rois.files{nsubject}{1}{nses}{1},.25,'equalsize');
+                            y1(nsubject)=2*a.overlap/(a.rows_total+a.cols_total);
                         end
                     end
                 end
+                if ~sets||ALLSETSPERMISSIONS
+                    conn_importl2covariate({'QC_NORM_struct'},{y1},0,subjects,{'CONN Quality Assurance: Overlap of structural gray matter mask with template'});
+                end
                 
             case {'structural_segment&normalize','functional_segment&normalize_indirect','structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion'}
+                y1=zeros(CONN_x.Setup.nsubjects,1);
                 for isubject=1:numel(subjects),
                     nsubject=subjects(isubject);
                     nsess=intersect(1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)),sessions);
@@ -4045,8 +4052,13 @@ for iSTEP=1:numel(STEPS)
                             CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{nses_struct}{2});
                             CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{nses_struct}{3});
                             CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{nses_struct}{4});
+                            [a,b]=conn_roioverlaps(fullfile(fileparts(which('conn')),'utils','surf','referenceGM.nii'),CONN_x.Setup.rois.files{nsubject}{1}{nses}{1},.25,'equalsize');
+                            y1(nsubject)=2*a.overlap/(a.rows_total+a.cols_total);
                         end
                     end
+                end
+                if ~sets||ALLSETSPERMISSIONS
+                    conn_importl2covariate({'QC_NORM_struct'},{y1},0,subjects,{'CONN Quality Assurance: Overlap of structural gray matter mask with template'});
                 end
                 
             case 'functional_coregister_nonlinear'
@@ -4058,7 +4070,7 @@ for iSTEP=1:numel(STEPS)
                         else nses_struct=1;
                         end
                         %CONN_x.Setup.structural{nsubject}{nses}=conn_file(outputfiles{isubject}{nses_struct}{1});
-                        if ~sets||ALLSETSPERMISSIONS
+                        if 0,%~sets||ALLSETSPERMISSIONS
                             CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{nses_struct}{2});
                             CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{nses_struct}{3});
                             CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{nses_struct}{4});
@@ -4091,6 +4103,7 @@ for iSTEP=1:numel(STEPS)
                 
             case 'functional_segment'
                 if ~sets||ALLSETSPERMISSIONS
+                    y1=zeros(CONN_x.Setup.nsubjects,1);
                     for isubject=1:numel(subjects),
                         nsubject=subjects(isubject);
                         nsess=intersect(1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)),sessions);
@@ -4098,11 +4111,15 @@ for iSTEP=1:numel(STEPS)
                             CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{2});
                             CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{3});
                             CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{4});
+                            [a,b]=conn_roioverlaps(fullfile(fileparts(which('conn')),'utils','surf','referenceGM.nii'),CONN_x.Setup.rois.files{nsubject}{1}{nses}{1},.25,'equalsize');
+                            y1(nsubject)=2*a.overlap/(a.rows_total+a.cols_total);
                         end
                     end
+                    conn_importl2covariate({'QC_NORM_func'},{y1},0,subjects,{'CONN Quality Assurance: Overlap of functional gray matter mask with template'});
                 end
                 
             case {'functional_segment&normalize','functional_segment&normalize_direct'}
+                y1=zeros(CONN_x.Setup.nsubjects,1);
                 for isubject=1:numel(subjects),
                     nsubject=subjects(isubject);
                     nsess=intersect(1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)),sessions);
@@ -4111,9 +4128,14 @@ for iSTEP=1:numel(STEPS)
                             CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{2});
                             CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{3});
                             CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{4});
+                            [a,b]=conn_roioverlaps(fullfile(fileparts(which('conn')),'utils','surf','referenceGM.nii'),CONN_x.Setup.rois.files{nsubject}{1}{nses}{1},.25,'equalsize');
+                            y1(nsubject)=2*a.overlap/(a.rows_total+a.cols_total);
                         end
                         conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{4+nses});
                     end
+                end
+                if ~sets||ALLSETSPERMISSIONS
+                    conn_importl2covariate({'QC_NORM_func'},{y1},0,subjects,{'CONN Quality Assurance: Overlap of functional gray matter mask with template'});
                 end
                 
             case {'functional_slicetime','functional_normalize','functional_normalize_direct','functional_smooth','functional_smooth_masked','functional_surface_smooth','functional_surface_resample','functional_coregister_affine_reslice'}
@@ -4206,7 +4228,7 @@ for iSTEP=1:numel(STEPS)
                     if yok,
                         str_global=sprintf(' (outliers threshold = %s)',mat2str(art_global_threshold));
                         str_motion=sprintf(' (outliers threshold = %s)',mat2str(art_motion_threshold));
-                        conn_importl2covariate({'QC_ValidScans','QC_InvalidScans','QC_MaxMotion','QC_MeanMotion','QC_MaxGSchange','QC_MeanGSchange'},{y1,y2,y3,y4,y5,y6},0,subjects,{'CONN Quality Assurance: Number of valid (non-outlier) scans','CONN Quality Assurance: Number of outlier scans',['CONN Quality Assurance: Largest motion observed',str_motion],['CONN Quality Assurance: Average motion observed (disregarding outlier scans)',str_motion],['CONN Quality Assurance: Largest global BOLD signal changes observed',str_global],['CONN Quality Assurance: Average global BOLD signal changes observed (disregarding outlier scans)',str_global]});
+                        conn_importl2covariate({'QC_ValidScans','QC_InvalidScans','QC_ProportionValidScans','QC_MaxMotion','QC_MeanMotion','QC_MaxGSchange','QC_MeanGSchange'},{y1,y2,y1./(y1+y2),y3,y4,y5,y6},0,subjects,{'CONN Quality Assurance: Number of valid (non-outlier) scans','CONN Quality Assurance: Number of outlier scans','CONN Quality Assurance: Proportion of valid (non-outlier) scans',['CONN Quality Assurance: Largest motion observed',str_motion],['CONN Quality Assurance: Average motion observed (disregarding outlier scans)',str_motion],['CONN Quality Assurance: Largest global BOLD signal changes observed',str_global],['CONN Quality Assurance: Average global BOLD signal changes observed (disregarding outlier scans)',str_global]});
                     end
                 end
                 
