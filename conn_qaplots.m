@@ -155,7 +155,7 @@ if any(procedures==Iprocedure) % QA_NORM functional
                     else fprintf('.');
                     end
 
-                    try
+                    if 0
                         info=fhset{1}('info');
                         [pmatch,nill]=conn_roioverlaps(info.structural,fullfile(fileparts(which(mfilename)),'utils','surf','referenceBM.nii'),nan,.25);
                         pmatch=2*pmatch.overlap/(pmatch.rows_total+pmatch.cols_total);

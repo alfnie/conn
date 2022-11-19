@@ -58,6 +58,7 @@ switch(lower(option))
                 temp=conn_server_ssh_input(sprintf('Server address [%s]: ',params.info.host),'s');
                 if ~isempty(temp),
                     temp=regexprep(temp,'\s+','');
+                    %if ~isempty(temp,'ssh-?only$'), params.options.use_scp=false; temp=regexprep(temp,'ssh-?only$',''); end
                     if ~isequal(params.info.host,temp), allthesame=false; end
                     params.info.host=temp;
                 end
@@ -114,13 +115,23 @@ switch(lower(option))
                     while optionrepeat
                         optionrepeat=false;
                         if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
-                            fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
-                            [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
-                                params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
+                            fprintf('\nReading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
+                            if 0,%params.options.use_scp % note: use ssh in case scp not enabled at server
+                                [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
+                                    params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
+                            else
+                                [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s ''cat ~/connserverinfo.json'' > %s',...
+                                    params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip,filename));
+                            end
                         else
                             tstr=sprintf('SSH downloading configuration information from %s:%s',params.info.login_ip,'~/connserverinfo.json');
-                            [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c "%s -q %s:~/connserverinfo.json %s"',...
-                                tstr, params.options.cmd_scp, params.info.login_ip,filename));
+                            if 0,%params.options.use_scp
+                                [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c "%s -q %s:~/connserverinfo.json %s"',...
+                                    tstr, params.options.cmd_scp, params.info.login_ip,filename));
+                            else
+                                [ok,msg]=system(sprintf('start "%s" /WAIT cmd /c %s %s "cat ~/connserverinfo.json" ^> %s 2^>^&1', ...
+                                    tstr, params.options.cmd_ssh, params.info.login_ip, filename));
+                            end
                         end
                         if ~conn_existfile(filename)
                             fprintf('Unable to find CONN distribution in %s.\nIf this is your first time connecting to %s, please use the following steps to confirm that CONN is available there and then try connecting again:\n   1. Log in to %s as user %s\n   2. Launch Matlab\n   3. From Matlab command-window type "conn remotely setup" (without quotes) and confirm that the file ~/connserverinfo.json is created\n   4. Log out from %s\n(see "in the server computer" section at https://web.conn-toolbox.org/resources/remote-configuration for details)\n\n',params.info.login_ip,params.info.host,params.info.host,params.info.user,params.info.host);
@@ -316,9 +327,11 @@ switch(lower(option))
                 if ~isfield(params.info,'CONNcmd')||isempty(params.info.CONNcmd) % attempts to load server info from remote ~/connserverinfo.json file
                     filename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
                     conn_fileutils('deletefile',filename);
-                    fprintf('\nDownloading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
-                    [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
-                        params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
+                    fprintf('\nReading configuration information from %s:%s to %s\n',params.info.login_ip,'~/connserverinfo.json',filename);
+                    %[ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s:~/connserverinfo.json %s',...
+                    %    params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,filename));
+                    [ok,msg]=system(sprintf('%s -q -o ControlPath=''%s'' %s ''cat ~/connserverinfo.json'' > %s',...
+                        params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip,filename));
                     assert(conn_existfile(filename),'unable to find ~/connserverinfo.json file in %s',params.info.login_ip);
                     params.info.CONNcmd=conn_jsonread(filename,'CONNcmd');
                 end
