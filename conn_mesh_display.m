@@ -212,7 +212,7 @@ if doinit
     else
         state.info.surf='none';
         V=zeros(size(data.curv{1}));
-        state.reducedpatch=2;
+        state.reducedpatch=1;
     end
     if ~isempty(filenameVOL)
         if iscell(filenameVOL),
@@ -294,7 +294,7 @@ if doinit
     state.ud_color=[];
     state.roi_color=[];
     state.con_color=[];
-    state.light_color=1*[1 1 1];
+    state.light_color=.5*[1 1 1];
     state.material='dull';
     state.showaxref=[0 0 0];
     state.fontsize=10;
@@ -750,8 +750,8 @@ uimenu(hc1,'Label','sketch','callback',{@conn_mesh_display_refresh,'material',[.
 uimenu(hc1,'Label','shiny','callback',{@conn_mesh_display_refresh,'material',[.3 .6 .9 20 1]},'tag','material');
 uimenu(hc1,'Label','metal','callback',{@conn_mesh_display_refresh,'material',[.3 .3 1 25 .5]},'tag','material');
 uimenu(hc1,'Label','flat','callback',{@conn_mesh_display_refresh,'material',[]},'tag','material');
-uimenu(hc1,'Label','bright','callback',{@conn_mesh_display_refresh,'light',1},'separator','on','tag','light','checked','on');
-uimenu(hc1,'Label','medium','callback',{@conn_mesh_display_refresh,'light',.5},'tag','light');
+uimenu(hc1,'Label','bright','callback',{@conn_mesh_display_refresh,'light',1},'separator','on','tag','light');
+uimenu(hc1,'Label','medium','callback',{@conn_mesh_display_refresh,'light',.5},'tag','light','checked','on');
 uimenu(hc1,'Label','dark','callback',{@conn_mesh_display_refresh,'light',.2},'tag','light');
 uimenu(hc1,'Label','white background','callback',{@conn_mesh_display_refresh,'background',[1 1 1]},'separator','on','tag','background');
 uimenu(hc1,'Label','light background','callback',{@conn_mesh_display_refresh,'background',[.95 .95 .9]},'tag','background');
@@ -989,10 +989,13 @@ if ishandle(hmsg), delete(hmsg); end
                 view(state.handles.hax,v);
                 %up=null(v); up=sum(up,2)'; state.up=1.5*up/norm(up);
                 state.up=v(:)'/norm(v);
+                try, vup=get(state.handles.hax,'cameraupvector');
+                catch, vup=state.up;
+                end
                 %up=get(state.handles.hax,'cameraup'); up=up(:)';
                 if numel(state.handles.light)>2, set(state.handles.light(2:end-1),'position',vl); end
-                set(state.handles.light(1),'position',1000*(vl(:)'/norm(vl)-state.up(:)'));
-                set(state.handles.light(end),'position',1000*(vl(:)'/norm(vl)+state.up(:)'));
+                set(state.handles.light(1),'position',1000*(vl(:)'/norm(vl)-.1*vup(:)'/norm(vup)));
+                set(state.handles.light(end),'position',1000*(vl(:)'/norm(vl)+.1*vup(:)'/norm(vup)));
                 set(state.handles.patch,'visible','off'); 
                 set(state.handles.subpatch,'visible','off'); 
                 set(state.handles.maskpatch,'visible','off');
@@ -1372,6 +1375,7 @@ if ishandle(hmsg), delete(hmsg); end
                     if size(color,2)~=3, return; end
                 else color=uisetcolor([],'Select color'); if isempty(color)||isequal(color,0), return; end; 
                 end
+                if isequal(color,'rand'), color=rand(numel(state.handles.patchblobother),3); end
                 if size(color,1)==1, set(state.handles.patchblobother,'facecolor',color); 
                 else for n1=1:numel(state.handles.patchblobother), set(state.handles.patchblobother(n1),'facecolor',color(1+rem(n1-1,size(color,1)),:)); end
                 end
@@ -1392,6 +1396,7 @@ if ishandle(hmsg), delete(hmsg); end
                     if size(color,2)~=3, return; end
                 else color=uisetcolor([],'Select color'); if isempty(color)||isequal(color,0), return; end; 
                 end
+                if isequal(color,'rand'), color=rand(numel(state.handles.sphplots),3); end
                 %[nill,idx]=sort(state.sphplots.sph_r);color(idx,:)=color;
                 state.roi_color=color;
                 if size(state.roi_color,1)==1, set([state.handles.sphplots state.handles.sphplots_shapes(ishandle(state.handles.sphplots_shapes))],'facecolor',state.roi_color);
@@ -1424,6 +1429,7 @@ if ishandle(hmsg), delete(hmsg); end
                     if size(color,2)~=3, return; end
                 else color=uisetcolor([],'Select color'); if isempty(color)||isequal(color,0), return; end; 
                 end
+                if isequal(color,'rand'), color=rand(nnz(state.handles.connplots~=0),3); end
                 state.con_color=color;
                 if size(state.con_color,1)==1, set(state.handles.connplots(state.handles.connplots~=0),'facecolor',state.con_color); 
                 else
@@ -1439,16 +1445,20 @@ if ishandle(hmsg), delete(hmsg); end
             case 'ud_select'
                 %otherVOL=spm_select(inf,'image','Select a file');
                 %if isempty(otherVOL), return; end
-                if numel(varargin)>0, totherVOL=varargin{1};
+                if numel(varargin)>0, 
+                    totherVOL=varargin{1};
+                    tpVOLother=conn_surf_volume(totherVOL,varargin{2:end});
+                    if isempty(tpVOLother), return; end
+                    facecolor=[.5 .5 0];
                 else
                     [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select file',fullfile(fileparts(which(mfilename)),'rois'));
                     if ischar(tfilename), totherVOL=fullfile(tpathname,tfilename);
                     else return;
                     end
+                    tpVOLother=conn_surf_volume(totherVOL);
+                    if isempty(tpVOLother), return; end
+                    facecolor=uisetcolor([.5 .5 0],'Select surface color');
                 end
-                tpVOLother=conn_surf_volume(totherVOL);
-                if isempty(tpVOLother), return; end
-                facecolor=uisetcolor([.5 .5 0],'Select surface color');
                 if isempty(facecolor)||isequal(facecolor,0), return; end
                 %answer=conn_menu_inputdlg({'Surface color (RGB)'},'',1,{mat2str(facecolor)});
                 %if isempty(answer), return; end
@@ -1618,15 +1628,21 @@ if ishandle(hmsg), delete(hmsg); end
                 conn_mesh_display_refresh([],[],'remap&draw');
                 
             case 'position'
-                v=get(state.handles.hax,'cameraposition'); 
+                v=get(state.handles.hax,'cameraposition');
                 try, h=state.handles.light;
                 catch, h=findobj(gcbf,'type','light');
                 end
+                try, vup=get(state.handles.hax,'cameraupvector');
+                catch, vup=state.up;
+                end
                 if numel(h)>2, set(h(2:end-1),'position',v); end
-                set(h(1),'position',1000*(v(:)'/norm(v)-state.up(:)'));
-                set(h(end),'position',1000*(v(:)'/norm(v)+state.up(:)'));
+                state.up=reshape(v(1:3),1,3)/norm(v(1:3));
+                set(h(1),'position',1000*(v(:)'/norm(v)-.1*vup(:)'/norm(vup)));
+                set(h(end),'position',1000*(v(:)'/norm(v)+.1*vup(:)'/norm(vup)));
+                %disp(v/norm(v));
+                %disp(state.up/norm(state.up));
+                %disp([1000*(v(:)'/norm(v)+[1;-1]*state.up(:)')])
                 if ~isempty(state.handles.sphplots_txt)
-                    state.up=reshape(v(1:3),1,3)/norm(v(1:3));
                     for n=1:numel(state.handles.sphplots_txt), set(state.handles.sphplots_txt(n),'position',state.sphplots.sph_xyz(n,:)+state.up*state.fontclose*state.sphplots.sph_r(n)); end
                 end
                 if ~isempty(state.handles.leftrightlabel)

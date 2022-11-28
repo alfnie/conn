@@ -40,6 +40,9 @@ elseif isempty(ROInames1) %unlabeled atlas
     if all(ismember(unique(b1(b1~=0)),1:maxdata))
         ROIdata1=arrayfun(@(n)b1==n,1:maxdata,'uni',0);
         ROInames1=arrayfun(@(n)sprintf('ROI #%d',n),1:maxdata,'uni',0);
+    else
+        ROIdata1={b1>0};
+        ROInames1={'mask1'};
     end
 elseif numel(ROInames1)>1&&numel(tfilename)==1, %3d-atlas
     maxdata=max(b1(:));
@@ -74,6 +77,15 @@ if ~isempty(thr2),
         ROIdata2={b2>thr2};
         ROInames2={'mask2'};
     end
+elseif isempty(ROInames2) %unlabeled atlas
+    maxdata=max(b2(:));
+    if all(ismember(unique(b2(b2~=0)),1:maxdata))
+        ROIdata2=arrayfun(@(n)b2==n,1:maxdata,'uni',0);
+        ROInames2=arrayfun(@(n)sprintf('ROI #%d',n),1:maxdata,'uni',0);
+    else
+        ROIdata2={b2>0};
+        ROInames2={'mask2'};
+    end
 elseif numel(ROInames2)>1&&numel(tfilename)==1, %3d-atlas
     maxdata=max(b2(:));
     if max(ROIidx2)==maxdata
@@ -81,8 +93,9 @@ elseif numel(ROInames2)>1&&numel(tfilename)==1, %3d-atlas
     end
 elseif numel(ROInames2)>1 && numel(ROInames2)==numel(tfilename), %4d-atlas
     ROIdata2=reshape(num2cell(b2(:,:,:,ROIidx2)>0,1:3),1,[]);
-else ROIdata2={b2>0};
+else ROIdata2={b2>0}; 
 end
+
 if isempty(ROIdata2), fprintf('warning: unable to interpret data in roi file %s\n',filename2); end
 
    

@@ -457,6 +457,7 @@ function varargout=conn_batch(varargin)
 %                                             or label containing fieldmap sequence files) ['fmap']
 %      Setup.preprocessing.voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [1]
 %      Setup.preprocessing.voxelsize_func  : (functional normalization) target voxel size for resliced volumes (mm) [2]
+%      Setup.preprocessing.warpreg         : (normalization) warping regularisation factors [0 0.001 0.5 0.05 0.2]
 %      Setup.preprocessing.sessions        : defines functional sessions to preprocess [1:max # of sessions]
 %      Setup.preprocessing.sets            : defines functional dataset to preprocess (0 for functional data; [1-N] or labels for Secondary 
 %                                             Datasets) [0]

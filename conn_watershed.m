@@ -7,6 +7,7 @@ function [I,P]=conn_watershed(h,varargin)
 
 params=struct(...
     'minh',-inf,...
+    'zeroboundary',false,...      % leave voxels at the boundary between two or more parcels with a 0 value
     'adjacency',[],...            % connectivity criterion: a) adjacency=[] uses default connectivity criterion; b) adjacency='full' for 3^D-1 connectivity criterion in all cases; c) adjacency=sparse(...,N,N) uses explicit adjacency matrix; or d) adjacency=struct('size',...,'index',...) uses default connectivity criterion with voxels selected from n-dimensional matrix with size "size" and single-index positions "index"
     'removeborders',false);       % true/false: P output (identifying local peaks) does not include border voxels (voxels neighb to x|isnan(h(x)))
 for n1=1:2:numel(varargin)-1, if ~isfield(params,lower(varargin{n1})), error('unknown option %s',lower(varargin{n1})); else params.(lower(varargin{n1}))=varargin{n1+1}; end; end
@@ -42,6 +43,7 @@ idx=mask(idx);
 
 I=zeros(sh);               % index to all clusters
 P=false(sh);               % location of peaks
+N=zeros(sh);
 lastI=0;
 
 %info=zeros(sh);
@@ -55,10 +57,23 @@ for j=idx(:)'
         lastI=lastI+1;
         I(j)=lastI;
         P(j)=true; 
+        N(lastI)=N(lastI)+1;
     elseif all(i==i(1))                 % this voxel is adjacent to an existing cluster => grow this cluster
         i=i(1);
         I(j)=i;
-    else                                % this voxel is adjacent to several existing clusters => disregard
+        N(i)=N(i)+1;
+    elseif ~params.zeroboundary         % this voxel is adjacent to several existing clusters => disregard
+        [ui,nill,ii]=unique(i);
+        ni=accumarray(ii,1);
+        idx=find(ni==max(ni));          % choose the majority neighbor
+        if numel(idx)==1,
+            i=ui(idx);
+        else
+            [nill,m]=min(N(ui(idx)));   % choose the smallest parcel if ties
+            i=ui(idx(m));
+        end
+        I(j)=i;
+        N(i)=N(i)+1;
     end
 end
 

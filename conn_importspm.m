@@ -98,7 +98,10 @@ for nsub=SUBJECTS,
                     spmfile.SPM.xY.P=char(temp);
                 end
                 if isfield(spmfile.SPM.xY,'P')
-                    filename=fliplr(deblank(fliplr(deblank(spmfile.SPM.xY.P(idxscans,:)))));
+                    temp=spmfile.SPM.xY.P;
+                    if size(spmfile.SPM.xY.P,1)~=size(spmfile.SPM.xX.X,1), temp=char(cellfun(@conn_expandframe,cellstr(temp),'uni',0)); end
+                    assert(size(temp,1)==size(spmfile.SPM.xX.X,1),'unexpected number of input volumes in SPM.xY structure (xY.P=%d, xX.X=%d)',size(temp,1),size(spmfile.SPM.xX.X,1));
+                    filename=fliplr(deblank(fliplr(deblank(temp(idxscans,:)))));
                     switch(filesep),case '\',idx=find(filename=='/');case '/',idx=find(filename=='\');end; filename(idx)=filesep;
                 else
                     if nses==1, conn_disp(['warning subject ',num2str(nsub),': SPM.xY.P not found ',' in file ',files{ifile}]); end

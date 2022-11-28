@@ -9,7 +9,7 @@ function [ok,matlabbatch,outputfiles,job_id]=conn_setup_preproc(STEPS,varargin)
 % defines additional non-default values for parameters specific to individual steps to be used in this preprocessing run
 %
 % conn_setup_preproc('settings', 'param1_name', param1_value, 'param2_name', param2_value, ...)
-% defines additional non-default values for parameters specific to individual steps to be used in ALL future calls to conn_setup_preproc (during the current Matlab session, or until a new conn_setup_preproc('settings',...) command)
+% defines additional non-default values for parameters specific to individual steps to be used in ALL future calls to conn_setup_preproc (during the current Matlab session, or until a new conn_setup_preproc('settings',...) command) (e.g. use "conn_setup_preproc('settings')" to clear previous values) 
 %
 % conn_setup_preproc('steps')
 % returns the full list of valid preprocessing-step names
@@ -227,6 +227,7 @@ applytofunctional=false;
 tpm_template=[];
 tpm_structlesion=[];
 affreg='mni';
+warpreg=[]; % e.g. [0 0.001 0.5 0.05 0.2];
 tpm_ngaus=[];
 vdm_et1=[]; % eg. 2.84, 4.37;
 vdm_et2=[]; % eg. 5.30, 6.83
@@ -389,6 +390,8 @@ for n1=1:2:numel(options)-1,
             PREFERSPM8OVERSPM12=options{n1+1};
         case 'affreg'
             affreg=char(options{n1+1});
+        case 'warpreg'
+            warpreg=char(options{n1+1});
         case 'tpm_template',
             tpm_template=options{n1+1};
             if iscell(tpm_template), tpm_template=char(tpm_template); end
@@ -1033,7 +1036,7 @@ if parallel_N>0,
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
+        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
     if isequal(parallel_profile,find(strcmp('Null profile',conn_jobmanager('profiles')))),
         ok=0;
     elseif dogui
@@ -1053,7 +1056,7 @@ elseif conn_projectmanager('inserver'),
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
+        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
     return;
 else
     if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log'), CONN_x.SetupPreproc.log={}; end
@@ -1063,7 +1066,7 @@ else
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'sliceorder_select',sliceorder_select,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func};
+        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func};
 end
 job_id={};
 
@@ -1655,6 +1658,7 @@ for iSTEP=1:numel(STEPS)
                 end
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
+                if ~isempty(warpreg), matlabbatch{end}.spm.spatial.preproc.warp.reg=warpreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
@@ -1791,6 +1795,7 @@ for iSTEP=1:numel(STEPS)
                 end
                 if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg;
+                if ~isempty(warpreg), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.reg=warpreg; end
             else
                 %note: tissue probability maps disregarded (using structural template instead)
                 matlabbatch{end+1}.spm.spatial.normalise.estwrite.roptions.bb=boundingbox;
@@ -2117,6 +2122,7 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12
                 if ~isempty(input_tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(input_tpm_template,tpm_ngaus,subjects,sessions); end
                 matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
+                if ~isempty(warpreg), matlabbatch{end}.spm.spatial.preproc.warp.reg=warpreg; end
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
@@ -2292,6 +2298,7 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12,
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
+                if ~isempty(warpreg), matlabbatch{end}.spm.spatial.preproc.warp.reg=warpreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
@@ -2374,6 +2381,7 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
+                if ~isempty(warpreg), matlabbatch{end}.spm.spatial.preproc.warp.reg=warpreg; end
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
@@ -2949,6 +2957,7 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12,
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
+                if ~isempty(warpreg), matlabbatch{end}.spm.spatial.preproc.warp.reg=warpreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
             else
@@ -2976,6 +2985,7 @@ for iSTEP=1:numel(STEPS)
                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.woptions.interp=interp; end
                 if ~isempty(tpm_template), [nill,matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.tpm]=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions(1)); end
                 matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.affreg=affreg;
+                if ~isempty(warpreg), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.reg=warpreg; end
             else
                 %note: tissue probability maps disregarded (using functional_template instead)
                 matlabbatch{end+1}.spm.spatial.normalise.estwrite.roptions.bb=boundingbox;
@@ -3064,6 +3074,7 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12,
                 if ~isempty(tpm_template), matlabbatch{end}.spm.spatial.preproc.tissue=conn_setup_preproc_tissue(tpm_template,tpm_ngaus,subjects,sessions); end
                 matlabbatch{end}.spm.spatial.preproc.warp.affreg=affreg;
+                if ~isempty(warpreg), matlabbatch{end}.spm.spatial.preproc.warp.reg=warpreg; end
                 matlabbatch{end}.spm.spatial.preproc.channel.vols=reshape(matlabbatch{end}.spm.spatial.preproc.channel.vols,[],1);
                 matlabbatch{end}.spm.spatial.preproc.warp.write=[1 1];
                 matlabbatch{end+1}.spm.spatial.normalise.write.woptions.bb=boundingbox;
