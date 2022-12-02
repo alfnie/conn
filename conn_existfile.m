@@ -27,7 +27,7 @@ if iscell(filename)||size(filename,1)>1
             if ~acceptdir&&any(out), out(out)=~cellfun(@isdir,ufullfilename(out)); end                              % isfile only
         end
     end
-    out=out(idx);
+    out=reshape(out(idx),size(filename));
 else
     if isempty(deblank(filename)), out=false;
     else

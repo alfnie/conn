@@ -1454,6 +1454,7 @@ end
                 uimenu(hc1,'Label','Sort by p-value','callback',{@rex_results_gui,'sortbysign'});
                 uimenu(hc1,'Label','Export table','callback',{@rex_test_refresh,'export'});
                 uimenu(hc1,'Label','Export effect sizes','callback',{@rex_test_refresh,'export_effects'});
+                uimenu(hc1,'Label','Export raw data','callback',{@rex_test_refresh,'export_data'});
                 set(options.hlist,'uicontextmenu',hc1);
             end
             set(options.hlist,'callback',{@rex_results_gui,'list'});
@@ -1493,6 +1494,15 @@ end
                 else conn_savetextfile(filename,cbeta(:,selectedROIs),roinames(selectedROIs));
                 end
                 fprintf('Effects exported to %s\n',filename);
+                return
+            case 'export_data'
+                [filename,filepath]=uiputfile({'*.mat','MAT-files (*.mat)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*',  'All Files (*)'},'Save effects as');
+                if ~ischar(filename), return; end
+                filename=fullfile(filepath,filename);
+                if ~isempty(regexp(filename,'\.mat$')), conn_savematfile(filename,'-struct',struct('data',Y(:,selectedROIs),'names',{roinames(selectedROIs)}));
+                else conn_savetextfile(filename,Y(:,selectedROIs),roinames(selectedROIs));
+                end
+                fprintf('Data exported to %s\n',filename);
                 return
         end
         if options.dispstats, 
