@@ -540,7 +540,7 @@ else
                             matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).duration=factor*para.durations(idx(n2));
                             matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).orth=para.orth(conditions(n1));
                         end
-                        conn_disp('fprintf','   condition %s (%d blocks/events modeled inidividually)\n',para.names{conditions(n1)},numel(idx));
+                        conn_disp('fprintf','   condition %s (%d blocks/events modeled individually)\n',para.names{conditions(n1)},numel(idx));
                     else
                         newcond=newcond+1;
                         matlabbatch{1}.spm.stats.fmri_spec.sess(nses).cond(newcond).name=para.names{conditions(n1)};

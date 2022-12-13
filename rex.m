@@ -14,6 +14,7 @@
 %       'level' :               summarize across [{'rois'},'clusters','peaks','voxels']
 %       'scaling' :             type of scaling (for timeseries extraction) [{'none'},'global','roi']
 %       'conjunction_mask':     filename of conjunction mask volume(s)
+%       'conjunction_threshold' absolute-threshold defining voxels within conjunction_mask [0] (e.g. conjunction_threshold=0 or conjunction_threshold={'raw', 0} keeps all voxels with mask values above zero within each ROI; conjunction_threshold={'voxels', 10} keeps only the 10 voxels with the highest values in the conjunction mask within each ROI; conjunction_threshold={'percent', .10} keeps only voxels with top 10% values in the conjunction mask within each ROI  
 %       'output_type' :         choice of saving output ['none','save','savefiles',{'saverex'}]
 %       'gui' :                 starts the gui [{0},1] 
 %       'disregard_zeros'       when datatype has no NaN representation treat 0 as NaN [0,{1}]
@@ -105,6 +106,7 @@ elseif nargin>0, % COMMAND-LINE OPTIONS
     fields={'sources','',...
         'rois','',...
         'conjunction_mask','',...           % conjunction mask volume file(s)
+        'conjunction_threshold',0,...       % conjunction mask volume threshold
         'spm_file','',...                   % SPM.mat file
         'scaling','none',...                % ['none','global','roi']
         'summary_measure','mean',...        % [{'mean'},'eigenvariate','weighted mean','weighted eigenvariate','median','sum','weighted sum','count','max',min']
@@ -226,6 +228,7 @@ else
     fields={'sources','',...
         'rois','',...
         'conjunction_mask','',...           % conjunction mask volume file
+        'conjunction_threshold',0,...       % conjunction mask volume threshold
         'spm_file','',...                   % SPM.mat file
         'scaling','none',...                % ['none','global','roi']
         'summary_measure','mean',...        % [{'mean'},'eigenvariate','weighted mean','weighted eigenvariate','median','sum','weighted sum','count','max','min']
@@ -694,13 +697,41 @@ for r=1:size(params.rois,1)
         if ~silence,rex_disp(txt{end});end
         
         if ~isempty(params.conjunction_mask),
+            allmaskedvoxels=[];
             for nconj=1:length(params.VM),
                 c_iM=inv(params.VM(nconj).mat);
                 c_XYZ = c_iM(1:3,:)*[XYZmm; ones(1,size(XYZmm,2))];
                 m=spm_get_data(params.VM(nconj),c_XYZ);
-                XYZmm=XYZmm(:,m>0);
-                XYZww=XYZww(:,m>0);
+                maskedvoxels=m>0; 
+                if isfield(params,'conjunction_threshold'), 
+                    if iscell(params.conjunction_threshold) % format {thresholdtype, thresholdvalue}
+                        switch(lower(params.conjunction_threshold{1}))
+                            case 'raw'                                              % all voxels with conjunction-mask values greater than thr within ROI
+                                maskedvoxels=m>params.conjunction_threshold{2};
+                            case {'percent','percentile','percentile-roi-level',...   % ## pecent of voxels with top conjunction-mask values within ROI
+                                  'voxels','nvoxels','nvoxels-roi-level'}           % ## number of voxels with top conjunction-mask values within ROI
+                                sm=m;
+                                if isfield(params,'disregard_zeros')&&params.disregard_zeros, sm(sm==0|isnan(sm))=-inf;
+                                else sm(isnan(sm))=-inf;
+                                end
+                                [sm,smrank]=sort(sm,'descend');
+                                smrank(smrank)=1:numel(smrank);
+                                if ismember(lower(params.conjunction_threshold{1}), {'percent','percentile','percentile-roi-level'}), 
+                                    if params.conjunction_threshold{2}>1, fprintf('warning: percent values in conjunction_threshold field should be scaled between 0 and 1, not between 0 and 100; rescaling %f to %f\n',params.conjunction_threshold{2},params.conjunction_threshold{2}/100); params.conjunction_threshold{2}=params.conjunction_threshold{2}/100; end
+                                    maskedvoxels=smrank<=params.conjunction_threshold{2}*numel(smrank); % note: .10 means top 10% of voxels within ROI
+                                else maskedvoxels=smrank<=params.conjunction_threshold{2}; % note: 10 means top 10 voxels within ROI
+                                end
+                            otherwise,
+                                error('unrecognized conjunction threshold type %s (valid options ''raw'' ''percentile'' ''nvoxels'')',params.conjunction_threshold{1})
+                        end
+                    else
+                        maskedvoxels=m>params.conjunction_threshold;
+                    end
+                end
+                allmaskedvoxels=cat(1,allmaskedvoxels,maskedvoxels);
             end
+            XYZmm=XYZmm(:,all(allmaskedvoxels,1)); % note: intersection of all masks (add other options later) 
+            XYZww=XYZww(:,all(allmaskedvoxels,1));
             txt{end+1}=[num2str(size(XYZmm,2)), ' voxels in ROI ',ROInames{rr},' after conjunction'];
             if ~silence,rex_disp(txt{end});end
         end
@@ -935,6 +966,8 @@ for i = 1:numel(params.VF)
                         ROIdat(i,rr) = max(d2);
                     case 'min',
                         ROIdat(i,rr) = min(d2);
+                    otherwise
+                        error('unrecognized summary_measure option %s (valid options are mean/eigenvariate/weighted mean/weighted eigenvariate/median/sum/weighted sum/count/max/min)',lower(params.summary_measure));
                 end
             end
             if strcmpi(params.scaling,'global')
@@ -1360,6 +1393,8 @@ switch(lower(level)),
             XYZidx=XYZidxnew;
             if ~isempty(XYZnames), XYZnames=XYZnamesnew; end
         end
+    otherwise
+        error('unrecognized level option %s (valid options are rois/clusters/peaks/voxels/subsetvoxels)',lower(level));
 end
 %[XYZMM,XYZWW,XYZidx,XYZnames]
 end

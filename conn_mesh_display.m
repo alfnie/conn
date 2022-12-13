@@ -944,7 +944,7 @@ if ishandle(hmsg), delete(hmsg); end
                 
                 alpha=1;
                 cdat2=max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*V),state.colormap)));
-                cdat=cellfun(@(x)conn_bsxfun(@times,1-alpha*(V~=0),x) + conn_bsxfun(@times,alpha*(V~=0),cdat2),state.cdat0,'uni',0);
+                cdat=cellfun(@(x)conn_bsxfun(@times,1-alpha*(show),x) + conn_bsxfun(@times,alpha*(show),cdat2),state.cdat0,'uni',0);
                 if state.domask, cdat=cellfun(@(x)conn_bsxfun(@times,data.mask,x)+conn_bsxfun(@times,~data.mask,shiftdim(.6*[1 1 1],-1)),cdat,'uni',0); end
                 if state.smoother
                     smoothing=1;

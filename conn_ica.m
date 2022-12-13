@@ -16,7 +16,7 @@ function [S,W]=conn_ica(X,N,varargin)
 %               'pow3' (G3)
 %    'whiten' : (1/0) apply pre-whitening to columns of X (default: 1)
 %    'mu'     : (0-1) stabilization factor step size (default: 1)   
-%    'maxiter': maximum number of itereations (default: 1e3)
+%    'maxiter': maximum number of iterations (default: 1e3)
 %    'dodisp' : waitbar display (default: 1)
 %
 
