@@ -8,7 +8,7 @@ function conn_batchexample_singlesubject
 %% batch preprocessing for single-subject single-session data 
 
 % Selects functional / anatomical volumes
-FUNCTIONAL_FILE=cellstr(spm_select([1,Inf],'\.img$|\.nii$','Select functional volumes'));
+FUNCTIONAL_FILE=cellstr(spm_select([1,Inf],'\.nii$','Select functional volumes (one file per run)'));
 if isempty(FUNCTIONAL_FILE),return;end
 STRUCTURAL_FILE=cellstr(spm_select(1,'\.img$|\.nii$','Select structural volume'));
 if isempty(STRUCTURAL_FILE),return;end
@@ -24,7 +24,7 @@ if ~isempty(dir(batch.filename)),
 end
 %% CONN Setup
 batch.Setup.nsubjects=1;
-batch.Setup.functionals{1}{1}=FUNCTIONAL_FILE;
+batch.Setup.functionals{1}=FUNCTIONAL_FILE;
 batch.Setup.structurals{1}=STRUCTURAL_FILE;
 batch.Setup.RT=TR;
 batch.Setup.rois.names={'atlas'};
