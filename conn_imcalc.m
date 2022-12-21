@@ -81,7 +81,7 @@ if strcmp(fext,'.mat') % ROI-to-ROI files
                 case 'std', t=std(y,0,1);
                 case 'min', t=min(y,[],1);
                 case 'max', t=max(y,[],1);
-                case 'lin', t=pinv(op.DesignMatrix'*op.DesignMatrix)*op.DesignMatrix'*y; t=t(:,1).';
+                case 'lin', t=pinv(op.DesignMatrix'*op.DesignMatrix)*op.DesignMatrix'*y; t=t(1,:);
                 otherwise, error('unrecognized function keyword %s (only ''avg'' or ''std'' keywords allowed; use explicit function handle instead)',op.EvaluateFunction);
             end
         elseif nargin(op.EvaluateFunction)>1
