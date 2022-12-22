@@ -16,7 +16,7 @@ ROIxyz=[];
 ROIdata=[];
 ROIstruct=[];
 [ROInames,ROIidx]=conn_roilabels(filename);
-if isempty(ROIidx), fprintf('warning: unable to interpret roi file %s\n',filename);
+if isempty(ROIidx), %fprintf('warning: unable to interpret labels in roi file %s\n',filename);
 else
     tfilename=cellstr(conn_expandframe(filename));
     a=spm_vol(filename);

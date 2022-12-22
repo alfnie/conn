@@ -137,7 +137,7 @@ hc=state.handles.hfig;
 hc1=uimenu(hc,'Label','Effects');
 if size(state.x,3)==1,
     hc2=uimenu(hc1,'Label','colormap');
-    for n1={'normal','red','jet','hot','gray','bone','cool','hsv','spring','summer','autumn','winter','random','brighter','darker','manual','color'}
+    for n1={'normal','red','jet','hot','gray','bone','cool','hsv','spring','summer','autumn','winter','bluewhitered','random','brighter','darker','manual','color'}
         uimenu(hc2,'Label',n1{1},'callback',{@conn_montage_display_refresh,'colormap',n1{1}});
     end
 end
@@ -353,7 +353,7 @@ end
                 if isfield(state.handles,'hyticks')&&all(ishandle(state.handles.hyticks)), set(state.handles.hyticks,'fontsize',max(1,state.fontsize-3)); end
                 if isfield(state.handles,'hylticks')&&all(ishandle(state.handles.hylticks)), set(state.handles.hylticks,'fontsize',max(1,state.fontsize-1)); end
                 if isfield(state.handles,'titlecov')&&all(ishandle(state.handles.titlecov)), set(state.handles.titlecov,'fontsize',max(1,state.fontsize-2)); end
-            case 'colorscale',
+            case {'colorscale','colorbar'}
                 opt=varargin{1};
                 switch(opt)
                     case 'rescale'
@@ -365,6 +365,7 @@ end
                             if ~isempty(val), val=str2num(val{1}); end
                         end
                         if isempty(val), return; end
+                        if isequal(val,'symmetric'), val=max(abs(state.datalim)); end
                         state.datalim=max(abs(val));
                         set(state.handles.htxtcolorbar1,'string',num2str(-state.datalim));
                         set(state.handles.htxtcolorbar2,'string',num2str(state.datalim));
@@ -429,6 +430,8 @@ end
                         case 'bone', cmap=bone(256);
                         case 'cool',cmap=fixedge(cool(256));
                         case 'hsv',cmap=fixedge(hsv(256));
+                        case 'bluewhitered', cmap=[zeros(1,48) linspace(0,1,48) ones(1,48) linspace(1,.5,48); linspace(0,1,96) linspace(1,0,48) zeros(1,48); linspace(.5,1,48) ones(1,48) linspace(1,0,48) zeros(1,48)]'; cmap=repmat(abs(linspace(-1,1,192)'),1,3).*cmap+(1-repmat(abs(linspace(-1,1,192)'),1,3))*1;
+                        case 'parulawhite', cmap=parula(192); cmap=repmat(abs(linspace(-1,1,192)'),1,3).*cmap+(1-repmat(abs(linspace(-1,1,192)'),1,3))*1;
                         case 'spring',cmap=spring(96);
                         case 'summer',cmap=summer(96);
                         case 'autumn',cmap=autumn(96);

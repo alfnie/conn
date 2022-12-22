@@ -84,6 +84,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('background',color)                : sets background color (color: [1x3] RGB values)
 %  fh('colorbar',state [, title])        : displays reference colorbar (state: 'on' 'off')
 %  fh('colorbar','rescale',lim)          : changes colorbar limits (lim: [1x2] values in fileSURF NIFTI file)
+%  fh('colorbar','rescale','symmetric')  : changes colorbar limits to force symmetric negative/positive limits 
 %  fh('colormap',type)                   : changes colormap (type: 'normal','red','jet','hot','gray','bone','cool','hsv','spring',
 %                                           'summer','autumn','winter','bluewhitered','random','brighter','darker','manual','color')
 %  fh('smoother',state)                  : 'on' for smoother display (interpolates values in fileSURF NIFTI file when displaying on 
@@ -1544,6 +1545,7 @@ if ishandle(hmsg), delete(hmsg); end
                     else answ=conn_menu_inputdlg({'Enter new colorbar limits:'},'Rescale colorbar',1,{mat2str(Vrange([1 end]),6)});
                         if ~isempty(answ), answ=str2num(answ{1}); end
                     end
+                    if isequal(answ,'symmetric'), answ=max(abs(state.Vrange))*[-1 1]; end
                     if ~isempty(answ)&&numel(answ)==2
                         if isempty(state.Prange), 
                             state.Vrange([1 end])=answ;

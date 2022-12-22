@@ -1,4 +1,19 @@
 function [ok,varargout]=conn_contrastmanager(str,varargin)
+% CONN_CONTRASTMANAGER manages labeled 2nd-level analyses
+%
+% conn_contrastmanager; 
+%   displays GUI to define/edit/delete labels for 2nd-level analyses
+%
+% 
+% names = conn_contrastmanager('names')                     : returns list of existing 2nd-level analysis labels
+% names = conn_contrastmanager('namesextended')             : returns list of existing 2nd-level analysis extended labels
+% conn_contrastmanager('delete',idx)                        : deletes existing 2nd-level analysis label
+% conn_contrastmanager('edit',idx)                          : edits existing 2nd-level analysis label
+% conn_contrastmanager('add')                               : creates new 2nd-level analysis label with information from the main CONN gui (2nd-level results tab) 
+% [doexist,doexisti]=conn_contrastmanager('check')          : checks if model defined in main CONN gui (2nd-level results tab) is already labeled
+% [doexist,doexisti]=conn_contrastmanager('check',subjecteffects,contrastsubjecteffects,conditions,contrastconditions) : checks if model defined by input parameters is already labeled
+%
+
 global CONN_x CONN_gui;
 if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
@@ -8,10 +23,14 @@ if nargin
     ok=false;
     varargout={[],[]};
     switch(str)
-        case 'names', ok=CONN_x.Results.saved.names; 
+        case 'names', 
+            ok=CONN_x.Results.saved.names; 
             return
-        case 'namesextended', ok=conn_strexpand(CONN_x.Results.saved.names,CONN_x.Results.saved.descrip); 
+        case 'namesextended', 
+            ok=conn_strexpand(CONN_x.Results.saved.names,CONN_x.Results.saved.descrip); 
             return
+        case 'get'
+
         case {'add','delete','edit','sort'}, 
             if isempty(varargin), conn_contrastmanager_update(str,0);
             else conn_contrastmanager_update(str,varargin{:});
@@ -21,6 +40,8 @@ if nargin
             if nargin>1, [nsubjecteffects,csubjecteffects,nconditions,cconditions]=deal(varargin{:});
             else [nsubjecteffects,csubjecteffects,nconditions,cconditions]=deal(CONN_x.Results.xX.nsubjecteffects,CONN_x.Results.xX.csubjecteffects,CONN_x.Results.xX.nconditions,CONN_x.Results.xX.cconditions);
             end
+            if iscell(nsubjecteffects), [ok,nsubjecteffects]=ismember(nsubjecteffects,CONN_x.Setup.l2covariates.names(1:end-1)); assert(all(ok),'unrecognized 2nd-level covariate names'); end
+            if iscell(nconditions), [ok,nconditions]=ismember(nconditions,CONN_x.Setup.conditions.names(1:end-1)); assert(all(ok),'unrecognized condition names'); end
             for ncontrast=1:numel(CONN_x.Results.saved.names)
                 if isequal(CONN_x.Results.saved.nsubjecteffects{ncontrast},CONN_x.Setup.l2covariates.names(nsubjecteffects))&&...
                         isequal(CONN_x.Results.saved.csubjecteffects{ncontrast},csubjecteffects)&&...
@@ -45,7 +66,7 @@ ht_ren=uicontrol(thfig,'style','pushbutton','string','Edit','units','norm','posi
 ht_sort=uicontrol(thfig,'style','pushbutton','string','Sort','units','norm','position',[.8,.45,.15,.10],'callback',@(varargin)conn_contrastmanager_update('sort'),'fontsize',8+CONN_gui.font_offset,'tooltipstring','Resorts alphabetically all 2nd-level designs');
 %uicontrol(thfig,'style','text','string','note: changes to this list are temporary until your project is saved','units','norm','position',[.1,.15,.8,.08],'backgroundcolor','w','fontsize',8+CONN_gui.font_offset);
 ht_sel=[]; %uicontrol(thfig,'style','pushbutton','string','Select','units','norm','position',[.1,.01,.38,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset,'tooltipstring','Enters selected contrast definition into CONN-gui');
-ht_ext=uicontrol(thfig,'style','pushbutton','string','Close','units','norm','position',[.81,.01,.18,.10],'callback','delete(gcbf)','fontsize',8+CONN_gui.font_offset);
+ht_ext=uicontrol(thfig,'style','pushbutton','string','Close','units','norm','position',[.81,.01,.18,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset);
 conn_contrastmanager_update('');
 if forcesave||isempty(CONN_x.Results.saved.names), conn_contrastmanager_update('add'); end
 % set(ht1 ht2],'callback',@conn_orthogonalizemenuupdate);
@@ -116,6 +137,16 @@ end
                     CONN_x.Results.saved.cconditions=CONN_x.Results.saved.cconditions(idx);
                 end
             case 'edit'
+                if ncontrast==0
+                    ncontrast=numel(CONN_x.Results.saved.names)+1;
+                    CONN_x.Results.saved.names{ncontrast}='NEW_MODEL';
+                    CONN_x.Results.saved.labels{ncontrast}='';
+                    CONN_x.Results.saved.descrip{ncontrast}='';
+                    CONN_x.Results.saved.nsubjecteffects{ncontrast}=CONN_x.Setup.l2covariates.names(1);
+                    CONN_x.Results.saved.csubjecteffects{ncontrast}=1;
+                    CONN_x.Results.saved.nconditions{ncontrast}=CONN_x.Setup.conditions.names(1);
+                    CONN_x.Results.saved.cconditions{ncontrast}=1;
+                end
                 if ncontrast
                     answ={};
                     if nargin<3||isempty(name),

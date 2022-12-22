@@ -360,7 +360,7 @@ state.handles.light=[light light];set(state.handles.light,'position',[1 1 1],'vi
 if state.isvol, 
     axes('units','norm','position',[.453 .15 .015 .75]);
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.cmap,1)+1)/2+(size(state.cmap,1)-1)/2*linspace(-1,1,128)'),state.cmap))));
-    set(gca,'ydir','normal','ytick',[],'xtick',[],'box','off','yaxislocation','left');
+    set(gca,'ydir','normal','ytick',[],'xtick',[],'box','off','yaxislocation','right');
     temp2=text([1,1,1],[1-128*.05,64.5,128+128*.05],{' ',' ',' '},'horizontalalignment','center');
     state.handles.colorbar=[gca temp temp2(:)'];
     set(state.handles.colorbar,'visible','off');
@@ -429,7 +429,7 @@ if state.isvol
 %     thdl=[thdl,uimenu(hc1,'Label','overlay surface opaque','callback',{@conn_slice_display_refresh,'act_transparency',1},'tag','act_transparency')];
 %     set(thdl,'checked','off');set(thdl(max(1,min(numel(thdl),1+round(state.transparency*10)))),'checked','on');
     hc2=uimenu(hc1,'Label','overlay colormap','separator','on');
-    for n1={'red','jet','hot','gray','bone','cool','hsv','spring','summer','autumn','winter','random','brighter','darker','equalize','manual','color'}
+    for n1={'red','jet','hot','gray','bone','cool','hsv','spring','summer','autumn','winter','bluewhitered','random','brighter','darker','equalize','manual','color'}
         uimenu(hc2,'Label',n1{1},'callback',{@conn_slice_display_refresh,'colormap',n1{1}},'tag','overlaycolormap');
     end
     uimenu(hc1,'Label','colorbar on','callback',{@conn_slice_display_refresh,'colorbar','on'},'tag','colorbar');
@@ -565,14 +565,14 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                     set(h(~strcmp(get(h,'style'),'togglebutton')),'visible','off');
                     set(state.handles.axes,'units','norm','position',[.05 .05 .90 .9]);
                     set(state.handles.slider,'units','norm','position',[.97 .1 .025 .8]);
-                    if ~isempty(state.handles.colorbar), set(state.handles.colorbar(1),'unit','norm','position',[.95 .15 .015 .75]); end
+                    if ~isempty(state.handles.colorbar), set(state.handles.colorbar(1),'unit','norm','position',[.97 .15 .015 .75]); end
                 else
                     set(state.handles.gui,'string','Hide GUI','value',0);
                     h=findobj(state.handles.hfig,'type','uicontrol');
                     set(h(~strcmp(get(h,'style'),'togglebutton')),'visible','on');
                     set(state.handles.axes,'units','norm','position',[.05 .05 .40 .9]);
                     set(state.handles.slider,'units','norm','position',[.47 .1 .025 .8]);
-                    if ~isempty(state.handles.colorbar), set(state.handles.colorbar(1),'unit','norm','position',[.453 .15 .015 .75]); end
+                    if ~isempty(state.handles.colorbar), set(state.handles.colorbar(1),'unit','norm','position',[.473 .15 .015 .75]); end
                 end
                 redrawnow=true;
             case {'pointer_mm','pointer_mm_refresh'}
@@ -752,6 +752,7 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                     else answ=conn_menu_inputdlg({'Enter new colorbar limits:'},'Rescale colorbar',1,{mat2str(state.Vrange([1 end]),6)});
                         if ~isempty(answ), answ=str2num(answ{1}); end
                     end
+                    if isequal(answ,'symmetric'), answ=max(abs(state.Vrange))*[-1 1]; end
                     if ~isempty(answ)&&numel(answ)==2
                         state.Vrange([1 end])=answ;
                         redrawnow=true;
@@ -759,7 +760,8 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                     set(state.handles.actthr,'value',max(0,min(1, abs(state.actthr)/max(eps,max(abs(state.Vrange))))));
                     redrawnow=true;
                 else
-                    set(state.handles.colorbar(2:end),'visible',varargin{1});
+                    set(state.handles.colorbar,'visible',varargin{1});
+                    if numel(varargin)>1, ylabel(varargin{2},'parent',state.handles.colorbar(1)); end
                 end
                 redrawnowcolorbar=true;
             case 'material'
@@ -787,6 +789,7 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                         case 'summer',cmap=repmat(1-linspace(1,0,256)'.^8,[1,3]).*summer(256);
                         case 'autumn',cmap=repmat(1-linspace(1,0,256)'.^8,[1,3]).*autumn(256);
                         case 'winter',cmap=repmat(1-linspace(1,0,256)'.^8,[1,3]).*winter(256);
+                        case 'bluewhitered', cmap=[zeros(1,256/2) linspace(0,1,256/2) ones(1,256/2) linspace(1,.5,256/2); linspace(0,1,256) linspace(1,0,256/2) zeros(1,256/2); linspace(.5,1,256/2) ones(1,256/2) linspace(1,0,256/2) zeros(1,256/2)]'; cmap=repmat(abs(linspace(-1,1,256*2)'),1,3).*cmap+(1-repmat(abs(linspace(-1,1,256*2)'),1,3))*1; cmap=cmap(256+1:end,:);
                         case 'random',cmap=rand(256,3);
                         case 'brighter',cmap=min(1,1/sqrt(.95)*get(state.handles.hfig,'colormap').^(1/2)); 
                         case 'darker',cmap=.95*get(state.handles.hfig,'colormap').^2; 

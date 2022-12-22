@@ -2,8 +2,10 @@ function [ROInames,ROIidx]=conn_roilabels(filename)
 % internal: reads ROI labels from atlas file
 
 [roi_path_dir,roi_path_name,roi_path_ext]=fileparts(filename);
-ok=false;
+ok=false; 
+tried=false;
 if conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
+    tried=true;
     lines=conn_fileutils('textread',fullfile(roi_path_dir,[roi_path_name,'.txt']),'%s','delimiter','\n');
     for opts=1:3
         try
@@ -43,6 +45,7 @@ if conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
         if ok, break; end
     end
 elseif conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.csv'])),
+    tried=true;
     lines=conn_fileutils('textread',fullfile(roi_path_dir,[roi_path_name,'.csv']),'%s','delimiter','\n');
     lines=lines(cellfun('length',lines)>0);
     for opts=1:4
@@ -89,6 +92,7 @@ elseif conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.csv'])),
         if ok, break; end
     end
 elseif conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.xls'])),
+    tried=true;
     [idxpairs,PU]=xlsread(fullfile(roi_path_dir,[roi_path_name,'.xls'])); % ROI_NUMBER,ROI_LABEL
     if size(PU,1)==size(idxpairs,1), ROInames=PU(:,1);ROIidx=idxpairs(:,1); ok=true;
     elseif size(PU,1)==size(idxpairs,1)+1, ROInames=PU(2:end,1);ROIidx=idxpairs(:,1); ok=true;
@@ -98,4 +102,5 @@ end
 if ~ok
     ROInames={};
     ROIidx=[];
+    if tried, fprintf('warning: unable to interpret labels in roi file %s\n',filename); end
 end

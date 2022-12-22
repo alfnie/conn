@@ -11,7 +11,7 @@ if isnumeric(files), % conn_singflip(x) - enter raw data directly (observations-
         mq0=mean(q(:,mask),2);
         [mq,d]=svd(q(:,mask)*q(:,mask)');
         mq=mq(:,1);
-        if mq'*mq0<0, mq=-mq; end
+        if mq'*mq0<0, mq=-mq; end % first singular vector (with sign/direction fixed to that of the mean vector) 
     end
     p=zeros(size(mask));
     p(mask)=mq'*q(:,mask);

@@ -25,15 +25,17 @@ function hfigure=conn_display(SPMfilename,varargin)
 %
 % ADVANCED OPTIONS FOR VOXEL- AND SURFACE- LEVEL RESULTS FIGURES (applied to an existing results figure)
 % 
-% conn_display(hf, 'surface_print', filename)       prints image with current results projected to the cortical-surface
-% conn_display(hf, 'surface_view', filename)        displays image with current results projected to the cortical-surface
-% conn_display(hf, 'volume_print', filename)        prints image with current results on 3d brain
-% conn_display(hf, 'volume_view', filename)         displays image with current results on 3d brain
-% conn_display(hf, 'slice_print', filename)         prints image with current results on individual slices
-% conn_display(hf, 'slice_view', filename)          displays image with current results on individual slices
-% conn_display(hf, 'glass_print', filename)         prints image with current results on 3d glass-brain
-% conn_display(hf, 'glass_view', filename)          displays image with current results on 3d glass-brain
-% conn_display(hf, 'export_mask', filename)         exports NIFTI mask file with current results
+% conn_display(hf, 'surface_print', filename)       prints image with significant clusters projected to the cortical-surface
+% conn_display(hf, 'surface_view', filename)        displays image with significant clusters projected to the cortical-surface
+% conn_display(hf, 'volume_print', filename)        prints image with significant clusters on 3d brain
+% conn_display(hf, 'volume_view', filename)         displays image with significant clusters on 3d brain
+% conn_display(hf, 'slice_print', filename)         prints image with significant clusters on individual slices
+% conn_display(hf, 'slice_view', filename)          displays image with significant clusters on individual slices
+% conn_display(hf, 'glass_print', filename)         prints image with significant clusters on 3d glass-brain
+% conn_display(hf, 'glass_view', filename)          displays image with significant clusters on 3d glass-brain
+% conn_display(hf, 'network_print', filename)       prints image with connectivity pattern between selected significant clusters and rest of the brain 
+% conn_display(hf, 'network_view', filename)        displays image with connectivity pattern between selected significant clusters and rest of the brain 
+% conn_display(hf, 'export_mask', filename)         exports NIFTI mask file with significant clusters
 % conn_display(hf, 'ref_atlas', filename)           uses alternative reference atlas for anatomical descriptions of each cluster
 % conn_display(hf, 'close')                         closes results explorer window
 % conn_display(hf, 'fwec.option', style)            modifies default threshold settings (see 'style' valid values above)
@@ -82,13 +84,13 @@ function hfigure=conn_display(SPMfilename,varargin)
 %
 % ADVANCED OPTIONS FOR ROI-to-ROI RESULTS FIGURES (applied to an existing results figure)
 %
-% conn_display(hf, 'ring_print', filename)          prints image with current results on ring/circle view
-% conn_display(hf, 'ring_view', filename)           display image with current results on ring/circle view 
-% conn_display(hf, 'glass_print', filename)         prints image with current results on 3d glass-brain
-% conn_display(hf, 'glass_view', filename)          displays image with current results on 3d glass-brain
-% conn_display(hf, 'matrix_print', filename)        prints image with current results on ROI-to-ROI matrix view
-% conn_display(hf, 'matrix_view', filename)         displays image with current results on ROI-to-ROI matrix view
-% conn_display(hf, 'export_mask', filename)         exports NIFTI mask file with current results
+% conn_display(hf, 'ring_print', filename)          prints image with significant clusters on ring/circle view
+% conn_display(hf, 'ring_view', filename)           display image with significant clusters on ring/circle view 
+% conn_display(hf, 'glass_print', filename)         prints image with significant clusters on 3d glass-brain
+% conn_display(hf, 'glass_view', filename)          displays image with significant clusters on 3d glass-brain
+% conn_display(hf, 'matrix_print', filename)        prints image with significant clusters on ROI-to-ROI matrix view
+% conn_display(hf, 'matrix_view', filename)         displays image with significant clusters on ROI-to-ROI matrix view
+% conn_display(hf, 'export_mask', filename)         exports NIFTI mask file with significant clusters
 % conn_display(hf, 'menubar')                       displays/hides menubar with advanced display options
 % conn_display(hf, 'close')                         closes results explorer window
 % conn_display(hf, 'roi.select' [,ROInames])        modifies selection of ROIs

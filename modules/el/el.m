@@ -400,6 +400,19 @@ switch(lower(option))
         conn('load',conn_prepend('',dataset,'.mat'));
         conn gui_setup;
         
+%     case {'roi.timeseries'}
+%         assert(numel(varargin)>=1,'incorrect usage >> el roi.timeseries subject_id [,pipeline_id]');
+%         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
+%         if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
+%         dataset=el_readpipeline(pipeline,subject,subject_path,defaults);
+%         assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
+%         [roidata,roinames]=rex(...
+%             '112_KAN_stories_06_PL2017/DefaultMNI_VoxelTimeSeries/func/sbdwrfunc_run-01_bold.nii', ...
+%             'allParcels_language.nii', ...
+%             'conjunction_mask', 'spmT_0003.nii', ...
+%             'conjunction_threshold',{'percent',thr}, ...
+%             'level','clusters');
+
     case {'model','firstlevel', 'model.contrast','firstlevel.contrast'}
         assert(numel(varargin)>=2,'incorrect usage >> el model subject_id, pipeline_id, model_id [, modeloptions]');
         pwd0=pwd;
