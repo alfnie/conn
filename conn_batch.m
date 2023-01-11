@@ -270,7 +270,7 @@ function varargout=conn_batch(varargin)
 %                        'structural_manualspatialdef'           : applies user-defined spatial deformation to structural data
 %                        'structural_mask'                       : masks structural data using inclusive or exclusive mask
 %                        'structural_segment&normalize'          : structural unified normalization and segmentation 
-%                        'structural_segment&normalize&lesion'   : structural unified normalization and segmentation with lesion mask
+%                        'structural_segment&normalize_withlesion': structural unified normalization and segmentation with lesion mask
 %                                                                   (normalizes structural data and creates a modified TPM for functional
 %                                                                   normalization that includes the lesion as an added tissue class)
 %                        'structural_normalize'                  : structural normalization to MNI space (without segmentation)
@@ -432,7 +432,7 @@ function varargout=conn_batch(varargin)
 %                                            alternatively, location of subject-specific TPM files (secondary functional dataset number or name ['tpm'])
 %      Setup.preprocessing.tpm_ngaus       : (structural_segment, structural_segment&normalize in SPM8&SPM12) number of gaussians for each 
 %                                             tissue probability map
-%      Setup.preprocessing.tpm_structlesion: (structural_segment&normalize&lesion) name of ROI containing a structural-lesion mask
+%      Setup.preprocessing.tpm_structlesion: (structural_segment&normalize_withlesion) name of ROI containing a structural-lesion mask
 %                                             (the lesion mask is expected to be coregistered with the structural, as part of structural normalization 
 %                                              a new TPM template will be created with the lesion as an added tissue class)
 %      Setup.preprocessing.vdm_et1         : (functional_vdm_create) ET1 (Echo Time first echo in fieldmap sequence) 

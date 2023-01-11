@@ -21,8 +21,10 @@ if any(conn_server('util_isremotefile',filename1))||any(conn_server('util_isremo
 filename1=conn_server('util_localfile',cellstr(filename1));
 filename2=conn_server('util_localfile',cellstr(filename2));
 
-[ROInames1,ROIidx1]=conn_roilabels(filename1);
-[ROInames2,ROIidx2]=conn_roilabels(filename2);
+ROInames1={}; ROIidx1=[];
+ROInames2={}; ROIidx2=[];
+try, [ROInames1,ROIidx1]=conn_roilabels(filename1); end
+try, [ROInames2,ROIidx2]=conn_roilabels(filename2); end
 
 tfilename=cellstr(conn_expandframe(filename1));
 a1=spm_vol(char(filename1));
@@ -53,7 +55,7 @@ elseif numel(ROInames1)>1 && numel(ROInames1)==numel(tfilename), %4d-atlas
     ROIdata1=reshape(num2cell(b1(:,:,:,ROIidx1)>0,1:3),1,[]);
 else ROIdata1={b1>0};
 end
-if isempty(ROIdata1), fprintf('warning: unable to interpret data in roi file %s\n',filename1); end
+if isempty(ROIdata1), fprintf('warning: unable to interpret data in roi file %s\n',char(filename1)); end
 [x,y,z]=ndgrid(1:a1(1).dim(1),1:a1(1).dim(2),1:a1(1).dim(3));
 xyz1=a1(1).mat*[x(:) y(:) z(:) ones(numel(x),1)]';
 

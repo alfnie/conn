@@ -374,19 +374,19 @@ if state.endtime>1,
 end
 if state.isvol
     uicontrol('style','text','units','norm','position',[.69 .775 .15 .05],'string','Overlay threshold','horizontalalignment','right');
-    state.handles.actthr=uicontrol('style','slider','units','norm','position',[.85 .775 .10 .05],'callback',{@conn_slice_display_refresh,'actthr'},'tooltipstring','Select overlay threshold');
+    state.handles.actthr=uicontrol('style','slider','units','norm','position',[.85 .775 .10 .04],'callback',{@conn_slice_display_refresh,'actthr'},'tooltipstring','Select overlay threshold');
     set(state.handles.actthr,'value',max(0,min(1, abs(state.actthr)/max(eps,max(abs(state.Vrange))))));
-    state.handles.actthr_txt=uicontrol('style','text','units','norm','position',[.95 .775 .05 .05],'string',mat2str(state.actthr,2));
+    state.handles.actthr_txt=uicontrol('style','edit','units','norm','position',[.96 .785 .04 .04],'string',mat2str(state.actthr,2),'callback',{@conn_slice_display_refresh,'actthrset'});
     try, addlistener(state.handles.actthr, 'ContinuousValueChange',@(varargin)conn_slice_display_refresh(state.handles.actthr,[],'actthr')); end
     state.handles.viewoverlay=uicontrol('style','checkbox','units','norm','position',[.55 .75 .15 .05],'string','View overlay','value',state.viewoverlay,'callback',{@conn_slice_display_refresh,'viewoverlay'});    
 else state.handles.actthr=[]; state.handles.viewoverlay=[];
 end
 uicontrol('style','text','units','norm','position',[.69 .725 .15 .05],'string','Background threshold','horizontalalignment','right');
-state.handles.volthr=uicontrol('style','slider','units','norm','position',[.85 .725 .10 .05],'callback',{@conn_slice_display_refresh,'volthr'},'tooltipstring','Select background image threshold');
+state.handles.volthr=uicontrol('style','slider','units','norm','position',[.85 .725 .10 .04],'callback',{@conn_slice_display_refresh,'volthr'},'tooltipstring','Select background image threshold');
 set(state.handles.volthr,'value',max(0,min(1, (state.volthr-state.Srange(1))/max(eps,state.Srange(2)-state.Srange(1)))));
-state.handles.volthr_txt=uicontrol('style','text','units','norm','position',[.95 .725 .05 .05],'string',mat2str(state.volthr,2));
+state.handles.volthr_txt=uicontrol('style','edit','units','norm','position',[.96 .735 .04 .04],'string',mat2str(state.volthr,2),'callback',{@conn_slice_display_refresh,'volthrset'});
 uicontrol('style','text','units','norm','position',[.69 .675 .15 .05],'string','Background brightness','horizontalalignment','right');
-state.handles.bright=uicontrol('style','slider','units','norm','position',[.85 .675 .10 .05],'callback',{@conn_slice_display_refresh,'bright'},'tooltipstring','Select background image brightness');
+state.handles.bright=uicontrol('style','slider','units','norm','position',[.85 .675 .10 .04],'callback',{@conn_slice_display_refresh,'bright'},'tooltipstring','Select background image brightness');
 set(state.handles.bright,'value',max(0,min(1, .5+.5*tanh(state.colorbrightness))));
 try, addlistener(state.handles.slider, 'ContinuousValueChange',@(varargin)conn_slice_display_refresh(state.handles.slider,[],'pointer_mm_refresh','x')); end
 try, addlistener(state.handles.time, 'ContinuousValueChange',@(varargin)conn_slice_display_refresh(state.handles.time,[],'time')); end
@@ -738,10 +738,22 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 set(state.handles.actthr,'value',max(0,min(1, abs(state.actthr)/max(eps,max(abs(state.Vrange))))));
                 set(state.handles.actthr_txt,'string',mat2str(state.actthr,2));
                 redrawnow=true;
+            case 'actthrset'
+                tval=str2num(get(state.handles.actthr_txt,'string'));
+                if ~isempty(tval), state.actthr=tval; end
+                set(state.handles.actthr,'value',max(0,min(1, abs(state.actthr)/max(eps,max(abs(state.Vrange))))));
+                set(state.handles.actthr_txt,'string',mat2str(state.actthr,2));
+                redrawnow=true;
             case 'volthr'
                 if numel(varargin)>0, state.volthr=varargin{1};
                 else state.volthr=state.Srange(1)+max(eps,state.Srange(2)-state.Srange(1))*get(state.handles.volthr,'value');
                 end
+                set(state.handles.volthr,'value',max(0,min(1, (state.volthr-state.Srange(1))/max(eps,state.Srange(2)-state.Srange(1)))));
+                set(state.handles.volthr_txt,'string',mat2str(state.volthr,2));
+                redrawnow=true;
+            case 'volthrset'
+                tval=str2num(get(state.handles.volthr_txt,'string'));
+                if ~isempty(tval), state.volthr=tval; end
                 set(state.handles.volthr,'value',max(0,min(1, (state.volthr-state.Srange(1))/max(eps,state.Srange(2)-state.Srange(1)))));
                 set(state.handles.volthr_txt,'string',mat2str(state.volthr,2));
                 redrawnow=true;

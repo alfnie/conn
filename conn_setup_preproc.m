@@ -391,7 +391,7 @@ for n1=1:2:numel(options)-1,
         case 'affreg'
             affreg=char(options{n1+1});
         case 'warpreg'
-            warpreg=char(options{n1+1});
+            warpreg=options{n1+1};
         case 'tpm_template',
             tpm_template=options{n1+1};
             if iscell(tpm_template), tpm_template=char(tpm_template); end
@@ -1936,12 +1936,12 @@ for iSTEP=1:numel(STEPS)
             end
             if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
             
-        case {'structural_segment&normalize','functional_segment&normalize_indirect','structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion'}
+        case {'structural_segment&normalize','functional_segment&normalize_indirect','structural_segment&normalize_withlesion','structural_segment&normalize_repeat_withlesion','functional_segment&normalize_indirect_withlesion'}
             DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
             assert(DOSPM12|isempty(tpm_structlesion),'lesion masking procedure not available in SPM8, please use SPM12 or above'); 
             input_tpm_template=tpm_template;
             if ~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion)
-                if isequal(tpm_template,'tpm'), input_tpm_template=[]; end % avoids input/output the same dataset, assume SPM/TPM is input
+                if isequal(tpm_template,'tpm')&&isempty(regexp(lower(STEP),'_repeat_withlesion$')), input_tpm_template=[]; end % avoids input/output the same dataset, assume SPM/TPM is input
                 if ~iscell(tpm_structlesion), tpm_structlesion={tpm_structlesion}; end
                 tpm_structlesion_file={};
                 for nmask=1:numel(tpm_structlesion)
