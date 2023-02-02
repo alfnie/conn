@@ -32,6 +32,11 @@
 % other command-line usages:
 % rex open   : opens existing REX.mat file
 
+% 2009
+% alfnie@bu.edu
+% Nieto-Castanon, A
+
+
 % last modified, 2/7/02 Sue Whitfield
 % last modified 07/09: Update to spm5/spm8b/spm8;
 %                      Allows rois to be defined from roi image files (.nii,

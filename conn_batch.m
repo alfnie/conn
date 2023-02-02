@@ -431,10 +431,13 @@ function varargout=conn_batch(varargin)
 %      Setup.preprocessing.tpm_template    : (any segment/normalize option in SPM12) tissue probability map [spm/tpm/TPM.nii]
 %                                            alternatively, location of subject-specific TPM files (secondary functional dataset number or name ['tpm'])
 %      Setup.preprocessing.tpm_ngaus       : (structural_segment, structural_segment&normalize in SPM8&SPM12) number of gaussians for each 
-%                                             tissue probability map
+%                                             tissue probability map (e.g. [1 1 2 3 4 2] for SPM/TPM gray/white/csf/soft/bone/air) 
 %      Setup.preprocessing.tpm_structlesion: (structural_segment&normalize_withlesion) name of ROI containing a structural-lesion mask
 %                                             (the lesion mask is expected to be coregistered with the structural, as part of structural normalization 
 %                                              a new TPM template will be created with the lesion as an added tissue class)
+%      Setup.preprocessing.tpm_overwrite:    (structural_segment&normalize_withlesion) overwrites tpm file in tpm_template [false] (when set to false, the 
+%                                              field tpm_template represents the name of the *output* TPM file, and the *input* TPM file is read from SPM/TPM;
+%                                              when set to true, the field tpm_template represents both the *input* and *output* TPM file) 
 %      Setup.preprocessing.vdm_et1         : (functional_vdm_create) ET1 (Echo Time first echo in fieldmap sequence) 
 %                                             (default [] : read from .json file / BIDS)
 %      Setup.preprocessing.vdm_et2         : (functional_vdm_create) ET2 (Echo Time second echo in fieldmap sequence)
@@ -458,6 +461,8 @@ function varargout=conn_batch(varargin)
 %      Setup.preprocessing.voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [1]
 %      Setup.preprocessing.voxelsize_func  : (functional normalization) target voxel size for resliced volumes (mm) [2]
 %      Setup.preprocessing.warpreg         : (normalization) warping regularisation factors [0 0.001 0.5 0.05 0.2]
+%                                               enter a single number if you want to scale the default parameters by that value 
+%                                               enter 5 parameters to manually specify alternative warping regularization parameters 
 %      Setup.preprocessing.sessions        : defines functional sessions to preprocess [1:max # of sessions]
 %      Setup.preprocessing.sets            : defines functional dataset to preprocess (0 for functional data; [1-N] or labels for Secondary 
 %                                             Datasets) [0]

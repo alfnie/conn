@@ -226,9 +226,12 @@ coregsource={};
 applytofunctional=false;
 tpm_template=[];
 tpm_structlesion=[];
+tpm_overwrite=false;
+tpm_lesionscale=1;
+tpm_lesionprobabilistic=false;
+tpm_ngaus=[]; % e.g. [1 1 2 3 4 2]
 affreg='mni';
 warpreg=[]; % e.g. [0 0.001 0.5 0.05 0.2];
-tpm_ngaus=[];
 vdm_et1=[]; % eg. 2.84, 4.37;
 vdm_et2=[]; % eg. 5.30, 6.83
 vdm_ert=[]; % eg. 37.6
@@ -392,6 +395,7 @@ for n1=1:2:numel(options)-1,
             affreg=char(options{n1+1});
         case 'warpreg'
             warpreg=options{n1+1};
+            if numel(warpreg)==1, warpreg=warpreg*[0 0.001 0.5 0.05 0.2]; end
         case 'tpm_template',
             tpm_template=options{n1+1};
             if iscell(tpm_template), tpm_template=char(tpm_template); end
@@ -399,6 +403,12 @@ for n1=1:2:numel(options)-1,
             tpm_structlesion=options{n1+1};
         case 'tpm_ngaus',
             tpm_ngaus=options{n1+1};
+        case 'tpm_overwrite',
+            tpm_overwrite=options{n1+1};
+        case 'tpm_lesionscale',
+            tpm_lesionscale=options{n1+1};
+        case 'tpm_lesionprobabilistic',
+            tpm_lesionprobabilistic=options{n1+1};
         case 'vdm_et1',
             vdm_et1=options{n1+1};
         case 'vdm_et2',
@@ -1036,7 +1046,7 @@ if parallel_N>0,
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
+        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_overwrite',tpm_overwrite,'tpm_lesionscale',tpm_lesionscale,'tpm_lesionprobabilistic',tpm_lesionprobabilistic,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
     if isequal(parallel_profile,find(strcmp('Null profile',conn_jobmanager('profiles')))),
         ok=0;
     elseif dogui
@@ -1056,7 +1066,7 @@ elseif conn_projectmanager('inserver'),
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
+        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_overwrite',tpm_overwrite,'tpm_lesionscale',tpm_lesionscale,'tpm_lesionprobabilistic',tpm_lesionprobabilistic,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
     return;
 else
     if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log'), CONN_x.SetupPreproc.log={}; end
@@ -1066,7 +1076,7 @@ else
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'sliceorder_select',sliceorder_select,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func};
+        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_overwrite',tpm_overwrite,'tpm_lesionscale',tpm_lesionscale,'tpm_lesionprobabilistic',tpm_lesionprobabilistic,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func};
 end
 job_id={};
 
@@ -1936,12 +1946,12 @@ for iSTEP=1:numel(STEPS)
             end
             if ~jsubject, matlabbatch=matlabbatch(1:end-1); end
             
-        case {'structural_segment&normalize','functional_segment&normalize_indirect','structural_segment&normalize_withlesion','structural_segment&normalize_repeat_withlesion','functional_segment&normalize_indirect_withlesion'}
+        case {'structural_segment&normalize','functional_segment&normalize_indirect','structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion'}
             DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
             assert(DOSPM12|isempty(tpm_structlesion),'lesion masking procedure not available in SPM8, please use SPM12 or above'); 
             input_tpm_template=tpm_template;
             if ~isempty(regexp(lower(STEP),'_withlesion$'))&&~isempty(tpm_structlesion)
-                if isequal(tpm_template,'tpm')&&isempty(regexp(lower(STEP),'_repeat_withlesion$')), input_tpm_template=[]; end % avoids input/output the same dataset, assume SPM/TPM is input
+                if ~tpm_overwrite, input_tpm_template=[]; end % avoids input/output the same dataset, assume SPM/TPM is input
                 if ~iscell(tpm_structlesion), tpm_structlesion={tpm_structlesion}; end
                 tpm_structlesion_file={};
                 for nmask=1:numel(tpm_structlesion)
@@ -1989,7 +1999,7 @@ for iSTEP=1:numel(STEPS)
                                 end
                                 Vmask=cat(1,Vmask,reshape(spm_vol(temp),[],1));
                                 Vmaskout{nmask}=Vin(1);
-                                Vmaskout{nmask}.fname=char(conn_prepend('cL_',temp)); Vmaskout{nmask}.pinfo=[1;0;0]; Vmaskout{nmask}.descrip='lesion mask';
+                                Vmaskout{nmask}.fname=char(conn_prepend('cL_',temp)); Vmaskout{nmask}.dt=[spm_type('float32'),spm_platform('bigend')]; Vmaskout{nmask}.pinfo=[1;0;0]; Vmaskout{nmask}.descrip='lesion mask';
                                 spm_unlink(char(conn_prepend('cL_',temp)));
                                 Vmaskout{nmask}=spm_create_vol(Vmaskout{nmask});
                                 outputfiles{isubject}{nses}{8+nmask-1}=char(conn_prepend('cL_',temp));
@@ -2001,18 +2011,19 @@ for iSTEP=1:numel(STEPS)
                                     [gridx,gridy,gridz]=ndgrid(1:Vin(nt).dim(1),1:Vin(nt).dim(2),1:Vin(nt).dim(3));
                                     gridxyz=Vin(nt).mat*[gridx(:) gridy(:) gridz(:) ones(numel(gridx),1)]';
                                     %mask=true;
-                                    mask=false;
+                                    mask=0;
                                     for nmask=1:numel(Vmask)
                                         xyz=pinv(Vmask(nmask).mat)*gridxyz;
                                         %mask=mask&reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0; % intersection-mask
-                                        thismask=reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3))>0;
+                                        thismask=reshape(spm_get_data(Vmask, xyz),Vin(nt).dim(1:3));
                                         if nt==1, spm_write_vol(Vmaskout{nmask},double(thismask)); end
-                                        mask=mask|thismask;  % union-mask
+                                        mask=max(mask,thismask);  % union-mask
                                     end
                                 end
                                 data=spm_read_vols(Vin(nt));
                                 if 0, data(~mask)=maskval; % exclusive masking
-                                else data(mask)=maskval;
+                                elseif tpm_lesionprobabilistic, data=data.*(1-max(0,min(1,mask)));
+                                else data(mask>0)=maskval;
                                 end
                                 spm_write_vol(Vout(nt),data);
                             end
@@ -4028,12 +4039,14 @@ for iSTEP=1:numel(STEPS)
                             else origTPMfile=char(input_tpm_template);
                             end
                             newTPMfile=conn_prepend('tpm_',outputfiles{isubject}{nses}{1});
-                            Ntpm=numel(spm_vol(origTPMfile));
+                            if tpm_overwrite, Ntpm=numel(spm_vol(origTPMfile))-numel(normLESIONfile);
+                            else Ntpm=numel(spm_vol(origTPMfile));
+                            end
                             newTPMfiles={};
                             for n=1:Ntpm+numel(normLESIONfile)
                                 newTPMfiles{n}=conn_prepend('',newTPMfile,['.',num2str(n),'.nii']);
-                                if n<=Ntpm, spm_imcalc({[origTPMfile,',',num2str(n)],normLESIONfile{:}},newTPMfiles{n},'X(1,:).*(1-max(0,min(1,max(X(2:end,:),[],1))))',{1}); % other tissue classes
-                                else        spm_imcalc({[origTPMfile,',1'],normLESIONfile{n-Ntpm},normLESIONfile{:}},newTPMfiles{n},'max(0,min(1,X(2,:)))./max(1e-6,sum(max(0,min(1,X(3:end,:))),1))',{1});                   % lesion mask
+                                if n<=Ntpm, spm_imcalc({[origTPMfile,',',num2str(n)],normLESIONfile{:}},newTPMfiles{n},['X(1,:).*(1-max(0,min(1,sum(max(0,min(1,',num2str(tpm_lesionscale),'*X(2:end,:))),1))))'],{1}); % other tissue classes
+                                else        spm_imcalc({[origTPMfile,',1'],normLESIONfile{n-Ntpm},normLESIONfile{:}},newTPMfiles{n},['max(0,min(1,',num2str(tpm_lesionscale),'*X(2,:)))'],{1});                         % lesion mask
                                 end
                             end
                             try, spm_unlink(newTPMfile); end
