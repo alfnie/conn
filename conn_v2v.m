@@ -236,24 +236,24 @@ switch(lower(option))
 %             alphaKC=.9;
 %             options.m=options.m+x.*y*(1/(1-alphaKC*d/max(dall))/k);
         if options.deriv==0
-            if options.global==0,
+            if options.global==0, % LCOR, GCOR
                 options.m=options.m+x.*y;
-            else
+            else % IC
                 options.m=options.m+k*abs(y).^2;
             end
         elseif options.deriv==1
-            if options.global==0,
+            if options.global==0, % RCOR, (GRCOR)
                 [dx{1:2+~options.issurface}]=conn_deriv(y,1,options.issurface);
                 for n=1:2+~options.issurface
                     options.m{n}=options.m{n}+x.*dx{n}/2;
                 end
-            else
+            else % RSIM
                 [dx{1:2+~options.issurface}]=conn_deriv(y,1,options.issurface);
                 for n=1:2+~options.issurface
                     options.m{n}=options.m{n}+k*abs(dx{n}/2).^2;
                 end
             end
-        elseif options.deriv==2
+        elseif options.deriv==2 % (TBD)
             dx=conn_deriv(y,2);
             if options.global==0,
                 options.m=options.m+x.*dx;

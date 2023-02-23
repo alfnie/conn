@@ -1,0 +1,17 @@
+#line_begin
+Results included in this manuscript come from analyses performed using CONN[CITATION1] (RRID:SCR_009550) release [CONNRELEASE][CITATION0] and SPM[CITATION2] (RRID:SCR_007037) release [SPMRELEASE].
+
+#CITATION0 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2021). CONN functional connectivity toolbox: RRID SCR_009550, release 21. doi:10.56441/hilbertpress.2161.7292.
+#CITATION1 Whitfield-Gabrieli, S., & Nieto-Castanon, A. (2012). Conn: a functional connectivity toolbox for correlated and anticorrelated brain networks. Brain connectivity, 2(3), 125-141.
+#CITATION2 Penny, W. D., Friston, K. J., Ashburner, J. T., Kiebel, S. J., & Nichols, T. E. (Eds.). (2011). Statistical parametric mapping: the analysis of functional brain images. Elsevier.
+
+
+% DOI's of previous versions of CONN
+#VERSION22 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2022). CONN functional connectivity toolbox: RRID SCR_009550, release 22. doi:10.56441/hilbertpress.2246.5840.
+#VERSION21 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2021). CONN functional connectivity toolbox: RRID SCR_009550, release 21. doi:10.56441/hilbertpress.2161.7292.
+#VERSION20 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2020). CONN functional connectivity toolbox: RRID SCR_009550, release 20. doi:10.56441/hilbertpress.2048.3738.
+#VERSION19 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2019). CONN functional connectivity toolbox: RRID SCR_009550, release 19. doi:10.56441/hilbertpress.1927.9364.
+#VERSION18 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2018). CONN functional connectivity toolbox: RRID SCR_009550, release 18. doi:10.56441/hilbertpress.1818.9585.
+#VERSION17 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2017). CONN functional connectivity toolbox: RRID SCR_009550, release 17. doi:10.56441/hilbertpress.1744.6736.
+#VERSION12 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2012). CONN functional connectivity toolbox: RRID SCR_009550, release 12. doi:10.56441/hilbertpress.1243.7679.
+#VERSION9 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2009). CONN functional connectivity toolbox: RRID SCR_009550, release 9. doi:10.56441/hilbertpress.0984.0411.
