@@ -1,6 +1,7 @@
-function conn_reference(opts, varargin)
+function [fh,TXT]=conn_reference(opts, varargin)
 % CONN_REFERENCE automatic creation of "methods" section text with
-% descriptions and citations of preprocessing/denoising methods used
+% descriptions and citations of preprocessing/denoising/analysis 
+% methods used
 %
 % conn_reference
 % conn_reference('init');
@@ -303,9 +304,32 @@ for nopt=1:numel(opts),
 end
 if ~isempty(TXT)
     txt=[TXT, {''}, CITATIONS];
-    fprintf('%s\n',txt{:})
-    if ~isempty(fields.fileout)
+    if ~nargout, fprintf('%s\n',txt{:}); end
+    if isempty(fields.fileout), 
+        fh={};
+        fh{end+1}=sprintf('<p style="font-size:20px"><b>Methods</b><br></p>\n');
+        for n=1:numel(TXT), 
+            fh{end+1}=sprintf('<p style="font-size:16px;font-family:helvetica;line-height:2">\n');
+            txt=TXT{n};
+            txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
+            txt=regexprep(txt,'\]<\/sup><sup>\[',',');
+            txt=regexprep(txt,'^Preprocessing: ','<b>Preprocessing</b>: ');
+            txt=regexprep(txt,'^Denoising: ','<b>Denoising</b>: ');
+            txt=regexprep(txt,'^First-level analysis (.*)?\: ','<b>First-level analysis</b> $1: ');
+            txt=regexprep(txt,'\n','<br>');
+            %txt=regexprep(txt,'CONN|SPM|ART','<em>$0</em>');
+            fh{end+1}=sprintf('%s<br></p>\n',txt);
+        end
+        fh{end+1}=sprintf('<p style="font-size:12px;font-family:helvetica;line-height:2">\n');
+        for n=1:numel(CITATIONS), 
+            txt=CITATIONS{n};
+            txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
+            fh{end+1}=sprintf('%s<br>\n',txt);
+        end
+        fh=[fh{:}];
+    else
         fh=fopen(fields.fileout,'wt');
+        fprintf(fh,'<p style="font-size:12px;font-family:helvetica;line-height:2"><center>Copy and paste the section below to your manuscript <b>Methods</b> section. This text is distributed under a Public Domain Dedication license (<a href=https://creativecommons.org/publicdomain/zero/1.0/>CC0 1.0</a>) and <a href=https://web.conn-toolbox.org/resources/citing-conn>it can be copied, modified, and distributed freely</a>.</center><br><br>\n');
         fprintf(fh,'<p style="font-size:20px"><b>Methods</b><br></p>\n');
         for n=1:numel(TXT), 
             fprintf(fh,'<p style="font-size:16px;font-family:helvetica;line-height:2">\n');
@@ -326,6 +350,7 @@ if ~isempty(TXT)
             fprintf(fh,'%s<br>\n',txt);
         end
         fclose(fh);
+        fh=conn_fullfile(fields.fileout);
     end
 end
 end
