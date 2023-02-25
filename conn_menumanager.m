@@ -412,7 +412,7 @@ else
         if isempty(params.state), params.state=zeros(1,params.n); end
         if isempty(params.enable), params.enable=ones(1,params.n); end
         if isempty(params.prevstate), params.prevstate=nan(1,params.n); end
-        if strcmp(params.bordertype,'round'), 
+        if strcmp(params.bordertype,'round')|strcmp(params.bordertype,'xround'), 
             if isfield(params,'colorb'), 
                 params.color=params.colorb;
             else params.color=max(0,min(1, params.color(:,[3 3 1])*diag([2 2 2]) ));
@@ -671,6 +671,15 @@ switch(lower(params.bordertype))
         t={t2,t1,t2};
         if CONN_gui.doemphasis3, transparent=max(0,min(1,min(.0,params.transparent)*[1 .5 0]));
         else transparent=max(0,min(1,min(.0,params.transparent)*[1 .5 0]));
+        end
+    case 'xround'
+        t2=repmat(.5+0*.5*linspace(1,0,size(t,1))'.^2,1,size(t,2)).*t;
+        t1=repmat(.75+0*.25*linspace(1,0,size(t,1))'.^2,1,size(t,2)).*t;
+        %bg=[0 0 0];%min(1,4*params.backgroundcolor);
+        bg=params.backgroundcolor;
+        t={t2,t1,t2};
+        if CONN_gui.doemphasis3, transparent=max(0,min(1,min(.25,params.transparent)*[1 .5 0]));
+        else transparent=max(0,min(1,min(.25,params.transparent)*[1 .5 0]));
         end
     case 'square'
         if 0, t=1+zeros(size(tx)); end

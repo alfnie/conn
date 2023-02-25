@@ -8,6 +8,7 @@ function [fh,TXT]=conn_reference(opts, varargin)
 % conn_reference('preprocessing');
 % conn_reference('denoising')
 % conn_reference('firstlevel');
+% conn_reference('secondlevel');
 %
 
 global CONN_x
@@ -16,6 +17,7 @@ persistent connversions;
 fields=struct('preproclog',[],...
               'denoisinginfo',[],...
               'firstlevelinfo',[],...
+              'secondlevelinfo',[],...
               'fileout','referencesfile.html');
 
 if nargin<1||isempty(opts), opts=''; end
@@ -185,6 +187,7 @@ for nopt=1:numel(opts),
             lines.CITATION0=connversions.(['VERSION',regexprep(conn_version,'\..*','')]);
             options=struct;
             options.multipleconditions=numel(CONN_x.Setup.conditions.names(1:end-1))>1;
+            options.volumespace=CONN_x.Setup.spatialresolution<4;
             if isempty(fields.firstlevelinfo), 
                 matchAnalyses=1:numel(CONN_x.Analyses);
                 matchvvAnalyses=1:numel(CONN_x.vvAnalyses);
@@ -198,6 +201,7 @@ for nopt=1:numel(opts),
                 txt={}; citations={};
                 toptions=CONN_x.Analyses(n);
                 toptions.multipleconditions=options.multipleconditions;
+                toptions.volumespace=options.volumespace;
                 if ischar(CONN_x.Analyses(n).modulation),line={'TMOD'};      toptions.anyderivs=max([CONN_x.Analyses(n).regressors.deriv{:}]); if toptions.anyderivs>0, line{end+1}='ADDDERIV'; end; toptions.anyfbands=max([CONN_x.Analyses(n).regressors.fbands{:}]>1); if toptions.anyfbands>1, line{end+1}='ADDFBAND'; end; if options.multipleconditions, line{end+1}='ADDTMODWEIGHTS'; end
                 elseif CONN_x.Analyses(n).modulation>0,  line={'gPPI'};      toptions.anyderivs=max([CONN_x.Analyses(n).regressors.deriv{:}]); if toptions.anyderivs>0, line{end+1}='ADDDERIV'; end; toptions.anyfbands=max([CONN_x.Analyses(n).regressors.fbands{:}]>1); if toptions.anyfbands>1, line{end+1}='ADDFBAND'; end; toptions.multipleconditions=1;
                 elseif CONN_x.Analyses(n).type==1,       line={'RRC'};       toptions.anyderivs=max([CONN_x.Analyses(n).regressors.deriv{:}]); if toptions.anyderivs>0, line{end+1}='ADDDERIV'; end; toptions.anyfbands=max([CONN_x.Analyses(n).regressors.fbands{:}]>1); if toptions.anyfbands>1, line{end+1}='ADDFBAND'; end; line{end+1}='ADDWEIGHTS';
@@ -249,13 +253,14 @@ for nopt=1:numel(opts),
                 txt={}; citations={};
                 toptions=CONN_x.vvAnalyses(n);
                 toptions.multipleconditions=options.multipleconditions;
+                toptions.volumespace=options.volumespace;
                 for tfield=reshape(fieldnames(CONN_x.vvAnalyses(n).regressors),1,[]),
                     toptions.(tfield{1})=CONN_x.vvAnalyses(n).regressors.(tfield{1}){1};
                 end
                 toptions.finitedimensions=~isinf(toptions.dimensions_in);
                 toptions.ismasked=~isempty(toptions.mask);
                 toptions.bpfilter=CONN_x.Preproc.filter;
-                if toptions.measuretype==3
+                if toptions.measuretype==3||toptions.measuretype==4
                     if isempty(toptions.options), toptions.options='GICA3tanh'; end
                     toptions.algtype=regexprep(regexprep(toptions.options,'GICA\d',''),{'^tanh$','^pow3$','^gauss$'},{'hyperbolic tangent (G1)','cubic (G3)','gaussian (G2)'});
                     toptions.bprtype=regexp(toptions.options,'GICA\d','match','once');
@@ -276,6 +281,7 @@ for nopt=1:numel(opts),
                 txt={}; citations={};
                 toptions=CONN_x.dynAnalyses(n);
                 toptions.multipleconditions=options.multipleconditions;
+                toptions.volumespace=options.volumespace;
                 for tfield=reshape(fieldnames(CONN_x.dynAnalyses(n).regressors),1,[]),
                     toptions.(tfield{1})=CONN_x.dynAnalyses(n).regressors.(tfield{1}){1};
                 end
@@ -300,6 +306,38 @@ for nopt=1:numel(opts),
             %TTXT=conn_reference_singleparagraph(TTXT,false);
             TXT=[TXT, TTXT];
 
+        case {'secondlevel','second-level'}
+            TTXT={};
+            lines=conn_loadcfgfile(fullfile(fileparts(which(mfilename)),'conn_reference_secondlevel.txt'));
+            if isfield(CONN_x,'ver'), conn_version=CONN_x.ver; 
+            else conn_version=conn('ver');
+            end
+            lines.CITATION0=connversions.(['VERSION',regexprep(conn_version,'\..*','')]);
+            options=struct;
+            options.multipleconditions=numel(CONN_x.Setup.conditions.names(1:end-1))>1;
+            options.volumespace=CONN_x.Setup.spatialresolution<4;
+            for n=0:numel(fields.secondlevelinfo)
+                txt={}; citations={};
+                toptions=options;
+                if n==0, line={'init'};
+                else line=fields.secondlevelinfo(n);
+                end
+                if (n==0&&any(ismember(fields.secondlevelinfo,{'RFT','RANDOM','TFCE'})))||(n>0&&ismember(fields.secondlevelinfo{n},{'RFT','RANDOM','TFCE'})), toptions.voxel='voxel';toptions.Voxel='Voxel';
+                else toptions.voxel='connection';toptions.Voxel='Connection';
+                end
+                LTXT={};
+                for nline=1:numel(line)
+                    if isfield(lines,line{nline})
+                        [txt,citations]=conn_reference_processtext(lines.(line{nline}), lines, CITATIONS, toptions, conn_version);
+                        if ~isempty(txt), LTXT=[LTXT txt]; end
+                        if ~isempty(citations), CITATIONS=[CITATIONS citations]; end
+                    end
+                end
+                if ~isempty(LTXT), TTXT=[TTXT conn_reference_singleparagraph(LTXT,false)]; end
+            end
+            TTXT=conn_reference_singleparagraph(TTXT,false);
+            TXT=[TXT, TTXT];
+
     end
 end
 if ~isempty(TXT)
@@ -307,48 +345,57 @@ if ~isempty(TXT)
     if ~nargout, fprintf('%s\n',txt{:}); end
     if isempty(fields.fileout), 
         fh={};
-        fh{end+1}=sprintf('<p style="font-size:20px"><b>Methods</b><br></p>\n');
+        fh{end+1}=sprintf('<html><body><p style="font-size:16px"><b>Methods</b></p>\n');
         for n=1:numel(TXT), 
-            fh{end+1}=sprintf('<p style="font-size:16px;font-family:helvetica;line-height:2">\n');
+            fh{end+1}=sprintf('<p style="font-size:12px;font-family:helvetica;line-height:2">\n');
             txt=TXT{n};
+            txt=regexprep(txt,{'\&','<','>'},{'&amp;','&lt;','&gt;'});
             txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
             txt=regexprep(txt,'\]<\/sup><sup>\[',',');
             txt=regexprep(txt,'^Preprocessing: ','<b>Preprocessing</b>: ');
             txt=regexprep(txt,'^Denoising: ','<b>Denoising</b>: ');
             txt=regexprep(txt,'^First-level analysis (.*)?\: ','<b>First-level analysis</b> $1: ');
-            txt=regexprep(txt,'\n','<br>');
+            txt=regexprep(txt,'^Group-level analyses','<b>Group-level analyses</b>');
+            txt=regexprep(txt,'\n','');
             %txt=regexprep(txt,'CONN|SPM|ART','<em>$0</em>');
-            fh{end+1}=sprintf('%s<br></p>\n',txt);
+            fh{end+1}=sprintf('%s</p>\n',txt);
         end
-        fh{end+1}=sprintf('<p style="font-size:12px;font-family:helvetica;line-height:2">\n');
+        fh{end+1}=sprintf('<p style="font-size:16px"><b>References</b></p>\n');
         for n=1:numel(CITATIONS), 
             txt=CITATIONS{n};
+        fh{end+1}=sprintf('');
+            txt=regexprep(txt,{'\&','<','>'},{'&amp;','&lt;','&gt;'});
             txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
-            fh{end+1}=sprintf('%s<br>\n',txt);
+            fh{end+1}=sprintf('<p style="font-size:11px;font-family:helvetica;line-height:2">%s</p>\n',txt);
         end
+        fh{end+1}=sprintf('</body></html>\n');
         fh=[fh{:}];
     else
         fh=fopen(fields.fileout,'wt');
-        fprintf(fh,'<p style="font-size:12px;font-family:helvetica;line-height:2"><center>Copy and paste the section below to your manuscript <b>Methods</b> section. This text is distributed under a Public Domain Dedication license (<a href=https://creativecommons.org/publicdomain/zero/1.0/>CC0 1.0</a>) and <a href=https://web.conn-toolbox.org/resources/citing-conn>it can be copied, modified, and distributed freely</a>.</center><br><br>\n');
-        fprintf(fh,'<p style="font-size:20px"><b>Methods</b><br></p>\n');
+        fprintf(fh,'<html><body><p style="font-size:12px;font-family:helvetica;line-height:2"><center>Copy and paste the section below to your manuscript <b>Methods</b> section. This text is distributed under a Public Domain Dedication license (<a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a>) and <a href="https://web.conn-toolbox.org/resources/citing-conn">it can be used, copied, modified, and distributed freely</a>.</center></p><br></br>\n');
+        fprintf(fh,'<p style="font-size:16px"><b>Methods</b></p>\n');
         for n=1:numel(TXT), 
-            fprintf(fh,'<p style="font-size:16px;font-family:helvetica;line-height:2">\n');
+            fprintf(fh,'<p style="font-size:12px;font-family:helvetica;line-height:2">\n');
             txt=TXT{n};
+            txt=regexprep(txt,{'\&','<','>'},{'&amp;','&lt;','&gt;'});
             txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
             txt=regexprep(txt,'\]<\/sup><sup>\[',',');
             txt=regexprep(txt,'^Preprocessing: ','<b>Preprocessing</b>: ');
             txt=regexprep(txt,'^Denoising: ','<b>Denoising</b>: ');
             txt=regexprep(txt,'^First-level analysis (.*)?\: ','<b>First-level analysis</b> $1: ');
-            txt=regexprep(txt,'\n','<br>');
+            txt=regexprep(txt,'^Group-level analyses','<b>Group-level analyses</b>');
+            txt=regexprep(txt,'\n','');
             %txt=regexprep(txt,'CONN|SPM|ART','<em>$0</em>');
-            fprintf(fh,'%s<br></p>\n',txt);
+            fprintf(fh,'%s</p>\n',txt);
         end
-        fprintf(fh,'<p style="font-size:12px;font-family:helvetica;line-height:2">\n');
+        fprintf(fh,'<p style="font-size:16px"><b>References</b></p>\n');
         for n=1:numel(CITATIONS), 
             txt=CITATIONS{n};
+            txt=regexprep(txt,{'\&','<','>'},{'&amp;','&lt;','&gt;'});
             txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
-            fprintf(fh,'%s<br>\n',txt);
+            fprintf(fh,'<p style="font-size:11px;font-family:helvetica;line-height:2">%s</p>\n',txt);
         end
+        fprintf(fh,'</body></html>\n');
         fclose(fh);
         fh=conn_fullfile(fields.fileout);
     end

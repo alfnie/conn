@@ -1,0 +1,50 @@
+#init
+Group-level analyses were performed using a General Linear Model (GLM [CITATION1]). For each individual [VALUE 1 voxel] a separate GLM was estimated, with first-level connectivity measures at this [VALUE 1 voxel] as dependent variables (one independent sample per subject and one measurement per task or experimental condition, if applicable), and groups or other subject-level identifiers as independent variables. [VALUE 1 Voxel]-level hypotheses were evaluated using multivariate parametric statistics with random-effects across subjects and sample covariance estimation across multiple measurements.
+
+#RFT
+Inferences were performed at the level of indiviudal clusters (groups of contiguous voxels). Cluster-level inferences were based on parametric statistics from Gaussian Random Field theory [CITATION2][CITATION5]. Results were thresholded using a combination of a cluster-forming p < 0.001 voxel-level threshold, and a familywise corrected p-FDR < 0.05 cluster-size threshold [CITATION3].
+
+#RANDOM
+Inferences were performed at the level of indiviudal clusters (groups of contiguous voxels). Cluster-level inferences were based on non-parametric statistics from randomization/permutation analyses [CITATION4][CITATION5], with 1000 residual-randomization iterations. Results were thresholded using a combination of a cluster-forming p < 0.01 voxel-level threshold, and a familywise corrected p-FDR < 0.05 cluster-mass threshold [CITATION3].
+
+#TFCE
+Inferences were performed at the level of indiviudal clusters (groups of contiguous voxels). Cluster-level inferences were based on non-parametric statistics using Threshold Free Cluster Enhancement (TFCE [CITATION6][CITATION5]), with 1000 residual-randomization iterations. Results were thresholded using a familywise corrected p-FWE < 0.05 TFCE-score threshold.
+
+#RRC_FNC
+Inferences were performed at the level of indiviudal clusters (groups of similar connections). Cluster-level inferences were based on parametric statistics within- and between- each pair of networks (Functional Network Connectivity [CITATION7]), with networks identified using a complete-linkage hierarchical clustering procedure [CITATION8] based on ROI-to-ROI anatomical proximity and functional similarity metrics [CITATION5]. Results were thresholded using a combination of a p < 0.05 connection-level threshold and a familywise corrected p-FDR < 0.05 cluster-level threshold [CITATION11].
+
+#RRC_SPC
+Inferences were performed at the level of indiviudal clusters (groups of contiguous connections). Cluster-level inferences were based on non-parametric statistics from Spatial Pairwise Clustering analyses (SPC [CITATION9]), with 1000 residual-randomization iterations, and ROIs sorted using optimal leaf ordering based on ROI-to-ROI anatomical proximity and functional similarity metrics [CITATION10][CITATION5]. Results were thresholded using a combination of a cluster-forming p < 0.01 connection-level threshold and a familywise corrected p-FDR < 0.05 cluster-mass threshold [CITATION11].
+
+#RRC_TFCE
+Inferences were performed at the level of indiviudal clusters (groups of contiguous connections). Cluster-level inferences were based on non-parametric statistics using Threshold Free Cluster Enhancement (TFCE [CITATION6]), with 1000 residual-randomization iterations, and ROIs sorted using optimal leaf ordering based on ROI-to-ROI anatomical proximity and functional similarity metrics [CITATION10][CITATION5]. Results were thresholded using a familywise corrected p-FWE < 0.05 TFCE-score threshold.
+
+#RRC_CON
+Inferences were performed at the level of indiviudal functional connections, and results were thresholded using a familywise corrected p-FDR < 0.05 connection-level threshold [CITATION5][CITATION11].
+
+#RRC_ROI
+Inferences were performed at the level of indiviudal ROIs. ROI-level inferences were based on parametric multivariate statistics, combining the connection-level statistics across all connections from each individual ROI. Results were thresholded using a familywise corrected p-FDR < 0.05 ROI-level threshold [CITATION5][CITATION11].
+
+#RRC_NET
+Inferences were performed at the level of indiviudal networks (groups of related connections). Network-level inferences were based on non-parametric statistics from Network Based Statistics analyses (NBS [CITATION12]), with 1000 residual-randomization iterations. Results were thresholded using a combination of a cluster-forming p < 0.001 connection-level threshold and a familywise corrected p-FDR < 0.05 network-mass threshold [CITATION5][CITATION11].
+
+
+#CITATION1 Nieto-Castanon, A. (2020). General Linear Model. In Handbook of functional connectivity Magnetic Resonance Imaging methods in CONN (pp. 63–82). Hilbert Press.
+#CITATION2 Worsley, K. J., Marrett, S., Neelin, P., Vandal, A. C., Friston, K. J., & Evans, A. C. (1996). A unified statistical approach for determining significant signals in images of cerebral activation. Human brain mapping, 4(1), 58-73.
+#CITATION3 Chumbley, J., Worsley, K., Flandin, G., & Friston, K. (2010). Topological FDR for neuroimaging. Neuroimage, 49(4), 3057-3064.
+#CITATION4 Bullmore, E. T., Suckling, J., Overmeyer, S., Rabe-Hesketh, S., Taylor, E., & Brammer, M. J. (1999). Global, voxel, and cluster tests, by theory and permutation, for a difference between two groups of structural MR images of the brain. IEEE transactions on medical imaging, 18(1), 32-42.
+#CITATION5 Nieto-Castanon, A. (2020). Cluster-level inferences. In Handbook of functional connectivity Magnetic Resonance Imaging methods in CONN (pp. 83–104). Hilbert Press.
+#CITATION6 Smith, S. M., & Nichols, T. E. (2009). Threshold-free cluster enhancement: addressing problems of smoothing, threshold dependence and localisation in cluster inference. Neuroimage, 44(1), 83-98.
+#CITATION7 Jafri, M. J., Pearlson, G. D., Stevens, M., & Calhoun, V. D. (2008). A method for functional network connectivity among spatially independent resting-state components in schizophrenia. Neuroimage, 39(4), 1666-1681.
+#CITATION8 Sørensen, T. (1948). A method of establishing groups of equal amplitude in plant sociology based on similarity of species and its application to analyses of the vegetation on Danish commons. Biologiske Skrifter / Kongelige Danske Videnskabernes Selskab 5: 1-34.
+#CITATION9 Zalesky, A., Fornito, A., & Bullmore, E. T. (2012). On the use of correlation as a measure of network connectivity. Neuroimage, 60(4), 2096-2106.
+#CITATION10 Bar-Joseph, Z., Gifford, D. K., & Jaakkola, T. S. (2001). Fast optimal leaf ordering for hierarchical clustering. Bioinformatics, 17(suppl_1), S22-S29.
+#CITATION11 Benjamini, Y., & Hochberg, Y. (1995). Controlling the false discovery rate: a practical and powerful approach to multiple testing. Journal of the Royal statistical society: series B (Methodological), 57(1), 289-300.
+#CITATION12 Zalesky, A., Fornito, A., & Bullmore, E. T. (2010). Network-based statistic: identifying differences in brain networks. Neuroimage, 53(4), 1197-1207.
+
+
+
+
+
+
+
