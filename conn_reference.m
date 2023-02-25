@@ -345,9 +345,9 @@ if ~isempty(TXT)
     if ~nargout, fprintf('%s\n',txt{:}); end
     if isempty(fields.fileout), 
         fh={};
-        fh{end+1}=sprintf('<html><body><p style="font-size:16px"><b>Methods</b></p>\n');
+        fh{end+1}=sprintf('<html><body><h2 style="font-family:helvetica"><b>Methods</b></h2>\n');
         for n=1:numel(TXT), 
-            fh{end+1}=sprintf('<p style="font-size:12px;font-family:helvetica;line-height:2">\n');
+            fh{end+1}=sprintf('<p style="font-family:helvetica;line-height:2">\n');
             txt=TXT{n};
             txt=regexprep(txt,{'\&','<','>'},{'&amp;','&lt;','&gt;'});
             txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
@@ -360,22 +360,22 @@ if ~isempty(TXT)
             %txt=regexprep(txt,'CONN|SPM|ART','<em>$0</em>');
             fh{end+1}=sprintf('%s</p>\n',txt);
         end
-        fh{end+1}=sprintf('<p style="font-size:16px"><b>References</b></p>\n');
+        fh{end+1}=sprintf('<h2 style="font-family:helvetica"><b>References</b></h2>\n');
         for n=1:numel(CITATIONS), 
             txt=CITATIONS{n};
         fh{end+1}=sprintf('');
             txt=regexprep(txt,{'\&','<','>'},{'&amp;','&lt;','&gt;'});
             txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
-            fh{end+1}=sprintf('<p style="font-size:11px;font-family:helvetica;line-height:2">%s</p>\n',txt);
+            fh{end+1}=sprintf('<p style="font-family:helvetica;line-height:2">%s</p>\n',txt);
         end
         fh{end+1}=sprintf('</body></html>\n');
         fh=[fh{:}];
     else
         fh=fopen(fields.fileout,'wt');
-        fprintf(fh,'<html><body><p style="font-size:12px;font-family:helvetica;line-height:2"><center>Copy and paste the section below to your manuscript <b>Methods</b> section. This text is distributed under a Public Domain Dedication license (<a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a>) and <a href="https://web.conn-toolbox.org/resources/citing-conn">it can be used, copied, modified, and distributed freely</a>.</center></p><br></br>\n');
-        fprintf(fh,'<p style="font-size:16px"><b>Methods</b></p>\n');
+        fprintf(fh,'<html><body><p style="font-family:helvetica;line-height:2"><center>Copy and paste the section below to your manuscript <b>Methods</b> section. This text is distributed under a Public Domain Dedication license (<a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a>) and <a href="https://web.conn-toolbox.org/resources/citing-conn">it can be used, copied, modified, and distributed freely</a>.</center></p><br></br>\n');
+        fprintf(fh,'<h2 style="font-family:helvetica"><b>Methods</b></h2>\n');
         for n=1:numel(TXT), 
-            fprintf(fh,'<p style="font-size:12px;font-family:helvetica;line-height:2">\n');
+            fprintf(fh,'<p style="font-family:helvetica;line-height:2">\n');
             txt=TXT{n};
             txt=regexprep(txt,{'\&','<','>'},{'&amp;','&lt;','&gt;'});
             txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
@@ -388,12 +388,12 @@ if ~isempty(TXT)
             %txt=regexprep(txt,'CONN|SPM|ART','<em>$0</em>');
             fprintf(fh,'%s</p>\n',txt);
         end
-        fprintf(fh,'<p style="font-size:16px"><b>References</b></p>\n');
+        fprintf(fh,'<h2 style="font-family:helvetica"><b>References</b></h2>\n');
         for n=1:numel(CITATIONS), 
             txt=CITATIONS{n};
             txt=regexprep(txt,{'\&','<','>'},{'&amp;','&lt;','&gt;'});
             txt=regexprep(txt,'\s*\[(\d+)\]','<sup>[$1]</sup>');
-            fprintf(fh,'<p style="font-size:11px;font-family:helvetica;line-height:2">%s</p>\n',txt);
+            fprintf(fh,'<p style="font-family:helvetica;line-height:2">%s</p>\n',txt);
         end
         fprintf(fh,'</body></html>\n');
         fclose(fh);
