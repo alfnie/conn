@@ -35,13 +35,13 @@ CompCor[CITATION6][CITATION3] noise components within white matter and CSF were 
 [IF detrending 0 a constant term (1 factor) within each functional run][IF detrending 1 linear trends (2 factors) within each functional run][IF detrending 2 quadratic trends (3 factors) within each functional run][IF detrending 3 cubic trends (4 factors) within each functional run]
 
 #bandpass
-[IF regbp 1 followed by ][IF regbp 2 and simultaneous ]band-pass frequency filtering of the BOLD timeseries[CITATION8] between [VALUE 1 filter]Hz and [VALUE 2 filter]Hz
+[IF regbp 1 followed by ][IF regbp 2 and simultaneous ]bandpass frequency filtering of the BOLD timeseries[CITATION8] between [VALUE 1 filter] Hz and [VALUE 2 filter] Hz
 
 #highpass
-[IF regbp 1 followed by ][IF regbp 2 and simultaneous ]high-pass frequency filtering of the BOLD timeseries[CITATION8] above [VALUE 1 filter]Hz
+[IF regbp 1 followed by ][IF regbp 2 and simultaneous ]high-pass frequency filtering of the BOLD timeseries[CITATION8] above [VALUE 1 filter] Hz
 
 #lowpass
-[IF regbp 1 followed by ][IF regbp 2 and simultaneous ]low-pass frequency filtering of the BOLD timeseries[CITATION8] below [VALUE 2 filter]Hz
+[IF regbp 1 followed by ][IF regbp 2 and simultaneous ]low-pass frequency filtering of the BOLD timeseries[CITATION8] below [VALUE 2 filter] Hz
 
 #line_summary1
 From the number of noise terms included in this denoising strategy, the effective degrees of freedom of the BOLD signal after denoising were estimated to range from [VALUE 1 QC_DOF_min] to [VALUE 1 QC_DOF_max] (average [VALUE 1 QC_DOF_mean]) across all subjects[CITATION7].

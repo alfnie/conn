@@ -2,10 +2,10 @@
 Functional and anatomical data were preprocessed using a flexible preprocessing pipeline [CITATION2][VALUE 1 liststeps].
 
 #functional_realignandunwarpandfieldmap
-Functional data were realigned using SPM realign & unwarp procedure [CITATION3] with the use of fieldmaps for susceptibility distortion correction, where all scans are coregistered to a reference image ([IF rtm 0 first scan of the first session][IF rtm 1 mean functional volume]) using a least squares approach and a 6 parameter (rigid body) transformation, and resampled using b-spline interpolation [CITATION9].
+Functional data were realigned using SPM realign & unwarp procedure [CITATION3] with the use of fieldmaps for susceptibility distortion correction, where all scans were coregistered to a reference image ([IF rtm 0 first scan of the first session][IF rtm 1 mean functional volume]) using a least squares approach and a 6 parameter (rigid body) transformation, and resampled using b-spline interpolation [CITATION9].
 
 #functional_realignandunwarp
-Functional data were realigned using SPM realign & unwarp procedure [CITATION3], where all scans are coregistered to a reference image ([IF rtm 0 first scan of the first session][IF rtm 1 mean functional volume]) using a least squares approach and a 6 parameter (rigid body) transformation [CITATION9], and resampled using b-spline interpolation. 
+Functional data were realigned using SPM realign & unwarp procedure [CITATION3], where all scans were coregistered to a reference image ([IF rtm 0 first scan of the first session][IF rtm 1 mean functional volume]) using a least squares approach and a 6 parameter (rigid body) transformation [CITATION9], and resampled using b-spline interpolation. 
 
 #functional_realign
 Functional data were coregistered to a reference image ([IF rtm 0 first scan of the first session][IF rtm 1 mean functional volume]) using a least squares approach and a 6 parameter (rigid body) transformation [CITATION9], and resampled using b-spline interpolation. 
@@ -17,16 +17,16 @@ Functional data were coregistered to a reference image ([IF rtm 0 first scan of 
 Temporal misalignment between different slices of the functional data [IF sliceorder_select 1 (acquired in ascending order) ][IF sliceorder_select 2 (acquired in descending order) ][IF sliceorder_select 3 (acquired in interleaved middle-top order) ][IF sliceorder_select 4 (acquired in interleaved bottom-up order) ][IF sliceorder_select 5 (acquired in interleaved top-down order) ][IF sliceorder_select 6 (acquired in interleaved Siemens order) ][IF sliceorder_select 7 (acquired in interleaved Philips order) ]was corrected following SPM slice-timing correction (STC) procedure [CITATION4][CITATION10], using sinc temporal interpolation to resample each slice BOLD timeseries to a common mid-acquisition time. 
 
 #functional_art
-Potential outlier scans were identified using ART [CITATION5] as acquisitions with framewise displacement above [VALUE 2 art_thresholds]mm or global BOLD signal changes above [VALUE 1 art_thresholds] standard deviations [CITATION6][CITATION7][IF coregtomean 1 , and a reference BOLD image was computed for each subject by averaging all scans excluding outliers].
+Potential outlier scans were identified using ART [CITATION5] as acquisitions with framewise displacement above [VALUE 2 art_thresholds] mm or global BOLD signal changes above [VALUE 1 art_thresholds] standard deviations [CITATION6][CITATION7][IF coregtomean 1 , and a reference BOLD image was computed for each subject by averaging all scans excluding outliers].
 
 #functional_segmentandnormalize_direct
-Functional [IF steps structural_segment&normalize and anatomical ]data were normalized into standard MNI space, segmented into grey matter, white matter, and CSF tissue classes, and resampled to [VALUE 1 voxelsize_func]mm isotropic voxels following a direct normalization procedure [CITATION7][CITATION11] using SPM unified segmentation and normalization algorithm [CITATION8][CITATION12] [IFEMPTY tpm_template 1 with the default IXI-549 tissue probability map template][IFEMPTY tpm_template 0 with an alternative tissue probability map (TPM) template].
+Functional [IF steps structural_segment&normalize and anatomical ]data were normalized into standard MNI space, segmented into grey matter, white matter, and CSF tissue classes, and resampled to [VALUE 1 voxelsize_func] mm isotropic voxels following a direct normalization procedure [CITATION7][CITATION11] using SPM unified segmentation and normalization algorithm [CITATION8][CITATION12] [IFEMPTY tpm_template 1 with the default IXI-549 tissue probability map template][IFEMPTY tpm_template 0 with an alternative tissue probability map (TPM) template].
 
 #functional_segmentandnormalize_indirect
-Functional and anatomical data were coregistered and normalized into standard MNI space, segmented into grey matter, white matter, and CSF tissue classes, and resampled to [VALUE 1 voxelsize_func]mm isotropic voxels following an indirect normalization procedure [CITATION7][CITATION11] using SPM unified segmentation and normalization algorithm [CITATION8][CITATION12] [IFEMPTY tpm_template 1 with the default IXI-549 tissue probability map template][IFEMPTY tpm_template 0 with an alternative tissue probability map (TPM) template].
+Functional and anatomical data were coregistered and normalized into standard MNI space, segmented into grey matter, white matter, and CSF tissue classes, and resampled to [VALUE 1 voxelsize_func] mm isotropic voxels following an indirect normalization procedure [CITATION7][CITATION11] using SPM unified segmentation and normalization algorithm [CITATION8][CITATION12] [IFEMPTY tpm_template 1 with the default IXI-549 tissue probability map template][IFEMPTY tpm_template 0 with an alternative tissue probability map (TPM) template].
 
 #functional_smooth
-Functional data were smoothed using spatial convolution with a Gaussian kernel of [VALUE 1 fwhm]mm full width half maximum (FWHM). 
+Functional data were smoothed using spatial convolution with a Gaussian kernel of [VALUE 1 fwhm] mm full width half maximum (FWHM). 
 
 #CITATION2 Nieto-Castanon, A. (2020). FMRI minimal preprocessing pipeline. In Handbook of functional connectivity Magnetic Resonance Imaging methods in CONN (pp. 3–16). Hilbert Press.
 #CITATION3 Andersson, J. L., Hutton, C., Ashburner, J., Turner, R., & Friston, K. J. (2001). Modeling geometric deformations in EPI time series. Neuroimage, 13(5), 903-919.
