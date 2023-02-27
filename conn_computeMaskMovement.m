@@ -1,4 +1,8 @@
 function fileout = conn_computeMaskMovement(filein)
+% computes motion mask
+% (partial derivatives of brainmask with respect of each of the six standard 
+% motion parameters -three translation + three rotation parameters-)
+%
 
 if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein))); return; 
 else filein=conn_server('util_localfile',filein);

@@ -44,7 +44,7 @@ for nopt=1:numel(opts),
             options=struct;
             for line={'line_begin'};
                 txt={}; citations={};
-                if isfield(lines,line{1}), [txt,citations]=conn_reference_processtext(lines.(line{1}), lines, CITATIONS, options, conn_version);  end
+                if isfield(lines,line{1})&&~isempty(lines.(line{1})), [txt,citations]=conn_reference_processtext(lines.(line{1}), lines, CITATIONS, options, conn_version);  end
                 if ~isempty(txt), TTXT=[TTXT txt]; end
                 if ~isempty(citations), CITATIONS=[CITATIONS citations]; end
             end
@@ -74,6 +74,7 @@ for nopt=1:numel(opts),
             end
             if ~isempty(options)
                 options.liststeps={}; % list steps in human-readable format
+                options.steps=regexprep(lower(options.steps),'^run_|^update_|^interactive_','');
                 [name1,name2]=conn_setup_preproc('steps');
                 name2=regexprep(name2,'(\s*\(.*\).*$)|(^functional )|(^structural )','');
                 name3=regexprep(lower(options.steps),'^run_|^update_|^interactive_','');
@@ -86,6 +87,75 @@ for nopt=1:numel(opts),
                 if numel(options.liststeps)>1, options.liststeps=[' including ',sprintf('%s, ',options.liststeps{1:end-1}), ' and ',options.liststeps{end}];
                 elseif numel(options.liststeps)==1, options.liststeps=[' including ',char(options.liststeps)];
                 end
+                if isfield(options,'removescans'), options.removescans_value=abs(options.removescans); options.removescans_first=options.removescans>=0; end
+                % back-compatibility checks
+                if ~isfield(options,'bp_filter')&&isfield(options,'bandpass'), options.bp_filter=options.bandpass; end 
+                if ~isfield(options,'reg_skip'), options.reg_skip=false; end 
+                if ~isfield(options,'reg_detrend'), options.reg_detrend=false; end 
+                if ~isfield(options,'reg_filter')&&isfield(options,'reg_names'), options.reg_filter=false(size(options.reg_names)); end 
+                if ~isfield(options,'reg_lag')&&isfield(options,'reg_names'), options.reg_lag=false(size(options.reg_names)); end 
+
+                options.reg_names_list='';
+                if isfield(options,'reg_names')&&~isempty(options.reg_names), 
+                    tmpreglag=false;tmpbp=false;
+                    for nreg=1:numel(options.reg_names)
+                        if numel(options.reg_dimensions)>=nreg&&isfinite(options.reg_dimensions(nreg)), txt=sprintf('%s (%d dimensions)',options.reg_names{nreg},options.reg_dimensions(nreg));
+                        else txt=options.reg_names{nreg};
+                        end
+                        if numel(options.reg_deriv)>=nreg&&options.reg_deriv(nreg)==1, txt=[txt, ' and their first-order temporal derivatives'];
+                        elseif numel(options.reg_deriv)>=nreg&&options.reg_deriv(nreg)==2, txt=[txt, ' and their second-order temporal derivatives'];
+                        elseif numel(options.reg_deriv)>=nreg&&options.reg_deriv(nreg)==3, txt=[txt, ' and their third-order temporal derivatives'];
+                        elseif numel(options.reg_deriv)>=nreg&&options.reg_deriv(nreg)>3, txt=[txt, sprintf(' and their %dth-order temporal derivatives',options.reg_deriv(nreg))];
+                        end
+                        if numel(options.reg_filter)>=nreg&&options.reg_filter(nreg)>0, 
+                            if tmpbp, txt=['bandpass filtered ',txt]; 
+                            else txt=[sprintf('bandpass filtered (between %s and %s Hz)',mat2str(options.bp_filter(1)),mat2str(options.bp_filter(2))),txt]; 
+                            end
+                        end
+                        if numel(options.reg_lag)>=nreg&&options.reg_lag(nreg)>0, 
+                            if tmpreglag, txt=[txt, ' and temporal lags'];
+                            else txt=[txt, sprintf(' and temporal lags up to %s seconds',options.reg_lagmax)]; tmpreglag=true;
+                            end
+                        end
+                        if nreg==1, options.reg_names_list=[options.reg_names_list, txt];
+                        elseif nreg==numel(options.reg_names)&&options.reg_detrend==0, options.reg_names_list=[options.reg_names_list, ', and ',txt];
+                        else options.reg_names_list=[options.reg_names_list, ', ',txt];
+                        end
+                    end
+                    if options.reg_detrend>0, options.reg_names_list=[options.reg_names_list, ', and linear trends within each functional run']; end
+                end
+
+                if isfield(options,'roi_names')&&~isempty(options.roi_names), 
+                    tmpbp=false;
+                    options.roi_names_list={}; options.roi_covs_list={};
+                    for nroi=1:numel(options.roi_names)
+                        if numel(options.roi_dimensions)>=nroi&&isfinite(options.roi_dimensions(nroi)), txt=sprintf('%s (%d dimensions)',options.roi_names{nroi},options.roi_dimensions(nroi));
+                        else txt=options.roi_names{nroi};
+                        end
+                        if numel(options.roi_deriv)>=nroi&&options.roi_deriv(nroi)==1, txt=[txt, ' and their first-order temporal derivatives'];
+                        elseif numel(options.roi_deriv)>=nroi&&options.roi_deriv(nroi)==2, txt=[txt, ' and their second-order temporal derivatives'];
+                        elseif numel(options.roi_deriv)>=nroi&&options.roi_deriv(nroi)==3, txt=[txt, ' and their third-order temporal derivatives'];
+                        elseif numel(options.roi_deriv)>=nroi&&options.roi_deriv(nroi)>3, txt=[txt, sprintf(' and their %dth-order temporal derivatives',options.roi_deriv(nroi))];
+                        end
+                        if numel(options.roi_filter)>=nroi&&options.roi_filter(nroi)>0, 
+                            if tmpbp, txt=['bandpass filtered ',txt]; 
+                            else txt=[sprintf('bandpass filtered (between %s and %s Hz)',mat2str(options.bp_filter(1)),mat2str(options.bp_filter(2))),txt]; 
+                            end
+                        end
+                        if ismember(options.roi_names{nroi},CONN_x.Setup.l1covariates.names(1:end-1)), options.roi_covs_list{end+1}=txt;
+                        else options.roi_names_list{end+1}=txt;
+                        end
+                    end
+                    if options.roi_detrend>0, options.roi_covs_list{end+1}='linear trends within each functional run'; end
+                    if numel(options.roi_names_list)<=1, options.roi_names_list=char(options.roi_names_list);
+                    else options.roi_names_list=[options.roi_names_list{1}, sprintf(', %s',options.roi_names_list{2:end-1}), ', and ',options.roi_names_list{end}];
+                    end
+                    if numel(options.roi_covs_list)<=1, options.roi_covs_list=char(options.roi_covs_list);
+                    else options.roi_covs_list=[options.roi_covs_list{1}, sprintf(', %s',options.roi_covs_list{2:end-1}), ', and ',options.roi_covs_list{end}];
+                    end
+                    if ~isempty(options.roi_covs_list), options.roi_covs_list=[' and orthogonalized with respect to ',options.roi_covs_list, ' covariates.']; end
+                end
+                if isfield(options,'diffusionsteps')&&~isempty(options.diffusionsteps), options.diffusionstepsfwhm=round(1.25*sqrt(options.diffusionsteps)); end
 
                 lines=conn_loadcfgfile(fullfile(fileparts(which(mfilename)),'conn_reference_preproc.txt'));
                 if isfield(options,'ver_CONN'), conn_version=options.ver_CONN;
@@ -100,7 +170,7 @@ for nopt=1:numel(opts),
                         stepname=regexprep(options.steps{n1},{'^run_','&'},{'','and'});
                         switch(stepname)
                             case fieldnames(lines)
-                                [txt,citations]=conn_reference_processtext(lines.(stepname), lines, CITATIONS, options, conn_version);
+                                if ~isempty(lines.(stepname)), [txt,citations]=conn_reference_processtext(lines.(stepname), lines, CITATIONS, options, conn_version); end
                         end
                     end
                     if ~isempty(txt)&&isempty(TTXT), txt{1}=['Preprocessing: ',txt{1}]; end
@@ -448,7 +518,10 @@ txtout='';
 for n=1:numel(txtin),
     if n==1, txtout=[txtin{n}]; 
     elseif n<numel(txtin), txtout=[txtout, ' ', txtin{n}]; 
-    elseif dolast&&numel(txtin)>2, txtout=[txtout, ' Last, ',lower(txtin{n}(1)),txtin{n}(2:end)];
+    elseif dolast&&numel(txtin)>2, 
+        if numel(txtin{n})<2||txtin{n}(2)==' '||txtin{n}(2)>='a', txtout=[txtout, ' Last, ',lower(txtin{n}(1)),txtin{n}(2:end)];
+        else txtout=[txtout, ' Last, ',txtin{n}];
+        end
     else txtout=[txtout, ' ',txtin{n}];
     end
 end
@@ -497,29 +570,53 @@ for nline=1:numel(line)
                             citation{end+1}=[sprintf('{%d} ',numel(citations)+1) txt];
                             citations{end+1}=citation{end};
                         end
-                    elseif ~isempty(regexp(key,'^\[VALUE\s\d+ ')) % adds a value specified in the log
-                        fidx=regexprep(key,'^\[VALUE\s(\d+)\s.*\]$','$1');
-                        fname=regexprep(key,'^\[VALUE\s\d+\s(.*)\]$','$1');
-                        fvalue=options.(fname);
-                        if ~isempty(fvalue)&&~ischar(fvalue), fvalue=fvalue(str2double(fidx)); end
-                        if ischar(fvalue), keyout=fvalue;
-                        elseif iscell(fvalue)&&numel(fvalue)==1&&isnumeric(fvalue{1}), keyout=mat2str(fvalue{1});
-                        elseif iscell(fvalue), keyout=char(fvalue);
-                        else keyout=mat2str(fvalue);
+                    elseif ~isempty(regexp(key,'^\[VALUE\s[^\s]+ ')) % adds a value specified in the log
+                        fidx=regexprep(key,'^\[VALUE\s([^\s]+)\s.*\]$','$1');
+                        fname=regexprep(key,'^\[VALUE\s[^\s]+\s(.*)\]$','$1');
+                        if isfield(options,fname)
+                            fvalue=options.(fname);
+                            if ~isempty(fvalue)&&~ischar(fvalue), if str2double(fidx)>0, fvalue=fvalue(str2double(fidx)); end; end
+                            if ischar(fvalue), keyout=fvalue;
+                            elseif iscell(fvalue)&&numel(fvalue)==1&&isnumeric(fvalue{1}), keyout=mat2str(fvalue{1});
+                            elseif iscell(fvalue),
+                                if numel(fvalue)==0, keyout='';
+                                elseif numel(fvalue)==1, keyout=char(fvalue{1});
+                                else keyout=[char(fvalue{1}),sprintf(', %s',fvalue{2:end-1}),' and ',char(fvalue{end})];
+                                end
+                            else keyout=mat2str(fvalue);
+                            end
+                        else
+                            fprintf('warning: %s field not found\n',fname);
                         end
                     elseif ~isempty(regexp(key,'^\[IF ')) % adds conditional to a value in the log
                         fname=regexprep(key,'^\[IF\s([^\s]+)\s.*\]$','$1');
                         fvalue=regexprep(key,'^\[IF\s[^\s]+\s([^\s]+)\s.*\]$','$1');
                         ftext= regexprep(key,'^\[IF\s[^\s]+\s[^\s]+\s(.*)\]$','$1');
-                        if ~isnan(str2double(fvalue)), dokeyout=any(options.(fname)==str2double(fvalue));
-                        else, dokeyout=any(ismember(options.(fname),fvalue));
+                        if ~isfield(options,fname), fprintf('warning: %s field not found\n',fname); dokeyout=false; 
+                        else
+                            if ~isnan(str2double(fvalue)), dokeyout=any(options.(fname)==str2double(fvalue));
+                            else, dokeyout=any(ismember(options.(fname),fvalue));
+                            end
+                            if dokeyout, keyout=ftext; end
                         end
-                        if dokeyout, keyout=ftext; end
+                    elseif ~isempty(regexp(key,'^\[IFNOT ')) % adds conditional to a value in the log
+                        fname=regexprep(key,'^\[IFNOT\s([^\s]+)\s.*\]$','$1');
+                        fvalue=regexprep(key,'^\[IFNOT\s[^\s]+\s([^\s]+)\s.*\]$','$1');
+                        ftext= regexprep(key,'^\[IFNOT\s[^\s]+\s[^\s]+\s(.*)\]$','$1');
+                        if ~isfield(options,fname), fprintf('warning: %s field not found\n',fname); dokeyout=false; 
+                        else
+                            if ~isnan(str2double(fvalue)), dokeyout=~any(options.(fname)==str2double(fvalue));
+                            else, dokeyout=~any(ismember(options.(fname),fvalue));
+                            end
+                            if dokeyout, keyout=ftext; end
+                        end
                     elseif ~isempty(regexp(key,'^\[IFEMPTY ')) % adds conditional to a value in the log
                         fname=regexprep(key,'^\[IFEMPTY\s([^\s]+)\s.*\]$','$1');
                         fvalue=regexprep(key,'^\[IFEMPTY\s[^\s]+\s([^\s]+)\s.*\]$','$1');
                         ftext= regexprep(key,'^\[IFEMPTY\s[^\s]+\s[^\s]+\s(.*)\]$','$1');
-                        dokeyout=isempty(options.(fname))==str2double(fvalue);
+                        if ~isfield(options,fname), fprintf('warning: %s field not found\n',fname); dokeyout=false; 
+                        else dokeyout=isempty(options.(fname))==str2double(fvalue);
+                        end
                         if dokeyout, keyout=ftext; end
                     else fprintf('warning: unrecognized key %s\n',key);
                     end

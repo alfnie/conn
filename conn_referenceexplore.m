@@ -23,7 +23,14 @@ if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log')||isempty
 else
     str1={}; idx1=[];
     for n=1:numel(CONN_x.SetupPreproc.log),
-        if isequal(CONN_x.SetupPreproc.log{n}{1},'timestamp'), str1{end+1}=CONN_x.SetupPreproc.log{n}{2}; idx1(end+1)=n; end
+        if isequal(CONN_x.SetupPreproc.log{n}{1},'timestamp'), 
+            try
+                tidx=find(strcmp(CONN_x.SetupPreproc.log{n}(1:2:end-1),'subjects'),1);
+                str1{end+1}=[CONN_x.SetupPreproc.log{n}{2}, sprintf(' (%d subjects)',numel(CONN_x.SetupPreproc.log{n}{2*tidx}))]; idx1(end+1)=n;
+            catch
+                str1{end+1}=CONN_x.SetupPreproc.log{n}{2}; idx1(end+1)=n;
+            end
+        end
     end
     options.preproclog_text=str1;
     options.preproclog=CONN_x.SetupPreproc.log(idx1);
