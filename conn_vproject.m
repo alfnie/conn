@@ -546,7 +546,8 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 uiwait(thfig);
                 ok=ishandle(thfig);
                 if ~ok, return; end
-                switch(get(ht1,'value'))
+                val1=get(ht1,'value');
+                switch(val1)
                     case 1,
                         SPM=struct; conn_loadmatfile(spmfile,'SPM');
                         X=SPM.xX_multivariate.X; % design
@@ -565,14 +566,19 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                         X(remove,:)=[];
                         validsubjects(remove)=[];
                 end
-                val=get(ht2,'value');
-                if val<=numel(validconditions)
-                    ncond=validconditions(val);
+                val2=get(ht2,'value');
+                if val2<=numel(validconditions)
+                    ncond=validconditions(val2);
                     ccond=1;
                 else
                     tdata=get(ht2,'userdata');
                     ncond=validconditions(tdata.selected);
                     ccond=tdata.contrast;
+                end
+                if nnz(ccond<0)&nnz(X*C'<0), dtxt='average connectivity with cluster contrasted across subjects and conditions (diff r)';
+                elseif nnz(ccond<0), dtxt='average connectivity with cluster contrasted across conditions (diff r)';
+                elseif nnz(X*C'<0), dtxt='average connectivity with cluster contrasted across subjects (diff r)';
+                else dtxt='average connectivity with cluster (r)';
                 end
                 if get(ht0,'value')>1, option_roi=get(ht0,'userdata'); else option_roi=''; end
                 option_display=get(ht3,'value');
@@ -591,23 +597,25 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     filenamein=option_roi;
                     filenameout=conn_prepend('',option_roi,'.SeedtoVoxelMap.nii');
                 end
-                conn_vv2rr(filenamein,'style','vv2rv','validconditions',ncond,'contrastconditions',ccond,'validsubjects',validsubjects,'contrastsubjects',alpha','saveas',filenameout);
+                conn_process('vv2rr',filenamein,'style','vv2rv','validconditions',ncond,'contrastconditions',ccond,'validsubjects',validsubjects,'contrastsubjects',alpha','saveas',filenameout);
                 if ishandle(hmsg), delete(hmsg); end
                 if option_display==1
                     fh=conn_mesh_display(filenameout);
+                    fh('colorbar','rescale','symmetric');
                     fh('colormap','bluewhitered');
                     fh('colormap','darker');
                     fh('brain',2);
                     fh('mask','off');
-                    fh('colorbar','on', 'average connetivity with cluster (r)');
+                    fh('colorbar','on', dtxt);
                     %fh('colorbar','rescale','symmetric');
                     %fh('material',[]);
                     if ~isempty(regexp(OPTION,'print$')), fh('background',.95*[1 1 1]); fh('print',7,options{:}); fh('close'); end
                 else
                     fh=conn_slice_display(filenameout);
+                    fh('colorbar','rescale','symmetric');
                     fh('colormap','bluewhitered');
                     fh('act_transparency',.8);
-                    fh('colorbar','on', 'average connetivity with cluster (r)');
+                    fh('colorbar','on', dtxt);
                     %fh('colorbar','rescale','symmetric');
                     fh('multisliceset',1,16,8);
                     fh('pointer_mm',[0 0 10]);

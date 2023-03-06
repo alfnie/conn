@@ -103,6 +103,7 @@ if ischar(options),
             case 'postmerge',       conn_process([4.5,5,9,15],varargin{:});
             case 'maskserode',      conn_process(33,varargin{:});
             case 'qaplots',         conn_process(32,varargin{:});
+            case 'vv2rr',           conn_process(36,varargin{:});
             case 'nyudataset',      conn_process(34,varargin{:});
             case 'update',          conn gui_setup_saveas; conn_process all; conn save;
             case 'conn',            conn(varargin{:});
@@ -3241,14 +3242,20 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
             conn_disp(['Step ',num2str(sum(options<=13)),'/',num2str(length(options)),': Voxel-to-voxel group-level analysis ',num2str(nanalyses),'/',num2str(length(analyses))]);
             conn_disp('fprintf','      first-level data in %s\n',filepathresults);
         end
+        %nmeasures2validsubjects=validsubjects;
         if nmeasures2>0 && ~isequal(validsubjects,1:CONN_x.Setup.nsubjects),
             if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'),
                 if isfield(CONN_x.pobj,'partition')&&isequal(CONN_x.pobj.partition,[1 1])
                     conn_disp('fprintf','NOTE: single-job, subset of %d subjects only\n',numel(validsubjects));
                 elseif 0,%~dogrouplevel
                     conn_disp('NOTE: performing subject-level analyses only');
+                %elseif isfield(CONN_x.pobj,'partition')&&numel(CONN_x.pobj.partition)==2&&CONN_x.pobj.partition(1)==1
+                %    conn_disp('WARNING: group-level factorization analyses parallelization not yet available. First job will attempt to analyze all subjects instead (run locally or as a single job to avoid this warning). ');
+                %    nmeasures2validsubjects=1:CONN_x.Setup.nsubjects;
+                %else
+                %    conn_disp('WARNING: group-level factorization analyses parallelization not yet available. First job will attempt to analyze all subjects instead (run locally or as a single job to avoid this warning). ');
                 else
-                    conn_disp('WARNING: group-level factorization analyses parallelization not yet available (run locally or as a single job instead). Skipping these analyses');
+                    conn_disp('WARNING: group-level factorization analyses parallelization not yet available. Skipping this analysis (run locally or as a single job to avoid this warning). ');
                     nmeasures2=0;
                 end
             end
@@ -5967,6 +5974,13 @@ if any(options==35)
     conn_setup_preproc(varargin{:});
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CONN_VV2RR
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if any(options==36)
+    conn_vv2rr(varargin{:});
+end
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % additional version-update step
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

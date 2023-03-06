@@ -438,9 +438,10 @@ switch(lower(type)),
 		h.h5=patch(0,0,'k','parent',h.h1); 
 		h.h6=text(0,0,'original','fontsize',8+CONN_gui.font_offset,'parent',h.h1); 
 		h.h7=text(0,0,'after denoising','fontsize',8+CONN_gui.font_offset,'parent',h.h1); 
+        hold(h.h1,'on'); h.h8=plot(nan,nan,'.','color',.75*[1 1 1]);hold(h.h1,'off'); 
         h.mapcolor=mapcolor;
 		set(h.h1,'color',CONN_gui.backgroundcolor,'ytick',[],'xcolor',.5+0.0*([0 0 0]+(mean(CONN_gui.backgroundcolor)<.5)),'ycolor',CONN_gui.backgroundcolor,'visible','off'); 
-        set([h.h1,h.h2,h.h3,h.h4,h.h5,h.h6,h.h7],'visible','off');
+        set([h.h1,h.h2,h.h3,h.h4,h.h5,h.h6,h.h7,h.h8],'visible','off');
 	case 'filesearchprojectload',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
 		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
@@ -1181,6 +1182,7 @@ switch(lower(type)),
             end
         end
 		set([position.h2 position.h6a position.h6b position.h6c],'userdata',data);
+        drawnow
 end
 end
 
@@ -1313,7 +1315,8 @@ switch option
                         v=spm_get_data(CONN_gui.refs.rois.V,pinv(CONN_gui.refs.rois.V(1).mat)*[xyz;1]);
                         if numel(CONN_gui.refs.rois.V)>1, [nill,v]=max(v,[],1); v(~nill)=0; end
                         if numel(v)>1, [v,iv]=max(v); if v>0, v=iv; end; end
-                        if v>0&&isfield(CONN_gui.refs.rois,'labelsidx'), txt0=CONN_gui.refs.rois.labels{CONN_gui.refs.rois.labelsidx(v)};
+                        if v>0&&isfield(CONN_gui.refs.rois,'labelsidx'), 
+                            txt0=CONN_gui.refs.rois.labels{CONN_gui.refs.rois.labelsidx(v)};
                         elseif v>0, txt0=CONN_gui.refs.rois.labels{v};
                         else  txt0='';
                         end
@@ -1336,7 +1339,7 @@ switch option
                         else [txt1,txt2]=feval(data.buttondown.callback,xyz);
                         end
                         str=[reshape(cellstr(txt1),1,[]) str reshape(cellstr(txt2),1,[])];
-                        txt0='';
+                        if ~isempty(txt1)||~isempty(txt2), txt0=''; end
                     end
                     if ~isempty(txt0), str=[{txt0} str]; end
                     strend=str;
@@ -1355,7 +1358,7 @@ switch option
                     %bakpos=newpos;
                     set(htxt,'units','pixels','string',str,'position',newpos);
                     if numel(data.buttondown.matdim.dim)>=5&&any(data.buttondown.matdim.dim(4:5)>1), set(hmark,'xdata',1+mod(pos(1)-1+data.buttondown.matdim.dim(1)*(0:data.buttondown.matdim.dim(5)*data.buttondown.matdim.dim(4)-1),data.buttondown.matdim.dim(1)*data.buttondown.matdim.dim(4)),'ydata',pos(2)+data.buttondown.matdim.dim(2)*floor((0:data.buttondown.matdim.dim(4)*data.buttondown.matdim.dim(5)-1)/data.buttondown.matdim.dim(4)));
-                    else set(hmark,'xdata',[],'ydata',[]);
+                    %else set(hmark,'xdata',[],'ydata',[]);
                     end
                     if isclick&&isfield(data.buttondown,'callbackclick')&&~isempty(data.buttondown.callbackclick)
                         if numel(data.buttondown.matdim.dim)>=5, feval(data.buttondown.callbackclick,xyz,1+floor((posabs(1)-1)/data.buttondown.matdim.dim(1))+data.buttondown.matdim.dim(4)*floor((posabs(2)-1)/data.buttondown.matdim.dim(2)));

@@ -28,6 +28,7 @@ function [Z,zmat,xyz]=conn_vv2rr(ROI,varargin)
 %    Q is voxel weights vector/matrix in 'file' (e.g. input ROI file)
 %    R[subject,condition] is voxel-to-voxel correlation matrix computed during denoising
 %
+%   'validslices'         : list of valid slices (in vvPC* files) [default all] 
 
 % note: call from within conn_process or conn_batch
 

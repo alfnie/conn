@@ -51,14 +51,16 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     CONN_gui.doemphasis3=false;                       % changes fontbackground when hovering over each element
     CONN_gui.isresizing=false;
     CONN_gui.waiticon='watch';                        % 'watch' 'arrow'
-    
+    CONN_gui.iscursordown=false;
+
     conn_font_offset=0;                               % font size offset
     conn_dofont_init=true;
     conn_background=[];
     conn_tooltips=true;                               % enable tool-tips when hovering over each element
+    conn_usehighres=true;                             % use 1/2 mm resolution in background images
     conn_domacGUIbugfix=ismac;                        % troubleshoot popupmenu behavior 
     conn_dounixGUIbugfix=true;
-    conn_checkupdates=true;
+    conn_checkupdates=true;                                     
 
     try
         if ispc, filename=conn_fullfile(getenv('USERPROFILE'),'conn_font_default.dat');
@@ -68,11 +70,12 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
         elseif isdeployed, filename=fullfile(matlabroot,'conn_font_default.dat');
         else filename=fullfile(fileparts(which(mfilename)),'conn_font_default.dat');
         end
-        if conn_existfile(filename), load('-mat',filename,'conn_font_offset','conn_backgroundcolor','conn_backgroundcolorA','conn_background','conn_tooltips','conn_domacGUIbugfix','conn_dounixGUIbugfix','conn_checkupdates'); conn_dofont_init=false; %fprintf('gui settings loaded from %s\n',filename);
+        if conn_existfile(filename), load('-mat',filename,'conn_font_offset','conn_backgroundcolor','conn_backgroundcolorA','conn_background','conn_tooltips','conn_usehighres','conn_domacGUIbugfix','conn_dounixGUIbugfix','conn_checkupdates'); conn_dofont_init=false; %fprintf('gui settings loaded from %s\n',filename);
         end
     end
     CONN_gui.font_offset=conn_font_offset; 
     CONN_gui.tooltips=conn_tooltips;
+    CONN_gui.usehighres=conn_usehighres;
     CONN_gui.domacGUIbugfix=conn_domacGUIbugfix;
     CONN_gui.dounixGUIbugfix=conn_dounixGUIbugfix;
     CONN_gui.isunix=isunix&&~ismac;
@@ -258,16 +261,16 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_settings'},CONN_h.menus.m_setup_07f,CONN_h.menus.m_setup_07j,CONN_h.menus.m_setup_07h,CONN_h.menus.m_setup_07e,{@conn,'gui_setup_qadisplay'},{@conn,'gui_referenceexplore'},{@conn,'gui_setup_logdisplay'},{@conn_print},{@conn,'gui_calculator'}} ); %,{@conn,'gui_setup_qadisplay'}} );
-	CONN_h.menus.m_setup_07d=conn_menumanager([],	'n',8,...
-									'string',{'Support','FAQ','Methods','Tutorials','CONN site','NITRC site','SPM site','Registration'},...
-									'help',{'Search/ask for help at CONN support forum site (browse www.nitrc.org/forum/forum.php?forum_id=1144)','Browse www.alfnie.com/software/conn','Browse www.conn-toolbox.org/fmri-methods','Browse www.conn-toolbox.org/tutorials','Browse www.conn-toolbox.org','Browse www.nitrc.org/projects/conn','Browse www.fil.ion.ucl.ac.uk/spm','Register CONN toolbox software'},...
+	CONN_h.menus.m_setup_07d=conn_menumanager([],	'n',11,...
+									'string',{'Support','Documentation','FAQ','Methods','Tutorials','Citing CONN','Other resources','CONN site','NITRC site','SPM site','Registration'},...
+									'help',{'Search/ask for help at CONN support forum site (browse www.nitrc.org/forum/forum.php?forum_id=1144)','Browse www.conn-toolbox.org/resources/documentation','Browse www.alfnie.com/software/conn','Browse www.conn-toolbox.org/fmri-methods','Browse www.conn-toolbox.org/tutorials','Browse www.conn-toolbox.org/resources/citing-conn','Browse www.conn-toolbox.org/resources','Browse www.conn-toolbox.org','Browse www.nitrc.org/projects/conn','Browse www.fil.ion.ucl.ac.uk/spm','Register CONN toolbox software'},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.29,.955-4.5*.045-3.5*.045-8*.045,.099,8*.045],...
+									'position',[.29,.955-4.5*.045-3.5*.045-11*.045,.099,11*.045],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_help','url','http://www.nitrc.org/forum/forum.php?forum_id=1144'},{@conn,'gui_help','url','http://www.alfnie.com/software/conn'},{@conn,'gui_help','url','http://www.conn-toolbox.org/fmri-methods'},{@conn,'gui_help','url','http://www.conn-toolbox.org/tutorials'},{@conn,'gui_help','url','http://www.conn-toolbox.org'},{@conn,'gui_help','url','http://www.nitrc.org/projects/conn'},{@conn,'gui_help','url','http://www.fil.ion.ucl.ac.uk/spm'},{@conn_register,'forceregister'}} );
+									'callback',{{@conn,'gui_help','url','http://www.nitrc.org/forum/forum.php?forum_id=1144'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources/documentation'},{@conn,'gui_help','url','http://www.alfnie.com/software/conn'},{@conn,'gui_help','url','http://www.conn-toolbox.org/fmri-methods'},{@conn,'gui_help','url','http://www.conn-toolbox.org/tutorials'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources/citing-conn'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources'},{@conn,'gui_help','url','http://www.conn-toolbox.org'},{@conn,'gui_help','url','http://www.nitrc.org/projects/conn'},{@conn,'gui_help','url','http://www.fil.ion.ucl.ac.uk/spm'},{@conn_register,'forceregister'}} );
 	CONN_h.menus.m_setup_07g=conn_menumanager([],	'n',2,...
 									'string',{'Information','Sample data'},...
 									'help',{'Check information about latest CONN workshops','Download and process sample dataset',},...
@@ -840,7 +843,9 @@ else
                 %CONN_gui.parse_html={'',''};
             end
             %if strcmpi(varargin{1},'initfromgui'), CONN_x.Setup.structural{1}{1}=conn_file(fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii')); end
-            filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_trans.nii'); %filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
+            if CONN_gui.usehighres, filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
+            else filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_trans.nii');
+            end
             V=spm_vol(filename);
             CONN_gui.refs.canonical=struct('filename',filename,'V',V,'data',spm_read_vols(V));
             [x,y,z]=ndgrid(1:CONN_gui.refs.canonical.V.dim(1),1:CONN_gui.refs.canonical.V.dim(2),1:CONN_gui.refs.canonical.V.dim(3));
@@ -1478,7 +1483,7 @@ else
             
         case 'gui_workshop',
             place='Boston MGH/HST';
-            dates={'Nov 21 2022','Dec 19 2022','Nov 21 - Dec 19 2022 (5 weeks, one day per week)'};
+            dates={'Nov 20 2023','Dec 18 2023','Nov 20 - Dec 18 2023 (5 weeks, one day per week)'};
             passed=false;
             try, dates(1:2)=cellfun(@datenum,dates(1:2),'uni',0); end
             if now>=dates{1}
@@ -1518,9 +1523,10 @@ else
             dlg.m4A=uicontrol('style','pushbutton','units','norm','position',[.65,.775,.05,.075],'string',' ','backgroundcolor',min(1,CONN_gui.backgroundcolorA),'tooltipstring','Changes the frame color used in the CONN toolbox GUI','callback','color=get(gcbo,''backgroundcolor'');if numel(color)~=3, color=uisetcolor; else color=uisetcolor(color); end; if numel(color)==3, set(gcbo,''backgroundcolor'',color); set(gcbf,''userdata'',1); uiresume(gcbf); end','parent',dlg.fig);
             dlg.m4=uicontrol('style','pushbutton','units','norm','position',[.6,.775,.05,.075],'string',' ','backgroundcolor',min(1,CONN_gui.backgroundcolor),'tooltipstring','Changes the background color used in the CONN toolbox GUI','callback','h=get(gcbo,''userdata''); color=get(gcbo,''backgroundcolor'');if numel(color)~=3, color=uisetcolor; else color=uisetcolor(color); end; if numel(color)==3, set(gcbo,''backgroundcolor'',color); colorA=color;set(h,''backgroundcolor'',colorA); set(gcbf,''userdata'',1); uiresume(gcbf); end','userdata',dlg.m4A,'parent',dlg.fig);
             dlg.m5=uicontrol('style','checkbox','units','norm','position',[.1,.70,.4,.075],'string','Enable help tips','backgroundcolor','w','tooltipstring','Display help information over each clickable/editable field in the GUI','value',CONN_gui.tooltips,'parent',dlg.fig);
+            dlg.m6=uicontrol('style','checkbox','units','norm','position',[.1,.625,.4,.075],'string','Use high-resolution default background images','backgroundcolor','w','tooltipstring','Use high-resolution default background (1mm sampling, slower but more accurate) or low-resolution default background (2mm sampling, faster but less accurate)','value',CONN_gui.usehighres,'parent',dlg.fig);
             %dlg.m6=uicontrol('style','checkbox','units','norm','position',[.1,.625,.8,.075],'string','Troubleshot: use alternative popupmenu type','backgroundcolor','w','tooltipstring','Fixes lightText-on-lightBackground popup menus issue on Mac OS when using dark backgrounds','value',CONN_gui.domacGUIbugfix>0);
             %dlg.m8=uicontrol('style','checkbox','units','norm','position',[.1,.55,.8,.075],'string','Troubleshot: use alternative pushbutton type','backgroundcolor','w','tooltipstring','Fixes fuzzy text on push-buttons','value',CONN_gui.dounixGUIbugfix>0);
-            dlg.m7=uicontrol('style','checkbox','units','norm','position',[.1,.625,.4,.075],'string','Check for updates','backgroundcolor','w','tooltipstring','Checks NITRC site for CONN toolbox updates each time CONN is started and offers to download/install if updates are available','value',CONN_gui.checkupdates,'parent',dlg.fig);
+            dlg.m7=uicontrol('style','checkbox','units','norm','position',[.1,.55,.4,.075],'string','Check for updates','backgroundcolor','w','tooltipstring','Checks NITRC site for CONN toolbox updates each time CONN is started and offers to download/install if updates are available','value',CONN_gui.checkupdates,'parent',dlg.fig);
             uicontrol('style','pushbutton','units','norm','position',[.75,.86,.05,.055],'string','-','backgroundcolor','w','tooltipstring','Decrease font size','callback','hdl=get(gcbo,''userdata''); fontsize=str2num(get(hdl,''string'')); fontsize=max(0,fontsize-1); if numel(fontsize)==1, set(hdl,''string'',num2str(fontsize)); end','userdata',dlg.m1,'parent',dlg.fig);
             uicontrol('style','pushbutton','units','norm','position',[.80,.86,.05,.055],'string','+','backgroundcolor','w','tooltipstring','Increase font size','callback','hdl=get(gcbo,''userdata''); fontsize=str2num(get(hdl,''string'')); fontsize=fontsize+1; if numel(fontsize)==1, set(hdl,''string'',num2str(fontsize)); end','userdata',dlg.m1,'parent',dlg.fig);
             uicontrol('style','pushbutton','units','norm','position',[.75,.785,.05,.055],'string','-','backgroundcolor','w','tooltipstring','Decrease brightness','callback','for hdl=get(gcbo,''userdata''), color=get(hdl,''backgroundcolor''); color=max(0,color*.9); if numel(color)==3, set(hdl,''backgroundcolor'',color); end; end','userdata',[dlg.m4 dlg.m4A],'parent',dlg.fig);
@@ -1542,6 +1548,7 @@ else
             dlg.m11=uicontrol('style','pushbutton','units','norm','position',[.35,.025,.2,.1],'string','Save','tooltipstring','Accept changes','callback','set(gcbf,''userdata'',0); uiresume(gcbf)','parent',dlg.fig);
             dlg.m12=uicontrol('style','pushbutton','units','norm','position',[.55,.025,.2,.1],'string','Exit','callback','delete(gcbf)','parent',dlg.fig);
             dlg.m13=uicontrol('style','pushbutton','units','norm','position',[.75,.025,.2,.1],'string','Apply','tooltipstring','Apply changes','callback','set(gcbf,''userdata'',1); uiresume(gcbf)','parent',dlg.fig);
+            usehighresbak=CONN_gui.usehighres;
             hmsg=[];
             while 1
                 if numel(varargin)>1&&ischar(varargin{2})
@@ -1572,6 +1579,7 @@ else
                     set(0,{'defaultuicontrolfontsize','defaulttextfontsize','defaultaxesfontsize'},repmat({8+CONN_gui.font_offset},1,3));
                 end
                 CONN_gui.tooltips=get(dlg.m5,'value');
+                CONN_gui.usehighres=get(dlg.m6,'value');
                 %CONN_gui.domacGUIbugfix=get(dlg.m6,'value');
                 %CONN_gui.dounixGUIbugfix=get(dlg.m8,'value');
                 CONN_gui.checkupdates=get(dlg.m7,'value');
@@ -1609,6 +1617,14 @@ else
                         [x,y,z]=ndgrid(1:CONN_gui.refs.canonical.V.dim(1),1:CONN_gui.refs.canonical.V.dim(2),1:CONN_gui.refs.canonical.V.dim(3));
                         CONN_gui.refs.canonical.xyz=CONN_gui.refs.canonical.V.mat*[x(:),y(:),z(:),ones(numel(z),1)]';
                     end
+                elseif CONN_gui.usehighres~=usehighresbak;
+                    if CONN_gui.usehighres, filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
+                    else filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_trans.nii');
+                    end
+                    V=spm_vol(filename);
+                    CONN_gui.refs.canonical=struct('filename',filename,'V',V,'data',spm_read_vols(V));
+                    [x,y,z]=ndgrid(1:CONN_gui.refs.canonical.V.dim(1),1:CONN_gui.refs.canonical.V.dim(2),1:CONN_gui.refs.canonical.V.dim(3));
+                    CONN_gui.refs.canonical.xyz=CONN_gui.refs.canonical.V.mat*[x(:),y(:),z(:),ones(numel(z),1)]';
                 end
                 filename=get(dlg.m3,'tooltipstring');
                 if ~strcmp(filename,CONN_gui.refs.rois.filename)
@@ -1649,6 +1665,7 @@ else
                 conn_backgroundcolorA=CONN_gui.backgroundcolorA;
                 conn_background=CONN_gui.background;
                 conn_tooltips=CONN_gui.tooltips;
+                conn_usehighres=CONN_gui.usehighres;
                 conn_domacGUIbugfix=CONN_gui.domacGUIbugfix;
                 conn_dounixGUIbugfix=CONN_gui.dounixGUIbugfix;
                 conn_checkupdates=CONN_gui.checkupdates;
@@ -1664,12 +1681,12 @@ else
                         end
                     end
                     try, 
-                        save(filename,'conn_font_offset','conn_backgroundcolor','conn_backgroundcolorA','conn_background','conn_tooltips','conn_domacGUIbugfix','conn_dounixGUIbugfix','conn_checkupdates','-mat');
+                        save(filename,'conn_font_offset','conn_backgroundcolor','conn_backgroundcolorA','conn_background','conn_tooltips','conn_usehighres','conn_domacGUIbugfix','conn_dounixGUIbugfix','conn_checkupdates','-mat');
                         conn_disp('fprintf','Graphic settings saved to file %s\n',filename);
                     catch
                         conn_disp('fprintf','unable to save file %s\n',filename);
                         try, 
-                            save(fullfile(pwd,filename),'conn_font_offset','conn_backgroundcolor','conn_backgroundcolorA','conn_background','conn_tooltips','conn_domacGUIbugfix','conn_dounixGUIbugfix','conn_checkupdates','-mat'); 
+                            save(fullfile(pwd,filename),'conn_font_offset','conn_backgroundcolor','conn_backgroundcolorA','conn_background','conn_tooltips','conn_usehighres','conn_domacGUIbugfix','conn_dounixGUIbugfix','conn_checkupdates','-mat'); 
                             conn_disp('fprintf','Graphic settings saved to file %s\n',fullfile(pwd,filename));
                         end
                     end

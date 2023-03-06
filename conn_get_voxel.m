@@ -11,6 +11,10 @@ if isfield(V,'softlink')&&~isempty(V.softlink),
 else
     matcfilename=[V.fname,'c'];
 end
+if numel(nv)==3 % ijk to nv
+    nv=V.voxelsinv(max(1,min(size(V.voxelsinv,1),round(nv(1)))),max(1,min(size(V.voxelsinv,1),round(nv(2)))),max(1,min(size(V.voxelsinv,1),round(nv(3)))));
+end
+if nv==0, x=[]; return; end
 handle=fopen(matcfilename,'r+b');
 ok=fseek(handle,4*((nv-1)*V.size.Nt),-1);
 if ok<0 error('error while writing to file'); end 

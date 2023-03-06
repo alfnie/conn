@@ -45,7 +45,10 @@ UIXCONTROLTOOLTIP=false;
 if ischar(handle),
     handle=lower(handle);
 	switch(handle),
+        case 'cursordown'
+            CONN_gui.iscursordown=true;
 		case {'cursormove','cursorup','cursorout'}
+            if strcmp(handle,'cursorup'), CONN_gui.iscursordown=false; end
             if ~isequal(gcf,CONN_MM.gcf), return; end
             active=find(CONN_MM.ACTIVE); if isempty(active), return; end
             if CONN_MM.private.busy&&strcmp(handle,'cursormove'), CONN_MM.private.busy=mod(CONN_MM.private.busy+1,10); return; end
@@ -281,7 +284,7 @@ if ischar(handle),
             CONN_MM.onregioninside=0;
             CONN_MM.restpos=[nan nan];
             CONN_MM.resttime=nan;
-            set(CONN_MM.gcf,'windowbuttonmotionfcn','conn_menumanager((''cursormove''));','windowbuttonupfcn','conn_menumanager(''cursorup'');');
+            set(CONN_MM.gcf,'windowbuttonmotionfcn','conn_menumanager((''cursormove''));','windowbuttonupfcn','conn_menumanager(''cursorup'');','windowbuttondownfcn','conn_menumanager(''cursordown'');');
 		case 'off',
             for n0=find(CONN_MM.ACTIVE), conn_menumanager(n0,'off',1); end
         	set(CONN_MM.gcf,'windowbuttonmotionfcn','','windowbuttonupfcn','');

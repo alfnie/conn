@@ -1545,7 +1545,9 @@ if ishandle(hmsg), delete(hmsg); end
                     else answ=conn_menu_inputdlg({'Enter new colorbar limits:'},'Rescale colorbar',1,{mat2str(Vrange([1 end]),6)});
                         if ~isempty(answ), answ=str2num(answ{1}); end
                     end
-                    if isequal(answ,'symmetric'), answ=max(abs(state.Vrange))*[-1 1]; end
+                    if isequal(answ,'symmetricmin'), answ=min(abs(state.Vrange(state.Vrange~=0)))*[-1 1];
+                    elseif isequal(answ,'symmetric')||isequal(answ,'symmetricmax'), answ=max(abs(state.Vrange))*[-1 1]; 
+                    end
                     if ~isempty(answ)&&numel(answ)==2
                         if isempty(state.Prange), 
                             state.Vrange([1 end])=answ;
