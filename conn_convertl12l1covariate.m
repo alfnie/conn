@@ -37,6 +37,7 @@ function ocov=conn_convertl12l1covariate(option,varargin)
 %           icov:  name of original (unthresholded) covariate ['QC_timeseries']
 %           thr:   thresholds [5 0.9] (e.g. when using ART QC_timeseries input covariate: conservative=[3 0.5]; intermediate=[5 0.9]; liberal=[9 2])
 %           ext:   label a total of 2*ext outliers around each identified scan-to-scan suprathreshold value [1]
+%                   (enter two values before/after for asymmetric windows, e.g. [1 3])
 %
 %  conn_convertl12l1covariate('split' [,icov,ocov])
 %    Splits one multiple-dimensions covariate into multiple single-dimension covariates

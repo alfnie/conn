@@ -348,10 +348,22 @@ ________________________________________________________________________________
      Added ability to model acquisition/scan time for sparse-acquisition task-activation analyses in EL/FL modules
      Simplified Setup.functional gui by moving secondary-datasets into a new "Setup.other" tab
      Added new conn_table_display for contingency data and ROI-to-ROI connectivity displays
-
+     Added .tsv outputs to mask creation in results explorer window, saving anatomical information about the resulting suprathreshold clusters in structured format
+     Changed curvature background displayed on 3D surfaces to reflect ICBM MNI 2009b
+     Added option for asymmetric windows around outliers in the 'scrubbing' conn_convertl12l1covariate.m
+     Added BlueWhiteRed colormap option for 3D displays
+     Added affine regularization option Setup.preprocessing.affreg to all segmentation&normalization preprocessing steps
+     Added QC_PVS (percent of valid scans), QC_NORM_func (percent match of white matter functional normalization mask to template), QC_NORM_struct (percent match of white matter structural normalization mask to template) quality control measures
+     Fix issue when connecting to a remote server that does not support SCP (switches to using SSH for transfering text files)
+     Added option to specify Setup.preprocessing.warpreg parameters for normalization preprocessing steps
+     Added 'export raw data' option to ROI display in results explorer GUI
+     Added Setup.preprocessing.tpm_overwrite option to preprocessing lesion normalization procedure, in order to allow several sequential iterations improving the TPM+mask templates 
+     Added ClosenessCentrality (inverse average path length), EigenvectorCentrality (eigenvector of largest eigenvalue of adjacency matrix), and Eccentricity (maximum path length) measures to graph analyses.
+     Added conjunction_threshold option to rex for ROI conjunctions with localizer maps
      Added 'network display' button to voxel-level results explorer window, showing for each significant cluster the connectivity between that cluster and the rest of the brain (and additional options)
-     Added 'Write Methods' functionality (see Tools.WriteMethod) creating automated text, distributed under a public domain dedication license, describing all the specific preprocessing, denoising, 1st- and 2nd- level analyses steps used in your individual CONN project.
+     Added 'Write Methods' functionality (see Tools.WriteMethod and conn_reference.m) creating automated text, distributed under a public domain dedication license, describing all the specific preprocessing, denoising, 1st- and 2nd- level analyses steps used in your individual CONN project.
      Added new 'group-MVPA.Summary' tab displaying entire voxel-to-voxel connectome (like FSL's Instacorr but combining the data across all subjects in your dataset), as well as visual descriptions of each individual fc-MVPA eigenpattern characterizing the observed variability in connectivity maps across subjects and conditions.  
+     Updated manual
 
 
 
