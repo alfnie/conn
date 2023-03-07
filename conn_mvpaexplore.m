@@ -313,7 +313,7 @@ fh=@conn_mvpaexplore_update;
                         Z_rangeHigh=Z_range(Z_range>0);
                         Z_pdfHigh=Z_pdf(Z_range>0);
                         conn_menu('updatehist',ht21,{thrZ+[Z_rangeLow(1),Z_rangeLow',Z_rangeLow(end),0,Z_rangeHigh(1),Z_rangeHigh',Z_rangeHigh(end)],[0,0*Z_pdfLow',0,0,0,Z_pdfHigh',0],[0,Z_pdfLow',0,0,0,0*Z_pdfHigh',0]});
-                        sz=sort(Z(:));set(ht21.h8,'xdata',sz,'ydata',mod(sz,.05*interp1(Z_range,Z_pdf,sz-thrZ)),'visible','on');
+                        sz=sort(Z(:));set(ht21.h8,'xdata',sz,'ydata',mod(sz,.10*interp1(Z_range,Z_pdf,sz-thrZ)),'visible','on');
                         set(ht21.h6,'string','Low-scoring subjects ','horizontalalignment','right');
                         set(ht21.h7,'string','High-scoring subjects','horizontalalignment','left');
                         set(ht21.h2,'visible','off');

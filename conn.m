@@ -104,6 +104,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     cmapB=max(0,min(1, repmat((2*(CONN_gui.backgroundcolor<.5)-1).*max(CONN_gui.backgroundcolor ,1-CONN_gui.backgroundcolor),128,1).*cmap+repmat(CONN_gui.backgroundcolor,128,1) ));
     cmapA=max(0,min(1, repmat((2*(CONN_gui.backgroundcolorA<.5)-1).*max(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA),128,1).*cmap+repmat(CONN_gui.backgroundcolorA,128,1) ));
     jetmap=jet(192); jetmap=jetmap(32+(1:128),:); %[linspace(.1,1,64)',zeros(64,2)];jetmap=[flipud(fliplr(jetmap));jetmap];
+    %jetmap=[zeros(1,64/2) linspace(0,1,64/2) ones(1,64/2) linspace(1,.5,64/2); linspace(0,1,64) linspace(1,0,64/2) zeros(1,64/2); linspace(.5,1,64/2) ones(1,64/2) linspace(1,0,64/2) zeros(1,64/2)]'; jetmap=repmat(abs(linspace(-1,1,2*64)'),1,3).*jetmap+(1-repmat(abs(linspace(-1,1,2*64)'),1,3))*1;
     CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,1-CONN_gui.backgroundcolor) ));
     CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA) ));
     h0=get(0,'screensize'); h0=h0(1,3:4)-h0(1,1:2)+1; h0(1)=min(h0(1),2*h0(2)); %h0=h0/max(1,max(abs(h0))/2000);
@@ -1596,6 +1597,7 @@ else
                 cmapB=max(0,min(1, repmat((2*(CONN_gui.backgroundcolor<.5)-1).*max(CONN_gui.backgroundcolor ,1-CONN_gui.backgroundcolor),128,1).*cmap+repmat(CONN_gui.backgroundcolor,128,1) ));
                 cmapA=max(0,min(1, repmat((2*(CONN_gui.backgroundcolorA<.5)-1).*max(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA),128,1).*cmap+repmat(CONN_gui.backgroundcolorA,128,1) ));
                 jetmap=jet(192); jetmap=jetmap(32+(1:128),:); %jetmap=jet(128); %[linspace(.1,1,64)',zeros(64,2)];jetmap=[flipud(fliplr(jetmap));jetmap];
+                %jetmap=[zeros(1,64/2) linspace(0,1,64/2) ones(1,64/2) linspace(1,.5,64/2); linspace(0,1,64) linspace(1,0,64/2) zeros(1,64/2); linspace(.5,1,64/2) ones(1,64/2) linspace(1,0,64/2) zeros(1,64/2)]'; jetmap=repmat(abs(linspace(-1,1,2*64)'),1,3).*jetmap+(1-repmat(abs(linspace(-1,1,2*64)'),1,3))*1;
                 CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,1-CONN_gui.backgroundcolor) ));
                 CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA) ));
                 set(CONN_h.screen.hfig,'color',CONN_gui.backgroundcolor,'colormap',CONN_h.screen.colormap);

@@ -349,6 +349,9 @@ ________________________________________________________________________________
      Simplified Setup.functional gui by moving secondary-datasets into a new "Setup.other" tab
      Added new conn_table_display for contingency data and ROI-to-ROI connectivity displays
 
+     Added 'network display' button to voxel-level results explorer window, showing for each significant cluster the connectivity between that cluster and the rest of the brain (and additional options)
+     Added 'Write Methods' functionality (see Tools.WriteMethod) creating automated text, distributed under a public domain dedication license, describing all the specific preprocessing, denoising, 1st- and 2nd- level analyses steps used in your individual CONN project.
+     Added new 'group-MVPA.Summary' tab displaying entire voxel-to-voxel connectome (like FSL's Instacorr but combining the data across all subjects in your dataset), as well as visual descriptions of each individual fc-MVPA eigenpattern characterizing the observed variability in connectivity maps across subjects and conditions.  
 
 
 

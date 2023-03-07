@@ -57,7 +57,7 @@ Residual inter-scan motion (also computed after outlier removal) was [VALUE 1 QC
 #CITATION4 Friston, K. J., Williams, S., Howard, R., Frackowiak, R. S., & Turner, R. (1996). Movement-related effects in fMRI time-series. Magnetic resonance in medicine, 35(3), 346-355.
 #CITATION5 Power, J. D., Mitra, A., Laumann, T. O., Snyder, A. Z., Schlaggar, B. L., & Petersen, S. E. (2014). Methods to detect, characterize, and remove motion artifact in resting state fMRI. Neuroimage, 84, 320-341.
 #CITATION6 Behzadi, Y., Restom, K., Liau, J., & Liu, T. T. (2007). A component based noise correction method (CompCor) for BOLD and perfusion based fMRI. Neuroimage, 37(1), 90-101.
-#CITATION7 Nieto-Castanon, A. (2022). Preparing fMRI Data for Statistical Analysis. In M. Filippi (Ed.). fMRI techniques and protocols. Springer. doi:10.48550/arXiv.2210.13564
+#CITATION7 Nieto-Castanon, A. (submitted). Preparing fMRI Data for Statistical Analysis. In M. Filippi (Ed.). fMRI techniques and protocols. Springer. doi:10.48550/arXiv.2210.13564
 #CITATION8 Hallquist, M. N., Hwang, K., & Luna, B. (2013). The nuisance of nuisance regression: spectral misspecification in a common approach to resting-state fMRI preprocessing reintroduces noise and obscures functional connectivity. Neuroimage, 82, 208-225.
 
 
