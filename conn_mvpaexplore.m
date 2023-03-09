@@ -54,9 +54,7 @@ nslice=round(iV0mat(3,:)*[XYZ(:);1]);
 Sslice=round(imat(3,:)*[XYZ(:);1]);
 Si1=[];
 Si2=[];
-tstr=num2str(icondition(ncondition),'%03d');
-filename_B1=arrayfun(@(nsub)fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'.mat']), validsubjects,'uni',0);
-V1=conn_vol(filename_B1{1});
+[filename_B1,V1]=conn_mvpaexplore_getinfo(0,filepath,icondition(ncondition),validsubjects);
 
 %filename{nsub}=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(CONN_h.menus.m_results.icondition(nconditions(ncondition)),'%03d'),'_Measure',num2str(CONN_h.menus.m_results.outcomeisource(nsources(nsource)),'%03d'),'_Component',num2str(CONN_h.menus.m_results.outcomencompsource(nsources(nsource)),'%03d'),'.nii']);
 
@@ -166,12 +164,12 @@ fh=@conn_mvpaexplore_update;
                         filenameout=fullfile(filepathresults,sprintf('connGUIimage%d.nii',n1));
                         w=zeros(V0.matdim.dim);
                         nv=iV0mat*[XYZ;1];
-                        w(max(1,min(size(V0.voxelsinv,1),round(nv(1)))),max(1,min(size(V0.voxelsinv,1),round(nv(2)))),max(1,min(size(V0.voxelsinv,1),round(nv(3)))))=1;
+                        w(max(1,min(V0.matdim.dim(1),round(nv(1)))),max(1,min(V0.matdim.dim(2),round(nv(2)))),max(1,min(V0.matdim.dim(3),round(nv(3)))))=1;
                         conn_process('vv2rr',w(:)','style','vv2rv','saveas',filenameout,'validsubjects',validsubjects,'contrastsubjects',W(n1,:),'validconditions',ncondition,'contrastconditions',1);
                         tfh=conn_mesh_display(filenameout);
-                        try, tfh('colorbar','rescale',str2num(get(ht4.h9,'string'))*[-1 1]); end
                         tfh('colormap','bluewhitered');
                         tfh('colormap','darker');
+                        try, tfh('colorbar','rescale',str2num(get(ht4.h9,'string'))*[-1 1]); end
                         tfh('brain',2);
                         tfh('mask','off');
                         tfh('colorbar','on', txtmethod);
@@ -186,7 +184,7 @@ fh=@conn_mvpaexplore_update;
                         filenameout=fullfile(filepathresults,sprintf('connGUIimage%d.nii',n1));
                         w=zeros(V0.matdim.dim);
                         nv=iV0mat*[XYZ;1];
-                        w(max(1,min(size(V0.voxelsinv,1),round(nv(1)))),max(1,min(size(V0.voxelsinv,1),round(nv(2)))),max(1,min(size(V0.voxelsinv,1),round(nv(3)))))=1;
+                        w(max(1,min(V0.matdim.dim(1),round(nv(1)))),max(1,min(V0.matdim.dim(2),round(nv(2)))),max(1,min(V0.matdim.dim(3),round(nv(3)))))=1;
                         conn_process('vv2rr',w(:)','style','vv2rv','saveas',filenameout,'validsubjects',validsubjects,'contrastsubjects',[],'validconditions',ncondition,'contrastconditions',1);
                     end
                     if ishandle(hm), delete(hm); end
@@ -202,7 +200,7 @@ fh=@conn_mvpaexplore_update;
                 end
                 if any(method==6)
                     covselected=listdlg('liststring',CONN_x.Setup.l2covariates.names(1:end-1),'selectionmode','multiple','initialvalue',covselected,'promptstring','Select subject-effects:','ListSize',[300 200]);
-                    if isempty(covselected), Wcustom=zeros(1,numel(X));
+                    if isempty(covselected), Wcustom=zeros(1,numel(validsubjects));
                     else
                         if numel(covselected)==1, conselected=1;
                         else
@@ -214,7 +212,7 @@ fh=@conn_mvpaexplore_update;
                     Xcustom=cell2mat(arrayfun(@(n)cell2mat(CONN_x.Setup.l2covariates.values{n}(covselected)),reshape(validsubjects,[],1),'uni',0));
                     Icustom=~(all(Xcustom==0,2)|any(isnan(Xcustom),2));
                     Xcustom(~Icustom,:)=[];
-                    Wcustom=zeros(1,numel(X));
+                    Wcustom=zeros(1,numel(validsubjects));
                     Wcustom(Icustom')=conselected(:)'*inv(Xcustom'*Xcustom)*Xcustom';
                 end                
                 txtmethod='';
@@ -231,10 +229,11 @@ fh=@conn_mvpaexplore_update;
                 Y={};S={};
             case 'conditions'
                 ncondition=validconditions(get(ht6,'value'));
-                tstr=num2str(icondition(ncondition),'%03d');
-                filename_B1=arrayfun(@(nsub)fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'.mat']), validsubjects,'uni',0);
+                [filename_B1,V1]=conn_mvpaexplore_getinfo(0,filepath,icondition(ncondition),validsubjects);
+%                 tstr=num2str(icondition(ncondition),'%03d');
+%                 filename_B1=arrayfun(@(nsub)fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'.mat']), validsubjects,'uni',0);
                 nv=iV0mat*[XYZ;1];
-                [X,Y,IDX,V1]=conn_mvpaexplore_getinfo(1,filename_B1,nslice,nv);
+                [X,Y,IDX]=conn_mvpaexplore_getinfo(1,filename_B1,V1,nslice,nv);
                 filename_S1={};
         end
         if isempty(X)
@@ -277,9 +276,10 @@ fh=@conn_mvpaexplore_update;
         for nmethod=1:numel(method)
             switch(method(nmethod))
                 case 1, % average across all subjects
-                    w=ones(1,numel(X))/numel(X);
+                    w=ones(1,numel(validsubjects))/numel(validsubjects);
                 case {2,3,4,5}, % low/high-score subjects
                     if isempty(filename_S1)
+                        tstr=num2str(icondition(ncondition),'%03d');
                         for isub=1:numel(validsubjects)
                             nsub=validsubjects(isub);
                             filename_S1{isub}=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'_Measure',num2str(outcomeisource(neig),'%03d'),'_Component',num2str(outcomencompsource(neig),'%03d'),'.nii']);
@@ -290,7 +290,7 @@ fh=@conn_mvpaexplore_update;
                         xybak=[];
                     end
                     if isempty(Z)
-                        Z=spm_get_data(filename_S1vol,filename_S1imat*[XYZ;1]);
+                        Z=conn_fileutils('spm_get_data',filename_S1vol,filename_S1imat*[XYZ;1]);
                         Z=Z/max(eps,std(Z));
                         thrZ=median(Z);
                         [Z_pdf,Z_range]=conn_menu_plothist(Z(:)-thrZ,.25);
@@ -309,7 +309,7 @@ fh=@conn_mvpaexplore_update;
                     elseif method(nmethod)==4,  w=[reshape((Z<=thrZ)/max(eps,nnz(Z<=thrZ)),1,[]);reshape((Z>thrZ)/max(eps,nnz(Z>thrZ)),1,[])]; % low and high
                     else w=reshape((Z>thrZ)/max(eps,nnz(Z>thrZ))-(Z<=thrZ)/max(eps,nnz(Z<=thrZ)),1,[]); % high - low
                     end
-                    %xy=xy/numel(X);
+                    %xy=xy/numel(validsubjects);
                     %if ~isempty(xybak)&&xybak(:)'*xy(:)<0, xy=-xy; end
                 case 6
                     w=Wcustom;
@@ -317,10 +317,7 @@ fh=@conn_mvpaexplore_update;
             W=cat(1,W,w);
         end
         xybak=xy;
-        xy=0;
-        for n1=1:numel(X)
-            if any(W(:,n1)~=0)&&~isempty(X{n1}), xy=xy+W(:,n1)*X{n1}'*Y{n1}; end
-        end
+        xy=conn_mvpaexplore_getinfo(4,X,Y,W);
         if size(xy,1)==1
             xyMap=zeros(V0.matdim.dim(1:2));
             xyMask=zeros(V0.matdim.dim(1:2));
