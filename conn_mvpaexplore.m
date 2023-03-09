@@ -167,9 +167,8 @@ fh=@conn_mvpaexplore_update;
                         w(max(1,min(V0.matdim.dim(1),round(nv(1)))),max(1,min(V0.matdim.dim(2),round(nv(2)))),max(1,min(V0.matdim.dim(3),round(nv(3)))))=1;
                         conn_process('vv2rr',w(:)','style','vv2rv','saveas',filenameout,'validsubjects',validsubjects,'contrastsubjects',W(n1,:),'validconditions',ncondition,'contrastconditions',1);
                         tfh=conn_mesh_display(filenameout);
-                        tfh('colormap','bluewhitered');
-                        tfh('colormap','darker');
                         try, tfh('colorbar','rescale',str2num(get(ht4.h9,'string'))*[-1 1]); end
+                        tfh('colormap','bluewhitered');
                         tfh('brain',2);
                         tfh('mask','off');
                         tfh('colorbar','on', txtmethod);

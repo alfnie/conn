@@ -7,7 +7,7 @@ switch(option)
         validsubjects=varargin{3};
         if any(conn_server('util_isremotefile',filepath))
             filepath=conn_server('util_localfile',filepath);
-            [varargout{1:nargout}]=conn_server('run_keepas','filename_B1_V1',mfilename,option,filepath,iconditon,validsubjects);
+            [varargout{1:nargout}]=conn_server('run_keepas','filename_B1_V1',mfilename,option,filepath,icondition,validsubjects);
         else
             tstr=num2str(icondition,'%03d');
             filename_B1=arrayfun(@(nsub)fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'.mat']), validsubjects,'uni',0);
@@ -24,7 +24,7 @@ switch(option)
         nslice=varargin{3};
         nv=varargin{4};
         if ~isempty(filename_B1)&&any(conn_server('util_isremotevar',filename_B1))
-            [varargout{1:nargout}]=conn_server('run_keepas','X_Y_IDX',mfilename,option,filename_B1,nslice,nv); 
+            [varargout{1:nargout}]=conn_server('run_keepas','X_Y_IDX',mfilename,option,filename_B1,V1,nslice,nv); 
             if nargout>2, varargout{3}=conn_server('run',varargout{3}); end % note: passes IDX directly instead of as a link
         else
             X={};
