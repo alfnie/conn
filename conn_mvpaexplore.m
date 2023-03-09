@@ -233,30 +233,16 @@ fh=@conn_mvpaexplore_update;
                 ncondition=validconditions(get(ht6,'value'));
                 tstr=num2str(icondition(ncondition),'%03d');
                 filename_B1=arrayfun(@(nsub)fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'.mat']), validsubjects,'uni',0);
-                V1=conn_vol(filename_B1{1});
                 nv=iV0mat*[XYZ;1];
-                for n1=1:numel(filename_B1),
-                    y1=V1;
-                    y1.fname=filename_B1{n1};
-                    [Y{n1},IDX]=conn_get_slice(y1,nslice);
-                    X{n1}=conn_get_voxel(y1,nv(1:3));
-                end
+                [X,Y,IDX,V1]=conn_mvpaexplore_getinfo(1,filename_B1,nslice,nv);
                 filename_S1={};
         end
         if isempty(X)
             nv=iV0mat*[XYZ;1];
-            for n1=1:numel(filename_B1),
-                y1=V1;
-                y1.fname=filename_B1{n1};
-                X{n1}=conn_get_voxel(y1,nv(1:3));
-            end
+            [X]=conn_mvpaexplore_getinfo(2,filename_B1,V1,nv);
         end
         if isempty(Y)
-            for n1=1:numel(filename_B1),
-                y1=V1;
-                y1.fname=filename_B1{n1};
-                [Y{n1},IDX]=conn_get_slice(y1,nslice);
-            end
+            [Y,IDX]=conn_mvpaexplore_getinfo(3,filename_B1,V1,nslice);
         end
         involrefspace=true;
         if isempty(S)
@@ -298,7 +284,7 @@ fh=@conn_mvpaexplore_update;
                             nsub=validsubjects(isub);
                             filename_S1{isub}=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.vvAnalysis).name,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'_Measure',num2str(outcomeisource(neig),'%03d'),'_Component',num2str(outcomencompsource(neig),'%03d'),'.nii']);
                         end
-                        filename_S1vol=spm_vol(char(filename_S1));
+                        filename_S1vol=conn_fileutils('spm_vol',char(filename_S1));
                         filename_S1imat=inv(filename_S1vol(1).mat);
                         Z=[];
                         xybak=[];

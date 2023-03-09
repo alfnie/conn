@@ -15,6 +15,7 @@ if nargin<1||isempty(conn_x),
         CONN_x.folders.data=fullfile(path,name,'data'); 
         CONN_x.folders.bids=fullfile(path,name,'data','BIDS'); 
         CONN_x.folders.qa=fullfile(path,name,'results','qa'); 
+        CONN_x.folders.methods=fullfile(path,name,'results','methods'); 
         CONN_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); 
         CONN_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); 
         CONN_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); 
@@ -23,6 +24,7 @@ if nargin<1||isempty(conn_x),
             if ~conn_existfile(CONN_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
             if ~conn_existfile(CONN_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
             if ~conn_existfile(CONN_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
+            if ~conn_existfile(CONN_x.folders.methods,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'methods'); end
             if ~conn_existfile(CONN_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
             if ~conn_existfile(CONN_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
             if ~conn_existfile(CONN_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end
@@ -265,6 +267,7 @@ else
         conn_x.folders.data=fullfile(path,name,'data'); 
         conn_x.folders.bids=fullfile(path,name,'data','BIDS'); 
         conn_x.folders.qa=fullfile(path,name,'results','qa'); 
+        conn_x.folders.methods=fullfile(path,name,'results','methods'); 
         conn_x.folders.bookmarks=fullfile(path,name,'results','bookmarks'); 
         conn_x.folders.preprocessing=fullfile(path,name,'results','preprocessing'); 
         conn_x.folders.firstlevel=fullfile(path,name,'results','firstlevel'); 
@@ -273,6 +276,7 @@ else
             if ~conn_existfile(conn_x.folders.data,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); end
             if ~conn_existfile(conn_x.folders.bids,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'data'); conn_fileutils('mkdir',fullfile(path,name,'data'),'BIDS'); end
             if ~conn_existfile(conn_x.folders.qa,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'qa'); end
+            if ~conn_existfile(conn_x.folders.methods,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'methods'); end
             if ~conn_existfile(conn_x.folders.bookmarks,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'bookmarks'); end
             if ~conn_existfile(conn_x.folders.preprocessing,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'preprocessing'); end
             if ~conn_existfile(conn_x.folders.firstlevel,true), conn_fileutils('mkdir',path,name);conn_fileutils('mkdir',fullfile(path,name),'results'); conn_fileutils('mkdir',fullfile(path,name,'results'),'firstlevel'); end

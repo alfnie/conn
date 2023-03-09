@@ -182,6 +182,7 @@ for ivalidcondition=1:numel(options.validconditions),
 end
 if strcmp(options.style,'vv2rv'), Z = permute(Z, [2,3,4,1,5,6]); end  % dim1 dim2 dim3 rois contrastsubjects contrastconditions 
 if ~isempty(options.saveas)
+    options.saveas=conn_server('util_localfile',options.saveas);
     switch(options.style)
         case 'vv2rr'
             labels={}; for n1=1:size(C,1), for n2=1:size(D,1), labels{n1,n2}=sprintf('subject-contrast #%d condition-contrast #%d',n1,n2); end; end

@@ -16,7 +16,10 @@ if isfield(CONN_gui,'font_offset'),font_offset=CONN_gui.font_offset; else font_o
 hfig=[];
 fh=@(varargin)conn_referenceexplore_update([],[],varargin{:});
 
-if isempty(guifields.fileout), guifields.fileout=conn_fullfile('referencesfile.html'); end
+if isempty(guifields.fileout), 
+    guifields.fileout=conn_fullfile('referencesfile.html');
+    try, if ~CONN_gui.isremote, guifields.fileout=conn_fullfile(CONN_x.folders.methods,['referencesfile_',datestr(now,'yyyy_mm_dd'),'.html']); end; end
+end
 if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log')||isempty(CONN_x.SetupPreproc.log), 
     options.preproclog_text={};
     options.preproclog={};
@@ -124,6 +127,7 @@ dlg.handles.txt3=uicontrol('style','text','units','norm','position',[.775,.88,.2
 dlg.handles.secondlevelinfo=uicontrol('style','popupmenu','units','norm','position',[.775,.75,.20,.13],'max',1,'backgroundcolor',bgc,'foregroundcolor','k','string',options.secondlevel_txt{guifields.secondleveltype},'value',guifields.secondlevelinfo,'tooltipstring','Select inferential method / false-positive control option used in second-level analyses','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'secondlevel'},'interruptible','off');
 
 jBrowserPanel = javaObjectEDT(com.mathworks.mlwidgets.help.LightweightHelpPanel);
+warning('off','MATLAB:ui:javacomponent:FunctionToBeRemoved');
 [dlg.handles.html, dlg.handles.text] = javacomponent(jBrowserPanel, [], gcf);
 set(dlg.handles.text, 'Units','norm','Position',[.025,.05,.95,.625]);
 uicontrol('style','pushbutton','units','norm','position',[.575,.0,.20,.04],'string','Export to Word','fontsize',9+font_offset,'horizontalalignment','center','callback',{@conn_referenceexplore_export,'word'});

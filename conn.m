@@ -1422,8 +1422,8 @@ else
             str{end+1}=sprintf('Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press');
             str{end+1}='';
             str{end+1}=sprintf('to cite this specific release/version of CONN:');
-            str{end+1}=sprintf('Nieto-Castanon, A., and Whitfield-Gabrieli, S. (2021). CONN functional connectivity toolbox: ');
-            str{end+1}=sprintf('RRID SCR_009550, version 21. Hilbert Press. doi:10.56441/hilbertpress.2161.7292');
+            str{end+1}=sprintf('Nieto-Castanon, A., and Whitfield-Gabrieli, S. (2022). CONN functional connectivity toolbox: ');
+            str{end+1}=sprintf('RRID SCR_009550, version 21. Hilbert Press. doi:10.56441/hilbertpress.2246.5840');
             str{end+1}='';
             str{end+1}=sprintf('to cite the CONN toolbox:')
             str{end+1}=sprintf('Whitfield-Gabrieli, S., and Nieto-Castanon, A. (2012). Conn: A functional connectivity');
@@ -1483,15 +1483,15 @@ else
             end
             
         case 'gui_workshop',
-            place='Boston MGH/HST';
+            place='online (Boston MGH/HST)';
             dates={'Nov 20 2023','Dec 18 2023','Nov 20 - Dec 18 2023 (5 weeks, one day per week)'};
             passed=false;
             try, dates(1:2)=cellfun(@datenum,dates(1:2),'uni',0); end
             if now>=dates{1}
-                if now>dates{2}, str=['The previous 5-day CONN workshop has been held in ',place,' ',dates{3}];
-                else str=['The CONN workshop is being held RIGHT NOW in ',place,' ',dates{3}]; passed=true;
+                if now>dates{2}, str=['The previous 5-day CONN workshop has been held ',place,' ',dates{3}];
+                else str=['The CONN workshop is being held RIGHT NOW ',place,' ',dates{3}]; passed=true;
                 end
-            else str=['The next 5-day CONN workshop will be held in ',place,' ',dates{3},sprintf(' (%d days from today)',floor(dates{1}-now))];
+            else str=['The next 5-day CONN workshop will be held ',place,' ',dates{3},sprintf(', starting %d days from today',floor(dates{1}-now))];
             end
             if passed, 
                 url='www.conn-toolbox.org';

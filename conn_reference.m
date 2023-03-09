@@ -11,18 +11,21 @@ function [fh,TXT]=conn_reference(opts, varargin)
 % conn_reference('secondlevel');
 %
 
-global CONN_x
+global CONN_x CONN_gui;
 persistent connversions;
 
 fields=struct('preproclog',[],...
               'denoisinginfo',[],...
               'firstlevelinfo',[],...
               'secondlevelinfo',[],...
-              'fileout','referencesfile.html');
+              'fileout',[]);
 
 if nargin<1||isempty(opts), opts=''; end
 for n=1:2:numel(varargin), assert(isfield(fields,varargin{n}),'unable to recognize option %s',varargin{n}); fields.(varargin{n})=varargin{n+1}; end
-
+if isempty(fields.fileout), 
+    fields.fileout='referencesfile.html';
+    try, if ~CONN_gui.isremote, fields.fileout=fullfile(CONN_x.folders.methods,['referencesfile_',datestr(now,'yyyy_mm_dd'),'.html']); end; end
+end
 
 TXT={};CITATIONS={};
 if isempty(opts), opts={'init','preprocessing','denoising','firstlevel'}; end
@@ -94,6 +97,8 @@ for nopt=1:numel(opts),
                 if ~isfield(options,'reg_detrend'), options.reg_detrend=false; end 
                 if ~isfield(options,'reg_filter')&&isfield(options,'reg_names'), options.reg_filter=false(size(options.reg_names)); end 
                 if ~isfield(options,'reg_lag')&&isfield(options,'reg_names'), options.reg_lag=false(size(options.reg_names)); end 
+                if ~isfield(options,'voxelsize_func')&&isfield(options,'voxelsize'), options.voxelsize_func=options.voxelsize; end
+                if ~isfield(options,'voxelsize_anat')&&isfield(options,'voxelsize'), options.voxelsize_anat=options.voxelsize; end
 
                 options.reg_names_list='';
                 if isfield(options,'reg_names')&&~isempty(options.reg_names), 
@@ -473,8 +478,21 @@ end
 end
 
 function b=conn_reference_convertcell2struct(a)
-for n=1:2:numel(a)-1
-    b.(a{n})=a{n+1};
+if all(cellfun(@ischar,a(1:2:end-1)))
+    for n=1:2:numel(a)-1
+        b.(a{n})=a{n+1};
+    end
+elseif iscell(a{1})&&all(cellfun(@ischar,a(2:2:end-1))) % back-compatibility: steps,'fieldname',fieldvalue,...
+    for n=2:2:numel(a)-1
+        b.(a{n})=a{n+1};
+    end
+    b.steps=a{1};
+elseif iscell(a{3})&&all(cellfun(@ischar,a([1,4:2:numel(a)-1]))) % back-compatibility: 'timestamp',#,steps,'fieldname',fieldvalue,...
+    for n=[1,4:2:numel(a)-1]
+        b.(a{n})=a{n+1};
+    end
+    b.steps=a{3};
+else disp(a); error('unrecognized format'); 
 end
 end
 

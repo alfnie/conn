@@ -2,16 +2,16 @@
 Functional and anatomical data were preprocessed using a flexible preprocessing pipeline [CITATION2][VALUE 1 liststeps].
 
 #functional_realignandunwarpandfieldmap
-Functional data were realigned using SPM realign & unwarp procedure [CITATION3] integrating fieldmaps for susceptibility distortion correction, where all scans were coregistered to a reference image ([IF rtm 0 first scan of the first session][IF rtm 1 mean functional volume]) using a least squares approach and a 6 parameter (rigid body) transformation, and resampled using b-spline interpolation [CITATION9] to simultaneously correct for motion, magnetic susceptibility geometric distortions, and their interaction.
+Functional data were realigned using SPM realign & unwarp procedure [CITATION3] integrating fieldmaps for susceptibility distortion correction, where all scans were coregistered to a reference image [IF rtm 0 (first scan of the first session)][IF rtm 1 (mean functional volume)] using a least squares approach and a 6 parameter (rigid body) transformation, and resampled using b-spline interpolation [CITATION9] to simultaneously correct for motion, magnetic susceptibility geometric distortions, and their interaction.
 
 #functional_realignandunwarp
-Functional data were realigned using SPM realign & unwarp procedure [CITATION3], where all scans were coregistered to a reference image ([IF rtm 0 first scan of the first session][IF rtm 1 mean functional volume]) using a least squares approach and a 6 parameter (rigid body) transformation [CITATION9], and resampled using b-spline interpolation to correct for motion and magnetic susceptibility interactions. 
+Functional data were realigned using SPM realign & unwarp procedure [CITATION3], where all scans were coregistered to a reference image [IF rtm 0 (first scan of the first session)][IF rtm 1 (mean functional volume)] using a least squares approach and a 6 parameter (rigid body) transformation [CITATION9], and resampled using b-spline interpolation to correct for motion and magnetic susceptibility interactions. 
 
 #functional_realign
-Functional data were coregistered to a reference image ([IF rtm 0 first scan of the first session][IF rtm 1 mean functional volume]) using a least squares approach and a 6 parameter (rigid body) transformation [CITATION9], and resampled using b-spline interpolation. 
+Functional data were coregistered to a reference image [IF rtm 0 (first scan of the first session)][IF rtm 1 (mean functional volume)] using a least squares approach and a 6 parameter (rigid body) transformation [CITATION9], and resampled using b-spline interpolation. 
 
 #functional_realign_noreslice
-Functional data were coregistered to a reference image ([IF rtm 0 first scan of the first session][IF rtm 1 mean functional volume]) using a least squares approach and a 6 parameter (rigid body) transformation without resampling [CITATION9]. 
+Functional data were coregistered to a reference image [IF rtm 0 (first scan of the first session)][IF rtm 1 (mean functional volume)] using a least squares approach and a 6 parameter (rigid body) transformation without resampling [CITATION9]. 
 
 #functional_slicetime
 Temporal misalignment between different slices of the functional data [IF sliceorder_select 1 (acquired in ascending order) ][IF sliceorder_select 2 (acquired in descending order) ][IF sliceorder_select 3 (acquired in interleaved middle-top order) ][IF sliceorder_select 4 (acquired in interleaved bottom-up order) ][IF sliceorder_select 5 (acquired in interleaved top-down order) ][IF sliceorder_select 6 (acquired in interleaved Siemens order) ][IF sliceorder_select 7 (acquired in interleaved Philips order) ]was corrected following SPM slice-timing correction (STC) procedure [CITATION4][CITATION10], using sinc temporal interpolation to resample each slice BOLD timeseries to a common mid-acquisition time. 
