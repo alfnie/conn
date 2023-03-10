@@ -88,9 +88,12 @@ ht13=conn_menu('pushbuttonblue2',boffset+[.75,.10,.07,.045],'','export data','<H
 ht12=conn_menu('pushbuttonblue2',boffset+[.82,.10,.07,.045],'','import values','<HTML>import fc-MVPA eigenpattern score values at selected seed for each subject as 2nd-level covariates</HTML>',@(varargin)conn_mvpaexplore_update('importvalues'));
 set(ht12,'visible','off');
 % hist
-posimage=[.725,.65,.20,.05];
+posimage=[.725,.65,.20,.10];
 [ht21,ht22]=conn_menu('hist',boffset+posimage,'');
 ht21title=conn_menu('text2',boffset+[posimage(1),posimage(2)-.07,posimage(3),.04],'','eigenpattern scores');
+ht24=conn_menu('edit2',boffset+[posimage(1)+posimage(3)/2,posimage(2)+posimage(4)+.05,.06,.04],'','','<HTML>Select eigenpattern scores threshold dividing low- and high- scoring subjects<br/> - leave empty to specify the sample median (default)</HTML>',@(varargin)conn_mvpaexplore_update('threshold'));
+ht25=uicontrol('style','frame','units','norm','position',boffset+[posimage(1)+posimage(3)/2-.01,posimage(2)+posimage(4)+.05-.01,.06+.02,.04+.02],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'parent',CONN_h.screen.hfig);
+set(ht25,'visible','on'); conn_menumanager('onregion',ht25,-1,boffset+[posimage(1)-.01,posimage(2)-.07,posimage(3)+.02,posimage(4)+.17]);
 ht23=uicontrol('style','frame','units','norm','position',boffset+[posimage(1)-.01,posimage(2)-.07,posimage(3)+.02,posimage(4)+.12],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'parent',CONN_h.screen.hfig);
 
 
@@ -232,8 +235,33 @@ fh=@conn_mvpaexplore_update;
 %                 tstr=num2str(icondition(ncondition),'%03d');
 %                 filename_B1=arrayfun(@(nsub)fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'.mat']), validsubjects,'uni',0);
                 nv=iV0mat*[XYZ;1];
+                set(CONN_h.screen.hfig,'pointer',CONN_gui.waiticon);drawnow
                 [X,Y,IDX]=conn_mvpaexplore_getinfo(1,filename_B1,V1,nslice,nv);
                 filename_S1={};
+            case 'threshold'
+                if ~isempty(Z)
+                    thrZ=regexprep(get(ht24,'string'),'[^\+\-\.\d\(\)]','');
+                    plotn=false; 
+                    if ~isempty(thrZ), thrZ=str2num(thrZ); plotn=true; end
+                    if isempty(thrZ)||isnan(thrZ), thrZ=median(Z(:)); set(ht24,'string',sprintf('thr = %.2f',thrZ)); end
+                    [Z_pdf,Z_range]=conn_menu_plothist(Z(:)-thrZ,.25);
+                    Z_rangeLow=Z_range(Z_range<=0);
+                    Z_pdfLow=Z_pdf(Z_range<=0);
+                    Z_rangeHigh=Z_range(Z_range>0);
+                    Z_pdfHigh=Z_pdf(Z_range>0);
+                    conn_menu('updatehist',ht21,{thrZ+[Z_rangeLow(1),Z_rangeLow',Z_rangeLow(end),0,Z_rangeHigh(1),Z_rangeHigh',Z_rangeHigh(end)],[0,0*Z_pdfLow',0,0,0,Z_pdfHigh',0],[0,Z_pdfLow',0,0,0,0*Z_pdfHigh',0]});
+                    if plotn,
+                        set(ht21.h6,'string',{'Low-scoring subjects ',sprintf('N=%d ',nnz(Z<=thrZ))},'horizontalalignment','right');
+                        set(ht21.h7,'string',{'High-scoring subjects',sprintf('N=%d',nnz(Z>thrZ))},'horizontalalignment','left');
+                    else
+                        set(ht21.h6,'string','Low-scoring subjects ','horizontalalignment','right');
+                        set(ht21.h7,'string','High-scoring subjects','horizontalalignment','left');
+                    end
+                    set(ht21.h2,'visible','off');
+                end
+        end
+        if isempty(Y)||(isempty(filename_S1)&&any(ismember(method,[2,3,4,5])))
+            set(CONN_h.screen.hfig,'pointer',CONN_gui.waiticon);drawnow
         end
         if isempty(X)
             nv=iV0mat*[XYZ;1];
@@ -292,6 +320,7 @@ fh=@conn_mvpaexplore_update;
                         Z=conn_fileutils('spm_get_data',filename_S1vol,filename_S1imat*[XYZ;1]);
                         Z=Z/max(eps,std(Z));
                         thrZ=median(Z);
+                        set(ht24,'string',sprintf('thr = %.2f',thrZ));
                         [Z_pdf,Z_range]=conn_menu_plothist(Z(:)-thrZ,.25);
                         Z_rangeLow=Z_range(Z_range<=0);
                         Z_pdfLow=Z_pdf(Z_range<=0);
@@ -339,6 +368,7 @@ fh=@conn_mvpaexplore_update;
         set(ht4.h10,'visible','off');
 
         try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
+        set(CONN_h.screen.hfig,'pointer','arrow');
         drawnow;
     end
 

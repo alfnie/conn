@@ -9541,7 +9541,10 @@ else
                     end
                 end 
                 CONN_h.menus.m_results.analyses_selected=idx;
-                if isempty(idx), state=[]; end
+                if isempty(idx), 
+                    state=[]; 
+                    tstate=conn_menumanager(CONN_h.menus.m_results_03,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m_results_03,'state',tstate);
+                end
                 if DOLIST||isempty(state)
                     %conn_menu('framehighlight',[.06 .23 .10 .57],'');
                     conn_menu('framewhitehighlight',[.06 .20 .10 .56],' ');

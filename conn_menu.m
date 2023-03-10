@@ -682,6 +682,7 @@ switch(lower(type)),
 			set(position.h2,'cdata',min(1,conn_bsxfun(@plus,conn_bsxfun(@times,eye(100)|flipud(eye(100)),shiftdim([.25 0 0],-1)),min(1,shiftdim(bgcolor,-1))))); set(position.h1,'xlim',[.5,1.5],'ylim',[.5,1.5],'xtick',[],'ytick',[]); axis(position.h1,'equal','tight');
 			set([position.h1,position.h2,position.h2b,position.h2c],'visible','off'); 
 			set([position.h3,position.h4,position.h4b,position.h5,position.h5b,position.h7,position.h8,position.h8a,position.h9,position.h9a,position.h10,position.h10a,position.h11,position.h12,position.h13],'visible','off'); 
+            set(position.h22,'visible','on');
             if isfield(position,'htitle')&&all(ishandle(position.htitle)), set(position.htitle,'visible','off'); end
             if isfield(position,'hnill')&&~isempty(position.hnill), delete(position.hnill(ishandle(position.hnill))); position.hnill=[]; end
             conn_menumanager('onregionremove',position.h5);
@@ -705,7 +706,8 @@ switch(lower(type)),
                 set(position.h2,'userdata',data);
                 set([position.h2 position.h6a position.h6c],'userdata',data);
                 set(position.h1,'xlim',[.5,size(title,2)+.5],'ylim',[.5,size(title,1)+.5+eps],'xtick',[],'ytick',[]);
-                set([position.h1,position.h2,position.h2b,position.h2c],'visible','on'); set([position.h3,position.h4,position.h4b,position.h11,position.h12,position.h13],'visible','off');
+                set([position.h1,position.h2,position.h2b,position.h2c],'visible','on'); 
+                set([position.h3,position.h4,position.h4b,position.h11,position.h12,position.h13,position.h22],'visible','off');
 				if strcmp(lower(type),'updatematrix'), axis(position.h1,'normal'); 
                 else axis(position.h1,'equal');
                 end
@@ -940,6 +942,7 @@ switch(lower(type)),
                     set([position.h1,position.h2,position.h2b,position.h2c],'visible','on'); set([position.h3,position.h4,position.h4b,position.h11,position.h12,position.h13],'visible','off');
                 end
 				axis(position.h1,'equal','tight'); 
+                set(position.h22,'visible','off');
 
                 if ~isempty(string),
                     data.buttondown=struct('matdim',conn_menu_selectslice(string{1},data.n,data.view),'z',string{2},'h1',position.h1,'callback',position.hcallback,'callbackclick',position.hcallback2);
@@ -1012,7 +1015,7 @@ switch(lower(type)),
                 set(position.h2,'userdata',data);
                 set(position.h4,'userdata',data);
 				set([position.h3,position.h4],'visible','on'); 
-                set([position.h1,position.h2,position.h2b,position.h2c,position.h5,position.h5b,position.h7,position.h8,position.h8a,position.h9,position.h9a,position.h10,position.h10a,position.h11,position.h12,position.h13],'visible','off'); 
+                set([position.h1,position.h2,position.h2b,position.h2c,position.h5,position.h5b,position.h7,position.h8,position.h8a,position.h9,position.h9a,position.h10,position.h10a,position.h11,position.h12,position.h13,position.h22],'visible','off'); 
                 conn_menumanager('onregionremove',position.h5);
                 conn_menumanager('onregionremove',position.h5b);
                 if isfield(position,'htitle')&&all(ishandle(position.htitle)), set(position.htitle,'visible','on'); end
