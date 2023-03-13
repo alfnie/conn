@@ -844,6 +844,7 @@ else
                 %CONN_gui.parse_html={'',''};
             end
             %if strcmpi(varargin{1},'initfromgui'), CONN_x.Setup.structural{1}{1}=conn_file(fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii')); end
+            if ~isfield(CONN_gui,'usehighres'), CONN_gui.usehighres=true; end
             if CONN_gui.usehighres, filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
             else filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_trans.nii');
             end
