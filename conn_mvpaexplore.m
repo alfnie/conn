@@ -215,8 +215,8 @@ fh=@conn_mvpaexplore_update;
                     Xcustom=cell2mat(arrayfun(@(n)cell2mat(CONN_x.Setup.l2covariates.values{n}(covselected)),reshape(validsubjects,[],1),'uni',0));
                     Icustom=~(all(Xcustom==0,2)|any(isnan(Xcustom),2));
                     Xcustom(~Icustom,:)=[];
-                    Wcustom=zeros(1,numel(validsubjects));
-                    Wcustom(Icustom')=conselected(:)'*inv(Xcustom'*Xcustom)*Xcustom';
+                    Wcustom=zeros(size(conselected,1),numel(validsubjects));
+                    Wcustom(:,Icustom')=conselected*inv(Xcustom'*Xcustom)*Xcustom';
                 end                
                 txtmethod='';
             case 'scores'
