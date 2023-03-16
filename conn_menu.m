@@ -926,16 +926,21 @@ switch(lower(type)),
                         c2c=cmap(round(192.5+63.5*max(-1,min(1, max(title0(idx(title0(idx)<0)))/data.cscale ))),:); if isempty(c2c), c2c=[0 0 0]; end
                         ci=1;while ci<size(c1,2), cj=ci+c1(2,ci)+1; if cj-ci<1, c1(:,ci:cj-1)=nan; else c1(:,ci)=nan; end; ci=cj; end % remove small clusters
                         ci=1;while ci<size(c2,2), cj=ci+c2(2,ci)+1; if cj-ci<1, c2(:,ci:cj-1)=nan; else c2(:,ci)=nan; end; ci=cj; end % remove small clusters
+                        %titlemask=min(1,4*abs(title0/data.cscale));
                     elseif size(title,4)>1, 
                         [title,n1n2]=conn_menu_montage(position.h1,title);
                         title3a=conn_ind2rgb(title,position.mapcolor);
                         data.displayed.val=[];
+                        %titlemask=ones(size(title3a));
                     else title3a=conn_ind2rgb(title,position.mapcolor);
                         data.displayed.val=[];
+                        %titlemask=ones(size(title3a));
                     end
+                    transcolor=.85;%*(titlemask);
+                    %if size(transcolor,3)==1&&size(title3a,3)>1, transcolor=repmat(transcolor,1,1,size(title3a,3)); end
                     data.displayed.raw=title;
                     title3b=conn_ind2rgb(title,position.mapcolor);
-                    set(position.h2,'cdata',.15*title3a+.85*title3b);set(position.h1,'xlim',[.5,size(title,2)+.5],'ylim',[.5,size(title,1)+.5+eps],'xtick',[],'ytick',[]);
+                    set(position.h2,'cdata',(1-transcolor).*title3a+transcolor.*title3b);set(position.h1,'xlim',[.5,size(title,2)+.5],'ylim',[.5,size(title,1)+.5+eps],'xtick',[],'ytick',[]);
                     set(position.h2b(1),'xdata',c1(1,:),'ydata',c1(2,:),'zdata',ones(1,size(c1,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c1c);
                     set(position.h2b(2),'xdata',c2(1,:),'ydata',c2(2,:),'zdata',ones(1,size(c2,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c2c);
                     set(position.h2c,'xdata',[],'ydata',[],'zdata',[]);

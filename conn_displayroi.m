@@ -701,7 +701,7 @@ switch(lower(option)),
                 conn_importl2covariate(name,y);
             end
         else
-            if get(data.handles(9),'value'), % one plot per connection
+            if get(data.handles(9),'value')||isempty(y2), % one plot per connection
                 conn_rex('test',data.results(1).xX,reshape(y3(selectedsubjects,:,:),[nnz(selectedsubjects)*size(y3,2),size(y3,3)]),data.results(1).c,names_conditions,name3,[],[],true,data.results(1).c2,[],true);
             else % one plot per cluster
                 breaks=[y2,size(y3,3)];

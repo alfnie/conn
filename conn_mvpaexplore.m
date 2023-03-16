@@ -34,6 +34,7 @@ filename_B1=[]; % vvPC filenames
 filename_S1={}; % MVPA score filenames
 filename_S1vol=[];
 filename_S1imat=[];
+Nt=[];
 xybak=[];
 V1=[];          % vvPC volumes
 X={};           % vvPC at the selected seed voxel/condition for each subject
@@ -54,7 +55,7 @@ nslice=round(iV0mat(3,:)*[XYZ(:);1]);
 Sslice=round(imat(3,:)*[XYZ(:);1]);
 Si1=[];
 Si2=[];
-[filename_B1,V1]=conn_mvpaexplore_getinfo(0,filepath,icondition(ncondition),validsubjects);
+[filename_B1,V1,Nt]=conn_mvpaexplore_getinfo(0,filepath,icondition(ncondition),validsubjects);
 
 %filename{nsub}=fullfile(filepathresults,['BETA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(CONN_h.menus.m_results.icondition(nconditions(ncondition)),'%03d'),'_Measure',num2str(CONN_h.menus.m_results.outcomeisource(nsources(nsource)),'%03d'),'_Component',num2str(CONN_h.menus.m_results.outcomencompsource(nsources(nsource)),'%03d'),'.nii']);
 
@@ -231,12 +232,12 @@ fh=@conn_mvpaexplore_update;
                 Y={};S={};
             case 'conditions'
                 ncondition=validconditions(get(ht6,'value'));
-                [filename_B1,V1]=conn_mvpaexplore_getinfo(0,filepath,icondition(ncondition),validsubjects);
+                [filename_B1,V1,Nt]=conn_mvpaexplore_getinfo(0,filepath,icondition(ncondition),validsubjects);
 %                 tstr=num2str(icondition(ncondition),'%03d');
 %                 filename_B1=arrayfun(@(nsub)fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'.mat']), validsubjects,'uni',0);
                 nv=iV0mat*[XYZ;1];
                 set(CONN_h.screen.hfig,'pointer',CONN_gui.waiticon);drawnow
-                [X,Y,IDX]=conn_mvpaexplore_getinfo(1,filename_B1,V1,nslice,nv);
+                [X,Y,IDX]=conn_mvpaexplore_getinfo(1,filename_B1,V1,Nt,nslice,nv);
                 filename_S1={};
             case 'threshold'
                 if ~isempty(Z)
@@ -265,10 +266,10 @@ fh=@conn_mvpaexplore_update;
         end
         if isempty(X)
             nv=iV0mat*[XYZ;1];
-            [X]=conn_mvpaexplore_getinfo(2,filename_B1,V1,nv);
+            [X]=conn_mvpaexplore_getinfo(2,filename_B1,V1,Nt,nv);
         end
         if isempty(Y)
-            [Y,IDX]=conn_mvpaexplore_getinfo(3,filename_B1,V1,nslice);
+            [Y,IDX]=conn_mvpaexplore_getinfo(3,filename_B1,V1,Nt,nslice);
         end
         involrefspace=true;
         if isempty(S)
@@ -345,25 +346,29 @@ fh=@conn_mvpaexplore_update;
             W=cat(1,W,w);
         end
         xybak=xy;
-        xy=conn_mvpaexplore_getinfo(4,X,Y,W);
-        if size(xy,1)==1
-            xyMap=zeros(V0.matdim.dim(1:2));
-            xyMask=zeros(V0.matdim.dim(1:2));
-            xyMap(IDX)=xy;
-            xyMask(IDX)=1;
+        if nnz(W)==0
+            conn_menu('update',ht4,{permute(S,[2,1,4,3]),[],[]},{V0.matdim,nslice});
         else
-            xyMap=zeros([V0.matdim.dim(1:2),size(xy,1)]);
-            xyMask=zeros([V0.matdim.dim(1:2),size(xy,1)]);
-            for n1=1:size(xy,1), xyMap(prod(V0.matdim.dim(1:2))*(n1-1)+IDX)=xy(n1,:); end
-            for n1=1:size(xy,1), xyMask(prod(V0.matdim.dim(1:2))*(n1-1)+IDX)=1; end
-        end
-        if ~involrefspace
-            conn_menu('update',ht4,{permute(S,[2,1,4,3]),permute(xyMap,[2,1,4,3]),1+0*permute(xyMask,[2,1,4,3])},{V0.matdim,nslice});
-        else
-            for n1=1:size(xyMap,3), txy=interp2(xyMap(:,:,n1),Si2,Si1); if n1==1, NEWxyMap=zeros([size(txy,1),size(txy,2),size(xyMap,3)]); end; NEWxyMap(:,:,n1)=txy; end
-            for n1=1:size(xyMask,3), txy=interp2(xyMask(:,:,n1),Si2,Si1); if n1==1, NEWxyMask=zeros([size(txy,1),size(txy,2),size(xyMask,3)]); end; NEWxyMask(:,:,n1)=txy; end
-            NEWS=repmat(S,[1,1,size(xyMap,3)]);
-            conn_menu('update',ht4,{permute(NEWS,[2,1,4,3]),permute(NEWxyMap,[2,1,4,3]),1+0*permute(NEWxyMask,[2,1,4,3])},{volref,Sslice});
+            xy=conn_mvpaexplore_getinfo(4,X,Y,W);
+            if size(xy,1)==1
+                xyMap=zeros(V0.matdim.dim(1:2));
+                xyMask=zeros(V0.matdim.dim(1:2));
+                xyMap(IDX)=xy;
+                xyMask(IDX)=1;
+            else
+                xyMap=zeros([V0.matdim.dim(1:2),size(xy,1)]);
+                xyMask=zeros([V0.matdim.dim(1:2),size(xy,1)]);
+                for n1=1:size(xy,1), xyMap(prod(V0.matdim.dim(1:2))*(n1-1)+IDX)=xy(n1,:); end
+                for n1=1:size(xy,1), xyMask(prod(V0.matdim.dim(1:2))*(n1-1)+IDX)=1; end
+            end
+            if ~involrefspace
+                conn_menu('update',ht4,{permute(S,[2,1,4,3]),permute(xyMap,[2,1,4,3]),1+0*permute(xyMask,[2,1,4,3])},{V0.matdim,nslice});
+            else
+                for n1=1:size(xyMap,3), txy=interp2(xyMap(:,:,n1),Si2,Si1); if n1==1, NEWxyMap=zeros([size(txy,1),size(txy,2),size(xyMap,3)]); end; NEWxyMap(:,:,n1)=txy; end
+                for n1=1:size(xyMask,3), txy=interp2(xyMask(:,:,n1),Si2,Si1); if n1==1, NEWxyMask=zeros([size(txy,1),size(txy,2),size(xyMask,3)]); end; NEWxyMask(:,:,n1)=txy; end
+                NEWS=repmat(S,[1,1,size(xyMap,3)]);
+                conn_menu('update',ht4,{permute(NEWS,[2,1,4,3]),permute(NEWxyMap,[2,1,4,3]),1+0*permute(NEWxyMask,[2,1,4,3])},{volref,Sslice});
+            end
         end
         set(ht4.h10,'visible','off');
 
