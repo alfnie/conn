@@ -191,6 +191,7 @@ if nargin<1||isempty(conn_x),
     end
     if ~isfield(CONN_x,'dynAnalyses'), CONN_x.dynAnalyses=struct('name','','regressors', struct('names',{{}}),'variables', struct('names',{{}}),'Ncomponents',[20],'condition',[1],'window',10,'output',[1 1 0]); end
     if ~isfield(CONN_x,'dynAnalysis'), CONN_x.dynAnalysis=1; end
+    if isfield(CONN_x.dynAnalyses,'analyses'), CONN_x.dynAnalyses=rmfield(CONN_x.dynAnalyses,'analyses'); end
     for ianalysis=1:numel(CONN_x.dynAnalyses)
         if ~isfield(CONN_x.dynAnalyses(ianalysis),'name'), CONN_x.dynAnalyses(ianalysis).name=''; end
         if ~isfield(CONN_x.dynAnalyses(ianalysis),'condition')||isempty(CONN_x.dynAnalyses(ianalysis).condition), CONN_x.dynAnalyses(ianalysis).condition=[]; end
@@ -437,6 +438,7 @@ else
     end
     if ~isfield(conn_x,'dynAnalyses'), conn_x.dynAnalyses=struct('name','','regressors', struct('names',{{}}),'variables', struct('names',{{}}),'Ncomponents',[20],'condition',[1],'window',10,'output',[1 1 0]); end
     if ~isfield(conn_x,'dynAnalysis'), conn_x.dynAnalysis=1; end
+    if isfield(conn_x.dynAnalyses,'analyses'), conn_x.dynAnalyses=rmfield(conn_x.dynAnalyses,'analyses'); end
     for ianalysis=1:numel(conn_x.dynAnalyses)
         if ~isfield(conn_x.dynAnalyses(ianalysis),'name'), conn_x.dynAnalyses(ianalysis).name=''; end
         if ~isfield(conn_x.dynAnalyses(ianalysis),'condition')||isempty(conn_x.dynAnalyses(ianalysis).condition), conn_x.dynAnalyses(ianalysis).condition=[]; end

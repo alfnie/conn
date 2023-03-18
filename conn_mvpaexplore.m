@@ -53,6 +53,7 @@ conselected=[];
 txtmethod='';
 nslice=round(iV0mat(3,:)*[XYZ(:);1]);
 Sslice=round(imat(3,:)*[XYZ(:);1]);
+dataview=3;
 Si1=[];
 Si2=[];
 [filename_B1,V1,Nt]=conn_mvpaexplore_getinfo(0,filepath,icondition(ncondition),validsubjects);
@@ -64,7 +65,12 @@ boffset=[0 0 0 0];
 conn_menu('frame2',boffset+[.045,.08,.91,.80],'');
 % image left
 posimage=[.06,.20,.25,.54];
-[ht2,ht2title]=conn_menu('image',boffset+posimage,'Seed','','',@conn_mvpaexplore_mtncallback,@conn_mvpaexplore_click,'');
+ht2=conn_menu('image',boffset+posimage,'','','',@conn_mvpaexplore_mtncallback,@conn_mvpaexplore_click,'');
+ht2title=conn_menu('pushbutton2',boffset+[posimage(1),posimage(2)+posimage(4),posimage(3),.045],'','Seed','',@(varargin)conn_mvpaexplore_update('coordinates'));
+set(ht2.h5b,'callback',@(varargin)conn_mvpaexplore_update('changeseedview')); % + symbol change view
+set(ht2.h5,'callback',@(varargin)conn_mvpaexplore_update('changeseedslice')); % slider change slice
+hold(ht2.h1,'on'); ht2dot=plot3(0,0,0,'color','k','marker','o','markerfacecolor','r','markersize',8+CONN_gui.font_offset,'parent',ht2.h1); hold(ht2.h1,'off'); 
+try, addlistener(ht2.h5, 'ContinuousValueChange',@(varargin)conn_mvpaexplore_update('changeseedslice')); end
 % image right
 posimage=[.38,.20,.25,.54];
 [ht4,ht4title]=conn_menu('image2',boffset+posimage,' ','','','','','');
@@ -97,22 +103,6 @@ ht25=uicontrol('style','frame','units','norm','position',boffset+[posimage(1)+po
 set(ht25,'visible','on'); conn_menumanager('onregion',ht25,-1,boffset+[posimage(1)-.01,posimage(2)-.07,posimage(3)+.02,posimage(4)+.17]);
 ht23=uicontrol('style','frame','units','norm','position',boffset+[posimage(1)-.01,posimage(2)-.07,posimage(3)+.02,posimage(4)+.12],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'parent',CONN_h.screen.hfig);
 
-
-% [ht6a,ht6b]=conn_menu('scatter',boffset+[.07,.15,.40,.16], 'Percentage of voxels with fitted/explained variance above threshold');
-% set(ht6a.h2,'markersize',1,'linestyle','-');set(ht6a.h1,'yaxislocation','right','xtick',1:Ncomponents);ylabel(ht6a.h1,'percent voxels (%)','fontsize',8+CONN_gui.font_offset);xlabel(ht6a.h1,'Number of MVPA components','fontsize',8+CONN_gui.font_offset);
-% ht=legend(ht6a.h2(1:2),{'White matter voxels','Gray matter voxels'}); try, set(ht,'color','none','edgecolor','none','textcolor',[.5 .5 .5]); end
-% 
-% ht5=conn_menu('hist',boffset+[.57,.15,.21,.16],''); %'Cumulative percent variance (%)');
-% uicontrol('style','text','units','norm','position',boffset+[.57,.080,.21,.045],'string','explained variance (%)','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB); 
-% %ht5=conn_menu('image2',boffset+[.62,.09,.21,.22],''); %'Cumulative percent variance (%)');
-% conn_menu('update',ht4,{permute(Bref,[2,1,3]),permute(B(:,:,:,1),[2,1,3,4]),permute(abs(B(:,:,:,1)),[2,1,3,4])},{struct('mat',vol(1).mat,'dim',vol(1).dim),[]});
-% set(ht4.h10,'string',num2str(50));
-% conn_menu('updatethr',[],[],ht4.h10);
-% % set(ht1,'max',2,'value',1);
-% % set(ht2,'max',2,'value',1);
-% set(ht3,'string',names,'max',2,'value',nfacselected);
-% %conn_menu('updateplotstack',ht5,prctB);
-
 conn_menu('updateimage',ht2,volref);
 conn_menu('updateslider1',ht2,Sslice);
 set(ht2.h5,'value',Sslice);
@@ -132,25 +122,13 @@ fh=@conn_mvpaexplore_update;
         XYZ=pos(1:3);
         txyz=imat*[XYZ;1];
         set(ht2title,'string',sprintf('Seed (%d,%d,%d) mm',round(pos(1)),round(pos(2)),round(pos(3))));
-        data=get(ht2.h2,'userdata');
-        switch(data.view)
-            case 1, set(ht2.h2c,'xdata',volref.dim(1)+1-txyz(1),'ydata',volref.dim(3)+1-txyz(3),'color','k','marker','o','markerfacecolor','r','markersize',8+CONN_gui.font_offset);
-            case 2, set(ht2.h2c,'xdata',volref.dim(2)+1-txyz(2),'ydata',volref.dim(3)+1-txyz(3),'color','k','marker','o','markerfacecolor','r','markersize',8+CONN_gui.font_offset);
-            case 3, set(ht2.h2c,'xdata',volref.dim(1)+1-txyz(1),'ydata',volref.dim(2)+1-txyz(2),'color','k','marker','o','markerfacecolor','r','markersize',8+CONN_gui.font_offset);
+        %data=get(ht2.h2,'userdata');
+        switch(dataview)
+            case 1, set(ht2dot,'xdata',volref.dim(1)+1-txyz(1),'ydata',volref.dim(3)+1-txyz(3));
+            case 2, set(ht2dot,'xdata',volref.dim(2)+1-txyz(2),'ydata',volref.dim(3)+1-txyz(3));
+            case 3, set(ht2dot,'xdata',volref.dim(1)+1-txyz(1),'ydata',volref.dim(2)+1-txyz(2));
         end
         conn_mvpaexplore_update seed;
-
-%         if doreset(3)
-%             thr=str2num(get(ht4.h10,'string')); if isempty(thr), thr=50; end
-%             thr=max(1,min(100,round(thr)));
-%             conn_menu('updatehist',ht5,{[0,0:100,100],[0,prctBgm(:,max(nfacselected))',0],[0,prctBwm(:,max(nfacselected))',0]});
-%             maxnfacselected=max(nfacselected);
-%             set(ht5.h6,'string',sprintf('%d%% of WM voxels with >%d%% variance explained by first %d MVPA components',round(100*sum(prctBwm(thr+1:end,maxnfacselected))),thr,maxnfacselected));
-%             set(ht5.h7,'string',sprintf('%d%% of GM voxels with >%d%% variance explained by first %d MVPA components',round(100*sum(prctBgm(thr+1:end,maxnfacselected))),thr,maxnfacselected));
-%             conn_menu('updatescatter',ht6a,{{1:size(prctBwm,2) 1:size(prctBgm,2)},{100*sum(prctBwm(thr+1:end,:),1) 100*sum(prctBgm(thr+1:end,:),1)}});
-%             %try, set(ht5.h2,'visible','off'); end
-%             set(ht5.h2,'xdata',thr*[1 1]);
-%         end
     end
 
     function conn_mvpaexplore_update(option,varargin)
@@ -179,6 +157,7 @@ fh=@conn_mvpaexplore_update;
                     end
                     if ishandle(hm), delete(hm); end
                 end
+                return
             case 'exportdata'
                 if size(W,1)>1, conn_msgbox('Sorry, only single-image display available. Please select in the ''subjects'' list an option displaying a single image','',2); 
                 else
@@ -192,6 +171,57 @@ fh=@conn_mvpaexplore_update;
                     end
                     if ishandle(hm), delete(hm); end
                 end
+                return
+            case 'changeseedslice'
+                %conn_menu('updateslider1',ht2);
+                datan=get(ht2.h5,'value'); %data=get(ht2.h2,'userdata'); datan=data.n;
+                disp(XYZ);
+                pos=imat*[XYZ;1];
+                switch(dataview)
+                    case 1, pos(2)=datan; XYZ(2)=round(volref.mat(2,:)*pos); % coronal
+                    case 2, pos(1)=volref.dim(1)+1-datan; XYZ(1)=round(volref.mat(1,:)*pos); % sagittal
+                    case 3, pos(3)=datan; XYZ(3)=round(volref.mat(3,:)*pos); % axial
+                end
+                disp(XYZ);
+                %conn_mvpaexplore_click(XYZ);
+                %return
+                %switch(dataview)
+                %    case 1, set(ht2dot,'xdata',volref.dim(1)+1-pos(1),'ydata',volref.dim(3)+1-pos(3));
+                %    case 2, set(ht2dot,'xdata',volref.dim(2)+1-pos(2),'ydata',volref.dim(3)+1-pos(3));
+                %    case 3, set(ht2dot,'xdata',volref.dim(1)+1-pos(1),'ydata',volref.dim(2)+1-pos(2));
+                %end
+                set(ht2title,'string',sprintf('Seed (%d,%d,%d) mm',round(XYZ(1)),round(XYZ(2)),round(XYZ(3))));
+                X={};
+                Z=[];
+                
+            case {'changeseedview','coordinates'}
+                pos=[];
+                if strcmp(option,'changeseedview'), 
+                    conn_menu('updateview',ht2); 
+                    pos=XYZ;
+                    data=get(ht2.h2,'userdata');
+                    dataview=data.view;
+                else
+                    answ=conn_menu_inputdlg({'XYZ coordinates (mm)'},'',1,{mat2str(XYZ(:)')},struct('Resize','on'));
+                    if numel(answ)==1&&~isempty(answ{1}),
+                        answ=str2num(answ{1});
+                        if numel(answ)==3,
+                            pos=reshape(answ(1:3),3,1);
+                        end
+                    end
+                end
+                if ~isempty(pos)
+                    %data=get(ht2.h2,'userdata');
+                    switch(dataview)
+                        case 1, kslice=max(1,min(volref.dim(2), round([0 1 0 0]*imat*[pos;1]) )); % coronal
+                        case 2, kslice=max(1,min(volref.dim(1), volref.dim(3)+1-round([1 0 0 0]*imat*[pos;1]) )); % sagittal
+                        case 3, kslice=max(1,min(volref.dim(3), round([0 0 1 0]*imat*[pos;1]) )); % axial
+                    end
+                    conn_menu('updateslider1',ht2,kslice);
+                    set(ht2.h5,'value',kslice);
+                    conn_mvpaexplore_click(pos(:));
+                end
+                return
             case 'subjects'
                 method=get(ht5,'value');
                 if all(method==1|method==6), 
@@ -374,7 +404,10 @@ fh=@conn_mvpaexplore_update;
 
         try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
         set(CONN_h.screen.hfig,'pointer','arrow');
-        drawnow;
+        %drawnow;
+        try, drawnow nocallbacks;
+        catch, drawnow;
+        end
     end
 
     function [str0,str]=conn_mvpaexplore_mtncallback(varargin)

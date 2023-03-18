@@ -940,13 +940,14 @@ switch(lower(type)),
                     %if size(transcolor,3)==1&&size(title3a,3)>1, transcolor=repmat(transcolor,1,1,size(title3a,3)); end
                     data.displayed.raw=title;
                     title3b=conn_ind2rgb(title,position.mapcolor);
+                    oldcdata=get(position.h2,'cdata');
                     set(position.h2,'cdata',(1-transcolor).*title3a+transcolor.*title3b);set(position.h1,'xlim',[.5,size(title,2)+.5],'ylim',[.5,size(title,1)+.5+eps],'xtick',[],'ytick',[]);
                     set(position.h2b(1),'xdata',c1(1,:),'ydata',c1(2,:),'zdata',ones(1,size(c1,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c1c);
                     set(position.h2b(2),'xdata',c2(1,:),'ydata',c2(2,:),'zdata',ones(1,size(c2,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c2c);
                     set(position.h2c,'xdata',[],'ydata',[],'zdata',[]);
                     set([position.h1,position.h2,position.h2b,position.h2c],'visible','on'); set([position.h3,position.h4,position.h4b,position.h11,position.h12,position.h13],'visible','off');
+				    if ~isequal(size(oldcdata),size(title3a)), axis(position.h1,'equal','tight'); end
                 end
-				axis(position.h1,'equal','tight'); 
                 set(position.h22,'visible','off');
 
                 if ~isempty(string),
@@ -1067,7 +1068,7 @@ switch(lower(type)),
         else
             data=get(position.h2,'userdata');
         end
-        if strcmpi(type,'updateslider1')
+        if strcmpi(type,'updateslider1')&&~isempty(title)
             if isstruct(data.x1)&&isfield(data.x1,'vol'), data.n=max(1,min(data.x1(1).rdim(max(1,min(numel(data.x1(1).rdim),data.view))),round(title))); else data.n=max(1,min(size(data.x1,data.view), round(title))); end
         end
         if strcmpi(type,'updateslider2')
@@ -1176,7 +1177,7 @@ switch(lower(type)),
             set(position.h2b(2),'xdata',c2(1,:),'ydata',c2(2,:),'zdata',ones(1,size(c2,2)),'color',0*.8*mean(position.mapcolor(1,:))+.2*c2c);
             set(position.h2c,'xdata',[],'ydata',[],'zdata',[]);
             set(position.h1,'xlim',[.5,size(title,2)+.5],'ylim',[.5,size(title,1)+.5+eps],'xtick',[],'ytick',[]);
-            axis(position.h1,'equal','tight');
+            if strcmpi(type,'updateview'), axis(position.h1,'equal','tight'); end
             set([position.h1,position.h2,position.h2b,position.h2c],'visible','on'); set([position.h3,position.h4,position.h4b],'visible','off');
             if isfield(data,'buttondown')&&isfield(data.buttondown,'matdim')
                 data.buttondown.matdim=conn_menu_selectslice(data.buttondown.matdim,data.n,data.view);
@@ -1190,7 +1191,7 @@ switch(lower(type)),
             end
         end
 		set([position.h2 position.h6a position.h6b position.h6c],'userdata',data);
-        drawnow
+        %if strcmpi(type,'updateslider1')||strcmpi(type,'updateslider2'), drawnow; end
 end
 end
 
@@ -1360,7 +1361,7 @@ switch option
                     hext2=get(htxt,'extent'); hext2=hext2(end-1:end)+4;
                     %hext2=min([400 inf],hext2);
                     hang=(posabs(1)-xlim(1))/max(eps,xlim(2)-xlim(1));
-                    newpos=[pos0(1:2)+[-hext(1)*hang 10] max(hext,hext2)];
+                    newpos=[pos0(1:2)+[-hext(1)*hang 20] max(hext,hext2)];
                     %newpos=newpos+[0 -newpos(4)-20 0 0];
                     %if ~isempty(bakpos)&&abs(newpos(1)-bakpos(1))<50, newpos(1)=.1*newpos(1)+.9*bakpos(1); end
                     %bakpos=newpos;
