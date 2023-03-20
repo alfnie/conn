@@ -26,6 +26,11 @@ end
 validconditions=find(isvalidcondition);
 isvalidsubject=conn_checkmissingdata(3,validconditions,validsources);
 validsubjects=find(isvalidsubject);
+iAllSubjects=find(ismember(CONN_x.Setup.l2covariates.names(1:end-1),{'AllSubjects'}),1);
+%iAllSubjects=[]; % uncomment this line to use all subjects (instead of the AllSubjects covariate) for method = 1:5 (note: not 6) 
+if ~isempty(iAllSubjects), AllSubjects=cell2mat(arrayfun(@(n)CONN_x.Setup.l2covariates.values{n}{iAllSubjects},reshape(validsubjects,[],1),'uni',0)); 
+else AllSubjects=ones(numel(validsubjects),1); 
+end
 ncondition=validconditions(1);
 
 V0=conn_vol(fullfile(filepath,['vvPC_Subject',num2str(validsubjects(1),'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']));
@@ -68,8 +73,8 @@ posimage=[.06,.20,.25,.54];
 ht2=conn_menu('image',boffset+posimage,'','','',@conn_mvpaexplore_mtncallback,@conn_mvpaexplore_click,'');
 ht2title=conn_menu('pushbutton2',boffset+[posimage(1),posimage(2)+posimage(4),posimage(3),.045],'','Seed','',@(varargin)conn_mvpaexplore_update('coordinates'));
 set(ht2.h5b,'callback',@(varargin)conn_mvpaexplore_update('changeseedview')); % + symbol change view
-set(ht2.h5,'callback',@(varargin)conn_mvpaexplore_update('changeseedslice')); % slider change slice
-hold(ht2.h1,'on'); ht2dot=plot3(0,0,0,'color','k','marker','o','markerfacecolor','r','markersize',8+CONN_gui.font_offset,'parent',ht2.h1); hold(ht2.h1,'off'); 
+set(ht2.h5,'callback',@(varargin)conn_mvpaexplore_update('changeseedslice'),'value',1); % slider change slice
+hold(ht2.h1,'on'); ht2dot=plot(0,0,'color','k','marker','o','markerfacecolor','r','markersize',8+CONN_gui.font_offset,'parent',ht2.h1); hold(ht2.h1,'off'); 
 try, addlistener(ht2.h5, 'ContinuousValueChange',@(varargin)conn_mvpaexplore_update('changeseedslice')); end
 % image right
 posimage=[.38,.20,.25,.54];
@@ -85,7 +90,7 @@ ht4slice=conn_menu('text2',boffset+[posimage(1)+posimage(3)/2-.059/2,posimage(2)
 %ht4title=conn_menu('text2',boffset+[posimage(1),posimage(2)+posimage(4),posimage(3),.04],'',txtmethod);
 % lists
 [ht7, ht7title]=conn_menu('listbox2',boffset+[.86,.35,.09,.12],'fc-MVPA scores',arrayfun(@(n)sprintf('Eigenpattern #%d scores',n),1:numel(CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures),'uni',0),'Select eigenpattern scores for display',@(varargin)conn_mvpaexplore_update('scores'));
-ht5=conn_menu('listbox2',boffset+[.70,.35,.15,.12],'Subjects',{'All Subjects','High-scoring subjects','Low-scoring subjects','Low- & High- scoring subjects','High vs. Low between-subjects contrast','Custom between-subjects contrast'},'Select display option',@(varargin)conn_mvpaexplore_update('subjects'));
+ht5=conn_menu('listbox2',boffset+[.70,.35,.15,.12],'Subjects',{'All Subjects','High-scoring subjects','Low-scoring subjects','Low- & High- scoring subjects','High vs. Low between-subjects contrast','Custom groups or between-subjects contrast'},'<HTML>Select display option<br/> - Select <i><b>AllSubjects</b></i> to compute average connectivity across all subjects (note: the display will exclude subjects not in the <i>AllSubjects</i> second-level covariate group)<br/> - Select <i><b>low/high scoring subjects</b></i> to compute average connectivity separately within those subjects with low- vs. high- eigenvariate scores, characterizing <br/> principal axes of diversity in FC across subjects (for the selected eigenvariate) (note: the display will exclude subjects not in the <i>AllSubjects</i> group)<br/> - Select <i><b>custom group or between-subjects contrast</b></i> to define your own contrast across subjects (e.g. a different group, a between-group comparison, etc.)</HTML>',@(varargin)conn_mvpaexplore_update('subjects'));
 ht6=conn_menu('listbox2',boffset+[.70,.16,.15,.12],'Conditions',CONN_x.Setup.conditions.names(validconditions),'<HTML>Select condition(s) for display</HTML>',@(varargin)conn_mvpaexplore_update('conditions'));
 set([ht7,ht7title],'visible','off');
 set([ht5],'max',2);
@@ -106,6 +111,7 @@ ht23=uicontrol('style','frame','units','norm','position',boffset+[posimage(1)-.0
 conn_menu('updateimage',ht2,volref);
 conn_menu('updateslider1',ht2,Sslice);
 set(ht2.h5,'value',Sslice);
+set(ht2.h5,'sliderstep',min(1,2*[1,10]/(get(ht2.h5,'max')-1)));
 
 conn_mvpaexplore_click(XYZ);
 conn_mvpaexplore_update refresh;
@@ -175,14 +181,12 @@ fh=@conn_mvpaexplore_update;
             case 'changeseedslice'
                 %conn_menu('updateslider1',ht2);
                 datan=get(ht2.h5,'value'); %data=get(ht2.h2,'userdata'); datan=data.n;
-                disp(XYZ);
                 pos=imat*[XYZ;1];
                 switch(dataview)
                     case 1, pos(2)=datan; XYZ(2)=round(volref.mat(2,:)*pos); % coronal
                     case 2, pos(1)=volref.dim(1)+1-datan; XYZ(1)=round(volref.mat(1,:)*pos); % sagittal
                     case 3, pos(3)=datan; XYZ(3)=round(volref.mat(3,:)*pos); % axial
                 end
-                disp(XYZ);
                 %conn_mvpaexplore_click(XYZ);
                 %return
                 %switch(dataview)
@@ -200,9 +204,10 @@ fh=@conn_mvpaexplore_update;
                     conn_menu('updateview',ht2); 
                     pos=XYZ;
                     data=get(ht2.h2,'userdata');
+                    set(ht2.h5,'sliderstep',min(1,2*[1,10]/(data.x1.rdim(data.view)-1)));
                     dataview=data.view;
                 else
-                    answ=conn_menu_inputdlg({'XYZ coordinates (mm)'},'',1,{mat2str(XYZ(:)')},struct('Resize','on'));
+                    answ=conn_menu_inputdlg({'seed XYZ coordinates (mm)'},'',1,{mat2str(XYZ(:)')},struct('Resize','on'));
                     if numel(answ)==1&&~isempty(answ{1}),
                         answ=str2num(answ{1});
                         if numel(answ)==3,
@@ -333,8 +338,10 @@ fh=@conn_mvpaexplore_update;
         W=[];
         for nmethod=1:numel(method)
             switch(method(nmethod))
-                case 1, % average across all subjects
-                    w=ones(1,numel(validsubjects))/numel(validsubjects);
+                case 1, % average across AllSubjects
+                    w=zeros(1,numel(validsubjects));
+                    w(AllSubjects>0)=1/nnz(AllSubjects>0);
+                    %w=ones(1,numel(validsubjects))/numel(validsubjects);
                 case {2,3,4,5}, % low/high-score subjects
                     if isempty(filename_S1)
                         tstr=num2str(icondition(ncondition),'%03d');
@@ -349,10 +356,11 @@ fh=@conn_mvpaexplore_update;
                     end
                     if isempty(Z)
                         Z=conn_fileutils('spm_get_data',filename_S1vol,filename_S1imat*[XYZ;1]);
-                        Z=Z/max(eps,std(Z));
-                        thrZ=median(Z);
+                        Z(~(AllSubjects>0))=nan;
+                        Z=Z/max(eps,std(Z(~isnan(Z))));
+                        thrZ=median(Z(~isnan(Z)));
                         set(ht24,'string',sprintf('thr = %.2f',thrZ));
-                        [Z_pdf,Z_range]=conn_menu_plothist(Z(:)-thrZ,.25);
+                        [Z_pdf,Z_range]=conn_menu_plothist(Z(~isnan(Z))-thrZ,.25);
                         Z_rangeLow=Z_range(Z_range<=0);
                         Z_pdfLow=Z_pdf(Z_range<=0);
                         Z_rangeHigh=Z_range(Z_range>0);
