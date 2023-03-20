@@ -70,7 +70,7 @@ boffset=[0 0 0 0];
 conn_menu('frame2',boffset+[.045,.08,.91,.80],'');
 % image left
 posimage=[.06,.20,.25,.54];
-ht2=conn_menu('image',boffset+posimage,'','','',@conn_mvpaexplore_mtncallback,@conn_mvpaexplore_click,'');
+ht2=conn_menu('image2',boffset+posimage,'','','',@conn_mvpaexplore_mtncallback,@conn_mvpaexplore_click,'');
 ht2title=conn_menu('pushbutton2',boffset+[posimage(1),posimage(2)+posimage(4),posimage(3),.045],'','Seed','',@(varargin)conn_mvpaexplore_update('coordinates'));
 set(ht2.h5b,'callback',@(varargin)conn_mvpaexplore_update('changeseedview')); % + symbol change view
 set(ht2.h5,'callback',@(varargin)conn_mvpaexplore_update('changeseedslice'),'value',1); % slider change slice
@@ -399,6 +399,7 @@ fh=@conn_mvpaexplore_update;
                 for n1=1:size(xy,1), xyMap(prod(V0.matdim.dim(1:2))*(n1-1)+IDX)=xy(n1,:); end
                 for n1=1:size(xy,1), xyMask(prod(V0.matdim.dim(1:2))*(n1-1)+IDX)=1; end
             end
+            hfilt=conn_hanning(5); hfilt=hfilt/sum(hfilt); xyMap=xyMap.*xyMask+convn(convn(xyMap.*xyMask,hfilt,'same'),hfilt','same')./max(.5,convn(convn(xyMask,hfilt,'same'),hfilt','same')).*(1-xyMask);
             if ~involrefspace
                 conn_menu('update',ht4,{permute(S,[2,1,4,3]),permute(xyMap,[2,1,4,3]),1+0*permute(xyMask,[2,1,4,3])},{V0.matdim,nslice});
             else
