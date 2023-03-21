@@ -1696,6 +1696,37 @@ else
                 end
             end
             
+        case 'gui_colormap'
+            if numel(varargin)>1, option=varargin{2}; 
+            else option=1;
+            end
+            if ischar(option), option=str2num(option); end
+            cmap=0+1*(7*gray(128) + 1*(hot(128)))/8; if mean(CONN_gui.backgroundcolor)>.5,cmap=flipud(cmap); end
+            cmapB=max(0,min(1, repmat((2*(CONN_gui.backgroundcolor<.5)-1).*max(CONN_gui.backgroundcolor ,1-CONN_gui.backgroundcolor),128,1).*cmap+repmat(CONN_gui.backgroundcolor,128,1) ));
+            cmapA=max(0,min(1, repmat((2*(CONN_gui.backgroundcolorA<.5)-1).*max(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA),128,1).*cmap+repmat(CONN_gui.backgroundcolorA,128,1) ));
+            if isscalar(option)
+                switch(option) % colormap variations
+                    case 1, jetmap=jet(192); jetmap=jetmap(32+(1:128),:); %jetmap=jet(128);
+                    case 2, jetmap=jet(192); jetmap=jetmap(32+(1:128),:); jetmap=jetmap.*(abs(linspace(-1,1,size(cmap,1))))';
+                    case 3, jetmap=jet(192); jetmap=jetmap(32+(1:128),:); w=(abs(linspace(-1,1,size(jetmap,1))))'; jetmap=max(0,min(1,jetmap.^(1-.85*w))).*w;
+                    case 4, nmap=128;jetmap=[zeros(1,nmap/4) linspace(0,1,nmap/4) ones(1,nmap/4) linspace(1,.5,nmap/4); linspace(0,1,nmap/2) linspace(1,0,nmap/4) zeros(1,nmap/4); linspace(.5,1,nmap/4) ones(1,nmap/4) linspace(1,0,nmap/4) zeros(1,nmap/4)]'; jetmap=repmat(abs(linspace(-1,1,nmap)'),1,3).*jetmap+(1-repmat(abs(linspace(-1,1,nmap)'),1,3))*1;
+                end
+            else jetmap=option; assert(size(jetmap,1)==128&size(jetmap,2)==3,'colormap must be 128x3'); 
+            end
+            CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,1-CONN_gui.backgroundcolor) ));
+            CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA) ));
+            tstate=conn_menumanager(CONN_h.menus.m0,'state');
+            if any(tstate)
+                switch(find(tstate))
+                    case 1, conn gui_setup;
+                    case 2, conn gui_preproc;
+                    case 3, conn gui_analyses; %conn('gui_analysesgo',[]);
+                    case 4, conn gui_results; %conn('gui_resultsgo',[]);
+                    otherwise, conn gui_setup;
+                end
+            else conn gui_setup;
+            end
+
         case 'gui_server',
             info=conn_remotely('info');
             if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
@@ -13202,6 +13233,9 @@ if conn_menumanager('ison')
     h=conn_menu('pushbutton2',[.756,.0,.016,.02],'','','color theme: dark (default; light text on dark background)','conn(''gui_settings'',''dark'');'); set(h,'backgroundcolor',[.5 .5 .5]);
     h=conn_menu('pushbutton2',[.776,.0,.016,.02],'','A','font size: increase','conn(''gui_settings'',''font+'');'); set(h,'fontsize',10+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
     h=conn_menu('pushbutton2',[.792,.0,.016,.02],'','A','font size: decrease','conn(''gui_settings'',''font-'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
+    h=conn_menu('pushbutton2',[.812,.0,.016,.02],'','','colormap: jet','conn(''gui_colormap'',1);'); set(h,'cdata',permute(repmat([0 0.33 1;0 0.5 1;0 0.67 1;0 0.83 1;0 1 1;0.17 1 0.83;0.33 1 0.67;0.5 1 0.5;0.67 1 0.33;0.83 1 0.17;1 1 0;1 0.83 0;1 0.67 0;1 0.5 0;1 0.33 0;1 0.17 0],[1,1,8]),[3,1,2]));
+    h=conn_menu('pushbutton2',[.828,.0,.016,.02],'','','colormap: yellowblackblue','conn(''gui_colormap'',3);'); set(h,'cdata',permute(repmat([0 0.68 0.89;0 0.6 0.76;0 0.53 0.64;0 0.46 0.51;0 0.39 0.39;0.064 0.26 0.23;0.051 0.13 0.093;0.004 0.0079 0.004;0.082 0.12 0.044;0.21 0.24 0.059;0.37 0.37 0;0.5 0.45 0;0.62 0.51 0;0.75 0.58 0;0.87 0.66 0;1 0.76 0],[1,1,8]),[3,1,2]));
+    h=conn_menu('pushbutton2',[.844,.0,.016,.02],'','','colormap: redwhiteblue','conn(''gui_colormap'',4);'); set(h,'cdata',permute(repmat([0.11 0.21 0.66;0.24 0.42 0.8;0.36 0.6 0.92;0.49 0.74 1;0.7 0.85 1;0.87 0.93 1;0.97 0.98 1;1 1 1;1 0.97 0.97;1 0.88 0.88;1 0.73 0.73;1 0.5 0.5;0.93 0.38 0.38;0.82 0.25 0.25;0.68 0.13 0.13;0.5 0 0],[1,1,8]),[3,1,2]));
     if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, str=conn_menumanager(CONN_h.menus.m_setup_01a,'string'); str{end}='Disconnect from remote'; conn_menumanager(CONN_h.menus.m_setup_01a,'string',str);
     else str=conn_menumanager(CONN_h.menus.m_setup_01a,'string'); str{end}='Connect to remote projects'; conn_menumanager(CONN_h.menus.m_setup_01a,'string',str);
     end
