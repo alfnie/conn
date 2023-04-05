@@ -553,11 +553,13 @@ function varargout=conn_batch(varargin)
 %                                     measure names)
 %      vvAnalysis.measures.factors  : (for group-PCA, group-ICA, group-MVPA) number of group-level components to estimate
 %      vvAnalysis.measures.kernelsupport : (for ILC, RCC) local support (FWHM mm) of smoothing kernel [8]
-%      vvAnalysis.measures.norm     : (for ILC,ICC,IHC,RCC,RSC,ALFF,fALFF) 0/1 normalize values to z-scores [1]
+%      vvAnalysis.measures.norm     : (for ILC,ICC,IHC,RCC,RSC,ALFF,fALFF) 0/1 normalize values to z-scores [0]
 %      vvAnalysis.measures.mask     : (for group-PCA, group-ICA, group-MVPA) optional mask for group-level component estimation 
 %                                     (e.g. masked ICA)
 %      vvAnalysis.measures.options  : (for group-ICA) optional ICA method : string containing 'GICA1' or 'GICA3' for choice of ICA back-
 %                                     projection method; string containing 'tanh','gauss', or 'pow3' for ICA estimation method (G1/G2/G3)
+%                                     (for group-MVPA, string containing comma-separated list of second-level covariate names representing 
+%                                      effects-of-no-interest when estimating subject-to-subject covariance; e.g. 'AllSubjects,age')
 %      vvAnalysis.measures.dimensions : number of subject-level dimensions to retain (subject-level dimensionality reduction) [64]
 %  
 %  

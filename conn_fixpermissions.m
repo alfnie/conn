@@ -8,6 +8,9 @@ function conn_fixpermissions(dataset,perms,opt)
 %   lets user specify permissions (see "man chmod")
 %   default perms='g+rw'
 %
+% conn_fixpermissions(connproject,[],true)
+%   changes permissions to conn project files and folders
+%
 % conn_fixpermissions([],perms)
 %   changes default permissions (in following uses of conn_fixpermissions within current Matlab session)
 %
@@ -19,6 +22,13 @@ if nargin<3||isempty(opt), opt=false; end
 if nargin<2||isempty(perms), perms=bak_perms; end
 if nargin<1, return; end
 if isempty(dataset), bak_perms=perms; return; end
+
+if any(conn_server('util_isremotefile',dataset)), 
+    conn_server('run',mfilename,conn_server('util_localfile',dataset),perms,opt);
+    return
+end
+
+if ~isunix, return; end % note: mac/linux only
 
 if opt
     disp(['changing permissions in ',conn_prepend('',dataset,'')]);

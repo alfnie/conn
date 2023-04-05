@@ -242,9 +242,14 @@ fh=@conn_mvpaexplore_update;
                     else
                         if numel(covselected)==1, conselected=1;
                         else
-                            answ=conn_menu_inputdlg(sprintf('Between-subjects contrast (vector with %d values)',numel(covselected)),'',1,mat2str(conselected));
-                            if isempty(answ), return; end
-                            conselected=str2num(answ{1});
+                            while 1
+                                if isempty(conselected), conselected=eye(numel(covselected)); end
+                                answ=conn_menu_inputdlg(sprintf('Between-subjects contrast (vector with %d values, or matrix with %d columns)',numel(covselected),numel(covselected)),'',1,mat2str(conselected));
+                                if isempty(answ), return; end
+                                conselected=str2num(answ{1});
+                                if size(conselected,2)==numel(covselected), break; end
+                                conselected=[];
+                            end
                         end
                     end
                     Xcustom=cell2mat(arrayfun(@(n)cell2mat(CONN_x.Setup.l2covariates.values{n}(covselected)),reshape(validsubjects,[],1),'uni',0));

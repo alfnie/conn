@@ -19,12 +19,13 @@ if conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
                     assert(size(words,1)==numel(tlines));
                     assert(all(~isnan(ROIidx)));
                     assert(all(cellfun('length',ROInames)>0));
+                    assert(~all(cellfun('length',regexp(ROInames,'\t')))) %*LUT.txt
                     ok=true;
                 case 2, % FreeSurfer *LUT.txt or equivalent format (ROI_NUMBER ROI_LABEL)
                     tlines=lines(cellfun('length',lines)>0);
                     tlines=regexprep(tlines,'^#.*','');
                     tlines=tlines(cellfun('length',tlines)>0);
-                    words=regexp(tlines,'\s\t','split');
+                    words=regexp(tlines,'[\s\t]','split');
                     assert(all(cellfun('length',words)>=2));
                     words=cellfun(@(x)x(1:2),words,'uni',0);
                     words=cat(1,words{:});

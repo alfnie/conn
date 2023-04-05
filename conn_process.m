@@ -3305,12 +3305,6 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                     Vmask=spm_get_data(VmaskV,pinv(VmaskV.mat)*xyz)>0;
                 else Vmask=[];
                 end
-                DOGICA3=true;
-                ICAMETHOD='';
-                if isfield(CONN_x.vvAnalyses(ianalysis),'options')&&ischar(CONN_x.vvAnalyses(ianalysis).options)&&~isempty(CONN_x.vvAnalyses(ianalysis).options)
-                    if ~isempty(regexpi(CONN_x.vvAnalyses(ianalysis).options,'gica1')), DOGICA3=false; end
-                    if ~isempty(regexpi(CONN_x.vvAnalyses(ianalysis).options,'tanh|gauss|pow3')), ICAMETHOD=char(regexp(lower(CONN_x.vvAnalyses(ianalysis).options),'tanh|gauss|pow3','match','once')); end
-                end
                 
                 NdimsIn=0; for nmeasure=nmeasures1+(1:nmeasures2), NdimsIn=max(NdimsIn,min(measures.dimensions_in{nmeasure},max(Y1Nt(:)))); end
                 if 1,%dogrouplevel
@@ -3412,6 +3406,25 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                     filenameglobal=fullfile(filepathresults,'TEMPORAL2.mtx');
                                     Qglobal=conn_mtx('init',[numel(validsubjects)*numel(validconditions)*[1 1], NdimsOut],filenameglobal);
                                 end
+                                PROJSPACE=[];
+                                if isfield(CONN_x.vvAnalyses(ianalysis),'options')&&ischar(CONN_x.vvAnalyses(ianalysis).options)&&~isempty(CONN_x.vvAnalyses(ianalysis).options) % pre-computes projector matrix removing effects-of-no-interest
+                                    conn_disp('fprintf','      potential nuisance effects: %s\n',CONN_x.vvAnalyses(ianalysis).options);
+                                    KEEPMEAN=true; % set to true to center effects-of-no-interest (always maintain mean in data)
+                                    covnames=regexp(CONN_x.vvAnalyses(ianalysis).options,'\s*,\s*','split');
+                                    [ok,idx]=ismember(covnames,CONN_x.Setup.l2covariates.names(1:end-1));
+                                    assert(all(ok),'unable to find match of second-level covariate %s',sprintf('%s ',covnames{~ok}));
+                                    PROJSUBSPACE=ones(numel(validsubjects),numel(idx));
+                                    for isub=1:numel(validsubjects)
+                                        nsub=validsubjects(isub);
+                                        for ncovariate=1:numel(idx)
+                                            PROJSUBSPACE(isub,ncovariate)=CONN_x.Setup.l2covariates.values{nsub}{idx(ncovariate)};
+                                        end
+                                    end
+                                    if KEEPMEAN, PROJSUBSPACE=PROJSUBSPACE-repmat(mean(PROJSUBSPACE,1),size(PROJSUBSPACE,1),1); end
+                                    PROJSUBSPACE=eye(numel(validsubjects))-PROJSUBSPACE*pinv(PROJSUBSPACE'*PROJSUBSPACE)*PROJSUBSPACE'; % subject-subspace projector
+                                    PROJCONSPACE=eye(numel(validconditions)); % condition-subspace projector (placeholder for future between-condition nuisance factors)
+                                    PROJSPACE=kron(PROJCONSPACE,PROJSUBSPACE);
+                                end
                                 for slice=1:Y1.size.Ns,
                                     for isub=1:numel(validsubjects)
                                         nsub=validsubjects(isub);
@@ -3450,7 +3463,9 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                         %nvox0=sum(Y1.size.Nv(1:slice-1));
                                         for nvox=1:numel(ivox), %Y1.size.Nv(slice),
                                             c1=reshape(c(nvox,:),numel(validsubjects)*numel(validconditions)*[1,1]);
-                                            if measures.norm{nmeasure}
+                                            if ~isempty(PROJSPACE), % removes effects-of-no-interest
+                                                c1=PROJSPACE*c1*PROJSPACE';
+                                            elseif measures.norm{nmeasure} % for back-compatibility
                                                 c1=conn_bsxfun(@minus,c1,mean(c1,1));
                                                 c1=conn_bsxfun(@minus,c1,mean(c1,2));
                                             end
@@ -3518,6 +3533,13 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                             end
                             
                         elseif measures.measuretype{nmeasure}==3||measures.measuretype{nmeasure}==4 % group-ICA, group-PCA
+                            DOGICA3=true;
+                            ICAMETHOD='';
+                            if isfield(CONN_x.vvAnalyses(ianalysis),'options')&&ischar(CONN_x.vvAnalyses(ianalysis).options)&&~isempty(CONN_x.vvAnalyses(ianalysis).options)
+                                conn_disp('fprintf','      ICA options: %s\n',CONN_x.vvAnalyses(ianalysis).options);
+                                if ~isempty(regexpi(CONN_x.vvAnalyses(ianalysis).options,'gica1')), DOGICA3=false; end
+                                if ~isempty(regexpi(CONN_x.vvAnalyses(ianalysis).options,'tanh|gauss|pow3')), ICAMETHOD=char(regexp(lower(CONN_x.vvAnalyses(ianalysis).options),'tanh|gauss|pow3','match','once')); end
+                            end
                             clear filesout cache;
                             for nsub=1:CONN_x.Setup.nsubjects % note: delete/reset these files even if only computing group-level analyses
                                 for ncondition=validconditions,
@@ -5195,6 +5217,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                         try, spm_select('init'); end
                         try, spm_get_defaults('mat.format','-v7.3'); end
                         if isfield(CONN_x.Setup,'stats_ufp')&&~isempty(CONN_x.Setup.stats_ufp), spm_get_defaults('stats.fmri.ufp',CONN_x.Setup.stats_ufp); end
+                        %if isfield(SPM,'altestsmooth')&&SPM.altestsmooth, spm_get_defaults('stats.fmri.ufp',.05); end
                         spm_unlink('mask.img','mask.hdr','mask.nii');
                         SPM=spm_spm(SPM);
                         c=kron(contrast,csubjecteffects); %CONN_x.Results.xX.C;

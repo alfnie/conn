@@ -12,10 +12,10 @@ for n=1:size(X,2), if Nsx(n)>1, IQ(:,n)=interp1(linspace(0,1,Nsx(n))',sx(1:Nsx(n
 IQR=max(1e-10,IQ(3,:)-IQ(1,:)); IQL=[IQ(1,:)-1.5*IQR; IQ(3,:)+1.5*IQR]; IQ=[IQL(1,:);IQ;IQL(2,:)];
 Ka=-IQL(1,:)./max(eps,IQL(2,:)-IQL(1,:));
 Kb=1./max(eps,IQL(2,:)-IQL(1,:));
-Xdisp=repmat(Ka,size(X,1),1)+repmat(Kb,size(X,1),1).*X; % scale to same IQR across all measures, all values between 0 and 1
+Xdisp=max(-5,min(6, repmat(Ka,size(X,1),1)+repmat(Kb,size(X,1),1).*X )); % scale to same IQR across all measures, all values between 0 and 1
 IQdisp=repmat(Ka,size(IQ,1),1)+repmat(Kb,size(IQ,1),1).*IQ;
-kt=min([Xdisp(:);IQdisp(:)]); if kt<0, Ka=Ka-kt; Xdisp=repmat(Ka,size(X,1),1)+repmat(Kb,size(X,1),1).*X; IQdisp=repmat(Ka,size(IQ,1),1)+repmat(Kb,size(IQ,1),1).*IQ; end
-kt=max([Xdisp(:);IQdisp(:)]); if kt>1, Ka=Ka/kt; Kb=Kb/kt; Xdisp=repmat(Ka,size(X,1),1)+repmat(Kb,size(X,1),1).*X; IQdisp=repmat(Ka,size(IQ,1),1)+repmat(Kb,size(IQ,1),1).*IQ; end
+kt=min([Xdisp(:);IQdisp(:)]); if kt<0, Xdisp=Xdisp-kt; IQdisp=IQdisp-kt; end %Ka=Ka-kt; Xdisp=repmat(Ka,size(X,1),1)+repmat(Kb,size(X,1),1).*X; IQdisp=repmat(Ka,size(IQ,1),1)+repmat(Kb,size(IQ,1),1).*IQ; end
+kt=max([Xdisp(:);IQdisp(:)]); if kt>1, Xdisp=Xdisp/kt; IQdisp=IQdisp/kt; end %Ka=Ka/kt; Kb=Kb/kt; Xdisp=repmat(Ka,size(X,1),1)+repmat(Kb,size(X,1),1).*X; IQdisp=repmat(Ka,size(IQ,1),1)+repmat(Kb,size(IQ,1),1).*IQ; end
 Npts=200;
 hx=linspace(-.1,1.1,Npts)';
 py=zeros([Npts,size(Xdisp)]); for ny=1:size(Xdisp,2), py(:,:,ny)=exp(-.5*(repmat(hx,1,size(Xdisp,1))-repmat(Xdisp(:,ny)',Npts,1)).^2/.002); end

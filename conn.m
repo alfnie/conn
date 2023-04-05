@@ -170,26 +170,26 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setupgo',1},{@conn,'gui_setupgo',2},{@conn,'gui_setupgo',3},{@conn,'gui_setupgo',4},{@conn,'gui_setupgo',5},{@conn,'gui_setupgo',6},{@conn,'gui_setupgo',7},{@conn,'gui_setupgo',8},{@conn,'gui_setupgo',9}} ); %,{@conn,'gui_setup_preproc','multiplesteps',1},{@conn,'gui_setup_qadisplay'}} );
-	CONN_h.menus.m_analyses_03sub=conn_menumanager([], 'n',1,...
-									'string',{'All analyses'},...%,{'Seed-to-Voxel','ROI-to-ROI'},{'Voxel-to-Voxel','ICA networks'},'dyn-ICA circuits'},...
-									'help',{'Display all current analyses'},...%,'Define/explore ROI-to-ROI and Seed-to-Voxel first-level analyses','Define/explore voxel-to-voxel and ICA first-level analyses','Define Dynamic ICA first-level analyses'},...
+	CONN_h.menus.m_analyses_03sub=conn_menumanager([], 'n',2,...
+									'string',{'Recent analysis','All analyses'},...%,{'Seed-to-Voxel','ROI-to-ROI'},{'Voxel-to-Voxel','ICA networks'},'dyn-ICA circuits'},...
+									'help',{'Display details of last-viewed 1st-level analysis','Display all 1st-level analyses defined in this project'},...%,'Define/explore ROI-to-ROI and Seed-to-Voxel first-level analyses','Define/explore voxel-to-voxel and ICA first-level analyses','Define Dynamic ICA first-level analyses'},...
                                     'order','vertical',...
-									'position',[.235+2.5*.765/4-.765/4/2,.955-1*.045,.765/4,1*.045],...%[.0,.68,.07,3*.05],...
+									'position',[.235+2.5*.765/4-.765/4/2,.955-2*.045,.765/4,2*.045],...%[.0,.68,.07,3*.05],...
                                     'toggle',0,...
                                     'roll',1,...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_analysesgo',[]}} ); %,{@conn,'gui_analysesgo',1},{@conn,'gui_analysesgo',2},{@conn,'gui_analysesgo',3}} );
-	CONN_h.menus.m_results_03sub=conn_menumanager([], 'n',1,...
-									'string',{'All analyses'},...%,'Seed-to-Voxel','ROI-to-ROI','Voxel-to-Voxel','ICA networks','dyn-ICA circuits'},...
-									'help',{'Display all current analyses and bookmarks'},...%,'Define/explore seed-to-voxel second-level analyses','Define/explore ROI-to-ROI second-level analyses','Define/explore voxel-to-voxel second-level analyses','Define/explore ICA second-level analyses','Define/explore dynamic ICA second-level analyses'},...
+									'callback',{{@conn,'gui_analyses'},{@conn,'gui_analysesgo',[]}} ); %,{@conn,'gui_analysesgo',1},{@conn,'gui_analysesgo',2},{@conn,'gui_analysesgo',3}} );
+	CONN_h.menus.m_results_03sub=conn_menumanager([], 'n',2,...
+									'string',{'Recent results','All results'},...%,'Seed-to-Voxel','ROI-to-ROI','Voxel-to-Voxel','ICA networks','dyn-ICA circuits'},...
+									'help',{'Display details of last-viewed 2nd-level analysis','Display all analyses and bookmarks defined in this project'},...%,'Define/explore seed-to-voxel second-level analyses','Define/explore ROI-to-ROI second-level analyses','Define/explore voxel-to-voxel second-level analyses','Define/explore ICA second-level analyses','Define/explore dynamic ICA second-level analyses'},...
                                     'order','vertical',...
-									'position',[.235+3.5*.765/4-.765/4/2,.955-1*.045,.765/4,1*.045],...%[.0,.68,.07,3*.05],...
+									'position',[.235+3.5*.765/4-.765/4/2,.955-2*.045,.765/4,2*.045],...%[.0,.68,.07,3*.05],...
                                     'toggle',0,...
                                     'roll',1,...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_resultsgo',[]}} ); %,{@conn,'gui_resultsgo',2},{@conn,'gui_resultsgo',1},{@conn,'gui_resultsgo',3},{@conn,'gui_resultsgo',4},{@conn,'gui_resultsgo',5}} ); 
+									'callback',{{@conn,'gui_results'},{@conn,'gui_resultsgo',[]}} ); %,{@conn,'gui_resultsgo',2},{@conn,'gui_resultsgo',1},{@conn,'gui_resultsgo',3},{@conn,'gui_resultsgo',4},{@conn,'gui_resultsgo',5}} ); 
 	CONN_h.menus.m0=conn_menumanager([],	'n',4,...
 									'string',{'SETUP','DENOISING (1st-level)','ANALYSES (1st-level)','RESULTS (2nd-level)'},...
 									'help',{'Step 1/4: Define/Edit study setup','Step 2/4: Define/Edit denoising options','Step 3/4: Define/Edit first-level analysis options','Step 4/4: Define/Edit second-level analyses'},...
@@ -264,7 +264,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'callback',{{@conn,'gui_settings'},CONN_h.menus.m_setup_07f,CONN_h.menus.m_setup_07j,CONN_h.menus.m_setup_07h,CONN_h.menus.m_setup_07e,{@conn,'gui_setup_qadisplay'},{@conn,'gui_referenceexplore'},{@conn,'gui_setup_logdisplay'},{@conn_print},{@conn,'gui_calculator'}} ); %,{@conn,'gui_setup_qadisplay'}} );
 	CONN_h.menus.m_setup_07d=conn_menumanager([],	'n',11,...
 									'string',{'Support','Documentation','FAQ','Methods','Tutorials','Citing CONN','Other resources','CONN site','NITRC site','SPM site','Registration'},...
-									'help',{'Search/ask for help at CONN support forum site (browse www.nitrc.org/forum/forum.php?forum_id=1144)','Browse www.conn-toolbox.org/resources/documentation','Browse www.alfnie.com/software/conn','Browse www.conn-toolbox.org/fmri-methods','Browse www.conn-toolbox.org/tutorials','Browse www.conn-toolbox.org/resources/citing-conn','Browse www.conn-toolbox.org/resources','Browse www.conn-toolbox.org','Browse www.nitrc.org/projects/conn','Browse www.fil.ion.ucl.ac.uk/spm','Register CONN toolbox software'},...
+									'help',{'Search/ask for help at CONN support forum site (browse www.nitrc.org/forum/forum.php?forum_id=1144)','Browse www.conn-toolbox.org/resources/documentation','Browse www.alfnie.com/software/conn','Browse www.conn-toolbox.org/fmri-methods','Browse www.conn-toolbox.org/tutorials','Browse www.conn-toolbox.org/resources/citing-conn','Browse www.conn-toolbox.org/resources','Browse www.conn-toolbox.org','Browse www.nitrc.org/projects/conn','Browse www.fil.ion.ucl.ac.uk/spm','Register CONN toolbox user'},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
@@ -1938,6 +1938,10 @@ else
             str=fileparts(which('spm'))
             [ok,msg]=system(['find "',str,'" -name "*.mexmaci64" -exec xattr -d com.apple.quarantine {} \;']);
 
+        case 'bugfix_editorslow'
+            com.mathworks.services.Prefs.setBooleanPref('CodeParserServiceOn',false);
+            com.mathworks.services.Prefs.setIntegerPref('CodeParserServiceFileSizeLimit',300);
+            
         case 'plog'
             if nargin>1&&~isempty(varargin{2}), n=varargin{2};
             else n=1;
@@ -1992,11 +1996,13 @@ else
                 if CONN_x.gui.parallel~=0, 
                     if CONN_x.gui.parallel>0, conn_jobmanager('options','profile',CONN_x.gui.parallel); end;
                     if isfield(CONN_x.gui,'subjects'), subjects=CONN_x.gui.subjects; else subjects=[]; end
+                    CONN_x_gui=CONN_x.gui;
+                    CONN_x.gui=1;
                     conn save;
                     %allpsteps=sprintf('%s;',psteps{CONN_x.gui.processes{1}});
                     %conn_jobmanager('submit',allpsteps,subjects,[],CONN_x.gui,CONN_x.gui.processes{2:end});
-                    allpsteps=psteps(CONN_x.gui.processes{1});
-                    alloption=cellfun(@(x)[{CONN_x.gui},x],CONN_x.gui.processes{2},'uni',0);
+                    allpsteps=psteps(CONN_x_gui.processes{1});
+                    alloption=cellfun(@(x)[{CONN_x_gui},x],CONN_x_gui.processes{2},'uni',0);
                     conn_jobmanager('submit',allpsteps,subjects,[],alloption);
                 else
                     arglist={};
@@ -2007,9 +2013,9 @@ else
                     %for n=1:numel(CONN_x.gui.processes{1}),
                     %    conn_process(psteps{CONN_x.gui.processes{1}(n)},CONN_x.gui.processes{2}{n}{:}); 
                     %end
+                    CONN_x.gui=1;
+                    conn gui_setup_save;
                 end
-                CONN_x.gui=1;
-                conn gui_setup_save;
                 conn gui_setup;
             end
             
@@ -5366,6 +5372,7 @@ else
                 conn gui_setup
             elseif strcmp(Answ,'Save and Close'),
                 conn save;
+                if CONN_gui.isremote, conn_fixpermissions(conn_projectmanager('projectfile'),'w+g',true); end
                 conn initfromgui;
                 conn importrois;
                 conn gui_setup
@@ -7051,12 +7058,15 @@ else
                     ispending=isequal(CONN_x.gui.parallel,find(strcmp('Null profile',conn_jobmanager('profiles'))));
                     if CONN_x.gui.parallel>0, conn_jobmanager('options','profile',CONN_x.gui.parallel); end; 
                     if isfield(CONN_x.gui,'subjects'), subjects=CONN_x.gui.subjects; else subjects=[]; end
+                    CONN_x_gui=CONN_x.gui;
+                    CONN_x.gui=1;
                     conn save;
-                    conn_jobmanager('submit','denoising_gui',subjects,[],CONN_x.gui);
-                else conn_process('denoising_gui'); ispending=false;
+                    conn_jobmanager('submit','denoising_gui',subjects,[],CONN_x_gui);
+                else 
+                    conn_process('denoising_gui'); ispending=false;
+                    CONN_x.gui=1;
+                    conn gui_setup_save;
                 end
-                CONN_x.gui=1;
-                conn gui_setup_save;
                 if ~conn_projectmanager('ispending')&&~ispending, conn('gui_analysesgo',[]); 
                 else conn gui_preproc; 
                 end
@@ -8436,6 +8446,8 @@ else
                     CONN_h.menus.m_analyses_00{17}=[];%[CONN_h.menus.m_analyses_00{17}(1),CONN_h.menus.m_analyses_00{17}(2)]=conn_menu('checkbox',boffset+[.225,.51,.02,.025],'Centering','','<HTML>(optional) centers MVPA components<br/> - When selecting this option the MVPA components have zero mean across all subjects/conditions (MVPA components defined using PCA of covariance in seed-to-voxel connectivity values across subjects) <br/> - Uncheck this option to skip centering (PCA decomposition uses second moment about zero instead of second moment about the mean) </HTML>','conn(''gui_analyses'',17);');
                     measuretypes={'G1 FastICA + GICA1 Back-projection','G2 FastICA + GICA1 Back-projection','G3 FastICA + GICA1 Back-projection','G1 FastICA + GICA3 Back-projection','G2 FastICA + GICA3 Back-projection','G3 FastICA + GICA3 Back-projection'};
                     CONN_h.menus.m_analyses_00{18}=conn_menu('popup',boffset+[.225,.43,.26,.04],'',measuretypes,'<HTML>choice of ICA method<br/> - FastICA G1 (tanh), G2 (gauss), or G3 (pow3) specify non-linear contrast function in iterative FastICA algorithm <br/> - Back-projection GICA1, or GICA3 specify choice of back-projection method in Calhoun''s group-ICA algorithm <br/> note: default settings = G1 FastICA + GICA3 Back-projection</HTML>','conn(''gui_analyses'',18);');
+                    measuretypes={'Full covariance estimation','Restricted covariance (remove custom list of nuisance effects)'};
+                    CONN_h.menus.m_analyses_00{21}=conn_menu('popup',boffset+[.225,.43,.26,.04],'',measuretypes,'<HTML>Select potential nuisance factors<br/> - When specifying a list of potential nuisance factors, principal components/eigenpatterns will be <br/> computed from the residual covariance matrix after removal of the selected nuisance effects</HTML>','conn(''gui_analyses'',21);');
                     %set([CONN_h.menus.m_analyses_00{3}(2) CONN_h.menus.m_analyses_00{17}(2)],'position',boffset+[.245,.51,.09,.03]);
                     
                     set(CONN_h.menus.m_analyses_00{13},'string',{'<HTML>Analysis results <small>(from disk)</small></HTML>'},'value',1);
@@ -8689,6 +8701,19 @@ else
                             value=get(CONN_h.menus.m_analyses_00{18}(1),'value');
                             measuretypes={'GICA1tanh','GICA1gauss','GICA1pow3','GICA3tanh','GICA3gauss','GICA3pow3'};
                             CONN_x.vvAnalyses(CONN_x.vvAnalysis).options=measuretypes{value};
+                        case 21
+                            nregressors=1; %get(CONN_h.menus.m_analyses_00{2},'value');
+                            value=get(CONN_h.menus.m_analyses_00{21}(1),'value');
+                            switch(value)
+                                case 1, CONN_x.vvAnalyses(CONN_x.vvAnalysis).options='';
+                                %case 2, CONN_x.vvAnalyses(CONN_x.vvAnalysis).options='AllSubjects';
+                                case 2, 
+                                    covnames=regexp(CONN_x.vvAnalyses(CONN_x.vvAnalysis).options,'\s*,\s*','split');
+                                    [ok,idx]=ismember(covnames,CONN_x.Setup.l2covariates.names(1:end-1));                                    
+                                    covselected=idx(ok);
+                                    covselected=listdlg('liststring',CONN_x.Setup.l2covariates.names(1:end-1),'selectionmode','multiple','initialvalue',covselected,'promptstring','Select potential nuisance factors:','ListSize',[500 200]);
+                                    if ~isempty(covselected), CONN_x.vvAnalyses(CONN_x.vvAnalysis).options=regexprep(sprintf('%s,',CONN_x.Setup.l2covariates.names{covselected}),',$',''); end
+                            end
                         case 20, % obsolete, toberemoved
                             if numel(varargin)>=3, tianalysis=varargin{3}; 
                             else tianalysis=get(CONN_h.menus.m_analyses_00{20},'value');
@@ -8881,6 +8906,7 @@ else
                     if any(ismember(temp,[2,3,4])), set([CONN_h.menus.m_analyses_00{3},CONN_h.menus.m_analyses_00{4},CONN_h.menus.m_analyses_00{5},CONN_h.menus.m_analyses_00{6}],'visible','off'); end
                     if any(temp==5), set([CONN_h.menus.m_analyses_00{4}],'visible','off'); end
                     if all(temp==3), set([CONN_h.menus.m_analyses_00{18}],'visible','on'); else set([CONN_h.menus.m_analyses_00{18}],'visible','off'); end
+                    if all(temp==2), set([CONN_h.menus.m_analyses_00{21}],'visible','on'); else set([CONN_h.menus.m_analyses_00{21}],'visible','off'); end
                     if ~all(temp==2), set([CONN_h.menus.m_analyses_00{17}],'visible','off'); end
                     if ~all(ismember(temp,[2,3,4])), set([CONN_h.menus.m_analyses_00{7} CONN_h.menus.m_analyses_00{9}],'visible','off'); else set([CONN_h.menus.m_analyses_00{7} CONN_h.menus.m_analyses_00{9}],'visible','on'); end
                     if ~isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).mask), set(CONN_h.menus.m_analyses_00{7}(1),'value',1); else set(CONN_h.menus.m_analyses_00{7}(1),'value',0); end
@@ -8893,6 +8919,11 @@ else
                     elseif ~isempty(regexpi(char(CONN_x.vvAnalyses(CONN_x.vvAnalysis).options),'pow3')), val=val+2; 
                     end
                     set(CONN_h.menus.m_analyses_00{18},'value',val);
+                    if isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).options), val=1;
+                    %elseif isequal(CONN_x.vvAnalyses(CONN_x.vvAnalysis).options,'AllSubjects'), val=2;
+                    else val=2;
+                    end
+                    set(CONN_h.menus.m_analyses_00{21},'value',val);
                 else
                     set([CONN_h.menus.m_analyses_00{3},CONN_h.menus.m_analyses_00{17},CONN_h.menus.m_analyses_00{4},CONN_h.menus.m_analyses_00{5},CONN_h.menus.m_analyses_00{6},CONN_h.menus.m_analyses_00{7},CONN_h.menus.m_analyses_00{8},CONN_h.menus.m_analyses_00{9}],'visible','off');%
                 end
@@ -9380,12 +9411,15 @@ else
                     ispending=isequal(CONN_x.gui.parallel,find(strcmp('Null profile',conn_jobmanager('profiles'))));
                     if CONN_x.gui.parallel>0, conn_jobmanager('options','profile',CONN_x.gui.parallel); end; 
                     if isfield(CONN_x.gui,'subjects'), subjects=CONN_x.gui.subjects; else subjects=[]; end
+                    CONN_x_gui=CONN_x.gui;
+                    CONN_x.gui=1;
                     conn save;
-                    conn_jobmanager('submit','analyses_gui_seedandroi',subjects,[],CONN_x.gui,CONN_x.Analysis);
-                else conn_process('analyses_gui_seedandroi',CONN_x.Analysis); ispending=false;
+                    conn_jobmanager('submit','analyses_gui_seedandroi',subjects,[],CONN_x_gui,CONN_x.Analysis);
+                else 
+                    conn_process('analyses_gui_seedandroi',CONN_x.Analysis); ispending=false;
+                    CONN_x.gui=1;
+                    conn gui_setup_save;
                 end
-                CONN_x.gui=1;
-                conn gui_setup_save;
                 if ~conn_projectmanager('ispending')&&~ispending, 
                     if any(CONN_x.Analyses(CONN_x.Analysis).type==[2,3]), conn gui_results_s2v; 
                     else conn gui_results_r2r;
@@ -9411,12 +9445,17 @@ else
                     ispending=isequal(CONN_x.gui.parallel,find(strcmp('Null profile',conn_jobmanager('profiles'))));
                     if CONN_x.gui.parallel>0, conn_jobmanager('options','profile',CONN_x.gui.parallel); end; 
                     if isfield(CONN_x.gui,'subjects'), subjects=CONN_x.gui.subjects; else subjects=[]; end
+                    CONN_x_gui=CONN_x.gui;
+                    CONN_x.gui=1;
                     conn save;
-                    conn_jobmanager('submit','analyses_gui_vv',subjects,[],CONN_x.gui,CONN_x.vvAnalysis);
-                else conn_process('analyses_gui_vv',CONN_x.vvAnalysis); ispending=false;
+                    if all(ismember(conn_v2v('fieldtext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures,1),{'2','3','4'})), conn_jobmanager('submit','analyses_gui_vv',subjects,1,CONN_x_gui,CONN_x.vvAnalysis); % group-level analyses ICA/PCA/MVPA
+                    else conn_jobmanager('submit','analyses_gui_vv',subjects,[],CONN_x_gui,CONN_x.vvAnalysis);
+                    end
+                else 
+                    conn_process('analyses_gui_vv',CONN_x.vvAnalysis); ispending=false;
+                    CONN_x.gui=1;
+                    conn gui_setup_save;
                 end
-                CONN_x.gui=1;
-                conn gui_setup_save;
                 if ~conn_projectmanager('ispending')&&~ispending, 
                     if any(ismember(conn_v2v('fieldtext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures,1),{'3','4'})), conn gui_results_ica_summary;
                     else conn gui_results_v2v;
@@ -9444,12 +9483,15 @@ else
                     ispending=isequal(CONN_x.gui.parallel,find(strcmp('Null profile',conn_jobmanager('profiles'))));
                     if CONN_x.gui.parallel>0, conn_jobmanager('options','profile',CONN_x.gui.parallel); end; 
                     if isfield(CONN_x.gui,'subjects'), subjects=CONN_x.gui.subjects; else subjects=[]; end
+                    CONN_x_gui=CONN_x.gui;
+                    CONN_x.gui=1;
                     conn save;
-                    conn_jobmanager('submit','analyses_gui_dyn',subjects,[],CONN_x.gui,CONN_x.dynAnalysis);
-                else conn_process('analyses_gui_dyn',CONN_x.dynAnalysis); ispending=false;
+                    conn_jobmanager('submit','analyses_gui_dyn',subjects,[],CONN_x_gui,CONN_x.dynAnalysis);
+                else 
+                    conn_process('analyses_gui_dyn',CONN_x.dynAnalysis); ispending=false;
+                    CONN_x.gui=1;
+                    conn gui_setup_save;
                 end
-                CONN_x.gui=1;
-                conn gui_setup_save;
                 if ~conn_projectmanager('ispending')&&~ispending, conn gui_results_dyn_summary; 
                 else conn gui_analyses;
                 end
@@ -10076,7 +10118,8 @@ else
                     tnames=conn_contrastmanager('namesextended');
                     [nill,CONN_h.menus.m_results.showncontrasts]=sort(conn_contrastmanager('names')); tnames=tnames(CONN_h.menus.m_results.showncontrasts);
                     if numel(CONN_x.Setup.l2covariates.names)>2||numel(CONN_x.Setup.conditions.names)>2
-                        CONN_h.menus.m_results_00{21}=conn_menu('popup',boffset+[-.020,.425-dp1-.10,.455,.045],'',[{'<HTML><i>unlabeled</i></HTML>'},tnames,{'<HTML><i>display all manually-labeled group-analysis designs</i></HTML>','<HTML><i>label this group-analysis design</i></HTML>'}],'<HTML>custom list of group-analysis designs<br/> - select a previously-defined entry in this list to automatically fill-in the associated group-analysis design (<b>subjects effects</b>, <br/> <b>between-subjects contast</b>, <b>conditions</b>, and <b>between-conditions contrast</b> fields above) <br/> - select <i>label this analysis design</i> to add a new entry to this list, or edit the seleted entry</HTML>','conn(''gui_results'',21);');
+                        %conn_menu('framewhitehighlight',boffset+[-.020,.43-dp1-.10+.015,.445,.025],'');
+                        CONN_h.menus.m_results_00{21}=conn_menu('popup',boffset+[-.020,.425-dp1-.10,.445,.045],'',[{'<HTML><i>unlabeled</i></HTML>'},tnames,{'<HTML><i>display all manually-labeled group-analysis designs</i></HTML>','<HTML><i>label this group-analysis design</i></HTML>'}],'<HTML>custom list of group-analysis designs<br/> - select a previously-defined entry in this list to automatically fill-in the associated group-analysis design (<b>subjects effects</b>, <br/> <b>between-subjects contast</b>, <b>conditions</b>, and <b>between-conditions contrast</b> fields above) <br/> - select <i>label this analysis design</i> to add a new entry to this list, or edit the seleted entry</HTML>','conn(''gui_results'',21);');
                         %CONN_h.menus.m_results_00{21}=conn_menu('popup',boffset+[.105,.37-dp1,.265,.04],'',[{'<HTML><i>user-defined analysis</i></HTML>'},tnames,{'<HTML><i>name this 2nd-level model</i></HTML>'}],'<HTML>User-defined list of 2nd-level models<br/> - select a previously-defined 2nd-level model to automatically fill-in the analysis model parameters (<b>subjects effects</b>, <br/> <b>between-subjects contast</b>, <b>conditions</b>, and <b>between-conditions contrast</b> fields below) <br/> - select <i>name this analysis</i> to add a new 2nd-level model to this list, or edit/remove an existing 2nd-level model</HTML>','conn(''gui_results'',21);');
                         set(CONN_h.menus.m_results_00{21},'value',1);%,'fontsize',9+CONN_gui.font_offset);%,'fontweight','bold');
                     else
@@ -12447,18 +12490,20 @@ else
                     ispending=isequal(CONN_x.gui.parallel,find(strcmp('Null profile',conn_jobmanager('profiles'))));
                     if CONN_x.gui.parallel>0, conn_jobmanager('options','profile',CONN_x.gui.parallel); end; 
                     %if isfield(CONN_x.gui,'subjects'), subjects=CONN_x.gui.subjects; else subjects=[]; end
+                    CONN_x_gui=CONN_x.gui;
+                    CONN_x.gui=1;
                     conn save;
-                    for n=1:numel(CONN_x.gui.processes{1})
-                        conn_jobmanager('submit',psteps{CONN_x.gui.processes{1}(n)},[],1,CONN_x.gui,CONN_x.gui.processes{2}{n}{:});
+                    for n=1:numel(CONN_x_gui.processes{1})
+                        conn_jobmanager('submit',psteps{CONN_x_gui.processes{1}(n)},[],1,CONN_x_gui,CONN_x_gui.processes{2}{n}{:});
                     end
                 else
                     for n=1:numel(CONN_x.gui.processes{1})
                         drawnow;
                         conn_process(psteps{CONN_x.gui.processes{1}(n)},CONN_x.gui.processes{2}{n}{:});
                     end
+                    CONN_x.gui=1;
+                    conn gui_results;
                 end
-                CONN_x.gui=1;
-                conn gui_results;
             end
 			%conn_menumanager clf;
 			%axes('units','norm','position',[0,.935,1,.005]); image(shiftdim([0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),-1)); axis off;
@@ -13262,7 +13307,6 @@ if isfield(CONN_gui,'background'), b0=conn_guibackground('get',get(ha,'position'
 d=max(0,min(1, conn_bsxfun(@plus,conn_bsxfun(@times,.2*conn_bsxfun(@times,sign(.5-mean(b0,3)),.5+0*rand*ones([1,1,3])),c),b0) ));
 hi=image(d,'parent',ha); 
 axis(ha,'equal','tight','off');
-
 end
 
 function conn_closerequestfcn(varargin)

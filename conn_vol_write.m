@@ -10,8 +10,8 @@ function a = conn_vol_write(filename,data,M,ftype)
 if ~nargin, help(mfilename); return; end
 
 if nargin<3||isempty(M), M=eye(4); end
-if nargin<4||isempty(ftype), if isstruct(M), ftype=M.dt(1); else ftype=spm_type('float32'); end; end
-if isstruct(M), M=M.mat; end
+if nargin<4||isempty(ftype), if isstruct(M), ftype=M(1).dt(1); else ftype=spm_type('float32'); end; end
+if isstruct(M), M=M(1).mat; end
 isremotefile=conn_server('util_isremotefile',filename);
 if isremotefile, remotefilename=filename; filename=conn_cache('new',remotefilename); end
 

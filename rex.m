@@ -212,7 +212,7 @@ elseif nargin>0, % COMMAND-LINE OPTIONS
             end
         end
         if ~isfield(params,'VM') && ~isempty(params.conjunction_mask),
-            params.VM=spm_vol(params.conjunction_mask);
+            params.VM=spm_vol(char(params.conjunction_mask));
         end
         if ~isfield(params,'ROIdata')||isempty(params.ROIdata),
             [params.ROIdata,params.ROInames,params.ROIinfo.basis,params.ROIinfo.voxels,params.ROIinfo.files,params.ROIinfo.select,params.ROIinfo.trans]=rex_do(params,1);
@@ -447,7 +447,7 @@ switch(option),
                     else,                       temp=spm_select(Inf,'\.img$|\.nii$','Select conjunction mask(s)',mat2cell(temp,ones(size(temp,1),1),size(temp,2))); end
                 end
                 if ~isempty(temp),
-                    hf=msgbox('Loading header files. Please wait...');data.params.VM=spm_vol(temp);close(hf);
+                    hf=msgbox('Loading header files. Please wait...');data.params.VM=spm_vol(char(temp));close(hf);
                     data.params.conjunction_mask=temp;
                 else,
                     data.params.conjunction_mask='';
@@ -710,9 +710,13 @@ for r=1:size(params.rois,1)
                 maskedvoxels=m>0; 
                 if isfield(params,'conjunction_threshold'), 
                     if iscell(params.conjunction_threshold) % format {thresholdtype, thresholdvalue}
-                        switch(lower(params.conjunction_threshold{1}))
+                        thrtype=params.conjunction_threshold{1};
+                        thrval=params.conjunction_threshold{2};
+                        if iscell(thrtype)&&numel(thrtype)>1, thrtype=thrtype{nconj}; end
+                        if numel(thrval)>1, thrval=thrval(nconj); end
+                        switch(lower(thrtype))
                             case 'raw'                                              % all voxels with conjunction-mask values greater than thr within ROI
-                                maskedvoxels=m>params.conjunction_threshold{2};
+                                maskedvoxels=m>thrval;
                             case {'percent','percentile','percentile-roi-level',...   % ## pecent of voxels with top conjunction-mask values within ROI
                                   'voxels','nvoxels','nvoxels-roi-level'}           % ## number of voxels with top conjunction-mask values within ROI
                                 sm=m;
@@ -721,16 +725,18 @@ for r=1:size(params.rois,1)
                                 end
                                 [sm,smrank]=sort(sm,'descend');
                                 smrank(smrank)=1:numel(smrank);
-                                if ismember(lower(params.conjunction_threshold{1}), {'percent','percentile','percentile-roi-level'}), 
-                                    if params.conjunction_threshold{2}>1, fprintf('warning: percent values in conjunction_threshold field should be scaled between 0 and 1, not between 0 and 100; rescaling %f to %f\n',params.conjunction_threshold{2},params.conjunction_threshold{2}/100); params.conjunction_threshold{2}=params.conjunction_threshold{2}/100; end
-                                    maskedvoxels=smrank<=params.conjunction_threshold{2}*numel(smrank); % note: .10 means top 10% of voxels within ROI
-                                else maskedvoxels=smrank<=params.conjunction_threshold{2}; % note: 10 means top 10 voxels within ROI
+                                if ismember(lower(thrtype), {'percent','percentile','percentile-roi-level'}), 
+                                    if thrval>1, fprintf('warning: percent values in conjunction_threshold field should be scaled between 0 and 1, not between 0 and 100; rescaling %f to %f\n',thrval,thrval/100); thrval=thrval/100; end
+                                    maskedvoxels=smrank<=thrval*numel(smrank); % note: .10 means top 10% of voxels within ROI
+                                else maskedvoxels=smrank<=thrval; % note: 10 means top 10 voxels within ROI
                                 end
                             otherwise,
-                                error('unrecognized conjunction threshold type %s (valid options ''raw'' ''percentile'' ''nvoxels'')',params.conjunction_threshold{1})
+                                error('unrecognized conjunction threshold type %s (valid options ''raw'' ''percentile'' ''nvoxels'')',thrtype)
                         end
                     else
-                        maskedvoxels=m>params.conjunction_threshold;
+                        thrval=params.conjunction_threshold;
+                        if numel(thrval)>1, thrval=thrval(nconj); end
+                        maskedvoxels=m>thrval;
                     end
                 end
                 allmaskedvoxels=cat(1,allmaskedvoxels,maskedvoxels);

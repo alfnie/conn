@@ -522,6 +522,9 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 if ~isempty(OPTION2), options={OPTION2,'-nogui'};
                 else options={};
                 end
+                if ~isfield(CONN_x,'filename')||isempty(CONN_x.filename), % not conn project loaded
+                    conn_msgbox({'This option is only available when a CONN project has been loaded (e.g. from the main CONN gui)','Please load a CONN project and try again'},'',2); return;
+                end
                 validconditions=[];
                 for ncondition=1:numel(CONN_x.Setup.conditions.names)-1,
                     [icondition,isnewcondition]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition});
