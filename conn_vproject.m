@@ -377,12 +377,14 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 filename=fullfile(fileparts(spmfile),'results.nii');
                 conn_vproject(GCF,[],'export_mask_selected',filename);
                 fh=conn_mesh_display(filename,'');
+                fh('visible','off');
                 if (DATA.thres{2}==3||DATA.thres{2}==4), tstr='TFCE';
                 elseif numel(DATA.mat{3})>1&&isequal(DATA.mat{6},'T'), tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}(end)),')'];
                 elseif numel(DATA.mat{3})>1, tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}(1)),',',num2str(DATA.mat{3}(2)),')'];
                 else tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}),')'];
                 end
                 fh('colorbar','on', tstr);
+                fh('visible','on');
                 if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',4,options{:}); fh('close'); end
                 %fh('zoomin');
                 return;
@@ -397,13 +399,17 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 else vfilename=filename;
                 end
                 fh=conn_mesh_display('',vfilename); % without surface projection
+                fh('visible','off');
                 %fh=conn_mesh_display(filename,vfilename); % with surface projection as well
                 if DATA.issurface, fh('brain',1); fh('sub_transparency',0); 
                 else fh('sub_transparency',.5);
                 end
                 fh('brain_color',[1 1 1]);
-                fh('brain_transparency',.65);
+                fh('sub_color',[1 1 1]);
+                fh('brain_transparency',.75);
+                fh('act_transparency',.75);
                 fh('act_color',[1 0 0]); fh('colormap',[1 0 0]); 
+                fh('visible','on');
                 if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',7,options{:}); fh('close'); end
                 return;
 
@@ -415,6 +421,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 conn_vproject(GCF,[],'export_mask_selected',filename);
                 if DATA.issurface, filename=conn_surf_surf2vol(filename); end
                 fh=conn_mesh_display('',filename,[],[],[],[],.5);
+                fh('visible','off');
                 %fh('background',[1 1 1]);
                 if DATA.issurface, 
                     fh('brain',2); 
@@ -433,8 +440,8 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     fh('brain',2);
                     fh('ref_file',filename,2);
                     fh('ref_pos',[80,-110,90]);
-                    fh('brain_transparency',.05);
-                    fh('sub_transparency',.05);
+                    fh('brain_transparency',.01);
+                    fh('sub_transparency',.01);
                     if 1
                         fh('material',[.1 1 1 .25 0]);
                         fh('ref_all','on');
@@ -451,6 +458,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     end
                     fh('colorbar','on', tstr);
                 end
+                fh('visible','on');
                 if ~isempty(regexp(OPTION,'print$')), fh('background',[1 1 1]); fh('print',3,options{:}); fh('close'); end
                 return;
                 
@@ -487,7 +495,8 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 else tstr=[DATA.mat{6},'(',num2str(DATA.mat{3}),')'];
                 end
                 fh('colorbar','on', tstr);
-                %fh('contour_transparency',1);
+                fh('contour_transparency',1);
+                fh('slice_transparency',.5);
                 fh('multisliceset',1,16,8);
                 fh('pointer_mm',[0 0 10]);
                 fh('togglegui',1);
@@ -601,17 +610,19 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     filenameout=conn_prepend('',option_roi,'.SeedtoVoxelMap.nii');
                 end
                 conn_process('vv2rr',filenamein,'style','vv2rv','validconditions',ncond,'contrastconditions',ccond,'validsubjects',validsubjects,'contrastsubjects',alpha','saveas',filenameout);
-                if ishandle(hmsg), delete(hmsg); end
                 if option_display==1
                     fh=conn_mesh_display(filenameout);
+                    fh('visible','off');
                     fh('colorbar','rescale','symmetric');
                     fh('colormap','bluewhitered');
                     fh('colormap','darker');
                     fh('brain',2);
                     fh('mask','off');
                     fh('colorbar','on', dtxt);
+                    fh('visible','on');
                     %fh('colorbar','rescale','symmetric');
                     %fh('material',[]);
+                    if ishandle(hmsg), delete(hmsg); end
                     if ~isempty(regexp(OPTION,'print$')), fh('background',.95*[1 1 1]); fh('print',7,options{:}); fh('close'); end
                 else
                     fh=conn_slice_display(filenameout);
@@ -623,6 +634,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     fh('multisliceset',1,16,8);
                     fh('pointer_mm',[0 0 10]);
                     fh('togglegui',1);
+                    if ishandle(hmsg), delete(hmsg); end
                     if ~isempty(regexp(OPTION,'print$')),
                         fh('background',[1 1 1]);
                         fh('print',options{:});

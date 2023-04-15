@@ -446,7 +446,9 @@ if ~isempty(TXT)
         fh{end+1}=sprintf('</body></html>\n');
         fh=[fh{:}];
     else
+        if ~isempty(fileparts(fields.fileout))&&~conn_existfile(fileparts(fields.fileout),true), conn_fileutils('mkdir',fileparts(fields.fileout)); end
         fh=fopen(fields.fileout,'wt');
+        assert(~isequal(fh,-1),'Unable to create file %s. Please check permissions and try again',fields.fileout);
         fprintf(fh,'<html><body><p style="font-family:helvetica;line-height:2"><center>Copy and paste the section below to your manuscript <b>Methods</b> section. This text is distributed under a Public Domain Dedication license (<a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0 1.0</a>) and <a href="https://web.conn-toolbox.org/resources/citing-conn">it can be used, copied, modified, and distributed freely</a>.</center></p><br></br>\n');
         fprintf(fh,'<h2 style="font-family:helvetica"><b>Methods</b></h2>\n');
         for n=1:numel(TXT), 

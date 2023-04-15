@@ -6,7 +6,10 @@ filepathresults=fullfile(CONN_x.folders.firstlevel_vv,CONN_x.vvAnalyses(CONN_x.v
 [iroi,isnew,ncomp]=cellfun(@(x)conn_v2v('match_extended',x),CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures);
 if any(isnew), conn_msgbox('Sorry, this option is not available until the associated first-level MVPA analyses have been run','',2); return; end
 
-filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
+if CONN_gui.usehighres, filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
+else filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_trans.nii');
+end
+%filename=fullfile(fileparts(which('conn')),'utils','surf','referenceT1_icbm.nii');
 [voldata,volref]=conn_vol_read(filename);
 imat=pinv(volref.mat);
 
@@ -155,11 +158,13 @@ fh=@conn_mvpaexplore_update;
                         w(max(1,min(V0.matdim.dim(1),round(nv(1)))),max(1,min(V0.matdim.dim(2),round(nv(2)))),max(1,min(V0.matdim.dim(3),round(nv(3)))))=1;
                         conn_process('vv2rr',w(:)','style','vv2rv','saveas',filenameout,'validsubjects',validsubjects,'contrastsubjects',W(n1,:),'validconditions',ncondition,'contrastconditions',1);
                         tfh=conn_mesh_display(filenameout);
+                        tfh('visible','off');
                         try, tfh('colorbar','rescale',str2num(get(ht4.h9,'string'))*[-1 1]); end
                         tfh('colormap','bluewhitered');
                         tfh('brain',2);
                         tfh('mask','off');
                         tfh('colorbar','on', txtmethod);
+                        tfh('visible','on');
                     end
                     if ishandle(hm), delete(hm); end
                 end

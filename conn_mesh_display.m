@@ -338,6 +338,8 @@ else
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
     set(gca,'ydir','normal','xtick',[],'ytick',[],'box','on','fontsize',8);
 end
+state.handles.hhide=[];
+
 state.handles.colorbar=[gca temp];
 set(state.handles.colorbar,'visible','off');
 if isempty(hax0), state.handles.hax=axes('parent',state.handles.hfig);
@@ -576,6 +578,7 @@ else
     set(state.handles.light,'visible','on');
     material(state.material);
 end
+if state.handles.fullfigure, state.handles.hhide=uicontrol('style','frame','unit','norm','position',[0 0 1 1],'backgroundcolor',state.background,'foregroundcolor',state.background); end
 
 if state.handles.fullfigure, hc=state.handles.hfig;
 else hc=uicontextmenu(state.handles.hfig);
@@ -810,7 +813,8 @@ for n=1:numel(cameraviewfields)
 end
 set(state.handles.hfig,'name',figname);
 conn_mesh_display_refresh([],[],'view',[-1,0,0],[],0);
-if state.handles.fullfigure, set(state.handles.hfig,'visible','on'); drawnow; end
+if state.handles.fullfigure, set(state.handles.hfig,'visible','on'); end %drawnow; end
+set(state.handles.hhide,'visible','off');
 if ishandle(hmsg), delete(hmsg); end
 %rotate3d on;
 
@@ -873,6 +877,20 @@ if ishandle(hmsg), delete(hmsg); end
             case 'info',
                 conn_msgbox([{'Volume:'},cellstr(state.info.vol),{' ','Activation surface:'},cellstr(state.info.surf)],'3d display info');
                 return;
+
+            case 'visible',
+                if numel(varargin)<1||isempty(varargin{1}), v=1;
+                else v=varargin{1};
+                end
+                if ischar(v), v=strcmp(lower(v),'on'); end
+                if v, 
+                    set(state.handles.hfig,'name','conn 3d display');
+                    set(state.handles.hhide,'visible','off'); 
+                else
+                    set(state.handles.hfig,'name','rendering, please wait...');
+                    set(state.handles.hhide,'visible','on'); 
+                end
+                
             case {'mask','remap','remap&draw','colormap','black_transparency','smoother'}
                 if ~strcmp(option,'remap')&&state.handles.fullfigure, set(state.handles.hfig,'name','rendering, please wait...');drawnow; end
                 if strcmp(option,'colormap')
