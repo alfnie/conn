@@ -72,7 +72,7 @@ Si2=[];
 boffset=[0 0 0 0];
 conn_menu('frame2',boffset+[.045,.08,.91,.80],'');
 % image left
-posimage=[.06,.20,.25,.54];
+posimage=[.08,.30,.16,.34];
 ht2=conn_menu('image2',boffset+posimage,'','','',@conn_mvpaexplore_mtncallback,@conn_mvpaexplore_click,'');
 ht2title=conn_menu('pushbutton2',boffset+[posimage(1),posimage(2)+posimage(4),posimage(3),.045],'','Seed','',@(varargin)conn_mvpaexplore_update('coordinates'));
 set(ht2.h5b,'callback',@(varargin)conn_mvpaexplore_update('changeseedview')); % + symbol change view
@@ -80,7 +80,7 @@ set(ht2.h5,'callback',@(varargin)conn_mvpaexplore_update('changeseedslice'),'val
 hold(ht2.h1,'on'); ht2dot=plot(0,0,'color','k','marker','o','markerfacecolor','r','markersize',8+CONN_gui.font_offset,'parent',ht2.h1); hold(ht2.h1,'off'); 
 try, addlistener(ht2.h5, 'ContinuousValueChange',@(varargin)conn_mvpaexplore_update('changeseedslice')); end
 % image right
-posimage=[.38,.20,.25,.54];
+posimage=[.35,.20,.28,.54];
 [ht4,ht4title]=conn_menu('image2',boffset+posimage,' ','','','','','');
 %uicontrol('style','text','units','norm','position',boffset+[posimage(1)+posimage(3)/2-.070,posimage(2)-1*.059,.070,.045],'string','threshold','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA); 
 ht4slider=conn_menu('slider',boffset+[posimage(1)+posimage(3),posimage(2),.015,posimage(4)],'','','z-slice',@(varargin)conn_mvpaexplore_update('slice'));

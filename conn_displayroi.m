@@ -334,7 +334,7 @@ switch(lower(option)),
         %minheight=500;
         %hfig=figure('visible','off','renderer','opengl','units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-48,h0(1)-0*72-1,max(minheight,.5*h0(1))]);
         data.hfig=hfig;
-        set(hfig,'units','norm','numbertitle','off','name',['ROI second-level results ',data.defaultfilepath],'color',color1,'colormap',gray,'menubar','none','toolbar','none','interruptible','off','tag','conn_displayroi','keypressfcn',@conn_displayroi_keypress,'windowbuttondownfcn',@(varargin)conn_display_windowbuttonmotionfcn('down'),'windowbuttonupfcn',@(varargin)conn_display_windowbuttonmotionfcn('up'),'visible','on'); 
+        set(hfig,'units','norm','numbertitle','off','name',['ROI second-level results explorer ',data.defaultfilepath],'color',color1,'colormap',gray,'menubar','none','toolbar','none','interruptible','off','tag','conn_displayroi','keypressfcn',@conn_displayroi_keypress,'windowbuttondownfcn',@(varargin)conn_display_windowbuttonmotionfcn('down'),'windowbuttonupfcn',@(varargin)conn_display_windowbuttonmotionfcn('up'),'visible','on'); 
         %uicontrol('style','frame','units','norm','position',[.0,.95,.5,.05],'backgroundcolor',color2,'foregroundcolor',color2);
         hframe1=uicontrol('style','frame','units','norm','position',[0,0,1,.27],'backgroundcolor',color2,'foregroundcolor',color2,'parent',data.hfig);
         hframe2=uicontrol('style','frame','units','norm','position',[0,.87,1,.13],'backgroundcolor',color3,'foregroundcolor',color3,'parent',data.hfig);

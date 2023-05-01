@@ -133,7 +133,8 @@ switch(lower(option))
                                     tstr, params.options.cmd_ssh, params.info.login_ip, filename));
                             end
                         end
-                        if ~conn_existfile(filename)
+                        tjson=[]; try, if conn_existfile(filename), tjson=conn_jsonread(filename); end; end % checks if non-empty json file
+                        if ~conn_existfile(filename)||isempty(tjson)||~isfield(tjson,'CONNcmd')
                             fprintf('Unable to find CONN distribution in %s.\nIf this is your first time connecting to %s, please use the following steps to confirm that CONN is available there and then try connecting again:\n   1. Log in to %s as user %s\n   2. Launch Matlab\n   3. From Matlab command-window type "conn remotely setup" (without quotes) and confirm that the file ~/connserverinfo.json is created\n   4. Log out from %s\n(see "in the server computer" section at https://web.conn-toolbox.org/resources/remote-configuration for details)\n\n',params.info.login_ip,params.info.host,params.info.host,params.info.user,params.info.host);
                             optionrepeat=isequal(input(sprintf('Try connecting again to %s? (yes|no) : ',params.info.login_ip),'s'),'yes');
                             assert(optionrepeat,'Unable to proceed. Missing ~/connserverinfo.json file in %s',params.info.login_ip);

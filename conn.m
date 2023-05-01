@@ -6076,7 +6076,7 @@ else
                                                 end
                                                 Nvalid=find(Nsubs>0); % keeps only space entries with >0 subjects
                                                 if numel(Nvalid)>1&&any(strcmp(allspaces(Nvalid),'MNI152NLin2009cAsym')), Nvalid=Nvalid(strcmp(allspaces(Nvalid),'MNI152NLin2009cAsym')); end % prefers MNI152NLin2009cAsym space
-                                                if numel(Nvalid)>1, Nvalid=Nvalid(Nsubs==max(Nsubs)); end % alternatively, select space with maximum number of subjects
+                                                if numel(Nvalid)>1, Nvalid=Nvalid(Nsubs(Nvalid)==max(Nsubs(Nvalid))); end % alternatively, select space with maximum number of subjects
                                                 if numel(Nvalid)>1&&any(strcmp(allspaces(Nvalid),'T1w')), Nvalid=Nvalid(strcmp(allspaces(Nvalid),'T1w')); end % alternatively, T1w space
                                                 if numel(Nvalid)==1, space=allspaces{Nvalid}; end
                                             end
