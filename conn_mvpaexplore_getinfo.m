@@ -51,7 +51,7 @@ switch(option)
         Nt=varargin{3};
         nv=varargin{4};
         if ~isempty(filename_B1)&&any(conn_server('util_isremotevar',filename_B1))
-            [varargout{1:nargout}]=conn_server('run_keepas','X',mfilename,option,filename_B1,Nt,V1,nv); 
+            [varargout{1:nargout}]=conn_server('run_keepas','X',mfilename,option,filename_B1,V1,Nt,nv); 
         else
             X={};
             for n1=1:numel(filename_B1),
