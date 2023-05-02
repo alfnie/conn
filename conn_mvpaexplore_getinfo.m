@@ -13,7 +13,7 @@ switch(option)
             filename_B1=arrayfun(@(nsub)fullfile(filepath,['vvPC_Subject',num2str(nsub,'%03d'),'_Condition',tstr,'.mat']), validsubjects,'uni',0);
             if nargout>2
                 V1=conn_vol(filename_B1{1});
-                Nt=cellfun(@(x)dir([x,'c']).bytes,filename_B1);
+                Nt=cellfun(@(x)conn_fileutils('dir',[x,'c']).bytes,filename_B1);
                 Nt=round(Nt/Nt(1)*V1.size.Nt);
                 varargout={filename_B1,V1,Nt};
             elseif nargout>1
