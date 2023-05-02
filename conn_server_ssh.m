@@ -133,7 +133,17 @@ switch(lower(option))
                                     tstr, params.options.cmd_ssh, params.info.login_ip, filename));
                             end
                         end
-                        tjson=[]; try, if conn_existfile(filename), tjson=conn_jsonread(filename); end; end % checks if non-empty json file
+                        tjson=[]; 
+                        if conn_existfile(filename), 
+                            tjson=conn_jsonread(filename); 
+                            if ~isstruct(tjson)||~isfield(tjson,'CONNcmd') % if non-empty but still non-interpretable json file, removes non-json header (anything preceeding the "{" symbol in file matching the last "}" symbol in file) 
+                                tjsonstr=fliplr(conn_fileutils('fileread',filename));
+                                tjsonlvl1=cumsum(tjsonstr=='{');
+                                tjsonlvl2=cumsum(tjsonstr=='}');
+                                conn_fileutils('filewrite_raw',filename,fliplr(tjsonstr(1:find((tjsonlvl1>0)&(tjsonlvl1==tjsonlvl2),1,'first'))));
+                                tjson=conn_jsonread(filename);
+                            end
+                        end
                         if ~conn_existfile(filename)||isempty(tjson)||~isstruct(tjson)||~isfield(tjson,'CONNcmd')
                             fprintf('Unable to find CONN distribution in %s.\nIf this is your first time connecting to %s, please use the following steps to confirm that CONN is available there and then try connecting again:\n   1. Log in to %s as user %s\n   2. Launch Matlab\n   3. From Matlab command-window type "conn remotely setup" (without quotes) and confirm that the file ~/connserverinfo.json is created\n   4. Log out from %s\n(see "in the server computer" section at https://web.conn-toolbox.org/resources/remote-configuration for details)\n\n',params.info.login_ip,params.info.host,params.info.host,params.info.user,params.info.host);
                             optionrepeat=isequal(input(sprintf('Try connecting again to %s? (yes|no) : ',params.info.login_ip),'s'),'yes');
@@ -302,7 +312,7 @@ switch(lower(option))
             else
                 fprintf('Disconnecting from remote CONN session\n');
             end
-            if ~isempty(params.info.host)&& (~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed), try, [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end; end
+            try, if ~isempty(params.info.host)&& (~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed), [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end; end
             conn_tcpip('close');
             conn_cache clear;
             conn_jobmanager clear;
@@ -310,7 +320,7 @@ switch(lower(option))
             params=[];
         else
             fprintf('unable to connect to server, please terminate the server manually or use "conn_server_ssh restart" to restart the connection with the server and try "conn_server_ssh exit" again\n');
-            if ~isempty(params.info.host)&& (~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed), try, system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end; end
+            try, if ~isempty(params.info.host)&& (~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed), system(sprintf('%s -o ControlPath=''%s'' -O exit %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip)); end; end
         end
         
     case 'forceexit' % run remotely a command to forcibly delete the server's job
