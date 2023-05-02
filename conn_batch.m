@@ -1897,7 +1897,7 @@ if isfield(batch,'Results'),
                     CONN_x.Results.xX.nsources=zeros(1,length(batch.Results.between_sources.effect_names));
                     CONN_x.Results.xX.nsourcesbyname=cell(1,length(batch.Results.between_sources.effect_names));
                     for neffect=1:length(batch.Results.between_sources.effect_names),
-                        if isnumeric(batch.Results.between_measures.effect_names), idx=batch.Results.between_sources.effect_names(neffect);
+                        if isnumeric(batch.Results.between_sources.effect_names), idx=batch.Results.between_sources.effect_names(neffect);
                         else idx=strmatch(batch.Results.between_sources.effect_names{neffect},CONN_x.Analyses(CONN_x.Analysis).sources,'exact');
                         end
                         if isempty(idx), idx=strmatch(batch.Results.between_sources.effect_names{neffect},CONN_x.Analyses(CONN_x.Analysis).sources); end
