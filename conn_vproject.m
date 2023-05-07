@@ -440,8 +440,8 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     fh('brain',2);
                     fh('ref_file',filename,2);
                     fh('ref_pos',[80,-110,90]);
-                    fh('brain_transparency',.01);
-                    fh('sub_transparency',.01);
+                    fh('brain_transparency',.02);
+                    fh('sub_transparency',.02);
                     if 1
                         fh('material',[.1 1 1 .25 0]);
                         fh('ref_all','on');
