@@ -97,12 +97,13 @@ if isempty(defaults),
     defaults=struct(...
         'folder_subjects',fullfile(fileparts(which(mfilename)),'root.subjects') ,...
         'folder_tasks',fullfile(fileparts(which(mfilename)),'root.tasks') ,...
-        'folder_pipelines',fileparts(which(mfilename)) ,...
+        'folder_pipelines',fullfile(fileparts(which(mfilename)),'root.pipelines') ,...
         'folder_dicoms','*dicoms' ,...
         'dicom_isstructural',{{'^T1_MPRAGE_1iso'}} ,...
         'dicom_disregard_functional',{{'^localizer','^AAScout','^AAHScout','^MoCoSeries','^T1_MPRAGE_1iso','^DIFFUSION_HighRes'}},...
         'create_model_cfg_files',false,... % 1/0 specifying whether "el model *" commands create an associated .cfg file (for backwards compatibility) [false]
         'isremote', 0); 
+    if ~conn_existfile(defaults.folder_pipelines,2), defaults.folder_pipelines=fileparts(which(mfilename)); end % reverts back to conn/module/el folder
 end
 
 conn_module('evlab17','init','silent');
@@ -135,6 +136,7 @@ switch(lower(option))
         end
         
     case 'root.pipelines'
+        if numel(varargin)>1&&isequal(varargin{2},'all')&&~defaults.isremote, conn_fileutils('linkdir',varargin{1},fullfile(fileparts(which(mfilename)),'root.pipelines')); end
         if numel(varargin)>0, 
             defaults.folder_pipelines=varargin{1};
             if defaults.isremote, conn_server('run',mfilename,'root.pipelines',defaults.folder_pipelines); end
@@ -388,7 +390,7 @@ switch(lower(option))
         assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
         conn_module('evlab17','qaplots',dataset,varargin{4:end});
         
-    case {'open','preprocessing.open'}
+    case {'select','open','preprocessing.open'}
         assert(numel(varargin)>=1,'incorrect usage >> el open subject_id [,pipeline_id]');
         [subject,data_config_file,subject_path]=el_readsubject(varargin{1},defaults);
         if numel(varargin)<2, pipeline=''; else pipeline=varargin{2}; end
@@ -396,9 +398,11 @@ switch(lower(option))
         assert(conn_existfile(dataset),'unable to find dataset %s',dataset);
         conn_module evlab17 init silent;
         conn_module('evlab17','load',dataset);
-        conn;
-        conn('load',conn_prepend('',dataset,'.mat'));
-        conn gui_setup;
+        if ~strcmp(lower(option),'select'),
+            conn;
+            conn('load',conn_prepend('',dataset,'.mat'));
+            conn gui_setup;
+        end
         
 %     case {'roi.timeseries'}
 %         assert(numel(varargin)>=1,'incorrect usage >> el roi.timeseries subject_id [,pipeline_id]');

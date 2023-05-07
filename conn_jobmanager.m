@@ -761,7 +761,7 @@ else
                 str=regexprep(CFG.cmd_submit,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{conn_server('util_localfile_filesep',CFG.filesep,info.scripts{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdout{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stderr{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{i})},'uni',0)]);
                 [ok,msg]=conn_projectmanager('system',str);
                 if ok~=0, 
-                    %fprintf(2,'%s\n',msg); 
+                    try, fprintf('%s\n',msg); end
                     conn_jobmanager('tag',info.scripts{i},'failed');
                 end
                 %msg(msg<32|msg>=127)=' ';
