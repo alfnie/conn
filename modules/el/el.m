@@ -80,6 +80,11 @@ function varargout=el(option,varargin)
 %   el('model.qa',subjectID, pipelineID, experimentID) creates QA plots on first-level GLM analyses
 %   el('model.qa.plot',subjectID, pipelineID) displays already-created QA plots
 %
+% SUBMIT OPTIONS:
+%
+%   el('submit',...)            % submits job and waits for job to finish
+%   jh = el('submit',...)       % submits jobs and returns job handle (without waiting for job to finish)
+%   el('submit.status',jh)      % checks status of job jh
 %
 % CONFIGURATION OPTIONS:
 %
@@ -199,6 +204,14 @@ switch(lower(option))
     case 'submit'
         if ~nargout, conn('submit',mfilename,'rexec',defaults,varargin{:}); % e.g. el submit preprocessing 408_FED_20160617a_3T2
         else [varargout{1:nargout}]=conn('submit',mfilename,'rexec',defaults,varargin{:});
+        end
+        
+    case 'submit.immediatereturn'
+        [varargout{1:max(1,nargout)}]=conn('submit',mfilename,'rexec',defaults,varargin{:});
+        
+    case 'submit.status'
+        if ~nargout, conn_jobmanager('statusjob',varargin{1},[],true,true);
+        else [varargout{1:nargout}]=conn_jobmanager('statusjob',varargin{1},[],true,true);
         end
         
     case 'rexec'
