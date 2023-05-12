@@ -137,6 +137,7 @@ switch(dispopt)
         fh=conn_slice_display(datafiles(idxsubjects,:),'',...
             spmfile_path,thr);
         fh('contour_transparency',1);
+        fh('slice_transparency',.75);
         fh('colormap','hot');
         fh('colorbar','rescale',vrange);
         fh('colorbar','on');
@@ -147,6 +148,7 @@ switch(dispopt)
             fh=conn_slice_display(datafiles(idxsubjects(n),:),CONN_x.Setup.structural{consubjects(n)}{1}{1},...
                 spmfile_path,thr);
             fh('contour_transparency',1);
+            fh('slice_transparency',.75);
             fh('colormap','hot');
             fh('colorbar','rescale',vrange);
             fh('colorbar','on');
