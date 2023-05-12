@@ -146,10 +146,12 @@ switch(lower(option))
     case {'remote','remotely'}
         if nargin>1&&~isempty(varargin{1}), 
             defaults.isremote=varargin{1}; 
+            dodisconnect=false;
             if ischar(defaults.isremote)
                 switch(lower(defaults.isremote))
                     case 'on',  defaults.isremote=1;
-                    case 'off', defaults.isremote=0;
+                    case 'off', defaults.isremote=0; 
+                    case 'disconnect', defaults.isremote=0; dodisconnect=true;
                     otherwise, defaults.isremote=str2num(defaults.isremote); 
                 end
             end
@@ -158,6 +160,7 @@ switch(lower(option))
                 fprintf('Starting new remote connection to server\n');
                 conn remotely on;
             end
+            if dodisconnect, conn remotely off; end
             if defaults.isremote, fprintf('working with remote projects now\n');
             else fprintf('working with local projects now\n');
             end
@@ -194,10 +197,19 @@ switch(lower(option))
         end
         
     case 'submit'
-        if ~nargout, conn('submit',mfilename,varargin{:}); % e.g. el submit preprocessing 408_FED_20160617a_3T2
-        else [varargout{1:nargout}]=conn('submit',mfilename,varargin{:});
+        if ~nargout, conn('submit',mfilename,'rexec',defaults,varargin{:}); % e.g. el submit preprocessing 408_FED_20160617a_3T2
+        else [varargout{1:nargout}]=conn('submit',mfilename,'rexec',defaults,varargin{:});
         end
         
+    case 'rexec'
+        newdefaults=varargin{1};
+        defaults.folder_subjects=newdefaults.folder_subjects;
+        defaults.folder_tasks=newdefaults.folder_tasks;
+        defaults.folder_pipelines=newdefaults.folder_pipelines;
+        if ~nargout, el(varargin{2:end});
+        else [varargout{1:nargout}]=el(varargin{2:end});
+        end
+
     case {'preprocessing','preprocessing.main','preprocessing.alt'}
         assert(numel(varargin)>=1,'incorrect usage >> el preprocessing subject_id [, pipeline_id]');
         % adapted from msieg preprocess_PL2017
@@ -401,6 +413,7 @@ switch(lower(option))
         if ~strcmp(lower(option),'select'),
             conn;
             conn('load',conn_prepend('',dataset,'.mat'));
+            conn('guiset','disconnectonclose',false);
             conn gui_setup;
         end
         

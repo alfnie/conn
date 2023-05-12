@@ -295,10 +295,12 @@ switch(lower(STEPS))
     case {'remote','remotely'}
         if nargin>1&&~isempty(varargin{1}), 
             isremote=varargin{1}; 
+            dodisconnect=false;
             if ischar(isremote)
                 switch(lower(isremote))
                     case 'on',  isremote=1;
                     case 'off', isremote=0;
+                    case 'disconnect', isremote=0; dodisconnect=true;
                     otherwise, isremote=str2num(isremote); 
                 end
             end
@@ -306,6 +308,7 @@ switch(lower(STEPS))
                 fprintf('Starting new remote connection to server\n');
                 conn remotely on;
             end
+            if dodisconnect, conn remotely off; end
             if isremote, fprintf('working with remote projects now\n');
             else fprintf('working with local projects now\n');
             end

@@ -97,6 +97,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     if ~isempty(varargin)&&isequal(varargin{1},'isremotely'), CONN_gui.isremote=true;
     else CONN_gui.isremote=false;
     end
+    CONN_gui.disconnectonclose=true;
     CONN_gui.leftarrow='<'; CONN_gui.rightarrow='>'; CONN_gui.delchar='-'; 
     try, if ~verLessThan('matlab','8.4.0'), CONN_gui.leftarrow=char(8678); CONN_gui.rightarrow=char(8680); CONN_gui.delchar=char(9003); end; end 
 	CONN_h=struct;
@@ -13312,6 +13313,7 @@ end
 function conn_closerequestfcn(varargin)
 global CONN_gui CONN_x;
 if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, dohpcexit=true; else dohpcexit=false; end
+if isfield(CONN_gui,'disconnectonclose')&&~CONN_gui.disconnectonclose, dohpcexit=false; end
 if isfield(CONN_x,'isready')&&any(CONN_x.isready)
     if 0, %dohpcexit, answ=conn_questdlg({'Closing this figure will exit CONN and lose any unsaved progress','Do you want to:'},'Warning','Exit without saving/disconnecting','Save and Exit','Cancel','Save and Exit');
     else answ=conn_questdlg({'Closing this figure will exit CONN and lose any unsaved progress','Do you want to:'},'Warning','Exit without saving','Save and Exit','Cancel','Save and Exit');
