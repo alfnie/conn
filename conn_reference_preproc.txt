@@ -1,5 +1,5 @@
 #default 
-Functional and anatomical data were preprocessed using a flexible preprocessing pipeline [CITATION2][VALUE 1 liststeps].
+Functional and anatomical data were preprocessed using a modular preprocessing pipeline [CITATION2][VALUE 1 liststeps].
 
 #functional_realignandunwarpandfieldmap
 Functional data were realigned using SPM realign & unwarp procedure [CITATION3] integrating fieldmaps for susceptibility distortion correction, where all scans were coregistered to a reference image [IF rtm 0 (first scan of the first session)][IF rtm 1 (mean functional volume)] using a least squares approach and a 6 parameter (rigid body) transformation, and resampled using b-spline interpolation [CITATION9] to simultaneously correct for motion, magnetic susceptibility geometric distortions, and their interaction.

@@ -190,10 +190,22 @@ function varargout=fl(STEPS,varargin)
 %
 % ************************************************************************************
 %
+%   fl('submit',...)            % submits job and waits for remote job to finish
+%   jh = fl('submit',...)       % submits jobs and returns job handle (without waiting for remote job to finish)
+%   fl('submit.status',jh)      % checks status of remote job jh
+%   fl('submit.status.stdout',jh) % prints remote job standard output
+%   fl('submit.status.stderr',jh) % prints remote job standard output
+%   
+% ************************************************************************************
+%
 % fl('ROOT',rootfolder) 
 % defines the location of $FLDATA (root folder for all experiments)
+%
 % fl('REMOTE',onoff)       
-% work remotely (default 'off') (0/'off': when working from SCC computer or on a dataset saved locally on your computer; 1/'on': when working remotely -to enable this functionality on a remote server run on the remote server the command "conn remotely setup")
+% work remotely ('on'|'off'|'disconnect'; default 'off') 
+%
+% EXAMPLE: fl REMOTE off   % when working from a SCC computer or on a dataset saved locally on your computer
+% EXAMPLE: fl REMOTE on    % when working remotely -to enable this functionality on a remote server for the first time run on the remote server the command "conn remotely setup")
 %
 % ************************************************************************************
 %
@@ -209,7 +221,7 @@ if isremote, OUTPUT_FOLDER=fullfile('/CONNSERVER',rootfolder);
 else OUTPUT_FOLDER=rootfolder; 
 end
 
-if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||ismember(lower(char(STEPS)),{'root','remote','remotely','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete','firstlevel.stats','voice','secondlevel.plot'})); % run these locally
+if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||~isempty(regexp(lower(char(option)),'^submit'))||ismember(lower(char(STEPS)),{'root','remote','remotely','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete','firstlevel.stats','voice','secondlevel.plot'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,STEPS,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,STEPS,varargin{:}); 
@@ -331,6 +343,18 @@ switch(lower(STEPS))
         if ~nargout, conn('submit',mfilename,varargin{:}); % e.g. fl submit preprocessing ... => [fl preprocessing ...]
         else [varargout{1:nargout}]=conn('submit',mfilename,varargin{:});
         end
+
+    case 'submit.immediatereturn'
+        [varargout{1:max(1,nargout)}]=conn('submit',mfilename,varargin{:});
+        
+    case 'submit.status'
+        if ~nargout, conn_jobmanager('statusjob',varargin{1},[],true,true);
+        else [varargout{1:nargout}]=conn_jobmanager('statusjob',varargin{1},[],true,true);
+        end
+
+    case {'submit.status.stdout','submit.status.stderr','submit.status.stdlog','submit.status.scripts'}
+        jh = varargin{1};
+        disp(conn_fileutils('fileread',char(jh.(regexprep(lower(option),'^submit.status.','')))))
 
     case 'load'
         assert(numel(varargin)>=1,'incorrect usage: please specify subject_id')

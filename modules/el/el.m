@@ -82,9 +82,12 @@ function varargout=el(option,varargin)
 %
 % SUBMIT OPTIONS:
 %
-%   el('submit',...)            % submits job and waits for job to finish
-%   jh = el('submit',...)       % submits jobs and returns job handle (without waiting for job to finish)
-%   el('submit.status',jh)      % checks status of job jh
+%   el('submit',...)            % submits job and waits for remote job to finish
+%   jh = el('submit',...)       % submits jobs and returns job handle (without waiting for remote job to finish)
+%   el('submit.status',jh)      % checks status of remote job jh
+%   el('submit.status.stdout',jh) % prints remote job standard output
+%   el('submit.status.stderr',jh) % prints remote job standard output
+%   
 %
 % CONFIGURATION OPTIONS:
 %
@@ -115,7 +118,7 @@ conn_module('evlab17','init','silent');
 fileout=[];
 varargout=cell(1,nargout);
 
-if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||ismember(lower(char(option)),{'root.subjects','root.tasks','root.pipelines','remote','remotely','init','initforce','default','model.stats','open','preprocessing.open'})); % run these locally
+if defaults.isremote&&~(~isempty(regexp(lower(char(option)),'plots?$'))||~isempty(regexp(lower(char(option)),'^submit'))||ismember(lower(char(option)),{'root.subjects','root.tasks','root.pipelines','remote','remotely','init','initforce','default','model.stats','open','preprocessing.open'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,option,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,option,varargin{:}); 
@@ -213,7 +216,11 @@ switch(lower(option))
         if ~nargout, conn_jobmanager('statusjob',varargin{1},[],true,true);
         else [varargout{1:nargout}]=conn_jobmanager('statusjob',varargin{1},[],true,true);
         end
-        
+
+    case {'submit.status.stdout','submit.status.stderr','submit.status.stdlog','submit.status.scripts'}
+        jh = varargin{1};
+        disp(conn_fileutils('fileread',char(jh.(regexprep(lower(option),'^submit.status.','')))))
+
     case 'rexec'
         newdefaults=varargin{1};
         defaults.folder_subjects=newdefaults.folder_subjects;
