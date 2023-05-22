@@ -284,7 +284,7 @@ switch(lower(option))
                 connection.buffer=[connection.buffer, data];
                 bored=false;
             end
-            if isnan(connection.length)&&~isempty(connection.header1)&&connection.header1(1)>1
+            if isnan(connection.length)&&~isempty(connection.header1)&&connection.header1(1)>1 % found unexpected data
                 i2=connection.header1(1)-1;
                 connection.buffer=connection.buffer(i2+1:end);
                 connection.header1=connection.header1-i2; connection.header1(connection.header1<=0)=[];
@@ -497,7 +497,7 @@ switch(lower(option))
         try, connection.output.stream.writeUTF('<>'); end 
             
     case 'poke' % write coded (non-numeric) keep-alive package
-        try, connection.output.stream.writeUTF(['<',regexprep(varargin{1},'\d',''),'>']); end 
+        try, connection.output.stream.writeUTF(['<',regexprep(varargin{1},'[\d<>]',''),'>']); end 
             
     case 'peek' % read coded (non-numeric) keep-alive packages (only those posterior to the data read in the last 'conn_tcpip read' command)
         while connection.input.stream.available>0

@@ -25,7 +25,7 @@ function varargout = conn_server(option, varargin)
 % COMMANDS FROM CLIENT SIDE: (e.g. from a computer at home/office where you work)
 %   conn_server('connect', IP , SERVER_ID)          : stablishes connection to CONN server
 %                                                     IP : address of computer running conn_server
-%                                                     SERVER_ID: keyword of the form <PORT>CONN<PRIVATEKEY>
+%                                                     SERVER_ID: keyword of the form <PORT>CONN<PRIVATEKEY> (e.g. 60039CONNe5823002ac891dacbf3c48ae54d8f438, where PORT=60039 and PRIVATEKEY=e5823002ac891dacbf3c48ae54d8f438)
 %                                                     e.g.
 %                                                       >> conn_server('connect', 'mbp-2018.lan', '60039CONNe5823002ac891dacbf3c48ae54d8f438');
 %                                                            Connecting to 127.0.0.1:60039...
@@ -53,7 +53,7 @@ function varargout = conn_server(option, varargin)
 %                                                        b =
 %                                                          10.0000 - 0.0000i
 %                                                        >> conn_server('clear',a);
-%                                                     note: use varLink = conn_server('run_keepas',label,...) to fix the remote variable link/label (e.g. to save memory by re-using the same remote variable-space), e.g.
+%                                                     note: use varLink = conn_server('run_keepas',label,...) to specify the name/label of the remote variable (e.g. save memory by re-using the same remote variable name), e.g.
 %                                                        >> a = conn_server('run_keepas','a','fft',1:10)
 %                                                        a =
 %                                                         struct with fields: conn_server_variable: 'labeled_a_1'
@@ -159,82 +159,85 @@ switch(lower(option))
 %         if ~isempty(hmsg)&&ishandle(hmsg), delete(hmsg); end
 %         
     case {'run','run_immediatereturn','run_withwaitbar','run_keep','run_keepas'}
-        data.type='run';
-        data.id=char(conn_tcpip('hash',mat2str(now)));
-        if strcmpi(option,'run_withwaitbar'), statushandle=varargin{1}; data.cmd=varargin(2:end); data.withwaitbar=true; data.keeplocal=false;
-        elseif strcmpi(option,'run_keepas'), statushandle=[]; data.cmd=varargin(2:end); data.withwaitbar=true; data.keeplocal=varargin{1};
-        else statushandle=[]; data.cmd=varargin; data.withwaitbar=false; data.keeplocal=strcmpi(option,'run_keep');
-        end
-        data.nargout=nargout;
-        data.immediatereturn=strcmpi(option,'run_immediatereturn');
-        %data.hpc=false;
-        %if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'scp')&&params.info.scp>0, data.hpc=true; end
-        conn_tcpip('flush');
-        conn_tcpip('write',data);
-        if ~data.immediatereturn;
-            ok=false;
-            while ~ok
-                try
-                    var=conn_tcpip('read');
-                catch me,
-                    if ~isempty(regexp(me.message,'SocketTimeoutException')), 
-                        fprintf('.');  % timeout
-                        conn_tcpip('writekeepalive');
-                    elseif ~isempty(regexp(me.message,'EOFException|IOException|SocketException'))
-                        error('ERROR: connection may be down');
-                        %% restart
-                        %fprintf('\n Idle connection to server. ');
-                        %conn_server restart;
-                        %conn_tcpip('write',data);
-                    else error('ERROR: connection problem %s',me.message);
+        if ~params.isserver, 
+            data.type='run';
+            data.id=char(conn_tcpip('hash',mat2str(now)));
+            if strcmpi(option,'run_withwaitbar'), statushandle=varargin{1}; data.cmd=varargin(2:end); data.withwaitbar=true; data.keeplocal=false;
+            elseif strcmpi(option,'run_keepas'), statushandle=[]; data.cmd=varargin(2:end); data.withwaitbar=true; data.keeplocal=varargin{1};
+            else statushandle=[]; data.cmd=varargin; data.withwaitbar=false; data.keeplocal=strcmpi(option,'run_keep');
+            end
+            data.nargout=nargout;
+            data.immediatereturn=strcmpi(option,'run_immediatereturn');
+            %data.hpc=false;
+            %if isfield(params.info,'host')&&~isempty(params.info.host)&&isfield(params.info,'scp')&&params.info.scp>0, data.hpc=true; end
+            conn_tcpip('flush');
+            conn_tcpip('write',data);
+            if ~data.immediatereturn;
+                ok=false;
+                while ~ok
+                    try
+                        var=conn_tcpip('read');
+                    catch me,
+                        if ~isempty(regexp(me.message,'SocketTimeoutException')),
+                            fprintf('.');  % timeout
+                            conn_tcpip('writekeepalive');
+                        elseif ~isempty(regexp(me.message,'EOFException|IOException|SocketException'))
+                            error('ERROR: connection may be down');
+                            % restart
+                            %fprintf('\n Idle connection to server. ');
+                            %conn_server restart;
+                            %conn_tcpip('write',data);
+                        else error('ERROR: connection problem %s',me.message);
+                        end
+                        var=struct('type','null','id',data.id);
                     end
-                    var=struct('type','null','id',data.id);
-                end
-                if isfield(var,'type')&&isequal(var.type,'status')
-                    str=regexprep(var.msg,'[\r\n\s]*',' ');
-                    if data.withwaitbar,
-                        conn_disp('__nolog',str);
-                        if ~isempty(statushandle),
-                            try
-                                set(statushandle(1),'string',str); drawnow;
-                                if numel(statushandle)>1&&get(statushandle(2),'value')>0
-                                    conn_tcpip('poke','STOP');
+                    if isfield(var,'type')&&isequal(var.type,'status')
+                        str=regexprep(var.msg,'[\r\n\s]*',' ');
+                        if data.withwaitbar,
+                            conn_disp('__nolog',str);
+                            if ~isempty(statushandle),
+                                try
+                                    set(statushandle(1),'string',str); drawnow;
+                                    if numel(statushandle)>1&&get(statushandle(2),'value')>0
+                                        conn_tcpip('poke','STOP');
+                                    end
                                 end
                             end
+                        else
+                            if iscell(str), for n=1:numel(str), fprintf('%s\n',str{n}); end
+                            else fprintf('%s',str);
+                            end
                         end
+                    elseif isempty(var)||~isstruct(var)||~isfield(var,'type')||~isfield(var,'id')||~isequal(var.id, data.id),
+                        disp([isempty(var) ~isstruct(var) ~isfield(var,'type') ~isfield(var,'id') ~isequal(var.id, data.id)])
+                        disp(var);
+                        fprintf('WARNING: unexpected response\n');
                     else
-                        if iscell(str), for n=1:numel(str), fprintf('%s\n',str{n}); end
-                        else fprintf('%s',str);
+                        %                     if isequal(var.type,'ok_hasattachment') % server is waiting for us to scp its response
+                        %                         tmpfile1=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(conn_tcpip('hash',mat2str(now))),'.mat']);
+                        %                         tmpfile2=var.msg;
+                        %                         if conn_server_ssh('pull',tmpfile2,tmpfile1), var=load(tmpfile1,'arg'); var=var.arg;
+                        %                         else var=struct('type','ko','id',var.id,'msg','unable to run SSH_pull to read response from server');
+                        %                         end
+                        %                         conn_fileutils('deletefile',tmpfile1);
+                        %                         conn_tcpip('write',struct('type','ack_hasattachment','id',var.id)); % signal server to continue
+                        %                     end
+                        if isequal(var.type,'ok')
+                            if isfield(var,'msg'), varargout=var.msg;
+                            else varargout={};
+                            end
+                            ok=true;
+                        elseif isequal(var.type,'ko')
+                            if isfield(var,'msg'), error('ERROR at server: %s\n',var.msg);
+                            else error('ERROR at server\n');
+                            end
+                            %ok=true;
                         end
-                    end
-                elseif isempty(var)||~isstruct(var)||~isfield(var,'type')||~isfield(var,'id')||~isequal(var.id, data.id),
-                    disp(var);
-                    fprintf('WARNING: unexpected response\n');
-                else
-                    %                     if isequal(var.type,'ok_hasattachment') % server is waiting for us to scp its response
-                    %                         tmpfile1=fullfile(conn_cache('private.local_folder'),['cachetmp_', char(conn_tcpip('hash',mat2str(now))),'.mat']);
-                    %                         tmpfile2=var.msg;
-                    %                         if conn_server_ssh('pull',tmpfile2,tmpfile1), var=load(tmpfile1,'arg'); var=var.arg;
-                    %                         else var=struct('type','ko','id',var.id,'msg','unable to run SSH_pull to read response from server');
-                    %                         end
-                    %                         conn_fileutils('deletefile',tmpfile1);
-                    %                         conn_tcpip('write',struct('type','ack_hasattachment','id',var.id)); % signal server to continue
-                    %                     end
-                    if isequal(var.type,'ok')
-                        if isfield(var,'msg'), varargout=var.msg;
-                        else varargout={};
-                        end
-                        ok=true;
-                    elseif isequal(var.type,'ko')
-                        if isfield(var,'msg'), error('ERROR at server: %s\n',var.msg);
-                        else error('ERROR at server\n');
-                        end
-                        %ok=true;
                     end
                 end
             end
         end
-        
+
     case {'continue','continuepersistent','test'}
         if params.isserver % server
             conn_disp('__portcomm',true);
@@ -397,6 +400,7 @@ switch(lower(option))
         end
         
     case 'push'
+        if params.isserver, return; end
         filename1=varargin{1};
         filename2=varargin{2};
         if ischar(filename1), filename1=cellstr(filename1); end
@@ -419,6 +423,7 @@ switch(lower(option))
         assert(all(ok), 'communication with server interrupted during file push');
         
     case 'pull'
+        if params.isserver, return; end
         filename1=varargin{1};
         filename2=varargin{2};
         if ischar(filename1), filename1=cellstr(filename1); end
@@ -446,6 +451,7 @@ switch(lower(option))
         varargout=hash;
         
     case {'cmd','command','cmd_capture'}
+        if params.isserver, return; end
         singlecommand=nargout>0|~isempty(varargin);
         tnameserver=conn_tcpip('private.ip');
         docapture=strcmpi(option,'cmd_capture');
@@ -566,6 +572,7 @@ switch(lower(option))
         varargout={params.mnt};
         
     case 'ping'
+        if params.isserver, return; end
         if nargout>0
             t1=clock;
             conn_tcpip('write','ping');
@@ -590,6 +597,7 @@ switch(lower(option))
         end
         
     case 'isconnected'
+        if params.isserver, varargout={false}; return; end
         try,
             conn_tcpip('write','ping');
             assert(isequal(conn_tcpip('read'),'ok'));

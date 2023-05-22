@@ -1894,12 +1894,18 @@ else
                 hmsg=conn_msgbox('Disconnecting from remote projects','');
                 conn_remotely end;
                 if ishandle(hmsg), delete(hmsg); end
-                if ~CONN_gui.isremote, conn_msgbox({'Disconnection procedure complete','Working with local projects/studies now'},'',true); end
+                if ~CONN_gui.isremote, 
+                    conn_msgbox({'Disconnection procedure complete','Working with local projects/studies now'},'',true); 
+                    tstate=conn_menumanager(CONN_h.menus.m_setup_07j,'enable'); tstate(2:3)=0; conn_menumanager(CONN_h.menus.m_setup_07j,'enable',tstate);
+                end
             else
                 hmsg=conn_msgbox('Connecting to remote projects','');
                 conn_remotely start;
                 if ishandle(hmsg), delete(hmsg); end
-                if CONN_gui.isremote, conn_msgbox({'Connection procedure complete','Working with remote projects/studies now'},'',true); end
+                if CONN_gui.isremote, 
+                    conn_msgbox({'Connection procedure complete','Working with remote projects/studies now'},'',true); 
+                    tstate=conn_menumanager(CONN_h.menus.m_setup_07j,'enable'); tstate(2:3)=1; conn_menumanager(CONN_h.menus.m_setup_07j,'enable',tstate);
+                end
             end
 
         case 'parallel_settings'
@@ -2082,13 +2088,16 @@ else
                     tstate=conn_menumanager(CONN_h.menus.m_setup_07a,'enable'); tstate(4:end)=0; conn_menumanager(CONN_h.menus.m_setup_07a,'enable',tstate); 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_07f,'enable'); tstate(2:3)=0; conn_menumanager(CONN_h.menus.m_setup_07f,'enable',tstate); 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_01a,'enable'); tstate(5:end-1)=0; conn_menumanager(CONN_h.menus.m_setup_01a,'enable',tstate); 
-                    
                 else 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_07a,'enable'); tstate(4:end)=1; conn_menumanager(CONN_h.menus.m_setup_07a,'enable',tstate); 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_07f,'enable'); tstate(2:3)=1; conn_menumanager(CONN_h.menus.m_setup_07f,'enable',tstate); 
                     tstate=conn_menumanager(CONN_h.menus.m_setup_01a,'enable'); tstate(5:end-1)=1; conn_menumanager(CONN_h.menus.m_setup_01a,'enable',tstate); 
                     %conn_menu('frame2borderl',[0,0,.135,1],'');
                 end
+                if CONN_gui.isremote, tstate=conn_menumanager(CONN_h.menus.m_setup_07j,'enable'); tstate(2:3)=1; conn_menumanager(CONN_h.menus.m_setup_07j,'enable',tstate);
+                else tstate=conn_menumanager(CONN_h.menus.m_setup_07j,'enable'); tstate(2:3)=0; conn_menumanager(CONN_h.menus.m_setup_07j,'enable',tstate);
+                end
+
                 %axes('units','norm','position',[.10,.36,.002,.42]); image(shiftdim(1-CONN_gui.backgroundcolorA,-1)); axis off;
 				tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;tstate(1)=CONN_x.isready(1); conn_menumanager(CONN_h.menus.m0,'state',tstate); 
                 %conn_menu('frame',[.015-.001,.5-.05-.001,.07+.002,7*.05+.002],'');
