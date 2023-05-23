@@ -17,7 +17,7 @@ if nargin<7, callback2=''; end
 if nargin<8, callback3=''; end
 if ~ischar(type), [type,position,title]=deal(title,get(type,'userdata'),get(type,'value')); end
 if ~CONN_gui.tooltips, tooltipstring=''; end
-titleopts={'fontname',fname,'fontangle','normal','fontweight','bold','foregroundcolor',CONN_gui.fontcolorA,'fontsize',8+CONN_gui.font_offset};
+titleopts={'fontname',fname,'fontangle','normal','fontweight','bold','foregroundcolor',CONN_gui.fontcolorA,'fontsize',9+CONN_gui.font_offset};
 titleopts2=titleopts;titleopts2(7:8)={'color',CONN_gui.fontcolorA};
 contropts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset};
 contropts2=contropts;contropts2(7:8)={'color',CONN_gui.fontcolorA};
@@ -222,10 +222,10 @@ switch(lower(type)),
             h=uicontrol('style','frame','units','norm','position',position,'backgroundcolor',bgcolor,'foregroundcolor',bgcolor,'parent',CONN_h.screen.hfig);
             h=uicontrol('style','popupmenu','units','norm','position',position+[.01 .005 -.02 -.01],'backgroundcolor',bgcolor,'string',cellstr(string),'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,opts{:},'parent',CONN_h.screen.hfig);
         else
-            h=uicontrol('style','popupmenu','units','norm','position',position,'backgroundcolor',bgcolor,'string',cellstr(string),'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,opts{:},'parent',CONN_h.screen.hfig);
+            h=uicontrol('style','popupmenu','units','norm','position',position,                     'backgroundcolor',bgcolor,'string',cellstr(string),'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,opts{:},'parent',CONN_h.screen.hfig);
         end
         if ~isempty(fgcolor), set(h,'foregroundcolor',fgcolor); end
-        if ~isempty(regexp(type,'big')), set(h,'fontsize',11+CONN_gui.font_offset,'fontweight','normal'); xtraborder=1; end
+        if ~isempty(regexp(type,'big')), set(h,'fontsize',12+CONN_gui.font_offset,'fontweight','normal'); xtraborder=1; end
         if CONN_gui.domacGUIbugfix==2,
             set(h,'backgroundcolor',[1 1 1],'foregroundcolor',[0 0 0]);
         end
@@ -504,9 +504,11 @@ switch(lower(type)),
                 else temp=(position+[position(3)*0,position(4),0,0]).*[1,1,1,0]+[1*.001,0,1*-.002,.049];
                 end
                 h2=uicontrol('style','frame','units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig);
-                h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',title,titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
+                h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
                 if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
-                if 1||strcmpi(type,'frame'), set(h2,'fontsize',16+CONN_gui.font_offset,'fontweight','normal'); end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
+                if strcmpi(type,'frame'), set(h2,'fontsize',18+CONN_gui.font_offset,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
+                else set(h2,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
+                end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
             else
                 %h2=conn_menu('pushbutton2',(position+[0,position(4),0,0]).*[1,1,1,0]+[0,0*.01,0,.04],'',title);
                 h2=uicontrol('style','pushbutton','units','norm','position',(position+[0,position(4),0,0]).*[1,1,1,0]+[0,0*.01,0,.04],'string',title,titleopts{:},'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);
