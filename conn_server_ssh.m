@@ -420,6 +420,18 @@ switch(lower(option))
         set([h.files, h.types, h.refresh],'callback',@(varargin)conn_projectmanager_update_details(h.hfig));
         if ishandle(h.hfig), conn_projectmanager_update_details(h.hfig); end
 
+    case 'checkcontrolmaster'
+        if ~(isempty(params.info.filename_ctrl)||exist(params.info.filename_ctrl,'file')), % if ControlMaster is missing or timed-out re-authenticate to create a new SSH ControlMaster socket
+            try, conn_fileutils('deletefile',params.info.filename_ctrl); end
+            fprintf('re-authenticating with %s... ',params.info.login_ip);
+            system(sprintf('%s -f -N -o ControlMaster=yes -o ControlPath=''%s'' %s', params.options.cmd_ssh,params.info.filename_ctrl,params.info.login_ip),'-echo'); % starts a shared connection
+            [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O check %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip));
+            if ok~=0, error(msg); end
+            varargout={true};
+        else
+            varargout={false};
+        end
+
     case {'push','folderpush'}
 %         clear h;
 %         h.hfig=figure('units','norm','position',[.3 .4 .5 .2],'name','file transfer (scp)','numbertitle','off','menubar','none','color','w');
@@ -432,6 +444,7 @@ switch(lower(option))
         filelocal=conn_server('util_localfile_filesep','/',regexprep(varargin{1},'^(\w*):',''));
         fileremote=conn_server('util_localfile_filesep','/',regexprep(varargin{2},'^(\w*):',''));
         if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
+            conn_server_ssh('checkcontrolmaster');
             if strcmpi(option,'folderpush'), ok=system(sprintf('%s -C -r -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,regexprep(filelocal,'[\\\/]+$',''),params.info.login_ip,regexprep(fileremote,'[^\\\/]$','$0/')));
             else ok=system(sprintf('%s -C -q -o ControlPath=''%s'' ''%s'' %s:''%s''', params.options.cmd_scp, params.info.filename_ctrl,filelocal,params.info.login_ip,fileremote));
             end
@@ -447,6 +460,7 @@ switch(lower(option))
         fileremote=conn_server('util_localfile_filesep','/',regexprep(varargin{1},'^(\w*):',''));
         filelocal=conn_server('util_localfile_filesep','/',regexprep(varargin{2},'^(\w*):',''));
         if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
+            conn_server_ssh('checkcontrolmaster');
             if strcmpi(option,'folderpull'), [ok,msg]=system(sprintf('%s -C -r -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,regexprep(fileremote,'[\\\/]+$',''),regexprep(filelocal,'[^\\\/]$',['$0','\',filesep])));
             else [ok,msg]=system(sprintf('%s -C -q -o ControlPath=''%s'' %s:''%s'' ''%s''', params.options.cmd_scp, params.info.filename_ctrl,params.info.login_ip,fileremote,filelocal));
             end
