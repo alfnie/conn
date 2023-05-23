@@ -69,6 +69,7 @@ if any(isnewcondition(options.validconditions)), error(['Some conditions have no
 ROInames={}; ROIxyz={}; ROIthrtype='';
 if iscell(ROI)||ischar(ROI), 
     if iscell(ROI), [ROI,ROIthrtype,ROIthr]=deal(ROI{:}); end
+    ROI=conn_server('util_localfile',ROI);
     if ~isempty(options.saveas), try, [ROIxyz,ROInames]=conn_roicenters(ROI); end; end
     ROI=conn_fileutils('spm_vol',ROI); 
 end
