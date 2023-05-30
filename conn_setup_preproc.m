@@ -1445,10 +1445,9 @@ for iSTEP=1:numel(STEPS)
                         if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
                         filein=cellstr(filename);
                         fileout=conn_prepend('m',filein);
-                        if numel(fileout)>1, fileout=fileout(1); end
                         Vin=spm_vol(char(filein));
                         Vout=Vin;
-                        for nt=1:numel(Vout), Vout(nt).fname=char(fileout); Vout(nt).descrip='masked'; end
+                        for nt=1:numel(Vout), Vout(nt).fname=conn_prepend('m',Vin(nt).fname); Vout(nt).descrip='masked'; end
                         spm_unlink(fileout{:});
                         Vout=spm_create_vol(Vout);
                         if isfield(Vout(1),'dt')&&spm_type(Vout(1).dt(1),'nanrep')==1, maskval=NaN;
