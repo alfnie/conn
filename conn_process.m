@@ -862,7 +862,7 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
             Vsource=CONN_x.Setup.functional{nsub}{nses}{1};
                 clear VsourceUnsmoothed;
                 for nalt=1:numel(CONN_x.Setup.secondarydataset)
-                    VsourceUnsmoothed{nalt}=conn_get_functional(nsub,nses,nalt,true);
+                    VsourceUnsmoothed{nalt}=conn_get_functional(nsub,nses,nalt,any(nalt==CONN_x.Setup.rois.unsmoothedvolumes));
                 end
             issurface=conn_surf_dimscheck(CONN_x.Setup.functional{nsub}{nses}{3}); % note: when sampling gray-matter data for Denoising plots use Primary Dataset if surface-level
             if issurface, Vmask_ref=Vmask_ref_surf;
