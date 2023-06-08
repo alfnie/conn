@@ -1,0 +1,8 @@
+Parcellation from paper Finn et al. 2015
+Finn, E. S., Shen, X., Scheinost, D., Rosenberg, M. D., Huang, J., Chun, M. M., ... & Constable, R. T. (2015). Functional connectome fingerprinting: identifying individuals using patterns of brain connectivity. Nature neuroscience, 18(11), 1664-1671.
+
+268 ROIs
+8 networks
+
+note: label for each ROI include: Network name, MNI-space coordinates of ROI centroid, label at center coordinates from Harvard-Oxford atlas
+
