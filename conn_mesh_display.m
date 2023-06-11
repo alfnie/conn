@@ -963,7 +963,10 @@ if ishandle(hmsg), delete(hmsg); end
                 
                 alpha=1;
                 cdat2=max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*V),state.colormap)));
-                cdat=cellfun(@(x)conn_bsxfun(@times,1-alpha*(show),x) + conn_bsxfun(@times,alpha*(show),cdat2),state.cdat0,'uni',0);
+                if ~isempty(state.brain_color), cdat0=cellfun(@(x)conn_bsxfun(@times,1-0*x,shiftdim(state.brain_color,-1)),data.curv,'uni',0); % cellfun(@(x)conn_bsxfun(@times,1-.05*x,shiftdim([.7,.65,.6],-1)),data.curv,'uni',0);
+                else cdat0=state.cdat0; 
+                end
+                cdat=cellfun(@(x)conn_bsxfun(@times,1-alpha*(show),x) + conn_bsxfun(@times,alpha*(show),cdat2),cdat0,'uni',0);
                 if state.domask, cdat=cellfun(@(x)conn_bsxfun(@times,data.mask,x)+conn_bsxfun(@times,~data.mask,shiftdim(.6*[1 1 1],-1)),cdat,'uni',0); end
                 if state.smoother
                     smoothing=1;
@@ -985,6 +988,7 @@ if ishandle(hmsg), delete(hmsg); end
                             'faces',state.selected_faces{state.reducedpatch},...
                             'facevertexcdata',permute(state.cdat{state.selectedsurface}(state.selected_vertices{state.reducedpatch},n2,:),[1 3 2])); 
                     end
+                    set(state.handles.patch,'facecolor','interp');
                     redrawnowcolorbar=true;
 %                     if state.dotwosided,
 %                         set(state.handles.colorbar(1),'ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'ycolor',max(0,min(1, 1-state.background)));
@@ -1317,10 +1321,14 @@ if ishandle(hmsg), delete(hmsg); end
                 end
             case 'brain_color'
                 if numel(varargin)>0, color=varargin{1};
-                else color=uisetcolor([],'Select color'); if isempty(color)||isequal(color,0), set(state.handles.patch,'facecolor','interp'); return; end; 
+                else color=uisetcolor([],'Select color'); 
                 end
-                set(state.handles.patch,'facecolor',color); 
+                if isequal(color,0), color=[]; end
                 state.brain_color=color;
+                if isempty(color)||~isequal(state.info.surf,'none'), conn_mesh_display_refresh([],[],'remap&draw'); 
+                else set(state.handles.patch,'facecolor',color); 
+                end
+
             case 'act_transparency'
                 scale=varargin{1};
                 state.facealphablob=max(eps,scale);

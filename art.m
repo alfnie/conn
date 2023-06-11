@@ -441,7 +441,7 @@ for sess=1:num_sess
     % 3: scan-to-scan differences in global signal
     % 4: standardized scan-to-scan differences in global signal
     
-    gsigma{sess} = .7413*diff(prctile(g{sess}(:,1),[25,75]));gsigma{sess}(gsigma{sess}==0)=1; % robus standard-deviation
+    gsigma{sess} = .7413*diff(prctile(g{sess}(:,1),[25,75]));gsigma{sess}(gsigma{sess}==0)=1; % robust standard-deviation
     gmean{sess} = median(g{sess}(:,1)); % robust mean
     g{sess}(:,2)=(g{sess}(:,1)-gmean{sess})/max(eps,gsigma{sess}); % z-score
     g{sess}(2:end,3)=diff(g{sess}(:,1),1,1);
