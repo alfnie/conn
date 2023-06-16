@@ -221,7 +221,7 @@ if isremote, OUTPUT_FOLDER=fullfile('/CONNSERVER',rootfolder);
 else OUTPUT_FOLDER=rootfolder; 
 end
 
-if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||~isempty(regexp(lower(char(option)),'^submit'))||ismember(lower(char(STEPS)),{'root','remote','remotely','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete','firstlevel.stats','voice','secondlevel.plot'})); % run these locally
+if isremote&&~isempty(varargin)&&~(~isempty(regexp(lower(char(STEPS)),'plots?$'))||~isempty(regexp(lower(char(STEPS)),'^submit'))||ismember(lower(char(STEPS)),{'root','remote','remotely','list','init','initforce','open','preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete','firstlevel.stats','voice','secondlevel.plot'})); % run these locally
     [hmsg,hstat]=conn_msgbox({'Process running remotely','Please wait...',' ',' '},[],[],true);
     if ~isempty(hmsg), [varargout{1:nargout}]=conn_server('run_withwaitbar',hstat,mfilename,STEPS,varargin{:}); 
     else [varargout{1:nargout}]=conn_server('run',mfilename,STEPS,varargin{:}); 

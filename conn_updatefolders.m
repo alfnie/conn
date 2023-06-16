@@ -189,7 +189,7 @@ if nargin<1||isempty(conn_x),
         %if isfield(CONN_x.vvAnalyses(ianalysis),'variables')&&~isfield(CONN_x.vvAnalyses(ianalysis).variables,'mask'), CONN_x.vvAnalyses(ianalysis).variables.mask=repmat({{}},1,numel(CONN_x.vvAnalyses(ianalysis).variables.names)); end
         %if isfield(CONN_x.vvAnalyses(ianalysis),'regressors')&&~isfield(CONN_x.vvAnalyses(ianalysis).regressors,'mask'), CONN_x.vvAnalyses(ianalysis).regressors.mask=repmat({{}},1,numel(CONN_x.vvAnalyses(ianalysis).regressors.names)); end
     end
-    if ~isfield(CONN_x,'dynAnalyses'), CONN_x.dynAnalyses=struct('name','','regressors', struct('names',{{}}),'variables', struct('names',{{}}),'Ncomponents',[20],'condition',[1],'window',10,'output',[1 1 0]); end
+    if ~isfield(CONN_x,'dynAnalyses'), CONN_x.dynAnalyses=struct('name','','regressors', struct('names',{{}}),'variables', struct('names',{{}}),'Ncomponents',[20],'condition',[1],'window',10,'output',[1 1 0],'sources',{{}}); end
     if ~isfield(CONN_x,'dynAnalysis'), CONN_x.dynAnalysis=1; end
     if isfield(CONN_x.dynAnalyses,'analyses'), CONN_x.dynAnalyses=rmfield(CONN_x.dynAnalyses,'analyses'); end
     for ianalysis=1:numel(CONN_x.dynAnalyses)
@@ -200,6 +200,7 @@ if nargin<1||isempty(conn_x),
             else CONN_x.dynAnalyses(ianalysis).window=30;
             end
         end
+        if ~isfield(CONN_x.dynAnalyses(ianalysis),'sources'), CONN_x.dynAnalyses(ianalysis).sources={}; end
     end
     if ~isfield(CONN_x,'Results')||~isfield(CONN_x.Results,'saved')||isempty(CONN_x.Results.saved), CONN_x.Results.saved=struct('names',{{}},'labels',{{}},'descrip',{{}},'nsubjecteffects',{{}},'csubjecteffects',{{}},'nconditions',{{}},'cconditions',{{}}); end
     if ~isfield(CONN_x.Results.saved,'names'), CONN_x.Results.saved.names={}; end
@@ -436,7 +437,7 @@ else
         %if isfield(conn_x.vvAnalyses(ianalysis),'variables')&&~isfield(conn_x.vvAnalyses(ianalysis).variables,'mask'), conn_x.vvAnalyses(ianalysis).variables.mask=repmat({{}},1,numel(conn_x.vvAnalyses(ianalysis).variables.names)); end
         %if isfield(conn_x.vvAnalyses(ianalysis),'regressors')&&~isfield(conn_x.vvAnalyses(ianalysis).regressors,'mask'), conn_x.vvAnalyses(ianalysis).regressors.mask=repmat({{}},1,numel(conn_x.vvAnalyses(ianalysis).regressors.names)); end
     end
-    if ~isfield(conn_x,'dynAnalyses'), conn_x.dynAnalyses=struct('name','','regressors', struct('names',{{}}),'variables', struct('names',{{}}),'Ncomponents',[20],'condition',[1],'window',10,'output',[1 1 0]); end
+    if ~isfield(conn_x,'dynAnalyses'), conn_x.dynAnalyses=struct('name','','regressors', struct('names',{{}}),'variables', struct('names',{{}}),'Ncomponents',[20],'condition',[1],'window',10,'output',[1 1 0],'sources',{{}}); end
     if ~isfield(conn_x,'dynAnalysis'), conn_x.dynAnalysis=1; end
     if isfield(conn_x.dynAnalyses,'analyses'), conn_x.dynAnalyses=rmfield(conn_x.dynAnalyses,'analyses'); end
     for ianalysis=1:numel(conn_x.dynAnalyses)
@@ -447,6 +448,7 @@ else
             else conn_x.dynAnalyses(ianalysis).window=30;
             end
         end
+        if ~isfield(conn_x.dynAnalyses(ianalysis),'sources'), conn_x.dynAnalyses(ianalysis).sources={}; end
     end
     if ~isfield(conn_x,'Results')||~isfield(conn_x.Results,'saved')||isempty(conn_x.Results.saved), conn_x.Results.saved=struct('names',{{}},'labels',{{}},'descrip',{{}},'nsubjecteffects',{{}},'csubjecteffects',{{}},'nconditions',{{}},'cconditions',{{}}); end
     if ~isfield(conn_x.Results.saved,'names'), conn_x.Results.saved.names={}; end
