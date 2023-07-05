@@ -25,6 +25,14 @@ if nargin>1&&~isempty(fileref)
         data = cat(4,data, reshape(spm_sample_vol(vol(nvol),txyz(1,:),txyz(2,:),txyz(3,:),hold),volref(1).dim)); 
     end
 else
-    data = spm_read_vols(vol);
+    try
+        data = spm_read_vols(vol);
+    catch
+        data=[];
+        for nvol=1:numel(vol)
+            tdata=spm_read_vols(vol(nvol));
+            data=cat(4,data,tdata);
+        end
+    end
 end
 

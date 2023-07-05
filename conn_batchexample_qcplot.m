@@ -1,5 +1,9 @@
 % creates QC-FC plots separately within each site (for a multi-site study)
 
+%foldername = 'original';                        % output QA-report name
+%groupvariable = 'AllSubjects';                  % 2nd-level covariate name containing "valid subjects" group (e.g. 'AllSubjects')
+%foldername = 'valid';                        % output QA-report name
+%groupvariable = 'valid'; %'AllSubjects';                  % 2nd-level covariate name containing "valid subjects" group (e.g. 'AllSubjects')
 foldername = 'validsubjects';                        % output QA-report name
 groupvariable = 'QC_validsubjects'; %'AllSubjects';                  % 2nd-level covariate name containing "valid subjects" group (e.g. 'AllSubjects')
 sitevariable = {'MSU','NFB','PTSP','RHY','STUT'};%{'site_1','site_2','site_3'};    % 2nd-level covariate names containing SITES subject-groups

@@ -315,7 +315,8 @@ function varargout=conn_batch(varargin)
 %                        'functional_segment&normalize_indirect' : functional indirect unified normalization and segmentation
 %                                                                   (coregister to structural; normalize and segment structural; 
 %                                                                   apply same transformation to functionals)
-%                        'functional_slicetime'                  : functional slice-timing correction
+%                        'functional_sliceintensity'             : functional slice-intensity correction (e.g. for sparse acquisition sequences)
+%                        'functional_slicetime'                  : functional slice-timing correction (for continuous acquisition sequences)
 %                        'functional_smooth'                     : functional spatial smoothing
 %                        'functional_smooth_masked'              : functional spatial masked-smoothing (spatial convolution with Gaussian kernel 
 %                                                                   restricted to voxels within custom functional mask
