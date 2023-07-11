@@ -1,0 +1,142 @@
+Left 3rd Ventricle
+Right 3rd Ventricle
+Left 4th Ventricle
+Right 4th Ventricle
+Left Accumbens
+Right Accumbens
+Left Amygdala
+Right Amygdala
+Left Brainstem
+Right Brainstem
+Left Caudate
+Right Caudate
+Left Cerebellum Exterior
+Right Cerebellum Exterior
+Left Cerebellum White Matter
+Right Cerebellum White Matter
+Left Cerebral White Matter
+Right Cerebral White Matter
+Left CSF
+Right CSF
+Left Hippocampus
+Right Hippocampus
+Left Inferior Lateral Ventricle
+Right Inferior Lateral Ventricle
+Left Lateral Ventricle
+Right Lateral Ventricle
+Left Pallidum
+Right Pallidum
+Left Putamen
+Right Putamen
+Left Thalamus Proper
+Right Thalamus Proper
+Left Ventral DC
+Right Ventral DC
+Left Optic Chiasm
+Right Optic Chiasm
+Left Cerebellar Vermal Lobules I-V
+Right Cerebellar Vermal Lobules I-V
+Left Cerebellar Vermal Lobules VI-VII
+Right Cerebellar Vermal Lobules VI-VII
+Left Cerebellar Vermal Lobules VIII-X
+Right Cerebellar Vermal Lobules VIII-X
+Left Basal Forebrain
+Right Basal Forebrain
+Left Anterior Cingulate Gyrus
+Right Anterior Cingulate Gyrus
+Left Anterior Insula
+Right Anterior Insula
+Left Anterior Orbital Gyrus
+Right Anterior Orbital Gyrus
+Left Angular Gyrus
+Right Angular Gyrus
+Left Calcarine Cortex
+Right Calcarine Cortex
+Left Central Operculum
+Right Central Operculum
+Left Cuneus
+Right Cuneus
+Left Entorhinal Area
+Right Entorhinal Area
+Left Frontal Operculum
+Right Frontal Operculum
+Left Frontal Pole
+Right Frontal Pole
+Left Fusiform Gyrus
+Right Fusiform Gyrus
+Left Gyrus Rectus
+Right Gyrus Rectus
+Left Inferior Occipital Gyrus
+Right Inferior Occipital Gyrus
+Left Inferior Temporal Gyrus
+Right Inferior Temporal Gyrus
+Left Lingual Gyrus
+Right Lingual Gyrus
+Left Lateral Orbital Gyrus
+Right Lateral Orbital Gyrus
+Left Middle Cingulate Gyrus
+Right Middle Cingulate Gyrus
+Left Medial Frontal Cortex
+Right Medial Frontal Cortex
+Left Middle Frontal Gyrus
+Right Middle Frontal Gyrus
+Left Middle Occipital Gyrus
+Right Middle Occipital Gyrus
+Left Medial Orbital Gyrus
+Right Medial Orbital Gyrus
+Left Postcentral Gyrus Medial Segment
+Right Postcentral Gyrus Medial Segment
+Left Precentral Gyrus Medial Segment
+Right Precentral Gyrus Medial Segment
+Left Superior Frontal Gyrus Medial Segment
+Right Superior Frontal Gyrus Medial Segment
+Left Middle Temporal Gyrus
+Right Middle Temporal Gyrus
+Left Occipital Pole
+Right Occipital Pole
+Left Occipital Fusiform Gyrus
+Right Occipital Fusiform Gyrus
+Left Opercular Part of the Inferior Frontal Gyrus
+Right Opercular Part of the Inferior Frontal Gyrus
+Left Orbital Part of the Inferior Frontal Gyrus
+Right Orbital Part of the Inferior Frontal Gyrus
+Left Posterior Cingulate Gyrus
+Right Posterior Cingulate Gyrus
+Left Precuneus
+Right Precuneus
+Left Parahippocampus Gyrus
+Right Parahippocampus Gyrus
+Left Posterior Insula
+Right Posterior Insula
+Left Parietal Operculum
+Right Parietal Operculum
+Left Postcentral Gyrus
+Right Postcentral Gyrus
+Left Posterior Orbital Gyrus
+Right Posterior Orbital Gyrus
+Left Planum Polare
+Right Planum Polare
+Left Precentral Gyrus
+Right Precentral Gyrus
+Left Planum Temporale
+Right Planum Temporale
+Left Subcallosal Area
+Right Subcallosal Area
+Left Superior Frontal Gyrus
+Right Superior Frontal Gyrus
+Left Supplementary Motor Cortex
+Right Supplementary Motor Cortex
+Left Supramarginal Gyrus
+Right Supramarginal Gyrus
+Left Superior Occipital Gyrus
+Right Superior Occipital Gyrus
+Left Superior Parietal Lobule
+Right Superior Parietal Lobule
+Left Superior Temporal Gyrus
+Right Superior Temporal Gyrus
+Left Temporal Pole
+Right Temporal Pole
+Left Triangular Part of the Inferior Frontal Gyrus
+Right Triangular Part of the Inferior Frontal Gyrus
+Left Transverse Temporal Gyrus
+Right Transverse Temporal Gyrus

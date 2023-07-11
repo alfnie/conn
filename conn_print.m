@@ -20,6 +20,7 @@ elseif any(strcmp(answ,'-spm')), hfig=spm_figure('FindWin','Graphics');if isempt
 else hfig=gcf;
 end
 warning('off','MATLAB:print:CustomResizeFcnInPrint');
+%try, if ~isequal(get(hfig,'windowstate'),'normal'), set(hfig,'windowstate','normal','position',get(hfig,'position')); drawnow; end; end % note: temporal fix to avoid issues with maximized windows in latest Matlab versions
 set(hfig,'inverthardcopy','off');
 units=get(hfig,{'units','paperunits'});
 set(hfig,'units','points');

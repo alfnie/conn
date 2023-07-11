@@ -301,7 +301,9 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                         tempsizebtemp=accumarray(DATA.clusternames{nbtemp}.anat(:),abs(tempT(DATA.clusters{nbtemp}(:))),[],@max)'; % measure to sort: maximum voxel-level stats
                         sizebtemp=[sizebtemp, [nbtemp+0*tempsizebtemp; 1:numel(tempsizebtemp); tempsizebtemp]]; mbtemp=mbtemp+numel(tempsizebtemp); 
                     end
-                    [nill,idxbtemp]=sort(-sizebtemp(end,:)); rankbtemp=idxbtemp; rankbtemp(idxbtemp)=1:numel(idxbtemp);  % sort output regions by measure above
+                    if isempty(sizebtemp), idxbtemp=[];
+                    else [nill,idxbtemp]=sort(-sizebtemp(end,:)); rankbtemp=idxbtemp; rankbtemp(idxbtemp)=1:numel(idxbtemp);  % sort output regions by measure above
+                    end
                     mbtemp=0; for nbtemp=1:numel(DATA.clusters), btemp(DATA.clusters{nbtemp})=rankbtemp(mbtemp+DATA.clusternames{nbtemp}.anat); mbtemp=mbtemp+sum(sizebtemp(1,:)==nbtemp); end
                     V=conn_fileutils('spm_write_vol',V,btemp);
                     str={};

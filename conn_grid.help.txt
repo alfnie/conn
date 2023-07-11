@@ -29,10 +29,10 @@
   job scheduler that handles job submission in your cluster environment. In addition, profiles for 
   other schedulers, or system-specific settings (e.g to increase your system default walltime settings, 
   enter optional project or account ids, etc.), can be easily created/edited in 
-  CONN Tools.Cluster/HPCsettings if necessary.
+  CONN 'Tools. HPC options' menu if necessary.
   
   To get started simply install CONN on a computer that is part of your distributed cluster environment.
-  Then launch CONN GUI interactively and select Tools.Cluster/HPCsettings. There you can select and test 
+  Then launch CONN GUI interactively and select 'Tools. HPC options'. There you can select and test 
   your system job scheduler. If in doubt simply try one of the four default configurations (GridEngine, 
   PBS, LSF, or SLURM) and click on 'Test profile' (each test may take up to a few minutes). If you see a 
   'failed' message, click 'Cancel' and try a different profile. If you see a 'Test finished correctly'
@@ -58,4 +58,6 @@
   
   If using CONN's batch processing options, simply enter the desired number of jobs/nodes in the 
   batch.parallel.N field as part of your conn_batch fields. See help conn_batch for additional details
+ 
+  SEE ALSO: www.conn-toolbox.org/resources/cluster-configuration
 

@@ -3451,7 +3451,7 @@ switch(data.display),
                 end
                 idx1=find(markthese(idx)~=0);
                 if isempty(idx1)
-                    if isfield(data,'displaybrains')&&isfield(data,'names_clusters')&&~isempty(data.names_clusters) % text labels
+                    if isfield(data,'displaybrains')&&isfield(data,'names_clusters')&&~isempty(data.names_clusters)&&~isempty(idx) % text labels
                         mx=mean(xy(idx));
                         if isempty(data.clusters), a0=2*pi/NPLOTS*n1;
                         else a0=angle(mx);
