@@ -1084,12 +1084,12 @@ switch(lower(option)),
         olddisplaytheserois=data.displaytheserois;
         oldclusters=data.clusters;
         extnames2=ROIconfiguration.names2(ROIconfiguration.displaytheserois);
-        ok=ismember(extnames2,data.names2);
+        ok=ismember(extnames2,data.names);
         for n1=reshape(find(~ok),1,[])
-            idx=strmatch(extnames2{n1},data.names2); % allows partial-name matches
-            if numel(idx)==1, extnames2{n1}=data.names2{idx}; end
+            idx=strmatch(extnames2{n1},data.names); % allows partial-name matches
+            if numel(idx)==1, extnames2{n1}=data.names{idx}; end
         end
-        [ok,idx]=ismember(data.names2,extnames2);
+        [ok,idx]=ismember(data.names,extnames2);
         if ~nnz(ok), 
             conn_msgbox('Unable to import ROI configuration information. No matching ROIs','',2); return; end
         data.displaytheserois=find(ok);

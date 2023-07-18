@@ -68,7 +68,9 @@ if any(isnewcondition(options.validconditions)), error(['Some conditions have no
 % addnew=false;
 ROInames={}; ROIxyz={}; ROIthrtype='';
 if iscell(ROI)||ischar(ROI), 
-    if iscell(ROI), [ROI,ROIthrtype,ROIthr]=deal(ROI{:}); end
+    if iscell(ROI)&&numel(ROI)==3, [ROI,ROIthrtype,ROIthr]=deal(ROI{:}); % option ROIfile={ROIfile, ROIthrtype, ROIthr}, e.g. {'ROIs.nii','>=',0.25}
+    elseif iscell(ROI)&&numel(ROI)==2, [ROI,ROIthrtype]=deal(ROI{:}); % option ROIfile={ROIfile, 'voxels'}
+    end
     ROI=conn_server('util_localfile',ROI);
     if ~isempty(options.saveas), try, [ROIxyz,ROInames]=conn_roicenters(ROI); end; end
     ROI=conn_fileutils('spm_vol',ROI); 
@@ -110,6 +112,7 @@ for ivalidcondition=1:numel(options.validconditions),
                     case {'=','=='}, W=double(W==ROIthr);
                     case '<=', W=double(W<=ROIthr);
                     case '<', W=double(W<ROIthr);
+                    case 'voxels', W(W>0)=1:nnz(W>0);
                 end
                 maxW=max(W(:));
                 if options.isroi && maxW>1 && size(W,1)==1 && all(ismember(unique(W),0:maxW)), W=double(repmat(W,[maxW,1])==repmat((1:maxW)',[1,size(W,2)])); end

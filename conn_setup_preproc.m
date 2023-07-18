@@ -1773,6 +1773,8 @@ for iSTEP=1:numel(STEPS)
                             if coregtomean==2
                                 if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
                                     xtemp={coregsource{isubject}};
+                                elseif ~isempty(conn_datasetlabel('ref'))
+                                    xtemp={conn_get_functional(nsubject,nsess_func(1),'ref')};
                                 elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
                                     xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
                                 else error('missing coregsource info');
@@ -2077,6 +2079,8 @@ for iSTEP=1:numel(STEPS)
                             if coregtomean==2
                                 if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
                                     xtemp={coregsource{isubject}};
+                                elseif ~isempty(conn_datasetlabel('ref'))
+                                    xtemp={conn_get_functional(nsubject,nsess_func(1),'ref')};
                                 elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
                                     xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
                                 else error('missing coregsource info');
@@ -2301,6 +2305,8 @@ for iSTEP=1:numel(STEPS)
                 if coregtomean==2
                     if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
                         xtemp={coregsource{isubject}};
+                    elseif ~isempty(conn_datasetlabel('ref'))
+                        xtemp={conn_get_functional(nsubject,sessions(1),'ref')};
                     elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
                         xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
                     else error('missing coregsource info');
@@ -2861,6 +2867,8 @@ for iSTEP=1:numel(STEPS)
                         if coregtomean==2
                             if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
                                 xtemp={coregsource{isubject}};
+                            elseif ~isempty(conn_datasetlabel('ref'))
+                                xtemp={conn_get_functional(nsubject,nsess_func(1),'ref')};
                             elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
                                 xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
                             else error('missing coregsource info');
@@ -2912,6 +2920,8 @@ for iSTEP=1:numel(STEPS)
                         if coregtomean==2
                             if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
                                 xtemp={coregsource{isubject}};
+                            elseif ~isempty(conn_datasetlabel('ref'))
+                                xtemp={conn_get_functional(nsubject,nsess_func(1),'ref')};
                             elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
                                 xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
                             else error('missing coregsource info');
@@ -2956,6 +2966,8 @@ for iSTEP=1:numel(STEPS)
                 if coregtomean==2
                     if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
                         xtemp={coregsource{isubject}};
+                    elseif ~isempty(conn_datasetlabel('ref'))
+                        xtemp={conn_get_functional(nsubject,sessions(1),'ref')};
                     elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
                         xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
                     else error('missing coregsource info');
@@ -3028,6 +3040,8 @@ for iSTEP=1:numel(STEPS)
                 if coregtomean==2
                     if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
                         xtemp={coregsource{isubject}};
+                    elseif ~isempty(conn_datasetlabel('ref'))
+                        xtemp={conn_get_functional(nsubject,sessions(1),'ref')};
                     elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
                         xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
                     else error('missing coregsource info');
@@ -3071,6 +3085,8 @@ for iSTEP=1:numel(STEPS)
                 if coregtomean==2
                     if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
                         xtemp={coregsource{isubject}};
+                    elseif ~isempty(conn_datasetlabel('ref'))
+                        xtemp={conn_get_functional(nsubject,sessions(1),'ref')};
                     elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
                         xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
                     else error('missing coregsource info');

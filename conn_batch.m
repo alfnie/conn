@@ -899,11 +899,29 @@ if isfield(batch,'Setup'),
         end
     end
     if isfield(batch.Setup,'coregsource_functionals')
+        localcopy=false; if isfield(batch.Setup,'localcopy')&&batch.Setup.localcopy, localcopy=true; end
+        localcopy_reduce=false; if isfield(batch.Setup,'localcopy_reduce')&&batch.Setup.localcopy_reduce, localcopy_reduce=true; end
         for isub=1:numel(SUBJECTS),
             nsub=SUBJECTS(isub);
-            [CONN_x.Setup.coregsource_functional{nsub},nV]=conn_file(batch.Setup.coregsource_functionals{isub});
+            %CONN_x.Setup.nsessions(nsub)=length(batch.Setup.coregsource_functionals{nsub});
+            if ~iscell(batch.Setup.coregsource_functionals{isub}), batch.Setup.coregsource_functionals{isub}={batch.Setup.coregsource_functionals{isub}}; end
+            for nses=1:CONN_x.Setup.nsessions(nsub),
+                fname=batch.Setup.coregsource_functionals{isub}{min(numel(batch.Setup.coregsource_functionals{isub}),nses)};
+                if localcopy, [nill,nill,nV]=conn_importvol2bids(fname,nsub,nses,'ref','ref',[],[],localcopy_reduce);
+                else
+                    [CONN_x.Setup.coregsource_functionals{nsub}{nses},nV]=conn_file(fname);
+                    conn_set_functional(nsub,nses,'ref',fname);
+                end
+                %CONN_x.Setup.nscans{nsub}{nses}=nV;
+            end
         end
     end
+    %if isfield(batch.Setup,'coregsource_functionals')
+    %    for isub=1:numel(SUBJECTS),
+    %        nsub=SUBJECTS(isub);
+    %        [CONN_x.Setup.coregsource_functional{nsub},nV]=conn_file(batch.Setup.coregsource_functionals{isub});
+    %    end
+    %end
     
     allfields=fieldnames(batch.Setup);
     idx=cellfun('length',regexp(allfields,'_functionals$'))>0;

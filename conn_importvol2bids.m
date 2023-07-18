@@ -1,7 +1,7 @@
 function [out,changed,nV]=conn_importvol2bids(filename,nsub,nses,fmod,ftype,docopy,dodisp,dosinglesubjectreduce,roinumber,keepnames)
 % CONN_IMPORTVOL2BIDS imports functional/anatomical file into CONN/BIDS directory
 % conn_importvol2bids(filename,nsub,nses,fmod,[froot])
-%   fmod   : file modality (anat, func, dwi, fmap, roi)
+%   fmod   : file modality (anat, func, dwi, fmap, ref, roi)
 %   froot  : filename root (defaults: T1w for 'anat'; task-rest_bold for 'func')
 
 % note: for secondary datasets fmod uses the format "dataset(\d+)(.*)" where $1=nset and $2=fmod (e.g. dataset1func)
@@ -61,6 +61,23 @@ if nargin<=1
                 end
             end
         end
+        for nses=1:nsess,
+            if numel(CONN_x.Setup.coregsource_functional)>=nsub&&numel(CONN_x.Setup.coregsource_functional{nsub})>=nses
+                if ~isempty(CONN_x.Setup.coregsource_functional{nsub}{nses}{1})
+                    [out{6}{nsub}{nses},tchanged]=conn_importvol2bids(CONN_x.Setup.coregsource_functional{nsub}{nses}{1},nsub,nses,'ref','ref',[],true,dosinglesubjectreduce);
+                    changed=changed|tchanged;
+                end
+            end
+        end
+        if ~isempty(conn_datasetlabel('ref'))
+            for nses=1:nsess,
+                fname=conn_get_functional(nsub,nses,'ref');
+                if ~isempty(fname)
+                    [out{7}{nsub}{nses},tchanged]=conn_importvol2bids(fname,nsub,nses,'ref','ref',[],true,dosinglesubjectreduce);
+                    changed=changed|tchanged;
+                end
+            end
+        end
         for nroi=1:numel(CONN_x.Setup.rois.names)-1
             if CONN_x.Setup.rois.subjectspecific(nroi) %||nsub==1 
                 if ~CONN_x.Setup.rois.sessionspecific(nroi), nsesstemp=1; else nsesstemp=nsess; end
@@ -69,13 +86,13 @@ if nargin<=1
                         if CONN_x.Setup.rois.sessionspecific(nroi), saveasnses=nses;
                         else saveasnses=[];
                         end                        
-                        [out{6}{nsub}{nses}{nroi},tchanged]=conn_importvol2bids(CONN_x.Setup.rois.files{nsub}{nroi}{nses}{1},nsub,saveasnses,'roi',[],[],true,dosinglesubjectreduce,nroi);
+                        [out{8}{nsub}{nses}{nroi},tchanged]=conn_importvol2bids(CONN_x.Setup.rois.files{nsub}{nroi}{nses}{1},nsub,saveasnses,'roi',[],[],true,dosinglesubjectreduce,nroi);
                         changed=changed|tchanged;
                     end
                 end
                 for nses=nsesstemp+1:nsess,
                     CONN_x.Setup.rois.files{nsub}{nroi}{nses}=CONN_x.Setup.rois.files{nsub}{nroi}{nsesstemp};
-                    out{6}{nsub}{nses}{nroi}=CONN_x.Setup.rois.files{nsub}{nroi}{nses}{1};
+                    out{8}{nsub}{nses}{nroi}=CONN_x.Setup.rois.files{nsub}{nroi}{nses}{1};
                 end
             %else % note: imports only one sample (subject #1) for subject-independent rois?
             %    for nses=1:nsess,
@@ -124,10 +141,11 @@ if keepnames
     conn_fileutils('mkdir',fpath);
 else
     if dosinglesubjectreduce, BIDSfolder=fileparts(fileparts(CONN_x.folders.bids));
-    elseif ismember(fmod,{'func','anat','dwi','fmap','roi','rois'}), BIDSfolder=fullfile(CONN_x.folders.bids,'dataset');  % root directory
+    elseif ismember(fmod,{'func','anat','dwi','fmap','ref','roi','rois'}), BIDSfolder=fullfile(CONN_x.folders.bids,'dataset');  % root directory
     elseif ~isempty(regexp(fmod,'^dataset\d*')), nset=regexp(fmod,'^dataset(\d*)','tokens','once'); nset=str2double([nset{:}]); if isnan(nset), nset=0; end; 
         BIDSfolder=fullfile(CONN_x.folders.bids,regexp(fmod,'^dataset\d*','match','once')); 
         if isequal(CONN_x.Setup.secondarydataset(nset).label,'fmap'), fmod='fmap'; 
+        elseif isequal(CONN_x.Setup.secondarydataset(nset).label,'ref'), fmod='ref'; 
         else fmod=regexprep(fmod,'^dataset\d*','');
         end
     else BIDSfolder=fullfile(CONN_x.folders.bids,'derivatives'); % derivatives
@@ -143,6 +161,7 @@ else
             case 'dwi',  ftype='dwi'; newfilename=sprintf('%sdwi.nii',frun);
             case 'vdm', ftype='vdm'; newfilename=sprintf('%svdm.nii',frun);
             case 'fmap', ftype='fmap'; newfilename=sprintf('%sfmap.nii',frun);
+            case 'ref', ftype='ref'; newfilename=sprintf('%sref.nii',frun);
             case 'roi', ftype='roi';
                 if ~isempty(roinumber)&& numel(CONN_x.Setup.rois.names)>=roinumber, newfilename=sprintf('%sroi-%s.nii',frun,regexprep(CONN_x.Setup.rois.names{roinumber},'[^\w\d_]',''));
                 else newfilename=sprintf('%sroi.nii',frun);
@@ -328,6 +347,9 @@ if docopy
             if ~isempty(roinumber), CONN_x.Setup.rois.files{nsub(end)}{roinumber}{nses(end)}=conn_file(out); end
         case 'vdm'
             if isequal(ftype,'vdm'), [CONN_x.Setup.unwarp_functional{nsub(end)}{nses(end)},nV]=conn_file(out); end
+            conn_set_functional(nsub(end),nses(end),ftype,out);
+        case 'ref'
+            if isequal(ftype,'ref'), [CONN_x.Setup.coregsource_functional{nsub(end)}{nses(end)},nV]=conn_file(out); end
             conn_set_functional(nsub(end),nses(end),ftype,out);
         otherwise
             conn_set_functional(nsub(end),nses(end),ftype,out);

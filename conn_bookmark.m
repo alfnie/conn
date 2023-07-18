@@ -39,6 +39,9 @@ switch(option)
             conn_loadmatfile(filename,'opts'); 
             %warning('on','MATLAB:load:variableNotFound');
         end
+        if numel(conn_args)>=2&&isequal(conn_args{1},'image_display')&&isempty(fileparts(conn_args{2})),
+            conn_args{2}=fullfile(fileparts(filename), conn_args{2});
+        end
         if numel(conn_args)>=2&&isstruct(conn_args{2})
             if isfield(conn_args{2},'bookmark_filename'), conn_args{2}.bookmark_filename=filename; end
             if isfield(conn_args{2},'bookmark_descr'), 

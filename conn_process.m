@@ -4547,80 +4547,93 @@ if any(options==15) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
             names={};
             %         ianalysis=CONN_x.Analysis;
             filepathresults=fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name);
-            missingdata=arrayfun(@(n)isempty(dir(fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(icondition(n),'%03d'),'.mat']))),validconditions);
-            if any(missingdata), conn_disp(['Not ready to process step conn_process_15']); return; end
-            filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(icondition(referenceconditions(1)),'%03d'),'.mat']);
-            X1=load(filename);
-            [X,nill,names,xyz]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,X1,[]);
-            nrois=size(X,2)-1;
-            if DOREDUCED&CONN_x.Analyses(ianalysis).type==1
-                X2=X; names2=names; xyz2=xyz;
+            %missingdata=arrayfun(@(n)isempty(dir(fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(icondition(n),'%03d'),'.mat']))),validconditions);
+            missingdata=false; 
+            for nsub=1:CONN_x.Setup.nsubjects
+                missingdata=missingdata|any(arrayfun(@(n)~conn_existfile(fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(n),'%03d'),'.mat'])),validconditions));
+                %missingdata=missingdata|any(arrayfun(@(n)~conn_existfile(fullfile(filepathresults,['resultsROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(n),'%03d'),'.mat'])),[validconditions,secondaryconditions]));
+                if any(missingdata), break; end
+            end
+            if any(missingdata), conn_disp(['WARNING: skipping this process until all subjects have been processed (re-run first-level analysis across all subjects -without overwriting- to complete this process later)']); 
             else
-                [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analysis_variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
-            end
-            nrois2=size(X2,2)-1;
-            [nill,idxroi1roi2]=ismember(names,names2);
-            %idxroi1roi2=zeros(1,nrois);
-            %for n1=1:nrois,temp=strmatch(names{n1},names2,'exact'); idxroi1roi2(n1)=temp(1);end
-            X2=cat(2,X2(:,1),X2(:,1+idxroi1roi2),X2(:,1+setdiff(1:nrois2,idxroi1roi2)));
-            names2=cat(2,{names2{idxroi1roi2}},{names2{setdiff(1:nrois2,idxroi1roi2)}});
-            xyz=cat(2,{xyz2{idxroi1roi2}},{xyz2{setdiff(1:nrois2,idxroi1roi2)}});
-            if nanalyses==1, n=0;N=CONN_x.Setup.nsubjects*(numel(validconditions)+numel(secondaryconditions))*nrois*length(analyses); nroisbak=nrois;
-            else N=N-CONN_x.Setup.nsubjects*(numel(validconditions)+numel(secondaryconditions))*nroisbak+CONN_x.Setup.nsubjects*(numel(validconditions)+numel(secondaryconditions))*nrois; end
-            
-            names2checked=false;
-            for ncondition=[validconditions,secondaryconditions],
-                Z=zeros([nrois,nrois2,CONN_x.Setup.nsubjects]);
-                xyz={};
-                SE=zeros([CONN_x.Setup.nsubjects,nrois2]);
-                DOF=zeros([1,CONN_x.Setup.nsubjects]);
-                for nsub=1:CONN_x.Setup.nsubjects,
-                    filename=fullfile(filepathresults,['resultsROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-                    t=load(filename,'Z','regressors','names','names2','xyz','SE','DOF');
-                    IDX=[];IDX2=[];
-                    for nroi=1:nrois,
-                        idx=find(strcmp(names{nroi},t.names));
-                        %idx=strmatch(names{nroi},t.names,'exact');
-                        if isempty(idx), error(['Non-existing source ROI first-level data for ',names{nroi},' subject ',num2str(nsub),'. Please repeat first-level analyses']); return; end
-                        IDX(nroi)=idx(1);
-                        n=n+1;
-                    end
-                    for nroi=1:nrois2,
-                        idx=find(strcmp(names2{nroi},t.names2));
-                        %idx=strmatch(names2{nroi},t.names2,'exact');
-                        %if isempty(idx)&&names2checked, error(['Non-existing target ROI first-level data for ',names2{nroi},' subject ',num2str(nsub),'. Please repeat first-level analyses']); return; 
-                        if isempty(idx)&&~isempty(regexp(names2{nroi},'^QC_')), % skip warning
-                        elseif isempty(idx)&&names2checked, %conn_disp(['Warning: Non-existing target ROI first-level data for ',names2{nroi},' subject ',num2str(nsub),'. Skipping this target ROI']); 
-                        elseif ~isempty(idx), IDX2(nroi)=idx(1);
-                        end
-                    end
-                    if nnz(IDX2)~=nrois2
-                        if names2checked
-                            Z=Z(:,IDX2>0,:);
-                            SE=SE(:,IDX2>0);
-                            names2=names2(IDX2>0);
-                            nrois2=nnz(IDX2);
-                            IDX2=IDX2(IDX2>0);
-                        else
-                            names2=names2(IDX2>0);
-                            nrois2=nnz(IDX2);
-                            IDX2=IDX2(IDX2>0);
-                            Z=zeros([nrois,nrois2,CONN_x.Setup.nsubjects]);
-                            SE=zeros([CONN_x.Setup.nsubjects,nrois2]);
-                        end
-                    end
-                    names2checked=true;
-                    Z(:,:,nsub)=t.Z(IDX,IDX2);
-                    xyz={t.xyz{IDX2}};
-                    SE(nsub,:)=t.SE(IDX2);
-                    DOF(nsub)=t.DOF;
-                    conn_waitbar(n/N,h,sprintf('Subject %d Condition %d',nsub,ncondition));
+                filename=fullfile(filepath,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(icondition(referenceconditions(1)),'%03d'),'.mat']);
+                X1=load(filename);
+                [X,nill,names,xyz]=conn_designmatrix(CONN_x.Analyses(ianalysis).regressors,X1,[]);
+                nrois=size(X,2)-1;
+                if DOREDUCED&CONN_x.Analyses(ianalysis).type==1
+                    X2=X; names2=names; xyz2=xyz;
+                else
+                    [X2,nill,names2,xyz2]=conn_designmatrix({CONN_x.Analysis_variables,CONN_x.Analyses(ianalysis).regressors},X1,[]);
                 end
-                regressors=CONN_x.Analyses(ianalysis).regressors;
-                filename=fullfile(filepathresults,['resultsROI_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
-                save(filename,'Z','regressors','names','names2','xyz','SE','DOF');
+                nrois2=size(X2,2)-1;
+                [nill,idxroi1roi2]=ismember(names,names2);
+                %idxroi1roi2=zeros(1,nrois);
+                %for n1=1:nrois,temp=strmatch(names{n1},names2,'exact'); idxroi1roi2(n1)=temp(1);end
+                X2=cat(2,X2(:,1),X2(:,1+idxroi1roi2),X2(:,1+setdiff(1:nrois2,idxroi1roi2)));
+                names2=cat(2,{names2{idxroi1roi2}},{names2{setdiff(1:nrois2,idxroi1roi2)}});
+                xyz=cat(2,{xyz2{idxroi1roi2}},{xyz2{setdiff(1:nrois2,idxroi1roi2)}});
+                if nanalyses==1, n=0;N=CONN_x.Setup.nsubjects*(numel(validconditions)+numel(secondaryconditions))*nrois*length(analyses); nroisbak=nrois;
+                else N=N-CONN_x.Setup.nsubjects*(numel(validconditions)+numel(secondaryconditions))*nroisbak+CONN_x.Setup.nsubjects*(numel(validconditions)+numel(secondaryconditions))*nrois; end
+                names2checked=false;
+                for ncondition=[validconditions,secondaryconditions],
+                    Z=zeros([nrois,nrois2,CONN_x.Setup.nsubjects]);
+                    xyz={};
+                    SE=zeros([CONN_x.Setup.nsubjects,nrois2]);
+                    DOF=zeros([1,CONN_x.Setup.nsubjects]);
+                    for nsub=1:CONN_x.Setup.nsubjects,
+                        filename=fullfile(filepathresults,['resultsROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
+                        if conn_existfile(filename)
+                            t=load(filename,'Z','regressors','names','names2','xyz','SE','DOF');
+                            IDX=[];IDX2=[];
+                            for nroi=1:nrois,
+                                idx=find(strcmp(names{nroi},t.names));
+                                %idx=strmatch(names{nroi},t.names,'exact');
+                                if isempty(idx), error(['Non-existing source ROI first-level data for ',names{nroi},' subject ',num2str(nsub),'. Please repeat first-level analyses']); return; end
+                                IDX(nroi)=idx(1);
+                                n=n+1;
+                            end
+                            for nroi=1:nrois2,
+                                idx=find(strcmp(names2{nroi},t.names2));
+                                %idx=strmatch(names2{nroi},t.names2,'exact');
+                                %if isempty(idx)&&names2checked, error(['Non-existing target ROI first-level data for ',names2{nroi},' subject ',num2str(nsub),'. Please repeat first-level analyses']); return;
+                                if isempty(idx)&&~isempty(regexp(names2{nroi},'^QC_')), % skip warning
+                                elseif isempty(idx)&&names2checked, %conn_disp(['Warning: Non-existing target ROI first-level data for ',names2{nroi},' subject ',num2str(nsub),'. Skipping this target ROI']);
+                                elseif ~isempty(idx), IDX2(nroi)=idx(1);
+                                end
+                            end
+                            if nnz(IDX2)~=nrois2
+                                if names2checked
+                                    Z=Z(:,IDX2>0,:);
+                                    SE=SE(:,IDX2>0);
+                                    names2=names2(IDX2>0);
+                                    nrois2=nnz(IDX2);
+                                    IDX2=IDX2(IDX2>0);
+                                else
+                                    names2=names2(IDX2>0);
+                                    nrois2=nnz(IDX2);
+                                    IDX2=IDX2(IDX2>0);
+                                    Z=zeros([nrois,nrois2,CONN_x.Setup.nsubjects]);
+                                    SE=zeros([CONN_x.Setup.nsubjects,nrois2]);
+                                end
+                            end
+                            names2checked=true;
+                            Z(:,:,nsub)=t.Z(IDX,IDX2);
+                            xyz={t.xyz{IDX2}};
+                            SE(nsub,:)=t.SE(IDX2);
+                            DOF(nsub)=t.DOF;
+                        else % note: allows missing-data (subjects not processed)
+                            Z(:,:,nsub)=nan;
+                            SE(nsub,:)=nan;
+                            DOF(nsub)=nan;
+                        end
+                        conn_waitbar(n/N,h,sprintf('Subject %d Condition %d',nsub,ncondition));
+                    end
+                    regressors=CONN_x.Analyses(ianalysis).regressors;
+                    filename=fullfile(filepathresults,['resultsROI_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
+                    save(filename,'Z','regressors','names','names2','xyz','SE','DOF');
+                end
+                if ~isempty(names), CONN_x.Analyses(ianalysis).sources=names; end
             end
-            if ~isempty(names), CONN_x.Analyses(ianalysis).sources=names; end
         end
         CONN_x.Analysis=analysisbak;
         conn_waitbar('close',h);

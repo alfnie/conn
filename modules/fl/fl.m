@@ -385,6 +385,7 @@ switch(lower(STEPS))
         conn_module('evlab17','load',dataset);
         conn;
         conn('load',conn_prepend('',dataset,'.mat'));
+        conn('guiset','disconnectonclose',false);
         conn gui_setup;
         
     case {'preprocessing.report','preprocessing.report.gui','preprocessing.delete','parallel.report','parallel.report.gui','parallel.delete','report','report.gui','delete'}
