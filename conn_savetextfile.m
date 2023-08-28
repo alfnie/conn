@@ -49,16 +49,19 @@ switch(tfileext)
                 else fprintf(fh,'\n');
                 end
             end
-            for n2=1:size(data,1),
-                for n1=1:size(data,2),
-                    if iscell(data(n2,n1))&&ischar(data{n2,n1}), fprintf(fh,'%s',data{n2,n1});
-                    else fprintf(fh,'%s',mat2str(data(n2,n1)));
-                    end
-                    if n1<size(data,2)&&strcmp(tfileext,'.csv'), fprintf(fh,',');
-                    elseif n1<size(data,2), fprintf(fh,' ');
-                    else fprintf(fh,'\n');
+            for n3=1:size(data,3)
+                for n2=1:size(data,1),
+                    for n1=1:size(data,2),
+                        if iscell(data(n2,n1,n3))&&ischar(data{n2,n1,n3}), fprintf(fh,'%s',data{n2,n1,n3});
+                        else fprintf(fh,'%s',mat2str(data(n2,n1,n3)));
+                        end
+                        if n1<size(data,2)&&strcmp(tfileext,'.csv'), fprintf(fh,',');
+                        elseif n1<size(data,2), fprintf(fh,' ');
+                        else fprintf(fh,'\n');
+                        end
                     end
                 end
+                if n3<size(data,3), fprintf(fh,'#\n'); end
             end
         end
         fclose(fh);

@@ -288,12 +288,14 @@ if ~isempty(state.xcov)
 else [state.handles.haxcov,state.handles.himcov,state.handles.scalecov,state.handles.refcov,state.handles.titlecov]=deal([]);
 end
 
+set(state.handles.hfig,'userdata',state);
 fh('refresh');
 if strcmp(state.style,'moviereplay')
     %drawnow;
     set(state.handles.startstop,'value',1);
     fh('startstop');
 end
+
     
     function out=conn_montage_display_refresh(hObject,eventdata,option,varargin)
         out=[];

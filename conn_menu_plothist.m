@@ -75,9 +75,9 @@ for nvar=1:nx
         ttx=[]; for n=1:numel(tx), ttx=[ttx,tx{n}(:)']; end
         if options.plotsamples, hold on; plot(nvar+options.offset+zeros(numel(ttx),1),sort(ttx(:)),'b.'); hold off; end
         if options.plotmeans, hold on; plot(nvar+options.offset,mean(ttx(:)),'wo','markerfacecolor',options.colors(end,:)); hold off; end
-        if options.plotmedians, hold on; plot(nvar+options.offset,median(ttx(:)),'wo','markerfacecolor',options.colors(end,:)); hold off; end
+        if options.plotmedians, hold on; plot(nvar+options.offset+options.scale*maxp*[-1 1]/2,median(ttx(:))*[1 1],'-','color','b'); hold off; end
         %if options.plotmedians, [nill,idx]=max(pleft); hold on; plot(nvar+options.offset,X(idx),'wo','markerfacecolor',options.colors(end,:)); hold off; end
-        if options.plotquart, hold on; plot(nvar+options.offset+[0 0],[prctile(ttx(:),25) prctile(ttx(:),75)],'k','linewidth',2,'color',options.colors(end,:)); hold off; end
+        if options.plotquart, p1=prctile(ttx(:),25);p2=prctile(ttx(:),75); hold on; plot(nvar+options.offset+options.scale*maxp*[-1 -1 1 1 -1]/2,[p1 p2 p2 p1 p1],'-','linewidth',1,'color','b'); hold off; end
         drawnow
     end
 end

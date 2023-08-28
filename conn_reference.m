@@ -534,6 +534,7 @@ end
 
 function txtout=conn_reference_singleparagraph(txtin,dolast)
 if nargin<2, dolast=true; end
+txtin=txtin(cellfun('length',txtin)>0);
 txtout='';
 for n=1:numel(txtin),
     if n==1, txtout=[txtin{n}]; 

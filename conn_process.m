@@ -665,10 +665,17 @@ if any(options==3) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
 %             Vref=spm_vol(filename);
 %         end
 		nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
+        forceredo=false;
+        if CONN_x.Setup.analysismask==2
+    		for nses=1:nsess,
+    			filename=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
+                if strcmp(lower(REDO),'yes')||~conn_existfile(filename), forceredo=true; break; end % note: makes sure all sessions use the same mask
+            end
+        end
 		sfile=[];%conn_prepend('',CONN_x.Setup.structural{nsub}{1},'_seg_inv_sn.mat');
 		for nses=1:nsess,
 			filename=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
-            if strcmp(lower(REDO),'yes')||~conn_existfile(filename),
+            if strcmp(lower(REDO),'yes')||~conn_existfile(filename)||forceredo,
                 warning off;Vsource=spm_vol(CONN_x.Setup.functional{nsub}{nses}{1});warning on;
                 CONN_x.Setup.nscans{nsub}{nses}=prod(size(Vsource));
                 if CONN_x.Setup.analysismask==2&&nses==1,%~CONN_x.Setup.normalized&&(isempty(Vmask)), % computes analysis mask

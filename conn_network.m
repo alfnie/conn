@@ -38,7 +38,7 @@ names={names{rois}};Z=Z(rois,rois,:);nROI=length(rois);
 if nargin<3||isempty(measures),
     measures=1;
     if isnumeric(posstr)&&isempty(findobj(0,'tag','Interactive')), spm('CreateIntWin'); end;
-    measures=spm_input('Select measures',posstr,'m','Global efficienty/Local efficiency/Cost|Path distance/Clustering coefficient/Degree',[],measures);posstr='+1';
+    measures=spm_input('Select measures',posstr,'m','Global efficienty/Local efficiency/Cost/Path distance/Clustering coefficient/Degree',[],measures);posstr='+1';
 end
 % normalizes across subjects
 if nargin<4||isempty(normalization),

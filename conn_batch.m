@@ -190,7 +190,8 @@ function varargout=conn_batch(varargin)
 %                                         project) [0]
 %  
 %    Setup.subjects                     : defines 2nd-level covariates (arbitrary continuous/categorical/ordinal data for each subject)
-%      Setup.subjects.effects           : subjects.effects{neffect} vector of size [nsubjects,1] defining second-level effects
+%      Setup.subjects.effects           : subjects.effects{neffect} vector of size [nsubjects,1] defining second-level effects (or char
+%                                         array indicating name of file containing these [nsubjects,1] values)
 %      Setup.subjects.effect_names      : subjects.effect_names{neffect} char array of second-level covariate name
 %      Setup.subjects.effect_descrip    : (optional) subjects.effect_descrip{neffect} char array of effect description (long name; for  
 %                                         display purposes only)
@@ -825,7 +826,7 @@ if isfield(batch,'Setup'),
                 CONN_x.Setup.secondarydataset(ialt).functionals_rule=tsecondarydataset.roiextract_rule;
             end
             if isfield(tsecondarydataset,'functionals_label')
-                CONN_x.Setup.secondarydataset(ialt).label=tsecondarydataset.functionals_label;
+                CONN_x.Setup.secondarydataset(ialt).label=char(tsecondarydataset.functionals_label);
             end
             if isfield(tsecondarydataset,'functionals_explicit')||isfield(tsecondarydataset,'roiextract_functionals')
                 if isfield(tsecondarydataset,'functionals_explicit'), temp=tsecondarydataset.functionals_explicit;
