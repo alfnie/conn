@@ -3217,8 +3217,8 @@ if ishandle(fh),
         if isfield(SPM.xY,'Y'), Y=char(SPM.xY.Y);
         else Y=char({SPM.xY.VY.fname});
         end
-        if ~conn_existfile(deblank(Y(1,:)))&&isfield(SPM,'swd')&&isempty(fileparts(deblank(Y(1,:)))),Y=cellstr(Y); for n=1:numel(Y), if isempty(fileparts(deblank(Y{n}))), Y{n}=fullfile(SPM.swd,Y{n}); end; end; Y=char(Y); end
-        if ~conn_existfile(deblank(Y(1,:))), conn_msgbox({sprintf('Unable to find file %s',deblank(Y(1,:))),'Please re-compute second-level model and try again'},'Outdated file references',2); return; end
+        if ~isremote&&~conn_existfile(deblank(Y(1,:)))&&isfield(SPM,'swd')&&isempty(fileparts(deblank(Y(1,:)))),Y=cellstr(Y); for n=1:numel(Y), if isempty(fileparts(deblank(Y{n}))), Y{n}=fullfile(SPM.swd,Y{n}); end; end; Y=char(Y); end
+        if ~isremote&&~conn_existfile(deblank(Y(1,:))), conn_msgbox({sprintf('Unable to find file %s',deblank(Y(1,:))),'Please re-compute second-level model and try again'},'Outdated file references',2); return; end
         tfilesep=conn_projectmanager('filesep');
         Y=conn_server('util_localfile_filesep',tfilesep,Y);
         simfilename=conn_server('util_localfile_filesep',tfilesep,simfilename);

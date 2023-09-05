@@ -1431,8 +1431,9 @@ else
             str{end+1}=sprintf('Whitfield-Gabrieli, S., and Nieto-Castanon, A. (2012). Conn: A functional connectivity');
             str{end+1}=sprintf('toolbox for correlated and anticorrelated brain networks. Brain connectivity, 2(3), 125-141');
             %for n=1:numel(str), conn_disp('fprintf','%s\n',str{n}); end
-            conn_msgbox(str,'');
-            
+            h=conn_msgbox(str,'');
+            uicontrol('style','pushbutton','units','norm','position',[.95 .95 .04 .04],'string','❏','tooltip','copies text to clipboard','callback',@(varargin)clipboard('copy',sprintf('%s\n',str{:})),'parent',h);
+
         case 'gui_help',
             switch(lower(varargin{2}))
                 case 'url'
