@@ -228,10 +228,15 @@ switch(lower(option))
         end
                 
     case 'homedir'
-        if ispc, varargout{1}=conn_fullfile(getenv('USERPROFILE'));
-        else varargout{1}=conn_fullfile('~/');
+        hdir='';
+        try, hdir=conn_fullfile(char(java.lang.System.getProperty("user.home"))); end
+        if isempty(hdir)
+            if ispc, try, hdir=conn_fullfile(getenv('USERPROFILE')); end
+            else try, hdir=conn_fullfile('~/'); end
+            end
         end
-        
+        varargout{1}=hdir;
+
     case 'java.io.file'
         if any(conn_server('util_isremotefile',varargin{1})), [varargout{1:nargout}]=conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),varargin{2:end});
         else [varargout{1:nargout}]=java.io.File(conn_server('util_localfile',varargin{1}),varargin{2:end});
