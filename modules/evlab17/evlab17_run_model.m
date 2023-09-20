@@ -853,6 +853,8 @@ if isfield(options,'contrasts')
     else opp=zeros( size(sX.X,2) );
     end
     estimablecols=max(abs(opp-speye(size(opp,1))),[],1)<= sX.tol;
+    fh=[]; try, fh=fopen(fullfile(SPM.swd,'contrastdefinitions.stderr'),'wt'); end
+    shownwarning=false;
     for ncon=1:numel(options.contrasts)
         str=regexp(options.contrasts{ncon},'\s+','split');
         str=str(cellfun('length',str)>0);
@@ -872,101 +874,106 @@ if isfield(options,'contrasts')
             i=find(strcmp(condnames{ncondition},SPMconditions));
             if isempty(i), i=find(cellfun('length',regexp(SPMconditions,['^',condnames{ncondition},'_EVENT\d+$']))); end
             %if isempty(i), error('unable to match condition name %s. Valid condition names: %s',condnames{ncondition},sprintf('%s ',SPMconditions{:})); end
-            if isempty(i), conn_disp('fprintf','Warning: condition name %s not found. skipping (valid condition names: %s)\n',condnames{ncondition},sprintf('%s ',SPMconditions{:})); try, fprintf(fh,'Warning: condition name %s not found. skipping (valid condition names: %s)\n',condnames{ncondition},sprintf('%s ',SPMconditions{:})); end; end
-            if contrast_removenonestimablecols, i(~estimablecols(SPMidxvalid(i)))=[]; end
+            if isempty(i), 
+                if shownwarning, conn_disp('fprintf','Warning: condition name %s not found. skipping\n',condnames{ncondition}); try, fprintf(fh,'Warning: condition name %s not found. skipping\n',condnames{ncondition}); end; 
+                else shownwarning=true; conn_disp('fprintf','Warning: condition name %s not found. skipping (valid condition names: %s)\n',condnames{ncondition},sprintf('%s ',SPMconditions{:})); try, fprintf(fh,'Warning: condition name %s not found. skipping (valid condition names: %s)\n',condnames{ncondition},sprintf('%s ',SPMconditions{:})); end; 
+                end
+            end
+            if ~isempty(i)&contrast_removenonestimablecols, i(~estimablecols(SPMidxvalid(i)))=[]; end
             if isempty(i), %error('no estimable effects for condition name %s',condnames{ncondition});
             else contrast(SPMidxvalid(i))=condweights(ncondition)/numel(i); % note: divides condition weight equally into all sessions/runs where this condition is present
             end
             matchcol{ncondition}=i;
         end
-        matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=contname;
-        matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast;
-        order(end+1)=0;
+        if any(contrast)
+            matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=contname;
+            matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast;
+            order(end+1)=0;
         
-        fh=[]; try, fh=fopen(fullfile(SPM.swd,'contrastdefinitions.stderr'),'wt'); end
-        if isfield(options,'contrast_addsession')&&options.contrast_addsession, addsession=true; else addsession=false; end
-        if isfield(options,'contrast_addcv')&&options.contrast_addcv, addcv=true; else addcv=false; end
-        if isfield(options,'contrast_addoddeven')&&options.contrast_addoddeven, addoddeven=true; else addoddeven=false; end
-        if isfield(options,'contrast_addevent')&&options.contrast_addevent, addevent=true; else addevent=false; end
-        if addevent
-            nevent=1; remevent=true;
-            while remevent
-                contrast=zeros(1,numel(SPMcolnames));
-                for ncondition=1:numel(condnames)
-                    i=find(strcmp(sprintf('%s_EVENT%02d',condnames{ncondition},nevent),SPMconditions));
-                    if isempty(i), remevent=false; break; 
-                    else contrast(1,SPMidxvalid(i))=condweights(ncondition)/numel(i); 
+            if isfield(options,'contrast_addsession')&&options.contrast_addsession, addsession=true; else addsession=false; end
+            if isfield(options,'contrast_addcv')&&options.contrast_addcv, addcv=true; else addcv=false; end
+            if isfield(options,'contrast_addoddeven')&&options.contrast_addoddeven, addoddeven=true; else addoddeven=false; end
+            if isfield(options,'contrast_addevent')&&options.contrast_addevent, addevent=true; else addevent=false; end
+            if addevent
+                nevent=1; remevent=true;
+                while remevent
+                    contrast=zeros(1,numel(SPMcolnames));
+                    for ncondition=1:numel(condnames)
+                        i=find(strcmp(sprintf('%s_EVENT%02d',condnames{ncondition},nevent),SPMconditions));
+                        if isempty(i), remevent=false; break;
+                        else contrast(1,SPMidxvalid(i))=condweights(ncondition)/numel(i);
+                        end
                     end
-                end
-                if ~remevent, break; end
-                matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('%s_EVENT%02d',contname,nevent);
-                matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(1,:);
-                order(end+1)=1;
-                if addsession
-                    for nses=1:max(SPMsessions)
-                        contrast=zeros(1,numel(SPMcolnames));
-                        ok=true;
-                        for ncondition=1:numel(condnames)
-                            i=find(strcmp(sprintf('%s_EVENT%02d',condnames{ncondition},nevent),SPMconditions));
-                            j=find(SPMsessions(i)==nses);
-                            if ~isempty(j), contrast(1,SPMidxvalid(i(j)))=condweights(ncondition)/numel(j);
-                            else ok=false;
+                    if ~remevent, break; end
+                    matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('%s_EVENT%02d',contname,nevent);
+                    matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(1,:);
+                    order(end+1)=1;
+                    if addsession
+                        for nses=1:max(SPMsessions)
+                            contrast=zeros(1,numel(SPMcolnames));
+                            ok=true;
+                            for ncondition=1:numel(condnames)
+                                i=find(strcmp(sprintf('%s_EVENT%02d',condnames{ncondition},nevent),SPMconditions));
+                                j=find(SPMsessions(i)==nses);
+                                if ~isempty(j), contrast(1,SPMidxvalid(i(j)))=condweights(ncondition)/numel(j);
+                                else ok=false;
+                                end
+                            end
+                            if ok
+                                matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('SESSION%02d_%s_EVENT%02d',nses,contname,nevent);
+                                matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(1,:);
+                                order(end+1)=2;
                             end
                         end
-                        if ok
-                            matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('SESSION%02d_%s_EVENT%02d',nses,contname,nevent);
-                            matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(1,:);
-                            order(end+1)=2;
-                        end
                     end
+                    nevent=nevent+1;
                 end
-                nevent=nevent+1;
             end
-        end
-        if addoddeven
-            contrast=zeros(2,numel(SPMcolnames));
-            for ncondition=1:numel(condnames)
-                i=matchcol{ncondition};
-                j=find(rem(SPMsessions(i),2)==1);
-                if ~isempty(j), contrast(1,SPMidxvalid(i(j)))=condweights(ncondition)/numel(j); end
-                j=find(rem(SPMsessions(i),2)==0);
-                if ~isempty(j), contrast(2,SPMidxvalid(i(j)))=condweights(ncondition)/numel(j); end
-            end
-            if any(contrast(1,:))
-                matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('ODD_%s',contname);
-                matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(1,:);
-                order(end+1)=1;
-            else conn_disp('fprintf','Warning: contrast %s not estimable. skipping\n',sprintf('ODD_%s',contname)); try, fprintf(fh,'Contrast %s not estimable. skipping\n',sprintf('ODD_%s',contname)); end
-            end
-            if any(contrast(2,:))
-                matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('EVEN_%s',contname);
-                matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(2,:);
-                order(end+1)=1;
-            else conn_disp('fprintf','Warning: contrast %s not estimable. skipping\n',sprintf('EVEN_%s',contname)); try, fprintf(fh,'Contrast %s not estimable. skipping\n',sprintf('EVEN_%s',contname)); end
-            end
-        end
-        if addcv||addsession
-            for nses=1:max(SPMsessions)
+            if addoddeven
                 contrast=zeros(2,numel(SPMcolnames));
                 for ncondition=1:numel(condnames)
                     i=matchcol{ncondition};
-                    j=find(SPMsessions(i)==nses);
+                    j=find(rem(SPMsessions(i),2)==1);
                     if ~isempty(j), contrast(1,SPMidxvalid(i(j)))=condweights(ncondition)/numel(j); end
-                    j=find(SPMsessions(i)~=nses);
+                    j=find(rem(SPMsessions(i),2)==0);
                     if ~isempty(j), contrast(2,SPMidxvalid(i(j)))=condweights(ncondition)/numel(j); end
                 end
                 if any(contrast(1,:))
-                    matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('SESSION%02d_%s',nses,contname);
+                    matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('ODD_%s',contname);
                     matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(1,:);
-                    order(end+1)=2;
-                else conn_disp('fprintf','Warning: contrast %s not estimable. skipping\n',sprintf('SESSION%02d_%s',nses,contname)); try, fprintf(fh,'Contrast %s not estimable. skipping\n',sprintf('SESSION%02d_%s',nses,contname)); end
+                    order(end+1)=1;
+                else conn_disp('fprintf','Warning: contrast %s not estimable. skipping\n',sprintf('ODD_%s',contname)); try, fprintf(fh,'Contrast %s not estimable. skipping\n',sprintf('ODD_%s',contname)); end
                 end
-                if addcv
-                    if any(contrast(2,:))
-                        matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('ORTH_TO_SESSION%02d_%s',nses,contname);
-                        matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(2,:);
+                if any(contrast(2,:))
+                    matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('EVEN_%s',contname);
+                    matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(2,:);
+                    order(end+1)=1;
+                else conn_disp('fprintf','Warning: contrast %s not estimable. skipping\n',sprintf('EVEN_%s',contname)); try, fprintf(fh,'Contrast %s not estimable. skipping\n',sprintf('EVEN_%s',contname)); end
+                end
+            end
+            if addcv||addsession
+                for nses=1:max(SPMsessions)
+                    contrast=zeros(2,numel(SPMcolnames));
+                    for ncondition=1:numel(condnames)
+                        i=matchcol{ncondition};
+                        j=find(SPMsessions(i)==nses);
+                        if ~isempty(j), contrast(1,SPMidxvalid(i(j)))=condweights(ncondition)/numel(j); end
+                        j=find(SPMsessions(i)~=nses);
+                        if ~isempty(j), contrast(2,SPMidxvalid(i(j)))=condweights(ncondition)/numel(j); end
+                    end
+                    if any(contrast(1,:))
+                        matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('SESSION%02d_%s',nses,contname);
+                        matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(1,:);
                         order(end+1)=2;
-                    else conn_disp('fprintf','Warning: contrast %s not estimable. skipping\n',sprintf('ORTH_TO_SESSION%02d_%s',nses,contname)); try, fprintf(fh,'Contrast %s not estimable. skipping\n',sprintf('ORTH_TO_SESSION%02d_%s',nses,contname)); end
+                    else conn_disp('fprintf','Warning: contrast %s not estimable. skipping\n',sprintf('SESSION%02d_%s',nses,contname)); try, fprintf(fh,'Contrast %s not estimable. skipping\n',sprintf('SESSION%02d_%s',nses,contname)); end
+                    end
+                    if addcv
+                        if any(contrast(2,:))
+                            matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=sprintf('ORTH_TO_SESSION%02d_%s',nses,contname);
+                            matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast(2,:);
+                            order(end+1)=2;
+                        else conn_disp('fprintf','Warning: contrast %s not estimable. skipping\n',sprintf('ORTH_TO_SESSION%02d_%s',nses,contname)); try, fprintf(fh,'Contrast %s not estimable. skipping\n',sprintf('ORTH_TO_SESSION%02d_%s',nses,contname)); end
+                        end
                     end
                 end
             end
