@@ -480,12 +480,20 @@ switch(lower(option))
             fprintf('contrast file %s found\n',all_contrasts_files); 
             %if ~conn_existfile(all_contrasts_files), all_contrasts_files=fullfile(defaults.folder_subjects,'..','ANALYSIS','contrasts_by_expt.txt'); end
             str=conn_fileutils('fileread',all_contrasts_files);
-            str=reshape(regexp(str,'\n','split'),1,[]);
-            emptyspaces=cellfun('length',str)==0;
-            idx=find([true emptyspaces(1:end-1) true]&[~emptyspaces true]);
-            con=strmatch(expt,str(idx(1:end-1)),'exact');
-            assert(numel(con)==1,'found %d matches to %s in %s',numel(con),expt,all_contrasts_files);
-            cons=str(idx(con)+1:idx(con+1)-3);
+            str=reshape(regexp(str,'\s*\n+','split'),1,[]);
+            str=str(cellfun('length',str)>0);
+            idx1=strmatch(expt,str,'exact');
+            assert(~isempty(idx1),'unable to find experiment name %s in contrast definition file %s',expt,all_contrasts_files);
+            assert(numel(idx1)==1,'found multiple matches to experiment name %s in contrast definition file %s',expt,all_contrasts_files);
+            idx2=strmatch([expt,'_end'],str,'exact');
+            assert(~isempty(idx2),'unable to find experiment end-token %s in contrast definition file %s',[expt,'_end'],all_contrasts_files);
+            assert(numel(idx2)==1,'found multiple matches to experiment end-token %s in contrast definition file %s',[expt,'_end'],all_contrasts_files);
+            con=str(idx1+1:idx2-1);
+%             emptyspaces=cellfun('length',str)==0;
+%             idx=find([true emptyspaces(1:end-1) true]&[~emptyspaces true]);
+%             con=strmatch(expt,str(idx(1:end-1)),'exact');
+%             assert(numel(con)==1,'found %d matches to %s in %s',numel(con),expt,all_contrasts_files);
+%             cons=str(idx(con)+1:idx(con+1)-3);
         end
         cat_file=conn_dir(fullfile(subject_path,[expt,'.cat']),'-ls');
         if isempty(cat_file), cat_file=conn_dir(fullfile(subject_path,['*_',expt,'.cat']),'-ls'); end

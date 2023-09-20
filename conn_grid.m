@@ -1,5 +1,5 @@
 % 
-% Using CONN in a parallel within a computer cluster / HPC environment
+% Using CONN in a parallel within a computer cluster or HPC (High-Performance Computing) environment
 % 
 % CONN HPC/cluster options allow you to process your subjects in parallel, with each subject, 
 % or each of several smaller groups of subjects, being processed independently by a different 

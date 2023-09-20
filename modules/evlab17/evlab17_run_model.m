@@ -871,7 +871,8 @@ if isfield(options,'contrasts')
         for ncondition=1:numel(condnames)
             i=find(strcmp(condnames{ncondition},SPMconditions));
             if isempty(i), i=find(cellfun('length',regexp(SPMconditions,['^',condnames{ncondition},'_EVENT\d+$']))); end
-            if isempty(i), error('unable to match condition name %s. Valid condition names: %s',condnames{ncondition},sprintf('%s ',SPMconditions{:})); end
+            %if isempty(i), error('unable to match condition name %s. Valid condition names: %s',condnames{ncondition},sprintf('%s ',SPMconditions{:})); end
+            if isempty(i), conn_disp('fprintf','Warning: condition name %s not found. skipping (valid condition names: %s)\n',condnames{ncondition},sprintf('%s ',SPMconditions{:})); try, fprintf(fh,'Warning: condition name %s not found. skipping (valid condition names: %s)\n',condnames{ncondition},sprintf('%s ',SPMconditions{:})); end; end
             if contrast_removenonestimablecols, i(~estimablecols(SPMidxvalid(i)))=[]; end
             if isempty(i), %error('no estimable effects for condition name %s',condnames{ncondition});
             else contrast(SPMidxvalid(i))=condweights(ncondition)/numel(i); % note: divides condition weight equally into all sessions/runs where this condition is present

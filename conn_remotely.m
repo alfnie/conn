@@ -2,8 +2,8 @@ function varargout=conn_remotely(option,varargin)
 %
 % Using CONN remotely
 %
-% CONN_REMOTELY allows you to work and interact with CONN projects stored in any SSH-accessible
-% computer (e.g. projects stored in your own server, or in your institution's cluster-computing environment)
+% CONN allows you to work and interact with CONN projects stored in any SSH-accessible computer
+% (e.g. projects stored in your own server, or in your institution's cluster-computing environment)
 % using the standard SSH protocol for tunneling all communications between your local computer and
 % the computer where the CONN project data is stored and analyzed
 %

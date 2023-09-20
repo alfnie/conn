@@ -273,6 +273,10 @@ if issurface||ismatrix||ismember(secondlevelanalyses,[1 3]) % nonparametric stat
         V=spm_write_vol(V,shiftdim(SPM.xX_multivariate.F,2));
         try, spm_jsonwrite('spmF_mv.json',struct('dof',SPM.xX_multivariate.dof(:)','statsname',SPM.xX_multivariate.statsname)); end
     end
+    if size(SPM.xX_multivariate.h,1)==1&&size(SPM.xX_multivariate.h,2)==1
+        V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','con_mv.nii','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('float32') spm_platform('bigend')]);
+        V=spm_write_vol(V,shiftdim(SPM.xX_multivariate.h,2));
+    end
 end
 if issurface||ismatrix % surface- or matrix- based analyses
     V=struct('mat',SPM.xY.VY(1).mat,'dim',SPM.xY.VY(1).dim,'fname','mask.nii','pinfo',[1;0;0],'n',[1,1],'dt',[spm_type('uint8') spm_platform('bigend')]);
