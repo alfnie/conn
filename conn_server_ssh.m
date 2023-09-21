@@ -192,11 +192,12 @@ switch(lower(option))
                     if isfield(params.info,'SERVERcmd')&&~isempty(params.info.SERVERcmd), tstr=sprintf('server_ssh %s ''%s'' ''%s''',sbc,params.info.SERVERcmd, keys_public);
                     else tstr=sprintf('server_ssh %s '''' ''%s''', sbc,keys_public);
                     end
+                    CONNcmd=regexprep(params.info.CONNcmd,'-singleCompThread','-singleCompThread -nojvm'); % note: adds -nojvm to reduce memory load of Matlab startup in login server
                     if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
-                        [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"')));
+                        [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' %s "%s"', params.options.cmd_ssh, params.info.filename_ctrl,params.info.login_ip, regexprep(sprintf(CONNcmd,tstr),'"','\\"')));
                     else
                         tfilename=fullfile(conn_cache('private.local_folder'),['conncache_', char(conn_tcpip('hash',mat2str(now)))]);
-                        [ok,msg]=system(sprintf('start "SSH requesting a new Matlab session in %s. This may take a few minutes. Please wait" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(params.info.CONNcmd,tstr),'"','\\"'),tfilename));
+                        [ok,msg]=system(sprintf('start "SSH requesting a new Matlab session in %s. This may take a few minutes. Please wait" /WAIT cmd /c %s %s "%s" ^> %s 2^>^&1', params.info.login_ip, params.options.cmd_ssh, params.info.login_ip, regexprep(sprintf(CONNcmd,tstr),'"','\\"'),tfilename));
                         msg=conn_fileutils('fileread',tfilename);
                         conn_fileutils('deletefile',tfilename);
                     end

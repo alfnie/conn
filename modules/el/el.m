@@ -82,11 +82,12 @@ function varargout=el(option,varargin)
 %
 % SUBMIT OPTIONS:
 %
-%   el('submit',...)            % submits job and waits for remote job to finish
-%   jh = el('submit',...)       % submits jobs and returns job handle (without waiting for remote job to finish)
-%   el('submit.status',jh)      % checks status of remote job jh
-%   el('submit.status.stdout',jh) % prints remote job standard output
-%   el('submit.status.stderr',jh) % prints remote job standard output
+%   el('submit','preprocessing',subjectID [, pipelineID])                           % submits preprocessing job and waits for remote job to finish
+%   el('submit','model',subjectID, pipelineID, experimentID [, modelOPTIONS])       % submits first-level GLM job and waits for remote job to finish
+%   jh = el('submit',...)                                                           % submits jobs and returns job handle (without waiting for remote job to finish)
+%   el('submit.status',jh)                                                          % checks status of remote job jh
+%   el('submit.status.stdout',jh)                                                   % prints remote job standard output
+%   el('submit.status.stderr',jh)                                                   % prints remote job standard output
 %   
 %
 % CONFIGURATION OPTIONS:

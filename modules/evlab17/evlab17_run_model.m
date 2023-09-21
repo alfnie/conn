@@ -855,6 +855,11 @@ if isfield(options,'contrasts')
     estimablecols=max(abs(opp-speye(size(opp,1))),[],1)<= sX.tol;
     fh=[]; try, fh=fopen(fullfile(SPM.swd,'contrastdefinitions.stderr'),'wt'); end
     shownwarning=false;
+    if isfield(options,'contrast_removenonestimablecols')&&options.contrast_removenonestimablecols, contrast_removenonestimablecols=true; else contrast_removenonestimablecols=false; end
+    if isfield(options,'contrast_addsession')&&options.contrast_addsession, addsession=true; else addsession=false; end
+    if isfield(options,'contrast_addcv')&&options.contrast_addcv, addcv=true; else addcv=false; end
+    if isfield(options,'contrast_addoddeven')&&options.contrast_addoddeven, addoddeven=true; else addoddeven=false; end
+    if isfield(options,'contrast_addevent')&&options.contrast_addevent, addevent=true; else addevent=false; end
     for ncon=1:numel(options.contrasts)
         str=regexp(options.contrasts{ncon},'\s+','split');
         str=str(cellfun('length',str)>0);
@@ -867,7 +872,6 @@ if isfield(options,'contrasts')
         catch, error('unable to interpret weights values %s',sprintf('%s ',str{3:2:end}));
         end
         if any(isnan(condweights)), error('unable to interpret weights values %s',sprintf('%s ',str{3:2:end})); end
-        if isfield(options,'contrast_removenonestimablecols')&&options.contrast_removenonestimablecols, contrast_removenonestimablecols=true; else contrast_removenonestimablecols=false; end
         matchcol=cell(1,numel(condnames));
         contrast=zeros(1,numel(SPMcolnames));
         for ncondition=1:numel(condnames)
@@ -889,11 +893,6 @@ if isfield(options,'contrasts')
             matlabbatch{1}.spm.stats.con.consess{end+1}.tcon.name=contname;
             matlabbatch{1}.spm.stats.con.consess{end}.tcon.weights=contrast;
             order(end+1)=0;
-        
-            if isfield(options,'contrast_addsession')&&options.contrast_addsession, addsession=true; else addsession=false; end
-            if isfield(options,'contrast_addcv')&&options.contrast_addcv, addcv=true; else addcv=false; end
-            if isfield(options,'contrast_addoddeven')&&options.contrast_addoddeven, addoddeven=true; else addoddeven=false; end
-            if isfield(options,'contrast_addevent')&&options.contrast_addevent, addevent=true; else addevent=false; end
             if addevent
                 nevent=1; remevent=true;
                 while remevent
