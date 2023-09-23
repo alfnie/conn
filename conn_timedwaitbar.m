@@ -21,52 +21,54 @@ if isstr(b),
     set(findobj(h,'type','axes'),'color',.8*get(0,'defaultuicontrolbackgroundcolor'));
     drawnow;
 else
-    t2=clock;
-    t1a=etime(t2,t0a);
-    n0=n0+1;
-    a=min(1,max(0,a));
-    if ~isempty(t0b)&&a>.2,
-        t1b=etime(t2,t0b);
-        t1=(1-a)*t1a.*(1-a)./(a+1e-4) + a*t1b.*(1-a)./(a-a0b+1e-4);
-    else
-        t1=t1a.*(1-a)./(a+1e-4);
-    end
-    if isempty(t0b)&&a>.1
-        t0b=clock;
-        a0b=a;
-    end
-    t1h=floor(t1/60/60);
-    t1m=floor((t1-t1h*60*60)/60);
-    t1s=floor((t1-t1h*60*60-t1m*60));
-    waitbar(a,b);
-    ht3=findobj(b,'style','togglebutton');
-    if isequal(get(ht3,'value'),1),
-        delete(b);
-        error('<DisregardMessage>Process stopped by user');
-    end
-    if n0<5&&a<.2, tstr=''; 
-    else
-        if t1h>=1      tstr=['ETA ~ ',num2str(t1h+1,'%d'),' hours'];
-        elseif t1m>=30, tstr=['ETA ~ 1 hour'];
-        elseif t1m>=20, tstr=['ETA ~ 30 minutes'];
-        elseif t1m>=10, tstr=['ETA ~ 20 minutes'];
-        elseif t1m>=5, tstr=['ETA ~ 10 minutes'];
-        elseif t1m>=1, tstr=['ETA ~ ',num2str(t1m+1,'%d'),' minutes'];
-        elseif t1s>=10,tstr=['ETA ~ 1 minute'];
-        else           tstr=['ETA soon'];
+    h=b;
+    try
+        t2=clock;
+        t1a=etime(t2,t0a);
+        n0=n0+1;
+        a=min(1,max(0,a));
+        if ~isempty(t0b)&&a>.2,
+            t1b=etime(t2,t0b);
+            t1=(1-a)*t1a.*(1-a)./(a+1e-4) + a*t1b.*(1-a)./(a-a0b+1e-4);
+        else
+            t1=t1a.*(1-a)./(a+1e-4);
+        end
+        if isempty(t0b)&&a>.1
+            t0b=clock;
+            a0b=a;
+        end
+        t1h=floor(t1/60/60);
+        t1m=floor((t1-t1h*60*60)/60);
+        t1s=floor((t1-t1h*60*60-t1m*60));
+        waitbar(a,b);
+        ht3=findobj(b,'style','togglebutton');
+        if isequal(get(ht3,'value'),1),
+            delete(b);
+            error('<DisregardMessage>Process stopped by user');
+        end
+        if n0<5&&a<.2, tstr='';
+        else
+            if t1h>=1      tstr=['ETA ~ ',num2str(t1h+1,'%d'),' hours'];
+            elseif t1m>=30, tstr=['ETA ~ 1 hour'];
+            elseif t1m>=20, tstr=['ETA ~ 30 minutes'];
+            elseif t1m>=10, tstr=['ETA ~ 20 minutes'];
+            elseif t1m>=5, tstr=['ETA ~ 10 minutes'];
+            elseif t1m>=1, tstr=['ETA ~ ',num2str(t1m+1,'%d'),' minutes'];
+            elseif t1s>=10,tstr=['ETA ~ 1 minute'];
+            else           tstr=['ETA soon'];
+            end
+        end
+        if ~isequal(hsteps,[1 1]), tstr=['Step ',num2str(hsteps(1)),' ',tstr]; end
+        %tstr=['Time left ',num2str(t1h,'%02d'),':',num2str(t1m,'%02d'),':',num2str(t1s,'%02d')];
+        if nargin>2, tstr=[tstr,'  [',str,']']; end
+        set(b,'name',tstr,'windowstyle','normal');
+        set(findobj(b,'tag','patch'),'facecolor',(1-a)*[.2 .2 .8]+a*[.8 .8 .2]); %(1-a)*[5/6,2/6,1.5/6]+a*[1.5/6,5/6,2/6]);
+        if a-atick>=.01,
+            atick=a;
+            hax=findobj(b,'tag','conn_timedwaitbar_plotmatrix');
+            if ~isempty(hax), conn_menu_plotmatrix('',hax(1),[1 1 11 1+10*a]); end %,[],'colormap',[.95 .95 .95; (1-a)*[.8 .2 .2]+a*[.8 .8 .2]]); %(1-a)*[5/6,2/6,1.5/6]+a*[1.5/6,5/6,2/6]]);
         end
     end
-    if ~isequal(hsteps,[1 1]), tstr=['Step ',num2str(hsteps(1)),' ',tstr]; end
-    %tstr=['Time left ',num2str(t1h,'%02d'),':',num2str(t1m,'%02d'),':',num2str(t1s,'%02d')];
-    if nargin>2, tstr=[tstr,'  [',str,']']; end
-    set(b,'name',tstr,'windowstyle','normal');
-    set(findobj(b,'tag','patch'),'facecolor',(1-a)*[.2 .2 .8]+a*[.8 .8 .2]); %(1-a)*[5/6,2/6,1.5/6]+a*[1.5/6,5/6,2/6]);
-    if a-atick>=.01, 
-        atick=a;
-        hax=findobj(b,'tag','conn_timedwaitbar_plotmatrix');
-        if ~isempty(hax), conn_menu_plotmatrix('',hax(1),[1 1 11 1+10*a]); end %,[],'colormap',[.95 .95 .95; (1-a)*[.8 .2 .2]+a*[.8 .8 .2]]); %(1-a)*[5/6,2/6,1.5/6]+a*[1.5/6,5/6,2/6]]);
-    end
-    h=b;
 end
 %close(hw);
 end

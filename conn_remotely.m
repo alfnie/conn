@@ -357,23 +357,29 @@ switch(option)
         if isempty(dprofile), dprofile=strmatch(tjson2.SERVERcmd,profiles(tvalid)); end
         if isempty(dprofile), dprofile=1; else dprofile=dprofile(1); end
         
-        handles.hfig=figure('units','norm','position',[.25 .35 .5 .35],'name','Remote connection settings','numbertitle','off','menubar','none','color','w','userdata',false);
+        handles.hfig=figure('units','norm','position',[.2 .35 .6 .35],'name','Remote connection settings','numbertitle','off','menubar','none','color','w','userdata',false);
         handles.save=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.55,.01,.2,.10],'string','Save','callback','uiresume(gcbf)','tooltipstring','Save all profile changes for future Matlab sessions');
         handles.exit=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.75,.01,.2,.10],'string','Exit','callback','close(gcbf)');
         
-        strclient={{'With the currently-selected options, you may connect to remote computers directly over (unencrypted) TCP/IP (note: without SSH','security and encryption) by clicking the button labeled ''Manually connect to CONN server now''',' ','note: for this option to work, the remote computer needs to have the associated option ''Connect using SSH'' also unchecked, and',' a CONN server needs to be manually started there before you can connect to that server (see help conn_remotely for additional details)'} ...
-                    {'With the currently-selected options, you may directly access remote computers simply by selecting in the main CONN GUI','the option ''Projects. Connect to remote projects''',' ','note: for this option to work, the remote computer needs to be accessible using SSH and have in CONN the associated option','''Connect using SSH'' checked (see help conn_remotely for additional details)'}};
-        uicontrol(handles.hfig,'style','text','units','norm','position',[.05 .90 .9 .075],'string','When this computer is client: (e.g. work from this computer on a CONN project stored remotely)','fontweight','normal','backgroundcolor','w','horizontalalignment','left');
-        handles.client=uicontrol(handles.hfig,'style','checkbox','units','norm','position',[.15,.80,.75,.075],'string','Connect using SSH (secure/encrypted communications, servers are automatically started)','value',tjson1.use_ssh,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>When this option is checked this computer uses secure/encrypted communications and servers are automatically started<br/>When this option is unchecked this computer uses unsecure/unencrypted communications and servers are manually started</HTML>');
+        strclient={{'With the currently-selected options, you may access CONN projects stored in remote computers directly over (unencrypted) TCP/IP (note: without SSH','security and encryption) by clicking the button labeled ''Manually connect to CONN server now''',' ','note: for this option to work, the remote computer needs to have the associated option ''Connect to this computer using SSH'' also unchecked, and',' a CONN server needs to be manually started there before you can connect to that server (see help conn_remotely for additional details)'} ...
+                    {'With the currently-selected options, you may directly access CONN projects stored in remote computers','simply by selecting here in the main CONN GUI the option ''Project. Connect to remote projects''',' ','note: for this option to work, the remote computer needs to be accessible using SSH and have in CONN the associated option','''Connect to this computer using SSH'' checked (see help conn_remotely for additional details)'}};
+        uicontrol(handles.hfig,'style','text','units','norm','position',[.05 .90 .9 .075],'string','When this computer is client: (e.g. working from this computer on a CONN project stored remotely)','fontweight','normal','backgroundcolor','w','horizontalalignment','left');
+        handles.client=uicontrol(handles.hfig,'style','checkbox','units','norm','position',[.15,.80,.75,.075],'string','Connect from this computer using SSH (secure/encrypted communications, servers are automatically started)','value',tjson1.use_ssh,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>When this option is checked this computer uses secure/encrypted communications and servers are automatically started<br/>When this option is unchecked this computer uses unsecure/unencrypted communications and servers are manually started</HTML>');
         uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.10,.80,.025,.075],'string','?','backgroundcolor','w','callback',@(varargin)conn_msgbox(strclient{1+get(handles.client,'value')},'',-1),'tooltipstring','<HTML>help / how-to connect to remote servers</HTML>','userdata',handles.client);
-        handles.cmd_ssh_str=uicontrol(handles.hfig,'style','text','units','norm','position',[.20 .70 .45 .075],'string','Local command for logging into remote machine :','backgroundcolor','w','horizontalalignment','left');
-        handles.cmd_ssh=uicontrol(handles.hfig,'style','edit','units','norm','position',[.65,.70,.25,.075],'string',tjson1.cmd_ssh,'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>System command used to call SSH-client program (remote login)<br/>e.g. /usr/bin/ssh -i identity_file <br/> - note: this program command syntax must be compatible with OpenSSH SSH clients, including options for remote execution, control sockets for connection sharing, and TCP forwarding</HTML>');
+        %handles.cmd_ssh_str=uicontrol(handles.hfig,'style','text','units','norm','position',[.20 .70 .45 .075],'string','Local command for logging into remote machine :','backgroundcolor','w','horizontalalignment','left');
+        handles.cmd_ssh_str=uicontrol(handles.hfig,'style','popupmenu','units','norm','position',[.20,.70,.45,.075],'string',{'SSH using standard authentication','SSH using private key authentication','manually defined connection method'},'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>Method used to connect with server (SSH or SSH-compatible client application)<br/></HTML>','userdata',false);
+        handles.cmd_ssh=uicontrol(handles.hfig,'style','edit','units','norm','position',[.65,.70,.25,.075],'string',tjson1.cmd_ssh,'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>System command used to call SSH-client application (remote login)<br/>e.g. /usr/bin/ssh -i identity_file <br/> - note: this application command syntax must be compatible with OpenSSH SSH clients, including options for remote execution, control sockets for connection sharing, and TCP forwarding</HTML>');
         handles.cmd_scp_str=uicontrol(handles.hfig,'style','text','units','norm','position',[.20 .60 .45 .075],'string','Local command for remote file transfer :','backgroundcolor','w','horizontalalignment','left');
-        handles.cmd_scp=uicontrol(handles.hfig,'style','edit','units','norm','position',[.65,.60,.25,.075],'string',tjson1.cmd_scp,'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>System command used to call SCP program (secure copy)<br/>e.g. /usr/bin/scp -i identity_file <br/> - note: this program command syntax must be compatible with OpenSSH SCP</HTML>');
+        handles.cmd_scp=uicontrol(handles.hfig,'style','edit','units','norm','position',[.65,.60,.25,.075],'string',tjson1.cmd_scp,'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>System command used to call SCP application (secure copy)<br/>e.g. /usr/bin/scp -i identity_file <br/> - note: this application command syntax must be compatible with OpenSSH SCP</HTML>');
         handles.now_client=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.20,.70,.7,.075],'string','Manually connect to CONN server now','callback','set(gcbf,''userdata'',true); uiresume(gcbf)','tooltipstring','<HTML>Connect to an existing CONN server over TCP/IP (note: without SSH secured/encrypted communications)</HTML>');
         hdls={[handles.cmd_ssh_str,handles.cmd_ssh,handles.cmd_scp_str,handles.cmd_scp], handles.now_client};
         if tjson1.use_ssh, set(hdls{1},'visible','on'); set(hdls{2},'visible','off'); else set(hdls{1},'visible','off'); set(hdls{2},'visible','on'); end
         set(handles.client,'callback','hdl=get(gcbo,''userdata''); if get(gcbo,''value''), set(hdl{1},''visible'',''on''); set(hdl{2},''visible'',''off''); else set(hdl{1},''visible'',''off''); set(hdl{2},''visible'',''on''); end','userdata',hdls);
+        if isequal(tjson1.cmd_ssh,'ssh')&&isequal(tjson1.cmd_scp,'scp'), set([handles.cmd_ssh,handles.cmd_scp_str,handles.cmd_scp],'visible','off'); set(handles.cmd_ssh_str,'value',1);
+        elseif ~isempty(regexp(tjson1.cmd_ssh,'^ssh -i'))&&~isempty(regexp(tjson1.cmd_scp,'^scp -i'))&&strcmp(regexprep(tjson1.cmd_ssh,'^ssh -i',''),regexprep(tjson1.cmd_scp,'^scp -i','')), set([handles.cmd_ssh,handles.cmd_scp_str,handles.cmd_scp],'visible','off'); set(handles.cmd_ssh_str,'value',2);
+        else set([handles.cmd_ssh,handles.cmd_scp_str,handles.cmd_scp],'visible','on'); set(handles.cmd_ssh_str,'value',3);
+        end
+        set(handles.cmd_ssh_str,'callback',@(varargin)[set(handles.cmd_ssh_str,'userdata',true) set([handles.cmd_ssh,handles.cmd_scp_str,handles.cmd_scp],'visible',char(getfield({'off','off','on'},{get(gcbo,'value')})))]);
         
         if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, % note: when connected to remote session options displayed are the options at the remote/server computer, not the local/client machine
             info=conn_remotely('info');
@@ -388,10 +394,10 @@ switch(option)
             handles.cmd_server=[];
             handles.now_server=[];
         else
-            strserver={{'With the currently-selected options, CONN servers need to be manually initiated from the server computer directly. If','you would like this computer to act as a server and wait for a client connection click on the button labeled ''Manually start CONN server now''',' ','note: for this option to work, the client computer needs to have the associated option ''Connect using SSH'' unchecked (see help conn_remotely for additional details)'} ...
-                {'With the currently-selected options, there is no need to manually start CONN servers (they will be initiated remotely','when necessary by individual clients)',' ','note: for this option to work, this computer needs to be accessible using SSH and the client computer needs','to have in CONN the associated option ''Connect using SSH'' checked (see help conn_remotely for additional details)'}};
-            uicontrol(handles.hfig,'style','text','units','norm','position',[.05 .40 .9 .075],'string','When this computer is server: (e.g. work from another computer on CONN projects stored on this machine)','fontweight','normal','backgroundcolor','w','horizontalalignment','left');
-            handles.server=uicontrol(handles.hfig,'style','checkbox','units','norm','position',[.15,.30,.75,.05],'string','Connect using SSH (secure/encrypted communications, servers are automatically started)','value',use_ssh,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>When this option is checked this computer uses secure/encrypted communications and servers are automatically started<br/>When this option is unchecked this computer uses unsecure/unencrypted communications and servers are manually started</HTML>');
+            strserver={{'With the currently-selected options, you can only remotely access projects stored in this computer','when manually clicking below on the button labeled ''Manually start CONN server now''',' ','note: for this option to work, the client/other computer needs to have the associated option ''Connect from this computer using SSH'' unchecked (see help conn_remotely for additional details)'} ...
+                {'With the currently-selected options, you can remotely access projects stored in this computer', '(as long as you have remote SSH access to this computer)',' ','note: for this option to work, this computer needs to be accessible using SSH and the client/other computer needs','to have in CONN the associated option ''Connect from this computer using SSH'' checked (see help conn_remotely for additional details)'}};
+            uicontrol(handles.hfig,'style','text','units','norm','position',[.05 .40 .9 .075],'string','When this computer is server: (e.g. working from another computer on CONN projects stored on this machine)','fontweight','normal','backgroundcolor','w','horizontalalignment','left');
+            handles.server=uicontrol(handles.hfig,'style','checkbox','units','norm','position',[.15,.30,.75,.05],'string','Connect to this computer using SSH (secure/encrypted communications, servers are automatically started)','value',use_ssh,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>When this option is checked this computer uses secure/encrypted communications and servers are automatically started<br/>When this option is unchecked this computer uses unsecure/unencrypted communications and servers are manually started</HTML>');
             uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.10,.30,.025,.075],'string','?','backgroundcolor','w','callback',@(varargin)conn_msgbox(strserver{1+get(handles.server,'value')},'',-1),'tooltipstring','<HTML>help / how-to connect to remote servers</HTML>','userdata',handles.server);
             handles.cmd_server=uicontrol(handles.hfig,'style','popupmenu','units','norm','position',[.20,.20,.7,.075],'string',toptions,'value',dprofile,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>HPC profile to use when starting a CONN server</HTML>');
             handles.now_server=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.20,.20,.7,.075],'string','Manually start CONN server now','callback','close(gcbf);conn_remotely(''start'',''serverwithgui'');','tooltipstring','<HTML>Starts a CONN server on this computer and waits for client to connect over TCP/IP (note: without SSH secured/encrypted communications)</HTML>');
@@ -400,30 +406,59 @@ switch(option)
             if use_ssh, set([hdls{1} hdls{3}],'visible','on'); set(hdls{2},'visible','off'); else set([hdls{1} hdls{3}],'visible','off'); set(hdls{2},'visible','on'); end
             set(handles.server,'callback','hdl=get(gcbo,''userdata''); if get(gcbo,''value''), set([hdl{1} hdl{3}],''visible'',''on''); set(hdl{2},''visible'',''off''); else set([hdl{1} hdl{3}],''visible'',''off''); set(hdl{2},''visible'',''on''); end','userdata',hdls);
         end
-        uiwait(handles.hfig);
-        if ishandle(handles.hfig) % save
-            tjson1.cmd_ssh=get(handles.cmd_ssh,'string');
-            tjson1.cmd_scp=get(handles.cmd_scp,'string');
-            tjson1.use_ssh=get(handles.client,'value');
-            if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn_server('run','conn_server_ssh','options',tjson1); 
-            else conn_server_ssh('options',tjson1); % client info
-            end
-            if ~isempty(handles.server) 
-                if get(handles.server,'value')>0
-                    dprofile=get(handles.cmd_server,'value');
-                    tjson2.SERVERcmd=profiles{tvalid(dprofile)};
-                    tjson2.SERVERpersistent=~get(handles.persistent_server,'value');
-                    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn_server('run','conn_remotely','setup',conn_server('util_localfile',filename2),tjson2.SERVERcmd,tjson2.SERVERpersistent);
-                    else conn_remotely('setup',filename2,tjson2.SERVERcmd,tjson2.SERVERpersistent); % server info
+        while 1
+            uiwait(handles.hfig);
+            if ishandle(handles.hfig) % save
+                tjson1.use_ssh=get(handles.client,'value');
+                if tjson1.use_ssh
+                    val=get(handles.cmd_ssh_str,'value');
+                    switch(val)
+                        case 1,
+                            tjson1.cmd_ssh='ssh';
+                            tjson1.cmd_scp='scp';
+                        case 2,
+                            tfilename1=char(regexp(tjson1.cmd_ssh,'ssh -i\s*(.*)','once','tokens'));
+                            tfilename1=regexprep(tfilename1,'[''"]','');
+                            if isempty(tfilename1)||get(handles.cmd_ssh_str,'userdata')>0
+                                try; if isempty(tfilename1)&&exist('~/.ssh','dir'), tfilename1='~/.ssh/'; end; end
+                                conn_msgbox({'Click ''Continue'' to select the identity file containing','your private key(s) for RSA or DSA authentication.','CONN will use the syntax ''ssh -i identity_file ...'' when connecting to your server',' ','e.g. id_rsa file created by ssh-keygen','e.g. key-pair-name.pem file from AWS'},'conn',2);
+                                [tfilename1,tfilepath1]=conn_fileutils('uigetfile','*','Select identity file',tfilename1);
+                                if ~ischar(tfilename1), continue; end
+                                tfilename1=conn_server('util_localfile_filesep',[],fullfile(tfilepath1,tfilename1));
+                            end
+                            if ispc, 
+                                tjson1.cmd_ssh=sprintf('ssh -i "%s"',tfilename1);
+                                tjson1.cmd_scp=sprintf('scp -i "%s"',tfilename1);
+                            else
+                                tjson1.cmd_ssh=sprintf('ssh -i ''%s''',tfilename1);
+                                tjson1.cmd_scp=sprintf('scp -i ''%s''',tfilename1);
+                            end
+                        case 3,
+                            tjson1.cmd_ssh=get(handles.cmd_ssh,'string');
+                            tjson1.cmd_scp=get(handles.cmd_scp,'string');
                     end
-                else
-                    try, conn_fileutils('deletefile',filename2); end
                 end
+                if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn_server('run','conn_server_ssh','options',tjson1);
+                else conn_server_ssh('options',tjson1); % client info
+                end
+                if ~isempty(handles.server)
+                    if get(handles.server,'value')>0
+                        dprofile=get(handles.cmd_server,'value');
+                        tjson2.SERVERcmd=profiles{tvalid(dprofile)};
+                        tjson2.SERVERpersistent=~get(handles.persistent_server,'value');
+                        if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn_server('run','conn_remotely','setup',conn_server('util_localfile',filename2),tjson2.SERVERcmd,tjson2.SERVERpersistent);
+                        else conn_remotely('setup',filename2,tjson2.SERVERcmd,tjson2.SERVERpersistent); % server info
+                        end
+                    else
+                        try, conn_fileutils('deletefile',filename2); end
+                    end
+                end
+                if get(handles.hfig,'userdata'), % run CONN client now
+                    conn_remotely;
+                end
+                delete(handles.hfig);
             end
-            if get(handles.hfig,'userdata'), % run CONN client now
-                conn_remotely;
-            end
-            delete(handles.hfig);
+            break;
         end
         
     case {'settings_runserver','startserver','startserverwithgui'}
@@ -454,7 +489,7 @@ switch(option)
             assert(numel(portnumber)==1&isfinite(portnumber), 'unrecognized port number');
         end
         pause(1);
-        strdisp={'Perform the following steps to connect to this server from a client machine',' ','Step 1: start CONN using the syntax "conn remotely start local" (without quotes)',['Step 2: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 3: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 4: in prompt ''Remote session id'' enter ',str]};
+        strdisp={'Perform the following steps to connect to this server from a client/remote machine',' ','Step 1: start CONN using the syntax "conn remotely start local" (without quotes)',['Step 2: in prompt ''Remote session host address'' enter ',hotsname,' (or the IP address of this machine)'],['Step 3: in prompt ''Remote session port number'' enter ',num2str(portnumber)],['Step 4: in prompt ''Remote session id'' enter ',str]};
         if isgui
             [hmsg,hmsg2]=conn_msgbox([{'                                  CONN server running                                  '},repmat({' '},1,10)],'',-1, 2);
             set(hmsg2(1),'style','edit','max',2,'string',strdisp);
