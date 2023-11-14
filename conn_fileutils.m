@@ -266,9 +266,14 @@ switch(lower(option))
         else error('unsupported imwrite syntax');
         end
         
-    case 'imopen',
+    case {'imopen','open'}
         if any(conn_server('util_isremotefile',varargin{1})), [ok,msg]=system(sprintf('open %s',conn_cache('pull',varargin{1}),varargin{2:end}));
         else [ok,msg]=system(sprintf('open %s',conn_server('util_localfile',varargin{1})));
+        end
+        
+    case {'edit'}
+        if any(conn_server('util_isremotefile',varargin{1})), edit(conn_cache('pull',varargin{1}),varargin{2:end}); fprintf('You are editing a cache copy of the original file. Type: conn_cache push ''%s''\n to save any changes to this cache copy back into the original file\n',varargin{1})
+        else edit(conn_server('util_localfile',varargin{1}));
         end
         
     case 'savefig',

@@ -317,6 +317,7 @@ if isempty(hax0)
     axes('units','norm','position',[.95 .1 .04 .8]);
     state.handles.fullfigure=true;
 else
+    if numel(hax0)>1, hax0=hax0(end); end
     state.handles.hfig=hax0; while ~isequal(get(state.handles.hfig,'type'),'figure'), state.handles.hfig=get(state.handles.hfig,'parent'); end
     figure(state.handles.hfig);
     set(state.handles.hfig,'menubar','none'); delete(findobj(state.handles.hfig,'type','uimenu')); 

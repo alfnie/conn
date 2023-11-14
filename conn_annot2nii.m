@@ -89,7 +89,7 @@ for nfile1=1:numel(log.name)
                         names_rois=[cellfun(@(x)[x ' (L)'],names_rois,'uni',0); cellfun(@(x)[x ' (R)'],names_rois,'uni',0)];
                     else 
                         %names_rois=[log.labels{ifile(1)}; log.labels{ifile(2)}];
-                        names_rois=[cellfun(@(x)[x ' (L)'],regexprep(log.labels{ifile(1)},'^l\.','','ignorecase'),'uni',0); cellfun(@(x)[x ' (R)'],regexprep(log.labels{ifile(1)},'^r\.','','ignorecase'),'uni',0)];
+                        names_rois=[cellfun(@(x)[x ' (L)'],regexprep(log.labels{ifile(1)},'^l\.','','ignorecase'),'uni',0); cellfun(@(x)[x ' (R)'],regexprep(log.labels{ifile(2)},'^r\.','','ignorecase'),'uni',0)];
                     end
                     V=struct('mat',eye(4),'dim',dim,'pinfo',[1;0;0],'fname',fname,'dt',[spm_type('uint16') spm_platform('bigend')]);
                     spm_write_vol(V,reshape(data,dim));
