@@ -8,7 +8,7 @@ if strcmp(option,'register')&&conn_existfile(file_registered)
     if strcmp(answ,'No, never ask again'), option='donotaskagain'; end
 end
 if strcmp(option,'forceregister'),
-    web('http://www.alfnie.com/software/conn-toolbox-registration','-browser');
+    web('https://www.conn-toolbox.org/registration','-browser');
     option='donotaskagain';
 end
 if strcmp(option,'donotaskagain')

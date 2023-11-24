@@ -719,8 +719,8 @@ else
                     infomask=conn_file(filename);
                     nill=spm_existfile(filename);
                 catch
-                    if isempty(which('spm')), dodebug=true; error('INSTALLATION PROBLEM. Please re-install SPM and try again');
-                    elseif isempty(which('conn_existfile')), dodebug=true; error('INSTALLATION PROBLEM. Please re-install CONN and try again');
+                    if isempty(which('spm')), dodebug=true; error('INSTALLATION PROBLEM #1. Please re-install SPM and try again');
+                    elseif isempty(which('conn_existfile')), dodebug=true; error('INSTALLATION PROBLEM #2. Please re-install CONN and try again');
                     elseif conn_existfile(filename), 
                         if ismac, 
                             try
@@ -728,12 +728,12 @@ else
                                 infomask=conn_file(filename);
                                 nill=spm_existfile(filename);
                             catch
-                                dodebug=true; error('INSTALLATION PROBLEM. Please re-install SPM and CONN and try again');
+                                dodebug=true; error('INSTALLATION PROBLEM #3. Please re-install SPM and CONN and try again');
                             end
                         else
-                            dodebug=true; error('INSTALLATION PROBLEM. Please re-install SPM and CONN and try again');
+                            dodebug=true; error('INSTALLATION PROBLEM #4. Please re-install SPM and CONN and try again');
                         end
-                    else dodebug=true; error('INSTALLATION PROBLEM. Please re-install CONN and try again');
+                    else dodebug=true; error('INSTALLATION PROBLEM #5. Please re-install CONN and try again');
                     end
                 end
                 try, if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_projectmanager('closereadonly'); end; end % close

@@ -4,17 +4,21 @@ function [ok,matlabbatch,outputfiles,job_id]=conn_setup_preproc(STEPS,varargin)
 %
 % conn_setup_preproc(steps)
 % runs preprocessing pipeline (default_*) or one/multiple individual preprocessing steps (structural_* and functional_*). Valid step names are (enter as cell array to run multiple sequential steps):
+% e.g. conn_setup_preproc default_mni
 %
 % conn_setup_preproc(steps,'param1_name',param1_value,'param2_name',param2_value,...)
 % defines additional non-default values for parameters specific to individual steps to be used in this preprocessing run
+% e.g. conn_setup_preproc({'functional_realign'},'rmask',0);  % runs realignment without masking
 %
 % conn_setup_preproc('settings', 'param1_name', param1_value, 'param2_name', param2_value, ...)
 % defines additional non-default values for parameters specific to individual steps to be used in ALL future calls to conn_setup_preproc (during the current Matlab session, or until a new conn_setup_preproc('settings',...) command) (e.g. use "conn_setup_preproc('settings')" to clear previous values) 
+% e.g. conn_setup_preproc('settings','rmask',0);  % uses no-masking as the new default behavior for realignment
 %
 % conn_setup_preproc('steps')
 % returns the full list of valid preprocessing-step names
 %
-% see "help conn_batch" for details about available preprocessing steps as well as a full list of additional preprocessing parameters
+% see "help conn_batch" for details about available preprocessing steps (see list of valid batch.Setup.preprocessing.steps field)
+% see "help conn_batch" for details of additional preprocessing parameters (see list of valid batch.Setup.preprocessing.[PARAM_NAME] fields)
 %
 
 
@@ -1186,7 +1190,7 @@ for iSTEP=1:numel(STEPS)
                 end
             end
             
-        case 'functional_regression'
+        case 'functional_regression' 
             if isempty(bp_filter)&&any(reg_filter), error('Band-pass filter not specified (missing #bp_filter field)'); end
             conn_disp('fprintf','regression of temporal component (%s)\n',sprintf('%s ',reg_names{:}));
             conn_disp('fprintf','dimensions = %s; derivatives = %s; filtered = %s; lags(0-%ss) = %s; skip = %d; detrend = %d\n',mat2str(reg_dimensions),mat2str(reg_deriv),mat2str(reg_filter),mat2str(reg_lagmax),mat2str(reg_lag),reg_skip,reg_detrend);
@@ -1239,7 +1243,7 @@ for iSTEP=1:numel(STEPS)
                         if 1, X=[X, ones(numel(Vin),1)]; Xnames{end+1}='session (1)'; end
                         if reg_detrend, X=[X,linspace(-1,1,numel(Vin))']; Xnames{end+1}='detrend (1)'; end
                         reg_done=false(size(reg_names));
-                        Vsource=[];
+                        Vsource=[]; VsourceUnsmoothed={};
                         for nl1covariate=1:numel(reg_names)
                             icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),reg_names{nl1covariate}));
                             if ~isempty(icov) % first-level covariates
@@ -1262,12 +1266,13 @@ for iSTEP=1:numel(STEPS)
                                 reg_done(nl1covariate)=true;
                                 nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),reg_names{nl1covariate}));
                                 assert(~isempty(nroi),'unable to find first-level covariate or ROI named %s',reg_names{nl1covariate});
+                                nalt=CONN_x.Setup.rois.unsmoothedvolumes(nroi);
                                 if isempty(Vsource)
                                     Vsource=CONN_x.Setup.functional{nsubject}{nses}{1};
-                                    clear VsourceUnsmoothed;
-                                    for nalt=1:numel(CONN_x.Setup.secondarydataset)
-                                        VsourceUnsmoothed{nalt}=conn_get_functional(nsubject,nses,nalt,true);
-                                    end
+                                    VsourceUnsmoothed={};
+                                end
+                                if nalt>0 && (isempty(VsourceUnsmoothed)||numel(VsourceUnsmoothed)<nalt||isempty(VsourceUnsmoothed{nalt}))
+                                    VsourceUnsmoothed{nalt}=conn_get_functional(nsubject,nses,nalt,true);
                                 end
                                 if CONN_x.Setup.analysisunits==1, scalinglevel='roi'; else scalinglevel='none'; end
                                 if (nroi>3&&~CONN_x.Setup.rois.sessionspecific(nroi))||(nroi<=3&&~CONN_x.Setup.structural_sessionspecific), nsesstemp=1; else nsesstemp=nsess; end
@@ -1393,19 +1398,20 @@ for iSTEP=1:numel(STEPS)
                         if ~isempty(entercovariates), entercovariates=[entercovariates, ones(numel(Vin),1)]; end
                         X=[]; Xnames={};
                         roi_done=false(size(roi_names));
-                        Vsource=[];
+                        Vsource=[]; VsourceUnsmoothed={};
                         for nl1covariate=1:numel(roi_names)
                             icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),roi_names{nl1covariate}));
                             if isempty(icov) % ROIs
                                 roi_done(nl1covariate)=true;
                                 nroi=find(strcmp(CONN_x.Setup.rois.names(1:end-1),roi_names{nl1covariate}));
                                 assert(~isempty(nroi),'unable to find first-level covariate or ROI named %s',roi_names{nl1covariate});
+                                nalt=CONN_x.Setup.rois.unsmoothedvolumes(nroi);
                                 if isempty(Vsource)
                                     Vsource=CONN_x.Setup.functional{nsubject}{nses}{1};
-                                    clear VsourceUnsmoothed;
-                                    for nalt=1:numel(CONN_x.Setup.secondarydataset)
-                                        VsourceUnsmoothed{nalt}=conn_get_functional(nsubject,nses,nalt,true);
-                                    end
+                                    VsourceUnsmoothed={};
+                                end
+                                if nalt>0 && (isempty(VsourceUnsmoothed)||numel(VsourceUnsmoothed)<nalt||isempty(VsourceUnsmoothed{nalt}))
+                                    VsourceUnsmoothed{nalt}=conn_get_functional(nsubject,nses,nalt,true);
                                 end
                                 
                                 if roi_scale, scalinglevel='roi'; else scalinglevel='none'; end
