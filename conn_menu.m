@@ -540,13 +540,13 @@ switch(lower(type)),
             %%b1=max(0,min(1, b1));
             %%if strcmpi(type,'frame')||strcmpi(type,'frame2border'), b1=.5*b1; end
             if strcmpi(type,'frame'), 
-                bg2=1*max(0,min(1,CONN_gui.backgroundcolor)); lw2=3; % border emphasis
+                bg2=1*max(0,min(1,CONN_gui.backgroundcolor)); lw2=1; % border emphasis
             elseif strcmpi(type,'frame2border')
-                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=3;
+                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=1;
             elseif strcmpi(type,'frame2borderl')
-                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=3;
+                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=1;
             else
-                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=3;
+                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=1;
             end
             if strcmpi(type,'frame2border'),%||strcmpi(type,'frame2borderl')
                 [i,j]=ndgrid([0:2:tpos(4) tpos(4):-2:0],[0:2:tpos(3) tpos(3):-2:0]);

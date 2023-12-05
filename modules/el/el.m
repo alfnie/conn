@@ -12,7 +12,8 @@ function varargout=el(option,varargin)
 %                                    (syntax "el root.tasks <tasks_folder> all" may be used to create this symbolic link)
 %   el root.pipelines <pipelines_folder> : defines root directory where preprocessing and model pipeline files are stored
 %                                    By default this points to .../conn/modules/el, where several default pipelines already exist
-%   el remote on                         : work remotely (default 'off') (0/'off': when working with data stored locally on your computer; 1/'on': when working with data stored in a remote server -to enable this functionality on a remote server run on the remote server the command "conn remotely setup")
+%   el remote <on|off>                   : work remotely (default 'off') (0/'off': when working with data stored locally on your computer; 1/'on': when working with data stored in a remote server -to enable this functionality on a remote server run on the remote server the command "conn remotely setup")
+%   el remote disconnect                 : equivalent to "el remote off" but additionally it closes the remote EL server (do this when finished working with your projects remotely)
 %
 %
 % PREPROCESSING SYNTAX:

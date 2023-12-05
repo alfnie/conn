@@ -114,6 +114,51 @@ switch(option)
             set([dlg.title dlg.box dlg.goto],'visible','off');
         end
               
+    case 'showall',
+        dlg.fig=findobj(0,'tag','conn_msghelp');
+        if isempty(dlg.fig),
+            dlg.fig=figure('units','norm','position',[.2,.05,.6,.9],'menubar','none','numbertitle','off','name','Support questions search','color',[1 1 1],'tag','conn_msghelp');
+            bg=.9*[1 1 1];
+            uicontrol(dlg.fig,'style','frame','units','norm','position',[0,.85,1,.15],'backgroundcolor',bg,'foregroundcolor',bg);
+            %uicontrol(dlg.fig,'units','norm','position',[.1 .95 .8 .025],'style','text','string','Search :','backgroundcolor',bg,'fontweight','bold','horizontalalignment','left','fontsize',CONN_gui.font_offset+10);
+            dlg.key=uicontrol(dlg.fig,'units','norm','position',[.1 .90 .7 .05],'style','edit','max',1,'backgroundcolor',bg,'horizontalalignment','left','fontsize',CONN_gui.font_offset+10,'tooltipstring','<HTML>Enter search keywords <br/> - Enter words or partial words to match (e.g. <i>analys</i>)<br/> - Enter multiple keywords (separated by spaces) to match only posts containing <i>all</i> keywords (e.g. <i>artifact motion</i>)<br/> - Use single quotes to search for exact word matches (no partial-word matches) (e.g. <i>''art''</i>) <br/> - Use double-quotes to search for a multi-word keyword (e.g. <i>"motion artifact"</i>) <br/> - Use regexp strings for more complex search commands (e.g. <i>t.?test</i>)</HTML>','callback','conn_msghelp(''key'')');
+            uicontrol(dlg.fig,'units','norm','position',[.8 .90 .1 .05],'style','pushbutton','string','Search','fontsize',CONN_gui.font_offset+8,'tooltipstring','Search database of support questions/answers','callback','conn_msghelp(''key'')');
+            dlg.titlelist=uicontrol(dlg.fig,'units','norm','position',[.1 .78 .8 .025],'style','text','string','Posts:','backgroundcolor','w','fontsize',CONN_gui.font_offset+10,'fontweight','bold','horizontalalignment','left');
+            dlg.list=uicontrol(dlg.fig,'units','norm','position',[.1 .50 .8 .27],'style','listbox','max',1,'fontname','monospaced','fontsize',CONN_gui.font_offset+8,'tooltipstring','select post','callback','conn_msghelp(''show'',get(gcbo,''value''))');
+            dlg.sort=uicontrol(dlg.fig,'units','norm','position',[.7 .46 .2 .04],'style','pushbutton','string','sorted by relevance','fontsize',CONN_gui.font_offset+8,'tooltipstring','Switch between ''sorted by relevance'' and ''sorted by date''','callback','conn_msghelp(''sort'')');
+            dlg.title=uicontrol(dlg.fig,'units','norm','position',[.1 .40 .8 .025],'style','text','string','','backgroundcolor','w','horizontalalignment','left','fontsize',CONN_gui.font_offset+10,'fontweight','bold');
+            dlg.box=uicontrol(dlg.fig,'units','norm','position',[.1 .1 .8 .29],'style','listbox','max',2,'string','','backgroundcolor','w','horizontalalignment','left','fontsize',CONN_gui.font_offset+8);
+            dlg.goto=uicontrol(dlg.fig,'units','norm','position',[.7 .06 .2 .04],'style','pushbutton','string','original post','fontsize',CONN_gui.font_offset+8,'tooltipstring','See this post in the NITRC CONN Forum website');
+            set(dlg.list,'string',titles_fmt(selected));
+            uicontrol(dlg.key);
+        else
+            dlg.fig=dlg.fig(1);
+        end
+        DOFILE=true;
+        if DOFILE, fh=fopen('msghelp.txt','wt');
+        else fh=1;
+        end
+        for kmsg=1:numel(selected)
+            imsg=selected(kmsg);
+            strdate=dates{imsg};
+            numdate=dates_num(imsg);
+            strid=ids{imsg};
+            strtitle=titles_fmt{imsg};
+            str=msgs{imsg};
+            %str=regexprep(str,'Originally posted by(.*?:)','\n\nOriginally posted by$1\n');
+            str=regexprep(str,'Originally posted by(.*?:)','');
+            %str=regexp(str,'[\r\n]','split');
+            str=regexprep(str,{'<p[^>]*>','</p>','<div[^>]*>','</div>','<font[^>]*>','</font>','<strong[^>]*>','<b>','</b>','<[^>]+>'},'');
+            str=regexprep(str,{'(CONN|conn|v\.|\s)(\d\d[a-z])(\W)'},{'<b>$1$2</b>$3'});
+            for n=1:numel(keys), if numel(keys{n})>3, str=regexprep(str,keys{n},'<b><FONT color=rgb(0,0,255)>$1</FONT></b>','ignorecase'); end; end
+            %str=regexprep(str,{'(.*)'},{'<HTML>$1</HTML>'});
+            %idx=strmatch('<HTML>Originally posted by',str);
+            %if ~isempty(idx), str(idx(1):end)=regexprep(str(idx(1):end),'<HTML>(.*)</HTML>','<HTML><FONT color=rgb(100,100,100)>$1</FONT></HTML>'); end
+            fprintf(fh,'<html><br/><br/>QUESTION TITLE: %s<br/></html>\n',strtitle);
+            fprintf(fh,'<html>%s</html>\n',str);
+        end
+        if DOFILE, fclose(fh); end
+
     case 'sort'
         sortby=1+(sortby==1);
         conn_msghelp('key');
