@@ -1396,7 +1396,7 @@ for iSTEP=1:numel(STEPS)
                             end
                         end
                         if ~isempty(entercovariates), entercovariates=[entercovariates, ones(numel(Vin),1)]; end
-                        X=[]; Xnames={};
+                        X=[]; Xnames={}; XnamesExtended={};
                         roi_done=false(size(roi_names));
                         Vsource=[]; VsourceUnsmoothed={};
                         for nl1covariate=1:numel(roi_names)
@@ -1425,17 +1425,17 @@ for iSTEP=1:numel(STEPS)
                                 if conn_surf_dimscheck(CONN_x.Setup.rois.files{nsubject}{nroi}{min(nses,nsesstemp)}{3})&&~conn_surf_dimscheck(Vsourcethis), fsanatomical=CONN_x.Setup.structural{nsubject}{min(nses,nsesstemp)}{1}; else fsanatomical=''; end
                                 outputtype='none'; filenamerex='';
                                 if CONN_x.Setup.rois.dimensions{nroi}>1,        % average&pca
-                                    if CONN_x.Setup.rois.weighted(nroi), data=conn_rex(Vsourcethis,Vmask,'summary_measure','weighted eigenvariate','dims',CONN_x.Setup.rois.dimensions{nroi},'conjunction_mask',mask,'level',level,'scaling','none','select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
-                                    else data=conn_rex(Vsourcethis,Vmask,'summary_measure','eigenvariate','dims',CONN_x.Setup.rois.dimensions{nroi},'conjunction_mask',mask,'level',level,'scaling',scalinglevel,'select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
+                                    if CONN_x.Setup.rois.weighted(nroi), [data,namesroi]=conn_rex(Vsourcethis,Vmask,'summary_measure','weighted eigenvariate','dims',CONN_x.Setup.rois.dimensions{nroi},'conjunction_mask',mask,'level',level,'scaling','none','select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
+                                    else [data,namesroi]=conn_rex(Vsourcethis,Vmask,'summary_measure','eigenvariate','dims',CONN_x.Setup.rois.dimensions{nroi},'conjunction_mask',mask,'level',level,'scaling',scalinglevel,'select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
                                     end
                                     if size(data,2)<CONN_x.Setup.rois.dimensions{nroi},
                                         conn_disp('fprintf','WARNING: not enough voxels or scans to extract %d dimensions from %s @ %s\n',CONN_x.Setup.rois.dimensions{nroi},Vsourcethis,Vmask);
                                         data=[data zeros(size(data,1),CONN_x.Setup.rois.dimensions{nroi}-size(data,2))];
                                     end
                                 elseif CONN_x.Setup.rois.dimensions{nroi}==0||CONN_x.Setup.rois.weighted(nroi),   % weighted sum
-                                    data=conn_rex(Vsourcethis,Vmask,'summary_measure','weighted sum','conjunction_mask',mask,'level',level,'scaling','none','select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
+                                    [data,namesroi]=conn_rex(Vsourcethis,Vmask,'summary_measure','weighted sum','conjunction_mask',mask,'level',level,'scaling','none','select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
                                 else                                            % average
-                                    data=conn_rex(Vsourcethis,Vmask,'summary_measure','mean','conjunction_mask',mask,'level',level,'scaling',scalinglevel,'select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
+                                    [data,namesroi]=conn_rex(Vsourcethis,Vmask,'summary_measure','mean','conjunction_mask',mask,'level',level,'scaling',scalinglevel,'select_clusters',0,'covariates',entercovariates,'fsanatomical',fsanatomical,'output_type',outputtype,'output_rex',filenamerex);
                                 end
                                 [data,ok]=conn_nan(data);
                                 assert(size(data,1)==numel(Vin),'mismatched dimensions; functional data has %d timepoints, covariate %s has %d timepoints',numel(Vin),roi_names{nl1covariate},size(data,1));
@@ -1444,11 +1444,11 @@ for iSTEP=1:numel(STEPS)
                                 if numel(roi_deriv)>=nl1covariate&&roi_deriv(nl1covariate)>0, ddata=convn(cat(1,data(1,:),data,data(end,:)),[1;0;-1],'valid'); data=[data, ddata]; end
                                 if numel(roi_deriv)>=nl1covariate&&roi_deriv(nl1covariate)>1, data=[data, convn(cat(1,ddata(1,:),ddata,ddata(end,:)),[1;0;-1],'valid')]; end
                                 if numel(roi_filter)>=nl1covariate&&roi_filter(nl1covariate)>0, data=conn_filter(rt,bp_filter,data); end
-                                X=cat(2,X,data); Xnames{end+1}=sprintf('%s (%d)',roi_names{nl1covariate},size(data,2));
+                                X=cat(2,X,data); Xnames{end+1}=sprintf('%s (%d)',roi_names{nl1covariate},size(data,2)); XnamesExtended{end+1}=namesroi; 
                             end
                         end
                         conn_savetextfile(conn_prepend('rois_',filein{1},'.txt'),X);
-                        conn_savematfile(conn_prepend('rois_',filein{1},'.mat'),'X','Xnames');
+                        conn_savematfile(conn_prepend('rois_',filein{1},'.mat'),'X','Xnames','XnamesExtended');
                         outputfiles{isubject}{nses}{1}=char(filein);
                         outputfiles{isubject}{nses}{2}=conn_prepend('rois_',filein{1},'.txt');
                     end
