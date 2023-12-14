@@ -1943,7 +1943,7 @@ else
             if numel(CONN_gui.modalfig)>10, CONN_gui.modalfig=CONN_gui.modalfig(end-10+1:end); end
             varargout={CONN_gui.modalfig};
             
-        case 'bugfix_catalina2019'
+        case {'bugfix_catalina2019','bugfix_mac'}
             str=fileparts(which('spm'))
             [ok,msg]=system(['find "',str,'" -name "*.mexmaci64" -exec xattr -d com.apple.quarantine {} \;']);
             [ok,msg]=system(['find "',str,'" -name "*.mexmaca64" -exec xattr -d com.apple.quarantine {} \;']); % note: add for apple silicon as well

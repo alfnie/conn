@@ -153,6 +153,7 @@ for nvar=1:numel(vars),
         y=Y(idxsubjects,nout,:);
         if ~any(isnan(y)),
             [h,F,p,dof,statsname]=conn_glm(x,permute(y,[1,3,2]),C,ss.C2);
+            if max(abs(diff(y)))<1e-10, p=nan; F=nan; end
             if size(h,2)>1, h=sqrt(sum(abs(h).^2,2)); end
             if size(h,1)>1, h=sqrt(sum(abs(h).^2,1)); end
             glmresults.h(:,nout)=h;

@@ -291,7 +291,7 @@ switch(lower(option)),
         data.plotconnoptions.LCOLORSCALE=1;
         data.plotconnoptions.LCURVE=2;
         data.plotconnoptions.LBUNDL=.5;
-        data.plotconnoptions.FONTSIZE=max(4,[0,1]+CONN_gui.font_offset);
+        data.plotconnoptions.FONTSIZE=max(4,[0,1]+4+CONN_gui.font_offset);
         data.plotconnoptions.FONTANGLE=0;
         if 1, data.plotconnoptions.BCOLOR=.975*[1,1,1];
         elseif isfield(CONN_gui,'backgroundcolor'), data.plotconnoptions.BCOLOR=CONN_gui.backgroundcolor;
