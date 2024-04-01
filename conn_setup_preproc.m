@@ -30,6 +30,7 @@ ALLSETSPERMISSIONS=false;  % set to true if you want to allow dataset-1 or above
 if isdeployed, spmver12=true;
 else spmver12=str2double(regexp(spm('ver'),'SPM(\d+)','tokens','once'))>=12;
 end
+if numel(spmver12)~=1||isnan(spmver12), spmver12=true; end % if isempty, assume development version
 if isfield(CONN_gui,'font_offset'),font_offset=CONN_gui.font_offset; else font_offset=0; end
 %if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, error('This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'); end
 if ~nargin, STEPS=''; varargin={'multiplesteps',1}; end

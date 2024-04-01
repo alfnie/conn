@@ -46,7 +46,7 @@ if isempty(dataA)&&~isempty(infoA) % refresh plot info
     for n=1:numel(infoA)
         if ~isempty(infoA{n}.Variables)
             if isempty(Xnames), Xnames=infoA{n}.Variables; Xdescr=infoA{n}.Variables_descr; inok(n)=true;
-            elseif ~isequal(infoA{n}.Variables,Xnames), conn_disp('fprintf','warning %s mismatch variable names %s (expected %s)\n',files{in(n)},sprint('%s ',Xnames{:}),sprintf('%s ',infoA{n}.Variables{:}));
+            elseif ~isequal(infoA{n}.Variables,Xnames), conn_disp('fprintf','warning %s mismatch variable names %s (expected %s)\n',files{in(n)},sprintf('%s ',Xnames{:}),sprintf('%s ',infoA{n}.Variables{:}));
             else inok(n)=true;
             end
         end
