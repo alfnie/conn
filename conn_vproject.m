@@ -2042,7 +2042,7 @@ if ~isempty(idxvoxels),
                     end
                 elseif mat{6}=='T'|mat{6}=='F', % two-sided T-stat or F-stat
                     ok=false;
-                    if isdeployed||str2num(regexprep(spm('ver'),'[^\d]',''))>8,
+                    if isdeployed||min([12, str2num(regexprep(spm('ver'),'[^\d]',''))])>8,
                         try
                             if isempty(mat{5}), [cP(n1),cp(n1)]=spm_P(1,k(n1)*mat{2}(end)/mat{4},u,mat{3},'F',mat{2},1,mat{4});
                             else, [cP(n1),cp(n1)]=spm_P(1,k(n1)*mat{5},u,mat{3},'F',mat{2},1,mat{4});
