@@ -40,8 +40,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
          warning('off','MATLAB:load:variableNotFound');
          warning('off','MATLAB:DELETE:FileNotFound');
     end
-    conn_backgroundcolor=.08*[1 1.05 1.1];                 % backgroundcolor
-    conn_backgroundcolorA=.14*[1 1.05 1.1];                % highlight
+    conn_backgroundcolor=.08*[1 1.05 1.10];                 % backgroundcolor
+    conn_backgroundcolorA=.14*[1 1.05 1.10];                % highlight
     if ismac, CONN_gui.uicontrol_border=2;            % crops borders GUI elements
     else      CONN_gui.uicontrol_border=2;
     end
@@ -265,14 +265,14 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'callback',{{@conn,'gui_settings'},CONN_h.menus.m_setup_07f,CONN_h.menus.m_setup_07j,CONN_h.menus.m_setup_07h,CONN_h.menus.m_setup_07e,{@conn,'gui_setup_qadisplay'},{@conn,'gui_referenceexplore'},{@conn,'gui_setup_logdisplay'},{@conn_print},{@conn,'gui_calculator'}} ); %,{@conn,'gui_setup_qadisplay'}} );
 	CONN_h.menus.m_setup_07d=conn_menumanager([],	'n',11,...
 									'string',{'Support','Documentation','FAQ','Methods','Tutorials','Citing CONN','Other resources','CONN site','NITRC site','SPM site','Registration'},...
-									'help',{'Search/ask for help at CONN support forum site (browse www.nitrc.org/forum/forum.php?forum_id=1144)','Browse www.conn-toolbox.org/resources/documentation','Browse www.alfnie.com/software/conn','Browse www.conn-toolbox.org/fmri-methods','Browse www.conn-toolbox.org/tutorials','Browse www.conn-toolbox.org/resources/citing-conn','Browse www.conn-toolbox.org/resources','Browse www.conn-toolbox.org','Browse www.nitrc.org/projects/conn','Browse www.fil.ion.ucl.ac.uk/spm','Register CONN toolbox user'},...
+									'help',{'Search/ask for help at CONN support forum site (browse www.nitrc.org/forum/forum.php?forum_id=1144)','Browse www.conn-toolbox.org/resources/conn-documentation','Browse www.alfnie.com/software/conn','Browse www.conn-toolbox.org/fmri-methods','Browse www.conn-toolbox.org/tutorials','Browse www.conn-toolbox.org/resources/citing-conn','Browse www.conn-toolbox.org/resources','Browse www.conn-toolbox.org','Browse www.nitrc.org/projects/conn','Browse www.fil.ion.ucl.ac.uk/spm','Register CONN toolbox user'},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
 									'position',[.29,.955-4.5*.045-3.5*.045-11*.045,.099,11*.045],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_help','url','http://www.nitrc.org/forum/forum.php?forum_id=1144'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources/documentation'},{@conn,'gui_help','url','http://www.alfnie.com/software/conn'},{@conn,'gui_help','url','http://www.conn-toolbox.org/fmri-methods'},{@conn,'gui_help','url','http://www.conn-toolbox.org/tutorials'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources/citing-conn'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources'},{@conn,'gui_help','url','http://www.conn-toolbox.org'},{@conn,'gui_help','url','http://www.nitrc.org/projects/conn'},{@conn,'gui_help','url','http://www.fil.ion.ucl.ac.uk/spm'},{@conn_register,'forceregister'}} );
+									'callback',{{@conn,'gui_help','url','http://www.nitrc.org/forum/forum.php?forum_id=1144'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources/conn-documentation'},{@conn,'gui_help','url','http://www.alfnie.com/software/conn'},{@conn,'gui_help','url','http://www.conn-toolbox.org/fmri-methods'},{@conn,'gui_help','url','http://www.conn-toolbox.org/tutorials'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources/citing-conn'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources'},{@conn,'gui_help','url','http://www.conn-toolbox.org'},{@conn,'gui_help','url','http://www.nitrc.org/projects/conn'},{@conn,'gui_help','url','http://www.fil.ion.ucl.ac.uk/spm'},{@conn_register,'forceregister'}} );
 	CONN_h.menus.m_setup_07g=conn_menumanager([],	'n',2,...
 									'string',{'Information','Sample data'},...
 									'help',{'Check information about latest CONN workshops','Download and process sample dataset',},...
@@ -387,7 +387,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 %                                     'bordertype','square',...
 % 									'callback',{CONN_h.menus.m_setup_01a} );
 	CONN_h.menus.m_setup_01d=conn_menumanager([], 'n',1,...
-									'string',{'Done'},...
+									'string',{'Next'},...
 									'help',{'Saves changes to Setup step and runs associated processing pipeline (e.g. importing voxel- and ROI-level timeseries) before proceeding to next step (Denoising)'},...
 									'position',[0.02,0.01,.10,1*.05],...
                                     'toggle',0,...
@@ -470,7 +470,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 % 									'backgroundcolor',CONN_gui.backgroundcolorA,...
 % 									'callback',{{@conn,'gui_preproc',0}} );
 	CONN_h.menus.m_preproc_02=conn_menumanager([], 'n',1,...
-									'string',{'Done'},...
+									'string',{'Next'},...
                                     'help',{'Saves changes to Denoising step and runs associated processing pipeline before proceeding to next step (First-level Analyses)'},...
 									'position',[0.02,0.01,.10,1*.05],...
                                     'toggle',0,...
@@ -504,7 +504,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 % 									'backgroundcolor',CONN_gui.backgroundcolorA,...
 % 									'callback',{{@conn,'gui_analyses',0}} );
 	CONN_h.menus.m_analyses_02=conn_menumanager([], 'n',1,...
-									'string',{'Done'},...
+									'string',{'Next'},...
 									'help',{'Saves changes to current/selected First-level analysis and runs associated processing pipeline before proceeding to next step (Second-level Results)'},...
 									'position',[0.02,0.01,.10,.05],...
                                     'toggle',0,...
@@ -525,7 +525,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_analyses'},{@conn,'gui_analyses'},{@conn,'gui_analyses'}} );
 	CONN_h.menus.m_analyses_04=conn_menumanager([], 'n',1,...
-									'string',{'Done'},...
+									'string',{'Next'},...
 									'help',{'Saves changes to First-level Voxel-to-Voxel analysis step and runs associated processing pipeline before proceeding to next step (Second-level results)'},...
 									'position',[0.02,0.01,.10,.05],...
                                     'toggle',0,...
@@ -534,7 +534,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'bordertype','round',...
 									'callback',{{@conn,'gui_analyses_done_vv'}} );
 	CONN_h.menus.m_analyses_05=conn_menumanager([], 'n',1,...
-									'string',{'Done'},...
+									'string',{'Next'},...
 									'help',{'Saves changes to First-level dyn-ICA analysis step and runs associated processing pipeline before proceeding to next step (Second-level results)'},...
 									'position',[0.02,0.01,.10,.05],...
                                     'toggle',0,...
@@ -1457,7 +1457,7 @@ else
                             open(fname);
                         end
                     catch
-                        url='http://www.conn-toolbox.org/resources/manuals';
+                        url='http://www.conn-toolbox.org/resources/conn-documentation/manual';
                         if isequal('Visit',conn_questdlg({sprintf('Unable to display file %s',fname),'Would you like to visit CONN documentation site?',sprintf('(%s)',url)},'Error','Visit','Cancel','Visit')), web(url,'-browser'); end
                     end
                 case 'help'
@@ -1486,25 +1486,25 @@ else
             end
             
         case 'gui_workshop',
-            place='online (Boston MGH/HST)';
-            dates={'Nov 20 2023','Dec 18 2023','Nov 20 - Dec 18 2023 (5 weeks, one day per week)'};
+            place='online (Zoom)';
+            dates={'Sept 16 2024','Oct 18 2024','Sept 16 - Oct 18 2024 (5 weeks, two days per week)'};
             passed=false;
             try, dates(1:2)=cellfun(@datenum,dates(1:2),'uni',0); end
             if now>=dates{1}
-                if now>dates{2}, str=['The previous 5-day CONN workshop has been held ',place,' ',dates{3}];
+                if now>dates{2}, str=['The previous 10-day CONN workshop has been held ',place,' ',dates{3}];
                 else str=['The CONN workshop is being held RIGHT NOW ',place,' ',dates{3}]; passed=true;
                 end
-            else str=['The next 5-day CONN workshop will be held ',place,' ',dates{3},sprintf(', starting %d days from today',floor(dates{1}-now))];
+            else str=['The next 10-day CONN workshop will be held ',place,' ',dates{3},sprintf(', starting %d days from today',floor(dates{1}-now))];
             end
             if passed, 
-                url='www.conn-toolbox.org';
+                url='www.conn-toolbox.org/workshops';
                 answ=conn_questdlg({'CONN workshops are organized annually. They offer intensive hands-on training on CONN usage and functional connectivity analyses',' ',str,['Visit ',url,' for more up to date information']},'','Visit','Cancel','Visit');
             else
                 url='www.conn-toolbox.org/workshops';
                 answ=conn_questdlg({'CONN workshops are organized annually. They offer intensive hands-on training on CONN usage and functional connectivity analyses',' ',str,['Visit ',url,' for additional information and registration']},'','Visit','Cancel','Visit');
             end
             if isequal(answ,'Visit')
-                conn('gui_help','url',['http://',url]);
+                conn('gui_help','url',['https://',url]);
             end
             
         case 'gui_clear'
@@ -1541,7 +1541,7 @@ else
 %               uimenu(hc1,'label','Remove GUI background image','callback','conn_guibackground clear'); 
 %               set(dlg.m4,'uicontextmenu',hc1);
             uicontrol('style','popupmenu','units','norm','position',[.1,.775,.45,.075],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','string',{'<HTML><i>Select GUI background color/image</i></HTML>','Light text on dark background theme','Dark text on light background theme','Random background image','Screenshot background image','Custom background image'},'userdata',[dlg.m4 dlg.m4A],'callback',...
-                'h=get(gcbo,''userdata''); switch(get(gcbo,''value'')), case 1, conn_guibackground clear; color=uisetcolor; if numel(color)==3, set(h(1),''backgroundcolor'',color); colorA=color;set(h(2),''backgroundcolor'',colorA); end; case 2, conn_guibackground clear; color=.08*[1 1.05 1.10]; set(h(1),''backgroundcolor'',color); colorA=.14*[1 1.05 1.10];set(h(2),''backgroundcolor'',colorA); case 3, conn_guibackground clear; color=.9*[1 1 1]; set(h(1),''backgroundcolor'',color); colorA=.95*[1 1 1];set(h(2),''backgroundcolor'',colorA); case 4, answ=conn_guibackground(''setfiledefault''); case 5, answ=conn_guibackground(''cleartrans''); case 6, answ=conn_guibackground(''setfile''); end; set(gcbf,''userdata'',1); uiresume(gcbf);',...
+                'h=get(gcbo,''userdata''); switch(get(gcbo,''value'')), case 1, conn_guibackground clear; color=uisetcolor; if numel(color)==3, set(h(1),''backgroundcolor'',color); colorA=color;set(h(2),''backgroundcolor'',colorA); end; case 2, conn_guibackground clear; color=.08*[1 1.05 1.10]; set(h(1),''backgroundcolor'',color); colorA=.14*[1 1.05 1.10];set(h(2),''backgroundcolor'',colorA); case 3, conn_guibackground clear; color=.925*[1 1 1]; set(h(1),''backgroundcolor'',color); colorA=.875*[1 1 1];set(h(2),''backgroundcolor'',colorA); case 4, answ=conn_guibackground(''setfiledefault''); case 5, answ=conn_guibackground(''cleartrans''); case 6, answ=conn_guibackground(''setfile''); end; set(gcbf,''userdata'',1); uiresume(gcbf);',...
                 'tooltipstring','Changes the default theme colors in the CONN toolbox GUI','parent',dlg.fig);
             uicontrol('style','frame','unit','norm','position',[.05,.15,.9,.25],'backgroundcolor','w','foregroundcolor',[.5 .5 .5],'parent',dlg.fig);
             %uicontrol('style','text','unit','norm','position',[.07,.91,.3,.08],'string','Appearance','backgroundcolor','w','foregroundcolor',[.5 .5 .5]);
@@ -1557,9 +1557,9 @@ else
             while 1
                 if numel(varargin)>1&&ischar(varargin{2})
                     switch(lower(varargin{2}))
-                        case 'dark', hmsg=conn_msgbox('Setting dark-mode color theme... please wait','',-1); conn_guibackground clear; color=.08*[1 1.05 1.10]; set(dlg.m4,'backgroundcolor',color); colorA=.14*[1 1.05 1.10]; set(dlg.m4A,'backgroundcolor',colorA);
+                        case 'dark', hmsg=conn_msgbox('Setting dark-mode color theme... please wait','',-1); conn_guibackground clear; color=.08*[1 1.05 1.10] ; set(dlg.m4,'backgroundcolor',color); colorA=.14*[1 1.05 1.10]; set(dlg.m4A,'backgroundcolor',colorA);
                         case 'color', hmsg=conn_msgbox('Setting color theme... please wait','',-1); conn_guibackground clear; if 1, color=.1*rand(1,3); colorA=.19/.14*color; else color=.85+.15*rand(1,3); colorA=color+.25*(1-color); end; set(dlg.m4,'backgroundcolor',color); set(dlg.m4A,'backgroundcolor',colorA); CONN_gui.backgroundcolor=color; CONN_gui.backgroundcolorA=colorA; conn_guibackground setfilecolor;
-                        case 'light', hmsg=conn_msgbox('Setting light-mode color theme... please wait','',-1); conn_guibackground clear; color=.9*[1 1 1]; set(dlg.m4,'backgroundcolor',color); colorA=.95*[1 1 1]; set(dlg.m4A,'backgroundcolor',colorA);
+                        case 'light', hmsg=conn_msgbox('Setting light-mode color theme... please wait','',-1); conn_guibackground clear; color=.925*[1 1 1]; set(dlg.m4,'backgroundcolor',color); colorA=.875*[1 1 1]; set(dlg.m4A,'backgroundcolor',colorA);
                         case 'font+', hmsg=conn_msgbox('Increasing fontsize... please wait','',-1); fontsize=str2num(get(dlg.m1,'string')); fontsize=fontsize+1; if numel(fontsize)==1, set(dlg.m1 ,'string',num2str(fontsize)); end
                         case 'font-', hmsg=conn_msgbox('Decreasing fontsize... please wait','',-1); fontsize=str2num(get(dlg.m1,'string')); fontsize=max(0,fontsize-1); if numel(fontsize)==1, set(dlg.m1 ,'string',num2str(fontsize)); end
                     end
@@ -2159,11 +2159,11 @@ else
                         end
                     end
                 case {3,5} %functional
-                    if state==3, boffset=[.04 .045 0 0];
+                    if state==3, boffset=[.04 .035 0 0];
                     else boffset=[.04 -.045 0 0];
                     end
                     if nargin<2,
-                        if state==3, conn_menu('frame',boffset+[.19,.20,.45,.525],'Functional data');
+                        if state==3, conn_menu('frame',boffset+[.19,.16,.45,.565],'Functional data');
                         else conn_menu('frame',boffset+[.19,.20,.45,.625],'Other imaging data (optional)');
                         end
                         %conn_menu('frame',boffset+[.19,.03,.50,.08],'Secondary datasets');
@@ -2191,7 +2191,7 @@ else
 						%CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.39,.26,.25,.05],'Experiment data  (scans/sessions)','','',@conn_callbackdisplay_conditiondesign);
                         CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.41,.34,.20,.01],'','','',@conn_callbackdisplay_conditiondesign);
                         %conn_menu('nullstr',{'No functional','data selected'});
-                        if state==3, CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.20,.19,.25,.05],'',{'<HTML><i> - functional tools -</i></HTML>','Display slice viewer','Display slice viewer with anatomical overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display functional/anatomical coregistration (SPM)','Display functional/MNI coregistration (SPM)','Display single-slice for all subjects (montage)','Display single-slice for all timepoints (movie)', 'Apply individual preprocessing step','Reassign all functional files simultaneously'},'<HTML> - <i>slice viewer</i> displays functional dataset slices<br/> - <i>slice viewer with anatomical overlay</i>displays mean functional overlaid with same-subject structural volume<br/> - <i>slice viewer with MNI boundaries</i> displays mean functional volume slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/> - <i>display registration</i> checks the coregistration of the selected subject functional/anatomical files <br/> - <i>preprocessing</i> runs individual preprocessing step on functional volumes (e.g. realignment, slice-timing correction, etc.)<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space)<br/> - <i>reassign all functional files simultaneously</i> reassigns current dataset functional volumes using a user-generated search/replace filename rule</HTML>','conn(''gui_setup'',14);');
+                        if state==3, CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.20,.15,.25,.05],'',{'<HTML><i> - functional tools -</i></HTML>','Display slice viewer','Display slice viewer with anatomical overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display functional/anatomical coregistration (SPM)','Display functional/MNI coregistration (SPM)','Display single-slice for all subjects (montage)','Display single-slice for all timepoints (movie)', 'Apply individual preprocessing step','Reassign all functional files simultaneously'},'<HTML> - <i>slice viewer</i> displays functional dataset slices<br/> - <i>slice viewer with anatomical overlay</i>displays mean functional overlaid with same-subject structural volume<br/> - <i>slice viewer with MNI boundaries</i> displays mean functional volume slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/> - <i>display registration</i> checks the coregistration of the selected subject functional/anatomical files <br/> - <i>preprocessing</i> runs individual preprocessing step on functional volumes (e.g. realignment, slice-timing correction, etc.)<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space)<br/> - <i>reassign all functional files simultaneously</i> reassigns current dataset functional volumes using a user-generated search/replace filename rule</HTML>','conn(''gui_setup'',14);');
                         else CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.20,.19,.25,.05],'',{'<HTML><i> - other imaging tools -</i></HTML>','Display slice viewer','Display slice viewer with anatomical overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display imaging/anatomical coregistration (SPM)','Display imaging/MNI coregistration (SPM)','Display single-slice for all subjects (montage)','Display single-slice for all timepoints (movie)', 'Apply individual preprocessing step','Reassign all data files simultaneously'},'<HTML> - <i>slice viewer</i> displays other imaging dataset slices<br/> - <i>slice viewer with anatomical overlay</i>displays imaging data overlaid with same-subject structural volume<br/> - <i>slice viewer with MNI boundaries</i> displays other imaging volume slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/> - <i>display registration</i> checks the coregistration of the selected subject imaging/anatomical files <br/> - <i>preprocessing</i> runs individual preprocessing step on other imaging volumes (e.g. realignment, slice-timing correction, etc.)<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space)<br/> - <i>reassign all files simultaneously</i> reassigns current dataset imaging volumes using a user-generated search/replace filename rule</HTML>','conn(''gui_setup'',14);');
                         end
                         nset=1;
@@ -2725,7 +2725,7 @@ else
                        CONN_h.menus.m_setup_11e={};
                     end
                 case 2, %structural
-                    boffset=[.05 .06 0 -.01];
+                    boffset=[.05 .05 0 -.01];
                     if nargin<2,
                         conn_menu('frame',boffset+[.19,.15,.41,.57],'Structural data');
                         conn_menu('nullstr',{'No structural','data selected'});
@@ -3787,7 +3787,7 @@ else
                                                 return;
                                             end
                                         else
-                                            conn_msgbox({'Setup step has not been run yet','Please press ''Done'' button when ready to propagate all Setup information to the Denoising step'},'',2); 
+                                            conn_msgbox({'Setup step has not been run yet','Please press ''Next'' button when ready to propagate all Setup information to the Denoising step'},'',2); 
                                         end
                                 end
                             case 16,
@@ -4144,7 +4144,7 @@ else
                                             set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.conditions.names,'value',max(1,min(length(CONN_x.Setup.conditions.names)-1,max(get(CONN_h.menus.m_setup_00{1},'value')))));
                                         end
                                     else
-                                        conn_msgbox({'Setup step has not been run yet','Please press ''Done'' button when ready to propagate all Setup information to the Denoising step'},'',2);
+                                        conn_msgbox({'Setup step has not been run yet','Please press ''Next'' button when ready to propagate all Setup information to the Denoising step'},'',2);
                                     end
                                 else
                                     nconditions=get(CONN_h.menus.m_setup_00{1},'value');
@@ -4689,7 +4689,7 @@ else
                                                 if ~conn_projectmanager('inserver'), conn save; end
                                             end
                                         else
-                                            conn_msgbox({'Setup step has not been run yet','Please press ''Done'' button when ready to propagate all Setup information to the Denoising step'},'',2); 
+                                            conn_msgbox({'Setup step has not been run yet','Please press ''Next'' button when ready to propagate all Setup information to the Denoising step'},'',2); 
                                         end
                                 end
 						end
@@ -7164,7 +7164,7 @@ else
                 CONN_h.menus.m_analyses.analyses_listidx=[CONN_h.menus.m_analyses.analyses_listidx, 1:numel(temp)];
                 %conn_menu('framehighlight',[.06 .23 .10 .57],'');
                 conn_menu('framewhitehighlight',[.06 .20 .10 .56],' ');
-                CONN_h.menus.m_analyses_00{101}=conn_menu('listboxbigblue',[.06 .22 .10 .54],'Analyses',[CONN_h.menus.m_analyses.analyses_listnames,{' '}],'<HTML>Select connectivity analysis (first-level)<br/> - click after the last item to add a new first-level analysis<br/> - after finishing defining/editing this analysis, click on ''Done'' to run the selected first-level analysis</HTML>','conn(''gui_analyses'',101);','conn(''gui_analyses'',102);');
+                CONN_h.menus.m_analyses_00{101}=conn_menu('listboxbigblue',[.06 .22 .10 .54],'Analyses',[CONN_h.menus.m_analyses.analyses_listnames,{' '}],'<HTML>Select connectivity analysis (first-level)<br/> - click after the last item to add a new first-level analysis<br/> - after finishing defining/editing this analysis, click on ''Next'' to run the selected first-level analysis</HTML>','conn(''gui_analyses'',101);','conn(''gui_analyses'',102);');
                 idx=[];
                 if ~isempty(state)&&state(1)==1, idx=find(CONN_h.menus.m_analyses.analyses_listtype==1&CONN_h.menus.m_analyses.analyses_listidx==CONN_x.Analysis,1); end
                 if ~isempty(state)&&state(1)==2, idx=find(CONN_h.menus.m_analyses.analyses_listtype==2&CONN_h.menus.m_analyses.analyses_listidx==CONN_x.vvAnalysis,1); end

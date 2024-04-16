@@ -111,7 +111,7 @@ if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.g
     mirrorscreen=true;
     if ~isfield(CONN_h,'screen')||~isfield(CONN_h.screen,'hlog')||~ishandle(CONN_h.screen.hlog),
         pos=get(CONN_h.screen.hfig,'position');
-        fntnames={'Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
+        fntnames={'Avenir Next','Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
         CONN_h.screen.hlog=figure('units','pixels','position',[pos(1),1,pos(3),max(200,pos(2))],'color',CONN_gui.backgroundcolor,'doublebuffer','on','tag','conn_logwindow','name','CONN log history','numbertitle','off','menubar','none','resize','on','interruptible','off');
         CONN_h.screen.hlogstr=uicontrol('units','norm','position',[0 0 1 1],'style','listbox','string',{' '},'horizontalalignment','left','max',2,'keypressfcn',@conn_menu_search,'fontname',fntname,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset,'tooltipstring',['<HTML>Log of CONN''s processing and analysis steps<br/> - ',CONN_gui.rightclick,'-click for additional options<br> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>']);
         set(CONN_h.screen.hlogstr,'units','pixels');

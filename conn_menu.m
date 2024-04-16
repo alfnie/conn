@@ -5,7 +5,7 @@ global CONN_gui CONN_h;
 persistent nullstr fname;
 
 if isempty(nullstr), nullstr=''; end
-if isempty(fname), fnames={'Avenir','Helvetica'}; fname=fnames{end}; try, ok=ismember(fnames,listfonts); if nnz(ok), fname=fnames{find(ok,1)}; end; end; end
+if isempty(fname), fnames={'Avenir Next','Avenir','Helvetica'}; fname=fnames{end}; try, ok=ismember(fnames,listfonts); if nnz(ok), fname=fnames{find(ok,1)}; end; end; end
 h=[];h2=[];htb=[];
 nmax=100;
 if nargin<2 || isempty(position), position=[0,0,0,0]; end
@@ -452,7 +452,7 @@ switch(lower(type)),
 			'title',title,'filter',string,'callback',callback,'max',1,'type','files','filename',tooltipstring,'reduced',true,'button','Save','buttonhelp','Saves new CONN project');
 	case 'filesearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1);
 	case 'foldersearch_local',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -472,7 +472,7 @@ switch(lower(type)),
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','button','Import','buttonhelp','<HTML>Select DICOM root folder (directory where DICOM files for the selected subject are stored -including sub-directories-)</HTML>');
 	case 'filesearchlocal',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1,'localcopy',1);
 	case {'frame','framewhite','framehighlight','framewhitehighlight','frame2highlight','frame2','frame2blue','framewhitenoborder','framewhitesemiborder','framewhiteborderl','frameblue','frame2blue','framebluenoborder','framebluesemiborder','frameblueborderl','frame2noborder','frame2semiborder','frame2border','frame2borderl'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end

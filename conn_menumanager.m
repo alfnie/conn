@@ -372,7 +372,7 @@ else
         handle=length(CONN_MM.MENU)+1; 
         CONN_MM.POSITION(handle,:)=0;
         CONN_MM.ACTIVE(handle)=0;
-        fntnames={'Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
+        fntnames={'Avenir Next','Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
         % note1: possible status are: [Mouse outside of item, Mouse inside item, Item selected and mouse inside item, Item selected and mouse outside item]
         params=struct(...
             'n',0,...                                           % number of items
@@ -659,11 +659,11 @@ kx=2*ceil(.75*p2(1))+1;ky=2*ceil(.75*p2(2))+1;
 [tx,ty]=meshgrid(1:kx,1:ky); c1=(ky+1)/2; c2=kx-(ky-1)/2;
 kz=c1:-1:.0*c1; t=0;
 %try, if isequal(datestr(now,'mmdd'),'0401'), params.color=params.color*min(1,sparse(1:3,randperm(3),1,3,3)); end; end
-rns=10;
+rns=8;
 for n1=kz, t=t+double((abs(tx-c1).^rns+abs(ty-c1).^rns)<abs(n1).^rns | (abs(tx-c2).^rns+abs(ty-c1).^rns)<abs(n1).^rns | (tx>=c1&tx<=c2&abs(ty-c1)<n1))/length(kz); end;
 t=max(0,min(1,t));
 %t=max(0,t-.20).^.125;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
-t=1*max(0,t-.20).^.0125;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
+t=(t+19*max(0,t-.20).^.0125)/20;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
 t(tx>=kx-2)=0;
 switch(lower(params.bordertype))
     case 'round'
