@@ -57,7 +57,7 @@ if nargin<1 || ischar(varargin{1}),
     else h.files=conn_menu('listbox',[1,.05,.38,.9,.48]*M,'',''); %,'<HTML>Displays file matches<br/> - Double-click a folder for browsing to a different location<br/> - Double-click a file to import it to the toolbox</HTML>');
     end
     set(h.files,'max',params.max);
-    h.selected=uicontrol('style','text','units','norm','position',[1,.04,.23,.9,.10]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','fontname',params.fontname,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
+    h.selected=uicontrol('style','text','units','norm','position',[1,.04,.20,.9,.10]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','fontname',params.fontname,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
     %h.select=uicontrol('style','pushbutton','units','norm','position',[1,.7,.14,.25,.05]*M,'string','Select','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','tooltipstring','Enter selected file(s) or open selected folder','callback',{@conn_filesearchtool,'files',true});
     if ~isempty(params.inserver), h.inserver=params.inserver; else h.inserver=conn_projectmanager('inserver'); end
     if h.inserver, params.folder=conn_server('util_remotefile',params.folder); % switch to proper local/remote folder when initializing
