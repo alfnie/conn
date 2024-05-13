@@ -2206,9 +2206,10 @@ else
 						if state==3, CONN_h.menus.m_setup_00{8}=conn_menu('image',boffset+[.43,.24,.16,.05],'voxel BOLD timeseries');
                         else CONN_h.menus.m_setup_00{8}=conn_menu('image',boffset+[.43,.24,.16,.05],'values at selected voxel');
                         end
+                        set([CONN_h.menus.m_setup_00{4}],'fontsize',7+CONN_gui.font_offset); 
                         %set([CONN_h.menus.m_setup_00{4}],'visible','off'); conn_menumanager('onregion',[CONN_h.menus.m_setup_00{4}],1,boffset+[.35,.25,.34,.55]);
-                        ht=uicontrol('style','frame','units','norm','position',boffset+[.35,.61,.29,.09],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
-                        set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.35,.25,.29,.55]);
+                        %%ht=uicontrol('style','frame','units','norm','position',boffset+[.35,.61,.29,.09],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        %%set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.35,.25,.29,.55]);
                         %ht=uicontrol('style','frame','units','norm','position',[.78,.06,.20,.84],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor);
                         %set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.19,0,.81,1]);
 						%CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.39,.26,.25,.05],'Experiment data  (scans/sessions)','','',@conn_callbackdisplay_conditiondesign);
@@ -2222,7 +2223,7 @@ else
                             conn_menu('framewhitehighlight',boffset+[.20,.77,.43,.03],'');
                             newdelete={'<HTML><i>new</i> dataset</HTML>','<HTML><i>move</i> datasets</HTML>','<HTML><i>label</i> datasets</HTML>','<HTML><i>delete</i> dataset</HTML>'}; if numel(CONN_x.Setup.secondarydataset)==1, newdelete=newdelete(1:3); end
                             CONN_h.menus.m_setup_00{7}=conn_menu('popupbigblue',boffset+[.20,.76,.43,.05],'',[arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),newdelete],'<HTML>Manage additional imaging data (e.g. Fieldmap files, Voxel Displacement Map files, Tissue Probability Map files, other functional datasets, etc.)<br/> <br/> - select the dataset that you wish to edit, or new/move/label/delete to manage the current list of datasets<br/><br/>Suggested optional datasets:<br/> - <b>unsmoothed volumes</b> : enter functional data that has not been spatially smoothed (e.g. for more accurate ROI BOLD-signal extraction)<br/> - <b>FMAP</b> : enter fieldmap files for susceptibility distortion correction preprocessing preprocessing step (e.g. phasediff and magnitude volumes)<br/> - <b>VDM</b> : enter voxel displacement maps for susceptibility distortion correction preprocessing step (e.g. vdm5_* volumes)<br/> - <b>TPM</b> : enter subject-specific tissue probability maps for anatomical/functional segmentation and normalization to non-standard templates<br/><br/>Secondary datasets may also be used as alternative functional-data sources to compute ROI-level BOLD timeseres (e.g. for ROIs defined in other spaces; see <i>Setup.ROIs</i> tab).<br/>Secondary datasets that are not explicitly used during preprocessing or explicitly selected by any ROI will be simply disregarded by CONN''s Setup/Denoising/Analysis pipeline.<br/>Last, secondary datasets may also be defined as a way of keeping track of (and easily switching between) alternative versions of your functional data (e.g. an original dataset before all preprocessing steps)</HTML>','conn(''gui_setup'',7);');
-                            analysistypes={sprintf('secondary dataset #%d is equal to functional data',nset),sprintf('secondary dataset #%d is implicitly related to functional data: same filenames without leading ''s'' (SPM convention for non-smoothed volumes)',nset),sprintf('secondary dataset #%d is implicitly related to functional data: user-defined filename differences',nset),sprintf('secondary dataset #%d is explicitly defined: selected imaging files',nset)};
+                            analysistypes={sprintf('secondary dataset #%d is equal to functional dataset',nset),sprintf('secondary dataset #%d is implicitly related to functional dataset: same filenames without leading ''s'' (SPM convention for non-smoothed volumes)',nset),sprintf('secondary dataset #%d is implicitly related to functional dataset: user-defined filename differences',nset),sprintf('secondary dataset #%d is explicitly defined: selected imaging files',nset)};
                             CONN_h.menus.m_setup_00{6}=conn_menu('popup',boffset+[.20,.69,.43,.05],'',analysistypes,'<HTML>Define contents of secondary datasets (dataset #1 and above), either explicitly or in relation to the functional data:<br/>note1: ''same filenames without leading s'' uses SPM convention for naming spatially smoothed volumes to identify the original raw (non-smoothed) functional data from the smoothed filenames<br/>note2: ROIs may be associated with individual datasets (see <i>Setup.ROIs</i> tab); e.g. a normalized functional dataset for MNI-space ROIs vs. a coregistered functional dataset for subject-space ROIs</HTML>','conn(''gui_setup'',6);');
                         else
                             CONN_h.menus.m_setup_00{6}=[];CONN_h.menus.m_setup_00{7}=[];
@@ -2647,7 +2648,7 @@ else
                         %if ~nset
                         %    set(CONN_h.menus.m_setup_00{6},'visible','off','string',{'explicitly select functional files'});
                         %else
-                            analysistypes={sprintf('secondary dataset #%d is equal to functional data',nset),sprintf('secondary dataset #%d is implicitly related to functional data: same filenames without leading ''s''',nset),sprintf('secondary dataset #%d is implicitly related to functional data: user-defined filename differences',nset),sprintf('secondary dataset #%d is explicitly defined: selected imaging files',nset)};
+                            analysistypes={sprintf('secondary dataset #%d is equal to functional dataset',nset),sprintf('secondary dataset #%d is implicitly related to functional dataset: same filenames without leading ''s''',nset),sprintf('secondary dataset #%d is implicitly related to functional dataset: user-defined filename differences',nset),sprintf('secondary dataset #%d is explicitly defined: selected imaging files',nset)};
                             set(CONN_h.menus.m_setup_00{6},'visible','on','string',analysistypes,'value',CONN_x.Setup.secondarydataset(nset).functionals_type);
                         %end
                     else nset=0;
@@ -2760,8 +2761,9 @@ else
 						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.37,.26,.20,.31],'','','',[],@conn_callbackdisplay_structuralclick);
                         CONN_h.menus.m_setup_00{6}=conn_menu('popup',boffset+[.41,.21,.18,.045],'',{'Structural volume view','Structural surface view'},'select display view (surface view only available when selecting freesurfer-generated mri/T1.nii files)','conn(''gui_setup'',6);');
                         set([CONN_h.menus.m_setup_00{6}],'visible','off'); conn_menumanager('onregion',[CONN_h.menus.m_setup_00{6}],1,boffset+[.35,.18,.28,.70]);
-                        ht=uicontrol('style','frame','units','norm','position',boffset+[.35,.56,.24,.10],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
-                        set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.35,.20,.28,.70]);
+                        set([CONN_h.menus.m_setup_00{4}],'fontsize',7+CONN_gui.font_offset); 
+                        %%ht=uicontrol('style','frame','units','norm','position',boffset+[.35,.56,.24,.10],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        %%set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.35,.20,.28,.70]);
                         %ht=uicontrol('style','frame','units','norm','position',[.78,.06,.20,.84],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor);
                         %set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.19,0,.81,1]);
                         %CONN_h.menus.m_setup_00{6}=uicontrol('style','popupmenu','units','norm','position',boffset+[.31,.20,.13,.04],'string',{'Structural volume','Structural surface'},'value',2,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor','w','fontsize',8+CONN_gui.font_offset,'callback','conn(''gui_setup'',6);','tooltipstring','select display view (surface view only available for freesurfer-generated files)');
@@ -3117,8 +3119,9 @@ else
                         CONN_h.menus.general.names={};CONN_h.menus.general.names2={};
 						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.37,.19,.29,.28],'','','',@conn_callbackdisplay_general,@conn_callbackdisplay_roiclick); 
                         %set([CONN_h.menus.m_setup_00{4}],'visible','off'); conn_menumanager('onregion',[CONN_h.menus.m_setup_00{4}],1,boffset+[.36,.02,.31,.69]);
-                        ht=uicontrol('style','frame','units','norm','position',boffset+[.38,.47,.27,.08],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
-                        set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.36,.02,.31,.69]);
+                        set([CONN_h.menus.m_setup_00{4}],'fontsize',7+CONN_gui.font_offset); 
+                        %%ht=uicontrol('style','frame','units','norm','position',boffset+[.38,.47,.27,.08],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        %%set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.36,.02,.31,.69]);
                         %ht=uicontrol('style','frame','units','norm','position',[.78,.06,.20,.84],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor);
                         %set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.19,0,.81,1]);
 						CONN_h.menus.m_setup_00{6}=conn_menu('edit',boffset+[.40,.56,.08,.04],'ROI name','','ROI name','conn(''gui_setup'',6);');
@@ -4458,8 +4461,9 @@ else
 						CONN_h.menus.m_setup_00{5}=conn_menu('pushbutton', boffset+[.45,.56,.20,.09],'','','','conn(''gui_setup'',5);');
 						CONN_h.menus.m_setup_00{6}=conn_menu('image',boffset+[.455,.25,.20,.30]);
                         %set([CONN_h.menus.m_setup_00{5}],'visible','off'); conn_menumanager('onregion',[CONN_h.menus.m_setup_00{5}],1,boffset+[.435,.25,.23,.41]);
-                        ht=uicontrol('style','frame','units','norm','position',boffset+[.435,.56,.23,.09],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
-                        set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.435,.25,.23,.41]);
+                        set([CONN_h.menus.m_setup_00{5}],'fontsize',7+CONN_gui.font_offset); 
+                        %%ht=uicontrol('style','frame','units','norm','position',boffset+[.435,.56,.23,.09],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        %%set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.435,.25,.23,.41]);
                         %ht=uicontrol('style','frame','units','norm','position',[.78,.06,.20,.84],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor);
                         %set(ht,'visible','on'); conn_menumanager('onregion',ht,-1,boffset+[.19,0,.81,1]);
 						CONN_h.menus.m_setup_00{7}=conn_menu('edit',boffset+[.455,.71,.14,.04],'Covariate name','','First-level covariate name','conn(''gui_setup'',7);');

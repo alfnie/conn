@@ -93,7 +93,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('menubar',state)                   : display menubar (state: 'on' 'off')
 %
 % PRINT OPTIONS
-%  fh('print',type,filename)             : prints display to high-resolution .jpg file
+%  fh('print',type,filename,'-nogui')    : prints display to high-resolution .jpg file
 %                                           type=1: prints current view
 %                                           type=2: prints 2-view row display (left&right exterior views)
 %                                           type=3: prints 3-view mosaic display (superior,right,posterior views; e.g. glass-displays)
@@ -393,7 +393,7 @@ if ~isempty(state.pVOLother)
     end
     for n1=1:numel(state.pVOLother), 
         state.handles.patchblobother=[state.handles.patchblobother patch(state.pVOLother(n1),'facecolor',cmap(n1,:),'edgecolor','none','alphadatamapping','none','FaceLighting', 'phong','facealpha',state.facealphaud,'backfacelighting','reverselit','parent',state.handles.hax)]; 
-        state.patchblobother_x=[state.patchblobother_x mean(state.pVOLother(n1).vertices(:,1))];
+        if ~isempty(state.pVOLother(n1).vertices), state.patchblobother_x=[state.patchblobother_x mean(state.pVOLother(n1).vertices(:,1))]; end
     end
     if ~isempty(state.ud_color),
         if size(state.ud_color,1)==1, set(state.handles.patchblobother,'facecolor',state.ud_color);
