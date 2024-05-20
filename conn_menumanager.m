@@ -482,7 +482,7 @@ else
                 x=1+(CONN_MM.MENU{thishandle}.value==n1 & ~CONN_MM.MENU{thishandle}.state(n1))+2*CONN_MM.MENU{thishandle}.state(n1);
                 ximage=CONN_MM.CDATA{thishandle}{n1}{x};
                 if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, 
-                    ximage=max(0,min(1,ximage*2)); ximage=ximage.*repmat(.6+.3*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
+                    ximage=max(0,min(1,ximage*3)); ximage=ximage.*repmat(.6+.3*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
                     if 0,%CONN_MM.MENU{thishandle}.order(1)~='h'
                         ximage0=.5+0*round(ximage);
                         if t4(n1)==0, ximagei1=ceil(min(size(ximage,1)*.05,8));

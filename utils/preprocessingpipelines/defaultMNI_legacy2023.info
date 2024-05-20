@@ -1,0 +1,2 @@
+Default preprocessing pipeline for volume-based analyses (direct-normalization to MNI-space)
+Legacy version for back-compatibility, used in CONN22 and below

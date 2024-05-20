@@ -172,7 +172,7 @@ switch option
         if ishandle(hfig)
             delete(hfig);
             if ~isempty(filenamestotest)&&~isempty(filenamestotest{1})&&~isempty(filenamestotest{1}{1})&&~isempty(filenamestotest{1}{1}{1})
-                answ=conn_questdlg(sprintf('Do you want to test this rule now on all %s filenames?',namestring),'','Yes','No','No');
+                answ=conn_questdlg(sprintf('Before applying this rule would you like to test it first on all %s filenames?',namestring),'','Yes','No','No');
                 if isequal(answ,'Yes')
                     ko=0;
                     for nsub=1:numel(filenamestotest)

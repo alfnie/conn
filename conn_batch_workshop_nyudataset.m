@@ -181,7 +181,7 @@ TR=2; % Repetition time = 2 seconds
 clear batch;
 batch.filename=fullfile(cwd,'conn_NYU.mat');            % New conn_*.mat experiment name
 if DOPARALLEL, 
-    batch.parallel.N=NSUBJECTS; 
+    batch.parallel.N=1; 
     if ~isempty(PARALLELPROFILE), batch.parallel.profile=PARALLELPROFILE; end
 end
 
