@@ -1,7 +1,7 @@
 [
  {
   "name": "AnnArbor_a",
-  "description": "Monk, C.S./Seidler, R.D./Peltier, S.J. (n = 25 [22M/3F]; ages: 13-40; TR = 2; # slices = 40; # timepoints = 295)",
+  "description": "Monk, C.S./Seidler, R.D./Peltier, S.J. (n = 25 [22M/3F]; ages: 13-40; TR = 2; # slices = 40; # timepoints = 295; duration = 590s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1992",
   "link": "https://drive.google.com/file/d/10iKR-uQjjDoAzFgFxWMXgxEosDJDkx6I",
   "func": "rest.nii.gz",
@@ -14,7 +14,7 @@
  },
  {
   "name": "AnnArbor_b",
-  "description": "Monk, C.S./Seidler, R.D./Peltier, S.J. (n = 36 [17M/19F]; ages: 19-80; TR = 0.75; # slices = 16; # timepoints = 395)",
+  "description": "Monk, C.S./Seidler, R.D./Peltier, S.J. (n = 36 [17M/19F]; ages: 19-80; TR = 0.75; # slices = 16; # timepoints = 395; duration = 297s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1938",
   "link": "https://drive.google.com/file/d/12--apdb10uSlUg5LxwJDlZN-PGCj16hS",
   "func": "rest.nii.gz",
@@ -27,7 +27,7 @@
  },
  {
   "name": "Atlanta",
-  "description": "Mayberg, H.S. (n = 28 [13M/15F]; ages: 22-57; TR = 2; # slices = 20; # timepoints = 205)",
+  "description": "Mayberg, H.S. (n = 28 [13M/15F]; ages: 22-57; TR = 2; # slices = 20; # timepoints = 205; duration = 410s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1815",
   "link": "https://drive.google.com/file/d/1hd5TNJYnYVlVNES8iq1QITPLog_DK9o_",
   "func": "rest.nii.gz",
@@ -40,7 +40,7 @@
  },
  {
   "name": "Baltimore",
-  "description": "Pekar, J.J./Mostofsky, S.H. (n = 23 [8M/15F]; ages: 20-40; TR = 2.5; # slices = 47; # timepoints = 123)",
+  "description": "Pekar, J.J./Mostofsky, S.H. (n = 23 [8M/15F]; ages: 20-40; TR = 2.5; # slices = 47; # timepoints = 123; duration = 310s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1600",
   "link": "https://drive.google.com/file/d/1TZoFk-w1Nc2f9Mf_8MPUhgsNe1BEEiwQ",
   "func": "rest.nii.gz",
@@ -53,7 +53,7 @@
  },
  {
   "name": "Bangor",
-  "description": "Colcombe, S. (n = 20 [20M/0F]; ages: 19-38; TR = 2; # slices = 34; # timepoints = 265)",
+  "description": "Colcombe, S. (n = 20 [20M/0F]; ages: 19-38; TR = 2; # slices = 34; # timepoints = 265; duration = 530s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1603",
   "link": "https://drive.google.com/file/d/1RfpI4FLNvo8FatH648RJL_YcOa51CsF7",
   "func": "rest.nii.gz",
@@ -66,7 +66,7 @@
  },
  {
   "name": "Beijing_Zang",
-  "description": "Zang, Y.F. (n = 198 [76M/122F]; ages: 18-26; TR = 2; # slices = 33; # timepoints = 225)",
+  "description": "Zang, Y.F. (n = 198 [76M/122F]; ages: 18-26; TR = 2; # slices = 33; # timepoints = 225; duration = 450s)",
   "link_original": [
    "https://www.nitrc.org/frs/downloadlink.php/1602",
    "https://www.nitrc.org/frs/downloadlink.php/1604",
@@ -97,7 +97,7 @@
  },
  {
   "name": "Berlin_Margulies",
-  "description": "Margulies, D. (n = 26 [13M/13F]; ages: 23-44; TR = 2.3; # slices = 34; # timepoints = 195)",
+  "description": "Margulies, D. (n = 26 [13M/13F]; ages: 23-44; TR = 2.3; # slices = 34; # timepoints = 195; duration = 450s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1636",
   "link": "https://drive.google.com/file/d/1xzusOHBCVdFyex7GmZBIumfWFAVQ_dFe",
   "func": "rest.nii.gz",
@@ -110,7 +110,7 @@
  },
  {
   "name": "Cambridge_Buckner",
-  "description": "Buckner, R.L. (n = 198 [75M/123F]; ages: 18-30; TR = 3; # slices = 47; # timepoints = 119)",
+  "description": "Buckner, R.L. (n = 198 [75M/123F]; ages: 18-30; TR = 3; # slices = 47; # timepoints = 119; duration = 357s)",
   "link_original": [
    "https://www.nitrc.org/frs/downloadlink.php/1608",
    "https://www.nitrc.org/frs/downloadlink.php/1609",
@@ -138,11 +138,11 @@
  },
  {
   "name": "Dallas",
-  "description": "Rypma, B. (n = 24 [12M/12F]; ages: 20-71; TR = 2; # slices = 31; # timepoints = 115)",
+  "description": "Rypma, B. (n = 24 [12M/12F]; ages: 20-71; TR = 2; # slices = 31; # timepoints = 115; duration = 230s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1616",
   "link": "https://drive.google.com/file/d/12VsZxxT2Xd-l84w5i6Jlrq5gfFHFSvid",
   "func": "rest.nii.gz",
-  "anat": "mprage_anonymized.nii.gz",
+  "anat": "mprage_skullstripped.nii.gz",
   "sliceorder": "interleaved (Siemens)",
   "subjects": 24,
   "duration": 230,
@@ -151,7 +151,7 @@
  },
  {
   "name": "ICBM",
-  "description": "Evans, A.C. (n = 86 [41M/45F]; ages: 19-85; TR = 2; # slices = 23; # timepoints = 128; # sessions = 3)",
+  "description": "Evans, A.C. (n = 86 [41M/45F]; ages: 19-85; TR = 2; # slices = 23; # timepoints = 128; # sessions = 3; duration = 768s)",
   "link_original": [
    "https://www.nitrc.org/frs/downloadlink.php/1816",
    "https://www.nitrc.org/frs/downloadlink.php/1817",
@@ -176,7 +176,7 @@
  },
  {
   "name": "Leiden_2180",
-  "description": "Rombouts, S.A.R.B. (n = 12 [12M/0F]; ages: 20-27; TR = 2.18; # slices = 38; # timepoints = 215)",
+  "description": "Rombouts, S.A.R.B. (n = 12 [12M/0F]; ages: 20-27; TR = 2.18; # slices = 38; # timepoints = 215; duration = 470s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1620",
   "link": "https://drive.google.com/file/d/1A13lIodjbIjy8KNxjXk6xAk0Wg9cL0Sx",
   "func": "rest.nii.gz",
@@ -189,7 +189,7 @@
  },
  {
   "name": "Leiden_2200",
-  "description": "Rombouts, S.A.R.B. (n = 19 [11M/8F]; ages: 18-28; TR = 2.2; # slices = 38; # timepoints = 215)",
+  "description": "Rombouts, S.A.R.B. (n = 19 [11M/8F]; ages: 18-28; TR = 2.2; # slices = 38; # timepoints = 215; duration = 475s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1621",
   "link": "https://drive.google.com/file/d/1x5VpQeAjrjQuJvzsf_MosOxg-VI4mVh0",
   "func": "rest.nii.gz",
@@ -202,11 +202,11 @@
  },
  {
   "name": "Leipzig",
-  "description": "Villringer, A. (n = 37 [16M/21F]; ages: 20-42;  TR = 2.3; # slices = 34; # timepoints = 195)",
+  "description": "Villringer, A. (n = 37 [16M/21F]; ages: 20-42;  TR = 2.3; # slices = 34; # timepoints = 195; duration = 450s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1624",
   "link": "https://drive.google.com/file/d/1sjxfZjK_Sx-_y_sPnHHwHT4_oyuVu9Ko",
   "func": "rest.nii.gz",
-  "anat": "mprage_anonymized.nii.gz",
+  "anat": "mprage_skullstripped.nii.gz",
   "sliceorder": "interleaved (Siemens)",
   "subjects": 37,
   "duration": 450,
@@ -215,9 +215,9 @@
  },
  {
   "name": "Milwaukee_a",
-  "description": "Li, S.J. (n = 18 [n/a]; ages: n/a; TR = 2; # slices = 20; # timepoints = 175)",
+  "description": "Li, S.J. (n = 18 [n/a]; ages: n/a; TR = 2; # slices = 20; # timepoints = 175; duration = 350s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1625",
-  "link": "https://drive.google.com/file/d/1hd5TNJYnYVlVNES8iq1QITPLog_DK9o_",
+  "link": "https://drive.google.com/file/d/1xYDw3h0o1S7Ptn5gI_gmWLSNwi8b8CPW",
   "func": "rest.nii.gz",
   "anat": "mprage_anonymized.nii.gz",
   "sliceorder": "interleaved (bottom-up)",
@@ -228,9 +228,9 @@
  },
  {
   "name": "Milwaukee_b",
-  "description": "Li, S.J. (n = 46 [15M/31F]; ages: 44-65; TR = 2; # slices = 64; # timepoints = 175)",
+  "description": "Li, S.J. (n = 46 [15M/31F]; ages: 44-65; TR = 2; # slices = 64; # timepoints = 175; duration = 350s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1626",
-  "link": "https://drive.google.com/file/d/1xYDw3h0o1S7Ptn5gI_gmWLSNwi8b8CPW",
+  "link": "https://drive.google.com/file/d/1MQfpsvJ7xbi1qNY_EjU10YffQGoFKtOR",
   "func": "rest.nii.gz",
   "anat": "mprage_anonymized.nii.gz",
   "sliceorder": "ascending",
@@ -241,7 +241,7 @@
  },
  {
   "name": "Munchen",
-  "description": "Sorg, C./Riedel, V. (n = 16 [10M/6F]; ages: 63-73; TR = 3; # slices = 33; # timepoints = 72)",
+  "description": "Sorg, C./Riedel, V. (n = 16 [10M/6F]; ages: 63-73; TR = 3; # slices = 33; # timepoints = 72; duration = 216s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1627",
   "link": "https://drive.google.com/file/d/14r1FGLYoOWXyIq2Bl2INWu0LsV9-txIe",
   "func": "rest.nii.gz",
@@ -254,7 +254,7 @@
  },
  {
   "name": "Newark",
-  "description": "Biswal, B. (n = 19 [9M/10F]; ages: 21-39; TR = 2; # slices = 32; # timepoints = 135)",
+  "description": "Biswal, B. (n = 19 [9M/10F]; ages: 21-39; TR = 2; # slices = 32; # timepoints = 135; duration = 270s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1628",
   "link": "https://drive.google.com/file/d/1ZgcgBa53LYQPMyUq3YVvErYekn82CPgv",
   "func": "rest.nii.gz",
@@ -267,11 +267,11 @@
  },
  {
   "name": "NewHaven_a",
-  "description": "Hampson, M. (n = 19 [10M/9F]; ages: 18-48; TR = 1; # slices = 16; # timepoints = 249)",
+  "description": "Hampson, M. (n = 19 [10M/9F]; ages: 18-48; TR = 1; # slices = 16; # timepoints = 249; duration = 249s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1629",
   "link": "https://drive.google.com/file/d/1HS8eChI82btWaYfFFE3HBeywSbR_Jgul",
   "func": "rest.nii.gz",
-  "anat": "mprage_anonymized.nii.gz",
+  "anat": "mprage_skullstripped.nii.gz",
   "sliceorder": "interleaved (Siemens)",
   "subjects": 19,
   "duration": 249,
@@ -280,11 +280,11 @@
  },
  {
   "name": "NewHaven_b",
-  "description": "Hampson, M. (n = 16 [8M/8F]; ages: 18-42; TR = 1.5; # slices = 22; # timepoints = 181)",
+  "description": "Hampson, M. (n = 16 [8M/8F]; ages: 18-42; TR = 1.5; # slices = 22; # timepoints = 181; duration = 272s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1672",
   "link": "https://drive.google.com/file/d/1IdZnrq9MkpRcaenSiCqIjfKwr3CCqr0Z",
   "func": "rest.nii.gz",
-  "anat": "mprage_anonymized.nii.gz",
+  "anat": "mprage_skullstripped.nii.gz",
   "sliceorder": "interleaved (Siemens)",
   "subjects": 16,
   "duration": 272,
@@ -293,7 +293,7 @@
  },
  {
   "name": "NewYork_a_ADHD",
-  "description": "Milham, M.P./Castellanos, F.X. (n = 25 [19M/4F]; ages: 20-50; TR = 2; # slices = 39; # timepoints = 192)",
+  "description": "Milham, M.P./Castellanos, F.X. (n = 25 [19M/4F]; ages: 20-50; TR = 2; # slices = 39; # timepoints = 192; duration = 384s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/2085",
   "link": "https://drive.google.com/file/d/1K6qSqIWxqT3u6sjgfQN89b57lzhYn49E",
   "func": "rest.nii.gz",
@@ -306,7 +306,7 @@
  },
  {
   "name": "NewYork_a",
-  "description": "Milham, M.P./Castellanos, F.X. (n = 84 [43M/41F]; ages: 7-49; TR = 2; # slices = 39; # timepoints = 192)",
+  "description": "Milham, M.P./Castellanos, F.X. (n = 84 [43M/41F]; ages: 7-49; TR = 2; # slices = 39; # timepoints = 192; duration = 384s)",
   "link_original": [
    "https://www.nitrc.org/frs/downloadlink.php/1633",
    "https://www.nitrc.org/frs/downloadlink.php/1632"
@@ -328,9 +328,9 @@
  },
  {
   "name": "NewYork_b",
-  "description": "Milham, M.P./Castellanos, F.X. (n = 20 [8M/12F]; ages: 18-46; TR = 2; # slices = 33; # timepoints = 175)",
+  "description": "Milham, M.P./Castellanos, F.X. (n = 20 [8M/12F]; ages: 18-46; TR = 2; # slices = 33; # timepoints = 175; duration = 350s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1634",
-  "link": "https://drive.google.com/file/d/1hd5TNJYnYVlVNES8iq1QITPLog_DK9o_",
+  "link": "https://drive.google.com/file/d/1hLU2IbXmLU5ffe-W-zdGXim8iyH6ziiz",
   "func": "rest.nii.gz",
   "anat": "mprage_anonymized.nii.gz",
   "sliceorder": "interleaved (Siemens)",
@@ -341,7 +341,7 @@
  },
  {
   "name": "NYU_TRT",
-  "description": "Milham, M.P./Castellanos, F.X. (n = 25 [10M/15F]; ages: 22-49; TR = 2; # slices = 39; # timepoints = 197, # sessions = 3)",
+  "description": "Milham, M.P./Castellanos, F.X. (n = 25 [10M/15F]; ages: 22-49; TR = 2; # slices = 39; # timepoints = 197, # sessions = 3; duration = 1182s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1635",
   "link": [
    "https://drive.google.com/file/d/1wTIywBVPeO8C9NgxQrzQ2u1Ld-BcL7hk",
@@ -368,7 +368,7 @@
  },
  {
   "name": "Ontario",
-  "description": "Williamson, P. (n = 11 [n/a]; ages: n/a; TR = 3; # slices = 29; # timepoints = 105)",
+  "description": "Williamson, P. (n = 11 [n/a]; ages: n/a; TR = 3; # slices = 29; # timepoints = 105; duration = 315s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1637",
   "link": "https://drive.google.com/file/d/1WRA4Sxn7Dr_jPNFt8ANu66Mj0SLWNKA1",
   "func": "rest.nii.gz",
@@ -381,7 +381,7 @@
  },
  {
   "name": "Orangeburg",
-  "description": "Hoptman, M. (n = 20 [15M/5F]; ages: 20-55; TR = 2; # slices = 22; # timepoints = 165)",
+  "description": "Hoptman, M. (n = 20 [15M/5F]; ages: 20-55; TR = 2; # slices = 22; # timepoints = 165; duration = 330s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1638",
   "link": "https://drive.google.com/file/d/1Xv6WyprxNidA88XMlGeOdfQqeqUxXnqE",
   "func": "rest.nii.gz",
@@ -394,7 +394,7 @@
  },
  {
   "name": "Oulu",
-  "description": "Kiviniemi, V.J./Veijiola, J. (n = 103 [37M/66F]; ages: 20-23; TR = 1.8; # slices = 28; # timepoints = 245)",
+  "description": "Kiviniemi, V.J./Veijiola, J. (n = 103 [37M/66F]; ages: 20-23; TR = 1.8; # slices = 28; # timepoints = 245; duration = 441s)",
   "link_original": [
    "https://www.nitrc.org/frs/downloadlink.php/1639",
    "https://www.nitrc.org/frs/downloadlink.php/1640"
@@ -416,7 +416,7 @@
  },
  {
   "name": "Oxford",
-  "description": "Smith, S.M./Mackay, C. (n = 22 [12M/10F]; ages: 20-35; TR = 2; # slices = 34; # timepoints = 175)",
+  "description": "Smith, S.M./Mackay, C. (n = 22 [12M/10F]; ages: 20-35; TR = 2; # slices = 34; # timepoints = 175; duration = 350s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1642",
   "link": "https://drive.google.com/file/d/1m0pEc0ifKTufznN3TYZ2H6xCEJnIuKeg",
   "func": "rest.nii.gz",
@@ -429,7 +429,7 @@
  },
  {
   "name": "PaloAlto",
-  "description": "Greicius, M. (n = 17 [2M/15F]; ages: 22-46; TR = 2; # slices = 29; # timepoints = 235)",
+  "description": "Greicius, M. (n = 17 [2M/15F]; ages: 22-46; TR = 2; # slices = 29; # timepoints = 235; duration = 470s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1820",
   "link": "https://drive.google.com/file/d/1uQw8f2JnDyEkMcBO54Y_shDFzl3JvhhB",
   "func": "rest.nii.gz",
@@ -442,11 +442,11 @@
  },
  {
   "name": "Pittsburgh",
-  "description": "Siegle, G. (n = 17 [10M/7F]; ages: 25-54; TR = 1.5; # slices = 29; # timepoints = 275)",
+  "description": "Siegle, G. (n = 17 [10M/7F]; ages: 25-54; TR = 1.5; # slices = 29; # timepoints = 275; duration = 414s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1641",
   "link": "https://drive.google.com/file/d/1pqiHo2WrxMLS9NlbjRogfluWlnetabhb",
   "func": "rest.nii.gz",
-  "anat": "mprage_anonymized.nii.gz",
+  "anat": "mprage_skullstripped.nii.gz",
   "sliceorder": "interleaved (Siemens)",
   "subjects": 17,
   "duration": 414,
@@ -455,7 +455,7 @@
  },
  {
   "name": "Queensland",
-  "description": "McMahon, K. (n = 19 [11M/8F]; ages: 20-34; TR = 2.1; # slices = 36; # timepoints = 190)",
+  "description": "McMahon, K. (n = 19 [11M/8F]; ages: 20-34; TR = 2.1; # slices = 36; # timepoints = 190; duration = 400s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1643",
   "link": "https://drive.google.com/file/d/1JcixUKeqyUXrWdjnhg2DbfKvJ15k1_1a",
   "func": "rest.nii.gz",
@@ -468,7 +468,7 @@
  },
  {
   "name": "SaintLouis",
-  "description": "Schlaggar, B./Petersen, S. (n = 31 [14M/17F]; ages: 21-29; TR = 2.5; # slices = 32; # timepoints = 127)",
+  "description": "Schlaggar, B./Petersen, S. (n = 31 [14M/17F]; ages: 21-29; TR = 2.5; # slices = 32; # timepoints = 127; duration = 320s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1644",
   "link": "https://drive.google.com/file/d/1Ll1ktI9v_q8UtGQssyKO321FaQYOjXJg",
   "func": "rest.nii.gz",
@@ -481,7 +481,7 @@
  },
  {
   "name": "Taipei_a",
-  "description": "Lin, C.P. (n = 14 [n/a]; ages: n/a; TR = 2; # slices = 32; # timepoints = 295)",
+  "description": "Lin, C.P. (n = 14 [n/a]; ages: n/a; TR = 2; # slices = 32; # timepoints = 295; duration = 590s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1645",
   "link": "https://drive.google.com/file/d/1bOdrSW6GzLC8h-n2vYjRaSFQBrdEPIKo",
   "func": "rest.nii.gz",
@@ -494,7 +494,7 @@
  },
  {
   "name": "Taipei_b",
-  "description": "in, C.P. (n = 8 [n/a]; ages: n/a; TR = 2; # slices = 33; # timepoints = 175)",
+  "description": "in, C.P. (n = 8 [n/a]; ages: n/a; TR = 2; # slices = 33; # timepoints = 175; duration = 350s)",
   "link_original": "https://www.nitrc.org/frs/downloadlink.php/1646",
   "link": "https://drive.google.com/file/d/1Sjh1lijutrnhCJHUBJVM6R8qzFuaxzTe",
   "func": "rest.nii.gz",

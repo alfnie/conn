@@ -137,7 +137,7 @@ if any(procedures==Iprocedure) % QA_NORM functional
                 %nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
                 for nses=1:nsess,
                     if all(validsets==0), fhset=conn('gui_setupgo',3,14,4,nsub,nses,validsets);
-                    else fhset=conn('gui_setupgo',5,14,4,nsub,nses,validsets);
+                    else fhset=conn('gui_setupgo',4,14,4,nsub,nses,validsets);
                     end
                     for nset=1:numel(fhset)
                         fh=fhset{nset};
@@ -208,7 +208,7 @@ if any(procedures==Iprocedure) % QA_NORM rois
                     if ~sessionspecific, nsess=1; end
                     for nses=1:nsess,
                         assert(~isempty(CONN_x.Setup.rois.files{nsub}{nrois}{nses}{1}),'no ROI-file entered');
-                        fh=conn('gui_setupgo',4,14,6,nrois*(1-2*erois),nsub,nses);
+                        fh=conn('gui_setupgo',5,14,6,nrois*(1-2*erois),nsub,nses);
                         filename=fullfile(qafolder,sprintf('QA_NORM_%s.subject%03d.session%03d.jpg',[streroded{erois+1} regexprep(CONN_x.Setup.rois.names{nrois},'\W','')],nsub,nses));
                         fh('multisliceset',1,nslices,dslices);
                         fh('togglegui',1);
@@ -257,7 +257,7 @@ if any(procedures==Iprocedure) % QA_REG structural
                     if ~sessionspecific, nsess=1; end
                     for nses=1:nsess,
                         assert(~isempty(CONN_x.Setup.rois.files{nsub}{nrois}{nses}{1}),'no ROI-file entered');
-                        fh=conn('gui_setupgo',4,14,4,nrois*(1-2*erois),nsub,nses);
+                        fh=conn('gui_setupgo',5,14,4,nrois*(1-2*erois),nsub,nses);
                         filename=fullfile(qafolder,sprintf('QA_REG_%s_structural.subject%03d.session%03d.jpg',[streroded{erois+1} regexprep(CONN_x.Setup.rois.names{nrois},'\W','')],nsub,nses));
                         fh('multisliceset',1,nslices,dslices);
                         fh('togglegui',1);
@@ -306,7 +306,7 @@ if any(procedures==Iprocedure) % QA_REG functional
                     if ~sessionspecific, nsess=1; end
                     for nses=1:nsess,
                         assert(~isempty(CONN_x.Setup.rois.files{nsub}{nrois}{nses}{1}),'no ROI-file entered');
-                        fh=conn('gui_setupgo',4,14,3,nrois*(1-2*erois),nsub,nses);
+                        fh=conn('gui_setupgo',5,14,3,nrois*(1-2*erois),nsub,nses);
                         filename=fullfile(qafolder,sprintf('QA_REG_%s_functional.subject%03d.session%03d.jpg',[streroded{erois+1} regexprep(CONN_x.Setup.rois.names{nrois},'\W','')],nsub,nses));
                         fh('multisliceset',1,nslices,dslices);
                         fh('togglegui',1);
@@ -355,7 +355,7 @@ if any(procedures==Iprocedure) % QA_REG mni
                     if ~sessionspecific, nsess=1; end
                     for nses=1:nsess,
                         assert(~isempty(CONN_x.Setup.rois.files{nsub}{nrois}{nses}{1}),'no ROI-file entered');
-                        fh=conn('gui_setupgo',4,14,5,nrois*(1-2*erois),nsub,nses);
+                        fh=conn('gui_setupgo',5,14,5,nrois*(1-2*erois),nsub,nses);
                         filename=fullfile(qafolder,sprintf('QA_REG_%s_mni.subject%03d.session%03d.jpg',[streroded{erois+1} regexprep(CONN_x.Setup.rois.names{nrois},'\W','')],nsub,nses));
                         fh('multisliceset',1,nslices,dslices);
                         fh('togglegui',1);
@@ -389,7 +389,7 @@ if any(procedures==Iprocedure) % QA_COREG functional
             nsub=nsubs(isub);
             try
                 if all(validsets==0), fh=conn('gui_setupgo',3,14,7,nsub,nslice,validsets);
-                else fh=conn('gui_setupgo',5,14,7,nsub,nslice,validsets);
+                else fh=conn('gui_setupgo',4,14,7,nsub,nslice,validsets);
                 end
                 filename=fullfile(qafolder,sprintf('QA_COREG_functional.subject%03d.jpg',nsub));
                 fh('togglegui',1);
@@ -421,7 +421,7 @@ if any(procedures==Iprocedure) % QA_TIME functional
             nsub=nsubs(isub);
             try
                 if all(validsets==0), fh=conn('gui_setupgo',3,14,8,nsub,[],nslice,validsets,false);
-                else fh=conn('gui_setupgo',5,14,8,nsub,[],nslice,validsets,false);
+                else fh=conn('gui_setupgo',4,14,8,nsub,[],nslice,validsets,false);
                 end
                 filename=fullfile(qafolder,sprintf('QA_TIME_functional.subject%03d.jpg',nsub));
                 fh('print',filename,'-nogui','-noerror',dpires,'-ADDnoui','-nopersistent');
@@ -496,7 +496,7 @@ if any(procedures==Iprocedure) % QA_REG functional-structural
                 %nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
                 for nses=1:nsess,
                     if all(validsets==0), fhset=conn('gui_setupgo',3,14,3,nsub,nses,validsets);
-                    else fhset=conn('gui_setupgo',5,14,3,nsub,nses,validsets);
+                    else fhset=conn('gui_setupgo',4,14,3,nsub,nses,validsets);
                     end
                     for nset=1:numel(fhset)
                         fh=fhset{nset};

@@ -267,6 +267,8 @@ function varargout=conn_batch(varargin)
 %                        'default_ssnl'                          : same as default_ss but with non-linear coregistration
 %                      INDIVIDUAL STRUCTURAL STEPS:
 %                        'structural_center'                     : centers structural data to origin (0,0,0) coordinates
+%                        'structural_label'                      : labels current structural files (to list of Secondary Datasets)
+%                        'structural_load'                       : assigns current structural files (from list of Secondary Datasets)
 %                        'structural_manualorient'               : applies user-defined affine transformation to structural data
 %                        'structural_manualspatialdef'           : applies user-defined spatial deformation to structural data
 %                        'structural_mask'                       : masks structural data using inclusive or exclusive mask
@@ -375,12 +377,14 @@ function varargout=conn_batch(varargin)
 %      Setup.preprocessing.fwhm            : (functional_smooth) Smoothing factor (mm) [8]
 %      Setup.preprocessing.interp          : (normalization) target voxel interpolation method (0:nearest neighbor; 1:trilinear; 2 or higher:n-order 
 %                                            spline) [4]
-%      Setup.preprocessing.label           : (functional_label) label of secondary dataset (note: the following functional step names do not require an 
+%      Setup.preprocessing.label           : (functional_label,structural_label) label of secondary dataset (note: the following labels do not require an 
 %                                            explicit label field: 'functional_label_as_original', 'functional_label_as_subjectspace', 
-%                                            'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed')
-%      Setup.preprocessing.load_label      : (functional_load) label of secondary dataset (note: the following functional step names do not require an 
+%                                            'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed',
+%                                            'structural_label_as_original', 'structural_label_as_mnispace')
+%      Setup.preprocessing.load_label      : (functional_load,structural_load) label of secondary dataset (note: the following labels do not require an 
 %                                            explicit continue field: 'functional_load_from_original', 'functional_load_from_subjectspace', 
-%                                            'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed')
+%                                            'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed',
+%                                            'structural_load_from_original', 'structural_load_from_mnispace')
 %      Setup.preprocessing.mask_names_anat : (strucutral_mask) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
 %      Setup.preprocessing.mask_names_func : (functional_mask, functional_smooth_masked) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
 %      Setup.preprocessing.mask_inclusive_anat : (strucutral_mask) 1: inclusive ROI mask (keep voxels inside ROI); 0: exclusive ROI mask (keep voxels outside ROI) [1]

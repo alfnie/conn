@@ -1281,6 +1281,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             end
             if strcmp(lower(REDO),'yes'), missingdata(:)=true; end
             nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
+            dofAll=0;
             clear Y X iX X1 X2 C Xnames;
             clear Youtnorm0 cachenorm0 Voutputfiles;
             for nses=1:nsess, % loads all ROI COV COND data for this subject 
@@ -1354,7 +1355,18 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                     for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{edof_icov}=nan; end
                 end
                 CONN_x.Setup.l2covariates.values{nsub}{edof_icov}=dof2;
+                dofAll=dofAll+dof2;
             end
+            edof_name='QC_DOF';
+            edof_icov=find(strcmp(edof_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+            if isempty(edof_icov),
+                edof_icov=numel(CONN_x.Setup.l2covariates.names);
+                CONN_x.Setup.l2covariates.names{edof_icov}=edof_name;
+                CONN_x.Setup.l2covariates.descrip{edof_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising)';
+                CONN_x.Setup.l2covariates.names{edof_icov+1}=' ';
+                for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{edof_icov}=nan; end
+            end
+            CONN_x.Setup.l2covariates.values{nsub}{edof_icov}=dofAll;
             clear nsamples time0 dataroi conditionsweights;
             crop=0;
             for ncondition=validconditions(missingdata), % computes number of samples per condition

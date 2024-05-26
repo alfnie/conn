@@ -58,7 +58,7 @@ if isempty(varargin), % other parameters: names of selected datasets
     if ~isempty(projectname)
         [cwd,tfilename,tfileext]=fileparts(projectname);
         PROJECTNAME=[tfilename,tfileext];
-        answ=conn_questdlg({sprintf('Preparing to download and process %d datasets (%d participants) from the 1000 Functional Connectomes Project',numel(data),NSUBJECTS),'(Mennes, M., Biswal, B. B., Castellanos, F. X., & Milham, M. P. (2013). Making data sharing work: the FCP/INDI experience. Neuroimage, 82, 683-691)',' ',sprintf('Processing the selected datasets may require approximately %d Gbs of hard-drive space as well as %d hours to finish.',ceil(3*DATA/180),ceil(DATA/180/10)),' ','A new ',projectname,' project will be created in the following folder:',cwd},'','Continue (download and process)','Continue (download only)','Cancel','Continue (download and process)');
+        answ=conn_questdlg({sprintf('Preparing to download and process %d datasets (%d participants) from the 1000 Functional Connectomes Project',numel(data),NSUBJECTS),'(Mennes, M., Biswal, B. B., Castellanos, F. X., & Milham, M. P. (2013). Making data sharing work: the FCP/INDI experience. Neuroimage, 82, 683-691)',' ',sprintf('Processing the selected datasets may require approximately %d Gbs of hard-drive space as well as %d hours to finish.',ceil(3*DATA/180),ceil(DATA/180/10)),' ','A new ',projectname,' project will be created'},'','Continue (download and process)','Continue (download only)','Cancel','Continue (download and process)');
         if isempty(answ)||strcmp(answ,'Cancel'), return; end
         DOPROCESS=strcmp(answ,'Continue (download and process)');
     else
@@ -84,15 +84,17 @@ if isempty(varargin), % other parameters: names of selected datasets
     end
 
     conn_fileutils('cd',char(cwd));
-    pr0='Run locally on this computer';
-    pr1=conn_jobmanager('getprofile');
-    pr={pr0, pr1};
-    %pr=conn_jobmanager('profiles');
-    %pr=[{pr0} {pr1} pr(~ismember(pr,pr1))];
-    answ=conn_questdlg('','Parallelization',pr{:},pr0);
-    if isempty(answ), return; end
-    if isequal(answ,pr0), DOPARALLEL=false;
-    else DOPARALLEL=true; PARALLELPROFILE=answ;
+    if DOPROCESS
+        pr0='Run locally on this computer';
+        pr1=conn_jobmanager('getprofile');
+        pr={pr0, pr1};
+        %pr=conn_jobmanager('profiles');
+        %pr=[{pr0} {pr1} pr(~ismember(pr,pr1))];
+        answ=conn_questdlg('','Parallelization',pr{:},pr0);
+        if isempty(answ), return; end
+        if isequal(answ,pr0), DOPARALLEL=false;
+        else DOPARALLEL=true; PARALLELPROFILE=answ;
+        end
     end
     if conn_projectmanager('inserver'), % if connected to remote server
         opts={cwd};
@@ -181,6 +183,9 @@ sFUNCTIONAL_FILE={};
 sSTRUCTURAL_FILE={};
 SUB_UIDS=[];
 DIR_NAMES={};
+SUB_DEMODATASET={};
+SUB_DEMOGRAPHICS={};
+SUB_DATASET=[];
 for n=1:numel(data),
     repofiles_link=repofiles(n).link;
     repofiles_file=repofiles(n).file;
@@ -196,9 +201,10 @@ for n=1:numel(data),
             dirsubs=dir(fullfile(dirname,'sub*'));
             dirsubs=dirsubs([dirsubs.isdir]>0);
             for ndirsubs=1:numel(dirsubs)
-                [ok,NSUB]=ismember(dirsubs(ndirsubs).name,DIR_NAMES);
+                ename=[data{n},'.',dirsubs(ndirsubs).name];
+                [ok,NSUB]=ismember(ename,DIR_NAMES);
                 if ~ok,
-                    DIR_NAMES{end+1}=dirsubs(ndirsubs).name;
+                    DIR_NAMES{end+1}=ename;
                     NSUB=numel(DIR_NAMES);
                 end
                 tFUNCTIONAL_FILE=conn_dir(fullfile(dirname,dirsubs(ndirsubs).name,regexprep(repofiles(n).func,'\.gz$','')),'-cell');
@@ -211,22 +217,66 @@ for n=1:numel(data),
                     sFUNCTIONAL_FILE=[sFUNCTIONAL_FILE;{reshape(tFUNCTIONAL_FILE,1,[])}];
                     sSTRUCTURAL_FILE=[sSTRUCTURAL_FILE;{reshape(tSTRUCTURAL_FILE,1,[])}];
                     SUB_UIDS=[SUB_UIDS;NSUB];
+                    SUB_DATASET=[SUB_DATASET;n];
+                end
+            end
+            dirdemographics=dir(fullfile(dirname,'*demographics.txt'));
+            if ~isempty(dirdemographics), 
+                SUB_DEMODATASET{n}=data{n}; 
+                SUB_DEMOGRAPHICS{n}=conn_loadcsvfile(fullfile(dirname,dirdemographics(1).name),false); 
+            end
+        end
+    end
+end
+[uSUB_UIDS,uSUB_idx]=unique(SUB_UIDS);
+NSUBJECTS=numel(uSUB_UIDS);
+FUNCTIONAL_FILE={};
+STRUCTURAL_FILE={};
+tIDs={};
+tDATASET=[];
+for nsub=1:NSUBJECTS,
+    idx=find(SUB_UIDS==uSUB_UIDS(nsub));
+    FUNCTIONAL_FILE{nsub}=cat(2,sFUNCTIONAL_FILE{idx});
+    STRUCTURAL_FILE{nsub}=cat(2,sSTRUCTURAL_FILE{idx});
+    tIDs{nsub}=DIR_NAMES{uSUB_UIDS(nsub)}; % note: extended IDs (e.g. 'NewYork_a.sub02503') is used to sort subjects
+    tDATASET(nsub)=SUB_DATASET(uSUB_idx(nsub));
+end
+COVS=struct;
+for n=1:numel(SUB_DEMOGRAPHICS), % matches covariates field sub##### id's to directory names
+    if ~isempty(SUB_DEMOGRAPHICS{n})&&isstruct(SUB_DEMOGRAPHICS{n})
+        fnames=fieldnames(SUB_DEMOGRAPHICS{n});
+        NF=1:numel(fnames);
+        COVS_ID=[];
+        for nf=NF(NF>0),
+            try, if iscell(SUB_DEMOGRAPHICS{n}.(fnames{nf})) && all(cellfun(@(x)~isempty(regexp(x,'^sub\d+$')),SUB_DEMOGRAPHICS{n}.(fnames{nf}))), COVS_ID=cellfun(@(x)[SUB_DEMODATASET{n},'.',x],SUB_DEMOGRAPHICS{n}.(fnames{nf}),'uni',0); NF(nf)=0; end; end
+        end
+        if ~isempty(COVS_ID)
+            [ok,idx]=ismember(tIDs,COVS_ID); % match COVS_ID from file tu tIDs from directory names
+            if any(ok),
+                if ~isfield(COVS,'ID'), COVS.ID=nan(NSUBJECTS,1); end
+                COVS.ID(ok)=str2double(regexprep(COVS_ID(idx(ok)),'^.*sub',''));
+                for nf=NF(NF>0),
+                    try, if iscell(SUB_DEMOGRAPHICS{n}.(fnames{nf})) && all(ismember(lower(SUB_DEMOGRAPHICS{n}.(fnames{nf})),{'f','m'})),
+                            if ~isfield(COVS,'MALE'), COVS.MALE=nan(NSUBJECTS,1); end
+                            if ~isfield(COVS,'FEMALE'), COVS.FEMALE=nan(NSUBJECTS,1); end
+                            COVS.MALE(ok)=cellfun(@(x)strcmpi(x,'m'),SUB_DEMOGRAPHICS{n}.(fnames{nf})(idx(ok))); COVS.FEMALE(ok)=cellfun(@(x)strcmpi(x,'f'),SUB_DEMOGRAPHICS{n}.(fnames{nf})(idx(ok))); NF(nf)=0;
+                    end; end
+                try, if iscell(SUB_DEMOGRAPHICS{n}.(fnames{nf})) && all(cellfun(@(x)~isempty(regexp(x,'^r|^l')),lower(SUB_DEMOGRAPHICS{n}.(fnames{nf})))),
+                        if ~isfield(COVS,'HANDRIGHT'), COVS.HANDRIGHT=nan(NSUBJECTS,1); end
+                        if ~isfield(COVS,'HANDLEFT'), COVS.HANDLEFT=nan(NSUBJECTS,1); end
+                        COVS.HANDRIGHT(ok)=cellfun(@(x)~strcmpi(x,'l'),SUB_DEMOGRAPHICS{n}.(fnames{nf})(idx(ok)));
+                        COVS.HANDLEFT(ok)=cellfun(@(x)~strcmpi(x,'r'),SUB_DEMOGRAPHICS{n}.(fnames{nf})(idx(ok))); NF(nf)=0;
+                end; end
+            try, if ~iscell(SUB_DEMOGRAPHICS{n}.(fnames{nf})),
+                    if ~isfield(COVS,'AGE'), COVS.AGE=nan(NSUBJECTS,1); end
+                    COVS.AGE(ok)=SUB_DEMOGRAPHICS{n}.(fnames{nf})(idx(ok)); COVS.AGE(COVS.AGE==9999)=nan; NF(nf)=0;
+            end; end
                 end
             end
         end
     end
 end
-uSUB_UIDS=unique(SUB_UIDS);
-NSUBJECTS=numel(uSUB_UIDS);
-FUNCTIONAL_FILE={};
-STRUCTURAL_FILE={};
-tIDs={};
-for nsub=1:NSUBJECTS,
-    idx=find(SUB_UIDS==uSUB_UIDS(nsub));
-    FUNCTIONAL_FILE{nsub}=cat(2,sFUNCTIONAL_FILE{idx});
-    STRUCTURAL_FILE{nsub}=cat(2,sSTRUCTURAL_FILE{idx});
-    tIDs{nsub}=DIR_NAMES{uSUB_UIDS(nsub)};
-end
+
 nsessions=cellfun('length',FUNCTIONAL_FILE);
 disp([num2str(numel(FUNCTIONAL_FILE)),' subjects']);
 if all(nsessions==mean(nsessions)), disp([num2str(mean(nsessions)),' runs']);
@@ -271,6 +321,21 @@ else
     for ncond=1,for nsub=1:NSUBJECTS,for nses=1:nsessions(nsub),              batch.Setup.conditions.onsets{ncond}{nsub}{nses}=0; batch.Setup.conditions.durations{ncond}{nsub}{nses}=inf;end;end;end     % rest condition (all sessions)
     for ncond=1:nconditions,for nsub=1:NSUBJECTS,for nses=1:nsessions(nsub),  batch.Setup.conditions.onsets{1+ncond}{nsub}{nses}=[];batch.Setup.conditions.durations{1+ncond}{nsub}{nses}=[]; end;end;end
     for ncond=1:nconditions,for nsub=1:NSUBJECTS,if nsessions(nsub)>=ncond,   batch.Setup.conditions.onsets{1+ncond}{nsub}{ncond}=0; batch.Setup.conditions.durations{1+ncond}{nsub}{ncond}=inf;end;end;end % session-specific conditions
+end
+batch.Setup.subjects.effects={};
+batch.Setup.subjects.effect_names={};
+batch.Setup.subjects.add=true;
+uDATASET=unique(tDATASET);
+for nd=1:numel(uDATASET),
+    batch.Setup.subjects.effects{end+1}=tDATASET(:)==uDATASET(nd);
+    batch.Setup.subjects.effect_names{end+1}=sprintf('SITE_%s',data{uDATASET(nd)});
+end
+fCOVS=fieldnames(COVS);
+if ~isempty(fCOVS)
+    for nfCOVS=1:numel(fCOVS), 
+        batch.Setup.subjects.effects{end+1}=COVS.(fCOVS{nfCOVS}); 
+        batch.Setup.subjects.effect_names{end+1}=fCOVS{nfCOVS};
+    end
 end
 
 if DOPROCESS

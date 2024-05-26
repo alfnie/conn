@@ -82,7 +82,7 @@ for nopt=1:numel(opts),
                 name2=regexprep(name2,'(\s*\(.*\).*$)|(^functional )|(^structural )','');
                 name3=regexprep(lower(options.steps),'^run_|^update_|^interactive_','');
                 for n=1:numel(name3)
-                    if isempty(regexp(name3{n},'^functional_label|^functional_load|^functional_manual|^structural_manual|^functional_center|^structural_center|^structural_'))
+                    if isempty(regexp(name3{n},'^functional_label|^functional_load|^structural_label|^structural_load|^functional_manual|^structural_manual|^functional_center|^structural_center|^structural_'))
                         [ok,idx]=ismember(name3{n},name1);
                         if ok, options.liststeps{end+1}=[lower(name2{idx}(1)) name2{idx}(2:end)]; end
                     end

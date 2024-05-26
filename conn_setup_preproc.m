@@ -47,6 +47,12 @@ steps={'default_mni','default_mnifield','default_mnidirectfield','default_ss','d
     'structural_normalize_preservemasks',...
     'structural_manualspatialdef', ...
     'structural_mask',...
+    'structural_label', ...
+    'structural_label_as_original', ...
+    'structural_label_as_mnispace', ...
+    'structural_load', ...
+    'structural_load_from_original', ...
+    'structural_load_from_mnispace', ...
     'functional_removescans','functional_manualorient','functional_center','functional_centerruns','functional_centertostruct'...
     'functional_slicetime','functional_sliceintensity','functional_bandpass','functional_regression','functional_roiextract','functional_mask','functional_realign','functional_realign&unwarp',...
     'functional_realign&unwarp&fieldmap','functional_art','functional_coregister_affine_reslice',...
@@ -89,6 +95,12 @@ steps_names={'<HTML><b>default preprocessing pipeline</b> for volume-based analy
     'structural Normalization preserving Grey/White/CSF masks (MNI space normalization of structural, applying same transformation to existing Grey/White/CSF masks)',...
     'structural Manual deformation (non-linear transformation of structural volumes)', ...
     'structural Masking (apply mask to structural data)',...
+    'structural Label current structural files as new secondary dataset (custom label)', ...
+    'structural Label current structural files as "original structural images"', ...
+    'structural Label current structural files as "mni-space structural images"', ...
+    'structural Load structural data from previously labeled dataset (custom label)', ...
+    'structural Load structural data from "original structural images" dataset', ...
+    'structural Load structural data from "mni-space structural images" dataset', ...
     'functional Removal of initial scans (disregard initial functional scans)','functional Manual transformation (rotation/flip/translation/affine of functional volumes)','functional Center to (0,0,0) coordinates (translation)','functional Center to (0,0,0) coordinates (translation) separately for each run/session','functional Center to structural coordinates (translation)'...
     'functional Slice timing correction (STC; correction for inter-slice differences in acquisition time)','functional Slice intensity correction (SIC; correction for inter-slice differences in BOLD signal contrast)','functional Band-pass filtering (temporal filtering of BOLD data)','functional Regression of temporal components (keep residuals of linear model to BOLD timeseries)','functional ROI extraction (compute BOLD timeseres within ROI)','functional Masking (apply mask to functional data)','functional Realignment (subject motion estimation and correction)','functional Realignment with correction of susceptibility distortion interactions (subject motion estimation and correction)',...
     'functional Realignment with susceptibility distortion correction using fieldmaps (subject motion estimation and correction)','functional Outlier detection (ART-based identification of outlier scans for scrubbing)','functional Direct coregistration to structural (rigid body transformation)',...
@@ -134,6 +146,12 @@ steps_descr={{'INPUT: structural&functional volumes','OUTPUT (all in MNI-space):
     {'INPUT: structural volume; Grey/White/CSF masks (in same space as structural)','OUTPUT: skull-stripped normalized structural volume, normalized Grey/White/CSF masks (all in MNI space)'},...
     {'INPUT: structural volume; user-defined spatial deformation file (e.g. y_#.nii file)','OUTPUT: resampled structural volumes'}, ...
     {'INPUT: structural volume; ROIs (in same space as structural volume)','OUTPUT: structural volumes masked with ROI (or union of multiple ROIs)'}, ...
+    {'INPUT: structural volume','OUTPUT: none (one of the secondary datasets will point to current version of structural volumes)'}, ...
+    {'INPUT: structural volume','OUTPUT: none ("original structural images" secondary dataset will point to current version of structural volumes)'}, ...
+    {'INPUT: structural volumes','OUTPUT: none ("mni-space structural images" secondary dataset will point to current version of structural volumes)'}, ...
+    {'INPUT: other imaging volumes (in secondary dataset)','OUTPUT: structural volumes (current structural volumes will point to same files as one of the secondary datasets)'}, ...
+    {'INPUT: other imaging volumes (in secondary dataset)','OUTPUT: structural volumes (current structural volumes will point to same files as "original structural images" secondary dataset)'}, ...
+    {'INPUT: other imaging volumes (in secondary dataset)','OUTPUT: structural volumes (current structural volumes will point to same files as "mni-space structural images" secondary dataset)'}, ...
     {'INPUT: functional volumes','OUTPUT: temporal subset of functional volumes; temporal subset of first-level covariates (if already defined)'},{'INPUT: functional volumes','OUTPUT: functional volumes (same files re-oriented, not resliced)'},{'INPUT: functional volumes','OUTPUT: functional volumes (same files translated, not resliced)'},{'INPUT: functional volumes','OUTPUT: functional volumes (same files translated, not resliced)'},{'INPUT: structural and functional volumes','OUTPUT: functional volumes (same files translated, not resliced)'}, ...
     {'INPUT: functional volumes','OUTPUT: slice-timing corrected functional volumes'},{'INPUT: functional volumes','OUTPUT: slice-intensity corrected functional volumes'},{'INPUT: functional volumes','OUTPUT: band-pass filtered functional volumes'},{'INPUT: functional volumes; first-level covariates','OUTPUT: functional volumes with selected covariates regressed-out'},{'INPUT: functional volumes; ROIs (in same space as functional volumes)','OUTPUT: QC_rois first-level covariate with BOLD timeseries within ROIs'},{'INPUT: functional volumes; ROIs (in same space as functional volumes)','OUTPUT: functional volumes masked with ROI (or union of multiple ROIs)'},{'INPUT: functional volumes','OUTPUT: realigned functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},{'INPUT: functional volumes','OUTPUT: realigned&unwarp functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},...
     {'INPUT: functional volumes & VDM maps','OUTPUT: realigned&unwarp functional volumes, mean functional image, subject movement ''realignment'' 1st-level covariate'},{'INPUT: functional volumes, realignment parameters','OUTPUT: outlier scans 1st-level covariate, mean functional image, QA 2nd-level covariates'},{'INPUT: structural and mean functional volume (or first functional)','OUTPUT: coregistered functional volumes'},...
@@ -171,9 +189,9 @@ steps_descr={{'INPUT: structural&functional volumes','OUTPUT (all in MNI-space):
 %{'INPUT: mean functional volume (or first functional)','OUTPUT: normalized functional volumes'},{'INPUT: mean functional volume (or first functional)','OUTPUT: normalized functional volumes, normalized Grey/White/CSF masks '},...
 steps_index=num2cell(1:numel(steps));
 steps_combinedpipelines={...
-    {'functional_label_as_original','functional_centerruns','functional_realign&unwarp','functional_label_as_realigned','functional_slicetime','functional_art','functional_segment&normalize_direct','functional_label_as_mnispace','structural_center','structural_segment&normalize','functional_smooth','functional_label_as_smoothed'},...
-    {'functional_label_as_original','functional_vdm_create','functional_realign&unwarp&fieldmap','functional_label_as_realigned','functional_center','functional_slicetime','functional_art','structural_center','functional_segment&normalize_indirect','functional_label_as_mnispace','functional_smooth','functional_label_as_smoothed'},...
-    {'functional_label_as_original','functional_vdm_create','functional_realign&unwarp&fieldmap','functional_label_as_realigned','functional_center','functional_slicetime','functional_art','functional_segment&normalize_direct','functional_label_as_mnispace','structural_center','structural_segment&normalize','functional_smooth','functional_label_as_smoothed'},...
+    {'functional_label_as_original','functional_centerruns','functional_realign&unwarp','functional_label_as_realigned','functional_slicetime','functional_art','functional_segment&normalize_direct','functional_label_as_mnispace','structural_label_as_original','structural_center','structural_segment&normalize','structural_label_as_mnispace','functional_smooth','functional_label_as_smoothed'},...
+    {'functional_label_as_original','functional_vdm_create','functional_realign&unwarp&fieldmap','functional_label_as_realigned','functional_center','functional_slicetime','functional_art','structural_label_as_original','structural_center','functional_segment&normalize_indirect','functional_label_as_mnispace','structural_label_as_mnispace','functional_smooth','functional_label_as_smoothed'},...
+    {'functional_label_as_original','functional_vdm_create','functional_realign&unwarp&fieldmap','functional_label_as_realigned','functional_center','functional_slicetime','functional_art','functional_segment&normalize_direct','functional_label_as_mnispace','structural_label_as_original','structural_center','structural_segment&normalize','structural_label_as_mnispace','functional_smooth','functional_label_as_smoothed'},...
     {'functional_label_as_original','functional_realign&unwarp','functional_label_as_realigned','functional_slicetime','functional_art','functional_coregister_affine_noreslice','functional_label_as_subjectspace','functional_surface_resample','functional_label_as_surfacespace','functional_surface_smooth','functional_label_as_smoothed','structural_segment'},...
     {'functional_label_as_original','functional_vdm_create','functional_realign&unwarp&fieldmap','functional_label_as_realigned','functional_slicetime','functional_art','functional_coregister_affine_noreslice','functional_label_as_subjectspace','functional_surface_resample','functional_label_as_surfacespace','functional_surface_smooth','functional_label_as_smoothed','structural_segment'},...
     {'functional_label_as_original','functional_realign&unwarp','functional_label_as_realigned','functional_slicetime','functional_art','functional_coregister_nonlinear','functional_label_as_subjectspace','functional_surface_resample','functional_label_as_surfacespace','functional_surface_smooth','functional_label_as_smoothed'},...
@@ -275,7 +293,7 @@ if ~isempty(STEPS)&&(ischar(STEPS)||(iscell(STEPS)&&numel(STEPS)==1))
     if ok, STEPS=steps(steps_index{idx}); selectedstep=idx;
     else
         lSTEPS=regexprep(lower(STEPS),'^run_|^update_|^interactive_','');
-        if ~isempty(regexp(char(lSTEPS),'^functional_label_as_'))||~isempty(regexp(char(lSTEPS),'^functional_load_from_'))||ismember(lSTEPS,steps), STEPS=cellstr(STEPS);
+        if ~isempty(regexp(char(lSTEPS),'^functional_label_as_'))||~isempty(regexp(char(lSTEPS),'^functional_load_from_'))||~isempty(regexp(char(lSTEPS),'^structural_label_as_'))||~isempty(regexp(char(lSTEPS),'^structural_load_from_'))||ismember(lSTEPS,steps), STEPS=cellstr(STEPS);
         elseif conn_existfile(STEPS), load(STEPS,'STEPS','coregtomean'); if isempty(coregtomean), coregtomean=1; end
         else error('STEP name %s is not a valid preprocessing step or an existing preprocessing-pipeline file',STEPS);
         end
@@ -985,26 +1003,26 @@ if any(ismember('functional_surface_smooth',lSTEPS))
     end
 end
 
-if any(ismember('functional_label',lSTEPS))
+if any(ismember('functional_label',lSTEPS))|any(ismember('structural_label',lSTEPS))
     if isempty(label)||dogui
-        nl=sum(ismember(lSTEPS,'functional_label'));
+        nl=sum(ismember(lSTEPS,{'functional_label','structural_label'}));
         if nl>1,
             if numel(label)~=nl, label=arrayfun(@(n)sprintf('Label%d',n),1:nl,'uni',0); end
-            label=conn_menu_inputdlg(repmat({'Enter functional label'},1,nl),'conn_setup_preproc',1,label);
+            label=conn_menu_inputdlg(repmat({'Enter functional/structural label'},1,nl),'conn_setup_preproc',1,label);
         else
             if isempty(label), label={datestr(now)}; end
-            label=conn_menu_inputdlg('Enter functional label  (arbitrary description)','conn_setup_preproc',1,label);
+            label=conn_menu_inputdlg('Enter functional/structural label  (arbitrary description)','conn_setup_preproc',1,label);
         end
         if isempty(label), return; end
     end
 end
 
-if any(ismember('functional_load',lSTEPS))
+if any(ismember('functional_load',lSTEPS))|any(ismember('structural_load',lSTEPS))
     if isempty(load_label)||dogui
-        nl=sum(ismember(lSTEPS,'functional_load'));
+        nl=sum(ismember(lSTEPS,{'functional_load','structural_load'}));
         if isempty(load_label), load_label=cell(1,nl); end
         for il=1:nl
-            str=[{'Load from functional data'}, arrayfun(@(n)sprintf('Load from secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)];
+            str=[{'Load from functional/structural data'}, arrayfun(@(n)sprintf('Load from secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)];
             if isempty(load_label{il}), load_label{il}=0;
             elseif ischar(load_label{il}), load_label{il}=conn_datasetlabel(load_label{il},'error');
             end
@@ -1015,12 +1033,12 @@ if any(ismember('functional_load',lSTEPS))
     end
 end
 
-if any(cellfun('length',regexp(lSTEPS,'^functional_label_as_'))&~ismember(lSTEPS,{'functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed'}))
-    labelsnewidx=find(cellfun('length',regexp(lSTEPS,'^functional_label_as_'))>0&~ismember(lSTEPS,{'functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed'}));
-    labelsoldidx=find(ismember(lSTEPS,'functional_label'));
-    labelsnew=regexprep(lSTEPS(labelsnewidx),'^functional_label_as_','');
-    lSTEPS(labelsnewidx)=regexprep(lSTEPS(labelsnewidx),'functional_label_as_.*','functional_label');
-    STEPS(labelsnewidx)=regexprep(STEPS(labelsnewidx),'functional_label_as_.*','functional_label');
+if any(cellfun('length',regexp(lSTEPS,'^functional_label_as_|^structural_label_as_'))&~ismember(lSTEPS,{'functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','structural_label_as_original', 'structural_label_as_mnispace'}))
+    labelsnewidx=find(cellfun('length',regexp(lSTEPS,'^functional_label_as_|^structural_label_as_'))>0&~ismember(lSTEPS,{'functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','structural_label_as_original', 'structural_label_as_mnispace'}));
+    labelsoldidx=find(ismember(lSTEPS,{'functional_label','structural_label'}));
+    labelsnew=regexprep(lSTEPS(labelsnewidx),'^functional_label_as_|^structural_label_as_','');
+    lSTEPS(labelsnewidx)=regexprep(lSTEPS(labelsnewidx),{'functional_label_as_.*','structural_label_as_.*'},{'functional_label','structural_label'});
+    STEPS(labelsnewidx)=regexprep(STEPS(labelsnewidx),{'functional_label_as_.*','structural_label_as_.*'},{'functional_label','structural_label'});
     if isempty(label)
         label=labelsnew;
     else
@@ -1030,12 +1048,12 @@ if any(cellfun('length',regexp(lSTEPS,'^functional_label_as_'))&~ismember(lSTEPS
     end
 end
 
-if any(cellfun('length',regexp(lSTEPS,'^functional_load_from_'))&~ismember(lSTEPS,{'functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}))
-    labelsnewidx=find(cellfun('length',regexp(lSTEPS,'^functional_load_from_'))>0&~ismember(lSTEPS,{'functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}));
-    labelsoldidx=find(ismember(lSTEPS,'functional_load'));
-    labelsnew=regexprep(lSTEPS(labelsnewidx),'^functional_load_from_','');
-    lSTEPS(labelsnewidx)=regexprep(lSTEPS(labelsnewidx),'functional_load_from_.*','functional_load');
-    STEPS(labelsnewidx)=regexprep(STEPS(labelsnewidx),'functional_load_from_.*','functional_load');
+if any(cellfun('length',regexp(lSTEPS,'^functional_load_from_|^structural_load_from_'))&~ismember(lSTEPS,{'functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','structural_load_from_original', 'structural_load_from_mnispace'}))
+    labelsnewidx=find(cellfun('length',regexp(lSTEPS,'^functional_load_from_|^structural_load_from_'))>0&~ismember(lSTEPS,{'functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','structural_load_from_original', 'structural_load_from_mnispace'}));
+    labelsoldidx=find(ismember(lSTEPS,{'functional_load','structural_load'}));
+    labelsnew=regexprep(lSTEPS(labelsnewidx),'^functional_load_from_|^structural_load_from_','');
+    lSTEPS(labelsnewidx)=regexprep(lSTEPS(labelsnewidx),{'functional_load_from_.*','structural_load_from_.*'},{'functional_load','structural_load'});
+    STEPS(labelsnewidx)=regexprep(STEPS(labelsnewidx),{'functional_load_from_.*','structural_load_from_.*'},{'functional_load','structural_load'});
     if isempty(load_label)
         load_label=labelsnew;
     else
@@ -1044,7 +1062,6 @@ if any(cellfun('length',regexp(lSTEPS,'^functional_load_from_'))&~ismember(lSTEP
         load_label=load_label(idx);
     end
 end
-
 
 % loginfo=struct('subjects',subjects,'steps',STEPS,...
 %     'fwhm',fwhm,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
@@ -1595,6 +1612,8 @@ for iSTEP=1:numel(STEPS)
         case 'structural_center'
         case {'functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed'}
         case {'functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}
+        case {'structural_label','structural_label_as_original', 'structural_label_as_mnispace'}
+        case {'structural_load','structural_load_from_original', 'structural_load_from_mnispace'}
             
         case 'functional_manualspatialdef'
             if iscell(respatialdef), trespatialdef=respatialdef{1}; respatialdef=respatialdef(2:end);
@@ -3605,7 +3624,7 @@ for iSTEP=1:numel(STEPS)
             for n=1:numel(matlabbatch)
                 conn_art('sess_file',matlabbatch{n}.art);
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_sliceintensity','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centerruns','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_sliceintensity','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centerruns','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','structural_label','structural_label_as_original', 'structural_label_as_mnispace', 'structural_load','structural_load_from_original', 'structural_load_from_mnispace', 'functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');
             try, spm_get_defaults('mat.format','-v7.3'); end
@@ -3654,7 +3673,7 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_sliceintensity','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centerruns','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_sliceintensity','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centerruns','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed',    'structural_label','structural_label_as_original', 'structural_label_as_mnispace', 'structural_load','structural_load_from_original', 'structural_load_from_mnispace', 'functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
         elseif strncmp(lower(STEP),'update_',numel('update_'))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');
@@ -3928,6 +3947,24 @@ for iSTEP=1:numel(STEPS)
                 else this_label=load_label;
                 end
                 conn_datasetcopy(this_label,sets,subjects);
+            case 'structural_label_as_original'
+                conn_datasetcopy(-1,'original structural images',subjects);
+            case 'structural_label_as_mnispace'
+                conn_datasetcopy(-1,'mni-space structural images',subjects);
+            case 'structural_label',
+                if iscell(label), this_label=label{1}; label=label(2:end);
+                else this_label=label;
+                end
+                conn_datasetcopy(-1,this_label,subjects);
+            case 'structural_load_from_original'
+                conn_datasetcopy('original structural images',-1,subjects);
+            case 'structural_load_from_mnispace'
+                conn_datasetcopy('mni-space structural images',-1,subjects);
+            case 'structural_load',
+                if iscell(load_label), this_label=load_label{1}; load_label=load_label(2:end);
+                else this_label=load_label;
+                end
+                conn_datasetcopy(this_label,-1,subjects);                
                 
             case 'functional_center'
                 treorient=nan;

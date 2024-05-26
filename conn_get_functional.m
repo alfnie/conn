@@ -34,10 +34,14 @@ if nset>0
             conn_disp('fprintf','warning: error in dataset definition for set-%d subject %d session %d\n',nset,nsub,nses);
         end
     end
+elseif nset<0
+    if CONN_x.Setup.structural_sessionspecific, filename=CONN_x.Setup.structural{nsub}{nses}{1};
+    else filename=CONN_x.Setup.structural{nsub}{1}{1};
+    end
 else
     filename=CONN_x.Setup.functional{nsub}{nses}{1};
 end
-if ~isempty(alt)&&~isempty(filename)
+if ~isempty(alt)&&~isempty(filename)&&nset>=0
     switch(lower(alt))
         case 'cfile'
             if ~nset, altout=CONN_x.Setup.functional{nsub}{nses};
