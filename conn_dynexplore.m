@@ -78,7 +78,12 @@ try
 catch
     idxorder=1:numel(ROInames);
 end
-Bhf_max={}; for n2=1:size(varB,1), [idx1,idx2]=find(shiftdim(Bhf_order(1,idxorder,idxorder),1)==n2); Bhf_max{n2}=idx1+size(Bhf_order,2)*(idx2-1); Bhf_maxval{n2}=Bhf_values(1,idxorder(idx1)+size(Bhf_order,2)*(idxorder(idx2)-1)); end
+Bhf_max={}; for n2=1:size(varB,1), 
+    [idx1,idx2]=find(shiftdim(Bhf_order(1,idxorder,idxorder),1)==n2); 
+    Bhf_max{n2}=idx1+size(Bhf_order,2)*(idx2-1); 
+    Bhf_maxval{n2}=Bhf_values(1,idxorder(idx1)+size(Bhf_order,2)*(idxorder(idx2)-1)); 
+    maskout=Bhf_maxval{n2}>=prctile(Bhf_maxval{n2},90); Bhf_max{n2}=Bhf_max{n2}(maskout); Bhf_maxval{n2}=Bhf_maxval{n2}(maskout); 
+end
 
 B0(:,1:size(B0,2)+1:end)=nan;
 Hscale=max(abs(H(:)));
@@ -200,7 +205,7 @@ conn_dynexplore_update([1 1 1 1 1]);
             temp0=c0(idxorder,idxorder);
             h2=[]; hold on;
             for n2=1:Nf, h2=[h2 plot(temp0(Bhf_max{n2}),temp(Bhf_max{n2}),'.','markersize',6)]; end
-            h2=[h2 plot([-2 2 nan -2 2 nan 0 0],[-2 2 nan 0 0 nan -2 2],'k')]; hold off;
+            h2=[h2 plot([-2 2 nan -2 2 nan 0 0],[-2 2 nan 0 0 nan -2 2],'k','color',1-CONN_gui.backgroundcolor)]; hold off;
             hold on; h4=plot(0,0,'wo','visible','off','markersize',12); hold off;
             h3=uicontrol('units','norm','position',[.65 .1 .0001 .0001],'style','text','fontsize',7+CONN_gui.font_offset,'foregroundcolor','k','backgroundcolor','w','visible','off','horizontalalignment','left'); 
             axis equal tight;

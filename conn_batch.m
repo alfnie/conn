@@ -1484,7 +1484,6 @@ if isfield(batch,'Analysis'),
         if ~isfield(batch.Analysis,'sources')||isempty(batch.Analysis.sources),
             CONN_x.Analyses(CONN_x.Analysis).regressors.names={};
         else
-            batch.Analysis.sources
             if ~isstruct(batch.Analysis.sources),
                 CONN_x.Analyses(CONN_x.Analysis).regressors.names=batch.Analysis.sources;
                 CONN_x.Analyses(CONN_x.Analysis).regressors.dimensions=repmat({1},size(batch.Analysis.sources));

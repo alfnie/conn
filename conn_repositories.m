@@ -30,13 +30,14 @@ iopt=strcmp(varargin,'-unzip'); if any(iopt), varargin=varargin(~iopt); UNZIPFIL
 iopt=strcmp(varargin,'-display'); if any(iopt), varargin=varargin(~iopt); DODISPLAY=true; end
 iopt=strcmp(varargin,'-create'); if any(iopt), varargin=varargin(~iopt); DOCREATE=true; end
 iopt=strcmp(varargin,'-process'); if any(iopt), varargin=varargin(~iopt); DOPROCESS=true; end
+iopt=strcmp(varargin,'-parallel'); if any(iopt), varargin=varargin(~iopt); DOPARALLEL=true; end
 iopt=strcmp(varargin,'-donotoverwrite'); if any(iopt), varargin=varargin(~iopt); OVERWRITE=false; end
 iopt=strcmp(varargin,'-donotdownload'); if any(iopt), varargin=varargin(~iopt); DOWNLOADFILES=false; end
 iopt=strcmp(varargin,'-donotunzip'); if any(iopt), varargin=varargin(~iopt); UNZIPFILES=false; end
 iopt=strcmp(varargin,'-donotdisplay'); if any(iopt), varargin=varargin(~iopt); DODISPLAY=false; end
 iopt=strcmp(varargin,'-donotcreate'); if any(iopt), varargin=varargin(~iopt); DOCREATE=false; end
 iopt=strcmp(varargin,'-donotprocess'); if any(iopt), varargin=varargin(~iopt); DOPROCESS=false; end
-iopt=strcmp(varargin,'-parallel'); if any(iopt), varargin=varargin(~iopt); DOPARALLEL=true; end
+iopt=strcmp(varargin,'-donotparallel'); if any(iopt), varargin=varargin(~iopt); DOPARALLEL=false; end
 
 if isempty(varargin), projectname='';  % fist parameter: project name
 else projectname=varargin{1}; varargin=varargin(2:end); 
@@ -46,7 +47,7 @@ if isempty(varargin), % other parameters: names of selected datasets
 
     data={repofiles.name}; % define the subsets to be downloaded (all data by default)
     datastr=cellfun(@(a,b)sprintf('<HTML>%s (%s) <small>%s</small></HTML>',a,regexp(b,'n\s*=\s*\d+','match','once'),b),{repofiles.name},{repofiles.description},'uni',0);
-    s = listdlg('PromptString','Select dataset(s) from the 1000 Functional Connectomes Project to download and process','ListSize',[800 400],...
+    s = listdlg('PromptString','Select dataset(s) from the 1000 Functional Connectomes Project to download','ListSize',[800 400],...
         'SelectionMode','multiple',...
         'ListString',datastr,...
         'InitialValue',1);
@@ -55,7 +56,27 @@ if isempty(varargin), % other parameters: names of selected datasets
     repofiles=repofiles(s);
 
     DATA=0; NSUBJECTS=0; for n=1:numel(data), NSUBJECTS=NSUBJECTS+repofiles(n).subjects; DATA=DATA+ceil(repofiles(n).duration/repofiles(n).tr)*repofiles(n).subjects; end
-    if ~isempty(projectname)
+    if ~DOCREATE
+        cwd=conn_projectmanager('pwd');
+        ok=false; while ~ok
+            answ=conn_questdlg({sprintf('Preparing to download %d datasets (%d participants) from the 1000 Functional Connectomes Project',numel(data),NSUBJECTS),'(Mennes, M., Biswal, B. B., Castellanos, F. X., & Milham, M. P. (2013). Making data sharing work: the FCP/INDI experience. Neuroimage, 82, 683-691)',' ',sprintf('Processing the selected datasets may require approximately %d Gbs of hard-drive space as well as %d hours to finish.',ceil(3*DATA/180),ceil(DATA/180/10)),' ','Data will be downloaded to the following folder:',cwd},'','Continue (download only)','Modify target folder','Cancel','Continue (download only)');
+            if isempty(answ)||strcmp(answ,'Cancel'), return; end
+            if strcmp(answ,'Modify target folder'),
+                if conn_projectmanager('inserver'),
+                    cwd=conn_menu_inputdlg('Select target folder to store the downloaded data','data folder',1,{cwd});
+                    if isempty(cwd), return; end
+                    cwd=conn_server('util_remotefile',char(cwd));
+                else
+                    cwd=uigetdir(pwd,'Select target folder to store the downloaded data');
+                    if isequal(cwd,0), return; end
+                end
+            else
+                ok=true;
+                DOPROCESS=strcmp(answ,'Continue (download and process)');
+            end
+        end
+        PROJECTNAME='conn_FCP.mat';
+    elseif ~isempty(projectname)
         [cwd,tfilename,tfileext]=fileparts(projectname);
         PROJECTNAME=[tfilename,tfileext];
         answ=conn_questdlg({sprintf('Preparing to download and process %d datasets (%d participants) from the 1000 Functional Connectomes Project',numel(data),NSUBJECTS),'(Mennes, M., Biswal, B. B., Castellanos, F. X., & Milham, M. P. (2013). Making data sharing work: the FCP/INDI experience. Neuroimage, 82, 683-691)',' ',sprintf('Processing the selected datasets may require approximately %d Gbs of hard-drive space as well as %d hours to finish.',ceil(3*DATA/180),ceil(DATA/180/10)),' ','A new ',projectname,' project will be created'},'','Continue (download and process)','Continue (download only)','Cancel','Continue (download and process)');
@@ -97,16 +118,21 @@ if isempty(varargin), % other parameters: names of selected datasets
         end
     end
     if conn_projectmanager('inserver'), % if connected to remote server
-        opts={cwd};
-        if OVERWRITE, opts{end+1}='-overwrite'; end
-        if ~DOWNLOADFILES, opts{end+1}='-donotdownload'; end
-        if ~UNZIPFILES, opts{end+1}='-donotunzip'; end
-        if DOPARALLEL, opts{end+1}='-parallel'; end
+        opts={};
+        if OVERWRITE, opts{end+1}='-overwrite'; else opts{end+1}='-donotoverwrite'; end
+        if DOWNLOADFILES, opts{end+1}='-download'; else opts{end+1}='-donotdownload'; end
+        if UNZIPFILES, opts{end+1}='-unzip'; else opts{end+1}='-donotunzip'; end
+        if 0&&DODISPLAY, opts{end+1}='-display'; else opts{end+1}='-donotdisplay'; end
+        if DOCREATE, opts{end+1}='-create'; else opts{end+1}='-donotcreate'; end
+        if DOPROCESS, opts{end+1}='-process'; else opts{end+1}='-donotprocess'; end
+        if DOPARALLEL, opts{end+1}='-parallel'; else opts{end+1}='-donotparallel'; end
         hmsg=conn_msgbox({'Process running remotely',' ','CONN will resume automatically when this process finishes','Please wait...'},'');
-        conn_server('run','conn_process','repositories',opts{:},'-donotdisplay');
+        conn_server('run','conn_process','conn','repositories',fullfile(cwd,PROJECTNAME),data{:},opts{:});
         if ~isempty(hmsg)&&ishandle(hmsg), delete(hmsg); end
-        conn('load',fullfile(cwd,PROJECTNAME));
-        conn gui_results
+        if DODISPLAY&&DOCREATE
+            conn('load',fullfile(cwd,PROJECTNAME));
+            conn gui_setup
+        end
         return
     end
 else
