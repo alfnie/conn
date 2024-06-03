@@ -5371,7 +5371,7 @@ else
 			end
             conn gui_setup;
 			
-		case {'gui_setup_save','gui_setup_saveas','gui_setup_savecont','gui_setup_saveas_nowarning'},
+        case {'gui_setup_save','gui_setup_saveas','gui_setup_savecont','gui_setup_savenorefresh','gui_setup_saveas_nowarning'},
             varargout={false};
             saveas=false;
             if 0, %strcmp(varargin{1},'gui_setup_savecont')
@@ -5422,7 +5422,7 @@ else
 				set(CONN_h.screen.hfig,'pointer','arrow');
                 varargout={true};
             end
-            if saveas, conn gui_setup; end
+            if saveas&&~strcmp(varargin{1},'gui_setup_savenorefresh'), conn gui_setup; end
 
         case 'gui_setup_close'
             if ~CONN_x.isready(1), Answ='Proceed';
@@ -5643,7 +5643,7 @@ else
                 conn init;
                 conn importrois;
                 %conn gui_setup;
-                if conn('gui_setup_save','Enter new CONN project filename:'),
+                if conn('gui_setup_savenorefresh','Enter new CONN project filename:'),
                     conn gui_recent_set;
                 else
                     conn gui_setup;
@@ -6073,7 +6073,7 @@ else
                         CONN_h.menus.m_setup_00{6}=conn_menu('listbox',boffset+[.2,.40,.075,.25],'BIDS subjects','','Select one or more subjects to display their contents and/or import them into CONN','conn(''gui_setup_import'',6)');
                         %CONN_h.menus.m_setup_00{8}=conn_menu('popup',boffset+[.325,.65,.345,.04],'',{'folder','content','format'},'','conn(''gui_setup_import'',8)');
                         if CONN_h.menus.m_setup_import_isfmriprep, 
-                            CONN_h.menus.m_setup_00{3}=conn_menu('foldersearch',[],'Select fmriprep folder','Select','',{@conn,'gui_setup_import',3},'conn(''gui_setup_import'',4);');
+                            CONN_h.menus.m_setup_00{3}=conn_menu('foldersearch_multiple',[],'Select fmriprep folder(s)','Select','',{@conn,'gui_setup_import',3},'conn(''gui_setup_import'',4);');
                             CONN_h.menus.m_setup_00{5}=conn_menu('listbox',boffset+[.325,.40,.16,.25],'functional','','Select one or more series to display their contents and/or import them into CONN as functional volumes','conn(''gui_setup_import'',5)');
                             CONN_h.menus.m_setup_00{7}=[];
                             CONN_h.menus.m_setup_00{16}=[];
@@ -6085,7 +6085,7 @@ else
                             CONN_h.menus.m_setup_00{13}=[];
                             CONN_h.menus.m_setup_00{9}=conn_menu('pushbuttonblue',boffset+[.3,.18,.10,.04],'','Import','<HTML>Imports selected fMRIPrep dataset into CONN Setup<br/> This will automatically load: <br/> - MNI-space functional volumes (in <i>Setup.Functional</i>; note:raw/non-smoothed)<br/> - MNI-space structural/anatomical volumes (in <i>Setup.Structural</i>)<br/> - Gray/White/CSF tissue probability masks (in <i>Setup.ROIs</i>)<br/> - task names if applicable (in <i>Setup.Conditions</i>)<br/> - fMRIPrep default confounds regressors (in <i>Setup.Covariates 1st-level</i>) plus CONN''s formatted <i>realignment</i>, <i>scrubbing</i>, and <i>QC_timeseries</i> (std_dvars&fd) covariates<br/> - CONN''s formatted associated Quality Control variables (in <i>Setup.Covariates 2nd-level</i>)</HTML>','conn(''gui_setup_import'',9)');
                         else 
-                            CONN_h.menus.m_setup_00{3}=conn_menu('foldersearch',[],'Select BIDS root folder','Select','',{@conn,'gui_setup_import',3},'conn(''gui_setup_import'',4);');
+                            CONN_h.menus.m_setup_00{3}=conn_menu('foldersearch_multiple',[],'Select BIDS root folder(s)','Select','',{@conn,'gui_setup_import',3},'conn(''gui_setup_import'',4);');
                             CONN_h.menus.m_setup_00{5}=conn_menu('listbox',boffset+[.325,.55,.16,.10],'functional','','Select one or more series to display their contents and/or import them into CONN as functional volumes','conn(''gui_setup_import'',5)');
                             CONN_h.menus.m_setup_00{7}=conn_menu('listbox',boffset+[.51,.55,.16,.10],'structural','','Select one or more series to display their contents and/or import them into CONN as structural volumes','conn(''gui_setup_import'',7)');
                             CONN_h.menus.m_setup_00{16}=conn_menu('image',boffset+[.325,.25,.16,.15],'');

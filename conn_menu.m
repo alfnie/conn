@@ -465,6 +465,10 @@ switch(lower(type)),
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
 		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','folder',conn_projectmanager('pwd'),'inserver',true);
+    case 'foldersearch_multiple',
+        %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
+		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
+			'title',title,'button',string,'callback',callback,'max',2,'type','folders');
 	case 'foldersearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
 		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
