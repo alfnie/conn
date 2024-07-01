@@ -116,19 +116,19 @@ steps_names={'<HTML><b>default preprocessing pipeline</b> for volume-based analy
     'functional Indirect coregistration to structural (non-linear transformation)', ...
     'functional Direct coregistration to structural (without reslicing; rigid body transformation)', ...
     'functional Label current functional files as new secondary dataset (custom label)', ...
-    'functional Label current functional files as "original data"', ...
-    'functional Label current functional files as "subject-space data"', ...
-    'functional Label current functional files as "realigned data"', ...
-    'functional Label current functional files as "mni-space data"', ...
-    'functional Label current functional files as "surface-space data"', ...
-    'functional Label current functional files as "smoothed data"', ...
+    'functional Label current functional files as "original functional data"', ...
+    'functional Label current functional files as "subject-space functional data"', ...
+    'functional Label current functional files as "realigned functional data"', ...
+    'functional Label current functional files as "mni-space functional data"', ...
+    'functional Label current functional files as "surface-space functional data"', ...
+    'functional Label current functional files as "smoothed functional data"', ...
     'functional Load functional data from previously labeled dataset (custom label)', ...
-    'functional Load functional data from "original data" dataset', ...
-    'functional Load functional data from "subject-space data" dataset', ...
-    'functional Load functional data from "realigned data" dataset', ...
-    'functional Load functional data from "mni-space data" dataset', ...
-    'functional Load functional data from "surface-space data" dataset', ...
-    'functional Load functional data from "smoothed data" dataset', ...
+    'functional Load functional data from "original functional data" dataset', ...
+    'functional Load functional data from "subject-space functional data" dataset', ...
+    'functional Load functional data from "realigned functional data" dataset', ...
+    'functional Load functional data from "mni-space functional data" dataset', ...
+    'functional Load functional data from "surface-space functional data" dataset', ...
+    'functional Load functional data from "smoothed functional data" dataset', ...
     'functional Masked smoothing (spatial convolution with Gaussian kernel restricted to voxels within a custom mask)', ...
     'functional Resampling of functional data within the cortical surface (converts volume- to surface- level data using FreeSurfer subject-specific surfaces)', ...
     'functional Smoothing of surface-level functional data (spatial diffusion on surface tessellation)', ...
@@ -3914,34 +3914,46 @@ for iSTEP=1:numel(STEPS)
                 end
                 
             case 'functional_label_as_original'
-                conn_datasetcopy(sets,'original data',subjects);
+                conn_datasetcopy(sets,'original functional data',subjects);
             case 'functional_label_as_subjectspace'
-                conn_datasetcopy(sets,'subject-space data',subjects);
+                conn_datasetcopy(sets,'subject-space functional data',subjects);
             case 'functional_label_as_realigned'
-                conn_datasetcopy(sets,'realigned data',subjects);
+                conn_datasetcopy(sets,'realigned functional data',subjects);
             case 'functional_label_as_mnispace'
-                conn_datasetcopy(sets,'mni-space data',subjects);
+                conn_datasetcopy(sets,'mni-space functional data',subjects);
             case 'functional_label_as_surfacespace'
-                conn_datasetcopy(sets,'surface-space data',subjects);
+                conn_datasetcopy(sets,'surface-space functional data',subjects);
             case 'functional_label_as_smoothed'
-                conn_datasetcopy(sets,'smoothed data',subjects);
+                conn_datasetcopy(sets,'smoothed functional data',subjects);
             case 'functional_label',
                 if iscell(label), this_label=label{1}; label=label(2:end);
                 else this_label=label;
                 end
                 conn_datasetcopy(sets,this_label,subjects);
             case 'functional_load_from_original'
-                conn_datasetcopy('original data',sets,subjects);
+                if isempty(conn_datasetlabel('original functional data'))&&~isempty(conn_datasetlabel('original data')), conn_datasetcopy('original data',sets,subjects); % note: back-compatibility
+                else conn_datasetcopy('original functional data',sets,subjects);
+                end
             case 'functional_load_from_subjectspace'
-                conn_datasetcopy('subject-space data',sets,subjects);
+                if isempty(conn_datasetlabel('subject-space functional data'))&&~isempty(conn_datasetlabel('subject-space data')), conn_datasetcopy('subject-space data',sets,subjects); % note: back-compatibility
+                else conn_datasetcopy('subject-space functional data',sets,subjects);
+                end
             case 'functional_load_from_realigned'
-                conn_datasetcopy('realigned data',sets,subjects);
+                if isempty(conn_datasetlabel('realigned functional data'))&&~isempty(conn_datasetlabel('realigned data')), conn_datasetcopy('realigned data',sets,subjects); % note: back-compatibility
+                else conn_datasetcopy('realigned functional data',sets,subjects);
+                end
             case 'functional_load_from_mnispace'
-                conn_datasetcopy('mni-space data',sets,subjects);
+                if isempty(conn_datasetlabel('mni-space functional data'))&&~isempty(conn_datasetlabel('mni-space data')), conn_datasetcopy('mni-space data',sets,subjects); % note: back-compatibility
+                else conn_datasetcopy('mni-space functional data',sets,subjects);
+                end
             case 'functional_load_from_surfacespace'
-                conn_datasetcopy('surface-space data',sets,subjects);
+                if isempty(conn_datasetlabel('surface-space functional data'))&&~isempty(conn_datasetlabel('surface-space data')), conn_datasetcopy('surface-space data',sets,subjects); % note: back-compatibility
+                else conn_datasetcopy('surface-space functional data',sets,subjects);
+                end
             case 'functional_load_from_smoothed'
-                conn_datasetcopy('smoothed data',sets,subjects);
+                if isempty(conn_datasetlabel('smoothed functional data'))&&~isempty(conn_datasetlabel('smoothed data')), conn_datasetcopy('smoothed data',sets,subjects); % note: back-compatibility
+                else conn_datasetcopy('smoothed functional data',sets,subjects);
+                end
             case 'functional_load',
                 if iscell(load_label), this_label=load_label{1}; load_label=load_label(2:end);
                 else this_label=load_label;
@@ -4125,7 +4137,16 @@ for iSTEP=1:numel(STEPS)
                             end
                             temp=CONN_x.Setup.structural{nsubject}{nses}{1};
                             M=spm_get_space(temp);
-                            translation=-M(1:3,1:3)*CONN_x.Setup.structural{nsubject}{nses}{3}(1).dim'/2 - M(1:3,4);
+                            try
+                                data=conn_vol_read(temp);
+                                data=~isnan(data)&data~=0; 
+                                xMin=find(any(any(data,2),3)); xMin=(xMin(1)+xMin(end)-1)/2;
+                                yMin=find(any(any(data,1),3)); yMin=(yMin(1)+yMin(end)-1)/2;
+                                zMin=find(any(any(data,1),2)); zMin=(zMin(1)+zMin(end)-1)/2;
+                                translation=-M(1:3,1:3)*[xMin yMin zMin]' - M(1:3,4);
+                            catch
+                                translation=-M(1:3,1:3)*CONN_x.Setup.structural{nsubject}{nses}{3}(1).dim'/2 - M(1:3,4);
+                            end
                             M(1:3,4)=M(1:3,4)+translation;
                             conn_disp('fprintf','Structural centering translation x/y/z = %s (Subject %d)\n',mat2str(translation'),nsubject);
                             try, R=eye(4);R(1:3,4)=translation; save(conn_prepend('centering_',temp,'.mat'),'R','-mat'); R=inv(R); save(conn_prepend('icentering_',temp,'.mat'),'R','-mat'); end

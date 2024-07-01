@@ -172,8 +172,8 @@ switch option
         if ishandle(hfig)
             delete(hfig);
             if ~isempty(filenamestotest)&&~isempty(filenamestotest{1})&&~isempty(filenamestotest{1}{1})&&~isempty(filenamestotest{1}{1}{1})
-                answ=conn_questdlg(sprintf('Before applying this rule would you like to test it first on all %s filenames?',namestring),'','Yes','No','No');
-                if isequal(answ,'Yes')
+                answ=conn_questdlg('Before applying this name-change, would you like first to double-check that the new filenames point to existing files?','','Yes, check first','No, proceed','No, proceed');
+                if isequal(answ,'Yes, check first')
                     ko=0;
                     for nsub=1:numel(filenamestotest)
                         for nses=1:numel(filenamestotest{nsub})

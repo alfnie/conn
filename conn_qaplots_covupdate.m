@@ -41,7 +41,8 @@ for isub=1:numel(nsubs)
     if ~isempty(qafolder)
         filename=fullfile(qafolder,sprintf('QA_COV.subject%03d.mat',nsub));
         conn_savematfile(filename,'results_patch','results_line','results_info','results_label','results_str');
-    else
+    end
+    if nargout>0
         dataA{isub}=results_patch;
         labelA{isub}=results_label;
         infoA{isub}=results_info;

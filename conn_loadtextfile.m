@@ -67,6 +67,9 @@ end
 if isstruct(tdata)&&~okstruct,
     tempnames=fieldnames(tdata);
     try, tdata=cell2mat(cellfun(@(n)tdata.(n),tempnames(:)','uni',0));
-    catch, tdata=tdata.(tempnames{1});
+    catch, 
+        if isfield(tdata,'data'), tdata=tdata.data; 
+        else tdata=tdata.(tempnames{1});
+        end
     end
 end

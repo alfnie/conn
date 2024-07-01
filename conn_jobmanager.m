@@ -1277,6 +1277,7 @@ handles.files=[];
 if numel(files)>0,
     uicontrol(handles.hfig,'style','text','units','norm','position',[.1 .25 .7 .04],'string','History of submitted/pending/queued jobs','fontweight','bold','backgroundcolor',.9*[1 1 1],'horizontalalignment','left');
     handles.files=uicontrol(handles.hfig,'style','listbox','units','norm','position',[.1 .05 .7 .20],'string',filedates,'value',numel(files),'backgroundcolor',.9*[1 1 1],'callback',@(varargin)conn_jobmanager_update('updatefile'));
+    set(handles.refresh_status,'visible','off');
 end
 %txt=sprintf('<HTML>%-13s<b>%-13s</b>%-1000s</HTML>','node','status','job id');
 handles.order(1)=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.1,.85,.7,.05],'string','node','userdata',1,'foregroundcolor','k','fontname','monospaced','horizontalalignment','left','callback',@(varargin)conn_jobmanager_update('order',1));
@@ -1286,7 +1287,7 @@ if ~nogui, set(handles.order(2),'units','characters'); set(handles.order(2),'pos
 handles.order(3)=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.1,.85,.7,.05],'string','job id','userdata',0,'foregroundcolor','k','fontname','monospaced','horizontalalignment','left','callback',@(varargin)conn_jobmanager_update('order',3));
 if ~nogui, set(handles.order(3),'units','characters'); set(handles.order(3),'position',[temp(1)+2*13 temp(2) max(1,temp(3)-2*13) max(1,temp(4))],'units','norm'); end
 handles.jobs=uicontrol(handles.panel,'style','listbox','units','norm','position',[.1,.25,.7,.60],'string','','max',2,'backgroundcolor',.9*[1 1 1],'foregroundcolor','k','fontname','monospaced'); 
-handles.refreshtext=uicontrol(handles.panel,'style','text','units','norm','position',[.1,.20,.7,.05],'string','note: job status display is not updated while ''advanced options'' is checked, click ''Refresh'' to manually update','backgroundcolor',.9*[1 1 1]); set(handles.refreshtext,'fontsize',9);
+handles.refreshtext=uicontrol(handles.panel,'style','text','units','norm','position',[.1,.20,.7,.05],'string','note: job status display is not being updated now, click ''Refresh'' to manually update','backgroundcolor',.9*[1 1 1]); set(handles.refreshtext,'fontsize',9);
 %handles.refresh=uicontrol(handles.panel,'style','checkbox','units','norm','position',[.825,.825,.15,.075],'string','Refresh','backgroundcolor',.9*[1 1 1],'callback',@(varargin)conn_jobmanager_update('togglerefresh',true),'tooltipstring','Refreshes node''s status information');
 handles.refresh=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.825,.15,.075],'string','Refresh','callback',@(varargin)conn_jobmanager_update('refresh',true),'tooltipstring','Refreshes node''s status information');
 handles.details=uicontrol(handles.panel,'style','pushbutton','units','norm','position',[.825,.75,.15,.075],'string','See logs','callback',@(varargin)conn_jobmanager_update('details'),'tooltipstring','See selected node(s) log files');
@@ -1338,7 +1339,7 @@ ok=1+handles.finished;
                 n=get(handles.files,'value');
                 data=conn_loadmatfile(files{n},'info');
                 info=data.info;
-                conn_jobmanager_update('refresh');
+                conn_jobmanager_update('refresh',true);
                 
             case 'togglerefresh'
                 v=get(handles.refresh,'value');

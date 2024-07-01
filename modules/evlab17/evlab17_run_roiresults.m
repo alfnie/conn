@@ -21,7 +21,7 @@ fileout=[];
 
 % loads .cfg files
 options={};ids={};
-if nargin>1&&ischar(varargin{1})&&isempty(dir(varargin{1}))
+if 0,%nargin>1&&ischar(varargin{1})&&isempty(dir(varargin{1}))
     n=0;
 else
     for n=1:nargin

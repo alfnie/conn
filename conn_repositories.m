@@ -378,6 +378,9 @@ if DOPROCESS
     batch.Denoising.done=1;
     batch.Denoising.overwrite='Yes';
 
+    %% QC plots
+    batch.QA.plots=[1,2,4,5,7,9,11,12,13,31];           % Default Quality Control plots
+
     %% FIRST-LEVEL ANALYSIS step
     % CONN Analysis                                     % Default options (uses all network ROIs in conn/rois/networks.nii as connectivity sources); see conn_batch for additional options
     batch.Analysis.sources={'networks'};

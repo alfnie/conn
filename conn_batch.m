@@ -636,9 +636,9 @@ function varargout=conn_batch(varargin)
 %                        QA_SPM results        (23) : SPM review contrast effect-size (from SPM.mat files only)
 %                        QA_COV                (31) : histogram display of second-level variables
 %
-%   QA.rois                         : (only for plots==3,4,5,6) ROI numbers to include (defaults to WM -roi#2-)
-%   QA.sets                         : (only for plots==2,7,8,9,10) functional dataset number (defaults to dataset-0)
-%   QA.l2covariates                 : (only for plots==13,31) l2 covariate names (defaults to all QC_*)
+%   QA.rois                         : (only for plots==3,4,5,6) ROI numbers to include
+%   QA.sets                         : (only for plots==2,7,8,9,10) functional dataset number
+%   QA.l2covariates                 : (only for plots==13,31) l2 covariate names
 %   QA.l1contrasts                  : (only for plots==23) l1 contrast name (defaults to first contrast)
 %   QA.conditions                   : (only for plots==11,13,14,15) FC & QC-FC plots aggregate across sesssions where 
 %                                      the selected conditions are present (defaults to all sessions)
