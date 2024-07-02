@@ -99,6 +99,13 @@ end
 a2=struct('mat',mat,'dim',dim,'fname',fileout,'pinfo',[1;0;0],'n',[1,1],'dt',dt);
 spm_write_vol(a2,M);
 
-%exts=[exts {'.txt','.csv','.xls','.info','.icon.jpg','.json'}];
+exts=[{'.txt','.csv','.xls','.info','.icon.jpg','.json'}];
+for nexts=1:numel(exts) % copy/link original and additional files if needed
+    tfilein=conn_prepend('',filein,exts{nexts});
+    if conn_existfile(tfilein)
+        tfileout=conn_prepend('',fileout,exts{nexts});
+        try, conn_fileutils('copyfile',tfilein,tfileout); end
+    end
+end
 
 fprintf('created file %s\n',fileout);

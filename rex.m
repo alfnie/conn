@@ -1542,7 +1542,7 @@ end
                 fprintf('Effects exported to %s\n',filename);
                 return
             case 'export_data'
-                [filename,filepath]=uiputfile({'*.mat','MAT-files (*.mat)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*',  'All Files (*)'},'Save effects as');
+                [filename,filepath]=uiputfile({'*.mat','MAT-files (*.mat)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*',  'All Files (*)'},'Save data as');
                 if ~ischar(filename), return; end
                 filename=fullfile(filepath,filename);
                 if ~isempty(regexp(filename,'\.mat$')), conn_savematfile(filename,'-struct',struct('data',Y(:,selectedROIs),'names',{roinames(selectedROIs)}));
