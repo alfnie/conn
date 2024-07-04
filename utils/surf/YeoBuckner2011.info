@@ -1,0 +1,13 @@
+Merged Yeo (cortical) and Buckner (cerebellum) 7-network parcellations
+
+Converted from Yeo2011_7Networks_MNI152_FreeSurferConformed1mm_LiberalMask.nii
+Converted from Buckner2011_7Networks_MNI152_FreeSurferConformed1mm_LooseMask.nii
+
+Source: 
+  FSL MNI152 Freesurfer https://surfer.nmr.mgh.harvard.edu/fswiki/CorticalParcellation_Yeo2011
+  FSL MNI152 Freesurfer https://www.freesurfer.net/fswiki/CerebellumParcellation_Buckner2011
+
+References: 
+  Yeo BTT, Krienen FM, Sepulcre J, Sabuncu MR, Lashkari D, Hollinshead M, Roffman JL, Smoller JW, Zollei L, Polimeni JR, Fischl B, Liu H, Buckner RL (2011) The organization of the human cerebral cortex estimated by intrinsic functional connectivity. J Neurophysiol 106: 1125-1165
+  Buckner RL, Krienen FM, Castellanos A, Diaz JC, Yeo BTT (2011) The organization of the human cerebellum estimated by intrinsic functional connectivity. J Neurophysiol 106:2322-2345
+  Choi EY, Yeo BT, Buckner RL (2012) The organization of the human striatum estimated by intrinsic functional connectivity. J Neurophysiol 108: 2242-2263

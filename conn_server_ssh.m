@@ -61,7 +61,7 @@ switch(lower(option))
             if ~isfield(params.info,'user')||isempty(params.info.user), [nill,str2]=system('whoami'); params.info.user=regexprep(str2,'\n',''); allthesame=false; end
             if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=''; allthesame=false; end
             clear h;
-            h.hfig=figure('units','norm','position',[.3 .6 .3 .2],'name','SSH connection','numbertitle','off','menubar','none','color','w');
+            h.hfig=figure('units','norm','position',[.3 .6 .3 .2],'name','Start SSH connection','numbertitle','off','menubar','none','color','w');
             uicontrol('style','text','units','norm','position',[.1 .70 .37 .14],'string','Remote server address:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);
             h.answer_host=uicontrol('style','edit','max',1,'units','norm','position',[.5 .70 .4 .15],'string',params.info.host,'backgroundcolor','w','horizontalalignment','left','parent',h.hfig,'tooltipstring','Enter the address of your SSH-accessible remote server or your cluster login node');
             uicontrol('style','text','units','norm','position',[.1 .50 .37 .14],'string','Username:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);

@@ -165,9 +165,12 @@ else
                     end
                 case {'BB','BB_RAO'},          % h: [Nc,Ns] Wilks Lambda-test (Ns,dof,Nc0)
                     BB=h'*ir*h;                    % between matrix
-                    l1=real(det((EE+BB)/dofe));
-                    if l1>0, l=     max(0,real((det(EE/dofe))./l1));
-                    else     l=     1;
+                    L1=(EE+BB)/dofe;
+                    L2=EE/dofe;
+                    l1=real(det(L1));
+                    l2=real(det(L2));
+                    if l1>0&&(l1>1e-10||rank(L1)==Ns), l=max(0,l2./l1);
+                    else l=1;
                     end
                     if Ns^2+Nc0^2-5<=0, doft=1;
                     else doft=sqrt((Ns^2*Nc0^2-4)/(Ns^2+Nc0^2-5));

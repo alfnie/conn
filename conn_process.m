@@ -531,12 +531,16 @@ if any(options==2),
                 nscans=CONN_x.Setup.nscans;
                 for nl1covariate=1:nl1covariates,
                     filename=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{1};
-                    switch(filename),
-                        case '[raw values]',
-                            data{nl1covariate}=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{3};
-                        otherwise,
-                            data{nl1covariate}=conn_loadtextfile(filename,false);
-                            %if isstruct(data{nl1covariate}), tempnames=fieldnames(data{nl1covariate}); data{nl1covariate}=data{nl1covariate}.(tempnames{1}); end
+                    if isempty(filename)
+                        data{nl1covariate}=zeros(nscans{nsub}{nses},0);
+                    else
+                        switch(filename),
+                            case '[raw values]',
+                                data{nl1covariate}=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{3};
+                            otherwise,
+                                data{nl1covariate}=conn_loadtextfile(filename,false);
+                                %if isstruct(data{nl1covariate}), tempnames=fieldnames(data{nl1covariate}); data{nl1covariate}=data{nl1covariate}.(tempnames{1}); end
+                        end
                     end
                     names{nl1covariate}=CONN_x.Setup.l1covariates.names{nl1covariate};
                     n=n+1;
@@ -3428,7 +3432,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 PROJSPACE=[];
                                 if isfield(CONN_x.vvAnalyses(ianalysis),'options')&&ischar(CONN_x.vvAnalyses(ianalysis).options)&&~isempty(CONN_x.vvAnalyses(ianalysis).options) % pre-computes projector matrix removing effects-of-no-interest
                                     conn_disp('fprintf','      potential nuisance effects: %s\n',CONN_x.vvAnalyses(ianalysis).options);
-                                    KEEPMEAN=true; % set to true to center effects-of-no-interest (always maintain mean in data)
+                                    KEEPMEAN=false; % set to true to center effects-of-no-interest (always maintain mean in data)
                                     covnames=regexp(CONN_x.vvAnalyses(ianalysis).options,'\s*,\s*','split');
                                     [ok,idx]=ismember(covnames,CONN_x.Setup.l2covariates.names(1:end-1));
                                     assert(all(ok),'unable to find match of second-level covariate %s',sprintf('%s ',covnames{~ok}));

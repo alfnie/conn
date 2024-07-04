@@ -97,7 +97,7 @@ if ~isempty(names)
 end
 for ny=1:Ny
     strdescrip{end+1}=sprintf('%-16s   ',datanames{ny});
-    for nx=1:Nx, strdescrip{end}=[strdescrip{end},sprintf(' %10d',data(nx,ny))]; end
+    for nx=1:Nx, strdescrip{end}=[strdescrip{end},sprintf(' %10d',data(nx,ny))]; end %│
 end
 strdescrip{end+1}=sprintf('%-16s   ','(total)');
 for nx=1:Nx, strdescrip{end}=[strdescrip{end},sprintf(' %10d',sum(data(nx,:)))]; end
@@ -276,7 +276,7 @@ fh('refresh');
                 end
                 hold(state.handles.axes,'off');
                 if DOLEGEND&&numel(datanames)>0
-                    h=legend(state.handles.patch, datanames(selectedROIs), 'Location', 'NorthWest');
+                    h=legend(state.handles.patch, datanames(selectedROIs), 'Location', 'SouthWest');
                     if mean(state.background)>.5, set(h,'box','off','color',[1 1 1]);
                     else set(h,'box','on','color',[.25 .25 .25]);
                     end
