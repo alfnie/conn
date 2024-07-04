@@ -91,6 +91,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     CONN_gui.backgroundcolorE=max(0,min(1, .5*CONN_gui.backgroundcolor+.5*[.077 .6 1]));
     CONN_gui.fontcolorA=[.10 .10 .10]+.8*(mean(CONN_gui.backgroundcolorA)<.5);
     CONN_gui.fontcolorB=[.4 .4 .4]+.2*(mean(CONN_gui.backgroundcolorA)<.5);
+    fntnames={'Avenir Next','Avenir','Helvetica'}; try, fntnames{end+1}=get(0,'FixedWidthFontName'); end; CONN_gui.fontname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), CONN_gui.fontname=fntnames{find(ok,1)}; end; end
     CONN_gui.status=0;
     CONN_gui.warnloadbookmark={};
     if ismac, CONN_gui.rightclick='control'; CONN_gui.keymodifier='command'; else CONN_gui.rightclick='right'; CONN_gui.keymodifier='ctrl'; end

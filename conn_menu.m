@@ -5,7 +5,8 @@ global CONN_gui CONN_h;
 persistent nullstr fname;
 
 if isempty(nullstr), nullstr=''; end
-if isempty(fname), fnames={'Avenir Next','Avenir','Helvetica'}; fname=fnames{end}; try, ok=ismember(fnames,listfonts); if nnz(ok), fname=fnames{find(ok,1)}; end; end; end
+if isempty(fname), try, fname=CONN_gui.fontname; catch, fname=get(0,'FixedWidthFontName'); end; end
+
 h=[];h2=[];htb=[];
 nmax=100;
 if nargin<2 || isempty(position), position=[0,0,0,0]; end

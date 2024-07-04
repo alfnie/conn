@@ -6,11 +6,12 @@ if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 if ~isfield(CONN_gui,'parse_html'), CONN_gui.parse_html={'<HTML><FONT color=rgb(100,100,100)>','</FONT></HTML>'}; end
 if ~isfield(CONN_gui,'rightclick'), CONN_gui.rightclick='right'; end
 if ~isfield(CONN_gui,'backgroundcolor'), CONN_gui.backgroundcolor=[0.1400 0.1400 0.1400]; end
+if ~isfield(CONN_gui,'fontname'), CONN_gui.fontname=get(0,'FixedWidthFontName'); end
 if ~isfield(CONN_h,'screen')||~isfield(CONN_h.screen,'hfig'), CONN_h.screen.hfig=gcf; end
 if isempty(cwd), cwd=conn_projectmanager('pwd'); end
 
 if nargin<1 || ischar(varargin{1}),
-    fntnames={'Avenir Next','Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
+    fntname=CONN_gui.fontname;
     fields={'position',[.5,.1,.4,.8],...
         'backgroundcolor',.9*[1,1,1],...
         'foregroundcolor',[0,0,0],...

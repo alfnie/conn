@@ -38,6 +38,7 @@ function handle=conn_menumanager(handle,varargin)
 global CONN_x CONN_MM CONN_gui;
 if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 if ~isfield(CONN_gui,'waiticon'), CONN_gui.waiticon='watch'; end
+if ~isfield(CONN_gui,'fontname'), CONN_gui.fontname=get(0,'FixedWidthFontName'); ; end
 if nargin<1, handle='on'; end
 %AVOIDTEXTBUG=CONN_gui.dounixGUIbugfix; % avoids issue with remote X display fonts not resizing correctly (note: disregards rotate field)
 UIXCONTROLTOOLTIP=false; 
@@ -372,7 +373,7 @@ else
         handle=length(CONN_MM.MENU)+1; 
         CONN_MM.POSITION(handle,:)=0;
         CONN_MM.ACTIVE(handle)=0;
-        fntnames={'Avenir Next','Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
+        fntname=CONN_gui.fontname;
         % note1: possible status are: [Mouse outside of item, Mouse inside item, Item selected and mouse inside item, Item selected and mouse outside item]
         params=struct(...
             'n',0,...                                           % number of items
