@@ -1034,7 +1034,7 @@ if any(procedures==Iprocedure) % QA_COV
                         for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
                     end
                     CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=~pmatch;
-                    pmatch_name='QC_RemoveSubjects';
+                    pmatch_name='ExcludeOutlierSubjects';
                     pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
                     if isempty(pmatch_icov),
                         pmatch_icov=numel(CONN_x.Setup.l2covariates.names);

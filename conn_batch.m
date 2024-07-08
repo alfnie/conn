@@ -514,10 +514,13 @@ function varargout=conn_batch(varargin)
 %                                     'regression (bivariate)', 4 = 'regression (multivariate)'; [1] 
 %    Analysis.weight                : within-condition weight, 1 = 'none', 2 = 'hrf', 3 = 'hanning'; [2] 
 %    Analysis.modulation            : temporal modulation, 0 = standard weighted GLM analyses; 1 = gPPI analyses of condition-specific 
-%                                     temporal modulation factor, or a string for PPI analyses of other temporal modulation factor 
+%                                     connectivity modulation (connectivity change with each condition, i.e. gPPI interaction effect); 
+%                                     2 = gPPI analyses of condition-specific connectivity modulation (absolute connectivity with each 
+%                                     condition, i.e. gPPI physiological+interaction effect); a string for PPI analyses of other temporal 
+%                                     modulation factor 
 %                                     (same for all conditions; valid strings are ROI names and 1st-level covariate names)'; [0] 
-%    Analysis.conditions            : (for modulation==1 only) list of task condition names to be simultaneously entered in gPPI 
-%                                     model (leave empty for default 'all existing conditions') [] 
+%    Analysis.conditions            : (for modulation==1 or modulation==2 only) list of task condition names to be simultaneously entered 
+%                                     in gPPI model (leave empty for default 'all existing conditions') [] 
 %    Analysis.type                  : analysis type, 1 = 'ROI-to-ROI', 2 = 'Seed-to-Voxel', 3 = 'all'; [3] 
 %    Analysis.sources               : Cell array of sources names (seeds) (source names can be: any ROI name) (if this variable does 
 %                                     not exist the toolbox will perform the analyses for all of the existing ROIs which are not 

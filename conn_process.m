@@ -2462,8 +2462,9 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                         %if size(wx,2)>1, conn_disp('Warning: multivariate interaction term not supported. Summing interaction term across multiple components'); end
                         inter=wx;
                         X=[X(:,1) detrend([X(:,2:end) reshape(repmat(permute(inter,[1 3 2]),[1,size(X,2),1]),size(X,1),[]) reshape(conn_bsxfun(@times,X,permute(inter,[1 3 2])),size(X,1),[])],'constant')];
+                        % note: [X] , [1]*h1, [1]*h2, ..., [1]*hm, [X]*h1, [X]*h2, ..., [X]*hm, 
                     end
-                    nVars=size(X,2)/nX;
+                    nVars=size(X,2)/nX; % note: 1 + 2*(number of parametric modulation terms)
                     if isempty(maxrt), maxrt=max(conn_get_rt(nsub)); end
                     if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0 % parametric modulation
                         switch(CONN_x.Analyses(ianalysis).measure),
@@ -2478,12 +2479,13 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                                 DOF=max(0,Y.size.Nt*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-rank(X)+1);
                         end
                         r=sqrt(diag(iX));
-                        if 0&&~ischar(CONN_x.Analyses(ianalysis).modulation) % gPPI absolute values (physiological+PPI)
+                        if ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>1 % gPPI absolute values (physiological+PPI)
                             iX=iX(1:nX,:)+iX((nVars-1)*nX+1:end,:);
+                            r=sqrt(max(0,diag(iX(:,1:nX)+iX(:,(nVars-1)*nX+1:end))));
                         else
                             iX=iX((nVars-1)*nX+1:end,:);
+                            r=r((nVars-1)*nX+1:end);
                         end
-                        r=r((nVars-1)*nX+1:end);
                     else % standard functional connectivity
                         switch(CONN_x.Analyses(ianalysis).measure),
                             case {1,3}, %bivariate
@@ -2856,8 +2858,13 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                                 end
                                 nVars=size(x,2)/nX;
                                 r=sqrt(diag(iX));
-                                iX=iX((nVars-1)*nX+1:end,:);
-                                r=r((nVars-1)*nX+1:end);
+                                if ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>1 % gPPI absolute values (physiological+PPI)
+                                    iX=iX(1:nX,:)+iX((nVars-1)*nX+1:end,:);
+                                    r=sqrt(max(0,diag(iX(:,1:nX)+iX(:,(nVars-1)*nX+1:end))));
+                                else
+                                    iX=iX((nVars-1)*nX+1:end,:);
+                                    r=r((nVars-1)*nX+1:end);
+                                end
                             else % standard functional connectivity
                                 x=cat(2,X(:,1),X(:,1+setdiff(1:nrois,nroi)));
                                 switch(CONN_x.Analyses(ianalysis).measure),

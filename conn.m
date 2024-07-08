@@ -274,8 +274,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'bordertype','square',...
 									'callback',{{@conn, 'gui_setup_download'}} );
 	CONN_h.menus.m_setup_07a=conn_menumanager([],	'n',9,...
-									'string',{'GUI options','HPC options','SSH options','Convert / Import','Run','QA plots','Write methods','Log history','Calculator'},...%,'QA plots'},...
-									'help',{'Change GUI display options','Parallelization options for distributed clusters and High Performance Computing environments','Options for connecting to projects/studies stored in a different computer or network','Imports study Setup information from external sources','Run SPM preprocessing steps, CONN processing steps, batch script, or Matlab commands','Quality Assurance plots: creates/manages data quality displays','Write methods: creates automated text describing the methods used by CONN in this project','Log history: displays log of processing&analysis steps','Explore second-level covariates'},...%,'Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
+									'string',{'GUI options','HPC options','SSH options','Convert / Import','Run','QA plots','Methods description','Log history','Calculator'},...%,'QA plots'},...
+									'help',{'Change GUI display options','Parallelization options for distributed clusters and High Performance Computing environments','Options for connecting to projects/studies stored in a different computer or network','Imports study Setup information from external sources','Run SPM preprocessing steps, CONN processing steps, batch script, or Matlab commands','Quality Assurance plots: creates/manages data quality displays','Methods description: creates automated text describing the methods used by CONN in this project','Log history: displays log of processing&analysis steps','Explore second-level covariates'},...%,'Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
@@ -284,8 +284,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_settings'},CONN_h.menus.m_setup_07f,CONN_h.menus.m_setup_07j,CONN_h.menus.m_setup_07h,CONN_h.menus.m_setup_07e,{@conn,'gui_setup_qadisplay'},{@conn,'gui_referenceexplore'},{@conn,'gui_setup_logdisplay'},{@conn,'gui_calculator'}} ); %,{@conn,'gui_setup_qadisplay'}} );
 	% CONN_h.menus.m_setup_07a=conn_menumanager([],	'n',10,...
-			% 						'string',{'GUI options','HPC options','SSH options','Convert / Import','Run','QA plots','Write methods','Log history','Screenshot','Calculator'},...%,'QA plots'},...
-			% 						'help',{'Change GUI display options','Parallelization options for distributed clusters and High Performance Computing environments','Options for connecting to projects/studies stored in a different computer or network','Imports study Setup information from external sources','Run SPM preprocessing steps, CONN processing steps, batch script, or Matlab commands','Quality Assurance plots: creates/manages data quality displays','Write methods: creates automated text describing the methods used by CONN in this project','Log history: displays log of processing&analysis steps','Saves a screenshot of the GUI','Explore second-level covariates'},...%,'Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
+			% 						'string',{'GUI options','HPC options','SSH options','Convert / Import','Run','QA plots','Methods description','Log history','Screenshot','Calculator'},...%,'QA plots'},...
+			% 						'help',{'Change GUI display options','Parallelization options for distributed clusters and High Performance Computing environments','Options for connecting to projects/studies stored in a different computer or network','Imports study Setup information from external sources','Run SPM preprocessing steps, CONN processing steps, batch script, or Matlab commands','Quality Assurance plots: creates/manages data quality displays','Methods description: creates automated text describing the methods used by CONN in this project','Log history: displays log of processing&analysis steps','Saves a screenshot of the GUI','Explore second-level covariates'},...%,'Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
     %                                 'order','vertical',...
     %                                 'toggle',0,...
     %                                 'roll',1,...
@@ -447,7 +447,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'callback',{{@conn,'gui_setup_preproc','multiplesteps',1}} );
 	CONN_h.menus.m_setup_01f=conn_menumanager([], 'n',2,...
 									'string',{'QA plots','Methods'},...
-									'help',{'Quality Assurance plots: creates/manages data quality displays','Write methods: creates automated text describing the methods used by CONN in this project'},...
+									'help',{'Quality Assurance plots: creates/manages data quality displays','Methods description: creates automated text describing the methods used by CONN in this project'},...
 									'position',[.21,.0,2*.05,.045],...
                                     'order','horizontal',...
                                     'toggle',0,...
@@ -457,7 +457,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'callback',{{@conn,'gui_setup_qadisplay'},{@conn,'gui_referenceexplore'}} );
 	CONN_h.menus.m_setup_01g=conn_menumanager([], 'n',2,...
 									'string',{'QA plots','Methods'},...
-									'help',{'Quality Assurance plots: creates/manages data quality displays','Write methods: creates automated text describing the methods used by CONN in this project'},...
+									'help',{'Quality Assurance plots: creates/manages data quality displays','Methods description: creates automated text describing the methods used by CONN in this project'},...
 									'position',[.11,.0,2*.05,.045],...
                                     'order','horizontal',...
                                     'toggle',0,...
@@ -7397,7 +7397,7 @@ else
                                 case 'default', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','correlation (bivariate)'); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
                                 case 'SBC',      conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','seed-to-voxel','Analysis.measure','correlation (bivariate)'); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
                                 case 'RRC',      conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','roi-to-roi','Analysis.measure','correlation (bivariate)'); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
-                                case 'gPPI', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','correlation (bivariate)','Analysis.modulation',1,'Analysis.conditions',cnames); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
+                                case 'gPPI', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','correlation (bivariate)','Analysis.modulation',2,'Analysis.conditions',cnames); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
                                 case 'temporal modulation', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','correlation (bivariate)','Analysis.modulation',tmodulation); conn_process('analyses_seedsetup',tnames);  conn('gui_analysesgo',1);
                                 case {'group-PCA','group-ICA','group-MVPA','IntrinsicConnectivity','LocalCorrelation','GlobalCorrelation','InterHemisphericCorrelation','RadialCorrelation','RadialSimilarity','ALFF','fALFF'}, conn_batch('vvAnalysis.name',tnames,'vvAnalysis.measures',tanalysis); conn_process('analyses_vvsetup',tnames); conn('gui_analysesgo',2);
                                 case 'dyn-ICA', conn_batch('dynAnalysis.name',tnames,'dynAnalysis.sources',{},'dynAnalysis.factors',20,'dynAnalysis.window',30); conn_process('analyses_dynsetup',tnames); conn('gui_analysesgo',3);
@@ -7670,7 +7670,7 @@ else
                     CONN_h.menus.m_analyses_00{46}=conn_menu('edit',boffset+[.175,.68,.08,.04],'Analysis name','','<HTML>First-level analysis name (alphanumeric case sensitive)</HTML>','conn(''gui_analyses'',46);');
                     analysistypes=[{'functional connectivity (weighted GLM)','gPPI analysis of selected task factors','temporal-modulation analyses of selected dyn-ICA factors','temporal-modulation analysis of selected interaction factors'}];%,cellfun(@(x)['gPPI: interaction with covariate ''',x,''''],CONN_x.Setup.l1covariates.names(1:end-1),'uni',0)];
                     if SINGLECASE
-                        if ischar(CONN_x.Analyses(ianalysis).modulation), if ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')), value=3; else value=4; end; else value=CONN_x.Analyses(ianalysis).modulation+1; end
+                        if ischar(CONN_x.Analyses(ianalysis).modulation), if ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')), value=3; else value=4; end; else value=(CONN_x.Analyses(ianalysis).modulation>0)+1; end
                         CONN_h.menus.m_analyses_00{10}=conn_menu('popup',boffset+[.275,.68,.27,.04],'Analysis type',analysistypes(value),['<HTML>First-level RRC or SBC analysis type:<br/>',...
                             ' This is a read-only property. To define a new different analysis go to the <b>Analyses</b> list and select <b>new</b> -or click in the empty space after the last analysis in that list-<br/>',...
                             ' Available RRC or SBC analyses include:<br/>',...
@@ -7691,7 +7691,8 @@ else
                     connmeasures={'correlation (bivariate)','correlation (semipartial)','regression (bivariate)','regression (multivariate)'};
                     CONN_h.menus.m_analyses_00{7}=conn_menu('popup',boffset+[.175,.55,.18,.04],'',connmeasures,'<HTML>Choose functional connectivity measure<br/> - <i>bivariate</i> measures are computed separately for each pair of source&target ROIs (ROI-to-ROI analyses)<br/> or for each pair of source ROI and target voxel (seed-to-voxel analyses)<br/> - <i>semipartial</i> and <i>multivariate</i> measures are computed entering all the chosen source ROIs simultaneously <br/>into a single predictive model (separately for each target ROI/voxel) <br/> - <i>correlation</i> measures output Fisher-transformed correlation-coefficients (bivariate or semipartial) and <br/>are typically associated with measures of <i>functional</i> connectivity<br/> - <i>regression</i> measures output regression coefficients (bivariate or multivariate) and are typically associated <br/>with measures of <i>effective</i> connectivity</HTML>','conn(''gui_analyses'',7);');
                     CONN_h.menus.m_analyses_00{8}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'no weighting','hrf weighting','hanning weighting','task/condition factor'},'<HTML>Choose method for weighting scans/samples within each condition block when computing condition-specific connectivity measures (for weighted GLM analyses only) <br/> - <i>no weighting</i> uses binary 0/1 weights identifying scans associated with each condition<br/> - <i>hrf weights</i> additionally convolves the above binary weights with a canonical hemodynamic response function<br/> - <i>hanning weights</i> uses instead a hanning window across within-condition scans/samples  as weights (focusing only on center segment within each block)<br/> - <i>task/condition factor</i> uses instead the factor timeseries defined in <i>Setup.Conditions.TaskModulationFactor</i> as weights (for other custom weighting)</HTML>','conn(''gui_analyses'',8);');
-                    
+                    CONN_h.menus.m_analyses_00{25}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'connectivity-change with each task','total-connectivity during each task'},'<HTML>Choose output measure<br/> - "connectivity change" outputs the gPPI model regressor coefficient associated with the <i>psychophysiological interaction</i> term alone, measuring differences<br/> in connectivity between each task and the gPPI model implicit baseline condition<br/> - "total connectivity" outputs the sum of the gPPI model regressor coefficients associated with the <i>main physiological</i> and the <i>psychophysiological interaction</i><br/> terms, measuring the total connectivity strength during each task)</HTML>','conn(''gui_analyses'',25);');
+                    set(CONN_h.menus.m_analyses_00{25},'visible','off');
                     %[nill,CONN_h.menus.m_analyses_00{16}]=conn_menu('text',boffset+[.125,.48,.26,.05],'Functional connectivity seeds/sources:');
                     %set(CONN_h.menus.m_analyses_00{16},'horizontalalignment','left');
                     CONN_h.menus.m_analyses_00{1}=conn_menu('listbox',boffset+[.39,.31,.155,.13],'all ROIs','',['<HTML>List of all seeds/ROIs <br/> - this list includes all ROI timeseres and first-level covariates except those<br/> which have already been defined/used as confounds during the denoising step<br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',1);');
@@ -7740,7 +7741,10 @@ else
                     if ~isfield(CONN_x.Analyses(ianalysis),'type') || isempty(CONN_x.Analyses(ianalysis).type), CONN_x.Analyses(ianalysis).type=3; end
                     set(CONN_h.menus.m_analyses_00{46},'string',CONN_x.Analyses(ianalysis).name);
                     set(CONN_h.menus.m_analyses_00{7},'value',CONN_x.Analyses(ianalysis).measure);
-                    if ischar(CONN_x.Analyses(ianalysis).modulation), if ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')), value=3; else value=4; end; else value=CONN_x.Analyses(ianalysis).modulation+1; end
+                    if ischar(CONN_x.Analyses(ianalysis).modulation), if ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')), value=3; else value=4; end; else value=(CONN_x.Analyses(ianalysis).modulation>0)+1; end
+                    if ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>0, set(CONN_h.menus.m_analyses_00{25},'visible','on','value',CONN_x.Analyses(ianalysis).modulation);
+                    else set(CONN_h.menus.m_analyses_00{25},'visible','off');
+                    end
                     if ~SINGLECASE, set(CONN_h.menus.m_analyses_00{10},'value',value); end
                     set(CONN_h.menus.m_analyses_00{8},'value',CONN_x.Analyses(ianalysis).weight);
                     set(CONN_h.menus.m_analyses_00{9},'value',CONN_x.Analyses(ianalysis).type);
@@ -7864,12 +7868,12 @@ else
                             CONN_h.menus.m_analyses.XR=[];
                         case 10,
                             if SINGLECASE
-                                if ischar(CONN_x.Analyses(ianalysis).modulation), if ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')), value=3; else value=4; end; else value=CONN_x.Analyses(ianalysis).modulation+1; end
+                                if ischar(CONN_x.Analyses(ianalysis).modulation), if ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')), value=3; else value=4; end; else  value=(CONN_x.Analyses(ianalysis).modulation>0)+1; end
                             else
                                 value=get(CONN_h.menus.m_analyses_00{10},'value');
                             end
                             if value==2 % gPPI
-                                CONN_x.Analyses(ianalysis).modulation=1;
+                                if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation==0, CONN_x.Analyses(ianalysis).modulation=1; end
                                 names=CONN_x.Setup.conditions.names(1:end-1);
                                 cnames=CONN_x.Analyses(ianalysis).conditions;
                                 if isempty(cnames), value=1:numel(names);
@@ -8111,6 +8115,9 @@ else
                                 conn gui_analyses;
                                 return;
                             end
+                        case 25,
+                            CONN_x.Analyses(ianalysis).modulation=get(CONN_h.menus.m_analyses_00{25},'value');
+                            model=1;
                         case 44, % disp
                             if ~isempty(CONN_h.menus.m_analyses.XR), 
                                 nshow=get(CONN_h.menus.m_analyses_00{13},'value'); % 1: results; 2: preview
@@ -8180,6 +8187,9 @@ else
                         conn_msgbox({'Temporal-modulation analyses not ready for selected condition'},'',2); 
                     end
                 end
+                if ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>0, set(CONN_h.menus.m_analyses_00{25},'visible','on','value',CONN_x.Analyses(ianalysis).modulation); 
+                else set(CONN_h.menus.m_analyses_00{25},'visible','off'); 
+                end
                 if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0, 
                     set(CONN_h.menus.m_analyses_00{8},'visible','off'); 
                     if CONN_x.Analyses(ianalysis).type==1, set(CONN_h.menus.m_analyses_00{14}.htitle,'string','Temporal Modulation (gPPI matrix)');
@@ -8198,7 +8208,7 @@ else
                 end
                 %if CONN_x.Analyses(ianalysis).weight==1&&CONN_x.Analyses(ianalysis).modulation==1, uiwait(warndlg({'Parametric task-effect modulation requires non-constant interaction term / weights','Change ''weights'' to hrf for standard analyses'})); end
                 set(CONN_h.menus.m_analyses_00{7},'value',CONN_x.Analyses(ianalysis).measure);
-                if ischar(CONN_x.Analyses(ianalysis).modulation), if ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')), value=3; else value=4; end; else value=CONN_x.Analyses(ianalysis).modulation+1; end
+                if ischar(CONN_x.Analyses(ianalysis).modulation), if ~isempty(regexp(CONN_x.Analyses(ianalysis).modulation,'^(.*\/|.*\\)?Dynamic factor \d+$')), value=3; else value=4; end; else  value=(CONN_x.Analyses(ianalysis).modulation>0)+1; end
                 if ~SINGLECASE, set(CONN_h.menus.m_analyses_00{10},'value',value); end
                 if ~isempty(nregressors)&&all(nregressors>0),
                     temp=cat(1,CONN_x.Analyses(ianalysis).regressors.deriv{nregressors});
@@ -8450,7 +8460,11 @@ else
                                 %                                     %C=pinv(CONN_h.menus.m_analyses.opt.X(:,[1,idx]))*CONN_h.menus.m_analyses.opt.X;
                                 %                                     %C=C(2:end,:); % unique + shared variance
                                 %                                 case {2,4}, %partial
-                                C=C((CONN_h.menus.m_analyses.nVars-1)*size(C,1)/CONN_h.menus.m_analyses.nVars+1:end,:);
+                                if ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>1, % gPPI absolute values (physiological+PPI)
+                                    C=C(1:size(C,1)/CONN_h.menus.m_analyses.nVars,:)+C((CONN_h.menus.m_analyses.nVars-1)*size(C,1)/CONN_h.menus.m_analyses.nVars+1:end,:);
+                                else
+                                    C=C((CONN_h.menus.m_analyses.nVars-1)*size(C,1)/CONN_h.menus.m_analyses.nVars+1:end,:);
+                                end
                                 if ~isempty(idx), C=C(idx,:); end % unique variance
                                 %                             end
                             else % functional connectivity
@@ -12161,7 +12175,7 @@ else
                     if strcmp(full_statsname,'F'), if all(~rem(full_dof,1)), strdof=[full_statsname,'(',num2str(full_dof(1)),',',num2str(full_dof(2)),')']; else strdof=[full_statsname,'(',sprintf('%.2f,%.2f',full_dof(1),full_dof(2)),')']; end
                     else strdof=[full_statsname,'(',num2str(full_dof(end)),')'];
                     end
-                    strwarn='design'; try, if max(abs(1-CONN_h.menus.m_results.design.designmatrix*(pinv(CONN_h.menus.m_results.design.designmatrix)*ones(size(CONN_h.menus.m_results.design.designmatrix,1),1))))>1e-6 || max(max(abs(CONN_h.menus.m_results.design.contrast_between*null(CONN_h.menus.m_results.design.designmatrix))))>1e-6, strwarn='WARNING!'; end; end
+                    strwarn='design'; try, if any(full_dof<=0) || max(abs(1-CONN_h.menus.m_results.design.designmatrix*(pinv(CONN_h.menus.m_results.design.designmatrix)*ones(size(CONN_h.menus.m_results.design.designmatrix,1),1))))>1e-6 || max(max(abs(CONN_h.menus.m_results.design.contrast_between*null(CONN_h.menus.m_results.design.designmatrix))))>1e-6, strwarn='WARNING!'; end; end
                     if strcmp(strwarn,'design'), set(CONN_h.menus.m_results_00{23},'string',sprintf('n=%d %s',size(CONN_h.menus.m_results.design.designmatrix,1),strdof),'horizontalalignment','left');
                     else set(CONN_h.menus.m_results_00{23},'string',sprintf('%s',strwarn),'horizontalalignment','left'); 
                     end
@@ -12205,7 +12219,7 @@ else
                     if strcmp(full_statsname,'F'), if all(~rem(full_dof,1)), strdof=[full_statsname,'(',num2str(full_dof(1)),',',num2str(full_dof(2)),')']; else strdof=[full_statsname,'(',sprintf('%.2f,%.2f',full_dof(1),full_dof(2)),')']; end
                     else strdof=[full_statsname,'(',num2str(full_dof(end)),')'];
                     end
-                    strwarn='design'; try, if max(abs(1-CONN_h.menus.m_results.design.designmatrix*(pinv(CONN_h.menus.m_results.design.designmatrix)*ones(size(CONN_h.menus.m_results.design.designmatrix,1),1))))>1e-6 || max(max(abs(CONN_h.menus.m_results.design.contrast_between*null(CONN_h.menus.m_results.design.designmatrix))))>1e-6, strwarn='WARNING!'; end; end
+                    strwarn='design'; try, if any(full_dof<=0) || max(abs(1-CONN_h.menus.m_results.design.designmatrix*(pinv(CONN_h.menus.m_results.design.designmatrix)*ones(size(CONN_h.menus.m_results.design.designmatrix,1),1))))>1e-6 || max(max(abs(CONN_h.menus.m_results.design.contrast_between*null(CONN_h.menus.m_results.design.designmatrix))))>1e-6, strwarn='WARNING!'; end; end
                     if strcmp(strwarn,'design'), set(CONN_h.menus.m_results_00{23},'string',sprintf('n=%d %s',size(CONN_h.menus.m_results.design.designmatrix,1),strdof),'horizontalalignment','left');
                     else set(CONN_h.menus.m_results_00{23},'string',sprintf('%s',strwarn),'horizontalalignment','left'); 
                     end
@@ -12324,7 +12338,7 @@ else
                     if strcmp(full_statsname,'F'), if all(~rem(full_dof,1)), strdof=[full_statsname,'(',num2str(full_dof(1)),',',num2str(full_dof(2)),')']; else strdof=[full_statsname,'(',sprintf('%.2f,%.2f',full_dof(1),full_dof(2)),')']; end
                     else strdof=[full_statsname,'(',num2str(full_dof(end)),')'];
                     end
-                    strwarn='design'; try, if max(abs(1-CONN_h.menus.m_results.roiresults.xX.X*(pinv(CONN_h.menus.m_results.roiresults.xX.X)*ones(size(CONN_h.menus.m_results.roiresults.xX.X,1),1))))>1e-6 || max(max(abs(CONN_h.menus.m_results.roiresults.c*null(CONN_h.menus.m_results.roiresults.xX.X))))>1e-6, strwarn='WARNING!'; end; end
+                    strwarn='design'; try, if any(full_dof<=0) || max(abs(1-CONN_h.menus.m_results.roiresults.xX.X*(pinv(CONN_h.menus.m_results.roiresults.xX.X)*ones(size(CONN_h.menus.m_results.roiresults.xX.X,1),1))))>1e-6 || max(max(abs(CONN_h.menus.m_results.roiresults.c*null(CONN_h.menus.m_results.roiresults.xX.X))))>1e-6, strwarn='WARNING!'; end; end
                     if strcmp(strwarn,'design'), set(CONN_h.menus.m_results_00{23},'string',sprintf('n=%d %s',size(CONN_h.menus.m_results.roiresults.xX.X,1),strdof),'horizontalalignment','left');
                     else set(CONN_h.menus.m_results_00{23},'string',sprintf('%s',strwarn),'horizontalalignment','left'); 
                     end
