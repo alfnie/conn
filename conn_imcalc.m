@@ -14,8 +14,7 @@ elseif isequal(evaluatefunction,'lin'), % lin
         for n1=1:3,
             try
                 switch(n1)
-                    case 1, value=evalin('base',tstring);
-                    case 2,
+                    case 1,
                         %x=cat(2,CONN_x.Setup.l2covariates.values{nsub}{:});
                         %tnames=CONN_x.Setup.l2covariates.names(1:end-1);
                         [nill,idx]=sort(-cellfun('length',cnames));
@@ -25,6 +24,7 @@ elseif isequal(evaluatefunction,'lin'), % lin
                             end
                         end
                         value=evalin('base',tstring);
+                    case 2, value=evalin('base',tstring);
                     case 3,
                         tstring=regexprep(tstring,'([^\.])(\*)|([^\.])(/)|([^\.])(\^)','$1.$2');
                         value=evalin('base',tstring);

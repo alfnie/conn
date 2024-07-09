@@ -25,7 +25,7 @@ function varargout=conn(varargin)
 % alfnie@gmail.com
 %
 
-connver='22.a';
+connver='22.v2407';
 dodebug=false;
 
 global CONN_h CONN_x CONN_gui;
@@ -1480,7 +1480,7 @@ else
             str{end+1}='';
             str{end+1}=sprintf('to cite this specific release/version of CONN:');
             str{end+1}=sprintf('Nieto-Castanon, A., and Whitfield-Gabrieli, S. (2022). CONN functional connectivity toolbox: ');
-            str{end+1}=sprintf('RRID SCR_009550, version 21. Hilbert Press. doi:10.56441/hilbertpress.2246.5840');
+            str{end+1}=sprintf('RRID SCR_009550, release 22. Hilbert Press. doi:10.56441/hilbertpress.2246.5840');
             str{end+1}='';
             str{end+1}=sprintf('to cite the CONN toolbox:');
             str{end+1}=sprintf('Whitfield-Gabrieli, S., and Nieto-Castanon, A. (2012). Conn: A functional connectivity');
@@ -4396,7 +4396,21 @@ else
                                 if value==5, % lin
                                     if isequal(CONN_x.Setup.conditions.model{nconditions(1)}{1},'lin'), G=CONN_x.Setup.conditions.model{nconditions(1)}{2}; else G=''; end
                                     if ~ischar(G), G=strmat(G); end
-                                    answ=conn_menu_inputdlg({sprintf('Enter design matrix using Matlab notation (with %d rows, one per condition; first column is regressor of interest)',numel(conds))},'',1,{G},struct('Resize','on'));
+                                    htemp=conn_msgbox({'In the prompt below please define the design matrix X of the hierarchical linear model Y = X*B that will be used to estimate your new condition from the input conditions',...
+                                        ' ',...
+                                        sprintf('note1: Y is a %d-element column vector containing the connectivity values of the %d input conditions',numel(conds),numel(conds)),...
+                                        sprintf('X is a [%dxN] matrix containing the linear model design matrix (with N regressors of interest)',numel(conds)),...
+                                        ' and B is an estimated N-element vector of regressor coefficients, with B(1) the outcome measure of interest for this newly defined condition',...
+                                        ' ',...
+                                        ' note2: in the design matrix you may enter names of 2nd-level covariates in place of individual values if you need to specify different design matrices for each subject',...
+                                        ' ',...
+                                        ' e.g.: [0 1; 1 1; 2 1; 3 1]',...
+                                        ' to estimate rate of connectivity-change using a linear regression across four timepoints (input conditions)',...
+                                        ' ',...
+                                        ' e.g.: [BehaviorTime1 AllSubjects; BehaviorTime2 AllSubjects; BehaviorTime3 AllSubjects; BehaviorTime4 AllSubjects]',...
+                                        ' to estimate the association between connectivity and behavior for each subject across four timepoints (input conditions)'},'',-2);
+                                    answ=conn_menu_inputdlg({sprintf('Enter a [%dxN] design matrix using Matlab notation',numel(conds))},'',1,{G},struct('Resize','on'));
+                                    if ishandle(htemp), close(htemp); end
                                     if numel(answ)~=1||isempty(answ{1}),return; end
                                     G=answ{1};
                                 elseif value==6 % @fun
@@ -13378,6 +13392,7 @@ end
 
 function conn_menuframe(varargin)
 global CONN_gui CONN_x CONN_h;
+persistent icon2;
 ha=axes('units','norm','position',[0,0,1,1],'parent',CONN_h.screen.hfig); %,'color',CONN_gui.backgroundcolor,'xtick',[],'ytick',[],'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor); 
 ok=false;
 if isfield(CONN_gui,'background')
@@ -13453,18 +13468,21 @@ end
 c2=zeros(36,62);
 c2([149:176 185:212 221:248 257:284 293:320 329:356 509:528 545:564 581:600 617:636 653:672 689:708 869:896 905:932 941:968 977:1004 1013:1040 1049:1076 1229:1234 1239:1256 1265:1270 1275:1292 1301:1306 1311:1328 1337:1342 1347:1364 1373:1378 1383:1400 1409:1414 1419:1436 1589:1594 1599:1616 1625:1630 1635:1652 1661:1666 1671:1688 1697:1702 1707:1724 1733:1738 1743:1760 1769:1774 1779:1796 1805:1810 1841:1846 1877:1882 1913:1918 1949:1954 1985:1990 2021:2026 2057:2062])=1;
 c2([1239:1256 1275:1292 1311:1328 1347:1364 1383:1400 1419:1436])=2;
-c=c2;
-c2=zeros(36,52);
-c2([75:106 111:142 147:148 177:178 183:184 213:214 219:220 249:250 255:256 285:286 291:292 321:322 327:328 357:358 363:364 393:394 399:400 429:430 435:436 465:466 471:472 501:502 507:508 537:538 543:544 573:574 579:580 609:610 615:616 645:646 651:652 681:682 687:688 717:718 723:724 753:754 759:760 789:790 795:796 825:826 831:832 861:862 867:868 897:898 903:904 933:934 939:940 969:970 975:976 1005:1006 1011:1012 1041:1042 1047:1048 1077:1078 1083:1084 1113:1114 1119:1120 1149:1150 1155:1156 1185:1186 1191:1192 1221:1222 1227:1228 1257:1258 1263:1264 1293:1294 1299:1300 1329:1330 1335:1336 1365:1366 1371:1372 1401:1402 1407:1408 1437:1438 1443:1444 1473:1474 1479:1480 1509:1510 1515:1516 1545:1546 1551:1552 1581:1582 1587:1588 1617:1618 1623:1624 1653:1654 1659:1660 1689:1690 1695:1696 1725:1726 1731:1762 1767:1798])=1;
-c2([335:336 350 371:372 386 407:422 443:458 479:494 515:530 551:552 558 565:566 587:588 594 602 623:624 629:630 638 659:660 665:667 673:674 695:697 700:703 709:710 732:746 768:781 805:808 811:817 849:851 875:876 911:912 947:959 983:997 1019:1033 1055:1056 1067:1070 1091:1092 1104:1106 1141:1143 1177:1179 1213:1215 1249:1251 1285:1287 1321:1322 1343:1344 1357:1358 1379:1380 1392:1394 1415:1429 1451:1464 1487:1499 1523:1524 1559:1560])=2;
-c=[c zeros(36,2) c2];
-c2=zeros(36,36);
-c2([152 188 189 209 224 225 244 245 260:262 279:281 296:299 313:317 332:340 348:353 368:373 387:389 405:410 424 425 442:447 460 461 478:484 515:521 552:557 589:594 626:631 663:668 700:705 737:742 774:779 811:816 848:853 872 885:890 908 909 922:927 944:946 959:964 980:1001 1016:1037 1052:1054 1088 1089 1124])=1;
-c2([200 236 238 272 274 306 308 310 342 344 346 378 380 382 416 418 452 454 488])=2;
-%y=[];idx=[0 find(diff(x)>1) numel(x)]; for n=2:numel(idx), if idx(n)-idx(n-1)>2, y=[y sprintf(' %d:%d',x(idx(n-1)+1),x(idx(n)))]; elseif idx(n)-idx(n-1)>1, y=[y sprintf(' %d %d',x(idx(n-1)+1),x(idx(n)))]; else y=[y sprintf(' %d',x(idx(n)))]; end; end
-c=[c zeros(36,4) c2 zeros(36,12)];
-c([1:2,size(c,1)-(0:1)],:)=0;
-%c=[c2 zeros(36,8) [zeros(2,32); kron([0 0 1 1 1 1 1 1;1 1 2 2 2 2 1 1;1 2 3 2 2 3 2 1;1 2 2 0 0 2 2 1;1 2 2 0 0 2 2 1;1 2 2 2 2 3 2 1;1 2 2 2 2 2 1 0;0 1 1 1 1 1 1 0]*2/3,ones(4)); zeros(2,32)] zeros(36,12) c];
+if isempty(icon2), icon2=imread(conn_fullfile(fileparts(which(mfilename)),'conn_icon2.png')); end
+nf=ceil(size(icon2,1)/(size(c2,1)-1));
+c=c2(round(1:1/nf:size(c2,1)),round(1:1/nf:size(c2,2)));
+c=[c zeros(size(c,1),64) [double(icon2(:,:,1)>64); zeros(size(c,1)-size(icon2,1),size(icon2,2))]];
+% c2=zeros(36,52);
+% c2([75:106 111:142 147:148 177:178 183:184 213:214 219:220 249:250 255:256 285:286 291:292 321:322 327:328 357:358 363:364 393:394 399:400 429:430 435:436 465:466 471:472 501:502 507:508 537:538 543:544 573:574 579:580 609:610 615:616 645:646 651:652 681:682 687:688 717:718 723:724 753:754 759:760 789:790 795:796 825:826 831:832 861:862 867:868 897:898 903:904 933:934 939:940 969:970 975:976 1005:1006 1011:1012 1041:1042 1047:1048 1077:1078 1083:1084 1113:1114 1119:1120 1149:1150 1155:1156 1185:1186 1191:1192 1221:1222 1227:1228 1257:1258 1263:1264 1293:1294 1299:1300 1329:1330 1335:1336 1365:1366 1371:1372 1401:1402 1407:1408 1437:1438 1443:1444 1473:1474 1479:1480 1509:1510 1515:1516 1545:1546 1551:1552 1581:1582 1587:1588 1617:1618 1623:1624 1653:1654 1659:1660 1689:1690 1695:1696 1725:1726 1731:1762 1767:1798])=1;
+% c2([335:336 350 371:372 386 407:422 443:458 479:494 515:530 551:552 558 565:566 587:588 594 602 623:624 629:630 638 659:660 665:667 673:674 695:697 700:703 709:710 732:746 768:781 805:808 811:817 849:851 875:876 911:912 947:959 983:997 1019:1033 1055:1056 1067:1070 1091:1092 1104:1106 1141:1143 1177:1179 1213:1215 1249:1251 1285:1287 1321:1322 1343:1344 1357:1358 1379:1380 1392:1394 1415:1429 1451:1464 1487:1499 1523:1524 1559:1560])=2;
+% c=[c zeros(36,2) c2];
+% c2=zeros(36,36);
+% c2([152 188 189 209 224 225 244 245 260:262 279:281 296:299 313:317 332:340 348:353 368:373 387:389 405:410 424 425 442:447 460 461 478:484 515:521 552:557 589:594 626:631 663:668 700:705 737:742 774:779 811:816 848:853 872 885:890 908 909 922:927 944:946 959:964 980:1001 1016:1037 1052:1054 1088 1089 1124])=1;
+% c2([200 236 238 272 274 306 308 310 342 344 346 378 380 382 416 418 452 454 488])=2;
+% %y=[];idx=[0 find(diff(x)>1) numel(x)]; for n=2:numel(idx), if idx(n)-idx(n-1)>2, y=[y sprintf(' %d:%d',x(idx(n-1)+1),x(idx(n)))]; elseif idx(n)-idx(n-1)>1, y=[y sprintf(' %d %d',x(idx(n-1)+1),x(idx(n)))]; else y=[y sprintf(' %d',x(idx(n)))]; end; end
+% c=[c zeros(36,4) c2 zeros(36,12)];
+% c([1:2,size(c,1)-(0:1)],:)=0;
+% %c=[c2 zeros(36,8) [zeros(2,32); kron([0 0 1 1 1 1 1 1;1 1 2 2 2 2 1 1;1 2 3 2 2 3 2 1;1 2 2 0 0 2 2 1;1 2 2 0 0 2 2 1;1 2 2 2 2 3 2 1;1 2 2 2 2 2 1 0;0 1 1 1 1 1 1 0]*2/3,ones(4)); zeros(2,32)] zeros(36,12) c];
 b0=shiftdim(CONN_gui.backgroundcolor,-1); 
 ha=axes('units','norm','position',[.91,.001,.09,.045],'units','pixels','parent',CONN_h.screen.hfig); 
 if isfield(CONN_gui,'background'), b0=conn_guibackground('get',get(ha,'position'),size(c)); end
