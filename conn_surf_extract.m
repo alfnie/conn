@@ -121,7 +121,8 @@ else % extracts from arbitrary freesurfer surfaces (subject-specific coordinates
             %a=MRIread(fullfile(FS_folder,'mri',names{find(valid,1)}),true); % note: when using spm_vol, a.tkrvox2ras=vox2ras_tkreg(a.volsize,a.volres)
         end
         a.vox2ras1=vol.mat;
-        a.volsize=vol.dim([2 1 3]);
+        a.volsize=vol.dim([1 2 3]);
+        %a.volsize=vol.dim([2 1 3]);
         a.volres = sqrt(sum(vol.mat(:,1:3).^2,1));
         a.vox2ras0=conn_freesurfer_vox2ras_1to0(vol.mat);
         a.tkrvox2ras=conn_freesurfer_vox2ras_tkreg(a.volsize,a.volres);

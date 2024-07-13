@@ -19,13 +19,14 @@ end
 
 fileout={};
 [filepath,filename,fileext]=fileparts(filein);
+filename=[filename,fileext];
 if nargin<2||isempty(filein2)
     assert(~isempty(regexp(filename,'^lh\.')),'input filename must be of the form lh.*');
-    filein2=fullfile(filepath,[regexprep(filename,'^lh\.','rh.'),fileext]);
+    filein2=fullfile(filepath,[regexprep(filename,'^lh\.','rh.')]);
 end
 if nargin<3||isempty(fileout)
     assert(~isempty(regexp(filename,'^lh\.')),'input filename must be of the form lh.*');
-    fileout=fullfile(filepath,[regexprep(filename,'^lh\.',''),fileext,'.surf.nii']);
+    fileout=fullfile(filepath,[regexprep(filename,'^lh\.',''),'.surf.nii']);
 end
 a1=conn_freesurfer_read_curv(filein);
 a2=conn_freesurfer_read_curv(filein2);

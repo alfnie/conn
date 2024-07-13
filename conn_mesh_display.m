@@ -962,7 +962,9 @@ if ishandle(hmsg), delete(hmsg); end
                 elseif numel(state.Vrange)==2&&state.Vrange(1)<0, V(show)=max(-1,min(0, (V(show)-state.Vrange(2))/(state.Vrange(2)-state.Vrange(1)) ));
                 end
                 
-                alpha=1;
+                if ~isempty(state.pVOL1), alpha=1;
+                else alpha=state.facealphablob;
+                end
                 cdat2=max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*V),state.colormap)));
                 if ~isempty(state.brain_color), cdat0=cellfun(@(x)conn_bsxfun(@times,1-0*x,shiftdim(state.brain_color,-1)),data.curv,'uni',0); % cellfun(@(x)conn_bsxfun(@times,1-.05*x,shiftdim([.7,.65,.6],-1)),data.curv,'uni',0);
                 else cdat0=state.cdat0; 
@@ -1333,7 +1335,9 @@ if ishandle(hmsg), delete(hmsg); end
             case 'act_transparency'
                 scale=varargin{1};
                 state.facealphablob=max(eps,scale);
-                set([state.handles.patchblob1 state.handles.patchblob2 state.handles.patchblob3 state.handles.patchblob4],'facealpha',state.facealphablob);
+                if isempty([state.handles.patchblob1 state.handles.patchblob2 state.handles.patchblob3 state.handles.patchblob4]), conn_mesh_display_refresh([],[],'remap&draw'); 
+                else set([state.handles.patchblob1 state.handles.patchblob2 state.handles.patchblob3 state.handles.patchblob4],'facealpha',state.facealphablob);
+                end
             case 'act_pos'
                 set([state.handles.patchblob1 state.handles.patchblob2],'visible','on');
                 set([state.handles.patchblob3 state.handles.patchblob4],'visible','off');

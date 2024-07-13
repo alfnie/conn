@@ -26,7 +26,8 @@ if iscell(filename)
 else
     if ~isempty(refvol),% convert coordiantes to world coordinates using reference volume header info
         a.vox2ras1=refvol.mat;
-        a.volsize=refvol.dim([2 1 3]);
+        a.volsize=refvol.dim([1 2 3]);
+        %a.volsize=refvol.dim([2 1 3]);
         a.volres = sqrt(sum(refvol.mat(:,1:3).^2,1));
         a.tkrvox2ras=conn_freesurfer_vox2ras_tkreg(a.volsize,a.volres);
         a.vox2ras0=conn_freesurfer_vox2ras_1to0(refvol.mat);
