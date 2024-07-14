@@ -576,7 +576,9 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 end
                 redrawnow=true;
             case {'pointer_mm','pointer_mm_refresh'}
-                value=[str2num(get(state.handles.pointer_mm(1),'string')) str2num(get(state.handles.pointer_mm(2),'string')) str2num(get(state.handles.pointer_mm(3),'string'))];
+                if numel(varargin)>0&&~isempty(varargin{1}), value=varargin{1}; set(state.handles.pointer_mm(1),'string',num2str(value(1))); set(state.handles.pointer_mm(2),'string',num2str(value(2))); set(state.handles.pointer_mm(3),'string',num2str(value(3))); 
+                else value=[str2num(get(state.handles.pointer_mm(1),'string')) str2num(get(state.handles.pointer_mm(2),'string')) str2num(get(state.handles.pointer_mm(3),'string'))];
+                end
                 if numel(value)==3
                     if nargin>4,
                         if strcmp(varargin{1},'+'), d=1; else d=-1; end
@@ -601,7 +603,9 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 else redrawnow=true;
                 end
             case {'pointer_vox','pointer_vox_refresh'}
-                value=[str2num(get(state.handles.pointer_vox(1),'string')) str2num(get(state.handles.pointer_vox(2),'string')) str2num(get(state.handles.pointer_vox(3),'string'))];
+                if numel(varargin)>0&&~isempty(varargin{1}), value=varargin{1}; set(state.handles.pointer_vox(1),'string',num2str(value(1))); set(state.handles.pointer_vox(2),'string',num2str(value(2))); set(state.handles.pointer_vox(3),'string',num2str(value(3))); 
+                else value=[str2num(get(state.handles.pointer_vox(1),'string')) str2num(get(state.handles.pointer_vox(2),'string')) str2num(get(state.handles.pointer_vox(3),'string'))];
+                end
                 if numel(value)==3
                     if nargin>4,
                         if strcmp(varargin{1},'+'), d=1; else d=-1; end
