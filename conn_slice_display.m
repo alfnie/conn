@@ -87,11 +87,23 @@ elseif ~isempty(data) % conn_slice_display(datafile [,structural_file])
         else
             state.supra=reshape(conn_fileutils('spm_get_data',V,pinv(V(1).mat)*xyz)',state.size(1),state.size(2),state.size(3),[]);
         end
-    else
+    elseif nnz(V(1).mat(1:3,1:3)~=0)==3
         state.supra=conn_fileutils('spm_read_vols',V);
         state.mat=V(1).mat;
         state.size=size(state.supra);
-    end
+    else % resample to 1mm x/y/z voxels
+        xyzminmax=sort(V(1).mat(1:3,:)*[1 V(1).dim(1);1 V(1).dim(2);1 V(1).dim(3);1 1],2);
+        state.mat=[eye(3), xyzminmax(:,1)-1; zeros(1,3) 1];
+        state.size=ceil(diff(xyzminmax,1,2))';
+        [x,y,z]=ndgrid(1:state.size(1),1:state.size(2),1:state.size(3));
+        xyz=state.mat*[x(:) y(:) z(:) ones(numel(x),1)]';
+        if numel(V)==1, 
+            txyz=pinv(V(1).mat)*xyz;
+            state.supra=reshape(conn_fileutils('spm_sample_vol',V,txyz(1,:),txyz(2,:),txyz(3,:),1),state.size(1),state.size(2),state.size(3));
+        else
+            state.supra=reshape(conn_fileutils('spm_get_data',V,pinv(V(1).mat)*xyz)',state.size(1),state.size(2),state.size(3),[]);
+        end
+    end        
     state.info.structural='none';
     state.info.vol=char(data);
     state.T=state.supra;
@@ -114,9 +126,23 @@ else                   % conn_slice_display([],structural_file)
         if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=conn_fileutils('spm_vol',fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
     end
     %V=V(1);
-    state.structural=conn_fileutils('spm_read_vols',V);
-    state.mat=V(1).mat;
-    state.size=size(state.structural);
+    if nnz(V(1).mat(1:3,1:3)~=0)==3
+        state.structural=conn_fileutils('spm_read_vols',V);
+        state.mat=V(1).mat;
+        state.size=size(state.structural);
+    else % resample to 1mm x/y/z voxels
+        xyzminmax=sort(V(1).mat(1:3,:)*[1 V(1).dim(1);1 V(1).dim(2);1 V(1).dim(3);1 1],2);
+        state.mat=[eye(3), xyzminmax(:,1)-1; zeros(1,3) 1];
+        state.size=ceil(diff(xyzminmax,1,2))';
+        [x,y,z]=ndgrid(1:state.size(1),1:state.size(2),1:state.size(3));
+        xyz=state.mat*[x(:) y(:) z(:) ones(numel(x),1)]';
+        if numel(V)==1, 
+            txyz=pinv(V(1).mat)*xyz;
+            state.structural=reshape(conn_fileutils('spm_sample_vol',V,txyz(1,:),txyz(2,:),txyz(3,:),1),state.size(1),state.size(2),state.size(3));
+        else
+            state.structural=reshape(conn_fileutils('spm_get_data',V,pinv(V(1).mat)*xyz)',state.size(1),state.size(2),state.size(3),[]);
+        end
+    end        
     state.info.vol='none';
     state.T=state.structural;
     state.nslices=16;
@@ -576,7 +602,7 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 end
                 redrawnow=true;
             case {'pointer_mm','pointer_mm_refresh'}
-                if numel(varargin)>0&&~isempty(varargin{1}), value=varargin{1}; set(state.handles.pointer_mm(1),'string',num2str(value(1))); set(state.handles.pointer_mm(2),'string',num2str(value(2))); set(state.handles.pointer_mm(3),'string',num2str(value(3))); 
+                if numel(varargin)>0&&~isempty(varargin{1})&&nargin==4&&~isequal(varargin{1},'x'), value=varargin{1}; set(state.handles.pointer_mm(1),'string',num2str(value(1))); set(state.handles.pointer_mm(2),'string',num2str(value(2))); set(state.handles.pointer_mm(3),'string',num2str(value(3))); 
                 else value=[str2num(get(state.handles.pointer_mm(1),'string')) str2num(get(state.handles.pointer_mm(2),'string')) str2num(get(state.handles.pointer_mm(3),'string'))];
                 end
                 if numel(value)==3
@@ -603,7 +629,7 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 else redrawnow=true;
                 end
             case {'pointer_vox','pointer_vox_refresh'}
-                if numel(varargin)>0&&~isempty(varargin{1}), value=varargin{1}; set(state.handles.pointer_vox(1),'string',num2str(value(1))); set(state.handles.pointer_vox(2),'string',num2str(value(2))); set(state.handles.pointer_vox(3),'string',num2str(value(3))); 
+                if numel(varargin)>0&&~isempty(varargin{1})&&nargin==4&&~isequal(varargin{1},'x'), value=varargin{1}; set(state.handles.pointer_vox(1),'string',num2str(value(1))); set(state.handles.pointer_vox(2),'string',num2str(value(2))); set(state.handles.pointer_vox(3),'string',num2str(value(3))); 
                 else value=[str2num(get(state.handles.pointer_vox(1),'string')) str2num(get(state.handles.pointer_vox(2),'string')) str2num(get(state.handles.pointer_vox(3),'string'))];
                 end
                 if numel(value)==3
@@ -1191,7 +1217,7 @@ n1=n1(idx); n2=n2(idx);
 if ~expand, i1(:)=1; i2(:)=1; end
 
 done=false;
-for n=find(opts==1),
+for n=find(opts==1), % coords of image
     if ~done
         done=true;
         varargout{n}=struct('vertices',zeros(size(vertices,1)*numel(i1),3),'faces',zeros(size(faces,1)*numel(i1),4),'facevertexcdata',zeros(size(faces,1)*numel(i1),1),'titletext',{{}},'titlepos',zeros(3,0));
@@ -1214,7 +1240,7 @@ for n=find(opts==1),
         end
     end
 end
-if any(opts==2)
+if any(opts==2) % coords of contour
     if size(x,1)==1, x=cat(1,x,x); y=cat(1,y,y); z=cat(1,z,z); end
     if size(x,2)==1, x=cat(2,x,x); y=cat(2,y,y); z=cat(2,z,z); end
     if size(x,3)==1, x=cat(3,x,x); y=cat(3,y,y); z=cat(3,z,z); end
@@ -1245,7 +1271,7 @@ if any(opts==2)
         varargout{n}=x1;
     end
 end
-if any(opts==3)
+if any(opts==3) % coords of patch
     dnull=null([d1;d2]);
     wb=dnull'*mx0;
     for n=find(opts==3)
