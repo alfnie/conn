@@ -92,9 +92,9 @@ elseif ~isempty(data) % conn_slice_display(datafile [,structural_file])
         state.mat=V(1).mat;
         state.size=size(state.supra);
     else % resample to 1mm x/y/z voxels
-        xyzminmax=sort(V(1).mat(1:3,:)*[1 V(1).dim(1);1 V(1).dim(2);1 V(1).dim(3);1 1],2);
+        xyzminmax=sort(V(1).mat(1:3,:)*[1 1 1 1 V(1).dim(1) V(1).dim(1) V(1).dim(1) V(1).dim(1);1 1 V(1).dim(2) V(1).dim(2) 1 1 V(1).dim(2) V(1).dim(2);1 V(1).dim(3) 1 V(1).dim(3) 1 V(1).dim(3) 1 V(1).dim(3);ones(1,8)],2);
         state.mat=[eye(3), xyzminmax(:,1)-1; zeros(1,3) 1];
-        state.size=ceil(diff(xyzminmax,1,2))';
+        state.size=ceil(xyzminmax(:,end)-xyzminmax(:,1))';
         [x,y,z]=ndgrid(1:state.size(1),1:state.size(2),1:state.size(3));
         xyz=state.mat*[x(:) y(:) z(:) ones(numel(x),1)]';
         if numel(V)==1, 
@@ -131,9 +131,9 @@ else                   % conn_slice_display([],structural_file)
         state.mat=V(1).mat;
         state.size=size(state.structural);
     else % resample to 1mm x/y/z voxels
-        xyzminmax=sort(V(1).mat(1:3,:)*[1 V(1).dim(1);1 V(1).dim(2);1 V(1).dim(3);1 1],2);
+        xyzminmax=sort(V(1).mat(1:3,:)*[1 1 1 1 V(1).dim(1) V(1).dim(1) V(1).dim(1) V(1).dim(1);1 1 V(1).dim(2) V(1).dim(2) 1 1 V(1).dim(2) V(1).dim(2);1 V(1).dim(3) 1 V(1).dim(3) 1 V(1).dim(3) 1 V(1).dim(3);ones(1,8)],2);
         state.mat=[eye(3), xyzminmax(:,1)-1; zeros(1,3) 1];
-        state.size=ceil(diff(xyzminmax,1,2))';
+        state.size=ceil(xyzminmax(:,end)-xyzminmax(:,1))';
         [x,y,z]=ndgrid(1:state.size(1),1:state.size(2),1:state.size(3));
         xyz=state.mat*[x(:) y(:) z(:) ones(numel(x),1)]';
         if numel(V)==1, 
