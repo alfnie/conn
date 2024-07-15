@@ -1,11 +1,45 @@
 function fh=conn_slice_display(data,structural,defaultfilepath,actthr,titlestr)
 % CONN_SLICE_DISPLAY slice display in CONN
 %
-% CONN_SLICE_DISPLAY(fileDATA) displays volume-level data in fileDATA (overlaid on default reference structural image -ICBM MNI 2009b NLIN asymmetric template-)
-% CONN_SLICE_DISPLAY(fileDATA,fileSTRUCT) displays volume-level data in fileDATA overlaid on structural image fileSTRUCT
-% CONN_SLICE_DISPLAY('',fileSTRUCT) displays structural image fileSTRUCT
+% CONN_SLICE_DISPLAY(fileDATA) displays volume-level data overlay in fileDATA (overlaid on default reference structural image -ICBM MNI 2009b NLIN asymmetric template-)
+% CONN_SLICE_DISPLAY(fileDATA,fileSTRUCT) displays volume-level data overlay in fileDATA overlaid on background image fileSTRUCT
+% CONN_SLICE_DISPLAY('',fileSTRUCT) displays background image fileSTRUCT
 %
-%  h=CONN_SLICE_DISPLAY(...) returns function handle implementing all GUI functionality
+% fh=CONN_SLICE_DISPLAY(...) returns function handle implementing all GUI functionality
+% note: if a conn_slice_display window is already open, its function handle can also be read using the syntax fh = gcf().UserData.handles.fh;
+%
+% VIEW OPTIONS
+%  fh('point_mm', xyz)                   : places reference axis in position xyz (in mm units)
+%  fh('point_vox', xyz)                  : places reference axis in position xyz (in voxel units)
+%  fh('view', state)                     : selects reference view
+%                                           state(1) : shows yz(sagittal) view (val: 0/1)
+%                                           state(2) : shows xz(coronal) view (val: 0/1)
+%                                           state(3) : shows xy(axial) view (val: 0/1)
+%                                           state(4) : shows reference axis (val: 0/1)
+%  fh('multisliceset', state [, N, D])   : uses multi-slice display
+%                                            state : enable multi-slice display (val: 0/1)
+%                                            N   : maximum number of slices shown
+%                                            D   : distance (in voxels) between slices
+%  fh('actthr', val)                     : data overlay threshold (in units of fileDATA values)
+%  fh('volthr', val)                     : background image threshold (in units of fileSTRUCT values)
+%  fh('viewoverlay', state)              : shows data overlay (val: 0/1)
+
+% EFFECTS OPTIONS
+%  fh('background',color)                : sets background color (color: [1x3] RGB values)
+%  fh('colorbar',state [, title])        : displays reference colorbar (state: 'on' 'off')
+%  fh('colorbar','rescale',lim)          : changes colorbar limits (lim: [1x2] values in fileSURF NIFTI file)
+%  fh('colormap',type)                   : changes colormap (type: 'normal','red','jet','hot','gray','bone','cool','hsv','spring',
+%                                           'summer','autumn','winter','bluewhitered','random','brighter','darker','manual','color')
+%  fh('slice_transparency', val)         : set background image transparency level (val: 0-1)
+%  fh('act_transparency', val)           : set overlay transparency level (val: 0-1)
+%  fh('contour_transparency', val)       : set overlay contour lines transparency level (val: 0-1)
+%  fh('freesurfer_transparency', val)    : set freesurfer pial/white lines transparency level (val: 0-1)
+%  fh('slice_title', state)              : show slice title (val: 0/1)
+%  fh('black_transparency', state)       : raw-data display (0) vs. smoother display (1)
+%
+% PRINT OPTIONS
+%  fh('togglegui',val);                  : shows/hides GUI (1/0)
+%  fh('print',filename,'-nogui')         : prints display to high-resolution .jpg file
 %
 
 global CONN_x CONN_gui;
