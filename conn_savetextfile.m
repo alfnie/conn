@@ -29,13 +29,13 @@ switch(tfileext)
                 else fprintf(fh,'\n');
                 end
             end
-            for n2=1:size(data.(names{1}),1),
+            for n2=1:numel(data.(names{1})),
                 for n1=1:numel(names),
                     if iscell(data.(names{n1})), fprintf(fh,'%s',data.(names{n1}){n2});
                     else fprintf(fh,'%s',mat2str(data.(names{n1})(n2)));
                     end
                     if n1<numel(names)&&strcmp(tfileext,'.csv'), fprintf(fh,',');
-                    elseif n1<size(data,2), fprintf(fh,' ');
+                    elseif n1<numel(names), fprintf(fh,' ');
                     else fprintf(fh,'\n');
                     end
                 end
