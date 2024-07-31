@@ -117,6 +117,7 @@ if nargin==1&&isstruct(filenameSURF)&&isfield(filenameSURF,'structural'), % stru
     if ~conn_fileutils('isdir',state.FSfolder), state.FSfolder=fullfile(fileparts(which('conn')),'utils','surf'); end
     if ~isfield(state,'fontclose'), state.fontclose=1; end
     if ~isfield(state,'Prange'), state.Prange=[]; end
+    if ~isfield(state,'thrwiteout'), state.thrwiteout=false; end
     doinit=false;
 elseif nargin>0&&isstruct(filenameSURF),data=filenameSURF;return
 end
