@@ -96,20 +96,20 @@ if nargin<1 || ischar(varargin{1}),
         h.selectspm=[];
     end
     h.find_state=0;
-    h.titles_folder=conn_menu('text',[1,.10,.175,.20,.04]*M,'','path : '); set(h.titles_folder,'horizontalalignment','left');
-    h.folder=conn_menu('edit',[1,.3,.175,.6,.05]*M,'',params.folder,'<HTML>Current folder<br/> - Type a full path to change to a different folder</HTML>');
+    h.titles_folder=conn_menu('text',[1,.10,.170,.20,.04]*M,'','path : '); set(h.titles_folder,'horizontalalignment','left');
+    h.folder=conn_menu('edit',[1,.3,.170,.6,.04]*M,'',params.folder,'<HTML>Current folder<br/> - Type a full path to change to a different folder</HTML>');
     str=conn_filesearch_breakfolder(params.folder);
     if h.reduced, h.folderpopup=conn_menu('popup',[1,.05,.83,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
     else h.folderpopup=conn_menu('popup',[1,.05,.88,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
     end
     set(h.folderpopup,'value',numel(str));
-    h.titles_filter=conn_menu('text',[1,.10,.125,.20,.04]*M,'','files : '); set(h.titles_filter,'horizontalalignment','left');
-    h.filter=conn_menu('edit',[1,.30,.125,.6,.05]*M,'',params.filter,'<HTML>File name filter (standard format)<br/> - Show only files with names matching any of these patterns<br/> - Use ";" to define multiple filters</HTML>');
-    h.titles_regexp=conn_menu('text',[1,.10,.075,.20,.04]*M,'','filter : '); set(h.titles_regexp,'horizontalalignment','left');
-    h.regexp=conn_menu('edit',[1,.30,.075,.6,.05]*M,'',params.regexp,'<HTML>Additional full-path filename filter (regexp format)<br/> - Show only files with full-path filename matching this pattern<br/> - See <i>help regexp</i> for additional information');
+    h.titles_filter=conn_menu('text',[1,.10,.120,.20,.04]*M,'','files : '); set(h.titles_filter,'horizontalalignment','left');
+    h.filter=conn_menu('edit',[1,.30,.120,.6,.04]*M,'',params.filter,'<HTML>File name filter (standard format)<br/> - Show only files with names matching any of these patterns<br/> - Use ";" to define multiple filters</HTML>');
+    h.titles_regexp=conn_menu('text',[1,.10,.070,.20,.04]*M,'','filter : '); set(h.titles_regexp,'horizontalalignment','left');
+    h.regexp=conn_menu('edit',[1,.30,.070,.6,.04]*M,'',params.regexp,'<HTML>Additional full-path filename filter (regexp format)<br/> - Show only files with full-path filename matching this pattern<br/> - See <i>help regexp</i> for additional information');
     if ~isempty(params.localcopy)&&~h.reduced,  
-        h.titles_localcopy=conn_menu('text',[1,.10,.025,.20,.04]*M,'','options : '); set(h.titles_localcopy,'horizontalalignment','left');
-        h.localcopy=conn_menu('popup',[1,.30,.025,.65,.04]*M,'',{'import selected files','import copy of selected files'},['<HTML>Controls behavior of ''',h.strbutton,''' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>import copy of selected files</i> : selected files will be first copied to your project conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified or processed)</HTML>']); set(h.localcopy,'value',params.localcopy);
+        h.titles_localcopy=conn_menu('text',[1,.10,.020,.20,.04]*M,'','options : '); set(h.titles_localcopy,'horizontalalignment','left');
+        h.localcopy=conn_menu('popup',[1,.30,.020,.65,.04]*M,'',{'import selected files','import copy of selected files'},['<HTML>Controls behavior of ''',h.strbutton,''' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>import copy of selected files</i> : selected files will be first copied to your project conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified or processed)</HTML>']); set(h.localcopy,'value',params.localcopy);
     else 
         h.titles_localcopy=[];
         h.localcopy=[];

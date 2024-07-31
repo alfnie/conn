@@ -41,7 +41,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('brain_transparency',val)          : set reference brain surface transparency level (val: 0-1)
 %  fh('brain_color',color)               : set reference brain surface color (color: [1x3] RGB values) 
 %  fh('repaint',fileSURF [,threshold])   : change reference brain surface activation file (fileSURF: NIFTI file)
-%  fh('mask',state)                      : displays reference brain surface medial mask (state: 'on' 'off')
+%  fh('mask',state)                      : displays reference-brain surface medial mask (state: 'on' 'off')
 %  fh('act_transparency',val)            : set reference brain surface activation transparency level (val: 0-1)
 %  fh('act_pos')                         : reference brain surface activation displays only positive acitivation values
 %  fh('act_neg')                         : reference brain surface activation displays only negative acitivation values

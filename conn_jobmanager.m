@@ -872,6 +872,7 @@ else
                     switch(job(n).type)
                         case 'process'
                             fprintf('Processing %s job %d/%d\n',job(n).project,n,numel(job));
+                            try, maxNumCompThreads(1); end % force singleCompThread
                             if n==1
                                 try, % delete .dmat if it already exists
                                     [basefilename,pobj]=conn_projectmanager('extendedname',job(n).project);
