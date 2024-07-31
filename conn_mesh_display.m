@@ -1,4 +1,4 @@
-function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplots,thr,facealpha,position,defaultcolors,defaultfilepath,Vrange,domask,dosub)
+function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplots,thr,facealpha,position,defaultcolors,defaultfilepath,Vrange,domask,dosub,thrwiteout)
 % CONN_MESH_DISPLAY surface display in CONN
 %
 % CONN_MESH_DISPLAY(fileSURF) displays surface- or volume-level data in fileSURF projected to reference cortical surface
@@ -141,6 +141,7 @@ if doinit
     if nargin<11, Vrange=[]; end
     if nargin<12||isempty(domask), domask=true; end
     if nargin<13||isempty(dosub), dosub=isempty(filenameSURF); end
+    if nargin<14||isempty(thrwiteout), thrwiteout=false; end
     state.actthr=thr;
     state.FSfolder=FSfolder;
     state.connplots=connplots;
@@ -153,6 +154,7 @@ if doinit
     state.Prange=[];
     state.domask=domask;
     state.dosub=dosub;
+    state.thrwiteout=thrwiteout;
 end
 if isfield(state,'actthr'), THR=state.actthr;
 else THR=0;
@@ -329,6 +331,15 @@ end
 if state.dotwosided,
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
     set(gca,'ydir','normal','ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on','fontsize',8);
+    if state.thrwiteout
+        cb_wo_range = floor(THR/state.Vrange(3)*size(temp,1));
+        cb_wo_range = cb_wo_range - mod(cb_wo_range,2);
+        if cb_wo_range ~= 0 % Update colorbar and labels only when wite-out region exists
+            temp((size(temp,1)-cb_wo_range)/2+1:size(temp,1)/2+cb_wo_range/2,:,:) = 0.9;
+            new_labels = [state.Vrange(1), -THR, state.Vrange(2), THR, state.Vrange(3)];
+            set(gca,'ydir','normal','ytick',[.5,(size(temp,1)-cb_wo_range)/2+0.5,64.5,size(temp,1)/2+cb_wo_range/2+0.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),new_labels,'uni',0),'xtick',[],'box','on','fontsize',8);
+        end
+    end
 elseif any(state.Vrange>0)
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(0,1,128)'),state.colormap))));
     set(gca,'ydir','normal','ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on','fontsize',8);
@@ -1598,6 +1609,14 @@ if ishandle(hmsg), delete(hmsg); end
                     if numel(varargin)>1, ylabel(varargin{2},'parent',state.handles.colorbar(1)); end
                 end
                 redrawnowcolorbar=true;
+            case 'cbwthr'
+                if isempty(varargin{1})
+                    answ = true;
+                else
+                    answ = varargin{1};
+                end
+                state.thrwiteout = answ;
+                redrawnowcolorbar=true;
             case 'repaint'
                 if numel(varargin)>=1&&~isempty(varargin{1})
                     filenameSURF=varargin{1};
@@ -1731,7 +1750,17 @@ if ishandle(hmsg), delete(hmsg); end
                 end
             elseif state.dotwosided,
                 set(state.handles.colorbar(1),'ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
-                set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
+                cdata_temp = max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap)));
+                if state.thrwiteout
+                    cb_wo_range = floor(THR/state.Vrange(3)*size(cdata_temp,1));
+                    cb_wo_range = cb_wo_range - mod(cb_wo_range,2);
+                    if cb_wo_range ~= 0 % Update colorbar and labels only when wite-out region exists
+                        cdata_temp((size(cdata_temp,1)-cb_wo_range)/2+1:size(cdata_temp,1)/2+cb_wo_range/2,:,:) = 0.9;
+                        new_labels = [state.Vrange(1), -THR, state.Vrange(2), THR, state.Vrange(3)];
+                        set(state.handles.colorbar(1),'ytick',[.5,(size(cdata_temp,1)-cb_wo_range)/2+0.5,64.5,size(cdata_temp,1)/2+cb_wo_range/2+0.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),new_labels,'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
+                    end    
+                end
+                set(state.handles.colorbar(2),'cdata',cdata_temp);
             elseif any(state.Vrange>0)
                 set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Vrange) max(state.Vrange)],'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
                 set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(0,1,128)'),state.colormap))));
