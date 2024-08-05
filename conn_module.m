@@ -95,12 +95,13 @@ function varargout=conn_module(option,varargin)
 %          conn_module('get','functionals' [,setlabel]); outputs current functional files (e.g. output of functional preprocessing steps)
 %          conn_module('get','l1covariates' [,covname]); outputs first-level covariate files (e.g. other potential outputs of functional preprocessing)
 %          conn_module('get','l2covariates' [,covname]); outputs second-level covariate values (e.g. other potential outputs of functional preprocessing)
-%          conn_module('get','masks');                   outputs Grey Matter/White Matter/CSF files (e.g. other potential outputs of functional preprocessing)
-%          conn_module('get','masks',roiname);           outputs roiname files (e.g. other potential outputs of functional preprocessing)
+%          conn_module('get','masks' [,roiname]);        outputs Grey Matter/White Matter/CSF files (e.g. other potential outputs of functional preprocessing)
+%          conn_module('get','rois' [,roiname]);         outputs ROI files
 %    Additional functionality: conn_module('set',...)
 %          conn_module('set','l1covariates',files,covname [,add]);
 %          conn_module('set','l2covariates',values,covname [,covdescrip ,add]);
 %          conn_module('set','masks',files [,roiname]);
+%          conn_module('set','rois',files ,roiname);
 %
 %    Note: before using conn_module functionality with externally defined data it is recommended to close CONN's gui in order to avoid potentially loosing any unsaved changes
 %    

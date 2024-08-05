@@ -1,5 +1,5 @@
 #line_begin
-Results included in this manuscript come from analyses performed using CONN[CITATION1] (RRID:SCR_009550) release [CONNRELEASE][CITATION0] and SPM[CITATION2] (RRID:SCR_007037) release [SPMRELEASE].
+Analyses of fMRI data were performed using CONN[CITATION1] (RRID:SCR_009550) release [CONNRELEASE][CITATION0] and SPM[CITATION2] (RRID:SCR_007037) release [SPMRELEASE].
 
 #CITATION0 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2022). CONN functional connectivity toolbox: RRID SCR_009550, release 22. doi:10.56441/hilbertpress.2246.5840.
 #CITATION1 Whitfield-Gabrieli, S., & Nieto-Castanon, A. (2012). Conn: a functional connectivity toolbox for correlated and anticorrelated brain networks. Brain connectivity, 2(3), 125-141.

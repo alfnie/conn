@@ -267,6 +267,8 @@ function varargout=conn_batch(varargin)
 %                        'default_ssnl'                          : same as default_ss but with non-linear coregistration
 %                      INDIVIDUAL STRUCTURAL STEPS:
 %                        'structural_center'                     : centers structural data to origin (0,0,0) coordinates
+%                        'structural_label'                      : labels current structural files (to list of Secondary Datasets)
+%                        'structural_load'                       : assigns current structural files (from list of Secondary Datasets)
 %                        'structural_manualorient'               : applies user-defined affine transformation to structural data
 %                        'structural_manualspatialdef'           : applies user-defined spatial deformation to structural data
 %                        'structural_mask'                       : masks structural data using inclusive or exclusive mask
@@ -375,12 +377,14 @@ function varargout=conn_batch(varargin)
 %      Setup.preprocessing.fwhm            : (functional_smooth) Smoothing factor (mm) [8]
 %      Setup.preprocessing.interp          : (normalization) target voxel interpolation method (0:nearest neighbor; 1:trilinear; 2 or higher:n-order 
 %                                            spline) [4]
-%      Setup.preprocessing.label           : (functional_label) label of secondary dataset (note: the following functional step names do not require an 
+%      Setup.preprocessing.label           : (functional_label,structural_label) label of secondary dataset (note: the following labels do not require an 
 %                                            explicit label field: 'functional_label_as_original', 'functional_label_as_subjectspace', 
-%                                            'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed')
-%      Setup.preprocessing.load_label      : (functional_load) label of secondary dataset (note: the following functional step names do not require an 
+%                                            'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed',
+%                                            'structural_label_as_original', 'structural_label_as_mnispace')
+%      Setup.preprocessing.load_label      : (functional_load,structural_load) label of secondary dataset (note: the following labels do not require an 
 %                                            explicit continue field: 'functional_load_from_original', 'functional_load_from_subjectspace', 
-%                                            'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed')
+%                                            'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed',
+%                                            'structural_load_from_original', 'structural_load_from_mnispace')
 %      Setup.preprocessing.mask_names_anat : (strucutral_mask) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
 %      Setup.preprocessing.mask_names_func : (functional_mask, functional_smooth_masked) list of ROI names (if multiple ROIs, the intersection of all ROIs will be used as mask)
 %      Setup.preprocessing.mask_inclusive_anat : (strucutral_mask) 1: inclusive ROI mask (keep voxels inside ROI); 0: exclusive ROI mask (keep voxels outside ROI) [1]
@@ -510,10 +514,13 @@ function varargout=conn_batch(varargin)
 %                                     'regression (bivariate)', 4 = 'regression (multivariate)'; [1] 
 %    Analysis.weight                : within-condition weight, 1 = 'none', 2 = 'hrf', 3 = 'hanning'; [2] 
 %    Analysis.modulation            : temporal modulation, 0 = standard weighted GLM analyses; 1 = gPPI analyses of condition-specific 
-%                                     temporal modulation factor, or a string for PPI analyses of other temporal modulation factor 
+%                                     connectivity modulation (connectivity change with each condition, i.e. gPPI interaction effect); 
+%                                     2 = gPPI analyses of condition-specific connectivity modulation (absolute connectivity with each 
+%                                     condition, i.e. gPPI physiological+interaction effect); a string for PPI analyses of other temporal 
+%                                     modulation factor 
 %                                     (same for all conditions; valid strings are ROI names and 1st-level covariate names)'; [0] 
-%    Analysis.conditions            : (for modulation==1 only) list of task condition names to be simultaneously entered in gPPI 
-%                                     model (leave empty for default 'all existing conditions') [] 
+%    Analysis.conditions            : (for modulation==1 or modulation==2 only) list of task condition names to be simultaneously entered 
+%                                     in gPPI model (leave empty for default 'all existing conditions') [] 
 %    Analysis.type                  : analysis type, 1 = 'ROI-to-ROI', 2 = 'Seed-to-Voxel', 3 = 'all'; [3] 
 %    Analysis.sources               : Cell array of sources names (seeds) (source names can be: any ROI name) (if this variable does 
 %                                     not exist the toolbox will perform the analyses for all of the existing ROIs which are not 
@@ -632,9 +639,9 @@ function varargout=conn_batch(varargin)
 %                        QA_SPM results        (23) : SPM review contrast effect-size (from SPM.mat files only)
 %                        QA_COV                (31) : histogram display of second-level variables
 %
-%   QA.rois                         : (only for plots==3,4,5,6) ROI numbers to include (defaults to WM -roi#2-)
-%   QA.sets                         : (only for plots==2,7,8,9,10) functional dataset number (defaults to dataset-0)
-%   QA.l2covariates                 : (only for plots==13,31) l2 covariate names (defaults to all QC_*)
+%   QA.rois                         : (only for plots==3,4,5,6) ROI numbers to include
+%   QA.sets                         : (only for plots==2,7,8,9,10) functional dataset number
+%   QA.l2covariates                 : (only for plots==13,31) l2 covariate names
 %   QA.l1contrasts                  : (only for plots==23) l1 contrast name (defaults to first contrast)
 %   QA.conditions                   : (only for plots==11,13,14,15) FC & QC-FC plots aggregate across sesssions where 
 %                                      the selected conditions are present (defaults to all sessions)
@@ -1480,7 +1487,6 @@ if isfield(batch,'Analysis'),
         if ~isfield(batch.Analysis,'sources')||isempty(batch.Analysis.sources),
             CONN_x.Analyses(CONN_x.Analysis).regressors.names={};
         else
-            batch.Analysis.sources
             if ~isstruct(batch.Analysis.sources),
                 CONN_x.Analyses(CONN_x.Analysis).regressors.names=batch.Analysis.sources;
                 CONN_x.Analyses(CONN_x.Analysis).regressors.dimensions=repmat({1},size(batch.Analysis.sources));

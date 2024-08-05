@@ -18,7 +18,10 @@ options=struct(...
     'styleviolin',true,...
     'forcekernel',false,...
     'colors',[],...
-    'edgecolor','none');
+    'dotcolor',[0 0 0],...
+    'edgecolor','none',...
+    'facealpha',1,...
+    'markersize',8);
 if numel(varargin)>0, for n=2:2:numel(varargin), assert(isfield(options,varargin{n-1}),'unrecognized option %s',varargin{n-1}); options.(varargin{n-1})=varargin{n}; end; end
 varargout=cell(1,nargout);
 
@@ -69,15 +72,15 @@ for nvar=1:nx
         end
         for n=1:size(P,1)
             p=P(n,:)/maxp;
-            if options.plothist, patch(nvar+options.offset+options.scale*[pleft,fliplr(pleft+p)],[X,fliplr(X)],'k','facecolor',options.colors(n,:),'edgecolor',options.edgecolor); end
+            if options.plothist, patch(nvar+options.offset+options.scale*[pleft,fliplr(pleft+p)],[X,fliplr(X)],'k','facecolor',options.colors(n,:),'edgecolor',options.edgecolor,'facealpha',options.facealpha); end
             pleft=pleft+p;
         end
         ttx=[]; for n=1:numel(tx), ttx=[ttx,tx{n}(:)']; end
-        if options.plotsamples, hold on; plot(nvar+options.offset+zeros(numel(ttx),1),sort(ttx(:)),'b.'); hold off; end
+        if options.plotsamples, hold on; plot(nvar+options.offset+zeros(numel(ttx),1),sort(ttx(:)),'.','markersize',options.markersize,'markeredgecolor',options.dotcolor,'markerfacecolor',options.dotcolor); hold off; end
         if options.plotmeans, hold on; plot(nvar+options.offset,mean(ttx(:)),'wo','markerfacecolor',options.colors(end,:)); hold off; end
-        if options.plotmedians, hold on; plot(nvar+options.offset+options.scale*maxp*[-1 1]/2,median(ttx(:))*[1 1],'-','color','b'); hold off; end
+        if options.plotmedians, hold on; plot(nvar+options.offset+options.scale*maxp*[-1 1]/2,median(ttx(:))*[1 1],'-','color',options.dotcolor); hold off; end
         %if options.plotmedians, [nill,idx]=max(pleft); hold on; plot(nvar+options.offset,X(idx),'wo','markerfacecolor',options.colors(end,:)); hold off; end
-        if options.plotquart, p1=prctile(ttx(:),25);p2=prctile(ttx(:),75); hold on; plot(nvar+options.offset+options.scale*maxp*[-1 -1 1 1 -1]/2,[p1 p2 p2 p1 p1],'-','linewidth',1,'color','b'); hold off; end
+        if options.plotquart, p1=prctile(ttx(:),25);p2=prctile(ttx(:),75); hold on; plot(nvar+options.offset+options.scale*maxp*[-1 -1 1 1 -1]/2,[p1 p2 p2 p1 p1],'-','linewidth',1,'color',options.dotcolor); hold off; end
         drawnow
     end
 end

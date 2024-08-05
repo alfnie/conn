@@ -1542,7 +1542,7 @@ end
                 fprintf('Effects exported to %s\n',filename);
                 return
             case 'export_data'
-                [filename,filepath]=uiputfile({'*.mat','MAT-files (*.mat)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*',  'All Files (*)'},'Save effects as');
+                [filename,filepath]=uiputfile({'*.mat','MAT-files (*.mat)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*',  'All Files (*)'},'Save data as');
                 if ~ischar(filename), return; end
                 filename=fullfile(filepath,filename);
                 if ~isempty(regexp(filename,'\.mat$')), conn_savematfile(filename,'-struct',struct('data',Y(:,selectedROIs),'names',{roinames(selectedROIs)}));
@@ -2359,9 +2359,16 @@ function rex_display(params);
 s=1:length(params.ROInames);
 hfig=figure('units','norm','position',[.41,.4,.55,.5],'name','REX display','numbertitle','off','color','w');
 subplot(211);
-for n1=1:size(params.ROIdata,2), hplot(n1)=plot(params.ROIdata(:,n1),'k.-','color',.5*[1,1,1],'markeredgecolor',0*[1,1,1]); hold on; end; hold off; 
-set(gca,'xlim',[.5-1e-2,size(params.ROIdata,1)+.5+1e-2],'ylim',[min(params.ROIdata(:))-1e-2,max(params.ROIdata(:))+1e-2]);
-set(gca,'xcolor',.75*[1 1 1],'ycolor',.75*[1 1 1]);xlabel('volumes/scans');ylabel('data');
+if size(params.ROIdata,1)==1, 
+    hbartemp=bar(1:size(params.ROIdata,2),params.ROIdata,'w'); set(hbartemp,'facecolor',.85*[1,1,1],'edgecolor','none'); hold on; 
+    for n1=1:size(params.ROIdata,2), hplot(n1)=bar(n1,params.ROIdata(:,n1),'k','facecolor',.5*[1,1,1],'edgecolor',0*[1,1,1]); hold on; end; hold off; 
+    set(gca,'xlim',[.5-1e-2,size(params.ROIdata,2)+.5+1e-2],'ylim',[min(params.ROIdata(:))-1e-2,max(params.ROIdata(:))+1e-2]);
+    set(gca,'xcolor',.75*[1 1 1],'ycolor',.75*[1 1 1]);xlabel('clusters');ylabel('data');
+else 
+    for n1=1:size(params.ROIdata,2), hplot(n1)=plot(params.ROIdata(:,n1),'k.-','color',.5*[1,1,1],'markeredgecolor',0*[1,1,1]); hold on; end; hold off; 
+    set(gca,'xlim',[.5-1e-2,size(params.ROIdata,1)+.5+1e-2],'ylim',[min(params.ROIdata(:))-1e-2,max(params.ROIdata(:))+1e-2]);
+    set(gca,'xcolor',.75*[1 1 1],'ycolor',.75*[1 1 1]);xlabel('volumes/scans');ylabel('data');
+end
 uicontrol('style','text','units','norm','position',[.05,.475,.4,.025],'string',sprintf('%-32s','ROI'),'backgroundcolor','w','foregroundcolor','b','horizontalalignment','left','fontname','monospaced','fontsize',8);
 txt=[];for n1=1:length(params.ROInames),txt=strvcat(txt,[[sprintf('%-32s',params.ROInames{n1})]]); end;txt=strvcat(txt,' ');
 hax=axes('units','norm','position',[.6,.0,.3,.5],'visible','off');

@@ -1,11 +1,45 @@
 function fh=conn_slice_display(data,structural,defaultfilepath,actthr,titlestr)
 % CONN_SLICE_DISPLAY slice display in CONN
 %
-% CONN_SLICE_DISPLAY(fileDATA) displays volume-level data in fileDATA (overlaid on default reference structural image -ICBM MNI 2009b NLIN asymmetric template-)
-% CONN_SLICE_DISPLAY(fileDATA,fileSTRUCT) displays volume-level data in fileDATA overlaid on structural image fileSTRUCT
-% CONN_SLICE_DISPLAY('',fileSTRUCT) displays structural image fileSTRUCT
+% CONN_SLICE_DISPLAY(fileDATA) displays volume-level data overlay in fileDATA (overlaid on default reference structural image -ICBM MNI 2009b NLIN asymmetric template-)
+% CONN_SLICE_DISPLAY(fileDATA,fileSTRUCT) displays volume-level data overlay in fileDATA overlaid on background image fileSTRUCT
+% CONN_SLICE_DISPLAY('',fileSTRUCT) displays background image fileSTRUCT
 %
-%  h=CONN_SLICE_DISPLAY(...) returns function handle implementing all GUI functionality
+% fh=CONN_SLICE_DISPLAY(...) returns function handle implementing all GUI functionality
+% note: if a conn_slice_display window is already open, its function handle can also be read using the syntax fh = gcf().UserData.handles.fh;
+%
+% VIEW OPTIONS
+%  fh('point_mm', xyz)                   : places reference axis in position xyz (in mm units)
+%  fh('point_vox', xyz)                  : places reference axis in position xyz (in voxel units)
+%  fh('view', state)                     : selects reference view
+%                                           state(1) : shows yz(sagittal) view (val: 0/1)
+%                                           state(2) : shows xz(coronal) view (val: 0/1)
+%                                           state(3) : shows xy(axial) view (val: 0/1)
+%                                           state(4) : shows reference axis (val: 0/1)
+%  fh('multisliceset', state [, N, D])   : uses multi-slice display
+%                                            state : enable multi-slice display (val: 0/1)
+%                                            N   : maximum number of slices shown
+%                                            D   : distance (in voxels) between slices
+%  fh('actthr', val)                     : data overlay threshold (in units of fileDATA values)
+%  fh('volthr', val)                     : background image threshold (in units of fileSTRUCT values)
+%  fh('viewoverlay', state)              : shows data overlay (val: 0/1)
+
+% EFFECTS OPTIONS
+%  fh('background',color)                : sets background color (color: [1x3] RGB values)
+%  fh('colorbar',state [, title])        : displays reference colorbar (state: 'on' 'off')
+%  fh('colorbar','rescale',lim)          : changes colorbar limits (lim: [1x2] values in fileSURF NIFTI file)
+%  fh('colormap',type)                   : changes colormap (type: 'normal','red','jet','hot','gray','bone','cool','hsv','spring',
+%                                           'summer','autumn','winter','bluewhitered','random','brighter','darker','manual','color')
+%  fh('slice_transparency', val)         : set background image transparency level (val: 0-1)
+%  fh('act_transparency', val)           : set overlay transparency level (val: 0-1)
+%  fh('contour_transparency', val)       : set overlay contour lines transparency level (val: 0-1)
+%  fh('freesurfer_transparency', val)    : set freesurfer pial/white lines transparency level (val: 0-1)
+%  fh('slice_title', state)              : show slice title (val: 0/1)
+%  fh('black_transparency', state)       : raw-data display (0) vs. smoother display (1)
+%
+% PRINT OPTIONS
+%  fh('togglegui',val);                  : shows/hides GUI (1/0)
+%  fh('print',filename,'-nogui')         : prints display to high-resolution .jpg file
 %
 
 global CONN_x CONN_gui;
@@ -87,11 +121,23 @@ elseif ~isempty(data) % conn_slice_display(datafile [,structural_file])
         else
             state.supra=reshape(conn_fileutils('spm_get_data',V,pinv(V(1).mat)*xyz)',state.size(1),state.size(2),state.size(3),[]);
         end
-    else
+    elseif nnz(V(1).mat(1:3,1:3)~=0)==3
         state.supra=conn_fileutils('spm_read_vols',V);
         state.mat=V(1).mat;
         state.size=size(state.supra);
-    end
+    else % resample to 1mm x/y/z voxels
+        xyzminmax=sort(V(1).mat(1:3,:)*[1 1 1 1 V(1).dim(1) V(1).dim(1) V(1).dim(1) V(1).dim(1);1 1 V(1).dim(2) V(1).dim(2) 1 1 V(1).dim(2) V(1).dim(2);1 V(1).dim(3) 1 V(1).dim(3) 1 V(1).dim(3) 1 V(1).dim(3);ones(1,8)],2);
+        state.mat=[eye(3), xyzminmax(:,1)-1; zeros(1,3) 1];
+        state.size=ceil(xyzminmax(:,end)-xyzminmax(:,1))';
+        [x,y,z]=ndgrid(1:state.size(1),1:state.size(2),1:state.size(3));
+        xyz=state.mat*[x(:) y(:) z(:) ones(numel(x),1)]';
+        if numel(V)==1, 
+            txyz=pinv(V(1).mat)*xyz;
+            state.supra=reshape(conn_fileutils('spm_sample_vol',V,txyz(1,:),txyz(2,:),txyz(3,:),1),state.size(1),state.size(2),state.size(3));
+        else
+            state.supra=reshape(conn_fileutils('spm_get_data',V,pinv(V(1).mat)*xyz)',state.size(1),state.size(2),state.size(3),[]);
+        end
+    end        
     state.info.structural='none';
     state.info.vol=char(data);
     state.T=state.supra;
@@ -114,9 +160,23 @@ else                   % conn_slice_display([],structural_file)
         if ok, state.surf=reshape(conn_surf_readsurf(fsfiles([2,5,1,4]),[],fsfiles{7}),[2,2]); tV=conn_fileutils('spm_vol',fsfiles{7}); state.freesurfertransparency=double(max(max(abs(tV(1).mat-V(1).mat)))<1e-4); end
     end
     %V=V(1);
-    state.structural=conn_fileutils('spm_read_vols',V);
-    state.mat=V(1).mat;
-    state.size=size(state.structural);
+    if nnz(V(1).mat(1:3,1:3)~=0)==3
+        state.structural=conn_fileutils('spm_read_vols',V);
+        state.mat=V(1).mat;
+        state.size=size(state.structural);
+    else % resample to 1mm x/y/z voxels
+        xyzminmax=sort(V(1).mat(1:3,:)*[1 1 1 1 V(1).dim(1) V(1).dim(1) V(1).dim(1) V(1).dim(1);1 1 V(1).dim(2) V(1).dim(2) 1 1 V(1).dim(2) V(1).dim(2);1 V(1).dim(3) 1 V(1).dim(3) 1 V(1).dim(3) 1 V(1).dim(3);ones(1,8)],2);
+        state.mat=[eye(3), xyzminmax(:,1)-1; zeros(1,3) 1];
+        state.size=ceil(xyzminmax(:,end)-xyzminmax(:,1))';
+        [x,y,z]=ndgrid(1:state.size(1),1:state.size(2),1:state.size(3));
+        xyz=state.mat*[x(:) y(:) z(:) ones(numel(x),1)]';
+        if numel(V)==1, 
+            txyz=pinv(V(1).mat)*xyz;
+            state.structural=reshape(conn_fileutils('spm_sample_vol',V,txyz(1,:),txyz(2,:),txyz(3,:),1),state.size(1),state.size(2),state.size(3));
+        else
+            state.structural=reshape(conn_fileutils('spm_get_data',V,pinv(V(1).mat)*xyz)',state.size(1),state.size(2),state.size(3),[]);
+        end
+    end        
     state.info.vol='none';
     state.T=state.structural;
     state.nslices=16;
@@ -576,7 +636,9 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 end
                 redrawnow=true;
             case {'pointer_mm','pointer_mm_refresh'}
-                value=[str2num(get(state.handles.pointer_mm(1),'string')) str2num(get(state.handles.pointer_mm(2),'string')) str2num(get(state.handles.pointer_mm(3),'string'))];
+                if numel(varargin)>0&&~isempty(varargin{1})&&nargin==4&&~isequal(varargin{1},'x'), value=varargin{1}; set(state.handles.pointer_mm(1),'string',num2str(value(1))); set(state.handles.pointer_mm(2),'string',num2str(value(2))); set(state.handles.pointer_mm(3),'string',num2str(value(3))); 
+                else value=[str2num(get(state.handles.pointer_mm(1),'string')) str2num(get(state.handles.pointer_mm(2),'string')) str2num(get(state.handles.pointer_mm(3),'string'))];
+                end
                 if numel(value)==3
                     if nargin>4,
                         if strcmp(varargin{1},'+'), d=1; else d=-1; end
@@ -601,7 +663,9 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 else redrawnow=true;
                 end
             case {'pointer_vox','pointer_vox_refresh'}
-                value=[str2num(get(state.handles.pointer_vox(1),'string')) str2num(get(state.handles.pointer_vox(2),'string')) str2num(get(state.handles.pointer_vox(3),'string'))];
+                if numel(varargin)>0&&~isempty(varargin{1})&&nargin==4&&~isequal(varargin{1},'x'), value=varargin{1}; set(state.handles.pointer_vox(1),'string',num2str(value(1))); set(state.handles.pointer_vox(2),'string',num2str(value(2))); set(state.handles.pointer_vox(3),'string',num2str(value(3))); 
+                else value=[str2num(get(state.handles.pointer_vox(1),'string')) str2num(get(state.handles.pointer_vox(2),'string')) str2num(get(state.handles.pointer_vox(3),'string'))];
+                end
                 if numel(value)==3
                     if nargin>4,
                         if strcmp(varargin{1},'+'), d=1; else d=-1; end
@@ -1187,7 +1251,7 @@ n1=n1(idx); n2=n2(idx);
 if ~expand, i1(:)=1; i2(:)=1; end
 
 done=false;
-for n=find(opts==1),
+for n=find(opts==1), % coords of image
     if ~done
         done=true;
         varargout{n}=struct('vertices',zeros(size(vertices,1)*numel(i1),3),'faces',zeros(size(faces,1)*numel(i1),4),'facevertexcdata',zeros(size(faces,1)*numel(i1),1),'titletext',{{}},'titlepos',zeros(3,0));
@@ -1210,7 +1274,7 @@ for n=find(opts==1),
         end
     end
 end
-if any(opts==2)
+if any(opts==2) % coords of contour
     if size(x,1)==1, x=cat(1,x,x); y=cat(1,y,y); z=cat(1,z,z); end
     if size(x,2)==1, x=cat(2,x,x); y=cat(2,y,y); z=cat(2,z,z); end
     if size(x,3)==1, x=cat(3,x,x); y=cat(3,y,y); z=cat(3,z,z); end
@@ -1241,7 +1305,7 @@ if any(opts==2)
         varargout{n}=x1;
     end
 end
-if any(opts==3)
+if any(opts==3) % coords of patch
     dnull=null([d1;d2]);
     wb=dnull'*mx0;
     for n=find(opts==3)

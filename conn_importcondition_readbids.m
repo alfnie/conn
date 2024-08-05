@@ -10,7 +10,7 @@ str=fileread(filename);
 str=regexp(str,'[\n\r]','split');
 str=str(cellfun('length',str)>0);
 str=regexp(str,'\t','split');
-header=str{1}; str=str(2:end);
+header=regexprep(str{1},'^\s+|\s+$',''); str=str(2:end);
 nstr=cellfun('length',str);
 idx1=find(strcmp(lower(header),'onset'),1);
 if isempty(idx1), error('no ''onset'' field found in %s',filename); end

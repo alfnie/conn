@@ -1,4 +1,4 @@
-function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions)
+function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois0,validsets0,nl2covariates0,nl1contrasts,validconditions)
 % CONN_QAPLOTS creates Quality Assurance plots
 % conn_qaplots(outputfolder,procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions)
 %   outputfolder: target folder where to save plots
@@ -23,8 +23,8 @@ function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois,vali
 %     23: QA_SPM results        : SPM review contrast effect-size (from SPM.mat files)
 %     31: QA_COV                : histogram display of second-level variables
 %   validsubjects: subject numbers to include (defaults to all subjects)
-%   validrois: (only for procedures==3,4,5,6) ROI numbers to include (defaults to WM -roi#2-)
-%   validsets: (only for procedures==2,7,8,9,10) functional dataset number (defaults to dataset-0)
+%   validrois: (only for procedures==3,4,5,6) ROI numbers to include
+%   validsets: (only for procedures==2,7,8,9,10) functional dataset number
 %   nl2covariates: (only for procedures==13,15,31) l2 covariate names (defaults to all QC_*)
 %   nl1contrasts: (only for procedures==23) l1 contrast name (defaults to first contrast)
 %   validconditions: (only for plots==13,15,11,14) FC & QC-FC plots aggregate across sesssions where the selected conditions are present (defaults to all sessions)  
@@ -35,14 +35,12 @@ if nargin<1||isempty(qafolder), qafolder=fullfile(CONN_x.folders.qa,['QA_',dates
 if isempty(fileparts(qafolder)), qafolder=fullfile(CONN_x.folders.qa,qafolder); end
 if nargin<2||isempty(procedures), procedures=[]; end
 if nargin<3||isempty(validsubjects), validsubjects=1:CONN_x.Setup.nsubjects; end
-if nargin<4||isempty(validrois), validrois=2; end %[2,4:numel(CONN_x.Setup.rois.names)-1]; end
-if nargin<5||isempty(validsets), validsets=0; end %0:numel(CONN_x.Setup.secondarydataset); end
-if nargin<6||isempty(nl2covariates), nl2covariates=[]; end
+if nargin<4||isempty(validrois0), validrois0=[]; end %[2,4:numel(CONN_x.Setup.rois.names)-1]; end
+if nargin<5||isempty(validsets0), validsets0=[]; end %0:numel(CONN_x.Setup.secondarydataset); end
+if nargin<6||isempty(nl2covariates0), nl2covariates0=[]; end
 if nargin<7||isempty(nl1contrasts), nl1contrasts=[]; end
 if nargin<7||isempty(validconditions), validconditions=[]; end
 if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
-erodedrois=validrois<0;
-validrois=abs(validrois);
 
 debugskip=false;
 dpires='-r150'; % dpi resolution of .jpg files
@@ -86,6 +84,7 @@ if Nprocedures, conn_fileutils('mkdir',qafolder); end
 Iprocedure=1;
 if any(procedures==Iprocedure) % QA_NORM structural
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         %conn('gui_setupgo',2);
         %if ~nargout, conn_waitbar('redraw',ht); end
@@ -123,6 +122,8 @@ end
 Iprocedure=2;
 if any(procedures==Iprocedure) % QA_NORM functional
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        if isempty(validsets), validsets=1; end
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         %conn('gui_setupgo',3);
         %if ~nargout, conn_waitbar('redraw',ht); end
@@ -137,7 +138,7 @@ if any(procedures==Iprocedure) % QA_NORM functional
                 %nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
                 for nses=1:nsess,
                     if all(validsets==0), fhset=conn('gui_setupgo',3,14,4,nsub,nses,validsets);
-                    else fhset=conn('gui_setupgo',5,14,4,nsub,nses,validsets);
+                    else fhset=conn('gui_setupgo',8,14,4,nsub,nses,validsets);
                     end
                     for nset=1:numel(fhset)
                         fh=fhset{nset};
@@ -186,6 +187,13 @@ end
 Iprocedure=3;
 if any(procedures==Iprocedure) % QA_NORM rois
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        if isempty(validrois),
+            validrois=1;
+            erodedrois=validrois<0;
+            validrois=abs(validrois);
+        end
+        if isempty(validsets), validsets=0; end
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         streroded={'','eroded'};
         %conn('gui_setupgo',4);
@@ -235,6 +243,13 @@ end
 Iprocedure=4;
 if any(procedures==Iprocedure) % QA_REG structural
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        if isempty(validrois),
+            validrois=2;
+            erodedrois=validrois<0;
+            validrois=abs(validrois);
+        end
+        if isempty(validsets), validsets=1; end
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         streroded={'','eroded'};
         %conn('gui_setupgo',4);
@@ -284,6 +299,13 @@ end
 Iprocedure=5;
 if any(procedures==Iprocedure) % QA_REG functional
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        if isempty(validrois),
+            validrois=2;
+            erodedrois=validrois<0;
+            validrois=abs(validrois);
+        end
+        if isempty(validsets), validsets=1; end
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         streroded={'','eroded'};
         %conn('gui_setupgo',4);
@@ -333,6 +355,13 @@ end
 Iprocedure=6;
 if any(procedures==Iprocedure) % QA_REG mni
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        if isempty(validrois),
+            validrois=2;
+            erodedrois=validrois<0;
+            validrois=abs(validrois);
+        end
+        if isempty(validsets), validsets=1; end
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         streroded={'','eroded'};
         %conn('gui_setupgo',4);
@@ -382,6 +411,10 @@ end
 Iprocedure=7;
 if any(procedures==Iprocedure) % QA_COREG functional
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        if isempty(validsets), validsets=conn_datasetlabel('realigned functional data'); end
+        if isempty(validsets), validsets=conn_datasetlabel('realigned data'); end
+        if isempty(validsets), validsets=1; end
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         nsubs=validsubjects;
         nslice=[];
@@ -389,7 +422,7 @@ if any(procedures==Iprocedure) % QA_COREG functional
             nsub=nsubs(isub);
             try
                 if all(validsets==0), fh=conn('gui_setupgo',3,14,7,nsub,nslice,validsets);
-                else fh=conn('gui_setupgo',5,14,7,nsub,nslice,validsets);
+                else fh=conn('gui_setupgo',8,14,7,nsub,nslice,validsets);
                 end
                 filename=fullfile(qafolder,sprintf('QA_COREG_functional.subject%03d.jpg',nsub));
                 fh('togglegui',1);
@@ -414,6 +447,10 @@ end
 Iprocedure=8;
 if any(procedures==Iprocedure) % QA_TIME functional
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        if isempty(validsets), validsets=conn_datasetlabel('original functional data'); end
+        if isempty(validsets), validsets=conn_datasetlabel('original data'); end
+        if isempty(validsets), validsets=1; end
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         nsubs=validsubjects;
         nslice=[];
@@ -421,7 +458,7 @@ if any(procedures==Iprocedure) % QA_TIME functional
             nsub=nsubs(isub);
             try
                 if all(validsets==0), fh=conn('gui_setupgo',3,14,8,nsub,[],nslice,validsets,false);
-                else fh=conn('gui_setupgo',5,14,8,nsub,[],nslice,validsets,false);
+                else fh=conn('gui_setupgo',8,14,8,nsub,[],nslice,validsets,false);
                 end
                 filename=fullfile(qafolder,sprintf('QA_TIME_functional.subject%03d.jpg',nsub));
                 fh('print',filename,'-nogui','-noerror',dpires,'-ADDnoui','-nopersistent');
@@ -445,6 +482,10 @@ end
 Iprocedure=9;
 if any(procedures==Iprocedure) % QA_TIMEART functional
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        if isempty(validsets), validsets=conn_datasetlabel('original functional data'); end
+        if isempty(validsets), validsets=conn_datasetlabel('original data'); end
+        if isempty(validsets), validsets=1; end
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         nsubs=validsubjects;
         nslice=[];
@@ -456,10 +497,10 @@ if any(procedures==Iprocedure) % QA_TIMEART functional
                 icov=0;
                 %             nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
                 %             for nses=1:nsess,
-                %                 fh=conn('gui_setupgo',6,14,2,icov,nsub,nses,nslice,validsets,false);
+                %                 fh=conn('gui_setupgo',5,14,2,icov,nsub,nses,nslice,validsets,false);
                 %                 fh('style','timeseries');
                 %                 filename=fullfile(qafolder,sprintf('QA_TIMEART_functional.subject%03d.session%03d.jpg',nsub,nses));
-                fh=conn('gui_setupgo',7,14,2,icov,nsub,[],nslice,validsets,false);
+                fh=conn('gui_setupgo',6,14,2,icov,nsub,[],nslice,validsets,false);
                 filename=fullfile(qafolder,sprintf('QA_TIMEART_functional.subject%03d.jpg',nsub));
                 fh('print',filename,'-nogui','-noerror',dpires,'-ADDnoui','-nopersistent');
                 state=fh('getstate');
@@ -483,6 +524,8 @@ end
 Iprocedure=10;
 if any(procedures==Iprocedure) % QA_REG functional-structural
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        if isempty(validsets), validsets=1; end
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         %conn('gui_setupgo',3);
         %if ~nargout, conn_waitbar('redraw',ht); end
@@ -496,7 +539,7 @@ if any(procedures==Iprocedure) % QA_REG functional-structural
                 %nsess=1; %CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub)); % note: for functional data, only show first-session (mean functional already incorporates all session data)
                 for nses=1:nsess,
                     if all(validsets==0), fhset=conn('gui_setupgo',3,14,3,nsub,nses,validsets);
-                    else fhset=conn('gui_setupgo',5,14,3,nsub,nses,validsets);
+                    else fhset=conn('gui_setupgo',8,14,3,nsub,nses,validsets);
                     end
                     for nset=1:numel(fhset)
                         fh=fhset{nset};
@@ -526,6 +569,7 @@ end
 Iprocedure=[11,12,13,14,15];
 if any(ismember(procedures,Iprocedure)) % QA_DENOISE
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
         nprocedures=sum(ismember(procedures,1:min(Iprocedure)-1));
         nproceduresin=sum(ismember(procedures,Iprocedure));
         nsubs=validsubjects;
@@ -687,8 +731,9 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                                 FC_X1=zeros(numel(k),numel(k),numel(nsubs));
                                 FC_N=zeros(numel(k),numel(k),numel(nsubs));
                             end
-                            if isempty(nl2covariates)
-                                [x,nl2covariates]=conn_module('get','l2covariates','^QC_');
+                            if isempty(nl2covariates),
+                                [nill,nl2covariates]=conn_module('get','l2covariates','^QC_');
+                                nl2covariates=nl2covariates(cellfun('length',regexp(nl2covariates,'^QC_.*(MeanMotion|InvalidScans|ProportionValidScans)'))>0);
                             end
                             z0=corrcoef(x0);z1=corrcoef(x1);z0(1:size(z0,1)+1:end)=nan;z1(1:size(z1,1)+1:end)=nan;z0(z0==1)=nan;z1(z1==1)=nan;
                             if any(procedures==15)
@@ -940,10 +985,14 @@ Iprocedure=31;
 if any(procedures==Iprocedure) % QA_COV
     pwd0=pwd;
     try
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
         nprocedures=sum(ismember(procedures,1:Iprocedure-1));
         nsubs=validsubjects;
         assert(numel(nsubs)>0);
-        if isempty(nl2covariates), [x,nl2covariates]=conn_module('get','l2covariates','^QC_'); end
+        if isempty(nl2covariates), 
+            [x,nl2covariates]=conn_module('get','l2covariates','^QC_'); 
+            nl2covariates=nl2covariates(cellfun('length',regexp(nl2covariates,'QC_ValidScans|QC_InvalidScans|QC_ProportionValidScans|QC_MeanMotion|QC_MeanGSchange|QC_NORM_func|QC_NORM_struct|QC_DOF'))>0);
+        end
         [x,xnames,xdescr]=conn_module('get','l2covariates');
         if ischar(nl2covariates)||iscell(nl2covariates), nl2covariates=find(ismember(xnames,cellstr(nl2covariates))); end
         if ~isempty(nl2covariates)
@@ -960,7 +1009,43 @@ if any(procedures==Iprocedure) % QA_COV
                 else fprintf('.');
                 end
             else
-                conn_qaplots_covupdate(X,Xnames,Xdescr,nsubs,qafolder,ht,nprocedures/Nprocedures,1/Nprocedures);
+                [nill,nill,infoA]=conn_qaplots_covupdate(X,Xnames,Xdescr,nsubs,qafolder,ht,nprocedures/Nprocedures,1/Nprocedures);
+                donemsg=false;
+                for isub=1:numel(infoA)
+                    nsub=nsubs(isub);
+                    pmatch=any([infoA{nsub}.Values < 2*infoA{nsub}.Interquartiles(1,:)-infoA{nsub}.Interquartiles(2,:) | infoA{nsub}.Values > 2*infoA{nsub}.Interquartiles(end,:)-infoA{nsub}.Interquartiles(end-1,:)]);
+                    pmatch_name='QC_OutlierSubjects';
+                    pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                    if isempty(pmatch_icov),
+                        pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
+                        CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
+                        CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Subjects with extreme outliers in any of the QC variables selected in the QC_variables plot';
+                        CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
+                        for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                    end
+                    CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
+                    pmatch_name='QC_ValidSubjects';
+                    pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                    if isempty(pmatch_icov),
+                        pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
+                        CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
+                        CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Subjects without any extreme outliers in the QC variables selected in the QC_variables plot';
+                        CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
+                        for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                    end
+                    CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=~pmatch;
+                    pmatch_name='ExcludeOutlierSubjects';
+                    pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                    if isempty(pmatch_icov),
+                        pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
+                        CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
+                        CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Add this control variable to a second-level analysis to remove Outlier Subjects from this analysis';
+                        CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
+                        for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                    end
+                    CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=0./~pmatch;
+                    if ~donemsg, conn_disp('fprintf','QC_OutlierSubjects, QC_ValidSubjects, and QC_RemoveSubjects 2nd-level covariate updated\n'); donemsg=true; end
+                end
                 %             sx=sort(X,1); IQ=interp1(linspace(0,1,size(sx,1))',sx,[.25 .5 .75]'); IQR=max(1e-10,IQ(3,:)-IQ(1,:)); IQL=[IQ(1,:)-1.5*IQR; IQ(3,:)+1.5*IQR]; IQ=[IQL(1,:);IQ;IQL(2,:)];
                 %             Ka=-IQL(1,:)./max(eps,IQL(2,:)-IQL(1,:));
                 %             Kb=1./max(eps,IQL(2,:)-IQL(1,:));

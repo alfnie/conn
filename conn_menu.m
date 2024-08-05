@@ -5,7 +5,8 @@ global CONN_gui CONN_h;
 persistent nullstr fname;
 
 if isempty(nullstr), nullstr=''; end
-if isempty(fname), fnames={'Avenir','Helvetica'}; fname=fnames{end}; try, ok=ismember(fnames,listfonts); if nnz(ok), fname=fnames{find(ok,1)}; end; end; end
+if isempty(fname), try, fname=CONN_gui.fontname; catch, fname=get(0,'FixedWidthFontName'); end; end
+
 h=[];h2=[];htb=[];
 nmax=100;
 if nargin<2 || isempty(position), position=[0,0,0,0]; end
@@ -123,7 +124,7 @@ switch(lower(type)),
         if strcmpi(type,'listboxbigblue'), bgcolor=CONN_gui.backgroundcolorE; end %.75*bgcolor+.25*(1/6*.25+.75*[2/6,2/6,4/6]); end
 		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,position(4),0,.04-position(4)],'string',title,'backgroundcolor',bgcolor,titleopts{:},'fontunits','norm','horizontalalignment','left','parent',CONN_h.screen.hfig); end
         if isempty(string), string=' '; end
-		h=uicontrol('style','listbox','units','norm','position',position,'foregroundcolor',.0+1.0*([0 0 0]+(mean(bgcolor)<.5)),'backgroundcolor',bgcolor,'string',string,'max',1,'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,'keypressfcn',@conn_menu_search,contropts{:},'parent',CONN_h.screen.hfig);
+        h=uicontrol('style','listbox','units','norm','position',position,'foregroundcolor',.0+1.0*([0 0 0]+(mean(bgcolor)<.5)),'backgroundcolor',bgcolor,'string',string,'max',1,'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,'keypressfcn',@conn_menu_search,contropts{:},'parent',CONN_h.screen.hfig);
         if strcmpi(type,'listboxbigblue'), set(h,'fontsize',10+CONN_gui.font_offset); end
         set(h,'units','pixels');
         tpos=get(h,'position');
@@ -146,12 +147,20 @@ switch(lower(type)),
         conn_menumanager('onregion',ht,-1,get(h,'position'));
         if ~isempty(callback2), 
             if ~iscell(callback2), callback2={['h=get(gcbo,''userdata''); set(h,''value'',numel(cellstr(get(h,''string'')))); ',callback],callback2}; end
-            ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 max(.02,position(3)-.02)-position(3) .03-position(4)],'','new',['Adds new ',lower(title)],callback2{1}),...
-                conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[max(.02,position(3)-.02) -.03 .02-position(3) .03-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
+            %ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 0 .03-position(4)],'',['Add new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...
+            %    conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[max(.02,position(3)-.02) 0 .02-position(3) .03-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
+            if isempty(deblank(callback2{2}))
+                ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .03-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1})];
+                set(ht(1),'userdata',h,'fontweight','bold','visible','on','fontsize',9+CONN_gui.font_offset);
+            else
+                ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .03-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...
+                    conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[max(.02,position(3)-.02) -.03 .02-position(3) .03-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
+                set(ht(1),'userdata',h,'fontweight','bold','visible','on','fontsize',9+CONN_gui.font_offset);
+                set(ht(2:end),'userdata',h,'fontweight','bold','visible','off'); 
+                conn_menumanager('onregion',ht(2:end),1,get(h,'position')+[0 -.04 0 .04],h);
+            end
             %ht=[conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[0 -.04 .02-position(3) .04-position(4)],'','+',['Adds new ',lower(title)],callback2{1}),...
             %    conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[.02 -.04 .02-position(3) .04-position(4)],'','-',['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
-            set(ht,'userdata',h,'fontweight','bold','visible','off');
-            conn_menumanager('onregion',ht,1,get(h,'position')+[0 -.04 0 .04],h);
         end
         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
 	case 'listbox0',
@@ -444,35 +453,39 @@ switch(lower(type)),
         set([h.h1,h.h2,h.h3,h.h4,h.h5,h.h6,h.h7,h.h8],'visible','off');
 	case 'filesearchprojectload',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1,'reduced',true,'button','Open','buttonhelp','Loads selected CONN project');
 	case 'filesearchprojectsave',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1,'type','files','filename',tooltipstring,'reduced',true,'button','Save','buttonhelp','Saves new CONN project');
 	case 'filesearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1);
 	case 'foldersearch_local',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.56,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.56,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','folder',pwd,'inserver',false);
 	case 'foldersearch_remote',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','folder',conn_projectmanager('pwd'),'inserver',true);
+    case 'foldersearch_multiple',
+        %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
+		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
+			'title',title,'button',string,'callback',callback,'max',2,'type','folders');
 	case 'foldersearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders');
 	case 'dicomfoldersearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','button','Import','buttonhelp','<HTML>Select DICOM root folder (directory where DICOM files for the selected subject are stored -including sub-directories-)</HTML>');
 	case 'filesearchlocal',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1,'localcopy',1);
 	case {'frame','framewhite','framehighlight','framewhitehighlight','frame2highlight','frame2','frame2blue','framewhitenoborder','framewhitesemiborder','framewhiteborderl','frameblue','frame2blue','framebluenoborder','framebluesemiborder','frameblueborderl','frame2noborder','frame2semiborder','frame2border','frame2borderl'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -530,7 +543,7 @@ switch(lower(type)),
             tpos=get(ht2,'position')+1*14*[-1 -1 2 2]*bscale; 
             %if extendshade, tpos(4)=(tpos(4)-1*24)*(1+.04/position(4))+1*24; end
             %tpos=get(ht2,'position')+1*[-8 -12 20 20];
-            set(ht2,'position',tpos,'color',0*min(1,CONN_gui.backgroundcolor),'xtick',[],'ytick',[],'xcolor',max(0,0*CONN_gui.backgroundcolor),'ycolor',max(0,0*CONN_gui.backgroundcolor),'box','off','yaxislocation','right');
+            set(ht2,'position',tpos,'color',0*min(1,CONN_gui.backgroundcolor),'xtick',[],'ytick',[],'xcolor',max(0,CONN_gui.backgroundcolor),'ycolor',max(0,CONN_gui.backgroundcolor),'box','off','yaxislocation','right');
             %%[i,j]=ndgrid([0:2:tpos(4) tpos(4):-2:0],[0:2:tpos(3) tpos(3):-2:0]);
             %%b0=conn_guibackground('get',tpos,size(i));
             %%b1=CONN_gui.backgroundcolor;
@@ -542,11 +555,11 @@ switch(lower(type)),
             if strcmpi(type,'frame'), 
                 bg2=1*max(0,min(1,CONN_gui.backgroundcolor)); lw2=1; % border emphasis
             elseif strcmpi(type,'frame2border')
-                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=1;
+                bg2=max(0,min(1,CONN_gui.backgroundcolor-.05)); lw2=1;
             elseif strcmpi(type,'frame2borderl')
-                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=1;
+                bg2=max(0,min(1,CONN_gui.backgroundcolor-.05)); lw2=1;
             else
-                bg2=.75*max(0,min(1,CONN_gui.backgroundcolor)); lw2=1;
+                bg2=max(0,min(1,CONN_gui.backgroundcolor-.05)); lw2=1;
             end
             if strcmpi(type,'frame2border'),%||strcmpi(type,'frame2borderl')
                 [i,j]=ndgrid([0:2:tpos(4) tpos(4):-2:0],[0:2:tpos(3) tpos(3):-2:0]);

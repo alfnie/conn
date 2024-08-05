@@ -30,7 +30,7 @@ function ocov=conn_convertl12l1covariate(option,varargin)
 %                   rel: difference between each pair of two consecutive scans  
 %                   abs: difference between each scan and first-scan in same run/session
 %
-%  conn_convertl12l1covariate('scrubbing' [,thr,ext,icov,ocov,ocovl2])
+%  conn_convertl12l1covariate('scrubbing' [,thr,ext,icov,ocov])
 %    Creates 'scrubbing' covariate from 'QC_timeseries' covariate (note: assumes input 'QC_timeseries' covariate contains scan-to-scan BOLD-signal change timeseries and scan-to-scan Framewise Displacement change timeseries)
 %    Note: this procedure also modifies the second-level covariates 'QC_ValidScans','QC_InvalidScans','QC_MaxMotion','QC_MeanMotion','QC_MaxGSchange','QC_MeanGSchange' covariates re-computing the corresponding measures with the outlier-scan definitions
 %    Parameters:
@@ -267,7 +267,7 @@ switch(lower(option))
                 end
                 if isempty(data), conn_disp('__nolog','fprintf','warning: missing %s data for subject %d session %d\n',sprintf('%s ',icov{:}),nsub,nses); data=zeros(1,numel(thr)); end
                 idx=find(any(data>repmat(thr(:)',size(data,1),1),2));
-                if numel(ext)>2&&any(ext>0), idx=repmat(idx(:),1,sum(ext))+repmat(-ext(1):ext(2)-1,numel(idx),1); 
+                if numel(ext)>=2&&any(ext>0), idx=repmat(idx(:),1,sum(ext))+repmat(-ext(1):ext(2)-1,numel(idx),1); 
                 elseif ext>0, idx=repmat(idx(:),1,2*ext)+repmat(-ext:ext-1,numel(idx),1); 
                 end
                 idx=unique(idx(idx>0&idx<=size(data,1)));
@@ -302,7 +302,8 @@ switch(lower(option))
         if RECOMPUTEL2
             str_global=sprintf(' (outliers threshold = %s)',mat2str(thr(end-1)));
             str_motion=sprintf(' (outliers threshold = %s)',mat2str(thr(end)));
-            conn_importl2covariate(ocovl2,{y1,y2,y3,y4,y5,y6},0,[],{'CONN Quality Assurance: Number of valid (non-outlier) scans','CONN Quality Assurance: Number of outlier scans',['CONN Quality Assurance: Largest motion observed',str_motion],['CONN Quality Assurance: Average motion observed (disregarding outlier scans)',str_motion],['CONN Quality Assurance: Largest global BOLD signal changes observed',str_global],['CONN Quality Assurance: Average global BOLD signal changes observed (disregarding outlier scans)',str_global]}); 
+            conn_importl2covariate({'QC_ValidScans','QC_InvalidScans','QC_ProportionValidScans','QC_MaxMotion','QC_MeanMotion','QC_MaxGSchange','QC_MeanGSchange'},{y1,y2,y1./(y1+y2),y3,y4,y5,y6},0,[],{'CONN Quality Assurance: Number of valid (non-outlier) scans','CONN Quality Assurance: Number of outlier scans','CONN Quality Assurance: Proportion of valid (non-outlier) scans',['CONN Quality Assurance: Largest motion observed',str_motion],['CONN Quality Assurance: Average motion observed (disregarding outlier scans)',str_motion],['CONN Quality Assurance: Largest global BOLD signal changes observed',str_global],['CONN Quality Assurance: Average global BOLD signal changes observed (disregarding outlier scans)',str_global]}); 
+            %conn_importl2covariate(ocovl2,{y1,y2,y3,y4,y5,y6},0,[],{'CONN Quality Assurance: Number of valid (non-outlier) scans','CONN Quality Assurance: Number of outlier scans',['CONN Quality Assurance: Largest motion observed',str_motion],['CONN Quality Assurance: Average motion observed (disregarding outlier scans)',str_motion],['CONN Quality Assurance: Largest global BOLD signal changes observed',str_global],['CONN Quality Assurance: Average global BOLD signal changes observed (disregarding outlier scans)',str_global]}); 
         end
 
     case {'split'}

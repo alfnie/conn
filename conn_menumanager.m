@@ -38,6 +38,7 @@ function handle=conn_menumanager(handle,varargin)
 global CONN_x CONN_MM CONN_gui;
 if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 if ~isfield(CONN_gui,'waiticon'), CONN_gui.waiticon='watch'; end
+if ~isfield(CONN_gui,'fontname'), CONN_gui.fontname=get(0,'FixedWidthFontName'); ; end
 if nargin<1, handle='on'; end
 %AVOIDTEXTBUG=CONN_gui.dounixGUIbugfix; % avoids issue with remote X display fonts not resizing correctly (note: disregards rotate field)
 UIXCONTROLTOOLTIP=false; 
@@ -372,7 +373,7 @@ else
         handle=length(CONN_MM.MENU)+1; 
         CONN_MM.POSITION(handle,:)=0;
         CONN_MM.ACTIVE(handle)=0;
-        fntnames={'Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
+        fntname=CONN_gui.fontname;
         % note1: possible status are: [Mouse outside of item, Mouse inside item, Item selected and mouse inside item, Item selected and mouse outside item]
         params=struct(...
             'n',0,...                                           % number of items
@@ -482,7 +483,7 @@ else
                 x=1+(CONN_MM.MENU{thishandle}.value==n1 & ~CONN_MM.MENU{thishandle}.state(n1))+2*CONN_MM.MENU{thishandle}.state(n1);
                 ximage=CONN_MM.CDATA{thishandle}{n1}{x};
                 if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, 
-                    ximage=max(0,min(1,ximage*2)); ximage=ximage.*repmat(.6+.3*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
+                    ximage=max(0,min(1,ximage*3)); ximage=ximage.*repmat(.3+.3*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
                     if 0,%CONN_MM.MENU{thishandle}.order(1)~='h'
                         ximage0=.5+0*round(ximage);
                         if t4(n1)==0, ximagei1=ceil(min(size(ximage,1)*.05,8));
@@ -619,7 +620,7 @@ else
                     else set(CONN_MM.HELP.handle,'string',CONN_MM.HELP.string,'visible','on');
                     end
                 else
-                    ha=axes('units','norm','position',[.3,.02,.4,.03],'visible','off','parent',CONN_MM.gcf);
+                    ha=axes('units','norm','position',[.3,.015,.4,.03],'visible','off','parent',CONN_MM.gcf);
                     CONN_MM.HELP.handle=text(0,1,CONN_MM.HELP.string,'color',1-bg,'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
                     set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
                     %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string',CONN_MM.HELP.string,'fontsize',8+CONN_gui.font_offset); 
@@ -630,7 +631,7 @@ else
                     else set(CONN_MM.HELP.handle,'string',['Project: ',CONN_x.filename],'visible','on');
                     end
                 else
-                    ha=axes('units','norm','position',[.3,.02,.4,.03],'visible','off','parent',CONN_MM.gcf);
+                    ha=axes('units','norm','position',[.3,.015,.4,.03],'visible','off','parent',CONN_MM.gcf);
                     CONN_MM.HELP.handle=text(0,1,'','color',1-bg,'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
                     set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
                     %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string','','fontsize',8+CONN_gui.font_offset); 
@@ -659,11 +660,11 @@ kx=2*ceil(.75*p2(1))+1;ky=2*ceil(.75*p2(2))+1;
 [tx,ty]=meshgrid(1:kx,1:ky); c1=(ky+1)/2; c2=kx-(ky-1)/2;
 kz=c1:-1:.0*c1; t=0;
 %try, if isequal(datestr(now,'mmdd'),'0401'), params.color=params.color*min(1,sparse(1:3,randperm(3),1,3,3)); end; end
-rns=10;
+rns=8;
 for n1=kz, t=t+double((abs(tx-c1).^rns+abs(ty-c1).^rns)<abs(n1).^rns | (abs(tx-c2).^rns+abs(ty-c1).^rns)<abs(n1).^rns | (tx>=c1&tx<=c2&abs(ty-c1)<n1))/length(kz); end;
 t=max(0,min(1,t));
 %t=max(0,t-.20).^.125;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
-t=1*max(0,t-.20).^.0125;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
+t=(t+19*max(0,t-.20).^.0125)/20;%.5+.5*tanh(10*(t-.1));%t.^.05;%.25;
 t(tx>=kx-2)=0;
 switch(lower(params.bordertype))
     case 'round'

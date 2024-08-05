@@ -25,18 +25,21 @@ if isempty(params)
     %'isserver',false,...
     params=struct(...
         'info',struct(),...
-        'options',struct('use_ssh',true,'cmd_ssh','ssh','cmd_scp','scp'),...
+        'options',struct('use_ssh',true,'cmd_ssh','ssh','cmd_scp','scp','use_key',false,'file_key',''),...
         'state','off');
     filename=fullfile(conn_fileutils('homedir'),'connclientinfo.json');
     if conn_existfile(filename), params.options=conn_jsonread(filename); end
     if ~isfield(params.options,'use_ssh'), params.options.use_ssh=true; end
     if ~isfield(params.options,'cmd_ssh'), params.options.cmd_ssh='ssh'; end
     if ~isfield(params.options,'cmd_scp'), params.options.cmd_scp='scp'; end
+    if ~isfield(params.options,'use_key'), params.options.use_key=false; end
+    if ~isfield(params.options,'file_key'), params.options.file_key=''; end
+    params=conn_server_ssh_updatefilekey(params);
 end
 
 switch(lower(option))
     
-    case {'start','restart'} % init server remotely and connect to it
+    case {'start','startwithgui','restart'} % init server remotely and connect to it
         % development reference notes on ssh tunneling
         %    $ ssh -fN -o ServerAliveInterval=60 -o ServerAliveCountMax=10 -o ControlMaster=yes -o ControlPath=<local_filename> <login_node>        % authenticate first
         %    $ ssh -o ControlPath=<local_filename> -L<local_port>:<server_ip>:<server_port> <login_node>                                           % port forwarding on shared connection
@@ -51,9 +54,40 @@ switch(lower(option))
             end
         else params.info.CONNcmd='';
         end
+        startwithgui=strcmpi(option,'startwithgui')&params.options.use_ssh;
+        startwithgui_hmsg=[];
+        if startwithgui, 
+            allthesame=true;
+            if ~isfield(params.info,'user')||isempty(params.info.user), [nill,str2]=system('whoami'); params.info.user=regexprep(str2,'\n',''); allthesame=false; end
+            if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=''; allthesame=false; end
+            clear h;
+            h.hfig=figure('units','norm','position',[.3 .6 .3 .2],'name','Start SSH connection','numbertitle','off','menubar','none','color','w');
+            uicontrol('style','text','units','norm','position',[.1 .70 .37 .14],'string','Remote server address:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);
+            h.answer_host=uicontrol('style','edit','max',1,'units','norm','position',[.5 .70 .4 .15],'string',params.info.host,'backgroundcolor','w','horizontalalignment','left','parent',h.hfig,'tooltipstring','Enter the address of your SSH-accessible remote server or your cluster login node');
+            uicontrol('style','text','units','norm','position',[.1 .50 .37 .14],'string','Username:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);
+            h.answer_user=uicontrol('style','edit','max',1,'units','norm','position',[.5 .50 .4 .15],'string',params.info.user,'backgroundcolor','w','horizontalalignment','left','parent',h.hfig,'tooltipstring','Enter your username in the remote server');
+            uicontrol('style','text','units','norm','position',[.1 .30 .37 .14],'string','Authentication method:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);
+            h.answer_password=uicontrol('style','popupmenu','max',1,'units','norm','position',[.5 .30 .4 .15],'string',{'password','public key'},'backgroundcolor','w','horizontalalignment','left','parent',h.hfig,'tooltipstring','<HTML>Select your remote server authentication method<br/>When selecting <i>password</i> you will be prompted to enter your password when the connection to the server is initiated.<br/>When selecting <i>public key</i> you will be asked to select your SSH identity file (e.g. an id_rsa file containing a private key provided by your institution or one generated using ssh-keygen)</HTML>','callback','if get(gcbo,''value'')==2, conn_msgbox({''Click ''''Continue'''' to select the identity file containing'',''your private key(s) for RSA or DSA authentication.'',''CONN will use the syntax ''''ssh -i identity_file ...'''' when connecting to your server'','' '',''e.g. id_rsa file created by ssh-keygen'',''e.g. key-pair-name.pem file from AWS''},''conn'',2); [tfilename1,tfilepath1]=conn_fileutils(''uigetfile'',''*'',''Select identity file'',get(gcbo,''userdata'')); if ischar(tfilename1), tfilename1=conn_server(''util_localfile_filesep'',[],fullfile(tfilepath1,tfilename1)); set(gcbo,''userdata'',fullfile(tpathname,tfilename)); end; end', 'userdata',params.options.file_key,'value',1+(params.options.use_key&~isempty(params.options.file_key)));
+            uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.15],'callback','uiresume','parent',h.hfig);
+            uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.15],'callback','delete(gcbf)','parent',h.hfig);
+            uiwait(h.hfig);
+            if ~ishandle(h.hfig), error('Connection procedure canceled by user'); end
+            params_info_host=get(h.answer_host,'string'); if ~isequal(params.info.host,params_info_host), allthesame=false; end; params.info.host=params_info_host;
+            params_info_user=get(h.answer_user,'string'); if ~isequal(params.info.user,params_info_user), allthesame=false; end; params.info.user=params_info_user;
+            params_options_use_key=get(h.answer_password,'value')==2; if ~isequal(params.options.use_key,params_options_use_key), allthesame=false; end; params.options.use_key=params_options_use_key;
+            params_options_file_key=get(h.answer_password,'userdata'); if ~isequal(params.options.file_key,params_options_file_key), allthesame=false; end; params.options.file_key=params_options_file_key;
+            params=conn_server_ssh_updatefilekey(params);
+            delete(h.hfig);
+            if params.options.use_key&&~isempty(params.options.file_key), startwithgui_hmsg=conn_msgbox('Connecting to remote server. Please wait','');
+            elseif ispc, startwithgui_hmsg=conn_msgbox('Connecting to remote server. Please enter your access credentials in a new OS command-line windows when prompted','');
+            else startwithgui_hmsg=conn_msgbox('Connecting to remote server. Please enter your access credentials in Matlab''s command-line window when prompted','');
+            end
+        end
         if params.options.use_ssh, 
             allthesame=true;
             if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=conn_server_ssh_input('Server address [local]: ','s'); allthesame=false;
+            elseif startwithgui
+                fprintf('Server address [%s]\n',params.info.host);
             else
                 temp=conn_server_ssh_input(sprintf('Server address [%s]: ',params.info.host),'s');
                 if ~isempty(temp),
@@ -78,10 +112,14 @@ switch(lower(option))
             params.info.filename_ctrl='';
             allthesame=false;
         else
-            temp=conn_server_ssh_input(sprintf('Username [%s]: ',params.info.user),'s');
-            if ~isempty(temp),
-                if ~isequal(params.info.user,temp), allthesame=false; end
-                params.info.user=temp;
+            if startwithgui
+                fprintf('Username [%s]\n',params.info.user);
+            else
+                temp=conn_server_ssh_input(sprintf('Username [%s]: ',params.info.user),'s');
+                if ~isempty(temp),
+                    if ~isequal(params.info.user,temp), allthesame=false; end
+                    params.info.user=temp;
+                end
             end
             params.info.login_ip=sprintf('%s@%s',params.info.user,params.info.host);
             localcachefolder=conn_cache('private.local_folder');
@@ -265,7 +303,8 @@ switch(lower(option))
                 if ~isempty(params.info.host)&&ispc&&isfield(params.info,'windowscmbugfixed')&&~params.info.windowscmbugfixed, try, for n1=1:2, pause(1); [ok,msg]=system(sprintf('taskkill /FI "WindowTitle eq %s" /F',tstr)); end; end; end
             end
         end
-        
+        if ~isempty(startwithgui_hmsg), delete(startwithgui_hmsg); end
+
      case {'setup','install'} % saves .json info
         if numel(varargin)>=1&&~isempty(varargin{1}), filename=varargin{1};
         else filename=fullfile(conn_fileutils('homedir'),'connserverinfo.json');
@@ -532,3 +571,22 @@ catch
 end
 end
 
+function params=conn_server_ssh_updatefilekey(params)
+if ~isempty(regexp(params.options.cmd_ssh, 'ssh\s\-i\s')),
+    params.options.use_key=true;
+    params.options.file_key=regexprep(regexprep(params.options.cmd_ssh,'.*ssh\s\-i\s+',''),'[\''\"]','');
+    params.options.cmd_ssh=regexprep(params.options.cmd_ssh,'^(.*ssh)\s\-i\s.*$','$1');
+end
+if ~isempty(regexp(params.options.cmd_scp, 'scp\s\-i\s')),
+    params.options.cmd_scp=regexprep(params.options.cmd_scp,'^(.*scp)\s\-i\s.*$','$1');
+end
+if params.options.use_ssh&&params.options.use_key&&~isempty(params.options.file_key)
+    if ispc
+        params.options.cmd_ssh=sprintf('%s -i "%s"', params.options.cmd_ssh, params.options.file_key);
+        params.options.cmd_scp=sprintf('%s -i "%s"', params.options.cmd_scp, params.options.file_key);
+    else
+        params.options.cmd_ssh=sprintf('%s -i ''%s''', params.options.cmd_ssh, params.options.file_key);
+        params.options.cmd_scp=sprintf('%s -i ''%s''', params.options.cmd_scp, params.options.file_key);
+    end
+end
+end

@@ -34,6 +34,12 @@ if nargin<5||isempty(DOPLOT), DOPLOT=0; end
 if nargin<6||isempty(DOICA), DOICA=1; end
 if nargin<7||isempty(FLIPSIGN), FLIPSIGN=true; end
 if nargin<7||isempty(RNDSEED), RNDSEED=false; end
+if Nt>1&&isscalar(X1) % if X1 is length of hanning smoothing kernel
+    temp=spm_convmtx(conn_hanning(X1),Nt);
+    temp=temp(floor(X1/2)+(1:Nt),:);
+    [i,j,v]=find(temp);
+    X1=sparse(i,j,v,Nt,Nt);
+end
 REMOVEX0VAR=true;
 Nk0=size(X0,2);
 Nk=min(Nk,Nr*(Nr-1)/2);

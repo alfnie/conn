@@ -1,4 +1,4 @@
-function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplots,thr,facealpha,position,defaultcolors,defaultfilepath,Vrange,domask,dosub)
+function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplots,thr,facealpha,position,defaultcolors,defaultfilepath,Vrange,domask,dosub,thrwiteout)
 % CONN_MESH_DISPLAY surface display in CONN
 %
 % CONN_MESH_DISPLAY(fileSURF) displays surface- or volume-level data in fileSURF projected to reference cortical surface
@@ -41,7 +41,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('brain_transparency',val)          : set reference brain surface transparency level (val: 0-1)
 %  fh('brain_color',color)               : set reference brain surface color (color: [1x3] RGB values) 
 %  fh('repaint',fileSURF [,threshold])   : change reference brain surface activation file (fileSURF: NIFTI file)
-%  fh('mask',state)                      : displays reference brain surface medial mask (state: 'on' 'off')
+%  fh('mask',state)                      : displays reference-brain surface medial mask (state: 'on' 'off')
 %  fh('act_transparency',val)            : set reference brain surface activation transparency level (val: 0-1)
 %  fh('act_pos')                         : reference brain surface activation displays only positive acitivation values
 %  fh('act_neg')                         : reference brain surface activation displays only negative acitivation values
@@ -93,7 +93,7 @@ function fh=conn_mesh_display(filenameSURF,filenameVOL,FSfolder,sphplots,connplo
 %  fh('menubar',state)                   : display menubar (state: 'on' 'off')
 %
 % PRINT OPTIONS
-%  fh('print',type,filename)             : prints display to high-resolution .jpg file
+%  fh('print',type,filename,'-nogui')    : prints display to high-resolution .jpg file
 %                                           type=1: prints current view
 %                                           type=2: prints 2-view row display (left&right exterior views)
 %                                           type=3: prints 3-view mosaic display (superior,right,posterior views; e.g. glass-displays)
@@ -117,6 +117,7 @@ if nargin==1&&isstruct(filenameSURF)&&isfield(filenameSURF,'structural'), % stru
     if ~conn_fileutils('isdir',state.FSfolder), state.FSfolder=fullfile(fileparts(which('conn')),'utils','surf'); end
     if ~isfield(state,'fontclose'), state.fontclose=1; end
     if ~isfield(state,'Prange'), state.Prange=[]; end
+    if ~isfield(state,'thrwiteout'), state.thrwiteout=false; end
     doinit=false;
 elseif nargin>0&&isstruct(filenameSURF),data=filenameSURF;return
 end
@@ -141,6 +142,7 @@ if doinit
     if nargin<11, Vrange=[]; end
     if nargin<12||isempty(domask), domask=true; end
     if nargin<13||isempty(dosub), dosub=isempty(filenameSURF); end
+    if nargin<14||isempty(thrwiteout), thrwiteout=false; end
     state.actthr=thr;
     state.FSfolder=FSfolder;
     state.connplots=connplots;
@@ -153,6 +155,7 @@ if doinit
     state.Prange=[];
     state.domask=domask;
     state.dosub=dosub;
+    state.thrwiteout=thrwiteout;
 end
 if isfield(state,'actthr'), THR=state.actthr;
 else THR=0;
@@ -329,6 +332,15 @@ end
 if state.dotwosided,
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
     set(gca,'ydir','normal','ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on','fontsize',8);
+    if state.thrwiteout
+        cb_wo_range = floor(THR/state.Vrange(3)*size(temp,1));
+        cb_wo_range = cb_wo_range - mod(cb_wo_range,2);
+        if cb_wo_range ~= 0 % Update colorbar and labels only when wite-out region exists
+            temp((size(temp,1)-cb_wo_range)/2+1:size(temp,1)/2+cb_wo_range/2,:,:) = 0.9;
+            new_labels = [state.Vrange(1), -THR, state.Vrange(2), THR, state.Vrange(3)];
+            set(gca,'ydir','normal','ytick',[.5,(size(temp,1)-cb_wo_range)/2+0.5,64.5,size(temp,1)/2+cb_wo_range/2+0.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),new_labels,'uni',0),'xtick',[],'box','on','fontsize',8);
+        end
+    end
 elseif any(state.Vrange>0)
     temp=imagesc(max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(0,1,128)'),state.colormap))));
     set(gca,'ydir','normal','ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'xtick',[],'box','on','fontsize',8);
@@ -393,7 +405,7 @@ if ~isempty(state.pVOLother)
     end
     for n1=1:numel(state.pVOLother), 
         state.handles.patchblobother=[state.handles.patchblobother patch(state.pVOLother(n1),'facecolor',cmap(n1,:),'edgecolor','none','alphadatamapping','none','FaceLighting', 'phong','facealpha',state.facealphaud,'backfacelighting','reverselit','parent',state.handles.hax)]; 
-        state.patchblobother_x=[state.patchblobother_x mean(state.pVOLother(n1).vertices(:,1))];
+        if ~isempty(state.pVOLother(n1).vertices), state.patchblobother_x=[state.patchblobother_x mean(state.pVOLother(n1).vertices(:,1))]; end
     end
     if ~isempty(state.ud_color),
         if size(state.ud_color,1)==1, set(state.handles.patchblobother,'facecolor',state.ud_color);
@@ -962,7 +974,9 @@ if ishandle(hmsg), delete(hmsg); end
                 elseif numel(state.Vrange)==2&&state.Vrange(1)<0, V(show)=max(-1,min(0, (V(show)-state.Vrange(2))/(state.Vrange(2)-state.Vrange(1)) ));
                 end
                 
-                alpha=1;
+                if ~isempty(state.pVOL1), alpha=1;
+                else alpha=state.facealphablob;
+                end
                 cdat2=max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*V),state.colormap)));
                 if ~isempty(state.brain_color), cdat0=cellfun(@(x)conn_bsxfun(@times,1-0*x,shiftdim(state.brain_color,-1)),data.curv,'uni',0); % cellfun(@(x)conn_bsxfun(@times,1-.05*x,shiftdim([.7,.65,.6],-1)),data.curv,'uni',0);
                 else cdat0=state.cdat0; 
@@ -1333,7 +1347,9 @@ if ishandle(hmsg), delete(hmsg); end
             case 'act_transparency'
                 scale=varargin{1};
                 state.facealphablob=max(eps,scale);
-                set([state.handles.patchblob1 state.handles.patchblob2 state.handles.patchblob3 state.handles.patchblob4],'facealpha',state.facealphablob);
+                if isempty([state.handles.patchblob1 state.handles.patchblob2 state.handles.patchblob3 state.handles.patchblob4]), conn_mesh_display_refresh([],[],'remap&draw'); 
+                else set([state.handles.patchblob1 state.handles.patchblob2 state.handles.patchblob3 state.handles.patchblob4],'facealpha',state.facealphablob);
+                end
             case 'act_pos'
                 set([state.handles.patchblob1 state.handles.patchblob2],'visible','on');
                 set([state.handles.patchblob3 state.handles.patchblob4],'visible','off');
@@ -1594,6 +1610,14 @@ if ishandle(hmsg), delete(hmsg); end
                     if numel(varargin)>1, ylabel(varargin{2},'parent',state.handles.colorbar(1)); end
                 end
                 redrawnowcolorbar=true;
+            case 'cbwthr'
+                if isempty(varargin{1})
+                    answ = true;
+                else
+                    answ = varargin{1};
+                end
+                state.thrwiteout = answ;
+                redrawnowcolorbar=true;
             case 'repaint'
                 if numel(varargin)>=1&&~isempty(varargin{1})
                     filenameSURF=varargin{1};
@@ -1727,7 +1751,17 @@ if ishandle(hmsg), delete(hmsg); end
                 end
             elseif state.dotwosided,
                 set(state.handles.colorbar(1),'ytick',[.5,64.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),state.Vrange,'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
-                set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap))));
+                cdata_temp = max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(-1,1,128)'),state.colormap)));
+                if state.thrwiteout
+                    cb_wo_range = floor(THR/state.Vrange(3)*size(cdata_temp,1));
+                    cb_wo_range = cb_wo_range - mod(cb_wo_range,2);
+                    if cb_wo_range ~= 0 % Update colorbar and labels only when wite-out region exists
+                        cdata_temp((size(cdata_temp,1)-cb_wo_range)/2+1:size(cdata_temp,1)/2+cb_wo_range/2,:,:) = 0.9;
+                        new_labels = [state.Vrange(1), -THR, state.Vrange(2), THR, state.Vrange(3)];
+                        set(state.handles.colorbar(1),'ytick',[.5,(size(cdata_temp,1)-cb_wo_range)/2+0.5,64.5,size(cdata_temp,1)/2+cb_wo_range/2+0.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),new_labels,'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
+                    end    
+                end
+                set(state.handles.colorbar(2),'cdata',cdata_temp);
             elseif any(state.Vrange>0)
                 set(state.handles.colorbar(1),'ytick',[.5,128.5],'yticklabel',arrayfun(@(x)num2str(x,'%.2f'),[min(state.Vrange) max(state.Vrange)],'uni',0),'ycolor',.6-.2*round(mean(state.background))*[1 1 1]);
                 set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round((size(state.colormap,1)+1)/2+emph*(size(state.colormap,1)-1)/2*linspace(0,1,128)'),state.colormap))));

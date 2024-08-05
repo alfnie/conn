@@ -1,7 +1,7 @@
 Visual
 Somatosensory
 Dorsal Attention
-Ventral Attention
+Salience
 Limbic
 Frontoparietal
 Default

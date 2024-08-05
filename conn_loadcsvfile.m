@@ -6,11 +6,12 @@ tfilename=conn_server('util_localfile',tfilename);
 
 tdata=regexp(fileread(tfilename),'[\n\r]+','split');
 tdata=tdata(cellfun('length',tdata)>0);
-tdata=regexp(tdata,',','split');
+tdata=regexp(tdata,'[,\t]','split');
 nfields=cellfun('length',tdata);
 Nfields=mode(nfields);
 if showlines&&~all(nfields==Nfields), fprintf('warning: not all lines contain the same number of fields (lines %s)\n',mat2str(find(nfields~=Nfields))); end
-tdata=tdata(nfields==Nfields);
+tdata=tdata(nfields<=Nfields);
+tdata=cellfun(@(x)[x cell(1,Nfields-numel(x))],tdata,'uni',0);
 tdata=cat(1,tdata{:});
 tdata=regexprep(tdata,'^\s+|\s+$','');
 ndata=cellfun('length',tdata)>0;

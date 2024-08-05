@@ -114,7 +114,7 @@ switch(option)
             set([dlg.title dlg.box dlg.goto],'visible','off');
         end
               
-    case 'showall',
+    case 'showall', % creates txt file with all messages shown in GUI
         dlg.fig=findobj(0,'tag','conn_msghelp');
         if isempty(dlg.fig),
             dlg.fig=figure('units','norm','position',[.2,.05,.6,.9],'menubar','none','numbertitle','off','name','Support questions search','color',[1 1 1],'tag','conn_msghelp');
@@ -138,24 +138,40 @@ switch(option)
         if DOFILE, fh=fopen('msghelp.txt','wt');
         else fh=1;
         end
+        selected=sort(selected);
+        [nill,idxsort1]=sort(dates_num(selected));
+        [nill,idxsort2]=sort(regexprep(titles_fmt(selected(idxsort1)),'^(RE\:)?\s+',''));
+        prevtitle=''; strout={}; foundRE=false; dateMax=0;
         for kmsg=1:numel(selected)
-            imsg=selected(kmsg);
+            imsg=selected(idxsort1(idxsort2(kmsg)));
             strdate=dates{imsg};
             numdate=dates_num(imsg);
             strid=ids{imsg};
             strtitle=titles_fmt{imsg};
+            newtitle=regexprep(strtitle,'^(RE\:)?\s+','');
+            if ~isequal(prevtitle, newtitle)
+                if ~isempty(strout)&&foundRE&&dateMax>737061 % keep only if there is a response and if the date is earlier than 1/1/2018
+                    for nstrout=1:numel(strout), fprintf(fh,'%s\n\n',strout{nstrout}); end % note: this is skipping last message
+                end
+                prevtitle=newtitle; strout={}; foundRE=false; dateMax=0;
+            elseif ~isempty(regexp(strtitle,'^RE\:')), foundRE=true; 
+            end
+            dateMax=max(dateMax, numdate);
             str=msgs{imsg};
+            str=regexprep(str,'Originally posted by .*','');
             %str=regexprep(str,'Originally posted by(.*?:)','\n\nOriginally posted by$1\n');
-            str=regexprep(str,'Originally posted by(.*?:)','');
+            %str=regexprep(str,'Originally posted by(.*?:)','');
             %str=regexp(str,'[\r\n]','split');
             str=regexprep(str,{'<p[^>]*>','</p>','<div[^>]*>','</div>','<font[^>]*>','</font>','<strong[^>]*>','<b>','</b>','<[^>]+>'},'');
-            str=regexprep(str,{'(CONN|conn|v\.|\s)(\d\d[a-z])(\W)'},{'<b>$1$2</b>$3'});
-            for n=1:numel(keys), if numel(keys{n})>3, str=regexprep(str,keys{n},'<b><FONT color=rgb(0,0,255)>$1</FONT></b>','ignorecase'); end; end
+            %%str=regexprep(str,{'(CONN|conn|v\.|\s)(\d\d[a-z])(\W)'},{'<b>$1$2</b>$3'});
+            %%for n=1:numel(keys), if numel(keys{n})>3, str=regexprep(str,keys{n},'<b><FONT color=rgb(0,0,255)>$1</FONT></b>','ignorecase'); end; end
             %str=regexprep(str,{'(.*)'},{'<HTML>$1</HTML>'});
             %idx=strmatch('<HTML>Originally posted by',str);
             %if ~isempty(idx), str(idx(1):end)=regexprep(str(idx(1):end),'<HTML>(.*)</HTML>','<HTML><FONT color=rgb(100,100,100)>$1</FONT></HTML>'); end
-            fprintf(fh,'<html><br/><br/>QUESTION TITLE: %s<br/></html>\n',strtitle);
-            fprintf(fh,'<html>%s</html>\n',str);
+            %%fprintf(fh,'<html><br/><br/>QUESTION TITLE: %s<br/></html>\n',strtitle);
+            %%fprintf(fh,'<html>%s</html>\n',str);
+            strout{end+1}=sprintf('POST #%d\nTITLE: %s',kmsg,strtitle);
+            strout{end+1}=sprintf('%s',str);
         end
         if DOFILE, fclose(fh); end
 
@@ -176,6 +192,7 @@ switch(option)
         for n=1:numel(keys)
             ok(n,:)=2*cellfun('length',regexpi(titles_fmt,keys{n}))+cellfun('length',regexpi(msgs,keys{n}));
         end
+%ok=ok==0; 
         selected=find(all(ok,1));
         if isempty(keys)||isempty(selected), thissortby=2; set(dlg.sort,'visible','off');
         else thissortby=sortby; set(dlg.sort,'visible','on'); 

@@ -8,6 +8,9 @@ function [data, vol] = conn_vol_read(filename, fileref, hold)
 %              vol.mat      : [4,4] affine voxel-to-world transformation matrix
 %              vol.dt(1)    : datatype (see "help spm_type")
 %
+% ... = conn_vol_read(filename, fileref) to read the data resampled to the same 
+% voxel resolution and bounding box as the reference file "fileref"
+%
 
 if ~nargin, help(mfilename); return; end
 isremotefile=conn_server('util_isremotefile',filename);

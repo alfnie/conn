@@ -531,12 +531,16 @@ if any(options==2),
                 nscans=CONN_x.Setup.nscans;
                 for nl1covariate=1:nl1covariates,
                     filename=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{1};
-                    switch(filename),
-                        case '[raw values]',
-                            data{nl1covariate}=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{3};
-                        otherwise,
-                            data{nl1covariate}=conn_loadtextfile(filename,false);
-                            %if isstruct(data{nl1covariate}), tempnames=fieldnames(data{nl1covariate}); data{nl1covariate}=data{nl1covariate}.(tempnames{1}); end
+                    if isempty(filename)
+                        data{nl1covariate}=zeros(nscans{nsub}{nses},0);
+                    else
+                        switch(filename),
+                            case '[raw values]',
+                                data{nl1covariate}=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{3};
+                            otherwise,
+                                data{nl1covariate}=conn_loadtextfile(filename,false);
+                                %if isstruct(data{nl1covariate}), tempnames=fieldnames(data{nl1covariate}); data{nl1covariate}=data{nl1covariate}.(tempnames{1}); end
+                        end
                     end
                     names{nl1covariate}=CONN_x.Setup.l1covariates.names{nl1covariate};
                     n=n+1;
@@ -1281,6 +1285,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             end
             if strcmp(lower(REDO),'yes'), missingdata(:)=true; end
             nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
+            dofAll=0;
             clear Y X iX X1 X2 C Xnames;
             clear Youtnorm0 cachenorm0 Voutputfiles;
             for nses=1:nsess, % loads all ROI COV COND data for this subject 
@@ -1354,7 +1359,18 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                     for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{edof_icov}=nan; end
                 end
                 CONN_x.Setup.l2covariates.values{nsub}{edof_icov}=dof2;
+                dofAll=dofAll+dof2;
             end
+            edof_name='QC_DOF';
+            edof_icov=find(strcmp(edof_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+            if isempty(edof_icov),
+                edof_icov=numel(CONN_x.Setup.l2covariates.names);
+                CONN_x.Setup.l2covariates.names{edof_icov}=edof_name;
+                CONN_x.Setup.l2covariates.descrip{edof_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising)';
+                CONN_x.Setup.l2covariates.names{edof_icov+1}=' ';
+                for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{edof_icov}=nan; end
+            end
+            CONN_x.Setup.l2covariates.values{nsub}{edof_icov}=dofAll;
             clear nsamples time0 dataroi conditionsweights;
             crop=0;
             for ncondition=validconditions(missingdata), % computes number of samples per condition
@@ -2446,8 +2462,9 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                         %if size(wx,2)>1, conn_disp('Warning: multivariate interaction term not supported. Summing interaction term across multiple components'); end
                         inter=wx;
                         X=[X(:,1) detrend([X(:,2:end) reshape(repmat(permute(inter,[1 3 2]),[1,size(X,2),1]),size(X,1),[]) reshape(conn_bsxfun(@times,X,permute(inter,[1 3 2])),size(X,1),[])],'constant')];
+                        % note: [X] , [1]*h1, [1]*h2, ..., [1]*hm, [X]*h1, [X]*h2, ..., [X]*hm, 
                     end
-                    nVars=size(X,2)/nX;
+                    nVars=size(X,2)/nX; % note: 1 + 2*(number of parametric modulation terms)
                     if isempty(maxrt), maxrt=max(conn_get_rt(nsub)); end
                     if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0 % parametric modulation
                         switch(CONN_x.Analyses(ianalysis).measure),
@@ -2462,12 +2479,13 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                                 DOF=max(0,Y.size.Nt*(min(1/(2*maxrt),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*maxrt))-rank(X)+1);
                         end
                         r=sqrt(diag(iX));
-                        if 0&&~ischar(CONN_x.Analyses(ianalysis).modulation) % gPPI absolute values (physiological+PPI)
+                        if ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>1 % gPPI absolute values (physiological+PPI)
                             iX=iX(1:nX,:)+iX((nVars-1)*nX+1:end,:);
+                            r=sqrt(max(0,diag(iX(:,1:nX)+iX(:,(nVars-1)*nX+1:end))));
                         else
                             iX=iX((nVars-1)*nX+1:end,:);
+                            r=r((nVars-1)*nX+1:end);
                         end
-                        r=r((nVars-1)*nX+1:end);
                     else % standard functional connectivity
                         switch(CONN_x.Analyses(ianalysis).measure),
                             case {1,3}, %bivariate
@@ -2840,8 +2858,13 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                                 end
                                 nVars=size(x,2)/nX;
                                 r=sqrt(diag(iX));
-                                iX=iX((nVars-1)*nX+1:end,:);
-                                r=r((nVars-1)*nX+1:end);
+                                if ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>1 % gPPI absolute values (physiological+PPI)
+                                    iX=iX(1:nX,:)+iX((nVars-1)*nX+1:end,:);
+                                    r=sqrt(max(0,diag(iX(:,1:nX)+iX(:,(nVars-1)*nX+1:end))));
+                                else
+                                    iX=iX((nVars-1)*nX+1:end,:);
+                                    r=r((nVars-1)*nX+1:end);
+                                end
                             else % standard functional connectivity
                                 x=cat(2,X(:,1),X(:,1+setdiff(1:nrois,nroi)));
                                 switch(CONN_x.Analyses(ianalysis).measure),
@@ -3416,7 +3439,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                                 PROJSPACE=[];
                                 if isfield(CONN_x.vvAnalyses(ianalysis),'options')&&ischar(CONN_x.vvAnalyses(ianalysis).options)&&~isempty(CONN_x.vvAnalyses(ianalysis).options) % pre-computes projector matrix removing effects-of-no-interest
                                     conn_disp('fprintf','      potential nuisance effects: %s\n',CONN_x.vvAnalyses(ianalysis).options);
-                                    KEEPMEAN=true; % set to true to center effects-of-no-interest (always maintain mean in data)
+                                    KEEPMEAN=false; % set to true to center effects-of-no-interest (always maintain mean in data)
                                     covnames=regexp(CONN_x.vvAnalyses(ianalysis).options,'\s*,\s*','split');
                                     [ok,idx]=ismember(covnames,CONN_x.Setup.l2covariates.names(1:end-1));
                                     assert(all(ok),'unable to find match of second-level covariate %s',sprintf('%s ',covnames{~ok}));

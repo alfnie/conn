@@ -6,11 +6,12 @@ if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
 if ~isfield(CONN_gui,'parse_html'), CONN_gui.parse_html={'<HTML><FONT color=rgb(100,100,100)>','</FONT></HTML>'}; end
 if ~isfield(CONN_gui,'rightclick'), CONN_gui.rightclick='right'; end
 if ~isfield(CONN_gui,'backgroundcolor'), CONN_gui.backgroundcolor=[0.1400 0.1400 0.1400]; end
+if ~isfield(CONN_gui,'fontname'), CONN_gui.fontname=get(0,'FixedWidthFontName'); end
 if ~isfield(CONN_h,'screen')||~isfield(CONN_h.screen,'hfig'), CONN_h.screen.hfig=gcf; end
 if isempty(cwd), cwd=conn_projectmanager('pwd'); end
 
 if nargin<1 || ischar(varargin{1}),
-    fntnames={'Avenir','Helvetica'}; fntname=fntnames{end}; try, ok=ismember(fntnames,listfonts); if nnz(ok), fntname=fntnames{find(ok,1)}; end; end
+    fntname=CONN_gui.fontname;
     fields={'position',[.5,.1,.4,.8],...
         'backgroundcolor',.9*[1,1,1],...
         'foregroundcolor',[0,0,0],...
@@ -33,14 +34,14 @@ if nargin<1 || ischar(varargin{1}),
     for n1=1:2:length(fields), if ~isfield(params,fields{n1}) | isempty(getfield(params,fields{n1})), params=setfield(params,fields{n1},fields{n1+1}); end; end;
     M=[params.position(1),params.position(3),0,0,0;params.position(2),0,params.position(4),0,0;0,0,0,params.position(3),0;0,0,0,0,params.position(4)]';
     if params.reduced, h.frame=conn_menu('frame2noborder',[1,0,0,1,1]*M);
-    else h.frame=conn_menu('frame2',[1,0,0,1,1]*M);
+    else h.frame=conn_menu('frame',[1,0,0,1,1]*M);
     end
     h.strbutton=params.button;
     h.reduced=params.reduced;
     %uicontrol('style','frame','units','norm','position',[1,0,0,1,1]*M,'backgroundcolor',params.backgroundcolor);
     %axes('units','norm','position',[1,0,0,1,1]*M,'color',params.backgroundcolor,'xcolor',min(1,1*params.backgroundcolor),'ycolor',min(1,1*params.backgroundcolor),'xtick',[],'ytick',[],'box','on');
     if h.reduced
-        h.filename=conn_menu('edit2',[1,.05,.90,.9,.10]*M,params.title,params.filename);
+        h.filename=conn_menu('edit',[1,.05,.90,.9,.10]*M,params.title,params.filename);
     else
         if ~isempty(params.title), uicontrol('style','text','units','norm','position',[1,.05,.8,.9,.175]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string',params.title,'fontname',params.fontname,'fontsize',9+CONN_gui.font_offset,'fontweight','bold','horizontalalignment','left','parent',CONN_h.screen.hfig); end
         h.filename=[];
@@ -53,11 +54,11 @@ if nargin<1 || ischar(varargin{1}),
     h.selectfile=uicontrol('style','edit','position',[1,.25,.85,.7,.05]*M,'string','','max',2,'visible','off','parent',CONN_h.screen.hfig);
     %h.find=uicontrol('style','togglebutton','units','norm','position',[1,.7,.925,.25,.05]*M,'value',0,'string','Find','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','tooltipstring','Recursively searchs file names matching the filter starting from the current folder');
     %h.files=uicontrol('style','listbox','units','norm','position',[1,.05,.2,.9,.55]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','max',params.max,'fontname','default','fontsize',8+CONN_gui.font_offset,'tooltipstring','Displays file matches. Double-click a folder for browsing to a different location. Double-click a file to import it to the toolbox');
-    if h.reduced, h.files=conn_menu('listbox2',[1,.05,.43,.9,.40]*M,'',''); 
-    else h.files=conn_menu('listbox2',[1,.05,.38,.9,.50]*M,'',''); %,'<HTML>Displays file matches<br/> - Double-click a folder for browsing to a different location<br/> - Double-click a file to import it to the toolbox</HTML>');
+    if h.reduced, h.files=conn_menu('listbox',[1,.05,.43,.9,.38]*M,'',''); 
+    else h.files=conn_menu('listbox',[1,.05,.38,.9,.48]*M,'',''); %,'<HTML>Displays file matches<br/> - Double-click a folder for browsing to a different location<br/> - Double-click a file to import it to the toolbox</HTML>');
     end
     set(h.files,'max',params.max);
-    h.selected=uicontrol('style','text','units','norm','position',[1,.04,.23,.9,.10]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','fontname',params.fontname,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
+    h.selected=uicontrol('style','text','units','norm','position',[1,.04,.20,.9,.10]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string','','fontname',params.fontname,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
     %h.select=uicontrol('style','pushbutton','units','norm','position',[1,.7,.14,.25,.05]*M,'string','Select','fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','tooltipstring','Enter selected file(s) or open selected folder','callback',{@conn_filesearchtool,'files',true});
     if ~isempty(params.inserver), h.inserver=params.inserver; else h.inserver=conn_projectmanager('inserver'); end
     if h.inserver, params.folder=conn_server('util_remotefile',params.folder); % switch to proper local/remote folder when initializing
@@ -69,25 +70,25 @@ if nargin<1 || ischar(varargin{1}),
         if ~isempty(params.buttonhelp), h.strbuttonhelp=params.buttonhelp; 
         else h.strbuttonhelp=[h.strbutton,'s selected file(s) or open selected folder'];
         end
-        h.select=conn_menu('pushbuttonblue2',[1,.05,.33,.45,.05]*M,'',h.strbutton,h.strbuttonhelp,{@conn_filesearchtool,'files',true});
+        h.select=conn_menu('pushbuttonblue',[1,.05,.31,.45,.07]*M,'',h.strbutton,h.strbuttonhelp,{@conn_filesearchtool,'files',true});
         set(h.select,'fontsize',10+CONN_gui.font_offset);
         if h.reduced
-            h.find=conn_menu('pushbutton2',[1,.50,.33,.45,.05]*M,'','Cancel','');
+            h.find=conn_menu('pushbutton',[1,.50,.31,.45,.07]*M,'','Cancel','');
             set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
             h.selectspm=[];
         else
-            h.find=conn_menu('pushbutton2',[1,.50,.33,.45,.05]*M,'','Find','Recursively searchs file names matching the files/filter options below starting from the current folder');
+            h.find=conn_menu('pushbutton',[1,.50,.31,.45,.07]*M,'','Find','Recursively searchs file names matching the files/filter options below starting from the current folder');
             set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
-            h.selectspm=conn_menu('pushbutton2',[1,.7,.94,.29,.05]*M,'','ALTselect','<HTML>Alternative GUIs for file selection (OS-specific, spm_select GUI, select data from this or other CONN projects, etc.)</HTML>');
+            h.selectspm=conn_menu('pushbutton',[1,.7,.92,.29,.07]*M,'','ALTselect','<HTML>Alternative GUIs for file selection (OS-specific, spm_select GUI, select data from this or other CONN projects, etc.)</HTML>');
         end
     else
         if ~isempty(params.buttonhelp), h.strbuttonhelp=params.buttonhelp; 
         else h.strbuttonhelp=[h.strbutton,' highlighted folder'];
         end
-        h.select=conn_menu('pushbuttonblue2',[1,.05,.33,.45,.05]*M,'',h.strbutton,h.strbuttonhelp,{@conn_filesearchtool,'selectfolder',true});
+        h.select=conn_menu('pushbuttonblue',[1,.05,.31,.45,.07]*M,'',h.strbutton,h.strbuttonhelp,{@conn_filesearchtool,'selectfolder',true});
         set(h.select,'fontsize',10+CONN_gui.font_offset);
         if h.reduced
-            h.find=conn_menu('pushbutton2',[1,.50,.33,.45,.05]*M,'','Cancel','');
+            h.find=conn_menu('pushbutton',[1,.50,.31,.45,.07]*M,'','Cancel','');
             set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
         else
             h.find=[];
@@ -95,20 +96,20 @@ if nargin<1 || ischar(varargin{1}),
         h.selectspm=[];
     end
     h.find_state=0;
-    h.titles_folder=conn_menu('text2',[1,.10,.175,.20,.04]*M,'','path : '); set(h.titles_folder,'horizontalalignment','left');
-    h.folder=conn_menu('edit2',[1,.3,.175,.6,.05]*M,'',params.folder,'<HTML>Current folder<br/> - Type a full path to change to a different folder</HTML>');
+    h.titles_folder=conn_menu('text',[1,.10,.170,.20,.04]*M,'','path : '); set(h.titles_folder,'horizontalalignment','left');
+    h.folder=conn_menu('edit',[1,.3,.170,.6,.04]*M,'',params.folder,'<HTML>Current folder<br/> - Type a full path to change to a different folder</HTML>');
     str=conn_filesearch_breakfolder(params.folder);
-    if h.reduced, h.folderpopup=conn_menu('popup2',[1,.05,.83,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
-    else h.folderpopup=conn_menu('popup2',[1,.05,.88,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
+    if h.reduced, h.folderpopup=conn_menu('popup',[1,.05,.83,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
+    else h.folderpopup=conn_menu('popup',[1,.05,.88,.9,.04]*M,'',regexprep(str,'(.+)[\/\\]$','$1'),'<HTML>Current folder<br/> - Select to change to a different location in current directory tree</HTML>');
     end
     set(h.folderpopup,'value',numel(str));
-    h.titles_filter=conn_menu('text2',[1,.10,.125,.20,.04]*M,'','files : '); set(h.titles_filter,'horizontalalignment','left');
-    h.filter=conn_menu('edit2',[1,.30,.125,.6,.05]*M,'',params.filter,'<HTML>File name filter (standard format)<br/> - Show only files with names matching any of these patterns<br/> - Use ";" to define multiple filters</HTML>');
-    h.titles_regexp=conn_menu('text2',[1,.10,.075,.20,.04]*M,'','filter : '); set(h.titles_regexp,'horizontalalignment','left');
-    h.regexp=conn_menu('edit2',[1,.30,.075,.6,.05]*M,'',params.regexp,'<HTML>Additional full-path filename filter (regexp format)<br/> - Show only files with full-path filename matching this pattern<br/> - See <i>help regexp</i> for additional information');
+    h.titles_filter=conn_menu('text',[1,.10,.120,.20,.04]*M,'','files : '); set(h.titles_filter,'horizontalalignment','left');
+    h.filter=conn_menu('edit',[1,.30,.120,.6,.04]*M,'',params.filter,'<HTML>File name filter (standard format)<br/> - Show only files with names matching any of these patterns<br/> - Use ";" to define multiple filters</HTML>');
+    h.titles_regexp=conn_menu('text',[1,.10,.070,.20,.04]*M,'','filter : '); set(h.titles_regexp,'horizontalalignment','left');
+    h.regexp=conn_menu('edit',[1,.30,.070,.6,.04]*M,'',params.regexp,'<HTML>Additional full-path filename filter (regexp format)<br/> - Show only files with full-path filename matching this pattern<br/> - See <i>help regexp</i> for additional information');
     if ~isempty(params.localcopy)&&~h.reduced,  
-        h.titles_localcopy=conn_menu('text2',[1,.10,.025,.20,.04]*M,'','options : '); set(h.titles_localcopy,'horizontalalignment','left');
-        h.localcopy=conn_menu('popup2',[1,.30,.025,.65,.04]*M,'',{'import selected files','import copy of selected files'},['<HTML>Controls behavior of ''',h.strbutton,''' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>import copy of selected files</i> : selected files will be first copied to your project conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified or processed)</HTML>']); set(h.localcopy,'value',params.localcopy);
+        h.titles_localcopy=conn_menu('text',[1,.10,.020,.20,.04]*M,'','options : '); set(h.titles_localcopy,'horizontalalignment','left');
+        h.localcopy=conn_menu('popup',[1,.30,.020,.65,.04]*M,'',{'import selected files','import copy of selected files'},['<HTML>Controls behavior of ''',h.strbutton,''' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>import copy of selected files</i> : selected files will be first copied to your project conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified or processed)</HTML>']); set(h.localcopy,'value',params.localcopy);
     else 
         h.titles_localcopy=[];
         h.localcopy=[];

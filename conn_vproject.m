@@ -276,7 +276,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     str={};
                     %fh=fopen(fullfile(filepath,[filename_name,'.ROIs.txt']),'wt');
                     for nbtemp=1:numel(DATA.clusters),
-                        str{end+1}=sprintf('%+d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)');
+                        str{end+1}=sprintf('%+03d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)');
                         str{end+1}=sprintf('\n');
                     end
                     %fclose(fh);
@@ -370,6 +370,16 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     conn_displaydesign(SPM.xX.X,reshape({SPM.xY.VY.fname},size(SPM.xX.X,1),[]),SPM.xCon(1).c',1,SPM.xX.name,false);
                 end
                 if ishandle(hmsg), delete(hmsg); end
+                return;
+                
+            case 'polar_view'
+                if ~isempty(OPTION2), options={OPTION2,'-nogui'};
+                else options={};
+                end
+                filename=fullfile(fileparts(spmfile),'results.nii');
+                conn_vproject(GCF,[],'export_mask',filename);
+                filename=fullfile(fileparts(spmfile),'results.ROIs.nii');
+                conn_polar_display(filename,[],[],[],'Cluster (x,y,z)');
                 return;
                 
             case {'surface_view','surface_print','surface_gui_print','default_print'}
@@ -1247,7 +1257,7 @@ if init>0, % initialize
                     uicontrol('style','pushbutton','units','norm','position',dp2(1,6),'string','Import values','tag','highlight','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'cluster_import'},'tooltipstring','Imports average connectivity measure values within each significant cluster and for each subject into CONN toolbox as second-level covariates','parent',GCF),...
                     uicontrol('style','pushbutton','units','norm','position',dp2(1,2),'string','Bookmark','tag','highlight','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'bookmark'},'tooltipstring','Bookmark this second-level results explorer view','parent',GCF),...
                     uicontrol('style','pushbutton','units','norm','position',dp1(1,6),'string','Volume display','tag','highlight_image','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'volume_view'},'tooltipstring','<HTML><b>Volume display</b><br/>Displays selected clusters on 3d brain (show cluster surfaces)</HTML>','parent',GCF),...
-                    uicontrol('style','pushbutton','units','norm','position',dp1(1,2),'string','SPM display','tag','highlight_image','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'spm_view'},'tooltipstring','<HTML><b>SPM display</b><br/>Displays results in SPM</HTML>','parent',GCF),...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(1,0),'string','SPM display','tag','highlight_image','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'spm_view'},'tooltipstring','<HTML><b>SPM display</b><br/>Displays results in SPM</HTML>','parent',GCF),...
                     uicontrol('style','pushbutton','units','norm','position',dp1(1,4),'string','Glass display','tag','highlight_image','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'glass_view'},'tooltipstring','<HTML><b>Glass display</b><br/>Displays selected clusters on 3d glass-brain (show maximum-intensity-projection stats)</HTML>','parent',GCF),...
                     uicontrol('style','pushbutton','units','norm','position',dp1(1,5),'string','Slice display','tag','highlight_image','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'slice_view'},'tooltipstring','<HTML><b>Slice display</b><br/>Displays selected clusters on individual slices (show voxel-level stats at each slice)</HTML>','parent',GCF),...
                     uicontrol('style','pushbutton','units','norm','position',dp2(1,4),'string','non-parametric stats','tag','highlight','foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'computeparametric'},'tooltipstring','<HTML>Compute additional permutation/randomization simulations<br/>(only applicable when ''non-parametric stats'' is selected in the cluster-level threshold options above)</HTML>','parent',GCF),...
@@ -1267,15 +1277,16 @@ if init>0, % initialize
                     uicontrol('style','pushbutton','units','norm','position',dp1(1,3),'string','Connectivity display','tag','highlight_image','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'network_view'},'tooltipstring','<HTML><b>Network view</b><br/>Displays the connectivity pattern between the selected cluster and the rest of the brain<br/>(average seed-based connectivity map, with all voxels within the selected cluster as seeds)</HTML>','parent',GCF),...
                     uicontrol('style','pushbutton','units','norm','position',dp1(2,3),'string','Connectivity print','tag','highlight_image','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'network_print'},'tooltipstring','<HTML><b>Network print</b><br/>Prints the connectivity pattern between the selected cluster and the rest of the brain<br/>(average seed-based connectivity map, with all voxels within the selected cluster as seeds)</HTML>','parent',GCF), ...
                     uicontrol('style','checkbox','units','norm','position',[.88,.870,.12,.03],'string','show details','tag','highlight','value',0,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','right','foregroundcolor',foregroundcolor,'backgroundcolor',.9*[1,1,1],'callback',{@conn_vproject,'advancedthr'},'tooltipstring','Displays advanced thresholding options','parent',GCF), ...
-                    uicontrol('style','pushbutton','units','norm','position',[.81,.965,.02,.03],'fontsize',7+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'string','?','tag','highlight','tooltipstring','<HTML>Documentation about available methods of statistical inference</HTML>','interruptible','off','callback',@(varargin)conn('gui_help','url','http://www.conn-toolbox.org/fmri-methods/cluster-level-inferences'),'parent',GCF) ]; 
+                    uicontrol('style','pushbutton','units','norm','position',[.81,.965,.02,.03],'fontsize',7+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',backgroundcolor2,'string','?','tag','highlight','tooltipstring','<HTML>Documentation about available methods of statistical inference</HTML>','interruptible','off','callback',@(varargin)conn('gui_help','url','http://www.conn-toolbox.org/fmri-methods/cluster-level-inferences'),'parent',GCF) , ...
+                    uicontrol('style','pushbutton','units','norm','position',dp1(1,2),'string','Polar display','tag','highlight_image','fontname','arial','fontweight','bold','fontsize',8+CONN_gui.font_offset,'callback',{@conn_vproject,'polar_view'},'tooltipstring','<HTML><b>Polar display</b><br/>Displays overlap between each significant cluster and a set of canonical brain networks (Yeo&Buckner 2011 7-network parcellation)</HTML>','parent',GCF) ]; 
                     %uicontrol('style','text','units','norm','position',[.4,.30,.1,.025],'string','voxel p-cor','backgroundcolor','k','foregroundcolor','y','horizontalalignment','left'),...
                     %uicontrol('style','listbox','units','norm','position',[.2,.05,.1,.25],'string','','backgroundcolor','k','foregroundcolor','w','horizontalalignment','left'),...
                     %uicontrol('style','listbox','units','norm','position',[.3,.05,.1,.25],'string','','backgroundcolor','k','foregroundcolor','w','horizontalalignment','left'),...
                     %uicontrol('style','listbox','units','norm','position',[.4,.05,.1,.25],'string','','backgroundcolor','k','foregroundcolor','w','horizontalalignment','left')];
                 uiwrap(DATA.handles([8,12,17,18,19,24,31,41]));
                 if DATA.mat{6}~='T', set(DATA.handles(11),'value',3,'enable','off'); end; 
-                bp=[9 20 22 23 21 16 25 30 38 34 35 37 36 39]; 
-                bp_isprint=[0 0 0 0 0 0 0 0 0 1 1 1 1 1]; 
+                bp=[9 20 22 23 21 16 25 30 38 34 35 37 36 39 42]; 
+                bp_isprint=[0 0 0 0 0 0 0 0 0 1 1 1 1 1 0]; 
                 temp=imread(fullfile(fileparts(which(mfilename)),sprintf('conn_vproject_icon%02d.jpg',0))); temp=double(temp); printmask=round(temp/255); 
                 for n1=1:numel(bp),
                     set(DATA.handles(bp(n1)),'units','pixel'); pt=get(DATA.handles(bp(n1)),'position'); set(DATA.handles(bp(n1)),'units','norm'); 
@@ -2042,7 +2053,7 @@ if ~isempty(idxvoxels),
                     end
                 elseif mat{6}=='T'|mat{6}=='F', % two-sided T-stat or F-stat
                     ok=false;
-                    if isdeployed||str2num(regexprep(spm('ver'),'[^\d]',''))>8,
+                    if isdeployed||min([12, str2num(regexprep(spm('ver'),'[^\d]',''))])>8,
                         try
                             if isempty(mat{5}), [cP(n1),cp(n1)]=spm_P(1,k(n1)*mat{2}(end)/mat{4},u,mat{3},'F',mat{2},1,mat{4});
                             else, [cP(n1),cp(n1)]=spm_P(1,k(n1)*mat{5},u,mat{3},'F',mat{2},1,mat{4});

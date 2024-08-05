@@ -83,6 +83,8 @@ function varargout=conn_remotely(option,varargin)
 %                                if that fails it will ask the host computer to start a new CONN server and then it 
 %                                will connect to it)
 %
+%    conn remotely startwithgui: Same as 'conn remotely' but with a graphical user interface
+%
 %    conn remotely restart     : re-starts CONN GUI after a dropped connection (this will not start a new CONN server
 %                                but it will only attempt to create a new connection to the CONN server used in our
 %                                last connection to this host)
@@ -272,7 +274,7 @@ global CONN_gui;
 if ~nargin||isempty(option), option='start'; end
 
 switch(option)
-    case {'start','restart','end','softstart','softrestart','softend'}         % GUI interaction
+    case {'start','startwithgui','restart','end','softstart','softrestart','softend'}         % GUI interaction
         if isequal(varargin,{'server'}), conn_remotely('startserver',varargin{2:end}); return; end
         if isfield(CONN_gui,'isremote'), isremote=CONN_gui.isremote;
         else isremote=false; 
@@ -281,6 +283,7 @@ switch(option)
         option=regexprep(option,'^soft','');
         dorestart=strcmpi(option,'restart');
         doend=strcmpi(option,'end');
+        dogui=~isempty(regexp(option,'withgui$'));
         keepgui=conn('findgui');
         connversion={'CONN functional connectivity toolbox',' (',conn('ver'),') '};
         hfig=findobj('tag',connversion{1});
@@ -316,6 +319,10 @@ switch(option)
             else
                 if dorestart, conn_server_ssh restart recent;
                 elseif isequal(varargin,{'local'}), conn_server_ssh start local;
+                elseif dogui, 
+                    try, conn_server_ssh startwithgui recent; 
+                    catch, return;
+                    end
                 else conn_server_ssh start recent; % note: change to "conn_server_ssh('start',varargin{:})" to allow user-defined .json files?
                 end
                 CONN_gui.isremote=true;
@@ -362,12 +369,12 @@ switch(option)
         handles.exit=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.75,.01,.2,.10],'string','Exit','callback','close(gcbf)');
         
         strclient={{'With the currently-selected options, you may access CONN projects stored in remote computers directly over (unencrypted) TCP/IP (note: without SSH','security and encryption) by clicking the button labeled ''Manually connect to CONN server now''',' ','note: for this option to work, the remote computer needs to have the associated option ''Connect to this computer using SSH'' also unchecked, and',' a CONN server needs to be manually started there before you can connect to that server (see help conn_remotely for additional details)'} ...
-                    {'With the currently-selected options, you may directly access CONN projects stored in remote computers','simply by selecting here in the main CONN GUI the option ''Project. Connect to remote projects''',' ','note: for this option to work, the remote computer needs to be accessible using SSH and have in CONN the associated option','''Connect to this computer using SSH'' checked (see help conn_remotely for additional details)'}};
+                    {'With the currently-selected options, you may directly access CONN projects stored in remote computers','simply by selecting in the main CONN GUI the menu ''Project -> Connect to remote projects''',' ','note: for this option to work, the remote computer needs to be accessible using SSH and have in CONN the associated option','''Connect to this computer using SSH'' checked (see help conn_remotely for additional details)'}};
         uicontrol(handles.hfig,'style','text','units','norm','position',[.05 .90 .9 .075],'string','When this computer is client: (e.g. working from this computer on a CONN project stored remotely)','fontweight','normal','backgroundcolor','w','horizontalalignment','left');
         handles.client=uicontrol(handles.hfig,'style','checkbox','units','norm','position',[.15,.80,.75,.075],'string','Connect from this computer using SSH (secure/encrypted communications, servers are automatically started)','value',tjson1.use_ssh,'backgroundcolor','w','horizontalalignment','left','tooltipstring','<HTML>When this option is checked this computer uses secure/encrypted communications and servers are automatically started<br/>When this option is unchecked this computer uses unsecure/unencrypted communications and servers are manually started</HTML>');
         uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.10,.80,.025,.075],'string','?','backgroundcolor','w','callback',@(varargin)conn_msgbox(strclient{1+get(handles.client,'value')},'',-1),'tooltipstring','<HTML>help / how-to connect to remote servers</HTML>','userdata',handles.client);
         %handles.cmd_ssh_str=uicontrol(handles.hfig,'style','text','units','norm','position',[.20 .70 .45 .075],'string','Local command for logging into remote machine :','backgroundcolor','w','horizontalalignment','left');
-        handles.cmd_ssh_str=uicontrol(handles.hfig,'style','popupmenu','units','norm','position',[.20,.70,.45,.075],'string',{'SSH using standard authentication','SSH using private key authentication','manually defined connection method'},'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>Method used to connect with server (SSH or SSH-compatible client application)<br/></HTML>','userdata',false);
+        handles.cmd_ssh_str=uicontrol(handles.hfig,'style','popupmenu','units','norm','position',[.20,.70,.45,.075],'string',{'SSH using password authentication','SSH using public key authentication','manually defined connection method'},'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>Method used to connect with server (SSH or SSH-compatible client application)<br/></HTML>','userdata',false);
         handles.cmd_ssh=uicontrol(handles.hfig,'style','edit','units','norm','position',[.65,.70,.25,.075],'string',tjson1.cmd_ssh,'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>System command used to call SSH-client application (remote login)<br/>e.g. /usr/bin/ssh -i identity_file <br/> - note: this application command syntax must be compatible with OpenSSH SSH clients, including options for remote execution, control sockets for connection sharing, and TCP forwarding</HTML>');
         handles.cmd_scp_str=uicontrol(handles.hfig,'style','text','units','norm','position',[.20 .60 .45 .075],'string','Local command for remote file transfer :','backgroundcolor','w','horizontalalignment','left');
         handles.cmd_scp=uicontrol(handles.hfig,'style','edit','units','norm','position',[.65,.60,.25,.075],'string',tjson1.cmd_scp,'backgroundcolor','w','fontname','monospaced','horizontalalignment','left','tooltipstring','<HTML>System command used to call SCP application (secure copy)<br/>e.g. /usr/bin/scp -i identity_file <br/> - note: this application command syntax must be compatible with OpenSSH SCP</HTML>');
@@ -416,6 +423,7 @@ switch(option)
                         case 1,
                             tjson1.cmd_ssh='ssh';
                             tjson1.cmd_scp='scp';
+                            tjson1.use_key=false;
                         case 2,
                             tfilename1=char(regexp(tjson1.cmd_ssh,'ssh -i\s*(.*)','once','tokens'));
                             tfilename1=regexprep(tfilename1,'[''"]','');
@@ -426,6 +434,8 @@ switch(option)
                                 if ~ischar(tfilename1), continue; end
                                 tfilename1=conn_server('util_localfile_filesep',[],fullfile(tfilepath1,tfilename1));
                             end
+                            tjson1.use_key=true;
+                            tjson1.file_key=tfilename1;
                             if ispc, 
                                 tjson1.cmd_ssh=sprintf('ssh -i "%s"',tfilename1);
                                 tjson1.cmd_scp=sprintf('scp -i "%s"',tfilename1);
@@ -436,6 +446,7 @@ switch(option)
                         case 3,
                             tjson1.cmd_ssh=get(handles.cmd_ssh,'string');
                             tjson1.cmd_scp=get(handles.cmd_scp,'string');
+                            tjson1.use_key=false;
                     end
                 end
                 if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, conn_server('run','conn_server_ssh','options',tjson1);

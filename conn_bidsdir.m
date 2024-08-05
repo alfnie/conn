@@ -62,11 +62,13 @@ else
     filenames=conn_server('util_localfile',filenames);
     if iscell(filenames), files_all=conn_sortfilenames(filenames);
     else
-        dirs_all=conn_dir(fullfile(filenames,'sub-*'),'-cell','-R','-sort','-dir');
         files_all={};
-        for n=1:numel(dirs_all)
-            tfiles_all=conn_dir(fullfile(dirs_all{n},'sub-*'),'-cell','-inf','-sort');
-            if ~isempty(tfiles_all), files_all=[files_all, reshape(tfiles_all,1,[])]; end
+        for ndir=1:size(filenames,1)
+            dirs_all=conn_dir(fullfile(deblank(filenames(ndir,:)),'sub-*'),'-cell','-R','-sort','-dir');
+            for n=1:numel(dirs_all)
+                tfiles_all=conn_dir(fullfile(dirs_all{n},'sub-*'),'-cell','-inf','-sort');
+                if ~isempty(tfiles_all), files_all=[files_all, reshape(tfiles_all,1,[])]; end
+            end
         end
         if isempty(files_all),fprintf(sprintf('warning: no sub-* files found in %s',filenames));dataset=[];return;end
     end

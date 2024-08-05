@@ -53,7 +53,8 @@ if ~isfsaverage
         out=conn_file(files2{find(existfiles2,1)});
         vol=spm_vol(out{1});
         a.vox2ras1=vol.mat;
-        a.volsize=vol.dim([2 1 3]);
+        a.volsize=vol.dim([1 2 3]);
+        %a.volsize=vol.dim([2 1 3]);
         a.volres = sqrt(sum(vol.mat(:,1:3).^2,1));
         a.vox2ras0=conn_freesurfer_vox2ras_1to0(vol.mat);
         a.tkrvox2ras=conn_freesurfer_vox2ras_tkreg(a.volsize,a.volres);
@@ -99,6 +100,13 @@ end
 a2=struct('mat',mat,'dim',dim,'fname',fileout,'pinfo',[1;0;0],'n',[1,1],'dt',dt);
 spm_write_vol(a2,M);
 
-%exts=[exts {'.txt','.csv','.xls','.info','.icon.jpg','.json'}];
+exts=[{'.txt','.csv','.xls','.info','.icon.jpg','.json'}];
+for nexts=1:numel(exts) % copy/link original and additional files if needed
+    tfilein=conn_prepend('',filein,exts{nexts});
+    if conn_existfile(tfilein)
+        tfileout=conn_prepend('',fileout,exts{nexts});
+        try, conn_fileutils('copyfile',tfilein,tfileout); end
+    end
+end
 
 fprintf('created file %s\n',fileout);

@@ -92,7 +92,8 @@ else
             CONN_x.Setup.l2covariates.names{icov}=name{n};
             CONN_x.Setup.l2covariates.names{icov+1}=' ';
             CONN_x.Setup.l2covariates.descrip{icov}=descrip{n};
-            validsubjects=1:CONN_x.Setup.nsubjects;
+            for n1=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{n1}{icov}=nan; end
+            %validsubjects=1:CONN_x.Setup.nsubjects;
         elseif ~isempty(descrip{n})
             CONN_x.Setup.l2covariates.descrip{icov}=descrip{n};
         end

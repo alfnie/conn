@@ -765,8 +765,8 @@ switch(lower(STEPS))
         if ~iscell(roi_id), roi_id={roi_id}; end
         for n=1:numel(roi_id)
             roi_file{n}=fullfile(OUTPUT_FOLDER,project_id,'config','FL','IMPORT',conn_prepend('roi_',roi_id{n},'.cfg')); % cfg file
-            if conn_existfile(roi_file{n}), troi_id=roi_id{n};
-            elseif conn_existfile(roi_id{n}), roi_file{n}=roi_id{n}; % roi file
+            if conn_existfile(roi_file{n}), troi_id=roi_id{n};       % indexing [PROJECT_ID]/config/FL/IMPORT/roi_[ROI_ID].cfg file
+            elseif conn_existfile(roi_id{n}), roi_file{n}=roi_id{n}; % explicitly entering roi file
             else error('unable to find configuration file %s',roi_file{n}); 
             end
         end

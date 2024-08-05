@@ -365,7 +365,47 @@ ________________________________________________________________________________
      Added new 'group-MVPA.Summary' tab displaying entire voxel-to-voxel connectome (like AFNI's InstaCorr but combining the data across all subjects in your dataset), as well as visual descriptions of each individual fc-MVPA eigenpattern characterizing the observed variability in connectivity maps across subjects and conditions.  
      Updated manual
 
-
+22.u2407 Cumulative patch, bug fixes and improvements
+     Added 'New (download)' option to Projects menu, to create a new CONN project by downloading and automatically preprocessing and denoising publicly available datasets from FCP/INDI repository
+     Added 'polar display' options to results explorer GUI (showing the "location"/overlap of each cluster with respect to the 7 canonical networks in Yeo&Buckner2011)
+     Reorganized 'other imaging data' tab in GUI to make its use simpler / more intuitive
+     (*) Added options to gPPI first-level analyses to output a measure of "connectivity-change" (regressor coefficient associated with physiological interaction term in gPPI model) or "total connectivity" (sum of regressor coefficients associated with physiological and physiological-interaction terms in the same gPPI model)
+         note: already existing analyses are unchanged, and if/when they are re-run they will still use the same settings as they had originally ('connectivity-change' option)
+               new gPPI analyses will be defined by default with the 'total-connectivity' option. To create a new analysis using the same options as in the previous versions simply change the option to read 'connectivity-change' instead
+     Added QC_OutlierSubject and QC_ValidSubjects quality control variables created during QC_Variables plot (marking subjects with extreme outliers in any of the selected QC variables)
+     Added ExcludeOutlierSubjects second-level covariate (automatically created from QC_OutlierSubjects) and which can be direclty added to any 2nd-level analysis as a standard control variable when wishing to exclude all outlier subjects from this analysis
+     Added 'functional_sliceintensity' preprocessing step correcting slice intensity differences (e.g. for sparse acquisition sequences, where scanner transients cause differences in intensity across slices / banding)
+     Fix for R2023b on Apple silicon Macs (note: currently this requires SPM12 github release available in https://github.com/spm/spm/archive/refs/heads/main.zip)
+     Added pointers (saved as secondary datasets) to original structural data in preprocessing pipeline
+     Added option in invPPI to specify hanning window length
+     Added QC plot creation to conn_repositories (preprocessing pipeline applied to all FCP/INDI downloads)
+     Added conn_polar_display for displaying the breakdown/overlap of a mask/cluster into different networks (networks defined from Yeo&Buckner 2011 7-network parcellation)
+     Added Buckner2011.nii parcellation to util/otherrois (containing Buckner cerebellar parcellation into Yeo 2011 7-network areas)
+     Added option to select multiple BIDS/fMRIPrep folders when importing data into a CONN project
+     Added 'structural_label_as' and 'structural_load_from' steps during preprocessing to save/load state of structural images to secondary datasets
+     Changed the default MNI pipeline to generate new additional secondary datasets labeled 'original structural images' and 'mnispace structural images' containing the corresponding subject-space and mni-space structural images
+     Added GUI options in the Setup.functional and Setup.structural tabs to easily move different states of structural and functional data from/to secondary datasets
+     Added automatic import of participants demographic data when downloading and processing FCP/INDI datasets
+     Added conn_repositories to access and download data from FCP/INDI repository
+     (*) Changed functional centering in default MNI pipeline to be applied before realignment (this helps in datasets that have excessive motion between runs/sessions)
+         note: if you prefer to run the previous-version default MNI pipeline (with centering applied after realignment), in the preprocessing window click on 'load' and select the pipeline 'defaultMNI_legacy2023.mat' (available in the conn/utils/preprocessingpipelines folder)
+     Added 'realigned data' label in default preprocessing pipelines (to help with visual quality control of realign and SDC steps)
+     Added 'public key' authentication option and GUI in 'connect to remote projects' menu
+     Initialize conn_repositories with FC1000 datasets
+     Added vdm_fmap_magnitudebeforephase field  (default=true) to preprocessing functional_vdm_create step
+     Added XnamesExtended field to .mat file output files from functional_roiextract preprocessing step
+     Added subjectspace preproc pipeline to EL module
+     Added 'SSH using private key authentication' method to conn_remotely (e.g. to connect to AWS nodes)
+     Allows batch.Setup.coregsource_functional field to be defined from 'ref' secondary dataset
+     Added CAT12 neuromorphometrics rois to utils/otherrois
+     Added shen_268 atlas file in utils/otherrois
+     Changed new projects now to start with optional FMAP/VDM/TPM secondary datasets
+     Added 'conn_server_ssh checkcontrolmaster' option to remote connections in order to recreate a missing or timed-out SSH controlmaster socket when necessary
+     Added option to include control covariates (excluding some portion of the between-subjects variance) in fc-MVPA
+     Added gui_colormap option to choose colormap in main GUI
+     Smoother transition between slices and additional options in fc-MVPA summary GUI
+     Added multivariate custom-contrast option to fc-MVPA summary gui
+     Added conn_batchexample_qcplot (example batch creating QC-FC correlation plots separately across sites in a study)
 
 
 
