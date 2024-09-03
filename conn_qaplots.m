@@ -1,6 +1,6 @@
-function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois0,validsets0,nl2covariates0,nl1contrasts,validconditions)
+function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois0,validsets0,nl2covariates0,nl1contrasts,validconditions,nl2controlcovariates0)
 % CONN_QAPLOTS creates Quality Assurance plots
-% conn_qaplots(outputfolder,procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions)
+% conn_qaplots(outputfolder,procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions,nl2controlcovariates)
 %   outputfolder: target folder where to save plots
 %   procedures: plots to create (numbers or labels)
 %     1:  QA_NORM structural    : structural data + outline of MNI TPM template
@@ -28,6 +28,7 @@ function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois0,val
 %   nl2covariates: (only for procedures==13,15,31) l2 covariate names (defaults to all QC_*)
 %   nl1contrasts: (only for procedures==23) l1 contrast name (defaults to first contrast)
 %   validconditions: (only for plots==13,15,11,14) FC & QC-FC plots aggregate across sesssions where the selected conditions are present (defaults to all sessions)  
+%   nl2controlcovariates: (only for procedures==13) control covariates in FC-QC correlations [partial correlations controlling for these effects] (defaults to none)
 
 
 global CONN_gui CONN_x;
@@ -39,7 +40,8 @@ if nargin<4||isempty(validrois0), validrois0=[]; end %[2,4:numel(CONN_x.Setup.ro
 if nargin<5||isempty(validsets0), validsets0=[]; end %0:numel(CONN_x.Setup.secondarydataset); end
 if nargin<6||isempty(nl2covariates0), nl2covariates0=[]; end
 if nargin<7||isempty(nl1contrasts), nl1contrasts=[]; end
-if nargin<7||isempty(validconditions), validconditions=[]; end
+if nargin<8||isempty(validconditions), validconditions=[]; end
+if nargin<9||isempty(nl2controlcovariates0), nl2controlcovariates0=[]; end
 if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
 
 debugskip=false;
@@ -569,7 +571,7 @@ end
 Iprocedure=[11,12,13,14,15];
 if any(ismember(procedures,Iprocedure)) % QA_DENOISE
     try
-        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0;
+        validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0; nl2controlcovariates=nl2controlcovariates0;
         nprocedures=sum(ismember(procedures,1:min(Iprocedure)-1));
         nproceduresin=sum(ismember(procedures,Iprocedure));
         nsubs=validsubjects;
@@ -762,6 +764,8 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
         [x,xnames,xdescr]=conn_module('get','l2covariates');
         x=x(nsubs,:);
         if ischar(nl2covariates)||iscell(nl2covariates), nl2covariates=find(ismember(xnames,cellstr(nl2covariates))); end
+        if ~isempty(nl2controlcovariates)&& (ischar(nl2controlcovariates)||iscell(nl2controlcovariates)), nl2controlcovariates=find(ismember(xnames,cellstr(nl2controlcovariates))); end
+%nl2controlcovariates=find(cellfun('length',regexp(xnames,'^SITE_'))>0); % uncomment this line to ALWAYS include SITE_* 2nd-level covariates as control variables in all QC-FC analyses
         Xnames=xnames(nl2covariates);
         FC_X0=FC_X0./max(eps,FC_N); FC_X0(FC_N==0)=nan;
         FC_X1=FC_X1./max(eps,FC_N); FC_X1(FC_N==0)=nan;
@@ -771,6 +775,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
         temp=reshape(FC_X1,[],size(FC_X1,3))';[nill,idx]=sort(rand(size(temp)),1); temp=temp(idx+repmat(size(temp,1)*(0:size(temp,2)-1),size(temp,1),1)); measures{4}=reshape(temp',size(FC_X1));
         rand('seed',rscurrent);
         R={};D={};P={};
+        if ~isempty(nl2controlcovariates), xcontrol=[ones(size(x,1),1) x(:,nl2controlcovariates)]; ixcontrol=pinv(xcontrol'*xcontrol); end
         for nmeasure=1:numel(measures)
             y=measures{nmeasure};
             y=reshape(y,[],size(y,3));
@@ -781,12 +786,14 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
             X(~validX)=0;
             X=X-repmat(sum(X,1)./max(eps,sum(validX,1)),size(X,1),1);
             X(~validX)=0;
+            if ~isempty(nl2controlcovariates), X=X-xcontrol*(ixcontrol*xcontrol'*X); end
             X=X./repmat(sqrt(max(eps,sum(abs(X).^2,1))),size(X,1),1);
             Y=y';
             Y=Y-repmat(mean(Y,1),size(Y,1),1);
+            if ~isempty(nl2controlcovariates), Y=Y-xcontrol*(ixcontrol*xcontrol'*Y); end
             Y=Y./repmat(sqrt(max(eps,sum(abs(Y).^2,1))),size(Y,1),1);
             R{nmeasure}=X'*Y;
-            P{nmeasure}=nan(size(R{nmeasure})); try, P{nmeasure}=2*spm_Tcdf(-abs(R{nmeasure}.*sqrt((size(Y,1)-2)./max(eps,1-R{nmeasure}.^2))),size(Y,1)-2); end
+            P{nmeasure}=nan(size(R{nmeasure})); try, P{nmeasure}=2*spm_Tcdf(-abs(R{nmeasure}.*sqrt((size(Y,1)-numel(nl2controlcovariates)-2)./max(eps,1-R{nmeasure}.^2))),size(Y,1)-numel(nl2controlcovariates)-2); end
             if any(procedures==15), D{nmeasure}=valid; end
             %[h,F,p,dof]=conn_glm([ones(size(X,1),1) X],Y,[],[],'collapse_none');
         end
@@ -991,7 +998,7 @@ if any(procedures==Iprocedure) % QA_COV
         assert(numel(nsubs)>0);
         if isempty(nl2covariates), 
             [x,nl2covariates]=conn_module('get','l2covariates','^QC_'); 
-            nl2covariates=nl2covariates(cellfun('length',regexp(nl2covariates,'QC_ValidScans|QC_InvalidScans|QC_ProportionValidScans|QC_MeanMotion|QC_MeanGSchange|QC_NORM_func|QC_NORM_struct|QC_DOF'))>0);
+            nl2covariates=nl2covariates(cellfun('length',regexp(nl2covariates,'^(QC_ValidScans|QC_InvalidScans|QC_ProportionValidScans|QC_MeanMotion|QC_MeanGSchange|QC_NORM_func|QC_NORM_struct|QC_DOF)$'))>0);
         end
         [x,xnames,xdescr]=conn_module('get','l2covariates');
         if ischar(nl2covariates)||iscell(nl2covariates), nl2covariates=find(ismember(xnames,cellstr(nl2covariates))); end
@@ -1013,6 +1020,17 @@ if any(procedures==Iprocedure) % QA_COV
                 donemsg=false;
                 for isub=1:numel(infoA)
                     nsub=nsubs(isub);
+                    pmatch=max(max(((infoA{nsub}.Interquartiles(2,:)-infoA{nsub}.Values)), ((infoA{nsub}.Values)-infoA{nsub}.Interquartiles(4,:)))./(infoA{nsub}.Interquartiles(4,:)-infoA{nsub}.Interquartiles(2,:)));
+                    pmatch_name='QC_OutlierScore';
+                    pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                    if isempty(pmatch_icov),
+                        pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
+                        CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
+                        CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Outlier severity score (maximum distance in IQR units among QC variables selected in the QC_variables plot; a value above 3 indicates an extreme outlier)';
+                        CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
+                        for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                    end
+                    CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
                     pmatch=any([infoA{nsub}.Values < 2*infoA{nsub}.Interquartiles(1,:)-infoA{nsub}.Interquartiles(2,:) | infoA{nsub}.Values > 2*infoA{nsub}.Interquartiles(end,:)-infoA{nsub}.Interquartiles(end-1,:)]);
                     pmatch_name='QC_OutlierSubjects';
                     pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);

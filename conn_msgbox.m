@@ -47,6 +47,7 @@ else % do not wait for user confirmation
             uicontrol('style','togglebutton','units','norm','position',[.25 .05 .5 .15],'string','Stop','callback','if get(gcbo,''value''), set(gcbo,''string'', ''Stopping...''); else set(gcbo,''string'',''Stop''); end; drawnow;','parent',h)];
     end
     if ok==0, conn_disp(char(txt)); end
+    if ok==-2, conn_disp(char(txt)); conn('modalfig',h); end % highlighted message
     drawnow;
 end
 
