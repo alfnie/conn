@@ -507,6 +507,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                             N=str2num(answer{1});
                         else N=1;
                         end
+                        conn save;
                         %conn_batch('subjects',validsubjects,'parallel.N',N,'parallel.profile',tvalid(nalt-1),'QA.foldername',fullfile(qafolder,tag),'QA.plots',procedures,'QA.rois',validrois,'QA.sets',validsets,'QA.l2covariates',nl2covariates,'QA.l1contrasts',nl1contrasts);
                         conn_jobmanager('setprofile',tvalid(nalt-1));
                         conn_jobmanager('submit','qaplots',validsubjects,N,[],conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions);
@@ -1081,9 +1082,9 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         hold(dlg.handles.hax,'off');
                         if ~isempty(htlegend)
                             if dlg.uanalysestype(dlg.ianalysis)==4,
-                                try, ht=legend(htlegend,{sprintf('expected mean%cstd under Null Hypothesis (if no QC-FC associations exist at any distance level; random permutations)',177)},'location','northwest'); set(ht,'box','off','fontsize',5+font_offset); catch, legend(ht,'randomised reference'); end
+                                try, ht=legend(htlegend,{sprintf('expected mean%cstd under Null Hypothesis (if no QC-FC associations exist at any distance level; permutation test)',177)},'location','northwest'); set(ht,'box','off','fontsize',5+font_offset); catch, legend(ht,'randomised reference'); end
                             else
-                                try, ht=legend(htlegend,{'expected shape of distribution under Null Hypothesis (if no QC-FC associations exist; random permutations)'},'location','northwest'); set(ht,'box','off','fontsize',5+font_offset); catch, legend(ht,'randomised reference'); end
+                                try, ht=legend(htlegend,{'expected shape of distribution under Null Hypothesis (if no QC-FC associations exist; permutation test)'},'location','northwest'); set(ht,'box','off','fontsize',5+font_offset); catch, legend(ht,'randomised reference'); end
                             end
                         end
                         if dlg.uanalysestype(dlg.ianalysis)==4, set(dlg.handles.hax,'ylim',[0 2*dlg.plothistinfo2]);
@@ -1104,12 +1105,14 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         dlg.handles.resultspatch=[];
                         dlg.handles.resultsline=[];
                         hold(dlg.handles.hax,'on');
+                        showannot=get(dlg.handles.showannot,'value');
                         refshow1=0;refshow1n=0;refshow2=0;refshow2n=0;
                         dlg.handles.resultspatch=[];
                         tx=[];ty=[];
                         for n=1:numel(dlg.results_patch),
-                            if numel(in)>1
-                                mask=dlg.results_line{n}{2}>dlg.results_info{n}.InterquartilesDisplay(5,:) | dlg.results_line{n}{2}<dlg.results_info{n}.InterquartilesDisplay(1,:);
+                            if showannot&&numel(in)>1
+                                %mask=dlg.results_line{n}{2}>dlg.results_info{n}.InterquartilesDisplay(5,:) | dlg.results_line{n}{2}<dlg.results_info{n}.InterquartilesDisplay(1,:);
+                                mask=dlg.results_line{n}{2}>2*dlg.results_info{n}.InterquartilesDisplay(5,:)-dlg.results_info{n}.InterquartilesDisplay(4,:) | dlg.results_line{n}{2}<2*dlg.results_info{n}.InterquartilesDisplay(1,:)-dlg.results_info{n}.InterquartilesDisplay(2,:);
                                 if nnz(mask),
                                     ttx=reshape(dlg.results_line{n}{1}(mask),[],1);
                                     tty=reshape(dlg.results_line{n}{2}(mask),[],1);

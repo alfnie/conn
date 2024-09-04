@@ -33,6 +33,8 @@ function varargout=conn_module(option,varargin)
 %       alternative syntax: conn_module preprocessing steps
 %          returns the list of valid preprocessing steps
 %
+%       See https://web.conn-toolbox.org/resources/conn-extensions/prep for additional options
+%
 %    GLM : runs CONN second-level analyses on user-defined data (see www.conn-toolbox.org/resources/glm for details)
 %
 %       basic syntax: conn_module GLM
@@ -85,10 +87,13 @@ function varargout=conn_module(option,varargin)
 %
 %       See also CONN_DISPLAY for displaying GLM results
 %       See Nieto-Castanon, 2020 for details about General Linear Model analyses (www.conn-toolbox.org/fmri-methods)
+%       See https://web.conn-toolbox.org/resources/conn-extensions/glm for additional options
 %
-%    EL : runs EvLab (evlab.mit.edu) fMRI pipeline for subject-centric task-activation analyses (see www.conn-toolbox.org/resources/evlab for details)
+%    EL : runs EvLab (evlab.mit.edu) fMRI pipeline for subject-centric task-activation analyses
+%       See https://web.conn-toolbox.org/resources/conn-extensions/el for descriptiona and options
 % 
 %    FL : runs FrankLab (sites.bu.edu/guentherlab) fMRI pipeline for group-centric task-activation analyses (see www.conn-toolbox.org/resources/franklab for details)
+%       See https://web.conn-toolbox.org/resources/conn-extensions/fl for description and options
 % 
 %    Additional functionality: conn_module('get',...)
 %          conn_module('get','structurals');             outputs current structural files (e.g. output of structural preprocessing steps)

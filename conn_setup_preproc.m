@@ -1122,7 +1122,7 @@ for iSTEP=1:numel(STEPS)
     ok=0;
     
     hmsg=[];
-    if dogui, hmsg=conn_msgbox({['Preparing ',STEP_name],'Please wait...'},'');
+    if dogui, hmsg=conn_msgbox({['Preparing ',STEP_name],'Please wait...'},'',-2);
     else conn_disp(['Preparing ',STEP_name,'. Please wait...']);
     end
     switch(regexprep(lower(STEP),'^run_|^update_|^interactive_',''))
@@ -3636,7 +3636,7 @@ for iSTEP=1:numel(STEPS)
             end
         end
     else %if strncmp(lower(STEP),'run_',numel('run_'))
-        if dogui, hmsg=conn_msgbox({['Performing ',STEP_name],'Please wait...'},'');
+        if dogui, hmsg=conn_msgbox({['Performing ',STEP_name],'Please wait...'},'',-2);
         else conn_disp(['Performing ',STEP_name,'. Please wait...']);
         end
         if any(strcmpi(regexprep(lower(STEP),'^run_|^interactive_',''),{'functional_art'}))
@@ -3695,7 +3695,7 @@ for iSTEP=1:numel(STEPS)
     if ishandle(hmsg), delete(hmsg); end
     
     if ok>=0&&doimport
-        if dogui, hmsg=conn_msgbox({'Importing results to CONN project','Please wait...'},'');
+        if dogui, hmsg=conn_msgbox({'Importing results to CONN project','Please wait...'},'',-2);
         else conn_disp(['Importing results to CONN project. Please wait...']);
         end
         switch(regexprep(lower(STEP),'^run_|^update_|^interactive_',''))
