@@ -28,6 +28,11 @@ function varargout=conn(varargin)
 connver='22.v2407';
 dodebug=false;
 
+% Octave-compatibility
+if logical(exist('OCTAVE_VERSION', 'builtin'))
+    addpath(fullfile(which('conn'),'utils','octave'));
+end
+
 global CONN_h CONN_x CONN_gui;
 if dodebug, dbstop if caught error; end
 me=[]; 
