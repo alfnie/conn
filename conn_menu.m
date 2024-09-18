@@ -133,7 +133,7 @@ switch(lower(type)),
 %         tpos=get(h,'position');
         set(h,'units','norm');
 %         position1=get(h,'position');
-        ht=[uicontrol('style','frame','units','pixels','position',tpos+[0,-1,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+        ht=[uicontrol('style','frame','units','pixels','position',tpos+[0,-1,0,CONN_gui.uicontrol_border+2-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
         	uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
             uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
         if doemphasis1, conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h); end
@@ -144,7 +144,7 @@ switch(lower(type)),
         %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-6,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
         ht=uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
         %conn_menumanager('onregion',ht,-1,get(h,'position'),@(x)get(h,'extent')*max(1,(get(h,'max')==1)*numel(cellstr(get(h,'string'))))*[0;0;0;1]>=get(h,'position')*[0;0;0;1]);
-        conn_menumanager('onregion',ht,-1,get(h,'position'));
+        %%conn_menumanager('onregion',ht,-1,get(h,'position'));
         if ~isempty(callback2), 
             if ~iscell(callback2), callback2={['h=get(gcbo,''userdata''); set(h,''value'',numel(cellstr(get(h,''string'')))); ',callback],callback2}; end
             %ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 0 .03-position(4)],'',['Add new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...

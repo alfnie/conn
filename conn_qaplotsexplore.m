@@ -569,6 +569,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
             case 'displayannotation'
                 if isfield(dlg,'dataIDXsubjects')
                     in=dlg.dataIDXsubjects;
+                    txt={};
                     if numel(in)==1
                         txt=dlg.txtA(in);
                     elseif numel(in)>1

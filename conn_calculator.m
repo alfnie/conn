@@ -233,7 +233,7 @@ conn_calculator_update;
             cla;
             hold on;
             plot(repmat(xplot(:)',2,1),[y(idx,n),y_fit(idx,n)]','k:','color',.5*[1 1 1]);
-            plot(xplot,y(idx,n),'ro','markerfacecolor','r','markeredgecolor',[1 .25 .25],'markersize',2+font_offset);
+            plot(xplot,y(idx,n),'ro','markerfacecolor','r','markeredgecolor',[1 .25 .25],'markersize',max(1,2+font_offset));
             if plot_shownull, 
                 plot(xplot,y_fit0(idx,n),'ko','color',.5*[1 1 1],'markerfacecolor',.5*[1 1 1],'markeredgecolor',.5*[1 1 1],'markersize',max(1,(1+font_offset)/2)); 
                 %plot(repmat(xplot(:)',2,1),[y(idx,n),y_fit0(idx,n)]','k:','color',.5*[1 1 1]);
