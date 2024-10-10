@@ -336,6 +336,16 @@ switch(lower(option))
             cmd=sprintf('%s -singleCompThread -nodesktop -noFigureWindows -nosplash -r "%s conn %s; exit"',...
                 fun_callback, sprintf('%s ',addpaths{:}),'%s');
         end
+
+        %if ispersistent, OScmd=sprintf('%s -singleCompThread -nodesktop -noFigureWindows -nosplash -r "%s conn server start '''' ''%s''; exit"', fun_callback, sprintf('%s ',addpaths{:}), '%s');
+        %else             OScmd=sprintf('%s -singleCompThread -nodesktop -noFigureWindows -nosplash -r "%s conn server startpersistent '''' ''%s''; exit"', fun_callback, sprintf('%s ',addpaths{:}), '%s');
+        %end
+        %info=conn_jobmanager('submit','orphan_conn',[],1,[],'server','$START$',[],'$ID$'); 
+        % job=conn_jobmanager('job','process_orphan','conn',[],'server',cmdstart,[],'$ID$');
+        % info=conn_jobmanager('createjob',job,{1});
+        % info=conn_jobmanager('submitjob',info,[],false);
+        % conn_savematfile(fullfile(info.pathname,'info.mat'),'info');
+
         info = struct(...
             'host', regexprep(str1,'\n',''),...
             'CONNcmd',cmd,...

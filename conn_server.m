@@ -257,7 +257,7 @@ switch(lower(option))
                     catch me,
                         if ~isempty(regexp(me.message,'EOFException|IOException|SocketException')) %||ntimedout>15 % restart
                             dispstr='';
-                            conn_server_fprintf(disphdl,'fprintf','\n Idle connection to client.');
+                            conn_server_fprintf(disphdl,'fprintf','\n Idle connection to client: %s\n',me.message);
                             if (~isempty(disphdl)&&(any(~ishandle(disphdl))||(numel(disphdl)>1&&get(disphdl(2),'value')>0)))||~continueonexit
                                 conn_server_fprintf(disphdl,'fprintf',' Closing server.\n');
                                 conn_tcpip('close');

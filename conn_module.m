@@ -140,7 +140,7 @@ switch(lower(option))
                 files=conn('get','Setup.structural');
                 for nsub=1:numel(files),
                     if conn('get','Setup.structural_sessionspecific'),
-                        for nses=1:nsessall,
+                        for nses=1:numel(files{nsub}),
                             files{nsub}{nses}=files{nsub}{nses}{1};
                         end
                     else

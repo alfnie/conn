@@ -17,7 +17,7 @@ if isempty(dataset_to)||isempty(dataset_from)
     end
     if isempty(dataset_to), dataset_to=1; end
     if isempty(dataset_from), dataset_from=1; end
-    hfig=figure('units','norm','position',[.1,.3,.4,.3],'numbertitle','off','name','Copy/Exchange datasets','menubar','none','color','w');
+    hfig=figure('units','norm','position',[.1,.3,.4,.3],'numbertitle','off','name','Move/Exchange datasets','menubar','none','color','w');
     uicontrol('style','frame','units','norm','position',[.0,.30,1,.70],'backgroundcolor',.9*[1 1 1],'foregroundcolor',.9*[1 1 1],'fontsize',9+CONN_gui.font_offset);    
     uicontrol('units','norm','position',[.05,.85,.9,.10],'style','text','string','Reassign all imaging files between different datasets','backgroundcolor',.9*[1 1 1],'horizontalalignment','left','fontweight','bold','fontsize',8+CONN_gui.font_offset);
     hm2a=uicontrol('units','norm','position',[.05,.7,.2,.10],'style','text','string','From:','backgroundcolor',.9*[1 1 1],'horizontalalignment','left','fontweight','normal','fontsize',8+CONN_gui.font_offset);

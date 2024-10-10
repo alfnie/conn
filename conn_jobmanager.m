@@ -742,6 +742,7 @@ else
         case 'submitjob', %('submitjob',info,inodes)
             info=varargin{1};
             if nargin>2&&~isempty(varargin{2}), ijobs=varargin{2}; else ijobs=1:numel(info.scripts); end
+            if nargin>3&&~isempty(varargin{3}), dosubmit=varargin{3}; else dosubmit=true; end
             if ischar(ijobs)&&any(strcmp(info.nodes,ijobs)), ijobs=find(strcmp(info.nodes,ijobs));
             elseif ischar(ijobs), ijobs=find(strcmp(info.tagmsg,ijobs));
             end
@@ -772,9 +773,13 @@ else
             end
             
             for i=ijobs(:)',
-                conn_jobmanager('tag',info.scripts{i},'submitted');
                 str=regexprep(CFG.cmd_submit,{'JOBLABEL','JOBID','OPTS','SCRIPT','STDOUT','STDERR','STDLOG'},[{info.joblabel{i} info.jobid{i} cmd_submitoptions} cellfun(@(x)[CFG.osquotes CFG.osfile(x) CFG.osquotes],{conn_server('util_localfile_filesep',CFG.filesep,info.scripts{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdout{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stderr{i}),conn_server('util_localfile_filesep',CFG.filesep,info.stdlog{i})},'uni',0)]);
-                [ok,msg]=conn_projectmanager('system',str);
+                if dosubmit
+                    conn_jobmanager('tag',info.scripts{i},'submitted');
+                    [ok,msg]=conn_projectmanager('system',str);
+                else
+                    [ok,msg]=deal(0,'');
+                end
                 if ok~=0, 
                     try, fprintf('%s\n',msg); end
                     conn_jobmanager('tag',info.scripts{i},'failed');
@@ -879,7 +884,13 @@ else
             me=[];
             filename=varargin{1};
             try
-                conn_loadmatfile(filename,'job','-mat');
+                conn_loadmatfile(filename,'job','-mat'); % loads job info
+                if conn_existfile(conn_prepend('',filename,'.json')) % note: updates job info from .json file if it exists
+                    updatefields=conn_jsonread(conn_prepend('',filename,'.json'));
+                    for n=reshape(fieldnames(updatefields),1,[])
+                        if isfield(job,n{1}), job.(n{1})=updatefields.(n{1}); end
+                    end
+                end
                 conn_jobmanager('tag',job(1).tag,'running'); 
                 %if strcmp(lower(option),'rexec'), conn_jobmanager('tag',job(1).tag,'running'); end
                 if strcmp(lower(option),'rexec'), conn_projectmanager('qlogdir',fileparts(filename)); end % sets .qlog directory root one step above current

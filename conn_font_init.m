@@ -19,7 +19,7 @@ try
     delete(hfig);
 catch
     if ishandle(hfig), delete(hfig); end
-    if ~nargout, CONN_gui.font_offset=0
+    if ~nargout, CONN_gui.font_offset=0;
     else font_offset=0;
     end
 end

@@ -109,7 +109,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     end
     CONN_gui.disconnectonclose=true;
     CONN_gui.leftarrow='<'; CONN_gui.rightarrow='>'; CONN_gui.delchar='-'; 
-    try, if ~verLessThan('matlab','8.4.0'), CONN_gui.leftarrow=char(8678); CONN_gui.rightarrow=char(8680); CONN_gui.delchar=char(9003); end; end 
+    %try, if ~verLessThan('matlab','8.4.0'), CONN_gui.leftarrow=char(8678); CONN_gui.rightarrow=char(8680); CONN_gui.delchar=char(9003); end; end 
+    try, if ~verLessThan('matlab','8.4.0'), CONN_gui.leftarrow='<<'; CONN_gui.rightarrow='>>'; CONN_gui.delchar=char(9003); end; end 
 	CONN_h=struct;
     cmap=0+1*(7*gray(128) + 1*(hot(128)))/8; if mean(CONN_gui.backgroundcolor)>.5,cmap=flipud(cmap); end
     cmapB=max(0,min(1, repmat((2*(CONN_gui.backgroundcolor<.5)-1).*max(CONN_gui.backgroundcolor ,1-CONN_gui.backgroundcolor),128,1).*cmap+repmat(CONN_gui.backgroundcolor,128,1) ));
