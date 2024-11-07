@@ -16,6 +16,13 @@ else
         data.(varargin{idx})=evalin('caller',varargin{idx});
     end
 end
+
+% Ensure Octave-compaltibility
+if ~ismember('-v7', varargin(opts))
+    varargin = [varargin, {'-v7'}];
+    opts(end+1) = true;
+end
+
 if any(conn_server('util_isremotefile',filename)), 
     if ~isempty(regexp(filename,'\<SPM\.mat$'))&&isfield(data,'SPM')
         try, if isfield(data.SPM,'swd'), data.SPM.swd=conn_server('util_localfile',data.SPM.swd); end; end
