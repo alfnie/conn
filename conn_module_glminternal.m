@@ -78,7 +78,7 @@ if Ns~=Ns2&&Ns>0&&Ny==1&&~mod(Ns2,Ns)
     [Ns2,Ny]=size(filenames);
 end
 if Ns~=Ns2, error('Incorrect dimensions (design matrix X and input data filenames should have the same number of rows)'); end
-for n=1:numel(filenames), if isempty(fileparts(filenames{n})), filenames{n}=fullfile(pwd,filenames{n}); end; end
+for n=1:numel(filenames), if ~isempty(filenames{n})&&isempty(fileparts(filenames{n})), filenames{n}=fullfile(pwd,filenames{n}); end; end
 if nargin<3||isempty(C1), 
     if askall&&Nx>1
         answ=conn_menu_inputdlg({sprintf('Enter between-subjects contrast (vector/matrix with at least one row and %d columns)',Nx)},'',1,{mat2str(eye(Nx))},struct('Resize','on'));

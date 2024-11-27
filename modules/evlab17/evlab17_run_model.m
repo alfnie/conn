@@ -24,7 +24,7 @@ function evlab17_run_model(varargin)
 %             scan_times: Nscans x 1 array with times of each scan acquisition onset (in seconds, starting at 0s) event-effects will be sampled at time RT*fMRI_T0/fMRI_T after each scan onset
 %             scan     : 1/0 value indicating whether an explicit scanner-noise regressor should be included [0] (note: this is modeled as an additional condition and named 'scannernoise')
 %             (optional fields only applicable when multiple within-condition effects are estimated)
-%             orth     :  1/0 value indicating whether within-condition regressors should be GS orthogonalized [1]
+%             orth     :  1xM 1/0 value indicating whether within-condition regressors should be GS orthogonalized [1]
 %             (optional fields for temporal modulation)
 %             tmod     : 1xM 1/0 array indicating whether condition M is modulated by time (if values >1 are entered they are interpreted as polynomial order of temporal modulation effects)
 %             (optional fields for parametric modulation)

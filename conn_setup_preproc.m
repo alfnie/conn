@@ -294,7 +294,19 @@ if ~isempty(STEPS)&&(ischar(STEPS)||(iscell(STEPS)&&numel(STEPS)==1))
     else
         lSTEPS=regexprep(lower(STEPS),'^run_|^update_|^interactive_','');
         if ~isempty(regexp(char(lSTEPS),'^functional_label_as_'))||~isempty(regexp(char(lSTEPS),'^functional_load_from_'))||~isempty(regexp(char(lSTEPS),'^structural_label_as_'))||~isempty(regexp(char(lSTEPS),'^structural_load_from_'))||ismember(lSTEPS,steps), STEPS=cellstr(STEPS);
-        elseif conn_existfile(STEPS), load(STEPS,'STEPS','coregtomean'); if isempty(coregtomean), coregtomean=1; end
+        elseif conn_existfile(STEPS), 
+            tempvar=load(STEPS); 
+            assert(isfield(tempvar,'STEPS'),'file %s is missing variable STEPS specifying list of preprocessing steps',STEPS);
+            STEPS=tempvar.STEPS;
+            tempvar=rmfield(tempvar,'STEPS');
+            if isfield(tempvar,'coregtomean')&&isempty(tempvar.coregtomean), tempvar=rmfield(tempvar,'coregtomean'); end % note: for back-compatibility (empty coregtomean interpreted as default value 1)
+            tempvarfields=fieldnames(tempvar);
+            for n1=1:numel(tempvarfields), % note: pipeline files can contain any list of optional fields specified as variables within the pipeline .mat file
+                options{end+1}=tempvarfields{n1};
+                options{end+1}=tempvar.(tempvarfields{n1});
+            end
+            %load(STEPS,'STEPS','coregtomean'); 
+            %if isempty(coregtomean), coregtomean=1; end
         else error('STEP name %s is not a valid preprocessing step or an existing preprocessing-pipeline file',STEPS);
         end
     end

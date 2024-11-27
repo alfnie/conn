@@ -2,6 +2,7 @@ function fh=conn_slice_display(data,structural,defaultfilepath,actthr,titlestr)
 % CONN_SLICE_DISPLAY slice display in CONN
 %
 % CONN_SLICE_DISPLAY(fileDATA) displays volume-level data overlay in fileDATA (overlaid on default reference structural image -ICBM MNI 2009b NLIN asymmetric template-)
+% CONN_SLICE_DISPLAY(fileDATA, 'hires') same as above but using linear resampling to resample the data to 1mm isotropic voxels
 % CONN_SLICE_DISPLAY(fileDATA,fileSTRUCT) displays volume-level data overlay in fileDATA overlaid on background image fileSTRUCT
 % CONN_SLICE_DISPLAY('',fileSTRUCT) displays background image fileSTRUCT
 %
@@ -44,7 +45,9 @@ function fh=conn_slice_display(data,structural,defaultfilepath,actthr,titlestr)
 
 global CONN_x CONN_gui;
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
-if nargin<2||isempty(structural), structural=''; end
+if nargin<2||isempty(structural), structural=''; 
+elseif isequal(structural,'hires'), structural=0;
+end
 if nargin<3||isempty(defaultfilepath), defaultfilepath=pwd; end
 if nargin<4||isempty(actthr), actthr=[0 0]; end
 if nargin<5||isempty(titlestr), titlestr=''; end
@@ -243,8 +246,14 @@ if doinit
     state.transparency=1;
     state.slice_transparency=1;
     state.background=[.95 .95 .9];%.14*[1 1 1];%[.2,.6,.7];
-    if ~isempty(state.refnames), state.cmap=[0.78 0.42 0.33;0.98 0.69 0.8;0.35 0.72 0.57;0.72 0.89 0.58;0.51 0.57 0.027;0.95 0.81 0.084;0.054 0.97 0.6;0.52 0.92 0.63;0.56 0.66 0.34;0.031 0.7 0.94;0.73 0.066 0.018;0.76 0.88 0.39;0.45 0.52 0.062;0.22 0.96 0.91;0.31 0.49 0.25;0.62 0.56 0.43;0.48 0.96 0.8;0.27 0.45 0.68;0.74 0.034 0.38;0.76 0.15 0.86;0.064 0.74 0.73;0.49 0.74 0.54;0.052 0.0057 0.43;0.67 0.0079 0.23;0.99 0.98 0.93;0.83 0.068 0.34;0.28 0.42 0.85;0.36 0.61 0.098;0.59 0.59 0.84;0.69 0.83 0.59;0.032 0.92 0.74;0.71 0.88 0.98;0.19 0.45 0.57;0.42 0.81 0.21;0.95 0.43 0.54;0.96 0.17 0.87;0.71 0.93 0.22;0.76 0.025 0.24;0.26 0.73 0.79;0.094 0.68 0.085;0.94 0.23 0.4;0.95 0.84 0.53;0.19 0.61 0.31;0.48 0.99 0.17;0.67 0.06 0.19;0.84 0.51 0.62;0.51 0.064 0.69;0.99 0.46 0.59;0.41 0.2 0.75;0.62 0.02 0.93;0.94 0.61 0.3;0.46 0.23 0.27;0.24 0.2 0.24;0.38 0.081 0.56;0.59 0.097 0.31;0.86 0.97 0.24;0.077 0.2 0.42;0.89 0.013 0.89;0.97 0.79 0.56;0.28 0.6 0.098;0.77 0.64 0.43;0.033 0.57 0.19;0.9 0.25 0.66;0.66 0.42 0.071;0.35 0.13 0.81;0.99 0.4 0.37;0.92 0.37 0.23;0.99 0.86 0.93;0.94 0.99 0.8;0.64 0.26 0.36;0.74 0.76 0.9;0.31 0.65 0.72;0.21 0.0045 0.72;0.14 0.99 0.29;0.46 0.25 0.56;0.35 0.27 0.71;0.77 0.13 0.2;0.36 0.6 0.87;0.33 0.15 0.7;0.71 0.4 0.82;0.37 0.98 0.66;0.95 0.13 0.16;0.12 0.77 0.28;0.33 0.75 0.84;0.61 0.59 0.5;0.16 0.61 0.37;0.52 0.22 0.42;0.35 0.96 0.41;0.77 0.32 0.013;0.39 0.29 0.43;0.77 0.81 0.69;0.071 0.49 0.85;0.36 0.064 0.3;0.059 0.76 0.028;0.38 0.31 0.82;0.85 0.011 0.099;0.02 0.88 0.48;0.53 0.16 0.66;0.5 0.34 0.85;0.16 0.99 0.6;0.61 0.77 0.72;0.65 0.39 0.58;0.41 0.42 0.25;0.14 0.22 0.61;0.04 0.24 0.29;0.63 0.89 0.17;0.95 0.57 0.00033;0.77 0.33 0.3;0.36 0.49 0.097;0.83 0.34 0.48;0.023 0.74 0.98;0.86 0.92 0.73;0.26 0.68 0.13;0.043 0.12 0.47;0.0035 0.65 0.9;0.38 0.85 0.56;0.75 0.69 0.58;0.86 0.56 0.48;0.96 0.76 0.43;0.21 0.41 0.93;0.21 0.58 0.077;0.2 0.015 0.52;0.17 0.68 0.94;0.75 0.11 0.29;0.53 0.68 0.45;0.88 0.78 0.95;0.65 0.86 0.32;0.72 0.85 0.65;0.79 0.45 0.028;0.41 0.74 0.2;0.27 0.47 0.61;0.18 0.07 0.89;0.96 0.97 0.59;0.27 0.25 0.76;0.54 0.13 0.29;0.49 0.57 0.27;0.28 0.26 0.2;0.72 0.041 1;0.094 0.19 0.96;0.49 0.61 0.99;0.63 0.26 0.88;0.31 0.57 0.33;0.11 0.78 0.11;0.35 0.3 0.8;0.58 0.034 0.97;0.67 0.54 0.39;0.43 0.56 0.52;0.14 0.82 0.48;0.08 0.33 0.75;0.46 0.41 0.2;0.41 0.1 0.12;0.29 0.35 0.39;0.051 0.61 0.56;0.94 0.74 0.013;0.38 0.81 0.24;0.94 0.77 0.89;0.23 0.5 0.36;0.4 0.1 0.95;0.27 0.53 0.72;0.6 0.017 0.35;0.81 0.23 0.91;0.86 0.21 0.97;0.11 0.28 0.84;0.14 0.89 0.17;0.38 0.93 0.87;0.69 0.64 0.43;0.1 0.76 0.49;0.53 0.4 0.86;0.68 0.98 0.91;0.5 0.32 0.64;0.75 0.53 0.29;1 0.53 0.67;0.79 0.98 0.67;0.49 0.15 0.17;0.82 0.35 0.34;0.12 0.87 0.75;0.011 0.49 0.66;0.12 0.95 0.4;0.57 0.6 0.048;0.87 0.69 0.23;0.1 0.53 0.9;0.75 0.46 0.32;0.16 0.5 0.76;0.96 0.46 0.76;0.91 0.75 0.82;0.12 0.32 0.14;0.5 0.49 0.57;0.46 0.31 0.74;0.18 0.1 0.94;0.54 0.23 0.52;0.32 0.86 0.74;0.39 0.12 0.34;0.8 0.0032 0.35;0.81 0.77 0.076;0.15 0.29 0.78;0.85 0.94 0.85;0.47 0.15 0.35;0.48 0.58 0.77;0.83 0.42 0.034;0.57 0.66 0.092;0.96 0.86 0.79;0.015 0.8 0.42;0.45 0.12 0.36;0.42 0.91 0.85;0.28 0.44 0.051;0.18 0.5 0.059;0.23 0.51 0.56;0.51 0.64 0.59;0.48 0.6 0.75;0.11 0.032 0.94;0.63 0.062 0.39;0.11 0.24 0.21;0.97 0.62 0.43;0.85 0.32 0.35;0.51 0.6 0.73;0.19 0.63 0.87;0.38 0.034 0.25;0.89 0.096 0.23;0.92 0.73 0.15;0.2 0.85 0.2;0.61 0.24 0.78;0.66 0.77 0.19;0.11 0.28 0.89;0.97 0.86 0.57;0.55 0.67 0.62;0.005 0.51 0.46;0.31 0.98 0.89;0.42 0.7 0.35;0.35 0.38 0.63;0.27 0.87 0.83;0.31 0.82 0.49;0.52 0.76 0.13;0.32 0.28 0.62;0.85 0.67 0.47;0.4 0.27 0.069;0.35 0.31 0.03;0.48 0.97 0.56;0.033 0.65 0.52;0.24 0.65 0.27;0.59 0.3 0.65;0.92 0.87 0.49;0.47 0.36 0.25;0.014 0.11 0.29;0.19 0.91 0.59;0.68 0.27 0.5;0.92 0.44 0.35;0.22 0.33 0.57;0.75 0.044 0.33;0.31 0.015 0.78;0.75 0.27 0.092;0.4 0.67 0.42;0.062 0.69 0.23;0.57 0.16 0.086;0.15 0.39 0.88;0.72 0.37 0.045;0.74 0.29 0.7]; 
-    else state.cmap=autumn(256); %[linspace(0,1,256)',zeros(256,2)]; 
+    if ~isempty(state.refnames), 
+        state.cmapname='';
+        state.cmap=[0.78 0.42 0.33;0.98 0.69 0.8;0.35 0.72 0.57;0.72 0.89 0.58;0.51 0.57 0.027;0.95 0.81 0.084;0.054 0.97 0.6;0.52 0.92 0.63;0.56 0.66 0.34;0.031 0.7 0.94;0.73 0.066 0.018;0.76 0.88 0.39;0.45 0.52 0.062;0.22 0.96 0.91;0.31 0.49 0.25;0.62 0.56 0.43;0.48 0.96 0.8;0.27 0.45 0.68;0.74 0.034 0.38;0.76 0.15 0.86;0.064 0.74 0.73;0.49 0.74 0.54;0.052 0.0057 0.43;0.67 0.0079 0.23;0.99 0.98 0.93;0.83 0.068 0.34;0.28 0.42 0.85;0.36 0.61 0.098;0.59 0.59 0.84;0.69 0.83 0.59;0.032 0.92 0.74;0.71 0.88 0.98;0.19 0.45 0.57;0.42 0.81 0.21;0.95 0.43 0.54;0.96 0.17 0.87;0.71 0.93 0.22;0.76 0.025 0.24;0.26 0.73 0.79;0.094 0.68 0.085;0.94 0.23 0.4;0.95 0.84 0.53;0.19 0.61 0.31;0.48 0.99 0.17;0.67 0.06 0.19;0.84 0.51 0.62;0.51 0.064 0.69;0.99 0.46 0.59;0.41 0.2 0.75;0.62 0.02 0.93;0.94 0.61 0.3;0.46 0.23 0.27;0.24 0.2 0.24;0.38 0.081 0.56;0.59 0.097 0.31;0.86 0.97 0.24;0.077 0.2 0.42;0.89 0.013 0.89;0.97 0.79 0.56;0.28 0.6 0.098;0.77 0.64 0.43;0.033 0.57 0.19;0.9 0.25 0.66;0.66 0.42 0.071;0.35 0.13 0.81;0.99 0.4 0.37;0.92 0.37 0.23;0.99 0.86 0.93;0.94 0.99 0.8;0.64 0.26 0.36;0.74 0.76 0.9;0.31 0.65 0.72;0.21 0.0045 0.72;0.14 0.99 0.29;0.46 0.25 0.56;0.35 0.27 0.71;0.77 0.13 0.2;0.36 0.6 0.87;0.33 0.15 0.7;0.71 0.4 0.82;0.37 0.98 0.66;0.95 0.13 0.16;0.12 0.77 0.28;0.33 0.75 0.84;0.61 0.59 0.5;0.16 0.61 0.37;0.52 0.22 0.42;0.35 0.96 0.41;0.77 0.32 0.013;0.39 0.29 0.43;0.77 0.81 0.69;0.071 0.49 0.85;0.36 0.064 0.3;0.059 0.76 0.028;0.38 0.31 0.82;0.85 0.011 0.099;0.02 0.88 0.48;0.53 0.16 0.66;0.5 0.34 0.85;0.16 0.99 0.6;0.61 0.77 0.72;0.65 0.39 0.58;0.41 0.42 0.25;0.14 0.22 0.61;0.04 0.24 0.29;0.63 0.89 0.17;0.95 0.57 0.00033;0.77 0.33 0.3;0.36 0.49 0.097;0.83 0.34 0.48;0.023 0.74 0.98;0.86 0.92 0.73;0.26 0.68 0.13;0.043 0.12 0.47;0.0035 0.65 0.9;0.38 0.85 0.56;0.75 0.69 0.58;0.86 0.56 0.48;0.96 0.76 0.43;0.21 0.41 0.93;0.21 0.58 0.077;0.2 0.015 0.52;0.17 0.68 0.94;0.75 0.11 0.29;0.53 0.68 0.45;0.88 0.78 0.95;0.65 0.86 0.32;0.72 0.85 0.65;0.79 0.45 0.028;0.41 0.74 0.2;0.27 0.47 0.61;0.18 0.07 0.89;0.96 0.97 0.59;0.27 0.25 0.76;0.54 0.13 0.29;0.49 0.57 0.27;0.28 0.26 0.2;0.72 0.041 1;0.094 0.19 0.96;0.49 0.61 0.99;0.63 0.26 0.88;0.31 0.57 0.33;0.11 0.78 0.11;0.35 0.3 0.8;0.58 0.034 0.97;0.67 0.54 0.39;0.43 0.56 0.52;0.14 0.82 0.48;0.08 0.33 0.75;0.46 0.41 0.2;0.41 0.1 0.12;0.29 0.35 0.39;0.051 0.61 0.56;0.94 0.74 0.013;0.38 0.81 0.24;0.94 0.77 0.89;0.23 0.5 0.36;0.4 0.1 0.95;0.27 0.53 0.72;0.6 0.017 0.35;0.81 0.23 0.91;0.86 0.21 0.97;0.11 0.28 0.84;0.14 0.89 0.17;0.38 0.93 0.87;0.69 0.64 0.43;0.1 0.76 0.49;0.53 0.4 0.86;0.68 0.98 0.91;0.5 0.32 0.64;0.75 0.53 0.29;1 0.53 0.67;0.79 0.98 0.67;0.49 0.15 0.17;0.82 0.35 0.34;0.12 0.87 0.75;0.011 0.49 0.66;0.12 0.95 0.4;0.57 0.6 0.048;0.87 0.69 0.23;0.1 0.53 0.9;0.75 0.46 0.32;0.16 0.5 0.76;0.96 0.46 0.76;0.91 0.75 0.82;0.12 0.32 0.14;0.5 0.49 0.57;0.46 0.31 0.74;0.18 0.1 0.94;0.54 0.23 0.52;0.32 0.86 0.74;0.39 0.12 0.34;0.8 0.0032 0.35;0.81 0.77 0.076;0.15 0.29 0.78;0.85 0.94 0.85;0.47 0.15 0.35;0.48 0.58 0.77;0.83 0.42 0.034;0.57 0.66 0.092;0.96 0.86 0.79;0.015 0.8 0.42;0.45 0.12 0.36;0.42 0.91 0.85;0.28 0.44 0.051;0.18 0.5 0.059;0.23 0.51 0.56;0.51 0.64 0.59;0.48 0.6 0.75;0.11 0.032 0.94;0.63 0.062 0.39;0.11 0.24 0.21;0.97 0.62 0.43;0.85 0.32 0.35;0.51 0.6 0.73;0.19 0.63 0.87;0.38 0.034 0.25;0.89 0.096 0.23;0.92 0.73 0.15;0.2 0.85 0.2;0.61 0.24 0.78;0.66 0.77 0.19;0.11 0.28 0.89;0.97 0.86 0.57;0.55 0.67 0.62;0.005 0.51 0.46;0.31 0.98 0.89;0.42 0.7 0.35;0.35 0.38 0.63;0.27 0.87 0.83;0.31 0.82 0.49;0.52 0.76 0.13;0.32 0.28 0.62;0.85 0.67 0.47;0.4 0.27 0.069;0.35 0.31 0.03;0.48 0.97 0.56;0.033 0.65 0.52;0.24 0.65 0.27;0.59 0.3 0.65;0.92 0.87 0.49;0.47 0.36 0.25;0.014 0.11 0.29;0.19 0.91 0.59;0.68 0.27 0.5;0.92 0.44 0.35;0.22 0.33 0.57;0.75 0.044 0.33;0.31 0.015 0.78;0.75 0.27 0.092;0.4 0.67 0.42;0.062 0.69 0.23;0.57 0.16 0.086;0.15 0.39 0.88;0.72 0.37 0.045;0.74 0.29 0.7]; 
+        state.cmaplength=size(state.cmap,1);
+    else 
+        state.cmapname='autumn';
+        state.cmaplength=256;
+        state.cmap=repmat(1-linspace(1,0,state.cmaplength)'.^8,[1,3]).*autumn(state.cmaplength); %[linspace(0,1,256)',zeros(256,2)]; 
     end
     state.blackistransparent=true;
     state.contourtransparency=0;
@@ -333,6 +342,7 @@ else
     if ~isfield(state,'viewslicetitle'), state.viewslicetitle=1; end
     if ~isfield(state,'freesurfertransparency'), state.freesurfertransparency=0; end
     if ~isfield(state,'surf'), state.surf=[]; end
+    if ~isfield(state,'cmaplength'), state.cmaplength=size(state.cmap,1); end
 end
 
 if DOVOL&&state.isvol
@@ -419,9 +429,9 @@ state.handles.light=[light light];set(state.handles.light,'position',[1 1 1],'vi
 
 if state.isvol, 
     axes('units','norm','position',[.453 .15 .015 .75]);
-    temp=imagesc(max(0,min(1, ind2rgb(round((size(state.cmap,1)+1)/2+(size(state.cmap,1)-1)/2*linspace(-1,1,128)'),state.cmap))));
+    temp=imagesc(max(0,min(1, ind2rgb(round((size(state.cmap,1)+1)/2+(size(state.cmap,1)-1)/2*linspace(-1,1,state.cmaplength/2)'),state.cmap))));
     set(gca,'ydir','normal','ytick',[],'xtick',[],'box','off','yaxislocation','right');
-    temp2=text([1,1,1],[1-128*.05,64.5,128+128*.05],{' ',' ',' '},'horizontalalignment','center');
+    temp2=text([1,1,1],[1-state.cmaplength/2*.05,state.cmaplength/4+.5,state.cmaplength/2+state.cmaplength/2*.05],{' ',' ',' '},'horizontalalignment','center');
     state.handles.colorbar=[gca temp temp2(:)'];
     set(state.handles.colorbar,'visible','off');
 else state.handles.colorbar=[]; 
@@ -852,35 +862,45 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
                 set(state.handles.light,'color',scale*[1 1 1]);
             case 'colormap'
                 cmap=varargin{1};
+                doblackzero=false; 
+                doequalize=false;
+                if isequal(cmap,'equalize')&&isfield(state,'cmapname')
+                    cmap=state.cmapname;
+                    doequalize=true;
+                end
                 if ischar(cmap)
                     switch(cmap)
-                        case 'red', cmap=[linspace(0,1,256)',zeros(256,2)];
-                        case 'hot', cmap=hot(256);
-                        case 'jet', cmap=fixedge(jet(256));
-                        case 'gray', cmap=gray(256);
-                        case 'bone', cmap=bone(256);
-                        case 'cool',cmap=fixedge(cool(256));
-                        case 'hsv',cmap=fixedge(hsv(256));
-                        case 'spring',cmap=repmat(1-linspace(1,0,256)'.^8,[1,3]).*spring(256);
-                        case 'summer',cmap=repmat(1-linspace(1,0,256)'.^8,[1,3]).*summer(256);
-                        case 'autumn',cmap=repmat(1-linspace(1,0,256)'.^8,[1,3]).*autumn(256);
-                        case 'winter',cmap=repmat(1-linspace(1,0,256)'.^8,[1,3]).*winter(256);
-                        case 'bluewhitered', cmap=[zeros(1,256/2) linspace(0,1,256/2) ones(1,256/2) linspace(1,.5,256/2); linspace(0,1,256) linspace(1,0,256/2) zeros(1,256/2); linspace(.5,1,256/2) ones(1,256/2) linspace(1,0,256/2) zeros(1,256/2)]'; cmap=repmat(abs(linspace(-1,1,256*2)'),1,3).*cmap+(1-repmat(abs(linspace(-1,1,256*2)'),1,3))*1; cmap=cmap(256+1:end,:);
-                        case 'random',cmap=rand(256,3);
+                        case 'red', state.cmapname=cmap; cmap=[linspace(0,1,state.cmaplength)',zeros(state.cmaplength,2)];
+                        case 'hot', state.cmapname=cmap; cmap=hot(state.cmaplength);
+                        case 'jet', state.cmapname=cmap; cmap=fixedge(jet(state.cmaplength));
+                        case 'gray', state.cmapname=cmap; cmap=gray(state.cmaplength);
+                        case 'bone', state.cmapname=cmap; cmap=bone(state.cmaplength);
+                        case 'cool',state.cmapname=cmap; cmap=fixedge(cool(state.cmaplength));
+                        case 'hsv',state.cmapname=cmap; cmap=fixedge(hsv(state.cmaplength));
+                        case 'spring',state.cmapname=cmap; doblackzero=true; spring(state.cmaplength);
+                        case 'summer',state.cmapname=cmap; doblackzero=true; cmap=summer(state.cmaplength);
+                        case 'autumn',state.cmapname=cmap; doblackzero=true; cmap=autumn(state.cmaplength);
+                        case 'winter',state.cmapname=cmap; doblackzero=true; cmap=winter(state.cmaplength);
+                        case 'bluewhitered', state.cmapname=cmap; cmap=[zeros(1,state.cmaplength/2) linspace(0,1,state.cmaplength/2) ones(1,state.cmaplength/2) linspace(1,.5,state.cmaplength/2); linspace(0,1,state.cmaplength) linspace(1,0,state.cmaplength/2) zeros(1,state.cmaplength/2); linspace(.5,1,state.cmaplength/2) ones(1,state.cmaplength/2) linspace(1,0,state.cmaplength/2) zeros(1,state.cmaplength/2)]'; cmap=repmat(abs(linspace(-1,1,state.cmaplength*2)'),1,3).*cmap+(1-repmat(abs(linspace(-1,1,state.cmaplength*2)'),1,3))*1; cmap=cmap(state.cmaplength+1:end,:);
+                        case 'random',state.cmapname=cmap; cmap=rand(state.cmaplength,3);
                         case 'brighter',cmap=min(1,1/sqrt(.95)*get(state.handles.hfig,'colormap').^(1/2)); 
                         case 'darker',cmap=.95*get(state.handles.hfig,'colormap').^2; 
-                        case 'equalize',
-                            sp=sort(abs(state.supra(~isnan(state.supra)&state.supra~=0)));
-                            sp=sp(1)+[0;cumsum(diff(sp)+1e-10)];
-                            isp=interp1([min(sp(1)-1e-10,0); sp],linspace(1,size(state.cmap,1),numel(sp)+1),linspace(0,sp(end),256));
-                            cmap=interp1((1:size(state.cmap,1))',state.cmap,isp);
-                        case 'manual',answer=conn_menu_inputdlg({'colormap (256x3)'},'',1,{mat2str(state.cmap)});if ~isempty(answer), answer=str2num(answer{1}); end;if ~any(size(answer,1)==[256]), return; end;cmap=max(0,min(1,answer));
-                        case 'color',cmap=uisetcolor([],'Select color'); if isempty(cmap)||isequal(cmap,0), return; end; 
+                        case 'manual',state.cmapname=''; answer=conn_menu_inputdlg({sprintf('colormap (%dx3)',state.cmaplength)},'',1,{mat2str(state.cmap)});if ~isempty(answer), answer=str2num(answer{1}); end;if ~any(size(answer,1)==[state.cmaplength]), return; end;cmap=max(0,min(1,answer));
+                        case 'color',state.cmapname=''; cmap=uisetcolor([],'Select color'); if isempty(cmap)||isequal(cmap,0), return; end; 
                         otherwise, disp('unknown value');
                     end
                 end
                 if size(cmap,2)<3, cmap=cmap(:,min(size(cmap,2),1:3)); end
                 if size(cmap,1)==1, cmap=repmat(cmap,2,1); end
+                if doequalize
+                    sp=sort(abs(state.supra(~isnan(state.supra)&state.supra~=0)));
+                    sp=sp(1)+[0;cumsum(diff(sp)+1e-10)];
+                    isp=interp1([min(sp(1)-1e-10,0); sp],linspace(1,size(state.cmap,1),numel(sp)+1),linspace(0,sp(end),state.cmaplength));
+                    cmap=interp1((1:size(state.cmap,1))',state.cmap,isp);
+                end                    
+                if doblackzero
+                    cmap=repmat(1-linspace(1,0,size(cmap,1))'.^8,[1,3]).*cmap;
+                end
                 state.cmap=cmap;
                 set(state.handles.hfig,'colormap',cmap);
                 redrawnow=true;
@@ -1185,11 +1205,11 @@ try, set(state.handles.hfig,'resizefcn',{@conn_slice_display_refresh,'init'}); e
         end
         if ~isempty(state.handles.colorbar)&&redrawnowcolorbar
             if state.Vrange(1)>=0,
-                set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round(linspace(1,size(state.cmap,1),128)'),state.cmap))));
+                set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round(linspace(1,size(state.cmap,1),state.cmaplength/2)'),state.cmap))));
             elseif state.Vrange(2)<=0,
-                set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round(linspace(size(state.cmap,1),1,128)'),state.cmap(:,[2 3 1])))));
+                set(state.handles.colorbar(2),'cdata',max(0,min(1, ind2rgb(round(linspace(size(state.cmap,1),1,state.cmaplength/2)'),state.cmap(:,[2 3 1])))));
             else
-                set(state.handles.colorbar(2),'cdata',cat(1,max(0,min(1, ind2rgb(round(linspace(size(state.cmap,1),1,64)'),state.cmap(:,[2 3 1])))),max(0,min(1, ind2rgb(round(linspace(1,size(state.cmap,1),64)'),state.cmap)))));
+                set(state.handles.colorbar(2),'cdata',cat(1,max(0,min(1, ind2rgb(round(linspace(size(state.cmap,1),1,state.cmaplength/4)'),state.cmap(:,[2 3 1])))),max(0,min(1, ind2rgb(round(linspace(1,size(state.cmap,1),state.cmaplength/4)'),state.cmap)))));
             end
             set(state.handles.colorbar(3),'string',num2str(state.Vrange(1),'%.2f'),'color',1-round(mean(state.background))*[1 1 1]);
             set(state.handles.colorbar(4),'string','');

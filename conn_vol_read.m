@@ -19,6 +19,7 @@ if isremotefile, remotefilename=filename; filename=conn_cache('pull',remotefilen
 vol = spm_vol(filename);
 if nargin>1&&~isempty(fileref)
     if nargin<=2||isempty(hold), hold=0; end
+    if conn_server('util_isremotefile',fileref), fileref=conn_cache('pull',fileref); end
     volref = spm_vol(fileref);
     [x,y,z]=ndgrid(1:volref(1).dim(1), 1:volref(1).dim(2), 1:volref(1).dim(3));
     xyz=volref(1).mat*[x(:) y(:) z(:) ones(numel(x),1)]';

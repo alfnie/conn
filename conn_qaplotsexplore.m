@@ -162,7 +162,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 conn_print;
                 conn_qaplotsexplore_update([],[],'togglegui');
             case 'printset'
-                if isdeployed, conn_msgbox({'Sorry, exporting QA reports to html/pdf is still unavailable in standalone applications','We are work to resolve this issue'},'exporting report',2); return; end
+                if isdeployed, conn_msgbox({'Sorry, exporting QA reports to html/pdf is still unavailable in standalone applications','We are working to resolve this issue'},'exporting report',2); return; end
                 cwd=conn_projectmanager('pwd');
                 if numel(varargin)>0&&any(strcmp(varargin(cellfun(@ischar,varargin)),'nogui')), nogui=true;
                 else nogui=false;

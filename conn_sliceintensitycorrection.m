@@ -97,7 +97,10 @@ for nfname=1:numel(fname)
         end
     end
 
-    fnameout{nfname}=conn_prepend('i',fname{nfname});
+    if size(fname{nfname},1)>1, fnameout{nfname}=conn_prepend('i',fname{nfname}(1,:));
+    else fnameout{nfname}=conn_prepend('i',fname{nfname});
+    end
+    fnameout{nfname}=regexprep(fnameout{nfname},',\d+$','');
     if options.domean
         ftype=vol(1).dt(1);
         N=numel(vol);

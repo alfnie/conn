@@ -94,7 +94,7 @@ if iscell(data)||ischar(data)
         mask = dataval>0&labels>0;
         if size(dataval,4)>1
             if conn_existfile(conn_prepend('',filedata{nfiledata},'.txt'))
-                datanames=regexp(fileread(conn_prepend('',filedata{nfiledata},'.txt')),'\n+','split');
+                datanames=regexp(conn_fileutils('fileread', conn_prepend('',filedata{nfiledata},'.txt')),'\n+','split');
                 datanames=datanames(cellfun('length',datanames)>0);
             else
                 datanames=arrayfun(@(n)sprintf('cluster%d',n),1:max(dataval(mask)),'uni',0);
@@ -104,7 +104,7 @@ if iscell(data)||ischar(data)
             end
         elseif all(rem(dataval(mask),1)==0), % ROI data file
             if conn_existfile(conn_prepend('',filedata{nfiledata},'.txt'))
-                datanames=regexp(fileread(conn_prepend('',filedata{nfiledata},'.txt')),'\n+','split');
+                datanames=regexp(conn_fileutils('fileread',conn_prepend('',filedata{nfiledata},'.txt')),'\n+','split');
                 datanames=datanames(cellfun('length',datanames)>0);
             else
                 datanames=arrayfun(@(n)sprintf('cluster%d',n),1:max(dataval(mask)),'uni',0);

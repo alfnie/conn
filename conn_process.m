@@ -426,6 +426,19 @@ if any(options==1.5),
             duration=CONN_x.Setup.conditions.filter{ncondition}(1);
             ronsets=CONN_x.Setup.conditions.filter{ncondition}(2:end);
             nsteps=numel(ronsets);
+            ok=false(size(ronsets));
+            scandur={};
+            for nparam=1:nsteps,
+                for n1=1:length(CONN_x.Setup.conditions.values),
+                    for n2=1:length(CONN_x.Setup.conditions.values{n1}{ncondition}),
+                        if size(scandur,1)<n1||size(scandur,2)<n2||isempty(scandur{n1,n2}), scandur{n1,n2}=conn_get_rt(n1,n2)*CONN_x.Setup.nscans{n1}{n2}; end
+                        if scandur{n1,n2}>=CONN_x.Setup.conditions.values{n1}{ncondition}{n2}{1}+ronsets(nparam), ok(nparam)=true; end % keep a temporal window if at least one subject/session contains functional data within it
+                    end
+                end
+            end
+            ronsets(~ok)=[];
+            nsteps=numel(ronsets);
+
             % adds new conditions
             newcond=[];
             for nparam=1:nsteps+2,
@@ -452,8 +465,12 @@ if any(options==1.5),
                 else
                     for n1=1:length(CONN_x.Setup.conditions.values),
                         for n2=1:length(CONN_x.Setup.conditions.values{n1}{ncondition}),
-                            CONN_x.Setup.conditions.values{n1}{icond}{n2}{1}=CONN_x.Setup.conditions.values{n1}{ncondition}{n2}{1}+ronsets(nparam);
-                            CONN_x.Setup.conditions.values{n1}{icond}{n2}{2}=duration;
+                            if isempty(CONN_x.Setup.conditions.values{n1}{ncondition}{n2}{1})
+                                CONN_x.Setup.conditions.values{n1}{icond}{n2}={[],[]};
+                            elseif scandur{n1,n2}>=CONN_x.Setup.conditions.values{n1}{ncondition}{n2}{1}+ronsets(nparam)
+                                CONN_x.Setup.conditions.values{n1}{icond}{n2}{1}=CONN_x.Setup.conditions.values{n1}{ncondition}{n2}{1}+ronsets(nparam);
+                                CONN_x.Setup.conditions.values{n1}{icond}{n2}{2}=duration;
+                            end
                         end
                     end
                 end
@@ -3380,7 +3397,9 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
                     if strcmp(lower(REDO),'yes')||isnew(nmeasure)
 
                         thisNdimsIn=min(measures.dimensions_in{nmeasure},max(Y1Nt(:)));
-                        NdimsOut=min(thisNdimsIn*numel(validsubjects)*numel(validconditions),measures.dimensions_out{nmeasure});
+                        if measures.measuretype{nmeasure}==2, NdimsOut=min(numel(validsubjects)*numel(validconditions),measures.dimensions_out{nmeasure}); % group-MVPA
+                        else NdimsOut=min(thisNdimsIn*numel(validsubjects)*numel(validconditions),measures.dimensions_out{nmeasure});
+                        end
                         if 1,%dogrouplevel
                             filename=fullfile(filepathresults,['TEMPORAL1_Measure',num2str(imeasure(nmeasures1+1),'%03d'),'.mat']);
                             load(filename,'C');
