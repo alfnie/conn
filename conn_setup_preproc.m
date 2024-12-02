@@ -1394,9 +1394,9 @@ for iSTEP=1:numel(STEPS)
                     if ismember(nses,sessions)
                         filename=conn_get_functional(nsubject,nses,sets);
                         if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
-                        filein=cellstr(filename);
-                        fileout=conn_prepend('i',filein);
-                        conn_sliceintensitycorrection(filein);
+                        filein=filename;
+                        if ~iscell(filein), filein={filein}; end
+                        fileout=conn_sliceintensitycorrection(filein);
                         outputfiles{isubject}{nses}{1}=char(fileout);
                     end
                 end

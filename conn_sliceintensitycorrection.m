@@ -100,7 +100,7 @@ for nfname=1:numel(fname)
     if size(fname{nfname},1)>1, fnameout{nfname}=conn_prepend('i',fname{nfname}(1,:));
     else fnameout{nfname}=conn_prepend('i',fname{nfname});
     end
-    fnameout{nfname}=regexprep(fnameout{nfname},',\d+$','');
+    fnameout{nfname}=regexprep(fnameout{nfname},',\d+\s*$','');
     if options.domean
         ftype=vol(1).dt(1);
         N=numel(vol);
@@ -119,7 +119,7 @@ for nfname=1:numel(fname)
     else
         conn_vol_write(conn_prepend('i',fname{nfname}), g, vol);
     end
-    try, conn_disp('fprintf','Slice Intensity Correction output file %s (%d iterations, scaling %s)\n',conn_prepend('i',fname{nfname}), nrepeat, mat2str(h,4)); end
+    try, conn_disp('fprintf','Slice Intensity Correction output file %s (%d iterations, scaling %s)\n',fnameout{nfname}, nrepeat, mat2str(h,4)); end
 end
 
 varargout={fnameout,h,x,g};
