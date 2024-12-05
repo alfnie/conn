@@ -917,7 +917,7 @@ if isfield(batch,'Setup'),
                 fname=batch.Setup.coregsource_functionals{isub}{min(numel(batch.Setup.coregsource_functionals{isub}),nses)};
                 if localcopy, [nill,nill,nV]=conn_importvol2bids(fname,nsub,nses,'ref','ref',[],[],localcopy_reduce);
                 else
-                    [CONN_x.Setup.coregsource_functionals{nsub}{nses},nV]=conn_file(fname);
+                    [CONN_x.Setup.coregsource_functional{nsub}{nses},nV]=conn_file(fname);
                     conn_set_functional(nsub,nses,'ref',fname);
                 end
                 %CONN_x.Setup.nscans{nsub}{nses}=nV;

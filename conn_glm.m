@@ -71,7 +71,20 @@ else                                        % new syntax (X,Y,C,M, D,opt,dop)
 end
 BBDEFAULT='BB_RAO';         % default collapse_all procedure is Rao (BB_RAO, BB_BARTLETT, BB_SATTERTHWAITE, BB_SPHERICITY)
 FIXDFSATTERTHWAITE=true;    % Satterthwaite procedure returns modified F statistic & original dof values (set to false to return original F statistic & modified dof values)
-if ~isempty(opt),switch(lower(opt)),case {'collapse_none','aa','t'},opt='AA';case {'collapse_outcome','collapse_outcomes','ab','f','frow'},opt='AB';case {'collapse_predictor','collapse_predictors','ba','fcol'},opt='BA';case {'collapse_all','bb'},opt='BB';case {'collapse_all_rao','bb_rao'},opt='BB_RAO';case {'chi2','collapse_all_bartlett','bb_bartlett'},opt='BB_BARTLETT';case {'collapse_all_satterthwaite','bb_satterthwaite'},opt='BB_SATTERTHWAITE';case {'collapse_all_satterthwaite_orig','bb_satterthwaite_orig'},opt='BB_SATTERTHWAITE';FIXDFSATTERTHWAITE=false;case {'collapse_all_sphericity','bb_sphericity'},opt='BB_SPHERICITY';otherwise,error(['Unknown option ',opt]); end; end
+if ~isempty(opt),
+    switch(lower(opt)),
+        case {'collapse_none','aa','t'},opt='AA';
+        case {'collapse_outcome','collapse_outcomes','ab','f','frow'},opt='AB';
+        case {'collapse_predictor','collapse_predictors','ba','fcol'},opt='BA';
+        case {'collapse_all','bb'},opt='BB';
+        case {'collapse_all_rao','bb_rao'},opt='BB_RAO';
+        case {'chi2','collapse_all_bartlett','bb_bartlett'},opt='BB_BARTLETT';
+        case {'collapse_all_satterthwaite','bb_satterthwaite'},opt='BB_SATTERTHWAITE';
+        case {'collapse_all_satterthwaite_orig','bb_satterthwaite_orig'},opt='BB_SATTERTHWAITE';FIXDFSATTERTHWAITE=false;
+        case {'collapse_all_sphericity','bb_sphericity'},opt='BB_SPHERICITY';
+        otherwise,error(['Unknown option ',opt]); 
+    end
+end
 
 Nx=rank(X);
 dofe=N1-Nx;
