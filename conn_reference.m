@@ -574,7 +574,7 @@ for nline=1:numel(line)
             switch(key)
                 case '[SPMVERSION]', keyout=spm('ver');
                 case '[SPMFULLVERSION]', keyout=spm('version');
-                case '[SPMRELEASE]', keyout=regexprep(spm('version'),'\D+(\d+)\s*\((.*?)\)','$1.$2');
+                case '[SPMRELEASE]', keyout=regexprep(spm('version'),'\D+(\d+)\s*\((.*?)\)','$1.$2'); try, if str2double(regexprep(spm('ver'),'\D',''))>=25, keyout=regexprep(spm('version'),'\D+(\d+)\s*\((.*?)\)','$2'); end; end
                 case '[CONNVERSION]', keyout=conn_version;
                 case '[CONNFULLVERSION]', keyout=sprintf('CONN (%s)',conn_version);
                 case '[CONNRELEASE]', keyout=conn_version;

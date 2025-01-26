@@ -129,7 +129,7 @@ steps_names={'<HTML><b>default preprocessing pipeline</b> for volume-based analy
     'functional Load functional data from "mni-space functional data" dataset', ...
     'functional Load functional data from "surface-space functional data" dataset', ...
     'functional Load functional data from "smoothed functional data" dataset', ...
-    'functional Masked smoothing (spatial convolution with Gaussian kernel restricted to voxels within a custom mask)', ...
+    'functional Smoothing within custom mask (spatial convolution with Gaussian kernel restricted to voxels within a custom mask)', ...
     'functional Resampling of functional data within the cortical surface (converts volume- to surface- level data using FreeSurfer subject-specific surfaces)', ...
     'functional Smoothing of surface-level functional data (spatial diffusion on surface tessellation)', ...
     'functional Susceptibility distortion correction using voxel-displacement maps (VDM)', ...
@@ -246,6 +246,7 @@ mask_names_func={};
 mask_inclusive_func=1;
 mask_names_anat={};
 mask_inclusive_anat=1;
+masked_smoothing_preserveboundary=false;
 reorient=[];
 respatialdef=[];
 coregtomean=1;
@@ -388,6 +389,8 @@ for n1=1:2:numel(options)-1,
             mask_names_anat=options{n1+1};
         case 'mask_inclusive_anat',
             mask_inclusive_anat=options{n1+1};
+        case 'masked_smoothing_preserveboundary',
+            masked_smoothing_preserveboundary=options{n1+1};
         case 'removescans',
             removescans=options{n1+1};
         case 'applytofunctional',
@@ -535,7 +538,7 @@ if ~nargin||isempty(STEPS)||dogui,
     else tstr{tidx}=sprintf('<HTML><b>%s</b></HTML>',tstr{tidx});
     end
     toptions=[{'local processing (run on this computer)' 'queue/script it (save as scripts to be run later)'} tstr(tvalid)];
-    if CONN_gui.isremote
+    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote
         info=conn_remotely('info');
         if isfield(info,'host')&&~isempty(info.host), tnameserver=info.host;
         elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
@@ -717,11 +720,11 @@ if any(ismember('functional_roiextract',lSTEPS))
     end
 end
 
-if any(ismember({'functional_mask','functional_smooth_masked'},lSTEPS))
+if any(ismember({'functional_mask'},lSTEPS))
     if isempty(mask_names_func)||dogui
         temp_mask_names_func=reshape(CONN_x.Setup.rois.names(1:end-1),1,[]);
         temp_mask_names_func0=reshape([temp_mask_names_func; temp_mask_names_func],1,[]);
-        temp_mask_names_func1=reshape([cellfun(@(x)[x ' (inclusive mask; keep only voxels within this ROI)'],temp_mask_names_func,'uni',0); cellfun(@(x)[x ' (exclusive mask; exclude only voxels within this ROI)'], temp_mask_names_func,'uni',0)],1,[]);
+        temp_mask_names_func1=reshape([cellfun(@(x)[x ' (inclusive mask; keep only voxels within this ROI)'],temp_mask_names_func,'uni',0); cellfun(@(x)[x ' (exclusive mask; exclude all voxels within this ROI)'], temp_mask_names_func,'uni',0)],1,[]);
         if isempty(mask_names_func),
             answ=false(size(temp_mask_names_func0));
         else
@@ -759,7 +762,7 @@ end
 if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     thfig=figure('units','norm','position',[.4,.4,.35,.3],'color',1*[1 1 1],'name','VDM create settings','numbertitle','off','menubar','none');
     ht1=uicontrol('style','popupmenu','units','norm','position',[.1,.85,.8,.1],'string',arrayfun(@(n)sprintf('Fieldmap location: secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines location of available fieldmap-sequence files');
-    ht2=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',{'Fieldmap type: automatically determine','Fieldmap type: Magnitude,Phasediff files','Fieldmap type: Real1,Imag1,Real2,Imag2 files','Fieldmap type: Pre-computed fieldmap file (Hz)'},'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines type of available fieldmap-sequence files');
+    ht2=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',{'Fieldmap type: automatically determine','Fieldmap type: Magnitude,Phasediff files (double-echo sequences)','Fieldmap type: Real1,Imag1,Real2,Imag2 files (double-echo sequences)','Fieldmap type: Pre-computed fieldmap file (Hz) (fieldmap sequence)','Fieldmap type: SamePE,OppositePE files (opposite phase-encoding sequences)'},'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines type of available fieldmap-sequence files');
     ht3=uicontrol('style','checkbox','units','norm','position',[.1,.64,.8,.1],'string','Read double-echo timing from BIDS / .json files','value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','use information in .json sidecar files to estimate EchoTime and EPI Total Readout Time values');
     ht4=[];ht5=[];ht6=[];
     ht4a=uicontrol('style','text','units','norm','position',[.1,.5,.6,.1],'string','Fieldmap''s Short Echo Time (in ms)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
@@ -780,12 +783,12 @@ if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     if isempty(vdm_fmap), vdm_fmap=1; end
     set(ht1,'value',vdm_fmap);
     if isempty(vdm_type), set(ht2,'value',1);
-    else set(ht2,'value',1+vdm_type); set([ht4 ht4a ht5 ht5a],'visible',onoff{1+(get(ht2,'value')==4)});
+    else set(ht2,'value',1+vdm_type); set([ht4 ht4a ht5 ht5a],'visible',onoff{1+(get(ht2,'value')>=4)});
     end
     if isempty(vdm_et1)&&isempty(vdm_et2)&&isempty(vdm_ert)&&isempty(vdm_blip), set(ht3,'value',1);
     else set(ht3,'value',0); set([ht4 ht4a ht5 ht5a ht6 ht6a ht6 ht6a ht7 ht7a],'enable','on');
     end
-    set(ht2,'userdata',[],'callback',@(varargin)set([ht4 ht4a ht5 ht5a],'visible',onoff{1+(get(ht2,'value')==4)}));
+    set(ht2,'userdata',[],'callback',@(varargin)set([ht4 ht4a ht5 ht5a],'visible',onoff{1+(get(ht2,'value')>=4)}));
     set(ht3,'userdata',[],'callback',@(varargin)set([ht4 ht4a ht5 ht5a ht6 ht6a ht7 ht7a],'enable',onoff{1+get(ht3,'value')}));
     uiwait(thfig);
     if ~ishandle(thfig), return; end
@@ -997,12 +1000,70 @@ if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_pres
     drawnow;
 end
 
-if any(ismember('functional_smooth',lSTEPS))||any(ismember('functional_smooth_masked',lSTEPS))
+if any(ismember('functional_smooth',lSTEPS))
     if isempty(fwhm)||dogui
         if isempty(fwhm), fwhm=8; end
         fwhm=conn_menu_inputdlg('Enter smoothing kernel FWHM (in mm)','conn_setup_preproc',1,{num2str(fwhm)});
         if isempty(fwhm), return; end
         fwhm=str2num(fwhm{1});
+    end
+end
+
+if any(ismember('functional_smooth_masked',lSTEPS))
+    % if isempty(fwhm)||dogui
+    %     if isempty(fwhm), fwhm=8; end
+    %     fwhm=conn_menu_inputdlg('Enter smoothing kernel FWHM (in mm)','conn_setup_preproc',1,{num2str(fwhm)});
+    %     if isempty(fwhm), return; end
+    %     fwhm=str2num(fwhm{1});
+    % end
+    % if isempty(mask_names_func)||dogui
+    %     temp_mask_names_func=reshape(CONN_x.Setup.rois.names(1:end-1),1,[]);
+    %     temp_mask_names_func0=reshape([temp_mask_names_func; temp_mask_names_func],1,[]);
+    %     temp_mask_names_func1=reshape([cellfun(@(x)[x ' (inclusive mask; keep only voxels within this ROI)'],temp_mask_names_func,'uni',0); cellfun(@(x)[x ' (exclusive mask; exclude all voxels within this ROI)'], temp_mask_names_func,'uni',0)],1,[]);
+    %     if isempty(mask_names_func),
+    %         answ=false(size(temp_mask_names_func0));
+    %     else
+    %         answ=ismember(temp_mask_names_func0,mask_names_func);
+    %     end
+    %     answ=listdlg('Promptstring','Select ROI(s) for functional masking','selectionmode','single','liststring',temp_mask_names_func1,'initialvalue',find(answ),'ListSize',[320 300]);
+    %     if numel(answ)>=1,
+    %         mask_names_func=temp_mask_names_func0(answ);
+    %         mask_inclusive_func=rem(answ,2);
+    %     else return;
+    %     end
+    % end
+    if isempty(fwhm)||isempty(mask_names_func)||isempty(mask_inclusive_func)||isempty(masked_smoothing_preserveboundary)||dogui
+        if isempty(fwhm), fwhm=8; end
+        if ~isempty(mask_names_func), idx2=find(ismember(CONN_x.Setup.rois.names(1:end-1),mask_names_func)); 
+        else idx2=[];
+        end
+        if isempty(idx2), idx2=1; end
+        if isempty(mask_inclusive_func), mask_inclusive_func=true; end
+        if isempty(masked_smoothing_preserveboundary), masked_smoothing_preserveboundary=false; end
+        if masked_smoothing_preserveboundary, idx3=3; 
+        elseif mask_inclusive_func, idx3=1;
+        else idx3=2; 
+        end
+        thfig=figure('units','norm','position',[.4,.4,.3,.2],'color',1*[1 1 1],'name','Functional masked smoothing','numbertitle','off','menubar','none');
+        uicontrol('style','text','units','norm','position',[.05,.8,.25,.10],'string','FWHM (mm):','backgroundcolor',1*[1 1 1],'horizontalalignment','left');
+        ht1=uicontrol('style','edit','units','norm','position',[.3,.8,.65,.10],'string',num2str(fwhm),'tooltipstring','Smoothing kernel FWHM (in mm)');
+        uicontrol('style','text','units','norm','position',[.05,.60,.25,.10],'string','Mask:','backgroundcolor',1*[1 1 1],'horizontalalignment','left');
+        ht2=uicontrol('style','popupmenu','units','norm','position',[.3,.60,.65,.1],'string',CONN_x.Setup.rois.names(1:end-1),'value',idx2,'backgroundcolor',1*[1 1 1]);
+        uicontrol('style','text','units','norm','position',[.05,.4,.25,.10],'string','Algorithm:','backgroundcolor',1*[1 1 1],'horizontalalignment','left');
+        algos={'Smooth only across voxels within Mask','Smooth only across voxels outside of Mask','Smooth all voxels while preserving Mask boundaries'}; 
+        ht3=uicontrol('style','popupmenu','units','norm','position',[.3,.4,.65,.1],'string',algos,'value',idx3,'backgroundcolor',1*[1 1 1]);
+        uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.20],'callback','uiresume');
+        uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.20],'callback','delete(gcbf)');
+        uiwait(thfig);
+        if ~ishandle(thfig), return; end
+        fwhm=str2num(get(ht1,'string'));
+        idx2=get(ht2,'value');
+        idx3=get(ht3,'value');
+        mask_names_func=CONN_x.Setup.rois.names(idx2);
+        masked_smoothing_preserveboundary=idx3==3;
+        mask_inclusive_func=idx3~=2;
+        delete(thfig);
+        drawnow;
     end
 end
 
@@ -1089,7 +1150,7 @@ if parallel_N>0,
         'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_overwrite',tpm_overwrite,'tpm_lesionscale',tpm_lesionscale,'tpm_lesionprobabilistic',tpm_lesionprobabilistic,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'vdm_fmap',vdm_fmap,'vdm_fmap_magnitudebeforephase',vdm_fmap_magnitudebeforephase,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
+        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_overwrite',tpm_overwrite,'tpm_lesionscale',tpm_lesionscale,'tpm_lesionprobabilistic',tpm_lesionprobabilistic,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'vdm_fmap',vdm_fmap,'vdm_fmap_magnitudebeforephase',vdm_fmap_magnitudebeforephase,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func,'masked_smoothing_preserveboundary',masked_smoothing_preserveboundary);
     if isequal(parallel_profile,find(strcmp('Null profile',conn_jobmanager('profiles')))),
         ok=0;
     elseif dogui
@@ -1109,7 +1170,7 @@ elseif conn_projectmanager('inserver'),
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_overwrite',tpm_overwrite,'tpm_lesionscale',tpm_lesionscale,'tpm_lesionprobabilistic',tpm_lesionprobabilistic,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'vdm_fmap',vdm_fmap,'vdm_fmap_magnitudebeforephase',vdm_fmap_magnitudebeforephase,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func);
+        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_overwrite',tpm_overwrite,'tpm_lesionscale',tpm_lesionscale,'tpm_lesionprobabilistic',tpm_lesionprobabilistic,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'vdm_fmap',vdm_fmap,'vdm_fmap_magnitudebeforephase',vdm_fmap_magnitudebeforephase,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func,'masked_smoothing_preserveboundary',masked_smoothing_preserveboundary);
     return;
 else
     if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log'), CONN_x.SetupPreproc.log={}; end
@@ -1119,7 +1180,7 @@ else
         'subjects',subjects,'sessions',sessions,'sets',sets,'fwhm',fwhm,'label',label,'load_label',load_label,'sliceorder',sliceorder,'sliceorder_select',sliceorder_select,'ta',ta,'unwarp',unwarp,'removescans',removescans,'applytofunctional',applytofunctional,...
         'coregtomean',coregtomean,'rtm',rtm,'rmask',rmask,'coregsource',coregsource,'reorient',reorient,'respatialdef',respatialdef,'art_thresholds',art_thresholds,'voxelsize_anat',voxelsize_anat,'voxelsize_func',voxelsize_func,'boundingbox',boundingbox,'interp',interp,'diffusionsteps',diffusionsteps,...
         'doimport',doimport,'dogui',0,'functional_template',functional_template,'structural_template',structural_template,...
-        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_overwrite',tpm_overwrite,'tpm_lesionscale',tpm_lesionscale,'tpm_lesionprobabilistic',tpm_lesionprobabilistic,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'vdm_fmap',vdm_fmap,'vdm_fmap_magnitudebeforephase',vdm_fmap_magnitudebeforephase,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func};
+        'affreg',affreg,'warpreg',warpreg,'tpm_template',tpm_template,'tpm_structlesion',tpm_structlesion,'tpm_overwrite',tpm_overwrite,'tpm_lesionscale',tpm_lesionscale,'tpm_lesionprobabilistic',tpm_lesionprobabilistic,'tpm_ngaus',tpm_ngaus,'vdm_et1',vdm_et1,'vdm_et2',vdm_et2,'vdm_ert',vdm_ert,'vdm_blip',vdm_blip,'vdm_type',vdm_type,'vdm_fmap',vdm_fmap,'vdm_fmap_magnitudebeforephase',vdm_fmap_magnitudebeforephase,'bp_filter',bp_filter,'bp_keep0',bp_keep0,'reg_names',reg_names,'reg_dimensions',reg_dimensions,'reg_deriv',reg_deriv,'reg_filter',reg_filter,'reg_detrend',reg_detrend,'reg_lag',reg_lag,'reg_lagmax',reg_lagmax,'reg_skip',reg_skip,'roi_names',roi_names,'roi_dimensions',roi_dimensions,'roi_deriv',roi_deriv,'roi_filter',roi_filter,'roi_detrend',roi_detrend,'roi_scale',roi_scale,'mask_names_anat',mask_names_anat,'mask_inclusive_anat',mask_inclusive_anat,'mask_names_func',mask_names_func,'mask_inclusive_func',mask_inclusive_func,'masked_smoothing_preserveboundary',masked_smoothing_preserveboundary};
 end
 job_id={};
 
@@ -3237,11 +3298,13 @@ for iSTEP=1:numel(STEPS)
                 this_fwhm=str2num(this_fwhm{1});
             end
             if ~iscell(mask_names_func), mask_names_func={mask_names_func}; end
-            conn_disp('fprintf','functional smoothing %smm masked (%s); inclusive = %s\n',mat2str(this_fwhm),sprintf('%s ',mask_names_func{:}),mat2str(mask_inclusive_func));
+            conn_disp('fprintf','functional smoothing %smm masked (%s); inclusive = %s; preserve boundaries = %s\n',mat2str(this_fwhm),sprintf('%s ',mask_names_func{:}),mat2str(mask_inclusive_func>0),mat2str(masked_smoothing_preserveboundary));
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
-                SVARIANT=1; % smoothing variant: 1: hard transitions (out-of-mask voxels are always unchanged); 2: smooth transitions (out-of-mask voxels are affected by nearby within-mask values)
+                if masked_smoothing_preserveboundary>0, SVARIANT=3; % smoothing algorithm: 1: hard transitions (out-of-mask voxels are not smoothed); 2: smooth transitions (out-of-mask voxels aggregate across nearby within-mask values); 3: preserve boundaries (out-of-mask voxels aggregate across nearby out-of-mask voxels); 
+                else SVARIANT=2; 
+                end
                 LAMBDA=5;
                 for nses=1:nsess
                     if ismember(nses,sessions)
@@ -3282,8 +3345,8 @@ for iSTEP=1:numel(STEPS)
                         mask=false;
                         for nmask=1:numel(vmask)
                             xyz=pinv(vmask(nmask).mat)*gridxyz;
-                            %mask=mask&reshape(spm_get_data(vmask, xyz),vol(1).dim)>0; % intersection-mask
-                            mask=mask|reshape(spm_get_data(vmask, xyz),vol(1).dim)>0;  % union-mask
+                            %mask=mask&reshape(spm_get_data(vmask, xyz),vol(1).dim)>.5; % intersection-mask
+                            mask=mask|reshape(spm_get_data(vmask, xyz),vol(1).dim)>.5;  % union-mask
                         end
                         if ~mask_inclusive_func, mask=~mask; end
                         mask=double(mask);
@@ -3295,11 +3358,17 @@ for iSTEP=1:numel(STEPS)
                             data=double(reshape(spm_get_data(vol(n),xyz),vol(1).dim));
                             sdata=zeros(size(data));
                             spm_smooth(data.*mask,sdata,[1 1 1].*this_fwhm./vox);
-                            switch(SVARIANT)
-                                case 1, volout(n)=spm_write_vol(volout(n),(1-mask).*data + mask.*sdata./max(eps,smask));
-                                case 2, volout(n)=spm_write_vol(volout(n),(sdata+data.*mask0)./max(eps,smask+mask0));
-                                case 3, volout(n)=spm_write_vol(volout(n),(sdata)./max(eps,smask));
+                            switch(SVARIANT) % in all variants: within-mask values aggregate across nearby within-mask values
+                                case 1, volout(n)=spm_write_vol(volout(n),(1-mask).*data + mask.*sdata./max(eps,smask)); % hard transitions (out-of-mask voxels are not smoothed) 
+                                case 2, volout(n)=spm_write_vol(volout(n),(sdata)./max(.05,smask));                      % smooth transitions (out-of-mask voxels aggregate across nearby within-mask values)
                                     %case 3, volout(n)=spm_write_vol(volout(n),(sdata.*smask+1/LAMBDA*data)./(smask+1/LAMBDA));
+                                case 3,                                                                                  % preserve boundaries (out-of-mask voxels aggregate across nearby out-of-mask voxels);
+                                    smaskout=zeros(size(mask));
+                                    spm_smooth(1-mask,smaskout,[1 1 1].*this_fwhm./vox);
+                                    sdataout=zeros(size(data));
+                                    spm_smooth(data.*(1-mask),sdataout,[1 1 1].*this_fwhm./vox);
+                                    volout(n)=spm_write_vol(volout(n),(1-mask).*sdataout./max(eps,smaskout) + mask.*sdata./max(eps,smask)); 
+                                case 4, volout(n)=spm_write_vol(volout(n),(sdata+data.*mask0)./max(eps,smask+mask0));
                             end
                         end
                         %voloutmask=spm_write_vol(voloutmask,mask);
@@ -3484,6 +3553,9 @@ for iSTEP=1:numel(STEPS)
                                     end
                                 else error('insufficient information for vdm creation. Skipping subject %d session %d...\n',nsubject,nses);
                                 end
+                                if isempty(VDM), outputfiles{isubject}{nses}='';
+                                else outputfiles{isubject}{nses}=char(VDM{1}.fname);
+                                end
                             elseif isequal(vdm_type,3)||(isempty(vdm_type)&&numel(fmap)==1), % FieldMap [note: needs further testing]
                                 units=conn_jsonread(fmap{1},'Units',false); 
                                 newfmap1=conn_prepend('',fmap{1},['_session',num2str(nses),'.nii']);
@@ -3546,6 +3618,9 @@ for iSTEP=1:numel(STEPS)
                                     end
                                 else error('insufficient information for vdm creation. Skipping subject %d session %d...\n',nsubject,nses);
                                 end
+                                if isempty(VDM), outputfiles{isubject}{nses}='';
+                                else outputfiles{isubject}{nses}=char(VDM{1}.fname);
+                                end
                             elseif isequal(vdm_type,2)||(isempty(vdm_type)&&numel(fmap)==4), % Real1+Imag1+Real2+Imag2 [note: work in progress; needs further testing]
                                 if isempty(ERT), ERT=1000*conn_jsonread(filename,'TotalReadoutTime'); end
                                 if isempty(ERT), ERT=1000*conn_jsonread(filename,'EstimatedTotalReadoutTime'); end
@@ -3586,11 +3661,19 @@ for iSTEP=1:numel(STEPS)
                                     end
                                 else error('insufficient information for vdm creation. Skipping subject %d session %d...\n',nsubject,nses);
                                 end
+                                if isempty(VDM), outputfiles{isubject}{nses}='';
+                                else outputfiles{isubject}{nses}=char(VDM{1}.fname);
+                                end
+                            elseif isequal(vdm_type,4) % SamePhaseEncodingDirection+OppositePhaseEncodingDirection [note: work in progress; needs further testing]
+                                %conn_disp('fprintf','Creating vdm file for subject %d session %d...\n',nsubject,nses);
+                                %conn_disp('fprintf','   Same PhaseEncoding direction as functional: %s\n   Opposite PhaseEncoding direction of functional: %s\n',fmap{1},fmap{2});
+                                matlabbatch{end+1}.spm.tools.spatial.scope.vol1=fmap(1);
+                                matlabbatch{end}.spm.tools.spatial.scope.vol2=fmap(2);
+                                matlabbatch{end}.spm.tools.spatial.scope.prefix='vdm5_';
+                                matlabbatch{end}.spm.tools.spatial.scope.outdir=fileparts(matlabbatch{end}.spm.tools.spatial.scope.vol1{1});
+                                outputfiles{isubject}{nses}=conn_prepend('vdm5_',regexprep(matlabbatch{end}.spm.tools.spatial.scope.vol1{1},',\d+$',''));
                             else error('type of fieldmap sequence files could not be determined from number of available files (%d) in dataset %s for subject %d session %d',numel(fmap),mat2str(vdm_fmap),nsubject,nses);
                             end
-                        end
-                        if isempty(VDM), outputfiles{isubject}{nses}='';
-                        else outputfiles{isubject}{nses}=char(VDM{1}.fname);
                         end
                     end
                 end
@@ -3636,7 +3719,7 @@ for iSTEP=1:numel(STEPS)
             for n=1:numel(matlabbatch)
                 conn_art('sess_file',matlabbatch{n}.art);
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_sliceintensity','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centerruns','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','structural_label','structural_label_as_original', 'structural_label_as_mnispace', 'structural_load','structural_load_from_original', 'structural_load_from_mnispace', 'functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_sliceintensity','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centerruns','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed','structural_label','structural_label_as_original', 'structural_label_as_mnispace', 'structural_load','structural_load_from_original', 'structural_load_from_mnispace', 'functional_surface_smooth','functional_surface_resample'}))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');
             try, spm_get_defaults('mat.format','-v7.3'); end
@@ -3685,7 +3768,7 @@ for iSTEP=1:numel(STEPS)
                     end
                 end
             end
-        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_sliceintensity','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centerruns','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed',    'structural_label','structural_label_as_original', 'structural_label_as_mnispace', 'structural_load','structural_load_from_original', 'structural_load_from_mnispace', 'functional_surface_smooth','functional_surface_resample','functional_vdm_create'}))
+        elseif any(strcmpi(regexprep(lower(STEP),'^run_|^update_|^interactive_',''),{'functional_removescans','functional_bandpass','functional_regression','functional_sliceintensity','functional_roiextract','functional_mask','structural_mask','functional_manualorient','structural_manualorient','functional_center','functional_centerruns','functional_centertostruct','structural_center','functional_motionmask','functional_label','functional_label_as_original', 'functional_label_as_subjectspace', 'functional_label_as_realigned', 'functional_label_as_mnispace', 'functional_label_as_surfacespace', 'functional_label_as_smoothed','functional_load','functional_load_from_original', 'functional_load_from_subjectspace', 'functional_load_from_realigned', 'functional_load_from_mnispace', 'functional_load_from_surfacespace', 'functional_load_from_smoothed',    'structural_label','structural_label_as_original', 'structural_label_as_mnispace', 'structural_load','structural_load_from_original', 'structural_load_from_mnispace', 'functional_surface_smooth','functional_surface_resample'}))
         elseif strncmp(lower(STEP),'update_',numel('update_'))
         elseif ~isempty(matlabbatch)
             spm_jobman('initcfg');

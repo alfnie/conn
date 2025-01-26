@@ -18,7 +18,7 @@ if nargin<7, callback2=''; end
 if nargin<8, callback3=''; end
 if ~ischar(type), [type,position,title]=deal(title,get(type,'userdata'),get(type,'value')); end
 if ~CONN_gui.tooltips, tooltipstring=''; end
-titleopts={'fontname',fname,'fontangle','normal','fontweight','bold','foregroundcolor',CONN_gui.fontcolorA,'fontsize',9+CONN_gui.font_offset};
+titleopts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA,'fontsize',10+CONN_gui.font_offset};
 titleopts2=titleopts;titleopts2(7:8)={'color',CONN_gui.fontcolorA};
 contropts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset};
 contropts2=contropts;contropts2(7:8)={'color',CONN_gui.fontcolorA};
@@ -519,7 +519,7 @@ switch(lower(type)),
                 h2=uicontrol('style','frame','units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig);
                 h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
                 if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
-                if strcmpi(type,'frame'), set(h2,'fontsize',14+CONN_gui.font_offset,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
+                if strcmpi(type,'frame'), set(h2,'fontsize',15+CONN_gui.font_offset,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
                 else set(h2,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
                 end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
             else

@@ -108,7 +108,7 @@ if fulltype,
     set(ht2,'max',2,'value',i);
     ht5=conn_menu('textedit2',[fs0 0 0]-[0 .15 0 0]+[fs fs].*[.02,0,.96,.10],'Statistics','','Effect size and statistics for selected second-level analysis');
 else
-    fs0=[.02 .325];
+    fs0=[.02 .335];
     fs=[.585 .505];
     fs0b=[fs0(1)+fs(1)+.05 fs0(2)];
     fsb=[1-fs(1)-fs0(1)-2*.05 fs(2)];

@@ -599,7 +599,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'Spatial components','Temporal components','Summary'},...
 									'help',{'Define/explore second-level analyses of dyn-ICA spatial components (circuits)','Define/explore second-level analyses of dyn_ICA temporal components (connectivity-modulation timeseries)','Summary display of dyn-ICA analyses'},...
                                     'order','horizontal',...
-									'position',[.0,.0,3*.10,.045],...
+									'position',[.021, .935-1*.035,3*.10,.035],...
 									'state',[1,0,0],...
 									'value',1,...
                                     'toggle',1,...
@@ -611,7 +611,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'Spatial components','Temporal components','Summary'},...
 									'help',{'Define/explore second-level analyses of ICA spatial components (networks)','Define/explore second-level analyses of ICA temporal components (network timeseries)','Summary display of Independent Component analyses'},...
                                     'order','horizontal',...
-									'position',[.0,.0,3*.10,.045],...
+									'position',[.021, .935-1*.035,3*.10,.035],...
 									'state',[1,0,0],...
 									'value',1,...
                                     'toggle',1,...
@@ -623,7 +623,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'Group-analyses','Summary'},...
 									'help',{'Define/explore second-level analyses of multivariate connectivity patterns','Summary display of fc-MVPA components'},...
                                     'order','horizontal',...
-									'position',[.0,.0,2*.15,.045],...
+									'position',[.021, .935-1*.035,2*.10,.035],...%[.0,.0,2*.15,.045],...
 									'state',[1,0],...
 									'value',1,...
                                     'toggle',1,...
@@ -818,7 +818,7 @@ else
                     'secondarydataset',[struct('functionals_type',2,'functionals_explicit',{{}},'functionals_rule',{{}},'label','unsmoothed functional data'),struct('functionals_type',4,'functionals_explicit',{{}},'functionals_rule',{{}},'label','FMAP'),struct('functionals_type',4,'functionals_explicit',{{}},'functionals_rule',{{}},'label','VDM'),struct('functionals_type',4,'functionals_explicit',{{}},'functionals_rule',{{}},'label','TPM')],...
                     'unwarp_functional',{{}},...
                     'coregsource_functional',{{}},...
-                    'erosion',     struct('binary_threshold',[.5 .5 .5],'erosion_steps',[0,1,1],'erosion_neighb',[1 1 1],'binary_threshold_type',[1 1 1],'exclude_grey_matter',[nan nan nan]),...
+                    'erosion',     struct('binary_threshold',[.1 .5 .5],'erosion_steps',[0,1,1],'erosion_neighb',[1 1 1],'binary_threshold_type',[1 1 1],'exclude_grey_matter',[nan nan nan]),...
                     'outputfiles',[0,1,0,0,0,0]),...
                     'Preproc',struct(...
                     'variables',   struct('names',{{}},'types',{{}},'power',{{}},'deriv',{{}},'dimensions',{{}}),...
@@ -2305,7 +2305,8 @@ else
                                 if ~nset, bidsname='func';
                                 else      bidsname=sprintf('dataset%dfunc',nset);
                                 end
-								if size(filename,1)==nfields, 
+								if size(filename,1)>0&&rem(size(filename,1),nfields)==0, 
+                                    fileblock=size(filename,1)/nfields;
                                     firstallsubjects=false;
                                     if numel(nsessall)>1&&numel(nsubs)>1
                                         opts={sprintf('First all subjects for session %d, followed by all subjects for session %d, etc.',nsessall(1),nsessall(2)),...
@@ -2323,14 +2324,14 @@ else
                                                     nsub=nsubs(n1);
                                                     n0=n0+1;
                                                     if localcopy, 
-                                                        [nill,nill,nV]=conn_importvol2bids(deblank(filename(n0,:)),nsub,nses,bidsname);
+                                                        [nill,nill,nV]=conn_importvol2bids(deblank(filename((n0-1)*fileblock+(1:fileblock),:)),nsub,nses,bidsname);
                                                         %if ~nset, CONN_x.Setup.nscans{nsub}{nses}=nV; end
                                                     elseif ~nset, 
-                                                        [CONN_x.Setup.functional{nsub}{nses},nV]=conn_file(deblank(filename(n0,:)));
+                                                        [CONN_x.Setup.functional{nsub}{nses},nV]=conn_file(deblank(filename((n0-1)*fileblock+(1:fileblock),:)));
                                                         CONN_x.Setup.nscans{nsub}{nses}=nV;
                                                     else
                                                         %CONN_x.Setup.secondarydataset(nset).functionals_type=4;
-                                                        [CONN_x.Setup.secondarydataset(nset).functionals_explicit{nsub}{nses},nV]=conn_file(deblank(filename(n0,:)));
+                                                        [CONN_x.Setup.secondarydataset(nset).functionals_explicit{nsub}{nses},nV]=conn_file(deblank(filename((n0-1)*fileblock+(1:fileblock),:)));
                                                     end
                                                 end
                                             end
@@ -2341,14 +2342,14 @@ else
                                             for nses=intersect(nsessall,1:nsessmax(n1))
                                                 n0=n0+1;
                                                 if localcopy,
-                                                    [nill,nill,nV]=conn_importvol2bids(deblank(filename(n0,:)),nsub,nses,bidsname);
+                                                    [nill,nill,nV]=conn_importvol2bids(deblank(filename((n0-1)*fileblock+(1:fileblock),:)),nsub,nses,bidsname);
                                                     %if ~nset, CONN_x.Setup.nscans{nsub}{nses}=nV; end
                                                 elseif ~nset,
-                                                    [CONN_x.Setup.functional{nsub}{nses},nV]=conn_file(deblank(filename(n0,:)));
+                                                    [CONN_x.Setup.functional{nsub}{nses},nV]=conn_file(deblank(filename((n0-1)*fileblock+(1:fileblock),:)));
                                                     CONN_x.Setup.nscans{nsub}{nses}=nV;
                                                 else
                                                     %CONN_x.Setup.secondarydataset(nset).functionals_type=4;
-                                                    [CONN_x.Setup.secondarydataset(nset).functionals_explicit{nsub}{nses},nV]=conn_file(deblank(filename(n0,:)));
+                                                    [CONN_x.Setup.secondarydataset(nset).functionals_explicit{nsub}{nses},nV]=conn_file(deblank(filename((n0-1)*fileblock+(1:fileblock),:)));
                                                 end
                                             end
                                         end
@@ -2433,7 +2434,7 @@ else
                                         newidx=cumsum(~ismember(1:numel(CONN_x.Setup.secondarydataset),nset));
                                         CONN_x.Setup.rois.unsmoothedvolumes(CONN_x.Setup.rois.unsmoothedvolumes>0)=newidx(CONN_x.Setup.rois.unsmoothedvolumes(CONN_x.Setup.rois.unsmoothedvolumes>0));
                                         if ~isempty(strmatch('vdm',lower({CONN_x.Setup.secondarydataset(nset).label}),'exact')), CONN_x.Setup.unwarp_functional={}; end          % note: when deleting 'vdm' secondary dataset keep unwarp_functional field consistent
-                                        if ~isempty(strmatch('ref',lower({CONN_x.Setup.secondarydataset(nset).label}),'exact')), CONN_x.Setup.coregsource_functional={}; end    % note: when deleting 'ref' secondary dataset keep coregsource_functionals field consistent
+                                        if ~isempty(strmatch('ref',lower({CONN_x.Setup.secondarydataset(nset).label}),'exact')), CONN_x.Setup.coregsource_functional={}; end    % note: when deleting 'ref' secondary dataset keep coregsource_functional field consistent
                                         CONN_x.Setup.secondarydataset=CONN_x.Setup.secondarydataset(setdiff(1:numel(CONN_x.Setup.secondarydataset),nset)); 
                                         nset=0;
                                         analysistypes=arrayfun(@(n)sprintf('%s',CONN_x.Setup.secondarydataset(n).label),1:numel(CONN_x.Setup.secondarydataset),'uni',0);
@@ -2724,7 +2725,8 @@ else
                             set(CONN_h.menus.m_setup_00{6},'visible','on','string',analysistypes,'value',CONN_x.Setup.secondarydataset(nset).functionals_type);
                             set(CONN_h.menus.m_setup_00{9},'string',CONN_x.Setup.secondarydataset(nset).label);
                             usednset=sum(CONN_x.Setup.rois.unsmoothedvolumes==nset); 
-                            if usednset>0, set(CONN_h.menus.m_setup_00{10},'visible','on','string',sprintf('(this dataset is used by %d ROIs to extract BOLD timecourses)',usednset)); %,numel(CONN_x.Setup.rois.unsmoothedvolumes)));
+                            if usednset==1, set(CONN_h.menus.m_setup_00{10},'visible','on','string','(One ROI extracts BOLD timecourses from this dataset)');
+                            elseif usednset>0, set(CONN_h.menus.m_setup_00{10},'visible','on','string',sprintf('(%d ROIs extract BOLD timecourses from this dataset)',usednset)); %,numel(CONN_x.Setup.rois.unsmoothedvolumes)));
                             else set(CONN_h.menus.m_setup_00{10},'visible','on','string','');
                             end
         					if isempty(CONN_x.Setup.secondarydataset(nset).label), set(CONN_h.menus.m_setup_00{9},'string','enter dataset label here'); uicontrol(CONN_h.menus.m_setup_00{9}); end
@@ -4423,7 +4425,8 @@ else
                                 elseif value==6 % @fun
                                     if ~ischar(CONN_x.Setup.conditions.model{nconditions(1)}{1}), fun=CONN_x.Setup.conditions.model{nconditions(1)}{1}; else fun='@(x)mean(x,1)'; end
                                     if ~ischar(fun), fun=func2str(fun); end
-                                    answ=conn_menu_inputdlg({'Enter function handle using Matlab notation (rows = input conditions)'},'',1,{fun},struct('Resize','on'));
+                                    fprintf('Function across conditions of the form Y=f(X)\n with X being a (MxN) matrix with data from M input-conditions for a subject\n and Y being a (1xN) row vector with the desired output-condition values for the same subject.\n Optionally f may have the form f(X,Cvalues,Cnames) and it will receive as additional inputs the second-level covariate values and names for this subject\n')
+                                    answ=conn_menu_inputdlg({'Function name (or explicit anonymous function definition)'},'',1,{fun},struct('Resize','on'));
                                     if numel(answ)~=1||isempty(answ{1}),return; end
                                     fun=str2func(answ{1});
                                 end
@@ -6624,7 +6627,7 @@ else
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
-				if isempty(CONN_x.Preproc.variables.names), conn_msgbox({'Not ready to start Denoising step',' ','Please complete the Setup step first','(fill any required information and press "Done" in the Setup tab)'},'',2); return; end; %conn gui_setup; return; end
+				if isempty(CONN_x.Preproc.variables.names), conn_msgbox({'Not ready yet to start Denoising step',' ','Please complete the Setup step first','(fill any required information and press "Done" in the Setup tab)'},'',2); return; end; %conn gui_setup; return; end
                 conn_menu('nullstr',' '); %{'No data','to display'});
                 if CONN_gui.isremote, conn_server('clear','all'); end
 
@@ -6669,7 +6672,7 @@ else
                 %CONN_h.menus.m_preproc_00{25}=uicontrol('style','text','units','norm','position',boffset+[.73,.03,.185,.04],'string','voxel-to-voxel dist (mm)','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset);
                 %CONN_h.menus.m_preproc_00{21}=uicontrol('style','text','units','norm','position',boffset+[.47,.08,.225,.04],'string','voxel-to-voxel r','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset);
                 ht=conn_menu('text2',boffset+[.49,.74,.195,.04],'','Distribution of connectivity values (r)');
-                set(ht,'foregroundcolor',CONN_gui.fontcolorA,'fontweight','bold');
+                set(ht,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',10+CONN_gui.font_offset);%,'fontweight','bold');
                 %CONN_h.menus.m_preproc_00{33}=conn_menu('pushbuttonblue2',boffset+[.48,.72,.215,.04],'','Distribution of connectivity values (r)','<HTML>compute and display histograms of voxel-to-voxel connectivity values for all subjects/sessions (QA_DENOISE)<br/> - note: QA_DENOISE plots will be added to you most recent Quality Assurance set <br/> - use<i> Setup.QA plots</i> to display previously generated plot(s) </HTML>','conn(''gui_preproc'',33);');
                 %hc1=uicontextmenu;uimenu(hc1,'Label','Show Histogram for all subjects/sessions','callback',@conn_displaydenoisinghistogram);set([CONN_h.menus.m_preproc_00{16}.h1, CONN_h.menus.m_preproc_00{16}.h3, CONN_h.menus.m_preproc_00{16}.h4, CONN_h.menus.m_preproc_00{16}.h5],'uicontextmenu',hc1);
                 %set([CONN_h.menus.m_preproc_00{33}],'visible','off');%,'fontweight','bold');
@@ -6985,7 +6988,7 @@ else
                 if CONN_x.Preproc.detrending>=2, confounds.types{end+1}='detrend2'; end
                 if CONN_x.Preproc.detrending>=3, confounds.types{end+1}='detrend3'; end
             end
-            if isfield(CONN_h.menus.m_preproc,'X_input')&&isequal(CONN_h.menus.m_preproc.X_input,{confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2})
+            if isfield(CONN_h.menus,'m_preproc')&&isfield(CONN_h.menus.m_preproc,'X_input')&&isequal(CONN_h.menus.m_preproc.X_input,{confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2})
                 CONN_h.menus.m_preproc.select=conn_designmatrix(confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2,{nconfounds,nview,nfilter},true);
             else
                 CONN_h.menus.m_preproc.X_input={confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2};
@@ -7616,7 +7619,7 @@ else
                 CONN_h.menus.m_analyses_surfhires=0;
                 icondition=[];isnewcondition=[];for ncondition=1:nconditions,[icondition(ncondition),isnewcondition(ncondition)]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition}); end; icondition(isnewcondition>0)=nan;
                 if any(isnewcondition),
-                    conn_msgbox({'Not ready to start first-level Analysis step',' ',sprintf('Some conditions (%s) have not been processed yet. Please re-run previous step (Denoising)',sprintf('%s ',CONN_x.Setup.conditions.names{isnewcondition>0}))},'',2);
+                    conn_msgbox({'Not ready yet to start first-level Analysis step',' ',sprintf('Some conditions (%s) have not been processed yet. Please re-run previous step (Denoising)',sprintf('%s ',CONN_x.Setup.conditions.names{isnewcondition>0}))},'',2);
                     %conn gui_preproc;
                     %return;
                 end
@@ -7651,7 +7654,7 @@ else
                     if conn_existfile(filename), 
                         CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,DOREM{2}{:}); %CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; 
                         if ~isfield(CONN_h.menus.m_analyses.X1,'names')&&conn_server('util_isremotevar',CONN_h.menus.m_analyses.X1), CONN_h.menus.m_analyses.X1.names=conn_server('run','getfield',CONN_h.menus.m_analyses.X1,'names'); end
-                    else conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); 
+                    else conn_msgbox({'Not ready yet to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); 
                     end
                 end 
                     %CONN_h.menus.m_analyses.x.data=CONN_h.menus.m_analyses.X1.data
@@ -7753,7 +7756,7 @@ else
                     
                     %conn_menu('frame',[2*.91/4,.89,.91/4,.05],'');
                     if ~isfield(CONN_x.Analysis_variables,'names')||isempty(CONN_x.Analysis_variables.names), 
-                        conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); 
+                        conn_msgbox({'Not ready yet to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); 
                         CONN_h.menus.m_analyses.isready=false;
                     else
                         CONN_h.menus.m_analyses.isready=true;
@@ -8588,7 +8591,7 @@ else
                     CONN_h.menus.m_analyses.icondition=icondition;
                     if 0,%any(CONN_x.Setup.steps(3)),%~isfield(CONN_x.Setup,'doROIonly')||~CONN_x.Setup.doROIonly,
                         filename=fullfile(filepath,['vvPC_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
-                        if ~conn_existfile(filename), conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); end; %return; end %conn gui_preproc; return; end
+                        if ~conn_existfile(filename), conn_msgbox({'Not ready yet to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); end; %return; end %conn gui_preproc; return; end
                         if 0
                             CONN_h.menus.m_analyses.Y=conn_vol(filename);
                             CONN_h.menus.m_analyses.y.slice=ceil(CONN_h.menus.m_analyses.Y.matdim.dim(3)/2);
@@ -8597,7 +8600,7 @@ else
                         end
                     end
                     if any(isnewcondition), 
-                        conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)',sprintf('Some conditions (%s) have not been processed yet',sprintf('%s ',CONN_x.Setup.conditions.names{isnewcondition>0}))},'',2); 
+                        conn_msgbox({'Not ready yet to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)',sprintf('Some conditions (%s) have not been processed yet',sprintf('%s ',CONN_x.Setup.conditions.names{isnewcondition>0}))},'',2); 
                         CONN_h.menus.m_analyses.isready=false;
                         %conn gui_preproc; 
                         %return; 
@@ -9279,8 +9282,8 @@ else
                     CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(2)=1;
                     set(CONN_h.menus.m_analyses_00{6},'string',mat2str(CONN_x.dynAnalyses(CONN_x.dynAnalysis).window));
                     %set(CONN_h.menus.m_analyses_00{12},'value',CONN_x.dynAnalyses(CONN_x.dynAnalysis).analyses);
-                    if any(~conn_existfile(fullfile(CONN_x.folders.preprocessing,arrayfun(@(n)['ROI_Subject',num2str(n,'%03d'),'_Condition',num2str(0,'%03d'),'.mat'],1:CONN_x.Setup.nsubjects,'uni',0)))), conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); return; end %conn gui_preproc; return; end
-                    %if any(arrayfun(@(n)~conn_existfile(fullfile(CONN_x.folders.preprocessing,['ROI_Subject',num2str(n,'%03d'),'_Condition',num2str(0,'%03d'),'.mat'])),1:CONN_x.Setup.nsubjects)), conn_msgbox({'Not ready to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); return; end %conn gui_preproc; return; end
+                    if any(~conn_existfile(fullfile(CONN_x.folders.preprocessing,arrayfun(@(n)['ROI_Subject',num2str(n,'%03d'),'_Condition',num2str(0,'%03d'),'.mat'],1:CONN_x.Setup.nsubjects,'uni',0)))), conn_msgbox({'Not ready yet to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); return; end %conn gui_preproc; return; end
+                    %if any(arrayfun(@(n)~conn_existfile(fullfile(CONN_x.folders.preprocessing,['ROI_Subject',num2str(n,'%03d'),'_Condition',num2str(0,'%03d'),'.mat'])),1:CONN_x.Setup.nsubjects)), conn_msgbox({'Not ready yet to start first-level Analysis step',' ','Please complete the Denoising step first','(fill any required information and press "Done" in the Denoising tab)'},'',2); return; end %conn gui_preproc; return; end
                     CONN_h.menus.m_analyses.X=[];
                     CONN_h.menus.m_analyses.select={[],[]};
                     set(CONN_h.menus.m_analyses_00{13},'string',{'<HTML>Analysis results <small>(from disk)</small></HTML>'},'value',1);
@@ -10061,13 +10064,13 @@ else
                     if ~isfield(CONN_x.Analyses,'sources'), dynanalyses=false(size(txt)); 
                     else dynanalyses=arrayfun(@(n)~isempty(CONN_x.Analyses(n).sources)&~isempty(regexp(CONN_x.Analyses(n).name,'^(.*\/|.*\\)?Dynamic factor .*\d+$')),1:numel(CONN_x.Analyses));
                     end
-                    if ~any(dynanalyses),  conn_msgbox({'Not ready to display second-level Analyses',' ','No Dynamic spatial components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2);  conn gui_results_dyn_summary; return; end %conn('gui_resultsgo',[]); return; end
+                    if ~any(dynanalyses),  conn_msgbox({'Not ready yet to display second-level Analyses',' ','No Dynamic spatial components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2);  conn gui_results_dyn_summary; return; end %conn('gui_resultsgo',[]); return; end
                     state=1; 
                     if ianalysis>numel(dynanalyses)||~dynanalyses(ianalysis), ianalysis=find(dynanalyses,1); CONN_x.Analysis=ianalysis; end
                 elseif tstate==2
                     txt=CONN_x.Setup.l2covariates.names(1:end-1);
                     dyneffects=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_\S* Dynamic')),txt)); 
-                    if ~any(dyneffects),  conn_msgbox({'Not ready to display second-level Analyses',' ','No Dynamic temporal components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2); conn gui_results_dyn_summary; return; end %conn('gui_resultsgo',[]); return; end
+                    if ~any(dyneffects),  conn_msgbox({'Not ready yet to display second-level Analyses',' ','No Dynamic temporal components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2); conn gui_results_dyn_summary; return; end %conn('gui_resultsgo',[]); return; end
                 end
                 tstate=zeros(size(conn_menumanager(CONN_h.menus.m_results_03,'state')));tstate(5)=1;
                 tstate([1 2])=tstate([2 1]); conn_menumanager(CONN_h.menus.m_results_03,'state',tstate); 
@@ -10116,7 +10119,7 @@ else
                 switch(state)
                     case 1, %if ok, conn_menumanager([CONN_h.menus.m_results_04,CONN_h.menus.m_results_04b],'on',1); end
                         %if ok, conn_menumanager([CONN_h.menus.m_results_04b],'on',1); end
-                        if stateb, conn_menumanager(CONN_h.menus.m_results_03a,'on',1); end %conn_menu('frame2border',[.0,0,.3,.045],''); end
+                        if stateb, conn_menumanager(CONN_h.menus.m_results_03a,'on',1); end %conn_menu('frame2borderl',[.021, .945-1*.035,3*.10,.015],''); end
                         dp2=.27;dp3=.05;
                     case 2, %if ok, conn_menumanager([CONN_h.menus.m_results_05],'on',1); end
                         dp2=0;dp3=.05;
@@ -10130,12 +10133,12 @@ else
                 end
                 if CONN_h.menus.m_results.usetablewhite==0, dp1=dp1+.10; end
                 if state==1,
-                    conn_menu('frame',boffset+[-.030,.34-dp1,.585,.505+dp1],'GLM analyses (2nd-level)');
+                    conn_menu('frame',boffset+[-.030,.34-dp1,.585,.50+dp1],'Group Analyses (2nd-level)');
                     conn_menu('framewhitehighlight',boffset+[-.02,.710,.565,.070],' ');
                     %conn_menu('frame2noborder',boffset+[-.035,.325,.22,.515],'');%'Second-level design');
                     conn_menu('frame2semiborder',boffset+[.570,.085,.37,.81],'');
                 elseif state==2||state==3
-                    conn_menu('frame',boffset+[-.030,.34-dp1,.585,.505+dp1],'GLM analyses (2nd-level)');
+                    conn_menu('frame',boffset+[-.030,.34-dp1,.585,.50+dp1],'Group Analyses (2nd-level)');
                     conn_menu('framewhitehighlight',boffset+[-.020,.710,.565,.070],' ');
                     %conn_menu('frame2noborder',boffset+[-.035,.325,.22,.515],'');%'Second-level design');
                     conn_menu('frame2semiborder',boffset+[.570,.085,.37,.81],'');
@@ -10155,7 +10158,7 @@ else
                     %try, txt=cellfun(@(a,b)[a b],txt,txt_ext([CONN_x.Analyses(:).type]),'uni',0); end
                     [ok1,tempanalyses]=ismember(ianalysis,CONN_h.menus.m_results.shownanalyses);
                     if ~ok1&&~isempty(CONN_h.menus.m_results.shownanalyses), ianalysis=CONN_h.menus.m_results.shownanalyses(1); CONN_x.Analysis=ianalysis; tempanalyses=1;
-                    elseif ~ok1, CONN_x.Analysis=1; conn_msgbox({'Not ready to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level ROI-to-ROI or seed-to-voxel step first','(fill any required information and press "Done" in the first-level analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; 
+                    elseif ~ok1, CONN_x.Analysis=1; conn_msgbox({'Not ready yet to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level ROI-to-ROI or seed-to-voxel step first','(fill any required information and press "Done" in the first-level analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; 
                     end
                     if DOLIST, CONN_h.menus.m_results_00{20}=[];
                     else
@@ -10172,7 +10175,7 @@ else
                         if ~isempty(icaeffects)&&isfield(CONN_x.vvAnalyses,'name')&&~isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).name)
                             icaeffects=icaeffects(strncmp([CONN_x.vvAnalyses(CONN_x.vvAnalysis).name ' '],regexprep(txt(icaeffects),'^_\S+ (ICA|PCA)\d+ ',''),numel(CONN_x.vvAnalyses(CONN_x.vvAnalysis).name)+1));
                             %if ~any(icaeffects),conn_msgbox(sprintf('No ICA temporal components computed in analysis %s',CONN_x.vvAnalyses(CONN_x.vvAnalysis).name),'',2); end
-                        elseif ~any(icaeffects),conn_msgbox({'Not ready to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level voxel-to-voxel step first','(fill any required information and press "Done" in the voxel-to-voxel analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
+                        elseif ~any(icaeffects),conn_msgbox({'Not ready yet to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level voxel-to-voxel step first','(fill any required information and press "Done" in the voxel-to-voxel analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
                         end
                     end
                     if isfield(CONN_x.vvAnalyses,'name')&&~isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).name)
@@ -10182,7 +10185,7 @@ else
                         end
                         [ok1,tempanalyses]=ismember(CONN_x.vvAnalysis,CONN_h.menus.m_results.shownanalyses);
                         if ~ok1&&~isempty(CONN_h.menus.m_results.shownanalyses), CONN_x.vvAnalysis=CONN_h.menus.m_results.shownanalyses(1); tempanalyses=1;
-                        elseif ~ok1, CONN_x.vvAnalysis=1; conn_msgbox({'Not ready to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level voxel-to-voxel step first','(fill any required information and press "Done" in the voxel-to-voxel analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
+                        elseif ~ok1, CONN_x.vvAnalysis=1; conn_msgbox({'Not ready yet to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level voxel-to-voxel step first','(fill any required information and press "Done" in the voxel-to-voxel analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
                         end
                         if stateb==3, 
                             %CONN_h.menus.m_results_00{20}=conn_menu('popup2bigblue',boffset+[.10,.865,.325,.04],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
@@ -10205,14 +10208,14 @@ else
                         if ~isempty(dyneffects)&&isfield(CONN_x.dynAnalyses,'name')&&~isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
                             dyneffects=dyneffects(cellfun(@(x)~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),txt(dyneffects)));
                         end
-                        if ~any(dyneffects),conn_msgbox({'Not ready to display second-level Analyses',' ','No Dynamic temporal components computed. Re-run Dynamic FC analyses in ''first-level Analyses->Dynamic ICA'' to continue','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; end
+                        if ~any(dyneffects),conn_msgbox({'Not ready yet to display second-level Analyses',' ','No Dynamic temporal components computed. Re-run Dynamic FC analyses in ''first-level Analyses->Dynamic ICA'' to continue','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; end
                     end
                     if isfield(CONN_x.dynAnalyses,'name')&&~isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
                         txt={CONN_x.dynAnalyses(:).name};
                         CONN_h.menus.m_results.shownanalyses=1:numel(txt);
                         [ok1,tempanalyses]=ismember(CONN_x.dynAnalysis,CONN_h.menus.m_results.shownanalyses);
                         if ~ok1&&~isempty(CONN_h.menus.m_results.shownanalyses), CONN_x.dynAnalysis=CONN_h.menus.m_results.shownanalyses(1); tempanalyses=1;
-                        elseif ~ok1, CONN_x.dynAnalysis=1; conn_msgbox({'Not ready to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level step first','(fill any required information and press "Done" in the dyn-ICA analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
+                        elseif ~ok1, CONN_x.dynAnalysis=1; conn_msgbox({'Not ready yet to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level step first','(fill any required information and press "Done" in the dyn-ICA analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
                         end
                         if stateb==3, 
                             %CONN_h.menus.m_results_00{20}=conn_menu('popup2big',boffset+[.10,.90,.425,.04],'',txt(CONN_h.menus.m_results.shownanalyses),'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
@@ -10233,7 +10236,7 @@ else
                         end
                         [ok1,tempanalyses]=ismember(CONN_x.vvAnalysis,CONN_h.menus.m_results.shownanalyses);
                         if ~ok1&&~isempty(CONN_h.menus.m_results.shownanalyses), CONN_x.vvAnalysis=CONN_h.menus.m_results.shownanalyses(1); tempanalyses=1;
-                        elseif ~ok1, CONN_x.vvAnalysis=1; conn_msgbox({'Not ready to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level voxel-to-voxel step first','(fill any required information and press "Done" in the voxel-to-voxel analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
+                        elseif ~ok1, CONN_x.vvAnalysis=1; conn_msgbox({'Not ready yet to display second-level Analyses',' ','No matching analysis computed','Please complete the first-level voxel-to-voxel step first','(fill any required information and press "Done" in the voxel-to-voxel analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return;
                         end
 %                         if stateb==2, 
 %                         elseif stateb==1||stateb==0, 
@@ -10248,16 +10251,16 @@ else
 %                         end
                     end
                 end
-				if (state==1||state==2) && (~isfield(CONN_x.Analyses(ianalysis),'sources')||isempty(CONN_x.Analyses(ianalysis).sources)), conn_msgbox({'Not ready to display second-level Analyses',' ','Please complete the first-level ROI-to-ROI or seed-to-voxel step first','(fill any required information and press "Done" in the first-level analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; end %conn gui_analyses; return; end
-				if (state==3||state==4||state==6) && (~isfield(CONN_x.vvAnalyses(CONN_x.vvAnalysis),'measures')||isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures)), conn_msgbox({'Not ready to display second-level Analyses',' ','Please complete the first-level voxel-to-voxel step first','(fill any required information and press "Done" in the first-level analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; end %conn gui_analyses; return; end
-				if (state==5) && (~isfield(CONN_x.dynAnalyses(CONN_x.dynAnalysis),'sources')||isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).sources)), conn_msgbox({'Not ready to display second-level Analyses',' ','Please complete the first-level dyn-ICA step first','(fill any required information and press "Done" in the first-level analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; end %conn gui_analyses; return; end
+				if (state==1||state==2) && (~isfield(CONN_x.Analyses(ianalysis),'sources')||isempty(CONN_x.Analyses(ianalysis).sources)), conn_msgbox({'Not ready yet to display second-level Analyses',' ','Please complete the first-level ROI-to-ROI or seed-to-voxel step first','(fill any required information and press "Done" in the first-level analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; end %conn gui_analyses; return; end
+				if (state==3||state==4||state==6) && (~isfield(CONN_x.vvAnalyses(CONN_x.vvAnalysis),'measures')||isempty(CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures)), conn_msgbox({'Not ready yet to display second-level Analyses',' ','Please complete the first-level voxel-to-voxel step first','(fill any required information and press "Done" in the first-level analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; end %conn gui_analyses; return; end
+				if (state==5) && (~isfield(CONN_x.dynAnalyses(CONN_x.dynAnalysis),'sources')||isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).sources)), conn_msgbox({'Not ready yet to display second-level Analyses',' ','Please complete the first-level dyn-ICA step first','(fill any required information and press "Done" in the first-level analysis tab)','or selet a different first-level analysis to continue'},'',2); conn('gui_resultsgo',[]); return; end %conn gui_analyses; return; end
                 if ~isfield(CONN_x,'Results')||~isfield(CONN_x.Results,'xX'), CONN_x.Results.xX=[]; end
 
                 if state==4
                     if stateb==3
                         conn_icaexplore;
-                        conn_menu('framewhitehighlight',boffset+[.005,.835,.405,.03],'');
-                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[.005,.83,.405,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
+                        conn_menu('framewhitehighlight',boffset+[-.02+.005,.835,.425,.03],'');
+                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.02+.005,.83,.425,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         return;
                     elseif stateb==2
@@ -10278,8 +10281,8 @@ else
                 elseif state==5
                     if stateb==3
                         conn_dynexplore;
-                        conn_menu('framewhitehighlight',boffset+[.005,.835,.405,.03],'');
-                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[.005,.83,.405,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
+                        conn_menu('framewhitehighlight',boffset+[-.02+.005,.835,.425,.03],'');
+                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.02+.005,.83,.425,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         return;
                     elseif stateb==2
@@ -10295,8 +10298,8 @@ else
                 elseif state==6
                     if statec==2
                         conn_mvpaexplore;
-                        conn_menu('framewhitehighlight',boffset+[.005,.835,.405,.03],'');
-                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[.005,.83,.405,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
+                        conn_menu('framewhitehighlight',boffset+[-.02+.005,.835,.585,.03],'');
+                        CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.02+.005,.83,.585,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         return;
                     end
@@ -10381,8 +10384,8 @@ else
                         conn_menumanager('onregion',CONN_h.menus.m_results_00{15},1,boffset+pos+[0 0 .015 0]);
                         %CONN_h.menus.m_results_00{15}=uicontrol('style','slider','units','norm','position',boffset+[pos(1)+pos(3)-0*.01,pos(2),.015,pos(4)],'callback','conn(''gui_results'',15);','backgroundcolor',CONN_gui.backgroundcolorA);
                         %strstr3={'Preview data (display individual effects in GLM model)','Preview results (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
-                        strstr3={'<HTML>GLM analysis results <small>(from disk)</small></HTML>','<HTML>GLM analysis results <small>(preview)</small></HTML>','<HTML>GLM parameters <small>(preview)</small></HTML>'};
-                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.07,pos(2)+pos(4)+.04,.25,.045],'',strstr3,'<HTML>Select <i>''GLM analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire brain)<br/>Select <i>''GLM analysis results (preview)''</i> to display a preview of the results of this group-level analysis for the selected slice, adapting in real time to the options selected in the ''GLM analyses (2nd-level)'' tab<br/>Select <i>''GLM parameters (preview)''</i> to display a preview of the results of this group-level analysis GLM regressors coefficients for the selected slice, adapting in real time to the options selected in the ''GLM analyses (2nd-level)'' tab</HTML>','conn(''gui_results'',32);');
+                        strstr3={'<HTML>Group analysis results <small>(from disk)</small></HTML>','<HTML>Group analysis results <small>(preview)</small></HTML>','<HTML>GLM parameters <small>(preview)</small></HTML>'};
+                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.07,pos(2)+pos(4)+.04,.25,.045],'',strstr3,'<HTML>Select <i>''Group analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire brain)<br/>Select <i>''Group analysis results (preview)''</i> to display a preview of the results of this group-level analysis for the selected slice, adapting in real time to the options selected in the ''Group analyses (2nd-level)'' tab<br/>Select <i>''GLM parameters (preview)''</i> to display a preview of the results of this group-level analysis GLM regressors coefficients for the selected slice, adapting in real time to the options selected in the ''Group analyses (2nd-level)'' tab</HTML>','conn(''gui_results'',32);');
                         if ~isfield(CONN_h.menus.m_results,'displayoption_voxellevel'), CONN_h.menus.m_results.displayoption_voxellevel=1; end
                         CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3),CONN_h.menus.m_results.displayoption_voxellevel));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
@@ -10434,9 +10437,9 @@ else
                         if ~isfield(CONN_x.Results.xX,'inferencelevel'), CONN_x.Results.xX.inferencelevel=.05; end
                         if ~isfield(CONN_x.Results.xX,'inferenceleveltype'), CONN_x.Results.xX.inferenceleveltype=1; end
                         if ~isfield(CONN_x.Results.xX,'displayrois'), CONN_x.Results.xX.displayrois=2; end
-                        strstr3={'<HTML>GLM analysis results: all ROIs <small>(from disk)</small></HTML>','<HTML>GLM analysis results: individual ROIs</HTML>'};
+                        strstr3={'<HTML>Group analysis results: all ROIs <small>(from disk)</small></HTML>','<HTML>Group analysis results: individual ROIs</HTML>'};
                         if stateb, strstr3=strstr3(1); end
-                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''GLM analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Individual connections (preview)''</i> to display a preview of the results of this group-level analysis for individual ROI-to-ROI pairs only, and adapting in real time to the options selected in the ''GLM analyses (2nd-level)'' tab</HTML>','conn(''gui_results'',32);');
+                        CONN_h.menus.m_results_00{32}=conn_menu('popup2big',boffset+[pos(1)+.10,pos(2)+pos(4)+.01,.25,.045],'',strstr3,'<HTML>Select <i>''Group analysis results (from disk)''</i> to display the results of this group-level analysis (as stored the last time this group-analysis was computed across the entire RRC matrix)<br/>Select <i>''Individual connections (preview)''</i> to display a preview of the results of this group-level analysis for individual ROI-to-ROI pairs only, and adapting in real time to the options selected in the ''Group analyses (2nd-level)'' tab</HTML>','conn(''gui_results'',32);');
                         if ~isfield(CONN_h.menus.m_results,'displayoption_roilevel'), CONN_h.menus.m_results.displayoption_roilevel=1; end
                         CONN_x.Results.xX.displayvoxels=max(1,min(numel(strstr3), CONN_h.menus.m_results.displayoption_roilevel));
                         set(CONN_h.menus.m_results_00{32},'value',CONN_x.Results.xX.displayvoxels);
@@ -10544,11 +10547,11 @@ else
                     if state==1||state==2
                         CONN_h.menus.m_results.outcomenames=CONN_x.Analyses(ianalysis).sources;
                         CONN_h.menus.m_results.shownsources=1:numel(CONN_h.menus.m_results.outcomenames);
-                        if isempty(CONN_h.menus.m_results.shownsources), conn_msgbox({'Not ready to display second-level Analyses',' ','No sources found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); end
+                        if isempty(CONN_h.menus.m_results.shownsources), conn_msgbox({'Not ready yet to display second-level Analyses',' ','No sources found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); end
                         CONN_h.menus.m_results.outcomeisource=[];
                         for n1=1:length(CONN_h.menus.m_results.outcomenames),
                             [CONN_h.menus.m_results.outcomeisource(n1),isnew]=conn_sourcenames(CONN_h.menus.m_results.outcomenames{n1},'-');
-                            if isnew&&state==2, conn_msgbox({'Not ready to display second-level Analyses',' ',sprintf('Source %s not found. Please re-run first-level analyses',CONN_h.menus.m_results.outcomenames{n1}),'or selet a different first-level analysis to continue'},'',2); return; end
+                            if isnew&&state==2, conn_msgbox({'Not ready yet to display second-level Analyses',' ',sprintf('Source %s not found. Please re-run first-level analyses',CONN_h.menus.m_results.outcomenames{n1}),'or selet a different first-level analysis to continue'},'',2); return; end
                         end
                     else
                         CONN_h.menus.m_results.outcomenames=CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures;%CONN_x.vvAnalyses(CONN_x.vvAnalysis).regressors.names;
@@ -10558,7 +10561,7 @@ else
                         else       CONN_h.menus.m_results.shownsources=1:numel(CONN_h.menus.m_results.outcomenames);
                         %else       CONN_h.menus.m_results.shownsources=find(~ismember(conn_v2v('fieldtext',CONN_h.menus.m_results.outcomenames,1),{'3','4'}));
                         end
-                        if isempty(CONN_h.menus.m_results.shownsources), conn_msgbox({'Not ready to display second-level Analyses',' ','No measures found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); end
+                        if isempty(CONN_h.menus.m_results.shownsources), conn_msgbox({'Not ready yet to display second-level Analyses',' ','No measures found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); end
                         CONN_h.menus.m_results.outcomeisource=[];for n1=1:length(CONN_h.menus.m_results.outcomenames),
                             [CONN_h.menus.m_results.outcomeisource(n1),isnew,CONN_h.menus.m_results.outcomencompsource(n1)]=conn_v2v('match_extended',CONN_h.menus.m_results.outcomenames{n1});
                             if isnew, error('Measure %s not found in global measures list. Please re-run first-level analyses',CONN_h.menus.m_results.outcomenames{n1}); end
@@ -10795,7 +10798,7 @@ else
                                 try, CONN_h.menus.m_results.Y=conn_fileutils('spm_vol',char(filename));
                                 catch,
                                     CONN_h.menus.m_results.y.data=[];
-                                    conn_msgbox({'Not ready to display second-level Analyses',' ',sprintf('Condition (%s) has not been processed yet. Please re-run previous step (First-level analyses)',sprintf('%s ',CONN_x.Setup.conditions.names{nconditions(ncondition)})),'or selet a different first-level analysis to continue'},'',2);
+                                    conn_msgbox({'Not ready yet to display second-level Analyses',' ',sprintf('Condition (%s) has not been processed yet. Please re-run previous step (First-level analyses)',sprintf('%s ',CONN_x.Setup.conditions.names{nconditions(ncondition)})),'or selet a different first-level analysis to continue'},'',2);
                                     break;
                                 end
                                 CONN_h.menus.m_results.Yall{ncondition,nsource}=CONN_h.menus.m_results.Y;
@@ -10869,10 +10872,10 @@ else
                         set(CONN_h.screen.hfig,'pointer','arrow');
                         if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim)&&~CONN_h.menus.m_results_surfhires, %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])&&~CONN_h.menus.m_results_surfhires, 
                             %strstr3={'Preview data low-res (display individual effects in GLM model)','Preview results low-res (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
-                            strstr3={'<HTML>GLM analysis results <small>(from disk)</small></HTML>','<HTML>GLM analysis results <small>(low-res preview)</small></HTML>','<HTML>GLM parameters <small>(low-res preview)</small></HTML>'};
+                            strstr3={'<HTML>Group analysis results <small>(from disk)</small></HTML>','<HTML>Group analysis results <small>(low-res preview)</small></HTML>','<HTML>GLM parameters <small>(low-res preview)</small></HTML>'};
                         else 
                             %strstr3={'Preview data (display individual effects in GLM model)','Preview results (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
-                            strstr3={'<HTML>GLM analysis results <small>(from disk)</small></HTML>','<HTML>GLM analysis results <small>(preview)</small></HTML>','<HTML>GLM parameters <small>(preview)</small></HTML>'};
+                            strstr3={'<HTML>Group analysis results <small>(from disk)</small></HTML>','<HTML>Group analysis results <small>(preview)</small></HTML>','<HTML>GLM parameters <small>(preview)</small></HTML>'};
                         end
                         set(CONN_h.menus.m_results_00{32},'string',strstr3,'value',max(1,min(numel(strstr3),CONN_x.Results.xX.displayvoxels)));
                     elseif state==2||state==3
@@ -10993,7 +10996,7 @@ else
                          end
                          modelroi=1;
 						 nconditions=get(CONN_h.menus.m_results_00{12},'value');
-                         if isempty(CONN_h.menus.m_results.shownconditions), conn_msgbox({'Not ready to display second-level Analyses',' ','No conditions found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); return; end
+                         if isempty(CONN_h.menus.m_results.shownconditions), conn_msgbox({'Not ready yet to display second-level Analyses',' ','No conditions found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); return; end
                          if isempty(nconditions)||isequal(nconditions,0), nconditions=1; set(CONN_h.menus.m_results_00{12},'value',1); end
                          nconditions=CONN_h.menus.m_results.shownconditions(nconditions);
 						 if varargin{2}==18,
@@ -11139,7 +11142,7 @@ else
                                          try, CONN_h.menus.m_results.Y=conn_fileutils('spm_vol',char(filename));
                                          catch,
                                              CONN_h.menus.m_results.y.data=[];
-                                             conn_msgbox({'Not ready to display second-level Analyses',' ',sprintf('Condition (%s) has not been processed yet. Please re-run previous step (First-level analyses)',sprintf('%s ',CONN_x.Setup.conditions.names{ncondition})),'or selet a different first-level analysis to continue'},'',2);
+                                             conn_msgbox({'Not ready yet to display second-level Analyses',' ',sprintf('Condition (%s) has not been processed yet. Please re-run previous step (First-level analyses)',sprintf('%s ',CONN_x.Setup.conditions.names{ncondition})),'or selet a different first-level analysis to continue'},'',2);
                                              break;
                                          end
                                          CONN_h.menus.m_results.Yall{ncondition,nsource}=CONN_h.menus.m_results.Y;
@@ -11467,7 +11470,7 @@ else
                         end
                         modelroi=2;
                     case {34,35,36}
-                         if isempty(CONN_h.menus.m_results.shownconditions), conn_msgbox({'Not ready to display second-level Analyses',' ','No conditions found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); return; end
+                         if isempty(CONN_h.menus.m_results.shownconditions), conn_msgbox({'Not ready yet to display second-level Analyses',' ','No conditions found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); return; end
 						 nconditions=get(CONN_h.menus.m_results_00{12},'value');
                          nconditions=CONN_h.menus.m_results.shownconditions(nconditions);
 						 isources=get(CONN_h.menus.m_results_00{13},'value');
@@ -11479,7 +11482,7 @@ else
                              CONN_h.menus.m_results.roiresults.lastselected=ntarget;
                          else
                              if isfield(CONN_h.menus.m_results,'selectedcoords')&&~isempty(CONN_h.menus.m_results.selectedcoords), ntarget=CONN_h.menus.m_results.selectedcoords;
-                             else ntarget=[]; conn_msgbox('please select target voxel in GLM analysis results preview first','',2); 
+                             else ntarget=[]; conn_msgbox('please select target voxel in Group analysis results preview first','',2); 
                              end
                          end
                          if isempty(ntarget)||isempty(isources), return; end
@@ -11746,7 +11749,7 @@ else
 			end
 			ncovariates=get(CONN_h.menus.m_results_00{11},'value');
             ncovariates=CONN_h.menus.m_results.showneffects(ncovariates);
-            if isempty(CONN_h.menus.m_results.shownconditions), conn_msgbox({'Not ready to display second-level Analyses',' ','No conditions found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); return; end
+            if isempty(CONN_h.menus.m_results.shownconditions), conn_msgbox({'Not ready yet to display second-level Analyses',' ','No conditions found. Please re-run first-level analyses','or selet a different first-level analysis to continue'},'',2); return; end
 			nconditions=get(CONN_h.menus.m_results_00{12},'value');
             nconditions=CONN_h.menus.m_results.shownconditions(nconditions);
             if isempty(CONN_h.menus.m_results.shownsources), return; end
@@ -12091,9 +12094,9 @@ else
                             
                             if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim)&&~CONN_h.menus.m_results_surfhires, %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])&&~CONN_h.menus.m_results_surfhires, 
                                 %strstr3={'Preview data low-res (display individual effects in GLM model)','Preview results low-res (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
-                                strstr3={'<HTML>GLM analysis results <small>(from disk)</small></HTML>','<HTML>GLM analysis results <small>(low-res preview)</small></HTML>','<HTML>GLM parameters <small>(low-res preview)</small></HTML>'};
+                                strstr3={'<HTML>Group analysis results <small>(from disk)</small></HTML>','<HTML>Group analysis results <small>(low-res preview)</small></HTML>','<HTML>GLM parameters <small>(low-res preview)</small></HTML>'};
                             else 
-                                strstr3={'<HTML>GLM analysis results <small>(from disk)</small></HTML>','<HTML>GLM analysis results <small>(preview)</small></HTML>','<HTML>GLM parameters <small>(preview)</small></HTML>'};
+                                strstr3={'<HTML>Group analysis results <small>(from disk)</small></HTML>','<HTML>Group analysis results <small>(preview)</small></HTML>','<HTML>GLM parameters <small>(preview)</small></HTML>'};
                                 %strstr3={'Preview data (display individual effects in GLM model)','Preview results (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
                             end
                             set(CONN_h.menus.m_results_00{32},'string',strstr3,'value',max(1,min(numel(strstr3),CONN_x.Results.xX.displayvoxels)));

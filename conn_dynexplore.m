@@ -90,18 +90,18 @@ Hscale=max(abs(H(:)));
 idxlock=[1,2,0]; 
 
 boffset=[0 0 0 0];
-conn_menu('frame2',boffset+[.03,.08,.94,.80],'');%'Component loadings');
+conn_menu('frame',boffset+[.02,.42,.46,.47],'');%'Component loadings');
 %conn_menu('frame',boffset+[.44 .46 .16 .46],'');
 poslist=boffset+[.07 .42 .40 .36];
-ht2=conn_menu('listbox2',poslist,'',names,'<HTML>Select dynamic circuits for display</HTML>',@(varargin)conn_dynexplore_update([0 0 1 0]));
+ht2=conn_menu('listbox',poslist,'',names,'<HTML>Select dynamic circuits for display</HTML>',@(varargin)conn_dynexplore_update([0 0 1 0]));
 for n=6:20, set(ht2,'string',repmat(' ',1,5*n),'fontname','monospaced','fontsize',8+CONN_gui.font_offset); if get(ht2,'extent')*[0 0 1 0]'>poslist(3), break; end; end
 ht3fieldsize=sprintf('%d',n-1);
 temp=boffset+[.07 .78 .38/5 .04];
-ht2a(1)=conn_menu('pushbutton2',temp+[0*temp(3) 0 0 0],'','circuit','Select circuit(s) for display',@(varargin)conn_dynexplore_update([0 0 0 0 1]));
-ht2a(2)=conn_menu('pushbutton2',temp+[1*temp(3) 0 0 0],'','kurtosis','Spatial kurtosis (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 2]));
-ht2a(3)=conn_menu('pushbutton2',temp+[2*temp(3) 0 0 0],'','skewness','Spatial skewness (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 3]));
-ht2a(4)=conn_menu('pushbutton2',temp+[3*temp(3) 0 0 0],'','variability','Temporal component timeseries standard deviation averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 4]));
-ht2a(5)=conn_menu('pushbutton2',temp+[4*temp(3) 0 0 0],'','frequency','Temporal component timeseries frequency (Hz) averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 5]));
+ht2a(1)=conn_menu('pushbutton',temp+[0*temp(3) 0 0 0],'','circuit','Select circuit(s) for display',@(varargin)conn_dynexplore_update([0 0 0 0 1]));
+ht2a(2)=conn_menu('pushbutton',temp+[1*temp(3) 0 0 0],'','kurtosis','Spatial kurtosis (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 2]));
+ht2a(3)=conn_menu('pushbutton',temp+[2*temp(3) 0 0 0],'','skewness','Spatial skewness (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 3]));
+ht2a(4)=conn_menu('pushbutton',temp+[3*temp(3) 0 0 0],'','variability','Temporal component timeseries standard deviation averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 4]));
+ht2a(5)=conn_menu('pushbutton',temp+[4*temp(3) 0 0 0],'','frequency','Temporal component timeseries frequency (Hz) averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 5]));
 ht1=conn_menu('listbox2',boffset+[.80 .26 .10 .08],'Subjects',arrayfun(@(n)sprintf('Subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'Select subject(s) for display',@(varargin)conn_dynexplore_update);
 ht7=conn_menu('edit2',boffset+[.78 .38 .05 .04],'','2','display threshold',@(varargin)conn_dynexplore_update([0 0 1 0 0]));
 ht7b=conn_menu('text2',boffset+[.73 .38 .05 .035],'','threshold');

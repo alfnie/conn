@@ -70,18 +70,19 @@ Si2=[];
 
 % frame
 boffset=[0 0 0 0];
-conn_menu('frame2',boffset+[.045,.08,.91,.80],'');
+conn_menu('frame',boffset+[.02,.15,.65,.74],'');
+%conn_menu('frame2',boffset+[.045,.08,.91,.80],'');
 % image left
 posimage=[.08,.30,.16,.34];
-ht2=conn_menu('image2',boffset+posimage,'','','',@conn_mvpaexplore_mtncallback,@conn_mvpaexplore_click,'');
-ht2title=conn_menu('pushbutton2',boffset+[posimage(1),posimage(2)+posimage(4),posimage(3),.045],'','Seed','',@(varargin)conn_mvpaexplore_update('coordinates'));
+ht2=conn_menu('image',boffset+posimage,'','','',@conn_mvpaexplore_mtncallback,@conn_mvpaexplore_click,'');
+ht2title=conn_menu('pushbutton',boffset+[posimage(1),posimage(2)+posimage(4),posimage(3),.045],'','Seed','',@(varargin)conn_mvpaexplore_update('coordinates'));
 set(ht2.h5b,'callback',@(varargin)conn_mvpaexplore_update('changeseedview')); % + symbol change view
 set(ht2.h5,'callback',@(varargin)conn_mvpaexplore_update('changeseedslice'),'value',1); % slider change slice
 hold(ht2.h1,'on'); ht2dot=plot(0,0,'color','k','marker','o','markerfacecolor','r','markersize',8+CONN_gui.font_offset,'parent',ht2.h1); hold(ht2.h1,'off'); 
 try, addlistener(ht2.h5, 'ContinuousValueChange',@(varargin)conn_mvpaexplore_update('changeseedslice')); end
 % image right
-posimage=[.35,.20,.28,.54];
-[ht4,ht4title]=conn_menu('image2',boffset+posimage,' ','','','','','');
+posimage=[.36,.20,.28,.54];
+[ht4,ht4title]=conn_menu('image',boffset+posimage,' ','','','','','');
 %uicontrol('style','text','units','norm','position',boffset+[posimage(1)+posimage(3)/2-.070,posimage(2)-1*.059,.070,.045],'string','threshold','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA); 
 ht4slider=conn_menu('slider',boffset+[posimage(1)+posimage(3),posimage(2),.015,posimage(4)],'','','z-slice',@(varargin)conn_mvpaexplore_update('slice'));
 %try, addlistener(ht4slider, 'ContinuousValueChange',@(varargin)conn_mvpaexplore_update('slice')); end
@@ -89,21 +90,21 @@ set(ht4slider,'visible','off');
 conn_menumanager('onregion',ht4slider,1,boffset+posimage+[0 0 .015 0]);
 set(ht4slider,'min',1,'max',V0.matdim.dim(3),'sliderstep',min(.5,[1,10]/(V0.matdim.dim(3)-1)),'value',nslice);
 %ht4slice=uicontrol('style','text','units','norm','position',boffset+[posimage(1)+posimage(3)/2-.059/2,posimage(2)-1*.045,.059,.045],'string',sprintf('z = %d mm',round(V0.matdim.mat(3,:)*[0;0;nslice;1])),'fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA); 
-ht4slice=conn_menu('text2',boffset+[posimage(1)+posimage(3)/2-.059/2,posimage(2)-1*.045,.059,.045],'',sprintf('z = %d mm',round(V0.matdim.mat(3,:)*[0;0;nslice;1])));
+ht4slice=conn_menu('text',boffset+[posimage(1)+posimage(3)/2-.059/2,posimage(2)-1*.045,.059,.045],'',sprintf('z = %d mm',round(V0.matdim.mat(3,:)*[0;0;nslice;1])));
 %ht4title=conn_menu('text2',boffset+[posimage(1),posimage(2)+posimage(4),posimage(3),.04],'',txtmethod);
 % lists
-[ht7, ht7title]=conn_menu('listbox2',boffset+[.86,.35,.09,.12],'fc-MVPA scores',arrayfun(@(n)sprintf('Eigenpattern #%d scores',n),1:numel(CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures),'uni',0),'Select eigenpattern scores for display',@(varargin)conn_mvpaexplore_update('scores'));
-ht5=conn_menu('listbox2',boffset+[.70,.35,.15,.12],'Subjects',{'All Subjects','High-scoring subjects','Low-scoring subjects','Low- & High- scoring subjects','High vs. Low between-subjects contrast','Custom groups or between-subjects contrast'},'<HTML>Select display option<br/> - Select <i><b>AllSubjects</b></i> to compute average connectivity across all subjects (note: the display will exclude subjects not in the <i>AllSubjects</i> second-level covariate group)<br/> - Select <i><b>low/high scoring subjects</b></i> to compute average connectivity separately within those subjects with low- vs. high- eigenvariate scores, characterizing <br/> principal axes of diversity in FC across subjects (for the selected eigenvariate) (note: the display will exclude subjects not in the <i>AllSubjects</i> group)<br/> - Select <i><b>custom group or between-subjects contrast</b></i> to define your own contrast across subjects (e.g. a different group, a between-group comparison, etc.)</HTML>',@(varargin)conn_mvpaexplore_update('subjects'));
-ht6=conn_menu('listbox2',boffset+[.70,.16,.15,.12],'Conditions',CONN_x.Setup.conditions.names(validconditions),'<HTML>Select condition(s) for display</HTML>',@(varargin)conn_mvpaexplore_update('conditions'));
+[ht7, ht7title]=conn_menu('listbox2',boffset+[.86,.45,.09,.12],'fc-MVPA scores',arrayfun(@(n)sprintf('Eigenpattern #%d scores',n),1:numel(CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures),'uni',0),'Select eigenpattern scores for display',@(varargin)conn_mvpaexplore_update('scores'));
+ht5=conn_menu('listbox2',boffset+[.70,.45,.15,.12],'Subjects',{'All Subjects','High-scoring subjects','Low-scoring subjects','Low- & High- scoring subjects','High vs. Low between-subjects contrast','Custom groups or between-subjects contrast'},'<HTML>Select display option<br/> - Select <i><b>AllSubjects</b></i> to compute average connectivity across all subjects (note: the display will exclude subjects not in the <i>AllSubjects</i> second-level covariate group)<br/> - Select <i><b>low/high scoring subjects</b></i> to compute average connectivity separately within those subjects with low- vs. high- eigenvariate scores, characterizing <br/> principal axes of diversity in FC across subjects (for the selected eigenvariate) (note: the display will exclude subjects not in the <i>AllSubjects</i> group)<br/> - Select <i><b>custom group or between-subjects contrast</b></i> to define your own contrast across subjects (e.g. a different group, a between-group comparison, etc.)</HTML>',@(varargin)conn_mvpaexplore_update('subjects'));
+ht6=conn_menu('listbox2',boffset+[.70,.26,.15,.12],'Conditions',CONN_x.Setup.conditions.names(validconditions),'<HTML>Select condition(s) for display</HTML>',@(varargin)conn_mvpaexplore_update('conditions'));
 set([ht7,ht7title],'visible','off');
 set([ht5],'max',2);
 % buttons
-ht11=conn_menu('pushbuttonblue2',boffset+[.68,.10,.07,.045],'','display 3D','creates whole-brain 3d view of current functional connectivity display',@(varargin)conn_mvpaexplore_update('display3d'));
-ht13=conn_menu('pushbuttonblue2',boffset+[.75,.10,.07,.045],'','export data','<HTML>creates whole-brain NIFTI volumes with seed-to-voxel maps for each subject for the selected seed voxel</HTML>',@(varargin)conn_mvpaexplore_update('exportdata'));
-ht12=conn_menu('pushbuttonblue2',boffset+[.82,.10,.07,.045],'','import values','<HTML>import fc-MVPA eigenpattern score values at selected seed for each subject as 2nd-level covariates</HTML>',@(varargin)conn_mvpaexplore_update('importvalues'));
+ht11=conn_menu('pushbuttonblue2',boffset+[.70,.20,.07,.045],'','display 3D','creates whole-brain 3d view of current functional connectivity display',@(varargin)conn_mvpaexplore_update('display3d'));
+ht13=conn_menu('pushbuttonblue2',boffset+[.77,.20,.07,.045],'','export data','<HTML>creates whole-brain NIFTI volumes with seed-to-voxel maps for each subject for the selected seed voxel</HTML>',@(varargin)conn_mvpaexplore_update('exportdata'));
+ht12=conn_menu('pushbuttonblue2',boffset+[.84,.20,.07,.045],'','import values','<HTML>import fc-MVPA eigenpattern score values at selected seed for each subject as 2nd-level covariates</HTML>',@(varargin)conn_mvpaexplore_update('importvalues'));
 set(ht12,'visible','off');
 % hist
-posimage=[.725,.65,.20,.10];
+posimage=[.725,.73,.20,.10];
 [ht21,ht22]=conn_menu('hist',boffset+posimage,'');
 ht21title=conn_menu('text2',boffset+[posimage(1),posimage(2)-.07,posimage(3),.04],'','eigenpattern scores');
 ht24=conn_menu('edit2',boffset+[posimage(1)+posimage(3)/2,posimage(2)+posimage(4)+.05,.06,.04],'','','<HTML>Select eigenpattern scores threshold dividing low- and high- scoring subjects<br/> - leave empty to specify the sample median (default)</HTML>',@(varargin)conn_mvpaexplore_update('threshold'));

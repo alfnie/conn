@@ -102,7 +102,7 @@ for isub=1:numel(nsubs),
                         end
                     end
                     if ~options.nset, % search for fmap/*_magnitude.nii and fmap/*_phasediff.nii or fmap/*_real1.nii fmap/*_real2.nii fmap/*_imag1.nii fmap/*_imag2.nii fmap
-                        enames={'phasediff','magnitude','magnitude1','magnitude2','real1','real2','imag1','imag2','fieldmap'};
+                        enames={'phasediff','magnitude','magnitude1','magnitude2','real1','real2','imag1','imag2','fieldmap','fmap'};
                         fnames={};
                         for ne=1:numel(enames)
                             fname=regexprep(filename{n2},'func(\/|\\)([^\\\/]*)_bold\.nii(\.gz)?$',['fmap$1$2_',enames{ne},'.nii']);
@@ -112,7 +112,7 @@ for isub=1:numel(nsubs),
                             if conn_existfile(fname), fnames{ne}=fname; else fnames{ne}=''; end
                         end
                         v=cellfun('length',fnames);
-                        valid={[2,1],[3,4,1],[3,1],[5,6,7,8],9};
+                        valid={[2,1],[3,4,1],[3,1],[5,6,7,8],9,10};
                         for nv=1:numel(valid), if all(v(valid{nv})), fnames=fnames(valid{nv}); break; end; end
                         if all(cellfun('length',fnames))&&~options.nset
                             if options.copytoderiv

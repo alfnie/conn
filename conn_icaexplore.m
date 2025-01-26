@@ -63,27 +63,27 @@ VARt=conn_bsxfun(@rdivide,VARt,validc);
 ZCt=conn_bsxfun(@rdivide,ZCt,validc);
 
 boffset=[0 0 0 0];
-conn_menu('frame2',boffset+[.045,.35,.91,.53],'');%'Component loadings');
+conn_menu('frame',boffset+[.02,.35,.46,.54],'');%'Component loadings');
 poslist=boffset+[.07 .40 .40 .38];
-ht3=conn_menu('listbox2',poslist,'',names,'<HTML>Select component(s) for display</HTML>',@(varargin)conn_icaexplore_update([0 1 1]));
+ht3=conn_menu('listbox',poslist,'',names,'<HTML>Select component(s) for display</HTML>',@(varargin)conn_icaexplore_update([0 1 1]));
 for n=6:20, set(ht3,'string',repmat(' ',1,6*n),'fontname','monospaced','fontsize',8+CONN_gui.font_offset); if get(ht3,'extent')*[0 0 1 0]'>poslist(3), break; end; end
 ht3fieldsize=sprintf('%d',n-1);ht3fieldsize2=sprintf('%d',2*(n-1));
 %htemp=uicontrol('style','pushbutton','unit','norm','position',[.17,.85,.3,.05],'string','test','fontsize',8+CONN_gui.font_offset,'fontname','monospaced');set(htemp,'units','characters'); temp=get(htemp,'position'); set(htemp,'position',[temp(1:2) 13 max(1,temp(4))],'units','norm'); temp=get(htemp,'position'); delete(htemp);
 %conn_menu('text2',boffset+[.17+.28/5 .85 2*.28/5 .04],'','spatial');
 %conn_menu('text2',boffset+[.17+3*.28/5 .85 2*.28/5 .04],'','temporal');
 temp=boffset+[.07 .78 .38/6 .04];
-ht3b(1)=conn_menu('pushbutton2',temp+[0*temp(3) 0 0 0],'','network','Select network(s) for display',@(varargin)conn_icaexplore_update([1 0 0]));
-ht3b(2)=conn_menu('pushbutton2',temp+[2*temp(3) 0 0 0],'','kurtosis','Spatial kurtosis (click to sort)',@(varargin)conn_icaexplore_update([2 0 0]));
-ht3b(3)=conn_menu('pushbutton2',temp+[3*temp(3) 0 0 0],'','skewness','Spatial skewness (click to sort)',@(varargin)conn_icaexplore_update([3 0 0]));
-ht3b(4)=conn_menu('pushbutton2',temp+[4*temp(3) 0 0 0],'','variability','Temporal component timeseries standard deviation for the selected condition and averaged across all subjects (click to sort)',@(varargin)conn_icaexplore_update([4 0 0]));
-ht3b(5)=conn_menu('pushbutton2',temp+[5*temp(3) 0 0 0],'','frequency','Temporal component timeseries frequency (Hz) for the selected condition and averaged across all subjects (click to sort)',@(varargin)conn_icaexplore_update([5 0 0]));
+ht3b(1)=conn_menu('pushbutton',temp+[0*temp(3) 0 0 0],'','network','Select network(s) for display',@(varargin)conn_icaexplore_update([1 0 0]));
+ht3b(2)=conn_menu('pushbutton',temp+[2*temp(3) 0 0 0],'','kurtosis','Spatial kurtosis (click to sort)',@(varargin)conn_icaexplore_update([2 0 0]));
+ht3b(3)=conn_menu('pushbutton',temp+[3*temp(3) 0 0 0],'','skewness','Spatial skewness (click to sort)',@(varargin)conn_icaexplore_update([3 0 0]));
+ht3b(4)=conn_menu('pushbutton',temp+[4*temp(3) 0 0 0],'','variability','Temporal component timeseries standard deviation for the selected condition and averaged across all subjects (click to sort)',@(varargin)conn_icaexplore_update([4 0 0]));
+ht3b(5)=conn_menu('pushbutton',temp+[5*temp(3) 0 0 0],'','frequency','Temporal component timeseries frequency (Hz) for the selected condition and averaged across all subjects (click to sort)',@(varargin)conn_icaexplore_update([5 0 0]));
 
 % ht3b=uicontrol('style','text','units','norm','position',boffset+[.27,.85,.10,.04],'string','','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA); 
 ht7=conn_menu('popup2',boffset+[.65 .84 .15 .04],'',{'Spatial components','ICA parcellation'},'<HTML> - <i>Spatial components</i> display spatial component scores for each selected ICA component (networks)<br/> - <i>ICA parcellation</i> displays the ICA network (among selected components) with the highest loading for each voxel</HTML>',@(varargin)conn_icaexplore_update([0 1 0]));
-posimage=[.52,.40,.41,.44];
+posimage=[.54,.40,.41,.44];
 ht4=conn_menu('image2',boffset+posimage,'','','',@conn_icaexplore_mtncallback);
-uicontrol('style','text','units','norm','position',boffset+[posimage(1)+posimage(3)/2-.070,posimage(2)-1*.059,.070,.045],'string','threshold','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA); 
-ht6=conn_menu('popup2',boffset+[.07,.36,.30,.04],'',{'<HTML><i> - ICA tools:</i></HTML>','Compute spatial match to template','Flip sign of individual networks/components', 'Label individual networks/components', 'Create ICA parcellation ROI file'},'<HTML> - <i>Spatial correlation</i> computes the spatial correlation and dice coefficients between spatial component scores of each ICA network and a user-defined reference file/mask<br/> - <i>Flip sign</i> flips the spatial component positive/negative loadings for selected components<br/> - <i>Label</i> adds user-defined labels to identify each network/component<br/> - <i>ICA parcellation</i> creates an ROI file identifying the ICA network with the highest spatial component score for each voxel</HTML>',@(varargin)conn_icaexplore_tools);
+uicontrol('style','text','units','norm','position',boffset+[posimage(1)+posimage(3)/2-.070,posimage(2)-1*.059,.070,.0425],'string','threshold','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA); 
+ht6=conn_menu('popup',boffset+[.07,.36,.30,.04],'',{'<HTML><i> - ICA tools:</i></HTML>','Compute spatial match to template','Flip sign of individual networks/components', 'Label individual networks/components', 'Create ICA parcellation ROI file'},'<HTML> - <i>Spatial correlation</i> computes the spatial correlation and dice coefficients between spatial component scores of each ICA network and a user-defined reference file/mask<br/> - <i>Flip sign</i> flips the spatial component positive/negative loadings for selected components<br/> - <i>Label</i> adds user-defined labels to identify each network/component<br/> - <i>ICA parcellation</i> creates an ROI file identifying the ICA network with the highest spatial component score for each voxel</HTML>',@(varargin)conn_icaexplore_tools);
 nfacshown=1:numel(names);
 nfacselected=nfacshown;
 

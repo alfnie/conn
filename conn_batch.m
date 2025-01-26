@@ -231,7 +231,7 @@ function varargout=conn_batch(varargin)
 %                                         array of voxel-displacement volumes (vdm* file; explicitly entering these volumes here superceeds CONN's 
 %                                         default option to search for/use vdm* files in same directory as functional data) 
 %    Setup.fmap_functionals             : (for Setup.preprocessing.steps=='vdm_create') fmap_functionals{nsub}{nses} char 
-%                                         array of fieldmap sequence files (magnitude1+phasediff or real1+imag1+real2+imag2 or fieldmap (Hz) volumes)
+%                                         array of fieldmap sequence files (magnitude1+phasediff, or real1+imag1+real2+imag2, or samePhaseEncoding+oppositePhaseEncoding, or fieldmap (Hz) volumes)
 %    Setup.coregsource_functionals      : (for Setup.preprocessing.steps=='functional_coregister/segment/normalize') 
 %                                         coregsource_functionals{nsub} char array of source volume for coregistration/normalization/
 %                                         segmentation (used only when preprocessing "coregtomean" field is set to 2, user-defined source 
@@ -458,10 +458,11 @@ function varargout=conn_batch(varargin)
 %                                               e.g. PhaseEncodingDirection='j+', mat=[-1 0 0;0 1 0;0 0 1] => BLIP=sign([0 1 0 0]*mat*[0 1 0 0])=+1
 %                                            use 0 to reverse the sign from the above formula
 %      Setup.preprocessing.vdm_type        : (functional_vdm_create only) type of fieldmap sequence files 
-%                                               []  : automatically detect
+%                                               []  : automatically detect (warning: only differentiates between options 1-3, enter explicitly 4 for images with opposite phase encoding directions)
 %                                               1   : magnitude+phasediff (or magnitude1+magnitude2+phasediff)
 %                                               2   : real1+imag1+real2+imag2
 %                                               3   : fieldmapHz (e.g. --fout output from TOPUP)
+%                                               4   : samePhaseEncodingDirection+oppositePhaseEncodingDirection (e.g. inputs to SPM-SpatialTools-SCOPE)
 %      Setup.preprocessing.vdm_fmap        : (functional_vdm_create only) location of fieldmap sequence files (secondary functional dataset number
 %                                             or label containing fieldmap sequence files) ['fmap']
 %      Setup.preprocessing.voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [1]
