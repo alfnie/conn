@@ -1,10 +1,11 @@
-function fileout = conn_computeMaskMovement(filein)
+function fileout = conn_computeMaskMovement(filein, domasking)
 % computes motion mask
 % (partial derivatives of brainmask with respect of each of the six standard 
 % motion parameters -three translation + three rotation parameters-)
 %
 
-if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein))); return; 
+if nargin<2||isempty(domasking), domasking=true; end
+if any(conn_server('util_isremotefile',filein)), fileout=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filein),domasking)); return; 
 else filein=conn_server('util_localfile',filein);
 end
 if ~ischar(filein), filein=char(filein); end
@@ -18,9 +19,11 @@ xyz=a(1).mat*xyz_voxel;
 MaskGradient=zeros(prod(a(1).dim(1:3)),3);
 for n=1:numel(a)
     b=reshape(spm_get_data(a(n),pinv(a(n).mat)*xyz),a(1).dim(1:3));
-    mask=b>mean(b(~isnan(b)&b~=0))/8;
-    mask=b>0.80*mean(b(mask))/4;
-    b(~mask)=nan;
+    if domasking
+        mask=b>mean(b(~isnan(b)&b~=0))/8;
+        mask=b>0.80*mean(b(mask))/4;
+        b(~mask)=nan;
+    end
     [dy,dx,dz]=gradient(b);
     dX=[dx(:) dy(:) dz(:)]*a(1).mat(1:3,1:3)';
     ok=~isnan(dX);

@@ -105,7 +105,7 @@ if nargin<=1
     return
 end
 
-SESSASRUNS=true; % change to false for replicating older-versions structure
+SESSASRUNS=true; % change to false to interpret CONN "sessions" as BIDS "sessions" instead of as BIDS "runs"
 changed=false;
 nV=[];
 if nargin<10||isempty(keepnames), keepnames=false; end

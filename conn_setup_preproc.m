@@ -106,7 +106,7 @@ steps_names={'<HTML><b>default preprocessing pipeline</b> for volume-based analy
     'functional Realignment with susceptibility distortion correction using fieldmaps (subject motion estimation and correction)','functional Outlier detection (ART-based identification of outlier scans for scrubbing)','functional Direct coregistration to structural (rigid body transformation)',...
     'functional Segmentation (Grey/White/CSF segmentation)',...
     'functional Manual deformation (non-linear transformation of functional volumes)',...
-    'functional Smoothing (spatial convolution with Gaussian kernel)','functional Motion-mask estimation (BOLD signal derivative wrt movement parameters)',...
+    'functional Smoothing (spatial convolution with Gaussian kernel)','functional Creation of motion-mask ROIs (BOLD signal derivative wrt subject-motion parameters)',...
     'functional Indirect segmentation and MNI-space normalization (coregister functional/structural; structural segmentation & normalization; apply same deformation field to functional)', ...
     'functional Indirect MNI-space normalization (coregister functional/structural; structural normalization; apply same deformation field to functional)',...
     'functional Indirect MNI-space normalization preserving Grey/White/CSF masks (coregister functional/structural; structural normalization; apply same deformation field to functional and to existing Grey/White/CSF masks)',...
@@ -760,9 +760,9 @@ end
 
 
 if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
-    thfig=figure('units','norm','position',[.4,.4,.35,.3],'color',1*[1 1 1],'name','VDM create settings','numbertitle','off','menubar','none');
+    thfig=figure('units','norm','position',[.3,.4,.45,.3],'color',1*[1 1 1],'name','VDM create settings','numbertitle','off','menubar','none');
     ht1=uicontrol('style','popupmenu','units','norm','position',[.1,.85,.8,.1],'string',arrayfun(@(n)sprintf('Fieldmap location: secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines location of available fieldmap-sequence files');
-    ht2=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',{'Fieldmap type: automatically determine','Fieldmap type: Magnitude,Phasediff files (double-echo sequences)','Fieldmap type: Real1,Imag1,Real2,Imag2 files (double-echo sequences)','Fieldmap type: Pre-computed fieldmap file (Hz) (fieldmap sequence)','Fieldmap type: SamePE,OppositePE files (opposite phase-encoding sequences)'},'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines type of available fieldmap-sequence files');
+    ht2=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',{'Fieldmap type: automatically determine','Fieldmap type: Magnitude/Phasediff files (double-echo sequences, magnitude image first)','Fieldmap type: Real1/Imag1/Real2/Imag2 files (double-echo sequences)','Fieldmap type: Pre-computed fieldmap file (Hz) (direct fieldmap sequence)','Fieldmap type: AB/BA files (opposite Phase-Encoding Directions, same PED as functionals first)','Fieldmap type: BA/AB files (opposite Phase-Encoding Directions, opposite PED as functionals first)'},'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines type of available fieldmap-sequence files');
     ht3=uicontrol('style','checkbox','units','norm','position',[.1,.64,.8,.1],'string','Read double-echo timing from BIDS / .json files','value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','use information in .json sidecar files to estimate EchoTime and EPI Total Readout Time values');
     ht4=[];ht5=[];ht6=[];
     ht4a=uicontrol('style','text','units','norm','position',[.1,.5,.6,.1],'string','Fieldmap''s Short Echo Time (in ms)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
@@ -3360,8 +3360,9 @@ for iSTEP=1:numel(STEPS)
                             spm_smooth(data.*mask,sdata,[1 1 1].*this_fwhm./vox);
                             switch(SVARIANT) % in all variants: within-mask values aggregate across nearby within-mask values
                                 case 1, volout(n)=spm_write_vol(volout(n),(1-mask).*data + mask.*sdata./max(eps,smask)); % hard transitions (out-of-mask voxels are not smoothed) 
-                                case 2, volout(n)=spm_write_vol(volout(n),(sdata)./max(.05,smask));                      % smooth transitions (out-of-mask voxels aggregate across nearby within-mask values)
-                                    %case 3, volout(n)=spm_write_vol(volout(n),(sdata.*smask+1/LAMBDA*data)./(smask+1/LAMBDA));
+                                %case 2, volout(n)=spm_write_vol(volout(n),data + (sdata - data.*smask)./max(.05,smask));% smooth transitions (out-of-mask voxels aggregate across nearby within-mask values, otherwise -if there are no nearby within-mask voxels- out-of-mask voxels keep unchanged)
+                                case 2, volout(n)=spm_write_vol(volout(n),(sdata)./max(.05,smask));                      % smooth transitions (out-of-mask voxels aggregate across nearby within-mask values, otherwise -if there are no nearby within-mask voxels- out-of-mask voxels go towards zero)
+                                %    %case 3, volout(n)=spm_write_vol(volout(n),(sdata.*smask+1/LAMBDA*data)./(smask+1/LAMBDA)); (obsolete method, to be removed)
                                 case 3,                                                                                  % preserve boundaries (out-of-mask voxels aggregate across nearby out-of-mask voxels);
                                     smaskout=zeros(size(mask));
                                     spm_smooth(1-mask,smaskout,[1 1 1].*this_fwhm./vox);
@@ -3556,7 +3557,7 @@ for iSTEP=1:numel(STEPS)
                                 if isempty(VDM), outputfiles{isubject}{nses}='';
                                 else outputfiles{isubject}{nses}=char(VDM{1}.fname);
                                 end
-                            elseif isequal(vdm_type,3)||(isempty(vdm_type)&&numel(fmap)==1), % FieldMap [note: needs further testing]
+                            elseif isequal(vdm_type,3)||(isempty(vdm_type)&&numel(fmap)==1), % Direct FieldMap sequence [note: needs further testing]
                                 units=conn_jsonread(fmap{1},'Units',false); 
                                 newfmap1=conn_prepend('',fmap{1},['_session',num2str(nses),'.nii']);
                                 if isempty(units)||~ischar(units),
@@ -3664,13 +3665,14 @@ for iSTEP=1:numel(STEPS)
                                 if isempty(VDM), outputfiles{isubject}{nses}='';
                                 else outputfiles{isubject}{nses}=char(VDM{1}.fname);
                                 end
-                            elseif isequal(vdm_type,4) % SamePhaseEncodingDirection+OppositePhaseEncodingDirection [note: work in progress; needs further testing]
+                            elseif isequal(vdm_type,4)||isequal(vdm_type,5) % SamePhaseEncodingDirection+OppositePhaseEncodingDirection [note: work in progress; needs further testing]
                                 %conn_disp('fprintf','Creating vdm file for subject %d session %d...\n',nsubject,nses);
                                 %conn_disp('fprintf','   Same PhaseEncoding direction as functional: %s\n   Opposite PhaseEncoding direction of functional: %s\n',fmap{1},fmap{2});
-                                matlabbatch{end+1}.spm.tools.spatial.scope.vol1=fmap(1);
-                                matlabbatch{end}.spm.tools.spatial.scope.vol2=fmap(2);
+                                if isequal(vdm_type,4), fmaporder=[1,2]; else fmaporder=[2,1]; end
+                                matlabbatch{end+1}.spm.tools.spatial.scope.vol1=fmap(fmaporder(1));
+                                matlabbatch{end}.spm.tools.spatial.scope.vol2=fmap(fmaporder(2));
                                 matlabbatch{end}.spm.tools.spatial.scope.prefix='vdm5_';
-                                matlabbatch{end}.spm.tools.spatial.scope.outdir=fileparts(matlabbatch{end}.spm.tools.spatial.scope.vol1{1});
+                                matlabbatch{end}.spm.tools.spatial.scope.outdir={fileparts(matlabbatch{end}.spm.tools.spatial.scope.vol1{1})};
                                 outputfiles{isubject}{nses}=conn_prepend('vdm5_',regexprep(matlabbatch{end}.spm.tools.spatial.scope.vol1{1},',\d+$',''));
                             else error('type of fieldmap sequence files could not be determined from number of available files (%d) in dataset %s for subject %d session %d',numel(fmap),mat2str(vdm_fmap),nsubject,nses);
                             end

@@ -136,7 +136,7 @@ switch(dispopt)
     case {'Slice display','Slice display (reference anatomical)'},
         fh=conn_slice_display(datafiles(idxsubjects,:),'',...
             spmfile_path,thr);
-        fh('contour_transparency',1);
+        fh('contour_transparency',0);
         fh('slice_transparency',.75);
         fh('colormap','hot');
         fh('colorbar','rescale',vrange);
@@ -147,7 +147,7 @@ switch(dispopt)
         for n=1:numel(idxsubjects)
             fh=conn_slice_display(datafiles(idxsubjects(n),:),CONN_x.Setup.structural{consubjects(n)}{1}{1},...
                 spmfile_path,thr);
-            fh('contour_transparency',1);
+            fh('contour_transparency',0);
             fh('slice_transparency',.75);
             fh('colormap','hot');
             fh('colorbar','rescale',vrange);

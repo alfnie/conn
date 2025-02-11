@@ -458,11 +458,12 @@ function varargout=conn_batch(varargin)
 %                                               e.g. PhaseEncodingDirection='j+', mat=[-1 0 0;0 1 0;0 0 1] => BLIP=sign([0 1 0 0]*mat*[0 1 0 0])=+1
 %                                            use 0 to reverse the sign from the above formula
 %      Setup.preprocessing.vdm_type        : (functional_vdm_create only) type of fieldmap sequence files 
-%                                               []  : automatically detect (warning: only differentiates between options 1-3, enter explicitly 4 for images with opposite phase encoding directions)
-%                                               1   : magnitude+phasediff (or magnitude1+magnitude2+phasediff)
-%                                               2   : real1+imag1+real2+imag2
+%                                               []  : automatically detect (warning: only differentiates between options 1-3, enter explicitly 4 or 5 for images with opposite phase encoding directions)
+%                                               1   : magnitude/phasediff (or magnitude1+magnitude2+phasediff)
+%                                               2   : real1/imag1/real2/imag2
 %                                               3   : fieldmapHz (e.g. --fout output from TOPUP)
-%                                               4   : samePhaseEncodingDirection+oppositePhaseEncodingDirection (e.g. inputs to SPM-SpatialTools-SCOPE)
+%                                               4   : AB/BA samePhaseEncodingDirection+oppositePhaseEncodingDirection (e.g. inputs to TOPUP or SPM-SpatialTools-SCOPE; note first fieldmap image has the same PED as functional data)
+%                                               5   : BA/AB oppositePhaseEncodingDirection+samePhaseEncodingDirection (e.g. inputs to TOPUP or SPM-SpatialTools-SCOPE; note first fieldmap image has the opposite PED as functional data)
 %      Setup.preprocessing.vdm_fmap        : (functional_vdm_create only) location of fieldmap sequence files (secondary functional dataset number
 %                                             or label containing fieldmap sequence files) ['fmap']
 %      Setup.preprocessing.voxelsize_anat  : (structural normalization) target voxel size for resliced volumes (mm) [1]
