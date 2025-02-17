@@ -9637,7 +9637,7 @@ else
                     CONN_x_gui=CONN_x.gui;
                     CONN_x.gui=1;
                     conn save;
-                    if all(ismember(conn_v2v('fieldtext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures,1),{'2','3','4'})), conn_jobmanager('submit','analyses_gui_vv',subjects,1,CONN_x_gui,CONN_x.vvAnalysis); % group-level analyses ICA/PCA/MVPA
+                    if any(ismember(conn_v2v('fieldtext',CONN_x.vvAnalyses(CONN_x.vvAnalysis).measures,1),{'2','3','4'})), conn_jobmanager('submit','analyses_gui_vv',subjects,1,CONN_x_gui,CONN_x.vvAnalysis); % group-level analyses ICA/PCA/MVPA
                     else conn_jobmanager('submit','analyses_gui_vv',subjects,[],CONN_x_gui,CONN_x.vvAnalysis);
                     end
                 else 
@@ -12614,14 +12614,14 @@ else
                 [0,-.01,1],...
                 [],...
                 fullfile(CONN_x.folders.secondlevel,conn_resultsfolder('subjectsconditions',1,CONN_x.Results.xX.nsubjecteffects,CONN_x.Results.xX.csubjecteffects,CONN_x.Results.xX.nconditions,CONN_x.Results.xX.cconditions)));
-%             fh('brain',4);
-%             fh('brain_transparency',0);
-%             fh('sub_transparency',0);
-%             fh('mask_transparency',.15);
-%             fh('material',[]);
-%             fh('axis','on');
-%             fh('roi_color',.75*rand(numel(idxkeep),3));
-%             fh('view',[0,-1e-8,1]);
+            fh('brain',4);
+            fh('brain_transparency',0);
+            fh('sub_transparency',0);
+            fh('mask_transparency',.15);
+            fh('material',[]);
+            fh('axis','on');
+            %fh('roi_color',.75*rand(numel(idxkeep),3));
+            fh('view',[0,-1e-8,1]);
             fh('roi_shape','real');
             fh('roi_transparency',max(.15,1/numel(CONN_h.menus.m_results.roiresults.displayroisnames)));
             

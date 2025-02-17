@@ -1350,7 +1350,7 @@ switch(lower(option)),
                 'sph_c',{c}),...%{repmat({[.9,.9,.9]},[1,numel(idxkeep)])}), ...
                 z,... %+1*sign(z).*tcl, ...
                 [], .2, [0,-1e-8,1],[],data.defaultfilepath);
-            if strcmp(lower(option),'glass0_view')||strcmp(lower(option),'glass0_view')
+            if strcmp(lower(option),'glass0_view')||strcmp(lower(option),'glass0_print')
                 fh('brain',4);
                 fh('brain_transparency',0);
                 fh('sub_transparency',0);
