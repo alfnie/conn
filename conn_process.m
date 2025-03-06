@@ -1000,6 +1000,12 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
                     if CONN_x.Setup.rois.regresscovariates(nroi), entercovariates=covariates; else, entercovariates=[]; end
                     if CONN_x.Setup.rois.unsmoothedvolumes(nroi), Vsourcethis=VsourceUnsmoothed{CONN_x.Setup.rois.unsmoothedvolumes(nroi)}; else, Vsourcethis=Vsource; end
                     if conn_surf_dimscheck(CONN_x.Setup.rois.files{nsubstemp}{nroi}{min(nses,nsesstemp)}{3})&&~conn_surf_dimscheck(Vsourcethis), fsanatomical=CONN_x.Setup.structural{nsub}{min(nses,nsesstemp)}{1}; else fsanatomical=''; end
+                    if ~conn_surf_dimscheck(Vmask{nroi}{min(nses,nsesstemp)})&&conn_surf_dimscheck(Vsourcethis), 
+                        temp=regexprep(Vsourcethis,'\.surf\.(nii|img)(,\d+)?$','.$1$2'); ok=conn_existfile(temp);
+                        if ~ok, error('Attempting to extract BOLD signal from a surface-level file (%s) using a volume-level ROI (%s)',Vsourcethis,Vmask{nroi}{min(nses,nsesstemp)}); end
+                        conn_disp('fprintf','warning: for volume-level ROI %s, BOLD signal will be extracted from volume-level file %s instead of from surface-level file %s (to stop seeing this warning edit the information in Setup.ROIs for this ROI to point to a secondary dataset with volume-level functional data)\n',Vmask{nroi}{min(nses,nsesstemp)},temp,Vsourcethis);
+                        Vsourcethis=temp;
+                    end
                     if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=6&&CONN_x.Setup.outputfiles(6), outputtype='saverex'; filenamerex=['REX_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'_ROI',num2str(nroi),'.mat'];
                     else outputtype='none'; filenamerex='';
                     end

@@ -17,7 +17,9 @@ for n=1:numel(fnames),
         %if ~ok, fname=conn_prepend(-1,fname); ok=conn_existfile(fname); end
         if ok,
             if ~isempty(warnmsg), fprintf('%s warning: displaying slices in %s instead of in %s (surface file)\n',warnmsg,fname,fnames{n}); end
-            V(n)=conn_fileutils('spm_vol',fname);
+            if n==1, V=conn_fileutils('spm_vol',fname);
+            else V(n)=conn_fileutils('spm_vol',fname);
+            end
         elseif doerror, error('%s error: %s is a non-compatible format (surface file)',warnmsg,fnames{n});
         elseif ~isempty(warnmsg), fprintf('%s warning: %s is a non-compatible format (surface file)\n',warnmsg,fnames{n});
         end
