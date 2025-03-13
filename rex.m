@@ -308,7 +308,8 @@ switch(lower(spm_ver)),
     case 'spm5', spm_ver=5;
     case {'spm8','spm8b'}, spm_ver=8;
     case {'spm12','spm12b'}, spm_ver=12;
-    otherwise, rex_disp(['Warning! unrecognized SPM version ',spm_ver]); spm_ver=5;
+    case 'spm25', spm_ver=25;
+    otherwise, rex_disp(['Warning, unrecognized SPM version ',spm_ver,'. Assuming SPM25 or above']); spm_ver=25;
 end
 data.gui.spm_ver=spm_ver;
 data.handles=handles;

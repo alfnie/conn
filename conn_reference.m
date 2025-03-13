@@ -538,6 +538,7 @@ txtin=txtin(cellfun('length',txtin)>0);
 txtout='';
 for n=1:numel(txtin),
     if n==1, txtout=[txtin{n}]; 
+    elseif isempty(txtin{n}),
     elseif n<numel(txtin), txtout=[txtout, ' ', txtin{n}]; 
     elseif dolast&&numel(txtin)>2, 
         if numel(txtin{n})<2||txtin{n}(2)==' '||txtin{n}(2)>='a', txtout=[txtout, ' Last, ',lower(txtin{n}(1)),txtin{n}(2:end)];

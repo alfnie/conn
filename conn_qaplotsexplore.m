@@ -424,7 +424,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 tag=dlg.sets{dlg.iset};
                 analyses={'QA_COV','QA_NORM_structural','QA_NORM_functional','QA_NORM_ROI','QA_REG_functional','QA_REG__structural','QA_REG__functional','QA_REG__mni','QA_COREG_functional','QA_TIME_functional','QA_TIMEART_functional','QA_DENOISE_timeseries','QA_DENOISE_QC-FC','QA_DENOISE','QA_DENOISE_scatterplot','QA_DENOISE_QC-FC_scatterplot','QA_SPM_design','QA_SPM_contrasts','QA_SPM_results'};
                 %analyses_numbers=[31,1,2,3,10,4,5,6,7,8,9,12,13,11,14,15,21,22,23];
-                defaultset=[1,2,4,5,7,9,11,12,13,31];
+                defaultset=[11,13,31]; %[1,2,4,5,7,9,11,12,13,31];
                 if ~isfield(CONN_x,'isready')||~CONN_x.isready(2),
                     dokeep=~cellfun('length',regexp(lower(analyses),'denoise'));
                     analyses=analyses(dokeep);%analyses_numbers=analyses_numbers(dokeep); % disable analyses that require having run Setup step
@@ -455,7 +455,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 
                 nl2covariates=[];
                 [x,nl2covariates]=conn_module('get','l2covariates','^[^_]');
-                il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(MeanMotion|InvalidScans|ProportionValidScans)')));
+                %il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(MeanMotion|InvalidScans|ProportionValidScans)')));
                 validconditions=find(cellfun('length',CONN_x.Setup.conditions.model(1:numel(CONN_x.Setup.conditions.names)-1))==0);
                 
                 fh=figure('units','norm','position',[.4,.4,.4,.5],'menubar','none','numbertitle','off','name','compute QA plots','color','w');
@@ -466,7 +466,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 h4A=uicontrol('units','norm','position',[.45,.55,.45,.05],'style','text','string','Plot options: ','horizontalalignment','left','fontweight','bold','backgroundcolor',get(fh,'color'));
                 h4a=uicontrol('units','norm','position',[.45,.47,.45,.08],'style','listbox','max',2,'string',[{'functional data'},arrayfun(@(n)sprintf('secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0)],'value',[],'tooltipstring','<HTML>Select functional dataset(s) to include in functional data plots</HTML>');
                 h4b=uicontrol('units','norm','position',[.45,.38,.45,.08],'style','listbox','max',2,'string',[CONN_x.Setup.rois.names(1:end-1), regexprep(CONN_x.Setup.rois.names(1:3),'^(.*)$','eroded $1')],'value',[],'tooltipstring','<HTML>Select ROI(s) to include in ROI data plots</HTML>');
-                h4c=uicontrol('units','norm','position',[.45,.29,.45,.08],'style','listbox','max',2,'string',nl2covariates,'value',[],'tooltipstring','<HTML>Select QC variable(s) to include in QC/FC plots</HTML>');
+                h4c=uicontrol('units','norm','position',[.45,.29,.45,.08],'style','listbox','max',2,'string',nl2covariates,'value',[],'tooltipstring','<HTML>Select QC variable(s) to include in QC-FC plots</HTML>');
                 h4e=uicontrol('units','norm','position',[.45,.20,.45,.08],'style','listbox','max',2,'string',CONN_x.Setup.conditions.names(validconditions),'value',[],'tooltipstring','<HTML>QC/FC plots aggregate FC data across multiple runs/sessions <br/> Select individual conditions if you want to only aggregate in these plots <br/> across runs/sessions where at least one of the selected conditions is present</HTML>');
                 toptions=[{'local processing (run on this computer)'} tstr(tvalid)];
                 if CONN_gui.isremote
@@ -1134,8 +1134,12 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                             end
                         end
                         dlg.handles.resultsline=[];
+                        dlg.handles.resultslineoutlier=[];
                         for n=1:numel(dlg.results_patch),
                             dlg.handles.resultsline(n,1)=plot(dlg.results_line{n}{1},dlg.results_line{n}{2},'ko','markerfacecolor',.25*[.8 .8 1],'markeredgecolor',.25*[.8 .8 1],'linewidth',1,'color',.75*[.8 .8 1],'parent',dlg.handles.hax);
+                            if isfield(dlg.results_info{n},'OutlierScores')
+                                plot(dlg.results_line{n}{1}(dlg.results_info{n}.OutlierScores>3),dlg.results_line{n}{2}(dlg.results_info{n}.OutlierScores>3),'rx','markersize',10+font_offset,'parent',dlg.handles.hax);
+                            end
                         end
                         if numel(in)==1,
                             ttitle=dlg.results_label{n}{1}{1};

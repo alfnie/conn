@@ -318,14 +318,14 @@ if isempty(CFG)
 end
             
 varargout={};
-qoptions={'all','report','restartstopped','finish','cancel','delete','ispending','restartif','cancelif'};
+qoptions={'all','report','restartstopped','finish','cancel','delete','ispending','restartif','cancelif','-savebeforemerging'};
 if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==2&&isequal(option,'restartif'))||(nargin==2&&isequal(option,'cancelif'))||isstruct(option), % GUI
     if (nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==2&&isequal(option,'restartif'))||(nargin==2&&isequal(option,'cancelif')), whichoption=find(strcmp(option,qoptions),1);
     else whichoption=[];
     end
     if ~nargin||~isempty(whichoption), 
         hmsg=[]; 
-        if isempty(whichoption)||isequal(whichoption,1), try, hmsg=conn_msgbox('Initializing... please wait','',-1); end; end
+        if isempty(whichoption)||isequal(whichoption,1)||isequal(whichoption,10), try, hmsg=conn_msgbox('Initializing... please wait','',-1); end; end
         if isempty(CONN_x)||~isfield(CONN_x,'filename')||isempty(CONN_x.filename), 
             ftemp=conn_fileutils('dir','*.qlog'); 
             if numel(ftemp)==1, CONN_x_filename=conn_fullfile(ftemp.name); 
@@ -333,7 +333,8 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
                 CONN_x_filename=conn_projectmanager('pwd'); 
                 assert(~isempty(regexp(CONN_x_filename,'\.qlog$')), 'Unknown project. Load a conn project first (or cd to the folder containing your conn*.qlog project file)'); 
             end
-        else CONN_x_filename=CONN_x.filename;
+        else 
+            CONN_x_filename=CONN_x.filename;
         end
         if whichoption==1 %all
             files=conn_dir(conn_prepend('',conn_fullfile(CONN_x_filename),'.qlog/info.mat'));
@@ -343,7 +344,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
             allfiles=conn_dir(localfilename,'-R'); % check .dmat
             files={};
             if isempty(allfiles), % no jobs running
-                if isempty(whichoption)||isequal(whichoption,7)
+                if isempty(whichoption)||isequal(whichoption,7)||isequal(whichoption,10)
                     tfiles=conn_dir(conn_prepend('',conn_fullfile(CONN_x_filename),'.qlog/*.status.submitted'));
                     if ~isempty(tfiles),
                         files=cellstr(tfiles);
@@ -374,7 +375,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
             varargout={[]};
             if ~nargout,
                 if whichoption==1, conn_msgbox({'There are no finished or pending jobs associated with this project',' ','To submit new jobs simply switch the option that reads','''local processing (run on this computer)'' to ''distributed processing''','when running Preprocessing/Setup/Denoising/Analyses steps'},'',true);
-                elseif ~isempty(whichoption), conn_disp('There are no pending jobs associated with this project');
+                elseif ~isempty(whichoption)&&~isequal(whichoption,10), conn_disp('There are no pending jobs associated with this project');
                 else conn_msgbox('There are no pending jobs associated with this project','',true);
                 end
             end
@@ -384,9 +385,12 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
         [nill,filedates]=cellfun(@(x)fileparts(fileparts(x)),files,'uni',0);
         %filedates=cellfun(@(x)sprintf('%s-%s-%s %s:%s:%s',x(1:2),x(3:4),x(5:6),x(7:8),x(9:10),x(11:12)),filedates,'uni',0);
         filedates=cellfun(@(x)sprintf('%s-%s-%s',x(1:2),x(3:4),x(5:6)),filedates,'uni',0);
+        showthis=numel(files);
         for nfile=1:numel(files),
             try
                 conn_loadmatfile(files{nfile},'info');
+                validlabels={'finished','canceled'}; %{'finished','stopped'};
+                if all(ismember(info.tagmsg,validlabels)), showthis=nfile; end % note: if multiple jobs finished, focus on last one
                 [itag,nill,jtag]=unique(info.tagmsg);
                 [nill,temp]=fileparts(info.pathname); 
                 temp=sprintf('%s    (%s)',temp,filedates{nfile});
@@ -394,8 +398,8 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
                 filedates{nfile}=temp;
             end
         end
-        conn_loadmatfile(files{end},'info');
-        if isempty(whichoption) % pending / check if just finished
+        conn_loadmatfile(files{showthis},'info'); 
+        if isempty(whichoption)||isequal(whichoption,10) % pending / check if just finished
             info=conn_jobmanager('statusjob',info,[],true); 
             if numel(files)==1, files={}; end
             validlabels={'finished','canceled'}; %{'finished','stopped'};
@@ -404,6 +408,7 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
                 answ=conn_questdlg({'Your pending job has finished','Finished jobs need to be merged with your current CONN project','Would you like to do this now?'},'Finished job','Merge now','Later','Merge now');
                 if isequal(answ,'Merge now'), 
                     hmsg=conn_msgbox({'Merging projects','This procedure may take several minutes. Please wait...'},'',-1);
+                    if isequal(whichoption,10), conn save; end
                     filename=regexprep(info.private{1}(1).project,'\?.*$','');
                     conn('load',filename);
                     conn save;
@@ -909,6 +914,17 @@ else
                                         %if CFG.machinetype.ispc, [ok,nill]=system(sprintf('del "%s"',localfilename));
                                         %else [ok,nill]=system(sprintf('rm -f ''%s''*',localfilename));
                                         %end
+                                    end
+                                end
+                                try  % create .bmat file if it does not exist already (back-up file to identify/resolve conflicts when merging)
+                                    [basefilename,pobj]=conn_projectmanager('extendedname',job(n).project);
+                                    if isfield(pobj,'partition')&&~isempty(pobj.partition)&&pobj.partition(1)==1
+                                        localfilename=conn_projectmanager('projectfile',basefilename,pobj);
+                                        parentfile=conn_projectmanager('parentfile',basefilename,pobj);
+                                        backupfile=conn_prepend('',localfilename,'.bmat');
+                                        if pobj.isextended&&conn_existfile(parentfile)&&~conn_existfile(backupfile),
+                                            try, conn_fileutils('copyfile',parentfile,backupfile); end
+                                        end
                                     end
                                 end
                             end

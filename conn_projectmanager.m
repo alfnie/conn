@@ -235,7 +235,7 @@ switch(lower(option))
                 [utag,nill,itag]=unique([tag{:}]);
                 vtag=true(size(utag));
                 alllogs=cell(1,numel(utag));
-                for n=1:numel(utag)
+                for n=1:numel(utag) % if there are multiple jobs running
                     pathname=fullfile(conn_prepend('',CONN_x.filename,'.qlog'),utag{n});
                     if conn_existfile(pathname,2)&&conn_existfile(fullfile(pathname,'info.mat'))
                         info=struct; conn_loadmatfile(fullfile(pathname,'info.mat'),'info'); % look at associated .qlog folders
@@ -245,14 +245,14 @@ switch(lower(option))
                         alllogs{n}=info.stdlog;
                     end
                 end
-                ivtag=find(vtag,1);
+                ivtag=find(vtag,1); % first job finished
                 if isempty(ivtag)
                     if dogui&&(isequal(CONN_x.gui,1)||(isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'display')&&CONN_x.gui.display))
-                        answ=conn_questdlg({'Warning: There are pending jobs submitted but not yet finished','Changes to this project will be disregarded until all pending jobs are finished or canceled', 'Do you want to see these pending jobs now?'},'Warning!','Yes','No','Yes');
+                        answ=conn_questdlg({'Warning: There are pending jobs submitted but not yet finished','Changes to this project are temporal until pending jobs are finished or canceled', 'Do you want to see the status of these pending jobs now?'},'Warning!','Yes','No','Yes');
                         if isequal(answ,'Yes'), conn_jobmanager(info); end
                         return;
                     else
-                        conn_disp('fprintf','Warning: pending jobs in %s not finished yet. Until then, any modifications to this project may be overwritten once the pending jobs finish and they are merged back into this project\n',localfilename);
+                        conn_disp('fprintf','Warning: pending jobs in %s not finished yet. Until then, any changes to this project are temporal (changes may be disregarded if they conflict with the changes brought back from these pending jobs when finished)\n',localfilename);
                         return;
                     end
                 elseif numel(vtag)>1
@@ -261,6 +261,7 @@ switch(lower(option))
                 end
                 alllogs=alllogs{ivtag};
             end
+            trackchange=false;
             if ~isempty(allfiles)
                 conn_disp(allfiles);
                 conn_disp('fprintf','Merging finished jobs. Please wait...');
@@ -278,6 +279,24 @@ switch(lower(option))
                 if ~isfield(temp,'CONN_x')||~isfield(temp.CONN_x,'pobj')||~isfield(temp.CONN_x.pobj,'holdsdata')||temp.CONN_x.pobj.holdsdata
                     conn_merge(allfiles);
                 else
+                    backupfile=conn_prepend('',regexprep(cellstr(allfiles),'^\s+|\s+$',''),'.bmat');
+                    trackchange=conn_existfile(backupfile);
+                    if any(trackchange)
+                        backupfile=backupfile{find(trackchange,1)};
+                        conn_disp('fprintf','Loading backup file %s\n',backupfile);
+                        trackchange_CONN_x=load(backupfile,'CONN_x','-mat');
+                        [trackchange_fields1,trackchange_changes1]=conn_comparestructs(trackchange_CONN_x.CONN_x,CONN_x);       % changes from original to current
+                        [trackchange_fields2,trackchange_changes2]=conn_comparestructs(trackchange_CONN_x.CONN_x,temp.CONN_x);  % changes from original to children (finished jobs)
+                        maskfields=cellfun('isempty',regexp(trackchange_fields1,'^filename|^pobj|^gui|^ispending')); trackchange_fields1=trackchange_fields1(maskfields); trackchange_changes1=trackchange_changes1(maskfields);
+                        maskfields=cellfun('isempty',regexp(trackchange_fields2,'^filename|^pobj|^gui|^ispending')); trackchange_fields2=trackchange_fields2(maskfields); trackchange_changes2=trackchange_changes2(maskfields);
+                        conflicts=intersect(trackchange_fields1,trackchange_fields2);
+                        if ~isempty(conflicts), conn_disp('fprintf','Warning: unresolved conflicts between the current project and those being merged (%s). Some of the changes to the current project made since this job was submitted may be reverted back to their original state\n',sprintf('%s ',conflicts{:})); end
+                        [nill,iupdates]=setdiff(trackchange_fields1,trackchange_fields2);
+                        iupdates=sort(iupdates);
+                        trackchange_fields1=trackchange_fields1(iupdates);
+                        trackchange_changes1=trackchange_changes1(iupdates);
+                        trackchange_CONN_x.CONN_x=CONN_x;
+                    end
                     CONN_x=temp.CONN_x;
                     CONN_x.filename=filename;
                     CONN_x.pobj=pobj;
@@ -365,6 +384,15 @@ switch(lower(option))
                 end
                 CONN_x.pobj.importedfiles=[CONN_x.pobj.importedfiles;reshape(cellstr(allfiles),[],1)];
                 conn_disp('fprintf','Done\n');
+            end
+            if any(trackchange)
+                if isempty(trackchange_fields1)
+                    conn_disp('fprintf','No changes in current project need to be merged\n');
+                else % merge all non-conflicting changes (add to project definition structure any changes performed while the extended projects were running)
+                    [CONN_x,ok]=conn_replacestructs(CONN_x, trackchange_CONN_x.CONN_x, trackchange_fields1, trackchange_changes1);
+                    if ok, conn_disp('fprintf','Changes in current local project (%s) succesfully merged\n',sprintf('%s ',trackchange_fields1{round(linspace(1,numel(trackchange_fields1),min(10,numel(trackchange_fields1))))}) ); end
+                end
+                CONN_x.pobj.importedfiles=[CONN_x.pobj.importedfiles;{backupfile}];
             end
         end
         

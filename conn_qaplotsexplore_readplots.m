@@ -41,7 +41,7 @@ for n=1:numel(in),
     if dogui, conn_waitbar(n/numel(in),ht); end
 end
 if isempty(dataA)&&~isempty(infoA) % refresh plot info
-    X=[];Xnames={};Xdescr={};
+    X=[];Xnames={};Xdescr={};Xsub=[];Xdir=[];
     inok=false(numel(in),1);
     for n=1:numel(infoA)
         if ~isempty(infoA{n}.Variables)
@@ -50,10 +50,14 @@ if isempty(dataA)&&~isempty(infoA) % refresh plot info
             else inok(n)=true;
             end
         end
-        if inok(n), X=cat(1,X,infoA{n}.Values); end
+        if inok(n), 
+            X=cat(1,X,infoA{n}.Values); 
+            Xsub=cat(1,Xsub,infoA{n}.Subjects); 
+            if isempty(Xdir)&&isfield(infoA{n},'Variables_dir'), Xdir=infoA{n}.Variables_dir; end
+        end
     end
     tX=X;X=nan(numel(in),size(tX,2));X(inok,:)=tX;
-    [dataA,labelA,infoA,lineA]=conn_qaplots_covupdate(X,Xnames,Xdescr,usubjects);
+    [dataA,labelA,infoA,lineA]=conn_qaplots_covupdate(X,Xnames,Xdescr,Xsub,Xdir); %usubjects);
 end
 assert(numel(dataA)==numel(in) && all(cellfun('length',dataA)>0),'missing information in plot files');
 miny=inf(1,numel(dataA{1})); maxy=-inf(1,numel(dataA{1}));
