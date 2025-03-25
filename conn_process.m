@@ -1395,7 +1395,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             end
             if nXc>0 % combines session-specific design matrices
                 idx_sessions={}; nidx=0; for nses=1:nsess, idx_sessions{nses}=nidx+(1:size(X{nses},1)); nidx=nidx+size(X{nses},1); end % timepoints associated with each session in concatenated data matrix
-                nidx=0; for nses=1:nsess, Xconstant{nses}=nidx+find(Xconstant{nses}(~IsFixed{nses}),1); nidx=nidx+size(X{nses},2); end % find constant-term (session average) in new design matrix (note: constant term is never fixed)
+                nidx=0; for nses=1:nsess, Xconstant{nses}=nidx+find(Xconstant{nses}(~IsFixed{nses}),1); nidx=nidx+nnz(~IsFixed{nses}); end % find constant-term (session average) in new design matrix (note: constant term is never fixed)
                 for nses=1:nsess
                     Xc{nses}=X{nses}(:,IsFixed{nses}); % terms constant across sessions
                     X{nses}=X{nses}(:,~IsFixed{nses}); % terms variable across sessions
