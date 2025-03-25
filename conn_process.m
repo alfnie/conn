@@ -1195,6 +1195,7 @@ if any(options==5),
 	CONN_x.Preproc.variables.deriv=cat(2,repmat({0},[1,length(x1.names)]),cellfun(@(x)~isempty(x),regexpi(x2.names,'^effect of|realign|movement|motion'),'uni',0));
 	CONN_x.Preproc.variables.power=cat(2,repmat({1},[1,length(x1.names)]),repmat({1},[1,length(x2.names)]));
 	CONN_x.Preproc.variables.filter=cat(2,repmat({0},[1,length(x1.names)]),repmat({0},[1,length(x2.names)]));
+	CONN_x.Preproc.variables.fixed=cat(2,repmat({0},[1,length(x1.names)]),repmat({0},[1,length(x2.names)]));
 	CONN_x.Preproc.variables.dimensions={};
 	for n1=1:length(x1.names), CONN_x.Preproc.variables.dimensions{end+1}=size(x1.data{n1},2)*ones(1,2); end
 	for n1=1:length(x2.names), CONN_x.Preproc.variables.dimensions{end+1}=size(x2.data{n1},2)*ones(1,2); end
@@ -1213,13 +1214,14 @@ if any(options==5),
 
     defaultcov=~cellfun('length',regexp(x2.names,'^QA_|^QC_')); % default subset of covariates (includes everything but the ones listed here)
     defaultroi={'White Matter','CSF','MotionMask'}; % default subset of rois (includes only those present among the ones listed here)
-    if isfield(CONN_x.Preproc.confounds,'names') && ~isempty(CONN_x.Preproc.confounds.names), initial=CONN_x.Preproc.confounds.names; dims=CONN_x.Preproc.confounds.dimensions; ders=CONN_x.Preproc.confounds.deriv; pows=CONN_x.Preproc.confounds.power; filts=CONN_x.Preproc.confounds.filter; 
-    else, initial={defaultroi{:},x2.names{defaultcov}};dims={5,5}; ders={}; pows={}; filts={}; end
+    if isfield(CONN_x.Preproc.confounds,'names') && ~isempty(CONN_x.Preproc.confounds.names), initial=CONN_x.Preproc.confounds.names; dims=CONN_x.Preproc.confounds.dimensions; ders=CONN_x.Preproc.confounds.deriv; pows=CONN_x.Preproc.confounds.power; filts=CONN_x.Preproc.confounds.filter; fixeds=CONN_x.Preproc.confounds.fixed; 
+    else, initial={defaultroi{:},x2.names{defaultcov}};dims={5,5}; ders={}; pows={}; filts={}; fixeds={}; end
 	CONN_x.Preproc.confounds.names={};
 	CONN_x.Preproc.confounds.types={};
 	CONN_x.Preproc.confounds.power={};
 	CONN_x.Preproc.confounds.deriv={};
 	CONN_x.Preproc.confounds.filter={};
+	CONN_x.Preproc.confounds.fixed={};
 	CONN_x.Preproc.confounds.dimensions={};
 	for n1=1:length(initial), 
         idx=strmatch(initial{n1},CONN_x.Preproc.variables.names,'exact'); 
@@ -1238,6 +1240,9 @@ if any(options==5),
             end
 			if length(filts)>=n1&&~isempty(filts{n1}), CONN_x.Preproc.confounds.filter{end+1}=filts{n1}; 
             else CONN_x.Preproc.confounds.filter{end+1}=CONN_x.Preproc.variables.filter{idx};
+            end
+			if length(fixeds)>=n1&&~isempty(fixeds{n1}), CONN_x.Preproc.confounds.fixed{end+1}=fixeds{n1}; 
+            else CONN_x.Preproc.confounds.fixed{end+1}=CONN_x.Preproc.variables.fixed{idx};
             end
 % 			if length(dims)>=n1&&~isempty(dims{n1}), CONN_x.Preproc.confounds.dimensions{end+1}=[min(dims{n1}(1),CONN_x.Preproc.variables.dimensions{idx}(1)),CONN_x.Preproc.variables.dimensions{idx}(1)]; 
 %             else CONN_x.Preproc.confounds.dimensions{end+1}=CONN_x.Preproc.variables.dimensions{idx}; 
@@ -1297,7 +1302,8 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                         switch(CONN_x.Preproc.confounds.power{nreg}), case 1, t13='no polynomial expansion'; case 2, t13='add quadratic effects'; case 3, t13='add cubic effects'; otherwise, t13=''; end
                         switch(CONN_x.Preproc.confounds.deriv{nreg}), case 0, t14='no temporal expansion'; case 1, t14='added first-order derivative'; case 2, t14='added second-order derivative'; otherwise, t14=''; end
                         switch(CONN_x.Preproc.confounds.filter{nreg}), case 0, t15='non-filtered'; otherwise, t15='band-pass filtered'; end
-                        conn_disp('fprintf','  Regression : %s (%d dimensions; %s; %s; %s)\n',tnames{nreg},min(CONN_x.Preproc.confounds.dimensions{nreg}),t13,t14,t15);
+                        switch(CONN_x.Preproc.confounds.fixed{nreg}), case 0, t16='session-specific'; otherwise, t16='session-invariant'; end
+                        conn_disp('fprintf','  Regression : %s (%d dimensions; %s; %s; %s; %s)\n',tnames{nreg},min(CONN_x.Preproc.confounds.dimensions{nreg}),t13,t14,t15,t16);
                     end
                     switch(CONN_x.Preproc.regbp), case 2, t16='Simultaneous regression and filtering (Simult)'; otherwise, t16='Regression followed by filtering (RegBP)'; end
                     conn_disp('fprintf','  Order : %s\n',t16);
@@ -1308,8 +1314,9 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             end
             if strcmp(lower(REDO),'yes'), missingdata(:)=true; end
             nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
-            dofAll=0;
-            clear Y X iX X1 X2 C Xnames;
+            %dofAll=0;
+            nXc=0;
+            clear Y X iX X1 X2 C Xnames Xc ifilter IsFixed
             clear Youtnorm0 cachenorm0 Voutputfiles;
             for nses=1:nsess, % loads all ROI COV COND data for this subject 
                 filename=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
@@ -1330,19 +1337,21 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                     if CONN_x.Preproc.detrending>=2, confounds.types{end+1}='detrend2'; end
                     if CONN_x.Preproc.detrending>=3, confounds.types{end+1}='detrend3'; end
                 end
-                [X{nses},ifilter,nill,nill,Xnames{nses}]=conn_designmatrix(confounds,X1{nses},X2{nses},{nfilter});
-                Xnames{nses}=regexprep(Xnames{nses},'^.*$',sprintf('Session %d: $0',nses));
+                [X{nses},ifiltertemp,nill,nill,Xnames{nses},IsFixed{nses}]=conn_designmatrix(confounds,X1{nses},X2{nses},{nfilter});
+                Nfixed=nnz(IsFixed{nses});
+                %Xfixed{nses}=cellfun('length',regexp(Xnames{nses},'-fixed$'))>0; Nfixed=nnz(Xfixed{nses}); 
+                ifilter{nses}=ifiltertemp{1};
+                if nses>1&&Nfixed~=nXc, error('Effects fixed across sessions have a mismatched number of components (%d in session #1, %d in session #%d)',nXc,Nfixed,nses); 
+                else nXc=Nfixed;
+                end
                 Xconstant{nses}=cellfun('length',regexp(Xnames{nses},'constant term$'))>0;
                 RT=conn_get_rt(nsub,nses);
                 if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2,
                     X{nses}(:,~Xconstant{nses})=conn_filter(RT,CONN_x.Preproc.filter,X{nses}(:,~Xconstant{nses}));
-                elseif nnz(ifilter{1})
-                    X{nses}(:,find(ifilter{1}))=conn_filter(max(RT),CONN_x.Preproc.filter,X{nses}(:,find(ifilter{1})));
+                elseif nnz(ifilter{nses})
+                    X{nses}(:,find(ifilter{nses}))=conn_filter(max(RT),CONN_x.Preproc.filter,X{nses}(:,find(ifilter{nses})));
                 end
                 if size(X{nses},1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
-                try, iX{nses}=pinv(X{nses});
-                catch, iX{nses}=pinv(X{nses}'*X{nses})*X{nses}';
-                end
                 filename=fullfile(filepathresults,['NORMS_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
                 [filename,cachenorm0(nses)]=conn_tempcache(filename); 
                 Youtnorm0{nses}=Y{1};
@@ -1368,32 +1377,53 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                         try, str=lasterror; conn_disp('Warning: unable to create denoised files; error message:'); conn_disp(str.message); end
                     end
                 end
-                if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,CONN_x.Setup.nscans{nsub}{nses}*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0-size(X{nses},2));
-                elseif nnz(ifilter{1}), dof2=max(0,(CONN_x.Setup.nscans{nsub}{nses}-size(X{nses},2)+nnz(ifilter{1}))*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0-nnz(ifilter{1}));
-                else dof2=max(0,(CONN_x.Setup.nscans{nsub}{nses}-size(X{nses},2))*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0);
-                end
-                edof_name=sprintf('QC_DOF_session%d',nses);
-                edof_icov=find(strcmp(edof_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
-                if isempty(edof_icov),
-                    edof_icov=numel(CONN_x.Setup.l2covariates.names);
-                    CONN_x.Setup.l2covariates.names{edof_icov}=edof_name;
-                    CONN_x.Setup.l2covariates.descrip{edof_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising)';
-                    CONN_x.Setup.l2covariates.names{edof_icov+1}=' ';
-                    for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{edof_icov}=nan; end
-                end
-                CONN_x.Setup.l2covariates.values{nsub}{edof_icov}=dof2;
-                dofAll=dofAll+dof2;
+                % if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,CONN_x.Setup.nscans{nsub}{nses}*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0-size(X{nses},2)-nXc/nsess);
+                % elseif nnz(ifilter{nses}), dof2=max(0,(CONN_x.Setup.nscans{nsub}{nses}-size(X{nses},2)+nnz(ifilter{nses}(IsFixed{nses}))/nsess+nnz(ifilter{nses}(~IsFixed{nses})))*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0-nnz(ifilter{nses}(IsFixed{nses}))/nsess-nnz(ifilter{nses}(~IsFixed{nses})));
+                % else dof2=max(0,(CONN_x.Setup.nscans{nsub}{nses}-size(X{nses},2)-nXc/nsess)*(min(1/(2*max(RT)),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(RT)))+0);
+                % end
+                % edof_name=sprintf('QC_DOF_session%d',nses);
+                % edof_icov=find(strcmp(edof_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                % if isempty(edof_icov),
+                %     edof_icov=numel(CONN_x.Setup.l2covariates.names);
+                %     CONN_x.Setup.l2covariates.names{edof_icov}=edof_name;
+                %     CONN_x.Setup.l2covariates.descrip{edof_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising)';
+                %     CONN_x.Setup.l2covariates.names{edof_icov+1}=' ';
+                %     for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{edof_icov}=nan; end
+                % end
+                % CONN_x.Setup.l2covariates.values{nsub}{edof_icov}=dof2;
+                % dofAll=dofAll+dof2;
             end
-            edof_name='QC_DOF';
-            edof_icov=find(strcmp(edof_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
-            if isempty(edof_icov),
-                edof_icov=numel(CONN_x.Setup.l2covariates.names);
-                CONN_x.Setup.l2covariates.names{edof_icov}=edof_name;
-                CONN_x.Setup.l2covariates.descrip{edof_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising)';
-                CONN_x.Setup.l2covariates.names{edof_icov+1}=' ';
-                for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{edof_icov}=nan; end
+            if nXc>0 % combines session-specific design matrices
+                idx_sessions={}; nidx=0; for nses=1:nsess, idx_sessions{nses}=nidx+(1:size(X{nses},1)); nidx=nidx+size(X{nses},1); end % timepoints associated with each session in concatenated data matrix
+                nidx=0; for nses=1:nsess, Xconstant{nses}=nidx+find(Xconstant{nses}(~IsFixed{nses}),1); nidx=nidx+size(X{nses},2); end % find constant-term (session average) in new design matrix (note: constant term is never fixed)
+                for nses=1:nsess
+                    Xc{nses}=X{nses}(:,IsFixed{nses}); % terms constant across sessions
+                    X{nses}=X{nses}(:,~IsFixed{nses}); % terms variable across sessions
+                    Xcnames=Xnames{nses}(IsFixed{nses});
+                    Xnames{nses}=regexprep(Xnames{nses}(~IsFixed{nses}),'^.*$',sprintf('Session %d: $0',nses));
+                end
+                X=[blkdiag(X{1:nsess}),cat(1,Xc{1:nsess})];
+                Xnames=[cat(2,Xnames{1:nsess}), Xcnames];
+                try, iX=pinv(X);
+                catch, iX=pinv(X'*X)*X';
+                end
+            else
+                for nses=1:nsess,
+                    try, iX{nses}=pinv(X{nses});
+                    catch, iX{nses}=pinv(X{nses}'*X{nses})*X{nses}';
+                    end
+                end
             end
-            CONN_x.Setup.l2covariates.values{nsub}{edof_icov}=dofAll;
+            % edof_name='QC_DOF';
+            % edof_icov=find(strcmp(edof_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+            % if isempty(edof_icov),
+            %     edof_icov=numel(CONN_x.Setup.l2covariates.names);
+            %     CONN_x.Setup.l2covariates.names{edof_icov}=edof_name;
+            %     CONN_x.Setup.l2covariates.descrip{edof_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising)';
+            %     CONN_x.Setup.l2covariates.names{edof_icov+1}=' ';
+            %     for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{edof_icov}=nan; end
+            % end
+            % CONN_x.Setup.l2covariates.values{nsub}{edof_icov}=dofAll;
             clear nsamples time0 dataroi conditionsweights;
             crop=0;
             for ncondition=validconditions(missingdata), % computes number of samples per condition
@@ -1445,35 +1475,54 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                 for slice=1:Y{1}.matdim.dim(3),
                     Bb=[];
                     if 1, % analyses per slice (all sessions together, faster but requires more memory)
-                        clear y ypre;
+                        clear y ypre Bconstant;
                         for nses=1:nsess,
                             [y{nses},idx]=conn_get_slice(Y{nses},slice);
                             if size(y{nses},1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
-                            if slice==1&&rank(X{nses})>=size(y{nses},1), conn_disp(['Warning: Over-determined model (no degrees of freedom for subject ',num2str(nsub),' session ',num2str(nses),'). Please consider reducing the number, dimensions, or covariates order of the confounds or disregarding this subject/session']); end
-                            if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==1,
+                            if slice==1&&nXc==0&&rank(X{nses})>=size(y{nses},1), conn_disp(['Warning: Over-determined model (no degrees of freedom for subject ',num2str(nsub),' session ',num2str(nses),'). Please consider reducing the number, dimensions, or covariates order of the confounds, modeling only fixed effects of confounds across runs, or disregarding this subject/session']); end
+                            if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==1, % despiking before regression
                                 my=repmat(median(y{nses},1),[size(y{nses},1),1]);
                                 sy=repmat(4*median(abs(y{nses}-my)),[size(y{nses},1),1]);
                                 y{nses}=my+sy.*tanh((y{nses}-my)./max(eps,sy));
                             end
-                            b=iX{nses}*y{nses};
-                            y{nses}=y{nses}-X{nses}*b;
-                            if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2,
+                        end
+                        if nXc>0 % removes from cat(1,y{:}) the effect of [blkdiag(1,X{:}), cat(1,Xc{:})]
+                            Data=cat(1,y{1:nsess});
+                            b=iX*Data;
+                            Data=Data-X*b;
+                            if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=1&&CONN_x.Setup.outputfiles(1),
+                                Bb=cat(1,Bb,b);
+                            end
+                            for nses=1:nsess, 
+                                y{nses}=Data(idx_sessions{nses},:); 
+                                Bconstant{nses}=b(Xconstant{nses},:);
+                            end
+                        else % removes from y{nses} the effect of X{nses}
+                            for nses=1:nsess,
+                                b=iX{nses}*y{nses};
+                                y{nses}=y{nses}-X{nses}*b;
+                                if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=1&&CONN_x.Setup.outputfiles(1),
+                                    Bb=cat(1,Bb,b);
+                                end
+                                Bconstant{nses}=b(Xconstant{nses},:);
+                            end
+                        end
+                        for nses=1:nsess,
+                            if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2, % despiking after regression
                                 my=repmat(median(y{nses},1),[size(y{nses},1),1]);
                                 sy=repmat(4*median(abs(y{nses}-my)),[size(y{nses},1),1]);
                                 y{nses}=my+sy.*tanh((y{nses}-my)./max(eps,sy));
                             end
                             ypre{nses}=y{nses};
                             if numel(RT)<nses, RT(nses)=conn_get_rt(nsub,nses); end
-                            y{nses}=conn_filter(RT(nses),CONN_x.Preproc.filter,y{nses});
-                            if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=1&&CONN_x.Setup.outputfiles(1),
-                                Bb=cat(1,Bb,b);
-                            end
+                            y{nses}=conn_filter(RT(nses),CONN_x.Preproc.filter,y{nses}); % bandpass filter
                             norm_pre=sqrt(max(0,mean(ypre{nses}.^2,1)));
                             conn_write_slice(Youtnorm0{nses},norm_pre,slice);
                             if DONEWOUTPUTCONFCORR>=1&&isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=2&&CONN_x.Setup.outputfiles(2)&&~isempty(Voutputfiles{nses}),
                                 t=zeros(Y{1}.matdim.dim(1:2));
                                 for nt=1:size(y{nses},1),
-                                    t(idx)=y{nses}(nt,:) + X{nses}(nt,Xconstant{nses})*b(Xconstant{nses},:);
+                                    %t(idx)=y{nses}(nt,:) + X{nses}(nt,Xconstant{nses})*Bconstant{nses};
+                                    t(idx)=y{nses}(nt,:) + Bconstant{nses};
                                     Voutputfiles{nses}(nt)=spm_write_plane(Voutputfiles{nses}(nt),t,slice);
                                 end
                             end
@@ -1544,8 +1593,8 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
                                 V=repmat(V,[size(Bb,1),1]);for nh=1:numel(V),V(nh).n=[nh,1];end
                                 V=spm_create_vol(V);
                                 try
-                                    BETAnames=cat(2,Xnames{:});
-                                    save(fullfile(filepathresults,'_list_BETA_denoising.mat'),'BETAnames','X','Xnames');
+                                    BETAnames=cat(2,Xnames{1:nsess});
+                                    save(fullfile(filepathresults,'_list_BETA_denoising.mat'),'BETAnames','X');
                                     fileout=fullfile(filepathresults,'_list_BETA_denoising.txt');
                                     fh=fopen(fileout,'wt');
                                     for n1=1:length(BETAnames),fprintf(fh,'%s\n',BETAnames{n1});end
@@ -1663,7 +1712,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
         end
         
         nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
-        clear Y X iX X1 X2 C;
+        clear Y X iX X1 X2 C Xc ifilter IsFixed;
         for nses=1:nsess, % loads all ROI COV COND data for this subject
             filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
             if ~conn_existfile(filename), conn_disp(['Not ready to process step conn_process_7']); conn_waitbar('close',h); return; end
@@ -1680,16 +1729,28 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                 if CONN_x.Preproc.detrending>=2, confounds.types{end+1}='detrend2'; end
                 if CONN_x.Preproc.detrending>=3, confounds.types{end+1}='detrend3'; end
             end
-            [X{nses},ifilter]=conn_designmatrix(confounds,X1{nses},X2{nses},{nfilter});
+                [X{nses},ifiltertemp,nill,nill,Xnames{nses},IsFixed{nses}]=conn_designmatrix(confounds,X1{nses},X2{nses},{nfilter});
+                Nfixed=nnz(IsFixed{nses});
+                %Xfixed{nses}=cellfun('length',regexp(Xnames{nses},'-fixed$'))>0; Nfixed=nnz(Xfixed{nses}); 
+                ifilter{nses}=ifiltertemp{1};
+                if nses>1&&Nfixed~=nXc, error('Effects fixed across sessions have a mismatched number of components (%d in session #1, %d in session #%d)',nXc,Nfixed,nses); 
+                else nXc=Nfixed;
+                end
+            [X{nses},ifiltertemp,nill,nill,nill,IsFixed{nses}]=conn_designmatrix(confounds,X1{nses},X2{nses},{nfilter});
+            Nfixed=nnz(IsFixed{nses});
+            ifilter{nses}=ifiltertemp{1};
+            if nses>1&&Nfixed~=nXc, error('Effects fixed across sessions have a mismatched number of components (%d in session #1, %d in session #%d)',nXc,Nfixed,nses);
+            else nXc=Nfixed;
+            end
             if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2,
                 X{nses}=conn_filter(conn_get_rt(nsub,nses),CONN_x.Preproc.filter,X{nses});
             elseif nnz(ifilter{1})
                 X{nses}(:,find(ifilter{1}))=conn_filter(max(conn_get_rt(nsub,nses)),CONN_x.Preproc.filter,X{nses}(:,find(ifilter{1})));
             end
             if size(X{nses},1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
-            try, iX{nses}=pinv(X{nses});
-            catch, iX{nses}=pinv(X{nses}'*X{nses})*X{nses}';
-            end
+            %try, iX{nses}=pinv(X{nses});
+            %catch, iX{nses}=pinv(X{nses}'*X{nses})*X{nses}';
+            %end
         end
         
         if strcmp(lower(REDO),'yes')||any(missingdata), redo=true;
@@ -1710,13 +1771,31 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                         switch(CONN_x.Preproc.confounds.power{nreg}), case 1, t13='no polynomial expansion'; case 2, t13='add quadratic effects'; case 3, t13='add cubic effects'; otherwise, t13=''; end
                         switch(CONN_x.Preproc.confounds.deriv{nreg}), case 0, t14='no temporal expansion'; case 1, t14='added first-order derivative'; case 2, t14='added second-order derivative'; otherwise, t14=''; end
                         switch(CONN_x.Preproc.confounds.filter{nreg}), case 0, t15='non-filtered'; otherwise, t15='band-pass filtered'; end
-                        conn_disp('fprintf','  Regression : %s (%d dimensions; %s; %s; %s)\n',tnames{nreg},min(CONN_x.Preproc.confounds.dimensions{nreg}),t13,t14,t15);
+                        switch(CONN_x.Preproc.confounds.fixed{nreg}), case 0, t16='session-specific'; otherwise, t16='session-invariant'; end
+                        conn_disp('fprintf','  Regression : %s (%d dimensions; %s; %s; %s; %s)\n',tnames{nreg},min(CONN_x.Preproc.confounds.dimensions{nreg}),t13,t14,t15,t16);
                     end
                     switch(CONN_x.Preproc.regbp), case 2, t16='Simultaneous regression and filtering (Simult)'; otherwise, t16='Regression followed by filtering (RegBP)'; end
                     conn_disp('fprintf','  Order : %s\n',t16);
                     conn_disp('fprintf','  Detrending : %s\n',mat2str(CONN_x.Preproc.detrending));
                     conn_disp('fprintf','  Despiking : %s\n',mat2str(CONN_x.Preproc.despiking));
                     conn_disp('fprintf','  Bandpass : %s\n',mat2str(CONN_x.Preproc.filter));
+                end
+            end
+            if nXc>0 % combines session-specific design matrices
+                idx_sessions={}; nidx=0; for nses=1:nsess, idx_sessions{nses}=nidx+(1:size(X{nses},1)); nidx=nidx+size(X{nses},1); end % timepoints associated with each session in concatenated data matrix
+                for nses=1:nsess
+                    Xc{nses}=X{nses}(:,IsFixed{nses}); % terms constant across sessions
+                    X{nses}=X{nses}(:,~IsFixed{nses}); % terms variable across sessions
+                end
+                X=[blkdiag(X{1:nsess}),cat(1,Xc{1:nsess})];
+                try, iX=pinv(X);
+                catch, iX=pinv(X'*X)*X';
+                end
+            else
+                for nses=1:nsess,
+                    try, iX{nses}=pinv(X{nses});
+                    catch, iX{nses}=pinv(X{nses}'*X{nses})*X{nses}';
+                    end
                 end
             end
             clear nsamples time0 dataroi d1dataroi d2dataroi dbdataroi conditionsweights;
@@ -1740,6 +1819,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
             
             RT=[];
             for nroi=1:length(X1{1}.data),
+                y_sessions={};
                 for nses=1:nsess,
                     y=X1{nses}.data{nroi};
                     if size(y,1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
@@ -1748,8 +1828,25 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                         sy=repmat(4*median(abs(y-my)),[size(y,1),1]);
                         y=my+sy.*tanh((y-my)./max(eps,sy));
                     end
-                    b=iX{nses}*y;
-                    y=y-X{nses}*b;
+                    y_sessions{nses}=y;
+                end
+                if nXc>0 % removes from cat(1,y{:}) the effect of [blkdiag(1,X{:}), cat(1,Xc{:})]
+                    Data=cat(1,y_sessions{1:nsess});
+                    b=iX*Data;
+                    Data=Data-X*b;
+                    for nses=1:nsess,
+                        y_sessions{nses}=Data(idx_sessions{nses},:);
+                    end
+                else % removes from y{nses} the effect of X{nses}
+                    for nses=1:nsess,
+                        b=iX{nses}*y_sessions{nses};
+                        y_sessions{nses}=y_sessions{nses}-X{nses}*b;
+                    end
+                end
+                for nses=1:nsess,
+                    y=y_sessions{nses};
+                    % b=iX{nses}*y;
+                    % y=y-X{nses}*b;
                     if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2,
                         my=repmat(median(y,1),[size(y,1),1]);
                         sy=repmat(4*median(abs(y-my)),[size(y,1),1]);
@@ -1788,15 +1885,32 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
             end
             
             for ncov=1:length(X2{1}.data),
+                y_sessions={};
                 for nses=1:nsess,
                     y=X2{nses}.data{ncov};
                     if size(y,1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
                     if numel(RT)<nses, RT(nses)=conn_get_rt(nsub,nses); end
-                    if PREPROCESSCOVARIATES
-                        b=iX{nses}*y;
-                        y=y-X{nses}*b;
-                        y=conn_filter(RT(nses),CONN_x.Preproc.filter,y);
+                    y_sessions{nses}=y;
+                end
+                if PREPROCESSCOVARIATES
+                    if nXc>0 % removes from cat(1,y{:}) the effect of [blkdiag(1,X{:}), cat(1,Xc{:})]
+                        Data=cat(1,y_sessions{1:nsess});
+                        b=iX*Data;
+                        Data=Data-X*b;
+                        for nses=1:nsess,
+                            y_sessions{nses}=Data(idx_sessions{nses},:);
+                            y_sessions{nses}=conn_filter(RT(nses),CONN_x.Preproc.filter,y_sessions{nses});
+                        end
+                    else % removes from y{nses} the effect of X{nses}
+                        for nses=1:nsess,
+                            b=iX{nses}*y_sessions{nses};
+                            y_sessions{nses}=y_sessions{nses}-X{nses}*b;
+                            y_sessions{nses}=conn_filter(RT(nses),CONN_x.Preproc.filter,y_sessions{nses});
+                        end
                     end
+                end
+                for nses=1:nsess,
+                    y=y_sessions{nses};
                     ffilter=CONN_x.Preproc.filter;
                     if any(isinf(ffilter))&&isnan(maxrt), maxrt=max(conn_get_rt); end
                     ffilter(isinf(ffilter))=1/maxrt/2;

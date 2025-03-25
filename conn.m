@@ -894,7 +894,7 @@ else
                 CONN_x.Setup.rois.files{1}{2}{1}={[],[],[]};%{filename,str,icon};
                 CONN_x.Setup.rois.files{1}{3}{1}={[],[],[]};%{filename,str,icon};
                 CONN_x.Setup.rois.names={'Grey Matter','White Matter','CSF',' '};
-                CONN_x.Setup.rois.dimensions={1,16,16};
+                CONN_x.Setup.rois.dimensions={1,32,32};
                 CONN_x.Setup.rois.mask=[0,0,0];
                 CONN_x.Setup.rois.subjectspecific=[1 1 1];
                 CONN_x.Setup.rois.sessionspecific=[0 0 0];
@@ -6654,7 +6654,8 @@ else
 				CONN_h.menus.m_preproc_00{6}=conn_menu('edit',boffset+[.27,.39,.15,.04],'Confound dimensions','','<HTML>Number of components/timeseries of selected effect to be included in regression model (<i>inf</i> to include all available dimensions)</HTML>','conn(''gui_preproc'',6);');
 				CONN_h.menus.m_preproc_00{4}=conn_menu('popup',boffset+[.27,.35,.15,.04],'',{'no temporal expansion','add 1st-order derivatives','add 2nd-order derivatives'},'<HTML>Temporal/Taylor expansion of regressor timeseries<br/> - Include temporal derivates up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, dx/dt] for first-order derivatives<br/> - [x, dx/dt, d2x/dt2] for second-order derivatives </HTML>','conn(''gui_preproc'',4);');
 				CONN_h.menus.m_preproc_00{8}=conn_menu('popup',boffset+[.27,.31,.15,.04],'',{'no polynomial expansion','add quadratic effects','add cubic effects'},'<HTML>Polynomial expansion of regressor timeseries<br/> - Include powers up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, x^2] for quadratic effects<br/> - [x, x^2, x^3] for cubic effects</HTML>','conn(''gui_preproc'',8);');
-				CONN_h.menus.m_preproc_00{9}=conn_menu('checkbox',boffset+[.27,.28,.02,.025],'Filtered','','<HTML>Band-pass filter regressors timeseries before entering them into linear regression model <br/> - filtering a confound regressor allows to model and remove potential confound-by-frequency interactions<br/> - note: this option only applies when using <i>RegBP</i> (when using <i>simult</i> this options is disregarded as all regressors are automatically filtered)</HTML>','conn(''gui_preproc'',9);');
+				CONN_h.menus.m_preproc_00{9}=conn_menu('checkbox',boffset+[.27,.28,.02,.025],'Band-pass filtered','','<HTML>Band-pass filter regressors timeseries before entering them into linear regression model <br/> - filtering a confound regressor allows to model and remove potential confound-by-frequency interactions<br/> - note: this option only applies when using <i>RegBP</i> (when using <i>simult</i> this options is disregarded as all regressors are automatically filtered)</HTML>','conn(''gui_preproc'',9);');
+				CONN_h.menus.m_preproc_00{30}=conn_menu('checkbox',boffset+[.27,.25,.02,.025],'Session-invariant','','<HTML>specifies whether this confound''s effect is estimated as a constant term across all runs/sessions (session-invariant effect) or as a variable term per run/session (session-specific effect)<br/> - modeling it as a session-invariant effect allows a more efficient estimation when the effect of this confound on the BOLD signal does not vary across runs or sessions<br/> -  modeling it as a session-specific effect is preferable when the effect of this confound on the BOLD signal may vary across different runs or sessions <br/> note: the "Preview effect of denoising" display will not show the effect of this setting (only in the way it affects dof''s), but the effect of this setting will be correctly displayed in all denoising QC plots</HTML>','conn(''gui_preproc'',30);');
 				CONN_h.menus.m_preproc_00{5}=conn_menu('edit',boffset+[.05,.15,.17,.05],'Band-pass filter (Hz):',mat2str(CONN_x.Preproc.filter),'BOLD signal Band-Pass filter threshold. Two values (in Hz): high-pass and low-pass thresholds, respectively','conn(''gui_preproc'',5);');
                 CONN_h.menus.m_preproc_00{20}=conn_menu('popup',boffset+[.05,.10,.17,.05],'',{'After regression (RegBP)','Simultaneous (simult)'},'<HTML>Order of band-pass filtering step<br/> - <i>RegBP</i>: regression followed by band-pass filtering<br/> - <i>Simult</i>: simultaneous regression&band-pass filtering steps<br/>note: <i>simult</i> allows to model confound-by-frequency interactions. It is implemented as a RegBP procedure with pre-filtering <br/>of all regressors/confounds. See the regressor-specific ''filtered'' field if you need control over individual regressors/confounds</HTML>','conn(''gui_preproc'',20);');
 				CONN_h.menus.m_preproc_00{18}=conn_menu('popup',boffset+[.27,.15,.15,.05],'Additional steps:',{'No detrending','Linear detrending','Quadratic detrending','Cubic detrending'},'<HTML>BOLD signal session-specific detrending<br/> - detrending is implemented by automatically adding the associated linear/quadratic/cubic regressors to the confounding effects model</HTML>','conn(''gui_preproc'',18);');
@@ -6797,6 +6798,7 @@ else
 										CONN_x.Preproc.confounds.deriv{end+1}=CONN_x.Preproc.variables.deriv{ncovariate}; 
 										CONN_x.Preproc.confounds.dimensions{end+1}=[inf CONN_x.Preproc.variables.dimensions{ncovariate}(1)]; 
 										CONN_x.Preproc.confounds.filter{end+1}=CONN_x.Preproc.variables.filter{ncovariate}; 
+										CONN_x.Preproc.confounds.fixed{end+1}=CONN_x.Preproc.variables.fixed{ncovariate}; 
 									end
 								end
                                 tnames=CONN_x.Preproc.variables.names;
@@ -6816,6 +6818,7 @@ else
 								CONN_x.Preproc.confounds.deriv={CONN_x.Preproc.confounds.deriv{idx}};
 								CONN_x.Preproc.confounds.dimensions={CONN_x.Preproc.confounds.dimensions{idx}};
 								CONN_x.Preproc.confounds.filter={CONN_x.Preproc.confounds.filter{idx}};
+								CONN_x.Preproc.confounds.fixed={CONN_x.Preproc.confounds.fixed{idx}};
                                 tnames=CONN_x.Preproc.variables.names;
                                 try, tnames=cellfun(@(name,dim,deriv,power)sprintf('%s (%dP)',name,dim(1)),CONN_x.Preproc.variables.names,CONN_x.Preproc.variables.dimensions,CONN_x.Preproc.variables.deriv,CONN_x.Preproc.variables.power,'uni',0); end
                                 tnames(ismember(CONN_x.Preproc.variables.names,CONN_x.Preproc.confounds.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Preproc.variables.names,CONN_x.Preproc.confounds.names)),'uni',0);
@@ -6878,6 +6881,11 @@ else
 						nconfounds=get(CONN_h.menus.m_preproc_00{2},'value');
 						value=get(CONN_h.menus.m_preproc_00{9},'value');
 						if length(value)==1, for nconfound=nconfounds(:)', CONN_x.Preproc.confounds.filter{nconfound}=value; end; end
+						model=1;
+					case 30,
+						nconfounds=get(CONN_h.menus.m_preproc_00{2},'value');
+						value=get(CONN_h.menus.m_preproc_00{30},'value');
+						if length(value)==1, for nconfound=nconfounds(:)', CONN_x.Preproc.confounds.fixed{nconfound}=value; end; end
 						model=1;
 					case {11,12},
 						nsubs=get(CONN_h.menus.m_preproc_00{11},'value');
@@ -7002,7 +7010,7 @@ else
                 CONN_h.menus.m_preproc.select=conn_designmatrix(confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2,{nconfounds,nview,nfilter},true);
             else
                 CONN_h.menus.m_preproc.X_input={confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2};
-                [CONN_h.menus.m_preproc.X,CONN_h.menus.m_preproc.select]=conn_designmatrix(confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2,{nconfounds,nview,nfilter});
+                [CONN_h.menus.m_preproc.X,CONN_h.menus.m_preproc.select,nill,nill,nill,CONN_h.menus.m_preproc.Nfixed]=conn_designmatrix(confounds,CONN_h.menus.m_preproc.X1,CONN_h.menus.m_preproc.X2,{nconfounds,nview,nfilter});
             end
 			if ~isempty(nconfounds)&&all(nconfounds>0), 
 				temp=cat(1,CONN_x.Preproc.confounds.deriv{nconfounds});
@@ -7017,6 +7025,9 @@ else
 				temp=cat(1,CONN_x.Preproc.confounds.filter{nconfounds});
 				if size(temp,1)==1 || ~any(any(diff(temp,1,1))),set(CONN_h.menus.m_preproc_00{9},'value',CONN_x.Preproc.confounds.filter{nconfounds(1)}(1)); 
 				else  set(CONN_h.menus.m_preproc_00{9},'value',0); end
+				temp=cat(1,CONN_x.Preproc.confounds.filter{nconfounds});
+				if size(temp,1)==1 || ~any(any(diff(temp,1,1))),set(CONN_h.menus.m_preproc_00{30},'value',CONN_x.Preproc.confounds.fixed{nconfounds(1)}(1)); 
+				else  set(CONN_h.menus.m_preproc_00{30},'value',0); end
 			end
 			set(CONN_h.menus.m_preproc_00{5},'string',mat2str(CONN_x.Preproc.filter));
             if 0,%~isempty(CONN_x.Preproc.variables.names)
@@ -7038,6 +7049,7 @@ else
                     sy=repmat(4*median(abs(x1-my)),[size(x1,1),1]);
                     x1=my+sy.*tanh((x1-my)./max(eps,sy));
                 end
+                % note: placeholder - for now the preview display does not reflect the effect of 'Fixed' confounds (as that requires loading the data across all runs, which will take too long for the purpose of this quick preview); Instead always the session-specific effect (Fixed=0) of all confounds is removed in this preview. Revisit this when the additional time required for loading that data becomes less of an issue)
                 x1=x1-xf*(pinv(xf'*xf)*(xf'*x1));
                 if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2,
                     my=repmat(median(x1,1),[size(x1,1),1]);
@@ -7112,12 +7124,13 @@ else
 %                         CONN_h.menus.m_preproc.opt.dof=size(CONN_h.menus.m_preproc.X1.sampledata,1)-size(xf,2); 
 %                     end
 %                     dof=CONN_h.menus.m_preproc.opt.dof;
-                    [scatterplotdata,a0,b0,a1,b1, z0,z1, temp,tempB,tempXYZ, dof0, dof1, dof2]=conn_fcnutils('zcorr', CONN_h.menus.m_preproc.X1, xf, CONN_x.Preproc.despiking, CONN_x.Preproc.filter, max(conn_get_rt(nsubs))); 
-                    if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,dof2(1)*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0-dof2(2));
-                    elseif nnz(CONN_h.menus.m_preproc.select{3}), dof2=max(0,(dof2(1)-dof2(2)+nnz(CONN_h.menus.m_preproc.select{3}))*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0-nnz(CONN_h.menus.m_preproc.select{3}));
-                    else dof2=max(0,(dof2(1)-dof2(2))*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0);
+                    [scatterplotdata,a0,b0,a1,b1, z0,z1, temp,tempB,tempXYZ, dof0, dof1, dof2]=conn_fcnutils('zcorr', CONN_h.menus.m_preproc.X1, xf, CONN_x.Preproc.despiking, CONN_x.Preproc.filter, max(conn_get_rt(nsubs)));                     
+                    tempnsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsubs));
+                    tempnXc=nnz(CONN_h.menus.m_preproc.Nfixed);
+                    if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,dof2(1)*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0-dof2(2)+tempnXc-tempnXc/tempnsess);
+                    elseif nnz(CONN_h.menus.m_preproc.select{3}), dof2=max(0,(dof2(1)-dof2(2)+tempnXc+nnz(CONN_h.menus.m_preproc.select{3}(CONN_h.menus.m_preproc.Nfixed))/tempnsess+nnz(CONN_h.menus.m_preproc.select{3}(~CONN_h.menus.m_preproc.Nfixed)))*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0-nnz(CONN_h.menus.m_preproc.select{3}(CONN_h.menus.m_preproc.Nfixed))/tempnsess-nnz(CONN_h.menus.m_preproc.select{3}(~CONN_h.menus.m_preproc.Nfixed)));
+                    else dof2=max(0,(dof2(1)-dof2(2)+tempnXc-tempnXc/tempnsess)*(min(1/(2*max(conn_get_rt(nsubs))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsubs))))+0);
                     end
-                                        
 %                     if 0
 %                         subplot(211); zt=z0; plot(d0,zt,'k.','markersize',1,'color',.5*[1 1 1]); [nill,idx]=sort(d0); idx(idx)=ceil(20*(1:numel(idx))/numel(idx)); hold on; mzt=accumarray(idx(:),zt(:),[],@mean); szt=accumarray(idx(:),zt(:),[],@std); md0=accumarray(idx(:),d0(:),[],@mean); plot(repmat(md0',2,1),[mzt+szt mzt-szt]','r:',md0,mzt,'ro','markerfacecolor','r','linewidth',3); hold off; set(gca,'color','k');
 %                         subplot(212); zt=z1; plot(d0,zt,'k.','markersize',1,'color',.5*[1 1 1]); [nill,idx]=sort(d0); idx(idx)=ceil(20*(1:numel(idx))/numel(idx)); hold on; mzt=accumarray(idx(:),zt(:),[],@mean); szt=accumarray(idx(:),zt(:),[],@std); md0=accumarray(idx(:),d0(:),[],@mean); plot(repmat(md0',2,1),[mzt+szt mzt-szt]','r:',md0,mzt,'ro','markerfacecolor','r','linewidth',3); hold off; set(gca,'color','k');

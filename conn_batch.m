@@ -501,6 +501,8 @@ function varargout=conn_batch(varargin)
 %                                     raw timeseries, 1 for raw+firstderivative timeseries, etc.) [0|1]
 %      Denoising.confounds.power    : confounds.power{nconfound} include powers up to n-th order of each effect (1 for linear effects, 
 %                                     2 for linear+quadratic effect, etc.) [1]
+%      Denoising.confounds.fixed   :  confounds.fixed{nconfound} specifies whether the confound's effect is estimated as a constant 
+%                                     term across all runs/sessions (fixed=1) or as a variable term per run/session (fixed=0) [0]
 %      Denoising.confounds.filter   : (for regbp==1) confounds.filter{nconfound} band-pass filter confound regressors before entering 
 %                                     in regression equation [0]
 %  
@@ -1407,6 +1409,7 @@ if isfield(batch,'Denoising'),
         if isfield(batch.Denoising.confounds,'deriv')&&~isempty(batch.Denoising.confounds.deriv), CONN_x.Preproc.confounds.deriv=batch.Denoising.confounds.deriv; else CONN_x.Preproc.confounds.deriv={}; end
         if isfield(batch.Denoising.confounds,'power')&&~isempty(batch.Denoising.confounds.power), CONN_x.Preproc.confounds.power=batch.Denoising.confounds.power; else CONN_x.Preproc.confounds.power={}; end
         if isfield(batch.Denoising.confounds,'filter')&&~isempty(batch.Denoising.confounds.filter), CONN_x.Preproc.confounds.filter=batch.Denoising.confounds.filter; else CONN_x.Preproc.confounds.filter={}; end
+        if isfield(batch.Denoising.confounds,'fixed')&&~isempty(batch.Denoising.confounds.fixed), CONN_x.Preproc.confounds.fixed=batch.Denoising.confounds.fixed; else CONN_x.Preproc.confounds.fixed={}; end
     end
     
     if isfield(batch.Denoising,'done')&&batch.Denoising.done,

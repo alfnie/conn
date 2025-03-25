@@ -191,14 +191,14 @@ for nsub=SUBJECTS,
                 % adds other conditions/covariates
                 if 0, % spmascovariate option is no longer supported   isfield(CONN_x.Setup,'spmascovariate')&&CONN_x.Setup.spmascovariate
                     if isfield(spmfile.SPM.Sess(nses),'col')&&~isempty(spmfile.SPM.Sess(nses).col)
-                        name='SPM effects';
+                        name='QC_SPM_effects';
                         idx=strmatch(name,CONN_x.Setup.l1covariates.names,'exact');
                         if isempty(idx), idx=length(CONN_x.Setup.l1covariates.names); CONN_x.Setup.l1covariates.names{end+1}=' '; end
                         CONN_x.Setup.l1covariates.names{idx}=name;
                         CONN_x.Setup.l1covariates.files{nsub}{idx}{session_count}={'[raw values]',[],spmfile.SPM.xX.X(spmfile.SPM.Sess(nses).row,spmfile.SPM.Sess(nses).col)};
                     end
                     if isfield(spmfile.SPM.Sess(nses),'C')&&~isempty(spmfile.SPM.Sess(nses).C.C)
-                        name='SPM covariates';
+                        name='QC_SPM_covariates';
                         idx=strmatch(name,CONN_x.Setup.l1covariates.names,'exact');
                         if isempty(idx), idx=length(CONN_x.Setup.l1covariates.names); CONN_x.Setup.l1covariates.names{end+1}=' '; end
                         CONN_x.Setup.l1covariates.names{idx}=name;
@@ -243,7 +243,7 @@ for nsub=SUBJECTS,
                     
                     if options.addcovariates
                         if isfield(spmfile.SPM,'Sess')&&isfield(spmfile.SPM.Sess(nses),'C')&&~isempty(spmfile.SPM.Sess(nses).C.C)
-                            name='SPM covariates';
+                            name='QC_SPM_covariates';
                             idx=strmatch(name,CONN_x.Setup.l1covariates.names,'exact');
                             if isempty(idx), idx=length(CONN_x.Setup.l1covariates.names); CONN_x.Setup.l1covariates.names{end+1}=' '; end
                             CONN_x.Setup.l1covariates.names{idx}=name;
@@ -265,7 +265,7 @@ for nsub=SUBJECTS,
                     if options.addartfiles
                         for remov=0:10,if conn_existfile(conn_prepend('art_regression_outliers_',conn_prepend(-remov,filename1),'.mat')); break; end; end
                         if remov<10
-                            name='ART covariates';
+                            name='QC_ART_covariates';
                             idx=strmatch(name,CONN_x.Setup.l1covariates.names,'exact');
                             if isempty(idx), idx=length(CONN_x.Setup.l1covariates.names); CONN_x.Setup.l1covariates.names{end+1}=' '; end
                             CONN_x.Setup.l1covariates.names{idx}=name;

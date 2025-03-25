@@ -522,11 +522,13 @@ for n=1:numel(a.confounds.names)
             b.(['confounds_',fname,'_','power'])=a.confounds.power{n};
             b.(['confounds_',fname,'_','dimensions'])=min(a.confounds.dimensions{n})*a.confounds.power{n}*(1+a.confounds.deriv{n});
             b.(['confounds_',fname,'_','filter'])=a.confounds.filter{n};
+            b.(['confounds_',fname,'_','fixed'])=a.confounds.fixed{n};
         else
             b.(['confounds_',fname,'_','deriv'])=max(b.(['confounds_',fname,'_','deriv']),a.confounds.deriv{n});
             b.(['confounds_',fname,'_','power'])=max(b.(['confounds_',fname,'_','power']),a.confounds.power{n});
             b.(['confounds_',fname,'_','dimensions'])=b.(['confounds_',fname,'_','dimensions'])+min(a.confounds.dimensions{n})*a.confounds.power{n}*(1+a.confounds.deriv{n});
             b.(['confounds_',fname,'_','filter'])=max(b.(['confounds_',fname,'_','filter']),a.confounds.filter{n});
+            b.(['confounds_',fname,'_','fixed'])=max(b.(['confounds_',fname,'_','fixed']),a.confounds.fixed{n});
         end
     end
 end

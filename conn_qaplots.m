@@ -571,7 +571,7 @@ end
 Iprocedure=[11,12,13,14,15];
 if any(ismember(procedures,Iprocedure)) % QA_DENOISE
     PERRUN=false;
-    try
+    %try
         validrois=validrois0; validsets=validsets0; nl2covariates=nl2covariates0; nl2controlcovariates=nl2controlcovariates0;
         nprocedures=sum(ismember(procedures,1:min(Iprocedure)-1));
         nproceduresin=sum(ismember(procedures,Iprocedure));
@@ -589,9 +589,10 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
         donemsg=false;
         for isub=1:numel(nsubs)
             nsub=nsubs(isub);
-            x0all=[];x1all=[];xyzall=[];x0validall=[];dof0all=[];dof1all=[];dof2all=[];
-            try
+            x0all=[];x1all=[];xyzall=[];x0validall=[];dof0all=[];dof1all=[];dof2all=[];nXc=0;
+            %try
                 nsess=CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),nsub));
+                X={};
                 for nses=1:nsess,
                     filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
                     X1{nses}=conn_loadmatfile(filename);
@@ -607,15 +608,38 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                         if CONN_x.Preproc.detrending>=2, confounds.types{end+1}='detrend2'; end
                         if CONN_x.Preproc.detrending>=3, confounds.types{end+1}='detrend3'; end
                     end
-                    [X{nses},ifilter]=conn_designmatrix(confounds,X1{nses},X2{nses},{nfilter});
+                    [X{nses},ifiltertemp,nill,nill,nill,IsFixed{nses}]=conn_designmatrix(confounds,X1{nses},X2{nses},{nfilter});
+                    ifilter{nses}=ifiltertemp{1};
+                    Nfixed=nnz(IsFixed{nses});
+                    if nses>1&&Nfixed~=nXc, error('Effects fixed across sessions have a mismatched number of components (%d in session #1, %d in session #%d)',nXc,Nfixed,nses);
+                    else nXc=Nfixed;
+                    end
                     if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2,
                         X{nses}=conn_filter(conn_get_rt(nsub,nses),CONN_x.Preproc.filter,X{nses});
-                    elseif nnz(ifilter{1})
-                        X{nses}(:,find(ifilter{1}))=conn_filter(max(conn_get_rt(nsub,nses)),CONN_x.Preproc.filter,X{nses}(:,find(ifilter{1})));
+                    elseif nnz(ifilter{nses})
+                        X{nses}(:,find(ifilter{nses}))=conn_filter(max(conn_get_rt(nsub,nses)),CONN_x.Preproc.filter,X{nses}(:,find(ifilter{nses})));
                     end
                     if size(X{nses},1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
-                    iX{nses}=pinv(X{nses}'*X{nses})*X{nses}';
-                    
+                end
+                clear y0 y1;
+                if nXc>0
+                    idx_sessions={}; nidx=0; for nses=1:nsess, idx_sessions{nses}=nidx+(1:size(X{nses},1)); nidx=nidx+size(X{nses},1); end % timepoints associated with each session in concatenated data matrix
+                    sX={};
+                    for nses=1:nsess
+                        Xc{nses}=X{nses}(:,IsFixed{nses}); % terms constant across sessions
+                        X{nses}=X{nses}(:,~IsFixed{nses}); % terms variable across sessions
+                        sX{nses}=[size(X{nses},1), size(X{nses},2)+size(Xc{nses},2)/nsess];
+                    end
+                    X=[blkdiag(X{1:nsess}),cat(1,Xc{1:nsess})];
+                    iX=pinv(X'*X)*X';
+                else
+                    sX={};
+                    for nses=1:nsess
+                        iX{nses}=pinv(X{nses}'*X{nses})*X{nses}';
+                        sX{nses}=[size(X{nses},1), size(X{nses},2)];
+                    end
+                end
+                for nses=1:nsess
                     x0=X1{nses}.sampledata;
                     if isfield(X1{nses},'samplexyz')&&numel(X1{nses}.samplexyz)==size(x0,2), xyz=cell2mat(X1{nses}.samplexyz);
                     else xyz=nan(3,size(x0,2));
@@ -623,20 +647,40 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                     x0=detrend(x0,'constant');
 
                     x0valid=~all(abs(x0)<1e-4,1)&~any(isnan(x0),1);
-                    %[nill,tidx]=sort(sum(x0(:,x0valid).*repmat(mean(x0(:,x0valid),2),1,numel(x0valid)),1));x0valid=x0valid(tidx);
-                    %[nill,tidx]=sort(sum(abs(x0(:,x0valid)).^2,1));x0valid=x0valid(tidx);
-                    x0=x0(:,x0valid);
-                    xyz=xyz(:,x0valid);
-                    if isempty(x0),
+                    if ~any(x0valid),
                         conn_disp('Warning! No temporal variation in BOLD signal within sampled grey-matter voxels');
                     end
+                    %[nill,tidx]=sort(sum(x0(:,x0valid).*repmat(mean(x0(:,x0valid),2),1,numel(x0valid)),1));x0valid=x0valid(tidx);
+                    %[nill,tidx]=sort(sum(abs(x0(:,x0valid)).^2,1));x0valid=x0valid(tidx);
                     x1=x0;
                     if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==1,
                         my=repmat(median(x1,1),[size(x1,1),1]);
                         sy=repmat(4*median(abs(x1-my)),[size(x1,1),1]);
                         x1=my+sy.*tanh((x1-my)./max(eps,sy));
                     end
-                    x1=x1-X{nses}*(iX{nses}*x1);
+                    xyz_allsessions{nses}=xyz;
+                    x0_allsessions{nses}=x0;
+                    x1_allsessions{nses}=x1;
+                    x0valid_allsessions{nses}=x0valid;
+                end
+                if nXc>0 
+                    Data=cat(1,x1_allsessions{1:nsess});
+                    Data=Data-X*(iX*Data);
+                    for nses=1:nsess, x1_allsessions{nses}=Data(idx_sessions{nses},:); end
+                else
+                    for nses=1:nsess
+                        x1_allsessions{nses}=x1_allsessions{nses}-X{nses}*(iX{nses}*x1_allsessions{nses});
+                    end
+                end
+                for nses=1:nsess
+                    xyz=xyz_allsessions{nses};
+                    x0=x0_allsessions{nses};
+                    x1=x1_allsessions{nses};
+                    x0valid=x0valid_allsessions{nses};
+                    xyz=xyz(:,x0valid);
+                    x0=x0(:,x0valid);
+                    x1=x1(:,x0valid);
+                    %x1=x1-X{nses}*(iX{nses}*x1);
                     if isfield(CONN_x.Preproc,'despiking')&&CONN_x.Preproc.despiking==2,
                         my=repmat(median(x1,1),[size(x1,1),1]);
                         sy=repmat(4*median(abs(x1-my)),[size(x1,1),1]);
@@ -647,9 +691,9 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                     dof0=size(x0,1)-1;
                     %dof=max(0,sum(fy)^2/sum(fy.^2)-size(X{nses},2)); % change dof displayed to WelchSatterthwaite residual dof approximation
                     dof1=max(0,sum(fy)^2/sum(fy.^2)); % WelchSatterthwaite residual dof approximation
-                    if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,size(x0,1)*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0-size(X{nses},2));
-                    elseif nnz(ifilter{1}), dof2=max(0,(size(x0,1)-size(X{nses},2)+nnz(ifilter{1}))*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0-nnz(ifilter{1}));
-                    else dof2=max(0,(size(x0,1)-size(X{nses},2))*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0);
+                    if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,sX{nses}(1)*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0-sX{nses}(2));
+                    elseif nnz(ifilter{nses}),                                   dof2=max(0,(sX{nses}(1)-sX{nses}(2)+nnz(ifilter{nses}(IsFixed{nses}))/nsess+nnz(ifilter{nses}(~IsFixed{nses})))*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0-nnz(ifilter{nses}(IsFixed{nses}))/nsess-nnz(ifilter{nses}(~IsFixed{nses})));
+                    else                                                         dof2=max(0,(sX{nses}(1)-sX{nses}(2))*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0);
                     end
 
                     if iscell(validconditions), validconditions=find(ismember(CONN_x.Setup.conditions.names(1:end-1),validconditions)); end
@@ -889,13 +933,13 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                 if ~nargout, conn_waitbar(nprocedures/Nprocedures+nproceduresin/Nprocedures*isub/numel(nsubs),ht);
                 else fprintf('.');
                 end
-            catch
-                conn_disp('fprintf','warning: unable to create QA_DENOISE-functional plot for subject %d\n%s\n',nsub,conn_qaplots_singleline(lasterr));
-            end
+            %catch
+            %    conn_disp('fprintf','warning: unable to create QA_DENOISE-functional plot for subject %d\n%s\n',nsub,conn_qaplots_singleline(lasterr));
+            %end
         end
-    catch
-       conn_disp('fprintf','warning: unable to create QA_DENOISE plot \n %s \n',conn_qaplots_singleline(lasterr));
-    end
+    %catch
+    %   conn_disp('fprintf','warning: unable to create QA_DENOISE plot \n %s \n',conn_qaplots_singleline(lasterr));
+    %end
     if any(ismember(procedures,[13,15])) % FC-QC
         [x,xnames,xdescr]=conn_module('get','l2covariates');
         x=x(nsubs,:);

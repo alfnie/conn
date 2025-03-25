@@ -1398,10 +1398,10 @@ root_list={...
     '^QA_TIMEART_(.*?)(\(.*?\)\s*)?$','QA artifacts: BOLD GS changes & subject motion timeseries with $1 movie $2','9','1';
     '^QA_DENOISE_timeseries.*?(\(.*?\)\s*)?$','QA denoising: BOLD signal traces (carpetplot) + ART timeseries $1','12','1';
     '^QA_DENOISE_QC-FC_scatterplot.*?(\(.*?\)\s*)?$','QA denoising: scatterplot of QC-FC associations (QC-FC) vs. distance (mm) $1','15','4';
-    '^QA_DENOISE_QC-FC.*?(\(.*?\)\s*)?$','QA denoising: distribution of QC-FC associations (QC-FC) $1','13','3';
+    '^QA_DENOISE_QC-FC.*?(\(.*?\)\s*)?$','QA denoising: distribution of QualityControl-FunctionalConnectivity associations (QC-FC) $1','13','3';
     '^QA_DENOISE_scatterplot.*?(\(.*?\)\s*)?$','QA denoising: scatterplot of functional connectivity values (FC) vs. distance (mm) $1','14','4';
-    '^QA_DENOISE.*?(\(.*?\)\s*)?$','QA denoising: distribution of functional connectivity values (FC) $1','11','2';
-    '^QA_COV.*?(\(.*?\)\s*)?$','QA variables: distribution of subject-level QC measures $1','31','5';
+    '^QA_DENOISE.*?(\(.*?\)\s*)?$','QA denoising: distribution of Functional Connectivity values (FC) $1','11','2';
+    '^QA_COV.*?(\(.*?\)\s*)?$','QA variables: distribution of subject-level Quality Control measures (QC) $1','31','5';
     '^QA_SPM_design.*?(\(.*?\)\s*)?$','QA SPM design: review SPM first-level design matrix $1','21','1';
     '^QA_SPM_contrasts.*?(\(.*?\)\s*)?$','QA SPM contrasts: review SPM first-level contrasts $1','22','1';
     '^QA_SPM_results.*?(\(.*?\)\s*)?$','QA SPM results: review SPM contrast effect-sizes $1','23','1';

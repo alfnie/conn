@@ -4,7 +4,7 @@ if nargin<5||isempty(selectonly), selectonly=false; end
 if nargin<4||isempty(nconfounds), nconfounds={}; end
 if any(conn_server('util_isremotevar',{X1,X2})), [varargout{1:nargout}]=conn_server('run',mfilename,confounds,conn_server('util_cleanremotevar',X1),conn_server('util_cleanremotevar',X2),nconfounds,selectonly); return; end % note: returns expanded variables
 
-select=[];X=[];names={};xyz={}; Xnames={};
+select=[];X=[];names={};xyz={}; Xnames={};isfixed=[];
 if iscell(confounds),
     temp=confounds{1};tempfields=fieldnames(temp);for n1=2:numel(confounds),for n2=1:numel(tempfields), temp.(tempfields{n2})=cat(2,temp.(tempfields{n2}),confounds{n1}.(tempfields{n2})); end; end; confounds=temp; 
     valid=ones(numel(confounds.names),1);
@@ -74,6 +74,7 @@ for n1=1:length(confounds.names),
             else d2x=d1x; end
             dx={d1x,d2x};
     end
+    if ~isfield(confounds,'fixed')||numel(confounds.fixed)<n1, confounds.fixed{n1}=0; end
     if ~isempty(x),
         X=cat(2,X,x);
         if all(sx==1),          names{end+1}=[confounds.names{n1}];
@@ -89,6 +90,7 @@ for n1=1:length(confounds.names),
                 if any(n1==nconfounds{n0}), select{n0}=cat(2,select{n0},ones(1,size(x,2)));
                 else select{n0}=cat(2,select{n0},zeros(1,size(x,2))); end
             end; end
+        isfixed=[isfixed, repmat(confounds.fixed{n1},1,size(x,2))];
         if isfield(confounds,'power')
             for n2=2:confounds.power{n1},
                 tx=x(:,:);
@@ -110,6 +112,7 @@ for n1=1:length(confounds.names),
                         if any(n1==nconfounds{n0}), select{n0}=cat(2,select{n0},ones(1,size(x,2)));
                         else select{n0}=cat(2,select{n0},zeros(1,size(x,2))); end
                     end; end
+                isfixed=[isfixed, repmat(confounds.fixed{n1},1,size(tx,2))];
             end
         end        
         for n2=1:min(confounds.deriv{n1},numel(dx)),
@@ -130,6 +133,7 @@ for n1=1:length(confounds.names),
                     if any(n1==nconfounds{n0}), select{n0}=cat(2,select{n0},ones(1,size(x,2)));
                     else select{n0}=cat(2,select{n0},zeros(1,size(x,2))); end
                 end; end
+            isfixed=[isfixed, repmat(confounds.fixed{n1},1,size(x(:,:),2))];
         end
         if isfield(confounds,'power')&&confounds.deriv{n1}>0
             for n2a=1:min(confounds.deriv{n1},numel(dx)),
@@ -155,6 +159,7 @@ for n1=1:length(confounds.names),
                             if any(n1==nconfounds{n0}), select{n0}=cat(2,select{n0},ones(1,size(x,2)));
                             else select{n0}=cat(2,select{n0},zeros(1,size(x,2))); end
                         end; end
+                    isfixed=[isfixed, repmat(confounds.fixed{n1},1,size(tx,2))];
                 end
             end
         end
@@ -166,22 +171,35 @@ if any(strcmp(confounds.types,'detrend'))
     X=[X,linspace(-1,1,N)'];
     Xnames{end+1}='trend linear term';
     if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[select{n0},0];end; end
+    isfixed(end+1)=0;
 end
 if any(strcmp(confounds.types,'detrend2'))
     X=[X,linspace(-1,1,N)'.^2];
     Xnames{end+1}='trend quadratic term';
     if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[select{n0},0];end; end
+    isfixed(end+1)=0;
 end
 if any(strcmp(confounds.types,'detrend3'))
     X=[X,linspace(-1,1,N)'.^3];
     Xnames{end+1}='trend cubic term';
     if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[select{n0},0];end; end
+    isfixed(end+1)=0;
 end
+
+%Xnames(isfixed>0)=regexprep(Xnames(isfixed>0),'.*','$0_fixed');
+%Xnames(isfixed==0)=regexprep(Xnames(isfixed==0),'(_fixed)+$','');
+
 X=[ones(N,1),X];
 Xnames=[{'constant term'}, Xnames];
+isfixed=[false,isfixed>0];
 if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[0,select{n0}];end; end
+
+%X=[X(:,~isfixed), X(:,isfixed)];
+%Xnames=[Xnames(~isfixed), Xnames(isfixed)];
+%if nargin>3&&~isempty(nconfounds), for n0=1:length(nconfounds),select{n0}=[select{n0}(~isfixed) select{n0}(isfixed)];end; end
+
 if selectonly, varargout={select};
-else varargout={X,select,names,xyz,Xnames};
+else varargout={X,select,names,xyz,Xnames,isfixed};
 end
 end
 
