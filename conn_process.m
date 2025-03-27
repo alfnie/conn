@@ -2599,7 +2599,7 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                         %if size(wx,2)>1, conn_disp('Warning: multivariate interaction term not supported. Summing interaction term across multiple components'); end
                         inter=wx;
                         X=[X(:,1) detrend([X(:,2:end) reshape(repmat(permute(inter,[1 3 2]),[1,size(X,2),1]),size(X,1),[]) reshape(conn_bsxfun(@times,X,permute(inter,[1 3 2])),size(X,1),[])],'constant')];
-                        % note: [X] , [1]*h1, [1]*h2, ..., [1]*hm, [X]*h1, [X]*h2, ..., [X]*hm, 
+                        % note: 1, [X] , h1, [X]*h1, h2, [X]*h2, ..., hm, [X]*hm, 
                     end
                     nVars=size(X,2)/nX; % note: 1 + 2*(number of parametric modulation terms)
                     if isempty(maxrt), maxrt=max(conn_get_rt(nsub)); end

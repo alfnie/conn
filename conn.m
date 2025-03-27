@@ -7446,7 +7446,7 @@ else
                                 case 'default', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','correlation (bivariate)'); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
                                 case 'SBC',      conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','seed-to-voxel','Analysis.measure','correlation (bivariate)'); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
                                 case 'RRC',      conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','roi-to-roi','Analysis.measure','correlation (bivariate)'); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
-                                case 'gPPI', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','correlation (bivariate)','Analysis.modulation',2,'Analysis.conditions',cnames); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
+                                case 'gPPI', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','regression (bivariate)','Analysis.modulation',2,'Analysis.conditions',cnames); conn_process('analyses_seedsetup',tnames); conn('gui_analysesgo',1);
                                 case 'temporal modulation', conn_batch('Analysis.name',tnames,'Analysis.sources',{},'Analysis.type','all','Analysis.measure','correlation (bivariate)','Analysis.modulation',tmodulation); conn_process('analyses_seedsetup',tnames);  conn('gui_analysesgo',1);
                                 case {'group-PCA','group-ICA','group-MVPA','IntrinsicConnectivity','LocalCorrelation','GlobalCorrelation','InterHemisphericCorrelation','RadialCorrelation','RadialSimilarity','ALFF','fALFF'}, conn_batch('vvAnalysis.name',tnames,'vvAnalysis.measures',tanalysis); conn_process('analyses_vvsetup',tnames); conn('gui_analysesgo',2);
                                 case 'dyn-ICA', conn_batch('dynAnalysis.name',tnames,'dynAnalysis.sources',{},'dynAnalysis.factors',20,'dynAnalysis.window',30); conn_process('analyses_dynsetup',tnames); conn('gui_analysesgo',3);
@@ -7738,7 +7738,7 @@ else
                     end
                     CONN_h.menus.m_analyses_00{9}=conn_menu('popup',boffset+[.175,.59,.31,.04],'Analysis options',{'ROI-to-ROI analyses only','Seed-to-Voxel analyses only','ROI-to-ROI and Seed-to-Voxel analyses'},'Choose type of connectivity analysis (seed-to-voxel and/or ROI-to-ROI)','conn(''gui_analyses'',9);');
                     connmeasures={'correlation (bivariate)','correlation (semipartial)','regression (bivariate)','regression (multivariate)'};
-                    CONN_h.menus.m_analyses_00{7}=conn_menu('popup',boffset+[.175,.55,.18,.04],'',connmeasures,'<HTML>Choose functional connectivity measure<br/> - <i>bivariate</i> measures are computed separately for each pair of source&target ROIs (ROI-to-ROI analyses)<br/> or for each pair of source ROI and target voxel (seed-to-voxel analyses)<br/> - <i>semipartial</i> and <i>multivariate</i> measures are computed entering all the chosen source ROIs simultaneously <br/>into a single predictive model (separately for each target ROI/voxel) <br/> - <i>correlation</i> measures output Fisher-transformed correlation-coefficients (bivariate or semipartial) and <br/>are typically associated with measures of <i>functional</i> connectivity<br/> - <i>regression</i> measures output regression coefficients (bivariate or multivariate) and are typically associated <br/>with measures of <i>effective</i> connectivity</HTML>','conn(''gui_analyses'',7);');
+                    CONN_h.menus.m_analyses_00{7}=conn_menu('popup',boffset+[.175,.55,.18,.04],'',connmeasures,'<HTML>Choose functional connectivity measure<br/> - <i>bivariate</i> measures are computed separately for each pair of source&target ROIs (ROI-to-ROI analyses)<br/> or for each pair of source ROI and target voxel (seed-to-voxel analyses)<br/> - <i>semipartial</i> and <i>multivariate</i> measures are computed entering all the chosen source ROIs simultaneously <br/>into a single regression model (separately for each target ROI/voxel) <br/> - <i>correlation</i> measures output Fisher-transformed correlation-coefficients (bivariate or semipartial) and <br/>are typically associated with measures of <i>functional</i> connectivity<br/> - <i>regression</i> measures output regression coefficients (bivariate or multivariate) and are typically associated <br/>with measures of <i>effective</i> connectivity</HTML>','conn(''gui_analyses'',7);');
                     CONN_h.menus.m_analyses_00{8}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'no weighting','hrf weighting','hanning weighting','task/condition factor'},'<HTML>Choose method for weighting scans/samples within each condition block when computing condition-specific connectivity measures (for weighted GLM analyses only) <br/> - <i>no weighting</i> uses binary 0/1 weights identifying scans associated with each condition<br/> - <i>hrf weights</i> additionally convolves the above binary weights with a canonical hemodynamic response function<br/> - <i>hanning weights</i> uses instead a hanning window across within-condition scans/samples  as weights (focusing only on center segment within each block)<br/> - <i>task/condition factor</i> uses instead the factor timeseries defined in <i>Setup.Conditions.TaskModulationFactor</i> as weights (for other custom weighting)</HTML>','conn(''gui_analyses'',8);');
                     CONN_h.menus.m_analyses_00{25}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'connectivity-change with each task','total-connectivity during each task'},'<HTML>Choose output measure<br/> - "connectivity change" outputs the gPPI model regressor coefficient associated with the <i>psychophysiological interaction</i> term alone, measuring differences<br/> in connectivity between each task and the gPPI model implicit baseline condition<br/> - "total connectivity" outputs the sum of the gPPI model regressor coefficients associated with the <i>main physiological</i> and the <i>psychophysiological interaction</i><br/> terms, measuring the total connectivity strength during each task)</HTML>','conn(''gui_analyses'',25);');
                     set(CONN_h.menus.m_analyses_00{25},'visible','off');
@@ -10645,7 +10645,7 @@ else
                             icovariates=CONN_x.Results.xX.nsubjecteffects;
                         end
                         [ok,tempcovariates]=ismember(icovariates,CONN_h.menus.m_results.showneffects);
-                        if all(ok)
+                        if ~isempty(ok)&&all(ok)
                             ncovariates=icovariates;
                             set(CONN_h.menus.m_results_00{11},'value',tempcovariates); %min(CONN_x.Results.xX.nsubjecteffects,numel(get(CONN_h.menus.m_results_00{11},'string'))));
                             set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(CONN_x.Results.xX.csubjecteffects));
@@ -10664,7 +10664,7 @@ else
                                 if isfield(CONN_x.Results.xX,'nsourcesbyname'), CONN_gui.warnloadbookmark{end+1}='warning: unable to select previous-design sources'; end
                                 [ok,isources]=ismember(CONN_x.Results.xX.nsources,CONN_h.menus.m_results.shownsources);
                             end
-                            if all(ok) 
+                            if ~isempty(ok)&&all(ok) 
                                 nsources=CONN_h.menus.m_results.shownsources(isources); %CONN_x.Results.xX.nsources;
                                 set(CONN_h.menus.m_results_00{13},'value',isources);
                                 set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(CONN_x.Results.xX.csources));
@@ -10680,7 +10680,7 @@ else
                                 if isfield(CONN_x.Results.xX,'nmeasuresbyname'), CONN_gui.warnloadbookmark{end+1}='warning: unable to select previous-design measures'; end
                                 [ok,isources]=ismember(CONN_x.Results.xX.nmeasures,CONN_h.menus.m_results.shownsources);
                             end
-                            if all(ok)
+                            if ~isempty(ok)&&all(ok)
                                 nsources=CONN_h.menus.m_results.shownsources(isources); %CONN_x.Results.xX.nmeasures;
                                 set(CONN_h.menus.m_results_00{13},'value',isources);
                                 set(CONN_h.menus.m_results_00{17},'string',conn_contrastnum2str(CONN_x.Results.xX.cmeasures));
@@ -10742,7 +10742,7 @@ else
                             iconditions=CONN_x.Results.xX.nconditions;
                         end
                         [ok,tempconditions]=ismember(iconditions,CONN_h.menus.m_results.shownconditions);
-                        if all(ok)
+                        if ~isempty(ok)&&all(ok)
                             nconditions=iconditions;
                             set(CONN_h.menus.m_results_00{12},'value',tempconditions);%min(CONN_x.Results.xX.nconditions,numel(get(CONN_h.menus.m_results_00{12},'string'))));
                             set(CONN_h.menus.m_results_00{19},'string',conn_contrastnum2str(CONN_x.Results.xX.cconditions));
@@ -12335,7 +12335,7 @@ else
                         case 3, 
                             if isfield(CONN_x.Results.xX,'roiselected2byname')
                                 [ok,tidx]=ismember(CONN_x.Results.xX.roiselected2byname,CONN_h.menus.m_results.roiresults.names2);
-                                if all(ok), CONN_x.Results.xX.roiselected2=tidx;
+                                if ~isempty(ok)&&all(ok), CONN_x.Results.xX.roiselected2=tidx;
                                 else CONN_gui.warnloadbookmark{end+1}='warning: unable to select previous-design target ROIs'; 
                                 end
                             end

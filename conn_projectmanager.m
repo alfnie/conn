@@ -252,7 +252,7 @@ switch(lower(option))
                         if isequal(answ,'Yes'), conn_jobmanager(info); end
                         return;
                     else
-                        conn_disp('fprintf','Warning: pending jobs in %s not finished yet. Until then, any changes to this project are temporal (changes may be disregarded if they conflict with the changes brought back from these pending jobs when finished)\n',localfilename);
+                        conn_disp('fprintf','Warning: pending jobs in %s not finished yet. Until then, changes to this project are temporal (they may be disregarded if they conflict with other changes performed by these pending jobs)\n',localfilename);
                         return;
                     end
                 elseif numel(vtag)>1
