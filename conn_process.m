@@ -2599,14 +2599,14 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                         %if size(wx,2)>1, conn_disp('Warning: multivariate interaction term not supported. Summing interaction term across multiple components'); end
                         inter=wx;
                         X=[X(:,1) detrend([X(:,2:end) reshape(repmat(permute(inter,[1 3 2]),[1,size(X,2),1]),size(X,1),[]) reshape(conn_bsxfun(@times,X,permute(inter,[1 3 2])),size(X,1),[])],'constant')];
-                        % note: 1, [X] , h1, [X]*h1, h2, [X]*h2, ..., hm, [X]*hm, 
+                        % note: [X] , [I]*h1, [X]*h1, [I]*h2, [X]*h2, ..., [I]*hm, [X]*hm
                     end
                     nVars=size(X,2)/nX; % note: 1 + 2*(number of parametric modulation terms)
                     if isempty(maxrt), maxrt=max(conn_get_rt(nsub)); end
                     if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0 % parametric modulation
                         switch(CONN_x.Analyses(ianalysis).measure),
                             case {1,3}, %bivariate
-                                Xtemp=permute(reshape(X,[size(X,1),nX,nVars]),[1,3,2]);
+                                Xtemp=permute(reshape(X,[size(X,1),nX,nVars]),[1,3,2]); % [X1 h1 X1*h1 h2 X1*h2 ... hm X1*hm], [X2 h1 X2*h1 h2 X2*h2 ... hm X2*hm], ...
                                 iX=sparse(nVars*nX,nVars*nX);
                                 for nXtemp=1:size(Xtemp,3), iXtemp=pinv(Xtemp(:,:,nXtemp)'*Xtemp(:,:,nXtemp)); iX(nXtemp:nX:end,nXtemp:nX:end)=iXtemp; end
                                 %iX=pinv((X'*X).*kron(ones(nVars),eye(numel(idxredo)+1)));

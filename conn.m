@@ -7632,7 +7632,7 @@ else
                 set(CONN_h.menus.m_analyses_00{11},'string',[repmat('Subject ',[CONN_x.Setup.nsubjects,1]),num2str((1:CONN_x.Setup.nsubjects)')]);
                 nconditions=length(CONN_x.Setup.conditions.names)-1;
                 CONN_h.menus.m_analyses.listedconditions=find(cellfun('length',CONN_x.Setup.conditions.model)==0);
-                
+                try, if ~isempty(CONN_x.Analyses(ianalysis).conditions), CONN_h.menus.m_analyses.listedconditions=CONN_h.menus.m_analyses.listedconditions(ismember(CONN_x.Setup.conditions.names(CONN_h.menus.m_analyses.listedconditions),CONN_x.Analyses(ianalysis).conditions)); end; end
                 set(CONN_h.menus.m_analyses_00{12},'string',CONN_x.Setup.conditions.names(CONN_h.menus.m_analyses.listedconditions),'value',min(numel(CONN_h.menus.m_analyses.listedconditions),get(CONN_h.menus.m_analyses_00{12},'value')));
                 %set(CONN_h.menus.m_analyses_00{13},'string',{' TOTAL',CONN_x.Analyses(ianalysis).regressors.names{:}});
                 %set(CONN_h.screen.hfig,'pointer',CONN_gui.waiticon);

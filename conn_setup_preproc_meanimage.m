@@ -1,6 +1,6 @@
 function [fileout,filetested,fileother]=conn_setup_preproc_meanimage(filename,filetype)
 % conn_setup_preproc_meanimage(filename)
-% potential "mean" volume in same registration as functional data volume filename
+% finds "mean", "norm_spm12", "norm_spm8", and "json" files in same location as functional data volume
 
 if nargin<2||isempty(filetype), filetype='mean'; end
 fileother=[];
@@ -117,20 +117,25 @@ switch(filetype)
         else filetested=str{1};
         end
     case 'json'
+        if ~isempty(regexp(filename,'\.surf\.nii$')), checksurf=true; else checksurf=false; end
         [file_path,file_name,file_ext,file_num]=spm_fileparts(filename);
+        file_ext=regexprep(file_ext,'\.surfnii$','.surf.nii');
         % [PREFIX BASENAME] -> [BASENAME.json]
         idx1=1:numel(file_name);
-        ok1=false(size(idx1));
+        ok1=zeros(size(idx1));
         str1=cell(size(idx1));
         for n=1:numel(idx1),
             str1{n}=fullfile(file_path,[file_name(idx1(n):end) '.json']);
-            if conn_existfile(str1{n}), ok1(n)=true; end
+            if conn_existfile(str1{n}), ok1(n)=1; 
+            elseif checksurf&&conn_existfile(regexprep(str1{n},'\.surf.json$','.json')), ok1(n)=2; 
+            end
         end
-        i1=find(ok1,1);
+        i1=find(ok1>0,1);
         min1=min([inf idx1(i1)]);
         [nill,i]=min([min1]);
         if isinf(nill),   fileout=[]; fileother=[];
         elseif i==1,      fileout=str1{i1}; fileother=fullfile(file_path,[file_name(idx1(i1):end) file_ext]);
+                          if checksurf&&ok1(i1)>1, fileout=regexprep(fileout,'\.surf.json$','.json'); end
         end
         str=[str1];
         if isempty(str)||isempty(fileout), filetested=filename;
