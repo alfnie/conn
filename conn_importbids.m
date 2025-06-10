@@ -84,6 +84,7 @@ for isub=1:numel(nsubs),
                                 for tn1=reshape(tidx,1,[])
                                     tname=unames{tn1};
                                     R=[]; for tn2=reshape(unique(1+rem(find(uidx==tn1)-1,numel(names))),1,[]), R=cat(2,R,data.(names{tn2})); end; 
+                                    try, nanfirst=isnan(R(1,:))&all(~isnan(R(2:end,:)),1); if any(nanfirst), R(1,nanfirst)=0; end; end % note: fix issue with first timepoint in dvars and framewise_displacement variables having a NaN value (converts to 0's)
                                     idx=strmatch(tname,CONN_x.Setup.l1covariates.names,'exact');
                                     if isempty(idx), idx=length(CONN_x.Setup.l1covariates.names); CONN_x.Setup.l1covariates.names{end+1}=' '; end                                    
                                     try, if size(R,2)>1, out2=conn_prepend('',out,sprintf('.%s.mat',tname)); conn_savematfile(out2,'R'); R=out2; end; end % note: saves multivariate timeseries to files (to keep conn_*.mat filesize small)
