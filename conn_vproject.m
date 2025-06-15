@@ -121,9 +121,9 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 if ~isempty(OPTION2), selectcluster=OPTION2;
                 else selectcluster=get(DATA.handles(8),'value');
                 end
-                if numel(selectcluster)>1, selectcluster=selectcluster(1); set(DATA.handles(8),'value',selectcluster); end
+                %if numel(selectcluster)>1, selectcluster=selectcluster(1); set(DATA.handles(8),'value',selectcluster); end
                 if selectcluster>length(DATA.clusters), selectcluster=[]; end
-                if isempty(selectcluster)||selectcluster==0||selectcluster>length(DATA.clusters), selectcluster=[]; select=[]; set(DATA.handles(8),'value',selectcluster); else, select=DATA.clusters{selectcluster}; end
+                if isempty(selectcluster)||isequal(selectcluster,0)||any(selectcluster>length(DATA.clusters)), selectcluster=[]; select=[]; set(DATA.handles(8),'value',selectcluster); else, select=cat(1,DATA.clusters{selectcluster}); end
                 DATA.select=select; DATA.selectcluster=selectcluster; set(GCF,'userdata',DATA);
                 init=-2;
             case {'fwec.voxellevel','fwec.voxellevel.value','fwec.voxellevel.type'},
@@ -145,9 +145,12 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     set(DATA.handles(3),'value',thres{2});
                 end
                 docont=true;
-                if DATA.thres{2}==1&&thres{2}==5&&DATA.side==3, thres{1}=spm_invTcdf(1-thres{1}/2,DATA.mat{3}(end)); set(DATA.handles(2),'string',mat2str(thres{1})); docont=false;
+
+                if DATA.thres{2}==1&&thres{2}==5&&DATA.mat{6}=='F', thres{1}=spm_invFcdf(1-thres{1},DATA.mat{3}(1),DATA.mat{3}(2)); set(DATA.handles(2),'string',mat2str(thres{1})); docont=false;
+                elseif DATA.thres{2}==1&&thres{2}==5&&DATA.side==3, thres{1}=spm_invTcdf(1-thres{1}/2,DATA.mat{3}(end)); set(DATA.handles(2),'string',mat2str(thres{1})); docont=false;
                 elseif DATA.thres{2}==1&&thres{2}==5, thres{1}=spm_invTcdf(1-thres{1},DATA.mat{3}(end)); set(DATA.handles(2),'string',mat2str(thres{1})); docont=false;
-                elseif DATA.thres{2}==5&&thres{2}==1&&DATA.side==3, thres{1}=1-spm_Tcdf(thres{1},DATA.mat{3}(end)); thres{1}=2*min(thres{1},1-thres{1}); set(DATA.handles(2),'string',mat2str(thres{1},4)); docont=false;
+                elseif DATA.thres{2}==5&&thres{2}==1&&DATA.mat{6}=='F', thres{1}=1-spm_Fcdf(thres{1},DATA.mat{3}(1),DATA.mat{3}(2)); set(DATA.handles(2),'string',mat2str(thres{1},4)); docont=false;
+                elseif DATA.thres{2}==5&&thres{2}==1&&DATA.side==3,     thres{1}=1-spm_Tcdf(thres{1},DATA.mat{3}(end)); thres{1}=2*min(thres{1},1-thres{1}); set(DATA.handles(2),'string',mat2str(thres{1},4)); docont=false;
                 elseif DATA.thres{2}==5&&thres{2}==1, thres{1}=1-spm_Tcdf(thres{1},DATA.mat{3}(end)); set(DATA.handles(2),'string',mat2str(thres{1},4)); docont=false;
                 elseif (thres{2}==3||thres{2}==4)&&(thres{1}<0|thres{1}>1), thres{1}=max(0,min(1,thres{1})); set(DATA.handles(2),'string',num2str(thres{1}));
                 elseif thres{2}<3&&(thres{1}<0|thres{1}>.5), thres{1}=max(0,min(.5,thres{1})); set(DATA.handles(2),'string',num2str(thres{1}));
@@ -276,7 +279,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                     str={};
                     %fh=fopen(fullfile(filepath,[filename_name,'.ROIs.txt']),'wt');
                     for nbtemp=1:numel(DATA.clusters),
-                        str{end+1}=sprintf('%+03d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)');
+                        str{end+1}=[sprintf('Cluster_%d ',nbtemp), sprintf('%+03d ',[DATA.xyzpeak{nbtemp},1]*DATA.mat{1}(1:3,:)')];
                         str{end+1}=sprintf('\n');
                     end
                     %fclose(fh);
@@ -1425,8 +1428,8 @@ if strcmp(views,'full'),
             end
             if isfield(DATA,'selectcluster'), selectcluster=DATA.selectcluster;else, selectcluster=get(DATA.handles(8),'value'); end
             %if isempty(selectcluster), selectcluster=length(clusters)+1; end
-            if selectcluster<=length(clusters), select=clusters{selectcluster}; clusternames=clusternames{selectcluster}.txt; titleclusternames=sprintf('Selected cluster %d/%d',selectcluster,length(clusters));
-            elseif (isempty(selectcluster)||selectcluster==length(clusters)+1)&&~isempty(clusternames), select=[]; clusternames=clusternames{length(clusters)+1}.txt; titleclusternames=''; %'All suprathreshold voxels:';
+            if all(selectcluster<=length(clusters)), select=cat(1,clusters{selectcluster}); clusternames=arrayfun(@(i)clusternames{i}.txt,selectcluster,'uni',0); clusternames=cat(2,clusternames{:}); titleclusternames=sprintf('Selected cluster %d/%d ',selectcluster,length(clusters));
+            elseif (isempty(selectcluster)||any(selectcluster==length(clusters)+1))&&~isempty(clusternames), select=[]; clusternames=clusternames{length(clusters)+1}.txt; titleclusternames=''; %'All suprathreshold voxels:';
             else, select=[]; clusternames={}; titleclusternames=''; end
         end
         %M={[-1,0,0;0,0,-1;0,-1,0],[0,-1,0;0,0,-1;-1,0,0],[-1,0,0;0,1,0;0,0,1]};

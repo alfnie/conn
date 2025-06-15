@@ -233,7 +233,25 @@ if ~isempty(files)
     spm_unlink(files{:});
 end
 if issurface&&isempty(maskfile), maskfile=fullfile(fileparts(which(mfilename)),'utils','surf','mask.surface.brainmask.nii'); end % note: surface anayses mask-out medial/subcortical segment
-if ~isempty(maskfile), vmaskfile=spm_vol(char(maskfile)); end
+if ~isempty(maskfile), 
+    if ismatrix
+        [tempmask_data,mask_rois]=conn_mtx_read(maskfile);
+        [nill,mask_rois0]=conn_mtx_read(filenames{1});
+        if isempty(mask_rois)||isempty(mask_rois0), 
+            disp('WARNING!: unable to verify that ROI names in data files match those in mask file. Results will be accurate ONLY if ROIs in the data files are the same and in the same order as ROIs in the mask file'); 
+            mask_data=reshape(all(tempmask_data>0,3),1,[]);
+        else
+            [ok,idx]=ismember(mask_rois,mask_rois0);
+            assert(all(ok), 'ROIs in mask file do not match those in data file. ROIs in the mask file (%s) should be the same as, or a subset of, those in the data files (%s)',sprintf('%s ',mask_rois{:}),sprintf('%s ',mask_rois0{:}));
+            mask_data=false(numel(mask_rois0));
+            mask_data(idx,idx)=all(tempmask_data>0,3);
+            mask_data=reshape(mask_data,1,[]);
+        end
+    else
+        vmaskfile=spm_vol(char(maskfile));
+        mask_data=all(spm_get_data(vmaskfile,pinv(vmaskfile(1).mat)*SPM.xY.VY(1).mat*xyz)>0,1);
+    end
+end
 if issurface||ismatrix||ismember(secondlevelanalyses,[1 3]) % nonparametric stats
     mask=ones(SPM.xY.VY(1).dim(1:3));
     %[gridx,gridy]=ndgrid(1:SPM.xY.VY(1).dim(2),1:SPM.xY.VY(1).dim(3));
@@ -246,7 +264,7 @@ if issurface||ismatrix||ismember(secondlevelanalyses,[1 3]) % nonparametric stat
         xyz=[xyz0; n2+zeros(1,size(xyz0,2)); ones(1,size(xyz0,2))];
         y=spm_get_data(SPM.xY.VY(:)',xyz);
         maskthis=~any(isnan(y),1)&any(diff(y,1,1)~=0,1);
-        if ~isempty(maskfile), maskthis=maskthis&all(spm_get_data(vmaskfile,pinv(vmaskfile(1).mat)*SPM.xY.VY(1).mat*xyz)>0,1); end
+        if ~isempty(maskfile), maskthis=maskthis&mask_data; end
         %mask(n2,:,:)=reshape(maskthis,[1 SPM.xY.VY(1).dim(2:3)]);
         mask(:,:,n2)=reshape(maskthis,[SPM.xY.VY(1).dim(1:2)]);
         if any(maskthis)

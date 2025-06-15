@@ -187,8 +187,8 @@ switch(option)
             if isempty(tidx), [nill,tidx]=max(sum(~isnan(X(:,isconstant)),1)); end
             tnames=names{isconstant(tidx)};
             %%%%%%%%%%%%
-            if isequal(tnames,'AllSubjects'), descrip{end+1}='Does the average connectivity differ from zero?';
-            else, descrip{end+1}=sprintf('Does the average connectivity within %s subjects differ from zero?',tnames);
+            if isequal(tnames,'AllSubjects'), descrip{end+1}='What is the average connectivity across all subjects?'; %'Does the average connectivity differ from zero?';
+            else, descrip{end+1}=sprintf('What is the average connectivity in %s subjects?',tnames); %sprintf('Does the average connectivity within %s subjects differ from zero?',tnames);
             end
             ieffects=isconstant(tidx);
             neffects{end+1}=names(ieffects);
@@ -200,8 +200,8 @@ switch(option)
             priority(end+1)=0;
             for nnumer=1:numel(isnumer)
                 %%%%%%%%%%%%
-                if isequal(tnames,'AllSubjects'), descrip{end+1}=sprintf('Does the correlation between connectivity and %s differ from zero?',names{isnumer(nnumer)});
-                else, descrip{end+1}=sprintf('Does the correlation between connectivity and %s within %s subjects differ from zero?',names{isnumer(nnumer)},tnames);
+                if isequal(tnames,'AllSubjects'), descrip{end+1}=sprintf('Is connectivity correlated with %s?',names{isnumer(nnumer)});
+                else, descrip{end+1}=sprintf('Is connectivity correlated with %s in %s subjects?',names{isnumer(nnumer)},tnames);
                 end
                 ieffects=[isconstant(tidx), isnumer(nnumer)];
                 neffects{end+1}=names(ieffects);
@@ -249,7 +249,7 @@ switch(option)
                         tidx=i1:ok;
                         if numel(tidx)==2
                             %%%%%%%%%%%%
-                            descrip{end+1}=sprintf('Does the average connectivity differ between %s and %s subjects?',names{iscateg(sidx(tidx(1)))},names{iscateg(sidx(tidx(2)))});
+                            descrip{end+1}=sprintf('Does connectivity differ between %s and %s subjects?',names{iscateg(sidx(tidx(1)))},names{iscateg(sidx(tidx(2)))});
                             ieffects=iscateg(sidx(tidx));
                             neffects{end+1}=names(ieffects);
                             ceffects{end+1}=[-1 1];
@@ -261,7 +261,7 @@ switch(option)
                             [nill,iidx]=sort(ieffects); neffects{end}=neffects{end}(iidx); ceffects{end}=ceffects{end}(:,iidx);
                         else
                             %%%%%%%%%%%%
-                            descrip{end+1}=sprintf('Does the average connectivity differ among %s and %s subjects?',conn_strjoinstr(names(iscateg(sidx(tidx(1:end-1)))),', '),names{iscateg(sidx(tidx(end)))});
+                            descrip{end+1}=sprintf('Does connectivity differ among %s and %s subjects?',conn_strjoinstr(names(iscateg(sidx(tidx(1:end-1)))),', '),names{iscateg(sidx(tidx(end)))});
                             ieffects=iscateg(sidx(tidx));
                             neffects{end+1}=names(ieffects);
                             ceffects{end+1}=diff(eye(numel(tidx)));
@@ -278,7 +278,7 @@ switch(option)
                             if ~isempty(i3)&all(ok4)
                                 for ntidx=1:numel(tidx)
                                     %%%%%%%%%%%%
-                                    descrip{end+1}=sprintf('Does the correlation between connectivity and %s within %s subjects differ from zero?',names{isnumer(nnumer)},names{iscateg(sidx(tidx(ntidx)))});
+                                    descrip{end+1}=sprintf('Is connectivity correlated with %s in %s subjects?',names{isnumer(nnumer)},names{iscateg(sidx(tidx(ntidx)))});
                                     ieffects=[iscateg(sidx(tidx(ntidx))) i3(i4(ntidx))];
                                     neffects{end+1}=names(ieffects);
                                     ceffects{end+1}=[0 1];
@@ -350,7 +350,7 @@ switch(option)
                         %                     end
                         %                 end
                     elseif ~isempty(isconstant)
-                        descrip{end+1}=sprintf('Does the average connectivity differ between %s and not-%s subjects?',names{iscateg(sidx(i1))},names{iscateg(sidx(i1))});
+                        descrip{end+1}=sprintf('Does connectivity differ between %s and not-%s subjects?',names{iscateg(sidx(i1))},names{iscateg(sidx(i1))});
                         ieffects=[isconstant(1) iscateg(sidx(i1))];
                         neffects{end+1}=names(ieffects);
                         ceffects{end+1}=[0 1];
@@ -383,7 +383,7 @@ switch(option)
             % individual groups
             for n1=1:numel(sidx)
                 %%%%%%%%%%%%
-                descrip{end+1}=sprintf('Does the average connectivity within %s subjects differ from zero?',names{iscateg(sidx(n1))});
+                descrip{end+1}=sprintf('What is the average connectivity in %s subjects?',names{iscateg(sidx(n1))});
                 ieffects=iscateg(sidx(n1));
                 neffects{end+1}=names(ieffects);
                 ceffects{end+1}=1;

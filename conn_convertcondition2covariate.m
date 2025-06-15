@@ -5,6 +5,7 @@ if nargin<1||isempty(varargin{1}), return; end
 nconditions=varargin;
 donotremove=false;
 donotapply=false;
+usecovariateweighting=false;
 subjects=1:CONN_x.Setup.nsubjects;
 if iscell(nconditions)
     if ~isempty(nconditions)&&isequal(nconditions{1},'-DONOTAPPLYSUBJECTS')
@@ -12,6 +13,7 @@ if iscell(nconditions)
         donotremove=true;
         subjects=nconditions{2};
         nconditions=nconditions(3:end);
+        usecovariateweighting=true;
     elseif ~isempty(nconditions)&&isequal(nconditions{1},'-DONOTAPPLY')
         donotapply=true;
         donotremove=true;
@@ -68,6 +70,18 @@ for ncondition=nconditions(:)'
                     x=convn(x,hrf);
                 end
                 x=mean(reshape(x(offs+(1:10*nscans)),[10,nscans]),1)';%x=x(1+10*(0:nscans-1));
+                if usecovariateweighting&&CONN_x.Setup.conditions.param(ncondition)>0
+                    %try
+                        covfilename=CONN_x.Setup.l1covariates.files{nsub}{CONN_x.Setup.conditions.param(ncondition)}{nses}{1};
+                        switch(covfilename),
+                            case '[raw values]',
+                                covdata=CONN_x.Setup.l1covariates.files{nsub}{CONN_x.Setup.conditions.param(ncondition)}{nses}{3};
+                            otherwise,
+                                covdata=conn_loadtextfile(covfilename,false);
+                        end
+                        x=x.*max(0,sum(covdata,2));
+                    %end
+                end
                 if donotapply, out{nsub}{ncondition}{nses}=x;
                 else CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}={'[raw values]',{sprintf('size [%s]',num2str(size(x))),'[raw values]'},x};
                 end

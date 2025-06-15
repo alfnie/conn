@@ -1180,7 +1180,7 @@ switch(lower(type)),
 %         [xt,yt,zt]=ind2sub(a.dim,idxvoxels);
 %         xyz=[xt,yt,zt]';
         [ub,nill,iub]=unique(b(idxvoxels));
-        if isempty(roi_path_num)&&length(ub)>1&&(conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt']))||conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.csv']))||conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.xls']))),%&&all(abs(ub-round(ub))<1e-1),
+        if isempty(roi_path_num)&&length(ub)>=1&&(conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt']))||conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.csv']))||conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.xls']))),%&&all(abs(ub-round(ub))<1e-1),
             x_rep=1;
         elseif isempty(roi_path_num)&&length(ub)>1&&all(ub==round(ub))&&all(ub>=0)
             x_rep=1;

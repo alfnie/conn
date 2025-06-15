@@ -18,6 +18,7 @@ if conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
                     ROInames=words(:,2);
                     assert(size(words,1)==numel(tlines));
                     assert(all(~isnan(ROIidx)));
+                    assert(all(ROIidx>=0));
                     assert(all(cellfun('length',ROInames)>0));
                     assert(~all(cellfun('length',regexp(ROInames,'\t')))) %*LUT.txt
                     ok=true;
@@ -32,6 +33,7 @@ if conn_existfile(fullfile(roi_path_dir,[roi_path_name,'.txt'])),
                     ROIidx=str2double(words(:,1));
                     ROInames=words(:,2);
                     assert(all(~isnan(ROIidx)));
+                    assert(all(ROIidx>=0));
                     assert(all(cellfun('length',ROInames)>0));
                     ok=true;
                 case 3, % (ROI_LABEL)

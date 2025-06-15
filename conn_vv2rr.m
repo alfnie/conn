@@ -72,7 +72,7 @@ if iscell(ROI)||ischar(ROI),
     elseif iscell(ROI)&&numel(ROI)==2, [ROI,ROIthrtype]=deal(ROI{:}); % option ROIfile={ROIfile, 'voxels'}
     end
     ROI=conn_server('util_localfile',ROI);
-    if ~isempty(options.saveas), try, [ROIxyz,ROInames]=conn_roicenters(ROI); end; end
+    if ~isempty(options.saveas), try, [ROIxyz,ROInames]=conn_roicenters(ROI); ROIxyz=num2cell(ROIxyz',2)'; end; end
     ROI=conn_fileutils('spm_vol',ROI); 
 end
 assert(size(options.contrastsubjects,2)==numel(options.validsubjects),'mismatched dimensions between options.contrastsubjects and options.validsubjects');

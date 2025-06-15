@@ -176,7 +176,7 @@ else
     end
 end
 ncon=1;
-DOCROP=true;
+DOCROP=false;
 THR=1;%{.001,1,.05,3};
 side=1;
 parametric=[];

@@ -82,6 +82,7 @@ if nargin<1||isempty(conn_x),
         [CONN_x.Setup.secondarydataset.label]=deal(''); 
         [CONN_x.Setup.secondarydataset([CONN_x.Setup.secondarydataset.functionals_type]==2).label]=deal('non-smoothed data'); 
     end
+    for nsec=1:numel(CONN_x.Setup.secondarydataset), if isempty(CONN_x.Setup.secondarydataset(nsec).label), CONN_x.Setup.secondarydataset(nsec).label='unlabeled'; end; end
     if ~isfield(CONN_x.Setup,'dicom'), CONN_x.Setup.dicom=repmat({{[],[],[]}},1,CONN_x.Setup.nsubjects); end
     if ~isfield(CONN_x.Setup,'bids'), CONN_x.Setup.bids={[],[],[]}; end
     if ~isfield(CONN_x.Setup,'unwarp_functional'), CONN_x.Setup.unwarp_functional={}; end
@@ -143,6 +144,7 @@ if nargin<1||isempty(conn_x),
         end
     end
     if ~isfield(CONN_x.Setup.rois,'weighted'), CONN_x.Setup.rois.weighted=cellfun(@(x)isequal(x,0),CONN_x.Setup.rois.dimensions); end
+    if ~isfield(CONN_x.Setup.rois,'regresscovariateschoose'), CONN_x.Setup.rois.regresscovariateschoose=[]; end
     if ~isfield(CONN_x.Setup,'structural_sessionspecific'),
         CONN_x.Setup.structural_sessionspecific=0;
         for nsub=1:CONN_x.Setup.nsubjects
@@ -332,6 +334,7 @@ else
         [conn_x.Setup.secondarydataset.label]=deal(''); 
         [conn_x.Setup.secondarydataset([conn_x.Setup.secondarydataset.functionals_type]==2).label]=deal('non-smoothed data'); 
     end
+    for nsec=1:numel(conn_x.Setup.secondarydataset), if isempty(conn_x.Setup.secondarydataset(nsec).label), conn_x.Setup.secondarydataset(nsec).label='unlabeled'; end; end
     if ~isfield(conn_x.Setup,'dicom'), conn_x.Setup.dicom=repmat({{[],[],[]}},1,conn_x.Setup.nsubjects); end
     if ~isfield(conn_x.Setup,'bids'), conn_x.Setup.bids={[],[],[]}; end
     if ~isfield(conn_x.Setup,'unwarp_functional'), conn_x.Setup.unwarp_functional={}; end
@@ -393,6 +396,7 @@ else
         end
     end
     if ~isfield(conn_x.Setup.rois,'weighted'), conn_x.Setup.rois.weighted=cellfun(@(x)isequal(x,0),conn_x.Setup.rois.dimensions); end
+    if ~isfield(conn_x.Setup.rois,'regresscovariateschoose'), conn_x.Setup.rois.regresscovariateschoose=[]; end
     if ~isfield(conn_x.Setup,'structural_sessionspecific'),
         conn_x.Setup.structural_sessionspecific=0;
         for nsub=1:conn_x.Setup.nsubjects

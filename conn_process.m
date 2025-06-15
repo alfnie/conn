@@ -594,12 +594,16 @@ if any(options==2),
                         
                         idx1=find(x>0); idx2=[0;find(diff(idx1)>1);length(idx1)]; % crop to within-condition samples
                         if CONN_x.Setup.conditions.param(ncondition)>0
-                            xw=sum(data{CONN_x.Setup.conditions.param(ncondition)},2); %note: assuming covariates already in BOLD-signal time-frame (e.g. realignment params, dynamic temporal states, etc.)
+                            xw=max(0,sum(data{CONN_x.Setup.conditions.param(ncondition)},2)); %note: assuming covariates already in BOLD-signal time-frame (e.g. realignment params, dynamic temporal states, etc.)
                             if 0,%CONN_x.Setup.acquisitiontype==1,
                                 hrf=spm_hrf(conn_get_rt(nsub,nses));
                                 xw=convn(xw,hrf,'same');
                             end
                             xw=xw.*x;
+                            if 1, % note: when explicitly defining weights they will now be used by all analyses (SBC/RRC analyses may still skip this weighting using "none" or "hanning" options)
+                                x=xw;
+                                data{nl1covariates+ncondition}=x;
+                            end
                         else
                             xw=x;%ones(size(x,1),1);
                         end
@@ -609,7 +613,7 @@ if any(options==2),
                             tsamples=cat(1,tsamples,idx(:));
                             tweights{1}=cat(1,tweights{1},x(idx(:)));                       % HRF  %.*xw(idx(:)))
                             tweights{2}=cat(1,tweights{2},conn_hanning(length(idx)));       % HANNING %.*xw(idx(:)));
-                            tweights{3}=cat(1,tweights{3},xw(idx(:)));                      % HRF.*MODUL
+                            tweights{3}=cat(1,tweights{3},xw(idx(:)));                      % HRF.*MODUL (note: this option is now obsolete; tbd)
                             tweights{4}=cat(1,tweights{4},idx(:));                          % IDX
                             tweights{5}=cat(1,tweights{5},(1:numel(idx))');                 % JDX
                         end
@@ -883,8 +887,15 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
             
             filename=fullfile(filepath,['COV_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
             covariates=load(filename);
-            defaultcov=~cellfun('length',regexp(covariates.names,'^QA_|^QC_')); % default subset of covariates (includes everything but the ones listed here) : note:default copied from step=5 code
-            covariates=cat(2,covariates.data{defaultcov});
+            if ~isfield(CONN_x.Setup.rois,'regresscovariateschoose'), CONN_x.Setup.rois.regresscovariateschoose=[]; end
+            if isempty(CONN_x.Setup.rois.regresscovariateschoose) % default subset of covariates (includes everything but the ones listed here) : note:default copied from step=5 code
+                defaultcov=~cellfun('length',regexp(covariates.names,'^QA_|^QC_')); 
+            else % cell array with names of covariates to be used as covariates
+                defaultcov=ismember(covariates.names,CONN_x.Setup.rois.regresscovariateschoose); 
+            end
+            if any(defaultcov), covariates=cat(2,covariates.data{defaultcov});
+            else covariates=zeros(CONN_x.Setup.nscans{nsub}{nses},0);
+            end
             if DETRENDBEFOREPCA, covariates=cat(2,linspace(-1,1,size(covariates,1))',covariates); end
             source=fullfile(filepath,['DATA_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
             Vsource=CONN_x.Setup.functional{nsub}{nses}{1};
@@ -5086,6 +5097,12 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
             SPMall(1).xX_multivariate.Zcontr=Zcontr;
             SPMall(1).xX_multivariate.Zfiles=Zfiles;
             SPMall(1).xX.SelectedSubjects=logical(full(sparse(nsubjects,1,1,CONN_x.Setup.nsubjects,1)));
+            try
+                SPMall(1).xX.SelectedConditions=CONN_x.Setup.conditions.names(nconditions);
+                SPMall(1).xX.SelectedConditionsContrast=cconditions;
+                SPMall(1).xX.SelectedSubjecteffects=CONN_x.Setup.l2covariates.names(nsubjecteffects);
+                SPMall(1).xX.SelectedSubjecteffectsContrast=csubjecteffects;
+            end
             [SPMall(1).xX.isSurface,SPMall(1).xX.isMtx]=conn_surf_dimscheck(SPMall(1).xY.VY(1).dim); %,isequal(SPMall(1).xY.VY(1).dim,conn_surf_dims(8).*[1 1 2]);
             SPMall(1).xX.X=kron(eye(nrepeated),X(nsubjects,nsubjecteffects));%CONN_x.Results.xX.X;
             %SPMall(1).xX.name=repmat({CONN_x.Setup.l2covariates.names{nsubjecteffects}},[1,nrepeated]);%CONN_x.Results.xX.name;
@@ -5257,6 +5274,12 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
             SPMall(n1).xX_multivariate.Zcontr=Zcontr;
             SPMall(n1).xX_multivariate.Zfiles=Zfiles(:,:,n1);
             SPMall(n1).xX.SelectedSubjects=logical(full(sparse(nsubjects,1,1,CONN_x.Setup.nsubjects,1)));
+            try
+                SPMall(n1).xX.SelectedConditions=CONN_x.Setup.conditions.names(nconditions);
+                SPMall(n1).xX.SelectedConditionsContrast=cconditions;
+                SPMall(n1).xX.SelectedSubjecteffects=CONN_x.Setup.l2covariates.names(nsubjecteffects);
+                SPMall(n1).xX.SelectedSubjecteffectsContrast=csubjecteffects;
+            end
             [SPMall(n1).xX.isSurface,SPMall(n1).xX.isMtx]=conn_surf_dimscheck(SPMall(n1).xY.VY(1).dim); %isequal(SPMall(n1).xY.VY(1).dim,conn_surf_dims(8).*[1 1 2]);
             SPMall(n1).xX.X=kron(eye(nrepeated),X(nsubjects,nsubjecteffects));%CONN_x.Results.xX.X;
             %SPMall(n1).xX.name=repmat({CONN_x.Setup.l2covariates.names{nsubjecteffects}},[1,nrepeated]);%CONN_x.Results.xX.name;
@@ -5719,6 +5742,12 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
             ROIall.xX.X=X(nsubjects,nsubjecteffects);%CONN_x.Results.xX.X;
             ROIall.xX.name={CONN_x.Setup.l2covariates.names{nsubjecteffects}};%CONN_x.Results.xX.name;
             ROIall.xX.SelectedSubjects=logical(full(sparse(nsubjects,1,1,CONN_x.Setup.nsubjects,1)));
+            try
+                ROIall.xX.SelectedConditions=CONN_x.Setup.conditions.names(nconditions);
+                ROIall.xX.SelectedConditionsContrast=cconditions;
+                ROIall.xX.SelectedSubjecteffects=CONN_x.Setup.l2covariates.names(nsubjecteffects);
+                ROIall.xX.SelectedSubjecteffectsContrast=csubjecteffects;
+            end
             ROIall.orig_sources=orig_sources;
             ROIall.orig_conditions=orig_conditions;
             %         if ~nargout, filepathresults3{n1}=filepathresults2; end
@@ -5734,6 +5763,12 @@ if (any(floor(options)==17) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,
                 ROIall(n1).xX.X=X(nsubjects,nsubjecteffects);%CONN_x.Results.xX.X;
                 ROIall(n1).xX.name={CONN_x.Setup.l2covariates.names{nsubjecteffects}};%CONN_x.Results.xX.name;
                 ROIall(n1).xX.SelectedSubjects=logical(full(sparse(nsubjects,1,1,CONN_x.Setup.nsubjects,1)));
+                try
+                    ROIall(n1).xX.SelectedConditions=CONN_x.Setup.conditions.names(nconditions);
+                    ROIall(n1).xX.SelectedConditionsContrast=cconditions;
+                    ROIall(n1).xX.SelectedSubjecteffects=CONN_x.Setup.l2covariates.names(nsubjecteffects);
+                    ROIall(n1).xX.SelectedSubjecteffectsContrast=csubjecteffects;
+                end
                 nroi=nsources(n1);
                 roiname=sources{nroi};
                 %             if ~nargout,[ok,nill]=mkdir(filepathresults2,roiname); filepathresults3{n1}=fullfile(filepathresults2,roiname); end

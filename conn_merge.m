@@ -125,10 +125,12 @@ if mergeinfo
             end
         end
         if REF>1
+            %CONN_x.Setup=other{REF}.CONN_x.Setup;
             CONN_x.Setup.rois=other{REF}.CONN_x.Setup.rois;
             CONN_x.Setup.conditions=other{REF}.CONN_x.Setup.conditions;
             CONN_x.Setup.l1covariates=other{REF}.CONN_x.Setup.l1covariates;
             CONN_x.Setup.l2covariates=other{REF}.CONN_x.Setup.l2covariates;
+            CONN_x.Setup.secondarydataset=other{REF}.CONN_x.Setup.secondarydataset;
         end
     end
     if length(CONN_x.Setup.nsessions)==1&&CONN_x.Setup.nsubjects>1, CONN_x.Setup.nsessions=CONN_x.Setup.nsessions+zeros(1,CONN_x.Setup.nsubjects); end

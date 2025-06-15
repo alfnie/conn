@@ -79,7 +79,13 @@ switch(lower(option))
         end
         
     case {'filecopy','copyfile'}
-        if any(conn_server('util_isremotefile',varargin{1})), 
+        isremote1=any(conn_server('util_isremotefile',varargin{1}));
+        isremote2=any(conn_server('util_isremotefile',varargin{2}));
+        if isremote1&&~isremote2, 
+            conn_server('pull',varargin{:});
+        elseif ~isremote1&&isremote2, 
+            conn_server('push',varargin{:});
+        elseif isremote1, 
             conn_server('run',mfilename,option,conn_server('util_localfile',varargin{1}),conn_server('util_localfile',varargin{2}));
         elseif iscell(varargin{1}), cellfun(@(a,b)conn_fileutils(option,a,b),varargin{1},varargin{2},'uni',0);
         else

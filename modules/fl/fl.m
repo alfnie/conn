@@ -157,7 +157,18 @@ function varargout=fl(STEPS,varargin)
 %   EXAMPLE: fl OPEN XMP mnispace
 %
 % ************************************************************************************
+% 
+% fl('FL2CON',subject_id_list,pipeline_id,model_id, output_projectname)
+%   creates new CONN project and imports the data and experimental design of the listed subjects
+%   Inputs:
+%       subject_id_list : cell array with list of individual subjects (each subject id contains a string of the form [Experiment_code][Subject_number][OptionalSubject_code] identifying individual subject/session)
+%       pipeline_id : string identifying an individual preprocessing pipeline
+%       model_id : string identifying an individual first-level analysis
+%       output_projectname : name of output CONN project .mat file
+%   Output in output_projectname
 %
+% ************************************************************************************
+% 
 % fl('LIST',Experiment_code)
 %   lists all subjects within this experiment
 % fl('LIST',Experiment_code,pipeline_id)
@@ -257,13 +268,16 @@ if ~isempty(varargin)&&isempty(regexp(lower(char(STEPS)),'^secondlevel'))&&~isme
         end
     end
     if iscell(subject_id)
-        for n=1:numel(subject_id)
-            fprintf('PROCESSING SUBJECT %s\n',subject_id{n});
-            if strcmpi(char(STEPS),'submit'), fl(STEPS,varargin{1},subject_id{n},varargin{3:end});
-            else fl(STEPS,subject_id{n},varargin{2:end});
+        if ismember(lower(char(STEPS)), {'fl2conn'}) % commands with multiple-subject inputs -> continue normally
+        else                                         % commands with single-subject inputs -> run each element (subject) separately
+            for n=1:numel(subject_id) 
+                fprintf('PROCESSING SUBJECT %s\n',subject_id{n});
+                if strcmpi(char(STEPS),'submit'), fl(STEPS,varargin{1},subject_id{n},varargin{3:end});
+                else fl(STEPS,subject_id{n},varargin{2:end});
+                end
             end
+            return
         end
-        return
     end
 end
 
@@ -858,6 +872,27 @@ switch(lower(STEPS))
         assert(conn_existfile(dataset,1),'file %s not found',dataset);
         fl_internal(opts{:});
                 
+    case 'fl2conn'
+        assert(numel(varargin)>=4,'incorrect usage: please specify subject_id_list, pipeline_id, firstlevel_id, and output_filename')
+        subject_id=varargin{1};
+        pipeline_id=varargin{2};
+        design_id=varargin{3};
+        output_filename=varargin{4};
+        if ~iscell(subject_id), subject_id={subject_id}; end
+        subject_id=regexprep(subject_id,'^sub-',''); 
+
+        for nsub=1:numel(subject_id)
+            project_id{nsub}=regexprep(subject_id{nsub},'[\d\*]+.*$','');
+            dataset{nsub}=fullfile(OUTPUT_FOLDER,project_id{nsub},'derivatives','FL',pipeline_id,sprintf('sub-%s.mat',subject_id{nsub}));
+            designs{nsub}=fullfile(OUTPUT_FOLDER,project_id{nsub},'derivatives','FL',pipeline_id,sprintf('sub-%s',subject_id{nsub}),'results','firstlevel',design_id,'SPM.mat');
+        end
+        %conn_batch('filename',output_filename,'Setup.isnew',true); % creates conn project
+        conn('load',dataset{1});
+        conn('save',output_filename); % creates new conn project copying 1st-subject info
+        conn_merge(char(dataset), [], false, true); % imports data from subject-specific projects containing preprocessed data
+        conn save;
+        conn_batch('filename',output_filename,'Setup.spmfiles',designs, 'Setup.spmfiles_options', {'addfunctional', false, 'addconditions', true, 'addrestcondition', true, 'keeppreviousconditions', false, 'addrealignment', false, 'addartfiles', false}); % imports task-design condition information
+        
     case 'list'
         if isempty(varargin)
             project_id=conn_dir(fullfile(OUTPUT_FOLDER,'*'),'-cell','-sort','-R','-dir');

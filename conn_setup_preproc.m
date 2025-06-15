@@ -3360,8 +3360,8 @@ for iSTEP=1:numel(STEPS)
                             spm_smooth(data.*mask,sdata,[1 1 1].*this_fwhm./vox);
                             switch(SVARIANT) % in all variants: within-mask values aggregate across nearby within-mask values
                                 case 1, volout(n)=spm_write_vol(volout(n),(1-mask).*data + mask.*sdata./max(eps,smask)); % hard transitions (out-of-mask voxels are not smoothed) 
-                                %case 2, volout(n)=spm_write_vol(volout(n),data + (sdata - data.*smask)./max(.05,smask));% smooth transitions (out-of-mask voxels aggregate across nearby within-mask values, otherwise -if there are no nearby within-mask voxels- out-of-mask voxels keep unchanged)
-                                case 2, volout(n)=spm_write_vol(volout(n),(sdata)./max(.05,smask));                      % smooth transitions (out-of-mask voxels aggregate across nearby within-mask values, otherwise -if there are no nearby within-mask voxels- out-of-mask voxels go towards zero)
+                                case 2, volout(n)=spm_write_vol(volout(n),data + (sdata - data.*smask)./max(.05,smask));% smooth transitions (out-of-mask voxels aggregate across nearby within-mask values, otherwise -if there are no nearby within-mask voxels- out-of-mask voxels keep unchanged)
+                                %case 2, volout(n)=spm_write_vol(volout(n),(sdata)./max(.05,smask));                      % smooth transitions (out-of-mask voxels aggregate across nearby within-mask values, otherwise -if there are no nearby within-mask voxels- out-of-mask voxels go towards zero)
                                 %    %case 3, volout(n)=spm_write_vol(volout(n),(sdata.*smask+1/LAMBDA*data)./(smask+1/LAMBDA)); (obsolete method, to be removed)
                                 case 3,                                                                                  % preserve boundaries (out-of-mask voxels aggregate across nearby out-of-mask voxels);
                                     smaskout=zeros(size(mask));

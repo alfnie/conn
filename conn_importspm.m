@@ -237,6 +237,16 @@ for nsub=SUBJECTS,
                                     CONN_x.Setup.conditions.values{nsub}{idx}{session_count}{1}=(spmfile.SPM.Sess(nses).U(ncondition).ons-0)*rt;
                                     CONN_x.Setup.conditions.values{nsub}{idx}{session_count}{2}=spmfile.SPM.Sess(nses).U(ncondition).dur*rt;
                                 end
+                                idx=strmatch(sprintf('Sn(%d) %s*bf(1)',nses,spmfile.SPM.Sess(nses).U(ncondition).name{1}), spmfile.SPM.xX.name);
+                                if isempty(idx), idx=strmatch(sprintf('Sn(%d) %s*bf(1)',0,spmfile.SPM.Sess(nses).U(ncondition).name{1}), spmfile.SPM.xX.name); end
+                                if ~isempty(idx)
+                                    C=spmfile.SPM.xX.X(spmfile.SPM.Sess(nses).row,idx);
+                                    name=['QC_SPM_taskeffects_',name];
+                                    idx=strmatch(name,CONN_x.Setup.l1covariates.names,'exact');
+                                    if isempty(idx), idx=length(CONN_x.Setup.l1covariates.names); CONN_x.Setup.l1covariates.names{end+1}=' '; end
+                                    CONN_x.Setup.l1covariates.names{idx}=name;
+                                    CONN_x.Setup.l1covariates.files{nsub}{idx}{session_count}={'[raw values]',[],C};
+                                end
                             end
                         end
                     end

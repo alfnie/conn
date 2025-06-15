@@ -175,7 +175,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 	CONN_h.menus.m_setup_02sub=conn_menumanager([], 'n',9,...
 									'string',{'Basic','Structural','Functional','ROIs','Conditions','Covariates (1st-level)','Covariates (2nd-level)','Other imaging data','Options'},...%,'Preprocessing','QA plots'},...
 									'help',{'Defines basic acquisition information','Defines structural/anatomical data source files','Defines functional data source files','Defines regions of interest','Defines within-subject experiment conditions (e.g. rest, task, or longitudinal conditions)','Defines 1st level (within subject) variables (a timeseries for each subject/session; e.g. subject movement parameters)','Defines 2nd level (between subjects) variables (one value per subject; e.g. group membership)','Defines other/secondary imaging data files','Defines general processing options'},...%,'Define and apply a sequence of preprocessing steps to the structural/functional volumes defined above (e.g. realignment, slice-timing correction, normalization, etc.)','Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
-									'position',[.235+0.5*.765/4-.765/4/2,.955-9*.045,.765/4,9*.045],...%'position',[.00,.42-.06,.095,7*.06],...
+									'position',[.235+0.5*.765/4-.765/4/2,.955-9*.035,.765/4,9*.035],...%'position',[.00,.42-.06,.095,7*.06],...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
@@ -186,7 +186,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'Recent analysis','All analyses'},...%,{'Seed-to-Voxel','ROI-to-ROI'},{'Voxel-to-Voxel','ICA networks'},'dyn-ICA circuits'},...
 									'help',{'Display details of last-viewed 1st-level analysis','Display all 1st-level analyses defined in this project'},...%,'Define/explore ROI-to-ROI and Seed-to-Voxel first-level analyses','Define/explore voxel-to-voxel and ICA first-level analyses','Define Dynamic ICA first-level analyses'},...
                                     'order','vertical',...
-									'position',[.235+2.5*.765/4-.765/4/2,.955-2*.045,.765/4,2*.045],...%[.0,.68,.07,3*.05],...
+									'position',[.235+2.5*.765/4-.765/4/2,.955-2*.035,.765/4,2*.035],...%[.0,.68,.07,3*.05],...
                                     'toggle',0,...
                                     'roll',1,...
 									'fontsize',8,...
@@ -196,7 +196,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'Recent results','All results'},...%,'Seed-to-Voxel','ROI-to-ROI','Voxel-to-Voxel','ICA networks','dyn-ICA circuits'},...
 									'help',{'Display details of last-viewed 2nd-level analysis','Display all analyses and bookmarks defined in this project'},...%,'Define/explore seed-to-voxel second-level analyses','Define/explore ROI-to-ROI second-level analyses','Define/explore voxel-to-voxel second-level analyses','Define/explore ICA second-level analyses','Define/explore dynamic ICA second-level analyses'},...
                                     'order','vertical',...
-									'position',[.235+3.5*.765/4-.765/4/2,.955-2*.045,.765/4,2*.045],...%[.0,.68,.07,3*.05],...
+									'position',[.235+3.5*.765/4-.765/4/2,.955-2*.035,.765/4,2*.035],...%[.0,.68,.07,3*.05],...
                                     'toggle',0,...
                                     'roll',1,...
 									'fontsize',8,...
@@ -220,7 +220,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.135,.955-4.5*.045-5*.045,.20,5*.045],...
+									'position',[.135,.955-4.5*.035-5*.035,.20,5*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setup_preproc','multiplesteps',1},{@conn,'run_process',[]},{@conn,'gui_results_done'},{@conn,'run',[]},{@conn,'run_cmd',[]}} );
@@ -230,7 +230,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.135,.955-2.5*.045-4*.045,.129,4*.045],...
+									'position',[.135,.955-2.5*.035-4*.035,.129,4*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn_remotely,'settings'},{@conn,'gui_server'},{@conn,'gui_filetransfer'},{@conn,'gui_help','url','https://web.conn-toolbox.org/resources/ssh-configuration'}} ); %{@conn,'gui_help','help','conn_remotely.m'}} );
@@ -240,7 +240,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.135,.955-1.5*.045-4*.045,.129,4*.045],...
+									'position',[.135,.955-1.5*.035-4*.035,.129,4*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'parallel_settings'},{@conn,'gui_jobmanager'}, {@conn_jobmanager, 'all'}, {@conn,'gui_help','url','https://web.conn-toolbox.org/resources/hpc-configuration'}} ); %{@conn,'gui_help','help','conn_grid.m'}} );
@@ -250,7 +250,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.135,.955-4.5*.045-3*.045,.15,4*.045],...
+									'position',[.135,.955-4.5*.035-3*.035,.15,4*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setup_import','dicom'},{@conn,'gui_setup_import','spm'},{@conn,'gui_setup_import','bids'},{@conn,'gui_setup_import','fmriprep'}} );
@@ -260,7 +260,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.104,.955-4.5*.045-3*.045,.15,4*.045],...
+									'position',[.104,.955-4.5*.035-3*.035,.15,4*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setup_import','newdicom'},{@conn,'gui_setup_import','newspm'},{@conn,'gui_setup_import','newbids'},{@conn,'gui_setup_import','newfmriprep'}} );
@@ -270,7 +270,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.104,.955-4.5*.045-1*.045,.15,1*.045],...
+									'position',[.104,.955-4.5*.035-1*.035,.15,1*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn, 'gui_setup_download'}} );
@@ -280,7 +280,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.045,.955-9*.045,.129,9*.045],...
+									'position',[.045,.955-9*.035,.129,9*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_settings'},CONN_h.menus.m_setup_07f,CONN_h.menus.m_setup_07j,CONN_h.menus.m_setup_07h,CONN_h.menus.m_setup_07e,{@conn,'gui_setup_qadisplay'},{@conn,'gui_referenceexplore'},{@conn,'gui_setup_logdisplay'},{@conn,'gui_calculator'}} ); %,{@conn,'gui_setup_qadisplay'}} );
@@ -290,7 +290,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     %                                 'order','vertical',...
     %                                 'toggle',0,...
     %                                 'roll',1,...
-			% 						'position',[.045,.955-10*.045,.129,10*.045],...
+			% 						'position',[.045,.955-10*.035,.129,10*.035],...
 			% 						'fontsize',8,...
     %                                 'bordertype','square',...
 			% 						'callback',{{@conn,'gui_settings'},CONN_h.menus.m_setup_07f,CONN_h.menus.m_setup_07j,CONN_h.menus.m_setup_07h,CONN_h.menus.m_setup_07e,{@conn,'gui_setup_qadisplay'},{@conn,'gui_referenceexplore'},{@conn,'gui_setup_logdisplay'},{@conn_print},{@conn,'gui_calculator'}} ); %,{@conn,'gui_setup_qadisplay'}} );
@@ -300,7 +300,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     %                                 'order','vertical',...
     %                                 'toggle',0,...
     %                                 'roll',1,...
-			% 						'position',[.29,.955-4.5*.045-3.5*.045-11*.045,.099,11*.045],...
+			% 						'position',[.29,.955-4.5*.035-3.5*.035-11*.035,.099,11*.035],...
 			% 						'fontsize',8,...
     %                                 'bordertype','square',...
 			% 						'callback',{{@conn,'gui_help','url','http://www.nitrc.org/forum/forum.php?forum_id=1144'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources/conn-documentation'},{@conn,'gui_help','url','http://www.alfnie.com/software/conn'},{@conn,'gui_help','url','http://www.conn-toolbox.org/fmri-methods'},{@conn,'gui_help','url','http://www.conn-toolbox.org/tutorials'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources/citing-conn'},{@conn,'gui_help','url','http://www.conn-toolbox.org/resources'},{@conn,'gui_help','url','http://www.conn-toolbox.org'},{@conn,'gui_help','url','http://www.nitrc.org/projects/conn'},{@conn,'gui_help','url','http://www.fil.ion.ucl.ac.uk/spm'},{@conn_register,'forceregister'}} );
@@ -310,7 +310,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.29,.955-3.5*.045-2.5*.045-2*.045,.15,2*.045],...
+									'position',[.29,.955-3.5*.035-2.5*.035-2*.035,.15,2*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_help','url','https://fcon_1000.projects.nitrc.org/'},{@conn, 'gui_publicdatasets'}} );
@@ -320,7 +320,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.18,.955-3.5*.045-3*.045,.15,3*.045],...
+									'position',[.18,.955-3.5*.035-3*.035,.15,3*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_help','url','https://www.conn-toolbox.org/workshops'},{@conn_batch_workshop_nyudataset},CONN_h.menus.m_setup_07k} );
@@ -331,7 +331,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.18,.955-1.5*.045-3*.045,.15,3*.045],...
+									'position',[.18,.955-1.5*.035-3*.035,.15,3*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_help','doc'},{@conn,'gui_help','url','https://www.conn-toolbox.org/resources'},{@conn,'gui_help','url','https://www.conn-toolbox.org/support'}} );
@@ -341,7 +341,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.09,.955-5*.045,.129,5*.045],...
+									'position',[.09,.955-5*.035,.129,5*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn_msghelp},CONN_h.menus.m_setup_07c, {@conn,'gui_help','url','https://www.conn-toolbox.org/tutorials'}, CONN_h.menus.m_setup_07g, {@conn,'gui_about'}} );
@@ -351,7 +351,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.104,.955-1.5*.045-6*.045,.229,6*.045],...%[.09,.88-6*.05,.08,6*.05],...
+									'position',[.104,.955-1.5*.035-6*.035,.229,6*.035],...%[.09,.88-6*.05,.08,6*.05],...
 									'fontsize',7,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_recent_load',1},{@conn,'gui_recent_load',2},{@conn,'gui_recent_load',3},{@conn,'gui_recent_load',4},{@conn,'gui_recent_load',5},{@conn,'gui_recent_load',6}} );
@@ -361,7 +361,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.0,.955-9*.045,.135,9*.045],...%[.09,.88-6*.05,.08,6*.05],...
+									'position',[.0,.955-9*.035,.135,9*.035],...%[.09,.88-6*.05,.08,6*.05],...
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_setup_load'},CONN_h.menus.m_setup_01c,{@conn,'gui_setup_new'},CONN_h.menus.m_setup_07i,CONN_h.menus.m_setup_07l,{@conn,'gui_setup_save'},{@conn,'gui_setup_saveas'},{@conn,'gui_setup_close'},{@conn,'gui_localremote'}} ); %,{@conn,'gui_setup_merge'}} );
@@ -386,7 +386,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'callback',{CONN_h.menus.m_setup_01a,CONN_h.menus.m_setup_07a,CONN_h.menus.m_setup_07b} );
 	CONN_h.menus.m_setup_08=conn_menumanager([],	'n',1,...
 									'string',{'note: pending jobs'},...
-									'help',{'there are currently running or pending jobs associated with this CONN project'},...
+									'help',{'there are currently running or pending jobs in this CONN project - click here to check their status'},...
                                     'order','horizontal',...
                                     'toggle',0,...
                                     'fontangle','italic',...
@@ -814,7 +814,7 @@ else
                     'dicom',{{}},...
                     'bids',{{}},...
                     'nscans',{{}},....
-                    'rois',         struct('names',{{}},'files',{{}},'dimensions',{{}},'mask',[],'subjectspecific',[],'sessionspecific',[],'multiplelabels',[],'regresscovariates',[],'unsmoothedvolumes',[],'weighted',[]),...
+                    'rois',         struct('names',{{}},'files',{{}},'dimensions',{{}},'mask',[],'subjectspecific',[],'sessionspecific',[],'multiplelabels',[],'regresscovariates',[],'unsmoothedvolumes',[],'weighted',[],'regresscovariateschoose',[]),...
                     'conditions',   struct('names',{{}},'model',{{}},'values',{{}},'param',[],'filter',{{}},'allnames',{{}},'missingdata',0),...
                     'l1covariates', struct('names',{{}},'files',{{}}),...
                     'l2covariates', struct('names',{{}},'values',{{}},'descrip',{{}}),...
@@ -901,6 +901,7 @@ else
                 CONN_x.Setup.rois.multiplelabels=[0,0,0];
                 CONN_x.Setup.rois.regresscovariates=[0,1,1];
                 CONN_x.Setup.rois.unsmoothedvolumes=[1,1,1];
+                CONN_x.Setup.rois.regresscovariateschoose={'realignment','scrubbing'};
                 CONN_x.Setup.rois.weighted=[0,0,0];
                 
                 if ~isfield(CONN_gui,'font_offset'), conn_font_init; end
@@ -993,6 +994,8 @@ else
             else fromgui=false; end
             if nargin>3,forcecheck=varargin{4}; 
             else forcecheck=fromgui; end
+            if nargin>4,skipmerge=varargin{5}; 
+            else skipmerge=false; end
             if isempty(filename)||~ischar(filename),
                 conn_disp('warning: invalid filename, project NOT loaded');
             else
@@ -1103,7 +1106,7 @@ else
                 if CONN_x.pobj.holdsdata&&isempty(CONN_x.pobj.cache), conn_updatefolders; 
                 else, conn_updatefolders([],false); 
                 end
-                if isempty(CONN_x.pobj.cache), conn_projectmanager('updateproject',fromgui); end % merge files if necessary
+                if isempty(CONN_x.pobj.cache)&&~skipmerge, conn_projectmanager('updateproject',fromgui); end % merge files if necessary
                 if isempty(CONN_x.pobj.cache), 
                     conn_updatefilepaths('localfile',{},{}); 
                     conn_updatefilepaths('hold','off');
@@ -1182,7 +1185,7 @@ else
                     if isfield(CONN_x.pobj,'cache')&&~isempty(CONN_x.pobj.cache),
                         localfilename=conn_projectmanager('projectfile'); %CONN_x.filename;
                         conn_cache('push',localfilename,CONN_x.pobj.cache);
-                        conn_server('run','conn','load',conn_server('util_localfile',localfilename),false,true);
+                        conn_server('run','conn','load',conn_server('util_localfile',localfilename),false,true,false); % note: loads in remote (but skips merging if there are pending jobs)
                     end
                 catch
                     error(['Failed to save file ',localfilename,'. Check file name and/or folder permissions']);
@@ -1819,15 +1822,15 @@ else
             h.text2=uicontrol('style','text','units','norm','position',[.05,.35,.9,.43],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string',str,'parent',thfig);
             h.text3=uicontrol('style','text','units','norm','position',[.05,.21,.55,.10],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','fontsize',6+CONN_gui.font_offset,'string','','parent',thfig);
             h.button2=uicontrol(thfig,'style','pushbutton','string','display log','enable','on','units','norm','position',[.05,.11,.15,.10],'callback','conn_remotely(''details'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','display internal log file of remote CONN session');
-            h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.20,.11,.15,.10],'callback','conn_server(''clear_cache'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears file temporal storage and communication buffer');
+            h.button3=uicontrol(thfig,'style','pushbutton','string','clear cache','units','norm','position',[.20,.11,.15,.10],'callback','conn_server(''clear_cache'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','clears temporal storage and communications buffer');
             h.button1=uicontrol(thfig,'style','pushbutton','string','ping','enable','on','units','norm','position',[.50,.11,.15,.10],'callback','h=get(gcbf,''userdata''); set(h.text3,''string'',conn_server(''ping''));','fontsize',6+CONN_gui.font_offset,'tooltipstring','send ping signal to remote CONN and track round-trip time');
-            h.button7=uicontrol(thfig,'style','pushbutton','string','cmd','enable','on','units','norm','position',[.65,.11,.15,.10],'callback','disp(''TYPE quit TO FINISH''); conn_remotely(''cmd'')','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('Matlab command-line in %s',tnameserver));
+            h.button7=uicontrol(thfig,'style','pushbutton','string','cmd','enable','on','units','norm','position',[.65,.11,.15,.10],'callback','disp(''ENTER COMMANDS TO BE RUN IN REMOTE SERVER, OR TYPE quit TO FINISH''); conn_remotely(''cmd'')','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('Matlab command-line in %s',tnameserver));
             h.button8=uicontrol(thfig,'style','pushbutton','string','scp','enable','on','units','norm','position',[.80,.11,.15,.10],'callback','delete(gcbf); conn gui_filetransfer','fontsize',6+CONN_gui.font_offset,'tooltipstring',sprintf('copy/transfer entire folders between this computer and %s',tnameserver));
             %h.button4=uicontrol(thfig,'visible','off','style','pushbutton','string','File transfer','units','norm','position',[.05,.01,.30,.10],'callback','conn_remotely(''filetransfer'')','fontsize',6+CONN_gui.font_offset,'tooltipstring','file transfer from/to this computer to/from remote CONN session');
-            h.button4=uicontrol(thfig,'style','pushbutton','string','Check connection','units','norm','position',[.05,.01,.225,.10],'callback','h=get(gcbf,''userdata'');  if conn(''gui_isconnected''), set(h.text3,''string'',''connection working correctly''); else set(h.text3,''string'',''connection failed''); end','fontsize',6+CONN_gui.font_offset,'tooltipstring','checks the connection with an existing/running remote CONN session');
-            h.button9=uicontrol(thfig,'style','pushbutton','string','Reset SSH control socket','units','norm','position',[.275,.01,.225,.10],'callback','if conn_server_ssh(''checkcontrolmaster''), close(gcbf); conn gui_server; end','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-authenticate to create a new SSH control socket for an existing connection');
-            h.button5=uicontrol(thfig,'style','pushbutton','string','Reset connection','units','norm','position',[.50,.01,.225,.10],'callback','close(gcbf); conn_remotely softrestart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
-            h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.725,.01,.225,.10],'callback','close(gcbf); conn_remotely softstart','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_remotely forceoff" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
+            h.button4=uicontrol(thfig,'style','pushbutton','string','Check connection','units','norm','position',[.05,.01,.30,.10],'callback','h=get(gcbf,''userdata'');  if conn(''gui_isconnected''), set(h.text3,''string'',''connection working correctly''); else set(h.text3,''string'',''connection failed''); end','fontsize',6+CONN_gui.font_offset,'tooltipstring','checks the connection with an existing/running remote CONN session');
+            h.button9=uicontrol(thfig,'style','pushbutton','string','Restart SSH control socket','units','norm','position',[.35,.01,.30,.10],'callback','if conn_server_ssh(''checkcontrolmaster''), close(gcbf); conn gui_server; end','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-authenticate to create a new SSH control socket for an existing connection');
+            h.button5=uicontrol(thfig,'style','pushbutton','string','Restart connection','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn_remotely softrestart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
+            %h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.725,.01,.225,.10],'callback','close(gcbf); conn_remotely softstart','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_remotely forceoff" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
             try, if isempty(info.remote_ip), set([h.button1 h.button7 h.button8],'enable','off'); end; end
             try, if isempty(info.remote_log), set(h.button2,'enable','off'); end; end
             try, if isempty(info.host), set([h.button2 h.button6 h.button8],'enable','off'); end; end
@@ -1844,11 +1847,12 @@ else
                         elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
                         else tnameserver='CONN server';
                         end
-                        answ=conn_questdlg('',sprintf('lost connection to %s',tnameserver),'Retry','Reset connection and retry','Start new remote session','Cancel','Retry');
+                        %answ=conn_questdlg('',sprintf('lost connection to %s',tnameserver),'Retry','Reset connection and retry','Start new remote session','Cancel','Retry');
+                        answ=conn_questdlg('',sprintf('lost connection to %s',tnameserver),'Retry','Restart connection and retry','Cancel','Retry');
                         if isempty(answ), break; end
                         switch(answ)
-                            case 'Reset connection and retry', try, conn_remotely restart; end
-                            case 'Start new remote session', try, conn_remotely start; end
+                            case 'Restart connection and retry', try, conn_remotely softrestart; end
+                            case 'Start new remote session', try, conn_remotely softstart; end
                             case 'Retry', try, conn_tcpip('flush'); end
                             case 'Cancel', break; 
                         end
@@ -2184,7 +2188,7 @@ else
                     conn_menumanager(CONN_h.menus.m_setup_01b,'on',1);
                     return; 
                 end
-                %conn_menu('frame2border',[.0,.0,.135,.94]);
+                %conn_menu('frame',[.0,.13,.14,.72]);
                 %conn_menu('frame2border',[.01,.85-8*.06,.12,8*.06]);
 				conn_menumanager([CONN_h.menus.m_setup_02a,CONN_h.menus.m_setup_02b,CONN_h.menus.m_setup_01d,CONN_h.menus.m_setup_01e,CONN_h.menus.m_setup_01f],'on',1);
                 %drawnow;
@@ -2193,20 +2197,21 @@ else
             boffset=[0 0 0 0];
             switch(state),
                 case 1, %basic
-                    boffset=[.15 -.05 0 0];
+                    boffset=[.15 0 0 0];
                     if nargin<2,
-                        conn_menu('frame',boffset+[.19,.36,.27,.44],'Basic information');
+                        %conn_menu('frame',boffset+[.12,.13,.30,.67],'Basic information');
+                        conn_menu('frame',boffset+[.12,.25,.30,.45],'Basic information');
                         if numel(CONN_x.Setup.nsessions)>1&&all(CONN_x.Setup.nsessions==CONN_x.Setup.nsessions(1)), t1=num2str(CONN_x.Setup.nsessions(1),'%1.0f '); 
                         else t1=num2str(CONN_x.Setup.nsessions,'%1.0f '); 
                         end
                         if numel(CONN_x.Setup.RT)>1&&(all(CONN_x.Setup.RT==CONN_x.Setup.RT(1))||all(isnan(CONN_x.Setup.RT))), t2=mat2str(CONN_x.Setup.RT(1)); 
                         else t2=mat2str(CONN_x.Setup.RT); 
                         end
-						CONN_h.menus.m_setup_00{1}=conn_menu('edit',boffset+[.2,.7,.25,.04],'Number of subjects',num2str(CONN_x.Setup.nsubjects),'Number of subjects in this study','conn(''gui_setup'',1);');
-						CONN_h.menus.m_setup_00{2}=conn_menu('edit',boffset+[.2,.6,.25,.04],'Number of sessions or runs (per subject)',t1,'<HTML>Number of scanning runs or sessions per subject <br/> - enter a single number if the same number of scanning runs were acquired for each subject, or a different number per subject otherwise (e.g. 2 2 3)<br/> - note: in CONN and SPM nomenclature, the terms "sessions" and "runs" are used interchangeably to refer to a single period of data collection. Different sessions/runs <br/>of data may be acquired in a single visit to the scanner or across different days</HTML>','conn(''gui_setup'',2);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('edit',boffset+[.2,.5,.25,.04],'Repetition Time (seconds)',t2,'<HTML>Sampling period of fMRI data, also known as TR (time between two consecutive whole volume acquisitions<br/> - enter a single number if the same TR was used for each subject, or a different number per subject otherwise<br/> - set to NaN (for BIDS-compatible datasets only) to have CONN read this information from the sidecar JSON file<br/>associated with each subject/session functional data (field <i>RepetitionTime</i> from .json file)</HTML>','conn(''gui_setup'',3);');
+						CONN_h.menus.m_setup_00{1}=conn_menu('edit',boffset+[.18,.6,.20,.04],'Number of subjects',num2str(CONN_x.Setup.nsubjects),'Number of subjects in this study','conn(''gui_setup'',1);');
+						CONN_h.menus.m_setup_00{2}=conn_menu('edit',boffset+[.18,.5,.20,.04],'Number of sessions or runs (per subject)',t1,'<HTML>Number of scanning runs or sessions per subject <br/> - enter a single number if the same number of scanning runs were acquired for each subject, or a different number per subject otherwise (e.g. 2 2 3)<br/> - note: in CONN and SPM nomenclature, the terms "sessions" and "runs" are used interchangeably to refer to a single period of data collection. Different sessions/runs <br/>of data may be acquired in a single visit to the scanner or across different days</HTML>','conn(''gui_setup'',2);');
+						CONN_h.menus.m_setup_00{3}=conn_menu('edit',boffset+[.18,.4,.20,.04],'Repetition Time (seconds)',t2,'<HTML>Sampling period of fMRI data, also known as TR (time between two consecutive whole volume acquisitions<br/> - enter a single number if the same TR was used for each subject, or a different number per subject otherwise<br/> - set to NaN (for BIDS-compatible datasets only) to have CONN read this information from the sidecar JSON file<br/>associated with each subject/session functional data (field <i>RepetitionTime</i> from .json file)</HTML>','conn(''gui_setup'',3);');
                         analysistypes={'Continuous','Sparse sampling'};
-                        CONN_h.menus.m_setup_00{4}=conn_menu('popup',boffset+[.2,.4,.25,.04],'Acquisition type',analysistypes,'<HTML>Type of acquisition sequence<br/> - selecting <i>sparse acquisition</i> skips hrf-convolution when computing task-related effects</HTML>','conn(''gui_setup'',4);');
+                        CONN_h.menus.m_setup_00{4}=conn_menu('popup',boffset+[.18,.3,.20,.04],'Acquisition type',analysistypes,'<HTML>Type of acquisition sequence<br/> - selecting <i>sparse acquisition</i> skips hrf-convolution when computing task-related effects</HTML>','conn(''gui_setup'',4);');
                         set(CONN_h.menus.m_setup_00{4},'value',1+(CONN_x.Setup.acquisitiontype~=1));
                     else
                         switch(varargin{2}),
@@ -2226,11 +2231,11 @@ else
                         end
                     end
                 case {3,8} %functional, other
-                    if state==3, boffset=[.04 .035 0 0];
-                    else boffset=[.04 -.05 0 0];
+                    if state==3, boffset=[.04 .03 0 0];
+                    else boffset=[.04 -.07 0 0];
                     end
                     if nargin<2,
-                        if state==3, conn_menu('frame',boffset+[.19,.16,.45,.565],'Functional data');
+                        if state==3, conn_menu('frame',boffset+[.13,.10,.57,.67],'Functional data');
                         else conn_menu('frame',boffset+[.13,.20,.57,.670],'Other imaging data (optional)');
                         end
                         %conn_menu('frame',boffset+[.19,.03,.50,.08],'Secondary datasets');
@@ -2259,14 +2264,14 @@ else
                             conn_menu('framewhitehighlight',boffset+[.140,.30,.095,.49]+[0 -.02 0 .02],' ');
                             analysistypes=arrayfun(@(n)sprintf('%s',CONN_x.Setup.secondarydataset(n).label),1:numel(CONN_x.Setup.secondarydataset),'uni',0);
                             if numel(analysistypes)>0&&~isempty(CONN_x.Setup.secondarydataset(end).label), analysistypes=[analysistypes,{' '}]; end
-                            CONN_h.menus.m_setup_00{7}=conn_menu('listboxbigblue',boffset+[.140,.30,.095,.49],'Data type',analysistypes,'<HTML>Manage additional/optional imaging data files (e.g. Fieldmap files, Voxel Displacement Map files, Tissue Probability Map files, other functional datasets, etc.)<br/>Importing these imaging data files is optional. They can be used:<br/>    a) in <i>Setup.ROIs</i> to specify functional images associated with individual ROIs;<br/>    b) during <i>Preprocessing</i> as additional reference/template/fieldmap data;<br/>    or c) just for safekeeping, to facilitate viewing or restoring your functional/structural data to their state at specific landmark points during preprocessing;<br/> <br/> - select the data-type that you wish to edit, or click after the last data-type to add a new set of imaging data <br/><br/>Suggested optional data types:<br/> - <b>unsmoothed volumes</b> : enter functional data that has not been spatially smoothed, and combine with options in <i>Setup.ROIs</i> tab to allow a more accurate ROI BOLD-signal extraction<br/> - <b>FMAP</b> : enter fieldmap files for susceptibility distortion correction (e.g. phasediff and magnitude volumes) and combine with SDC options during preprocessing<br/> - <b>VDM</b> : enter voxel displacement maps for susceptibility distortion correction (e.g. vdm5_* volumes) and combine with realign-and-unwarp options during preprocessing<br/> - <b>TPM</b> : enter subject-specific tissue probability maps and combine with normalization options during preprocessing to enable anatomical/functional segmentation and normalization to non-standard templates <br/> - <b>original functional data</b> : enter raw functional data here before any preprocessing step for quality control purposes or move it to ''functionals'' if you need to restart preprocessing from scratch<br/> - <b>subject-space functional data</b> : enter functional data that is in the same space as your structural images, and combine with options in <i>Setup.ROIs</i> tab to allow the use of subject-space ROIs<br/><br/>Secondary datasets that are not explicitly used during preprocessing or explicitly selected by any ROI as their BOLD signal source will be simply disregarded by CONN''s Setup/Denoising/Analysis pipeline.</HTML>','conn(''gui_setup'',7);','conn(''gui_setup'',8);'); 
+                            CONN_h.menus.m_setup_00{7}=conn_menu('listboxbigblue',boffset+[.140,.30,.095,.49],'Data type',analysistypes,'<HTML>Manage additional/optional imaging data files (e.g. Fieldmap files, Voxel Displacement Map files, Tissue Probability Map files, other functional datasets, etc.)<br/>Importing these imaging data files is optional. They can be used:<br/>    a) in <i>Setup.ROIs</i> to specify functional images associated with individual ROIs;<br/>    b) during <i>Preprocessing</i> as additional reference/template/fieldmap data;<br/>    or c) just for safekeeping, to facilitate viewing or restoring your functional/structural data to their state at specific landmark points during preprocessing;<br/> <br/> - select the data-type that you wish to edit, or click after the last data-type to add a new set of imaging data <br/><br/>Suggested optional data types:<br/> - <b>unsmoothed volumes</b> : enter functional data that has not been spatially smoothed, and combine with options in <i>Setup.ROIs</i> tab to allow a more accurate ROI BOLD-signal extraction<br/> - <b>FMAP</b> : enter fieldmap files for susceptibility distortion correction (e.g. phasediff and magnitude volumes) and combine with SDC options during preprocessing<br/> - <b>VDM</b> : enter voxel displacement maps for susceptibility distortion correction (e.g. vdm5_* volumes) and combine with realign-and-unwarp options during preprocessing<br/> - <b>TPM</b> : enter subject-specific tissue probability maps and combine with normalization options during preprocessing to enable anatomical/functional segmentation and normalization to non-standard templates <br/> - <b>original functional data</b> : enter raw functional data here before any preprocessing step for quality control purposes or move it to ''functionals'' if you need to restart preprocessing from scratch<br/> - <b>subject-space functional data</b> : enter functional data that is in the same space as your structural images, and combine with options in <i>Setup.ROIs</i> tab to allow the use of subject-space ROIs<br/><br/>Secondary datasets that are not explicitly used during preprocessing or explicitly selected by any ROI as their BOLD signal source will be simply ignored by CONN''s Setup/Denoising/Analysis pipeline.</HTML>','conn(''gui_setup'',7);','conn(''gui_setup'',8);'); 
     						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.190+.065,.30,.075,.49],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
     						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.265+.065,.30,.075,.49],'Sessions','','Select session','conn(''gui_setup'',2);');
                             CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import other imaging data files','*.img; *.nii; *.gii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
     						CONN_h.menus.m_setup_00{9}=conn_menu('edit',boffset+[.44,.76,.25,.04],'Description',CONN_x.Setup.secondarydataset(nset).label,'Description of selected imaging data','conn(''gui_setup'',9);');
                             CONN_h.menus.m_setup_00{10}=conn_menu('text',boffset+[.44,.73,.25,.03],'',''); set(CONN_h.menus.m_setup_00{10},'horizontalalignment','left','fontangle','italic','fontweight','normal'); %,'foregroundcolor',CONN_gui.fontcolorA);
                             analysistypes={'implicitly defined: functional files','implicitly defined: functional files without ''s'' prefix (SPM convention for non-smoothed volumes)','implicitly defined: user-defined files','explicitly defined: selected imaging files'};
-                            CONN_h.menus.m_setup_00{6}=conn_menu('popup',boffset+[.44,.64,.25,.04],'Data source',analysistypes,'<HTML>Define contents of secondary datasets (imaging dataset #1 and above), either explicitly or in relation to the functional data files:<br/>note: ''same filenames without leading s'' uses SPM convention when spatially smoothing the data (adding a ''s'' prefix to the data filename)<br/> in order to identify the original raw/non-smoothed functional data from the smoothed data filenames</HTML>','conn(''gui_setup'',6);');
+                            CONN_h.menus.m_setup_00{6}=conn_menu('popup',boffset+[.44,.64,.25,.04],'Data source',analysistypes,'<HTML>Define contents of secondary datasets, either explicitly or in relation to the functional data files for each subject/sessions<br/>(e.g. ''same filenames without leading s'' uses SPM convention when spatially smoothing the data by adding a ''s'' prefix to the data filename<br/> in order to identify the original raw/non-smoothed functional data from the smoothed data filenames)</HTML>','conn(''gui_setup'',6);');
     						CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton',boffset+doffset+[.36,.56,.26,.09],'','','','conn(''gui_setup'',4);');
     						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+doffset+[.40,.31,.22,.25],'','','',[],@conn_callbackdisplay_functionalclick);
                             conn_menu('nullstr',' ');
@@ -2839,9 +2844,9 @@ else
                        CONN_h.menus.m_setup_11e={};
                     end
                 case 2, %structural
-                    boffset=[.05 .05 0 -.01];
+                    boffset=[.05 .05 0 0];
                     if nargin<2,
-                        conn_menu('frame',boffset+[.19,.15,.41,.57],'Structural data');
+                        conn_menu('frame',boffset+[.12,.08,.57,.67],'Structural data');
                         conn_menu('nullstr',{'No structural','data imported'});
 						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.200,.63,.15,.05],'',{'One anatomical scan per subject','Multiple anatomical scans per subject'},'<HTML>(only applies to studies with multiple sessions/runs) <br/> - Select the first option when the structural data does not change across sessions (enter one structural volume per subject) <br/> - Select the second option when the structural data may change across sessions (enter one structural volume per session; e.g. longitudinal studies)</HTML>','conn(''gui_setup'',13);');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.200,.25,.075,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
@@ -3201,16 +3206,16 @@ else
                 case 4, %ROIs
                     boffset=[.06 .13 0 0];
                     if nargin<2,
-                        conn_menu('frame',boffset+[.11,.005,.57,.665],'ROI data');
+                        conn_menu('frame',boffset+[.11,0,.57,.67],'ROI data');
                         conn_menu('nullstr',{'No ROI','file selected'});
-                        conn_menu('framewhitehighlight',boffset+[.120,.13,.075,.46]+[0 -.02 0 .02],' ');
-						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigblue',boffset+[.120,.13,.075,.46],'ROIs','',['<HTML>Select Region Of Interest (ROI) <br/> - click after the last item to add a new ROI <br/> - ',CONN_gui.rightclick,'-click for additional options<br/></HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
-						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{19}]=conn_menu('listbox',boffset+[.215,.13,.075,.46],'Subjects','','Select subject(s)','conn(''gui_setup'',2);');
-						[CONN_h.menus.m_setup_00{16},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.29,.13,.075,.46],'Sessions','','Select session','conn(''gui_setup'',16);');
+                        conn_menu('framewhitehighlight',boffset+[.15,.13,.075,.46]+[0 -.02 0 .02],' ');
+						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigblue',boffset+[.15,.13,.075,.46],'ROIs','',['<HTML>Select Region Of Interest (ROI) <br/> - click after the last item to add a new ROI <br/> - ',CONN_gui.rightclick,'-click for additional options<br/></HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
+						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{19}]=conn_menu('listbox',boffset+[.245,.13,.075,.46],'Subjects','','Select subject(s)','conn(''gui_setup'',2);');
+						[CONN_h.menus.m_setup_00{16},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.32,.13,.075,.46],'Sessions','','Select session','conn(''gui_setup'',16);');
 						CONN_h.menus.m_setup_00{3}=conn_menu('filesearch',[],'Import ROI files','*.img; *.nii; *.gii; *.tal; *.mgh; *.mgz; *.annot; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{4}=conn_menu('pushbutton', boffset+[.39,.47,.25,.08],'','','','conn(''gui_setup'',4);');
                         CONN_h.menus.general.names={};CONN_h.menus.general.names2={};
-						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.37,.19,.29,.28],'','','',@conn_callbackdisplay_general,@conn_callbackdisplay_roiclick); 
+						CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.40,.19,.26,.28],'','','',@conn_callbackdisplay_general,@conn_callbackdisplay_roiclick); 
                         %set([CONN_h.menus.m_setup_00{4}],'visible','off'); conn_menumanager('onregion',[CONN_h.menus.m_setup_00{4}],1,boffset+[.36,.02,.31,.69]);
                         set([CONN_h.menus.m_setup_00{4}],'fontsize',7+CONN_gui.font_offset); 
                         %%ht=uicontrol('style','frame','units','norm','position',boffset+[.38,.47,.27,.08],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
@@ -3223,16 +3228,17 @@ else
                         str=[{'from functional data'},arrayfun(@(n)sprintf('from %s (secondary dataset #%d)',CONN_x.Setup.secondarydataset(n).label,n),1:max(numel(CONN_x.Setup.secondarydataset),max(CONN_x.Setup.rois.unsmoothedvolumes)),'uni',0)];
 						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.472,.56,.20,.03],'',str,'<HTML>source of functional data for ROI timeseries extraction<br/> - Select <b>secondary datasets</b> to extract ROI BOLD timeseries from any of the secondary datasets defined in <i>Setup.Other</i> (default behavior; e.g. non-smoothed volumes)<br/> - Select <b>functional data</b> to extract ROI BOLD timeseries from the functional data defined in <i>Setup.Functional</i> (e.g. smoothed volumes)</HTML>','conn(''gui_setup'',13);');
 						%CONN_h.menus.m_setup_00{7}=conn_menu('edit',boffset+[.49,.71,.06,.04],'Dimensions','','<HTML>number of dimensions characterizing the ROI activation <br/> - use <b>1</b> to extract only the mean BOLD timeseries within the ROI <br/> - use <b>2</b> or above to extract one or several PCA components as well</HTML>','conn(''gui_setup'',7);');
-                        CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.12,.01,.27,.05],'',{'<HTML><i> ——— ROI tools ———</i></HTML>','Display slice viewer','Display slice viewer with functional overlay (QA_REG)','Display slice viewer with structural overlay (QA_REG)','Display slice viewer with MNI reference template overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display 3d-volume viewer','Display 3d-surface-projection viewer','Display ROI/functional coregistration (SPM)','Display ROI/anatomical coregistration (SPM)','Display single-slice for all subjects (montage)','Display ROI labels','Create new ROI(s) from MNI coordinates','Create new ROI(s) from ICA results','Create new single-voxel-ROI(s) from mask','Reload ROI files: change file- or folder- names','Update changes from Setup to Denoising tab'},'<HTML> - <i>slice viewer</i> displays ROI slices<br/> - <i>slice viewer with functional/structural overlay</i> displays ROI contours overlaid with mean functional or same-subject anatomical volume<br/> - <i>slice viewer with MNI reference template overlay</i> displays ROI contours overlaid with reference MNI-space structural template<br/> - <i>slice viewer with MNI boundaries</i> displays ROI slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/>  - <i>3d viewer</i> displays ROI file on the volume or projected to the cortical surface<br/> - <i>display registration</i> checks the coregistration of the selected subject ROI and anatomical/functional files<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space) for the selected ROI<br/> - <i>display ROI labels</i> displays ROI labels for ROI atlas files and allows editing the associated labels file<br/> - <i>create new ROI from MNI coordinates</i> creates a new spherical-ROI file from a set of user-defined MNI coordinates<br/>  - <i>Create new ROI(s) from ICA results</i> adds ICA networks (spatial components from group-ICA analysis results) as a new ROI atlas<br/> - <i>Create new single-voxel-ROI(s) from mask</i> creates a new set of individual-voxel-ROIs from all voxels within a user-defined mask<br/> - <i>reassign all ROI files simultaneously</i> reassigns files associated with the selected ROI using a user-generated search/replace filename rule<br/> - <i>update changes</i> updates the Denoising tab information to reflect any modifications in ROI definitions or options performed here in the Setup tab</HTML>','conn(''gui_setup'',14);');
+                        CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.15,.01,.27,.05],'',{'<HTML><i> ——— ROI tools ———</i></HTML>','Display slice viewer','Display slice viewer with functional overlay (QA_REG)','Display slice viewer with structural overlay (QA_REG)','Display slice viewer with MNI reference template overlay (QA_REG)','Display slice viewer with MNI boundaries (QA_NORM)','Display 3d-volume viewer','Display 3d-surface-projection viewer','Display ROI/functional coregistration (SPM)','Display ROI/anatomical coregistration (SPM)','Display single-slice for all subjects (montage)','Display ROI labels','Create new ROI(s) from MNI coordinates','Create new ROI(s) from ICA results','Create new single-voxel-ROI(s) from mask','Create new single-mask ROI from atlas file','Reload ROI files: change file- or folder- names','Update changes from Setup to Denoising tab'},'<HTML> - <i>slice viewer</i> displays ROI slices<br/> - <i>slice viewer with functional/structural overlay</i> displays ROI contours overlaid with mean functional or same-subject anatomical volume<br/> - <i>slice viewer with MNI reference template overlay</i> displays ROI contours overlaid with reference MNI-space structural template<br/> - <i>slice viewer with MNI boundaries</i> displays ROI slices overlaid with 25% boundaries of grey matter tissue probability map in MNI space<br/>  - <i>3d viewer</i> displays ROI file on the volume or projected to the cortical surface<br/> - <i>display registration</i> checks the coregistration of the selected subject ROI and anatomical/functional files<br/> - <i>display single-slice for all subjects</i> creates a summary display showing the same slice across all subjects (slice coordinates in world-space) for the selected ROI<br/> - <i>display ROI labels</i> displays ROI labels for ROI atlas files and allows editing the associated labels file<br/> - <i>create new ROI from MNI coordinates</i> creates a new spherical-ROI file from a set of user-defined MNI coordinates<br/>  - <i>Create new ROI(s) from ICA results</i> adds ICA networks (spatial components from group-ICA analysis results) as a new ROI atlas<br/> - <i>Create new single-voxel-ROI(s) from mask</i> creates a new set of individual-voxel-ROIs from all voxels within a user-defined mask<br/> - <i>Create new single-mask ROI from atlas file</i> creates a new mask file by selecting one or multiple labels from an atlas file<br/> - <i>reassign all ROI files simultaneously</i> reassigns files associated with the selected ROI using a user-generated search/replace filename rule<br/> - <i>update changes</i> updates the Denoising tab information to reflect any modifications in ROI definitions or options performed here in the Setup tab</HTML>','conn(''gui_setup'',14);');
 						%conn_menu('frame',boffset+[.38,.03,.30,.12]);
-						tmp=conn_menu('text',boffset+[.40,.105,.20,.04],'','Advanced options:');
+						tmp=conn_menu('text',boffset+[.40,.115,.20,.04],'','Advanced options:');
                         set(tmp,'horizontalalignment','left','fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA);
-                        CONN_h.menus.m_setup_00{10}=conn_menu('checkbox',boffset+[.40,.080,.02,.025],'Atlas file','','<HTML>ROI file contains multiple ROI definitions (atlas file)<br/>Atlas files combine an image file describing multiple ROIs locations and one text file describing ROI labels<br/>There are two types of atlas files that CONN can interpret:<br/><b>3d nifti/analyze volume</b><br/> - Image file should contain N integer values, from 1 to N, identifying the different ROI locations<br/> - Text file should have the same base filename and a .txt extension, and it should contain a list with the N ROI labels (one per line) <br/> - Alternatively, if the ROI numbers in the image file are not sequential, the associated labels file can be defined as: <br/> a) a .txt file with two space-separated columns (ROI number ROI label) and N rows; b) a .csv file with two comma-separated <br/>columns and one header row (ROI number,ROI label); or c) a FreeSurfer-format *LUT.txt file (e.g. FreeSurferColorLUT.txt)<br/><b>4d nifti volume</b><br/> - Each of the N volumes of the 4d-image file contains a single ROI mask<br/> - Text file should have the same base filename and a .txt extension, and it should contain a list with the N ROI labels (one per line)</HTML>','conn(''gui_setup'',10);');
-						CONN_h.menus.m_setup_00{18}=conn_menu('checkbox',boffset+[.40,.045,.02,.025],'Subject-specific ROI','','Use subject-specific ROI files (one file per subject)','conn(''gui_setup'',18);');
-						[CONN_h.menus.m_setup_00{11},CONN_h.menus.m_setup_00{17}]=conn_menu('checkbox',boffset+[.40,.010,.02,.025],'Session-specific ROI','','Use sesion-specific ROI files (one file per session)','conn(''gui_setup'',11);');
-						CONN_h.menus.m_setup_00{9}=conn_menu('checkbox',boffset+[.52,.080,.02,.025],'Mask with Grey Matter','','extract only from grey matter voxels (intersects this ROI with each subject''s thresholded grey matter mask)','conn(''gui_setup'',9);');
-						[CONN_h.menus.m_setup_00{12},CONN_h.menus.m_setup_00{20}]=conn_menu('checkbox',boffset+[.52,.045,.02,.025],'Regress-out covariates','','<HTML>regress out covariates before performing PCA decomposition of BOLD signal within ROI<br/> - this field only applies when extracting more than 1 dimension (<i>compute PCA decomposition</i> option) from an ROI <br/> - when selected, all 1st-level covariates (with the exception of those with names starting by QC_) will be temporally regressed out from the BOLD timeseries before computing Principal Component Analyses</HTML>','conn(''gui_setup'',12);');
-                        CONN_h.menus.m_setup_00{21}=conn_menu('pushbutton', boffset+[.525,.010,.10,.03],'','Erosion settings','<HTML>thresholding and erosion settings for tissue probability maps (Grey/White/CSF masks)<br/> - note: erosion helps minimize potential partial-volume effects when extracting signals from noise ROIs</HTML>','conn(''gui_setup'',21);');
+                        CONN_h.menus.m_setup_00{10}=conn_menu('checkbox',boffset+[.40,.100,.02,.025],'Atlas file','','<HTML>ROI file contains multiple ROI definitions (atlas file)<br/>Atlas files combine an image file describing multiple ROIs locations and one text file describing ROI labels<br/>There are two types of atlas files that CONN can interpret:<br/><b>3d nifti/analyze volume</b><br/> - Image file should contain N integer values, from 1 to N, identifying the different ROI locations<br/> - Text file should have the same base filename and a .txt extension, and it should contain a list with the N ROI labels (one per line) <br/> - Alternatively, if the ROI numbers in the image file are not sequential, the associated labels file can be defined as: <br/> a) a .txt file with two space-separated columns (ROI number ROI label) and N rows; b) a .csv file with two comma-separated <br/>columns and one header row (ROI number,ROI label); or c) a FreeSurfer-format *LUT.txt file (e.g. FreeSurferColorLUT.txt)<br/><b>4d nifti volume</b><br/> - Each of the N volumes of the 4d-image file contains a single ROI mask<br/> - Text file should have the same base filename and a .txt extension, and it should contain a list with the N ROI labels (one per line)</HTML>','conn(''gui_setup'',10);');
+						CONN_h.menus.m_setup_00{18}=conn_menu('checkbox',boffset+[.40,.070,.02,.025],'Subject-specific ROI','','Use subject-specific ROI files (one file per subject)','conn(''gui_setup'',18);');
+						[CONN_h.menus.m_setup_00{11},CONN_h.menus.m_setup_00{17}]=conn_menu('checkbox',boffset+[.40,.040,.02,.025],'Session-specific ROI','','Use sesion-specific ROI files (one file per session)','conn(''gui_setup'',11);');
+						CONN_h.menus.m_setup_00{9}=conn_menu('checkbox',boffset+[.52,.100,.02,.025],'Mask with Grey Matter','','extract only from grey matter voxels (intersects this ROI with each subject''s thresholded grey matter mask)','conn(''gui_setup'',9);');
+						[CONN_h.menus.m_setup_00{12},CONN_h.menus.m_setup_00{20}]=conn_menu('checkbox',boffset+[.52,.070,.02,.025],'Regress-out covariates','','<HTML>regress out selected 1st-level covariates before performing PCA decomposition of BOLD signal within ROI<br/> - this selection only applies when selecting any of the <i>compute PCA decomposition</i> options</HTML>','conn(''gui_setup'',12);');
+                        CONN_h.menus.m_setup_00{22}=conn_menu('pushbutton', boffset+[.525,.045,.10,.025],'','Covariate settings','<HTML>Select 1st-level covariates that will be regressed out from the BOLD timeseries before computing Principal Component Analyses in individual ROIs<br/> - this selection applies only to those ROIs with the ''regress-out covariates'' option checked</HTML>','conn(''gui_setup'',22);');
+                        CONN_h.menus.m_setup_00{21}=conn_menu('pushbutton', boffset+[.525,.015,.10,.025],'','Erosion settings','<HTML>thresholding and erosion settings for tissue probability maps (Grey/White/CSF masks)<br/> - note: erosion helps minimize potential partial-volume effects when extracting signals from noise ROIs</HTML>','conn(''gui_setup'',21);');
 						%CONN_h.menus.m_setup_00{13}=conn_menu('checkbox',boffset+[.50,.045,.02,.03],'Use ROI source data','','<HTML>source of functional data for ROI timeseries extraction<br/> - when checked CONN extracts ROI BOLD timeseries from the funcional volumes defined in the field "<i>Setup.Functional.Functional data for <b>ROI</b>-level analyses: </i>" (default behavior; e.g. non-smoothed volumes)<br/> - when unchecked CONN extracts ROI BOLD timeseries from the functional volumes defined in the field "<i>Setup.Functional.Functional data for <b>voxel</b>-level analyses: </i>" (non-default behavior; e.g. smoothed volumes)</HTML>','conn(''gui_setup'',13);');
                         %CONN_h.menus.m_setup_00{14}=uicontrol('style','popupmenu','units','norm','position',boffset+[.37,.08,.15,.04],'string',{'<HTML><i> - options:</i></HTML>','check registration'},'foregroundcolor','w','backgroundcolor',CONN_gui.backgroundcolorA,'fontsize',8+CONN_gui.font_offset,'callback','conn(''gui_setup'',14);','tooltipstring','ROIs additional options');
                         %CONN_h.menus.m_setup_00{14}=uicontrol('style','pushbutton','units','norm','position',boffset+[.37,.08,.15,.04],'string','Check registration','tooltipstring','Check coregistration of ROI and structural files for selected subject(s)/roi(s)','callback','conn(''gui_setup'',14);','fontsize',8+CONN_gui.font_offset);
@@ -3248,7 +3254,7 @@ else
                         %if ~isfield(CONN_x.Setup,'normalized'), CONN_x.Setup.normalized=1; end
                         %set([CONN_h.menus.m_setup_00{11}],'value',CONN_x.Setup.normalized);
                         hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','remove selected ROIs','callback','conn(''gui_setup'',8);');set(CONN_h.menus.m_setup_00{1},'uicontextmenu',hc1);
-                        CONN_h.menus.m_setup_00{23}=uicontrol('style','frame','units','norm','position',boffset+[.38,.005,.30,.145],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        CONN_h.menus.m_setup_00{23}=uicontrol('style','frame','units','norm','position',boffset+[.38,-.005,.30,.155],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                         set(CONN_h.menus.m_setup_00{23},'visible','on'); conn_menumanager('onregion',CONN_h.menus.m_setup_00{23},-1,boffset+[.36,.00,.31,.71]);
                         %if all(CONN_x.Setup.nsessions==1), set([CONN_h.menus.m_setup_00{11},CONN_h.menus.m_setup_00{17}],'visible','off'); end
                         %hc1=uicontextmenu;uimenu(hc1,'Label','go to source folder','callback','conn(''gui_setup'',4);');set(CONN_h.menus.m_setup_00{4},'uicontextmenu',hc1);
@@ -3521,6 +3527,17 @@ else
 								nrois=get(CONN_h.menus.m_setup_00{1},'value'); 
                                 value=get(CONN_h.menus.m_setup_00{12},'value');
                                 CONN_x.Setup.rois.regresscovariates(nrois)=value;
+                            case 22
+                                l1covs=CONN_x.Setup.l1covariates.names(1:end-1);
+                                if isempty(CONN_x.Setup.rois.regresscovariateschoose), l1covsselected=find(~cellfun('length',regexp(l1covs,'^QA_|^QC_')));
+                                else l1covsselected=find(ismember(l1covs,CONN_x.Setup.rois.regresscovariateschoose));
+                                end
+                                disp('Select regressed-out covariates (leave empty to use all 1st-level covariates except those named QC_*|QA_*)');
+                                [answ,ok]=listdlg('name','Regress-out covariates Settings','PromptString',{'Select regressed-out covariates:','(leave empty to use all 1st-level covariates except those named QC_*|QA_*)'},'ListString',l1covs,'SelectionMode','multiple','initialvalue',l1covsselected,'ListSize',[500 200]);
+                                if ~ok, return; end
+                                if isempty(answ), CONN_x.Setup.rois.regresscovariateschoose=[];
+                                else CONN_x.Setup.rois.regresscovariateschoose=l1covs(answ);
+                                end
                             case 13
 								nrois=get(CONN_h.menus.m_setup_00{1},'value'); 
                                 value=get(CONN_h.menus.m_setup_00{13},'value')-1;
@@ -3867,7 +3884,8 @@ else
                                         end
                                     case 15, % new ROI from voxels within mask
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
-                                        [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select explicit mask');
+                                        disp('Select explicit mask file');
+                                        [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select explicit mask file');
                                         if ischar(tfilename),
                                             fname=fullfile(tpathname,tfilename);
                                             [nill,fname_name]=fileparts(fname);
@@ -3894,11 +3912,45 @@ else
                                             end
                                         else return;
                                         end
-                                    case 16, % reassign
+                                    case 16, % new ROI from atlas ROI
+                                        set(CONN_h.menus.m_setup_00{14},'value',1);
+                                        disp('Select original atlas file:');
+                                        [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select original atlas file');
+                                        if ~ischar(tfilename), return; end
+                                        fname=fullfile(tpathname,tfilename);
+                                        disp('Save new ROI file as:');
+                                        [tfilename,tpathname]=conn_fileutils('uiputfile','*.nii;*.img','Save new ROI file as',conn_prepend('',fname,'.subset.nii'));
+                                        if ~ischar(tfilename), return; end
+                                        outfname=fullfile(tpathname,tfilename);
+                                        [nill,fname_name]=fileparts(fname);
+                                        if isempty(fname_name), fname_name='newroi';
+                                        else fname_name=[fname_name, '_subset'];
+                                        end
+                                        filename=conn_createsubsetroi(fname,outfname);
+                                        nrois=numel(CONN_x.Setup.rois.names);
+                                        if any(strcmp(CONN_x.Setup.rois.names,fname_name))
+                                            nrois=find(strcmp(CONN_x.Setup.rois.names,fname_name),1);
+                                            set(CONN_h.menus.m_setup_00{1},'value',nrois);
+                                        else
+                                            CONN_x.Setup.rois.names{nrois}=fname_name;
+                                            CONN_x.Setup.rois.names{nrois+1}=' ';
+                                            set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.rois.names(1:nrois+1),'value',nrois);
+                                            CONN_x.Setup.rois.dimensions{nrois}=1;
+                                        end
+                                        CONN_x.Setup.rois.multiplelabels(nrois)=0;
+                                        CONN_x.Setup.rois.subjectspecific(nrois)=0;
+                                        CONN_x.Setup.rois.sessionspecific(nrois)=0;
+                                        fileinfo=conn_file(filename);
+                                        for nsub=1:CONN_x.Setup.nsubjects,
+                                            for nses=1:CONN_x.Setup.nsessions(min(nsub,numel(CONN_x.Setup.nsessions)))
+                                                CONN_x.Setup.rois.files{nsub}{nrois}{nses}=fileinfo;
+                                            end
+                                        end
+                                    case 17, % reassign
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
                                         nrois=get(CONN_h.menus.m_setup_00{1},'value');
                                         conn_rulebasedfilename(sprintf('roi%d',nrois(1)));
-                                    case 17, % propagate
+                                    case 18, % propagate
                                         set(CONN_h.menus.m_setup_00{14},'value',1);
                                         nrois=get(CONN_h.menus.m_setup_00{1},'value');
                                         if CONN_x.isready(2)
@@ -4057,7 +4109,12 @@ else
 					set(CONN_h.menus.m_setup_00{10},'value',CONN_x.Setup.rois.multiplelabels(nrois));
 					set(CONN_h.menus.m_setup_00{12},'value',CONN_x.Setup.rois.regresscovariates(nrois));
 					set(CONN_h.menus.m_setup_00{13},'value',CONN_x.Setup.rois.unsmoothedvolumes(nrois)+1);
-                    if CONN_x.Setup.rois.dimensions{nrois}<=1, set(CONN_h.menus.m_setup_00{20},'foregroundcolor',[.5 .5 .5]); else  set(CONN_h.menus.m_setup_00{20},'foregroundcolor',CONN_gui.fontcolorB); end
+                    %if CONN_x.Setup.rois.dimensions{nrois}<=1, set(CONN_h.menus.m_setup_00{20},'foregroundcolor',[.5 .5 .5]); else  set(CONN_h.menus.m_setup_00{20},'foregroundcolor',CONN_gui.fontcolorB); end
+                    if CONN_x.Setup.rois.dimensions{nrois}<=1, set([CONN_h.menus.m_setup_00{12},CONN_h.menus.m_setup_00{20},CONN_h.menus.m_setup_00{22}],'visible','off'); 
+                    else 
+                        set([CONN_h.menus.m_setup_00{12},CONN_h.menus.m_setup_00{20}],'visible','on');
+                        if CONN_x.Setup.rois.regresscovariates(nrois)>0, set(CONN_h.menus.m_setup_00{22},'visible','on'); else set(CONN_h.menus.m_setup_00{22},'visible','off'); end
+                    end
                     %if nrois<=3, set([CONN_h.menus.m_setup_00{6},CONN_h.menus.m_setup_00{9},CONN_h.menus.m_setup_00{10}],'visible','off');
                     %else  set(CONN_h.menus.m_setup_00{6},'visible','on','backgroundcolor','w','foregroundcolor','k'); set([CONN_h.menus.m_setup_00{9},CONN_h.menus.m_setup_00{10}],'visible','on'); end
                     set(CONN_h.menus.m_setup_00{6},'visible','on'); set([CONN_h.menus.m_setup_00{9},CONN_h.menus.m_setup_00{10}],'visible','on');
@@ -4094,17 +4151,17 @@ else
 						set(CONN_h.menus.m_setup_00{4},'string','multiple files','tooltipstring','');
 					end
                 case 5, %conditions
-                    boffset=[.02 -.01 0 0];
+                    boffset=[.03 -.01 0 0];
                     if nargin<2,
                         conn_menu('nullstr',{'Display not','available'});
-                        conn_menu('frame',boffset+[.17,.14,.69,.68],'Experiment conditions (within-subject factors)');
+                        conn_menu('frame',boffset+[.14,.14,.71,.67],'Experiment conditions (within-subject factors)');
                         conn_menu('framewhitehighlight',boffset+[.18,.25,.075,.49]+[0 -.02 0 .02],' ');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigblue',boffset+[.18,.25,.075,.49],'Conditions','',['<HTML>Select condition (experimental conditions or individual cells in your study within-subject design) <br/> - click after the last item to add a new condition <br/> - ',CONN_gui.rightclick,'-click for additional options<br></HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
 						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.25,.075,.49],'Subjects','','Select subject(s)','conn(''gui_setup'',2);');
 						CONN_h.menus.m_setup_00{3}=conn_menu('listbox',boffset+[.350,.25,.075,.49],'Sessions','','Select session(s)','conn(''gui_setup'',3);');
 						CONN_h.menus.m_setup_00{6}=conn_menu('edit',boffset+[.48,.71,.08,.04],'Condition name','','Condition name','conn(''gui_setup'',6);');
                         str={'condition spans entire selected session(s)','condition is not present in selected session(s)','task designs: condition present at blocks/events during selected session(s)','hierarchical designs: condition defined as a function of other conditions','---'};
-						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.58,.71,.28,.04],'Condition definition',str,'<HTML>Defines condition interval for the selected subject(s) and session(s) <br/> - select <i>entire session</i> to indicate that this condition is present during the entire session (e.g. in <b>pure resting state design</b>)<br/> - select <i>not present</i> if the condition is not present in this session (e.g. in <b>pre- post- or repeated-measures resting state designs</b> the <i>pre</i> condition may be present <br/>only in <i>session1</i> while the <i>post</i> condition may be present only in <i>session2</i>) <br/> - select <i>specify blocks/events</i> to indicate that the condition is only present during portions of this session (e.g. in <b>block or event-related designs</b>). In this case <br/> you will be prompted to enter the block/event onsets and durations for this session <br/> - select <i>hierarchical model</i> to indicate that this condition is derived as a higher-order function of other primary/standard conditions  (e.g. in <b>growth curve <br/> longitudinal models</b>). In this case you will be prompted to enter the set of input conditions and the function to compute across these input conditions</HTML>','conn(''gui_setup'',13);');
+						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.58,.71,.27,.04],'Condition definition',str,'<HTML>Defines condition interval <b>for the selected subject(s) and session(s)</b> <br/> - select <i>entire session</i> to indicate that this condition is present during the entire session (e.g. in <b>pure resting state design</b>)<br/> - select <i>not present</i> if the condition is not present in this session (e.g. in <b>pre- post- or repeated-measures resting state designs</b> the <i>pre</i> condition may be present <br/>only in <i>session1</i> while the <i>post</i> condition may be present only in <i>session2</i>) <br/> - select <i>specify blocks/events</i> to indicate that the condition is only present during portions of this session (e.g. in <b>block or event-related designs</b>). In this case <br/> you will be prompted to enter the block/event onsets and durations for this session <br/> - select <i>hierarchical model</i> to indicate that this condition is derived as a higher-order function of other primary/standard conditions  (e.g. in <b>growth curve <br/> longitudinal models</b>). In this case you will be prompted to enter the set of input conditions and the function to compute across these input conditions</HTML>','conn(''gui_setup'',13);');
 						CONN_h.menus.m_setup_00{4}=[];[CONN_h.menus.m_setup_00{4}(1) CONN_h.menus.m_setup_00{4}(2)]=conn_menu('edit',boffset+[.55,.63,.13,.04],'Onset',[],'<HTML>onset time(s) marking the beginning of each block/event (in seconds) <b>for the selected condition(s)/subject(s)/session(s)</b><br/> - set <i>onset</i> to <b>0</b> and <i>duration</i> to <b>inf</b> to indicate that this condition is present during the entire session (e.g. resting state)<br/> - set <i>onset</i> and <i>duration</i> to <b>[]</b> (empty brackets) if the condition is not present in this session (e.g. pre- post- designs) <br/> - enter a series of block onsets if the condition is only present during a portion of this session (e.g. block designs)</HTML>','conn(''gui_setup'',4);');
 						CONN_h.menus.m_setup_00{5}=[];[CONN_h.menus.m_setup_00{5}(1) CONN_h.menus.m_setup_00{5}(2)]=conn_menu('edit',boffset+[.67,.63,.13,.04],'Duration',[],'<HTML>duration(s) of condition blocks/events (in seconds) <b>for the selected condition(s)/subject(s)/session(s)</b><br/> - set <i>onset</i> to <b>0</b> and <i>duration</i> to <b>inf</b> to indicate that this condition is present during the entire session (e.g. resting state)<br/> - set <i>onset</i> and <i>duration</i> to <b>[]</b> (empty brackets) if the condition is not present in this session (e.g. pre- post- designs) <br/> - enter a series of block/event durations if the condition is only present during a portion of this session (e.g. block designs) <br/> or a single value if all blocks/events have the same duration</HTML>','conn(''gui_setup'',5);');
                         analysistypes={'average across input conditions','standard deviation across input conditions','minimum across input conditions','maximum across input conditions','regressor in linear model fitting input conditions','custom function across input conditions'};
@@ -4112,8 +4169,8 @@ else
 						CONN_h.menus.m_setup_00{12}=conn_menu('image',boffset+[.48,.40,.26,.15],'Study Design   (x:sessions/scans; y:conditions)','','',@conn_callbackdisplay_conditiondesign,@conn_callbackdisplay_conditiondesignclick);
 						tmp=conn_menu('text',boffset+[.48,.30,.20,.04],'','Advanced options:');
                         set(tmp,'horizontalalignment','left','fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA);
-                        analysistypes=[{'none'},cellfun(@(x)['condition * ',x,' interactions'],CONN_x.Setup.l1covariates.names(1:end-1),'uni',0)];
-                        CONN_h.menus.m_setup_00{7}=conn_menu('popup',boffset+[.49,.22,.19,.05],'Parametric modulation',analysistypes,'<HTML> optional condition-specific parametric modulation/interaction factor:<br/>  - for First-level analyses using a weighted GLM model (SBC or RRC) this field allows you to manually define <br/> a non-default weighting function (this will be used if selecting the <i>task/condition factor</i> weighting option in first-level analyses)<br/>  - for First-level analyses using a gPPI task-modulation model this field defines a condition-specific task-interaction factor<br/> (when including this condition in a gPPI analysis, the gPPI model will include a psychological factor characterized by the product<br/> of the hrf-convolved condition blocks and the 1st-level covariate selected here)</HTML>','conn(''gui_setup'',7);');
+                        analysistypes=[{'none'},cellfun(@(x)['condition * ',x,' weights'],CONN_x.Setup.l1covariates.names(1:end-1),'uni',0)];
+                        CONN_h.menus.m_setup_00{7}=conn_menu('popup',boffset+[.49,.22,.19,.05],'Temporal weighting',analysistypes,'<HTML> Allows users to explicitly define task-specific weights associated with each scan/timepoint <br/> - the default behavior (when selecting <i>none</i>) is to use as temporal weights for each condition the block timeseries convolved with the canonical hemodynamic response function <br/> - select a first-level covariate to multiply these default weights by the selected 1st-level covariate timeseries</HTML>','conn(''gui_setup'',7);');
                         CONN_h.menus.m_setup_00{10}=conn_menu('popup',boffset+[.49,.14,.19,.05],'Time-frequency decomposition',{'none','fixed band-pass filter','frequency decomposition (filter bank)','temporal decomposition (sliding-window)'},'<HTML>optional condition-specific frequency filter or time/frequency decompositions:<br/> - select <i>fixed band-pass filter</i> to define a condition-specific band-pass filter for the current condition (in addition to the filter specified <br/>during <i>Denoising</i> which applies to all conditions equally) <br/> - when selecting frequency- or temporal- decompositions, several new conditions will be automatically created during the Denoising step<br/> by partitioning the current condition in the frequency or temporal domains, respectively</HTML>','conn(''gui_setup'',10);');
                         CONN_h.menus.m_setup_00{11}=conn_menu('popup',boffset+[.68,.22,.12,.05],'Missing conditions',{'no missing data','allow missing data'},'<HTML>Treatment of potential missing-conditions across some subjects: (this option applies to <b>all conditions)</b><br/> - If one condition is defined as <i>not present</i> (or its <i>onset</i> and <i>duration</i> fields are left empty) on <i>all</i> sessions of a given subject, that subject/condition''s condition-specific connectivity <br/> can not be computed. CONN treats this as ''missing data'' and the subject(s) with one missing condition will be automatically disregarded in any second-level analyses that involves this condition <br/> - Select ''<i>No missing data</i>'' if no missing data should be expected. CONN will warn the user if a condition has been set as <i>not present</i> (or it has missing  <i>onset/duration</i> fields) in <i>all</i> of the sessions <br/> of any given subject (this check helps avoid accidentally entering incomplete condition information). <br/> - Select ''<i>Allow missing data</i>'' if missing data should be expected, and CONN will skip the above check (e.g. allowing attrition in longitudinal analyses)</HTML>','conn(''gui_setup'',11);');                        
                         CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.18,.14,.22,.05],'',{'<HTML><i> ——— condition tools ———</i></HTML>','Merge (union) of selected conditions','Merge (not-in-union) of selected conditions','Copy selected condition to covariates list','Move selected condition to covariates list','Import condition info from text file(s)','Update changes from Setup to Denoising tab'},'<HTML> - <i>merge conditions</i> combines all onsets/durations from multiple conditions into a single new condition (as the union of all intervals, or as those intervals not in their union)<br/> - <i>copy to covariate list</i> creates a new first-level covariate containing the hrf-convolved condition effects<br/>  - <i>move to covariate list</i> deletes this condition and creates instead a new first-level covariate containing the hrf-convolved <br/> condition effects (e.g. for Fair et al. resting state analyses of task-related data)<br/> - <i>Import condition</i> imports condition names and onsets/durations values (for all subjects/sessions) from a text file<br/> Text file may be in CONN-legacy or BIDS format (see <i>help conn_importcondition</i> for file-format information</i>)<br/> - <i>update changes</i> updates the Denoising tab information to reflect any modifications in condition definitions or options performed here in the Setup tab</HTML>','conn(''gui_setup'',14);');
@@ -4565,7 +4622,7 @@ else
 				case 6, % covariates first-level
                     boffset=[.03 -.03 0 0];
 					if nargin<2,
-						conn_menu('frame',boffset+[.17,.18,.50,.64],'1st-level covariates (within-scanner timecourses)');
+						conn_menu('frame',boffset+[.14,.16,.57,.67],'1st-level covariates (in-scanner timecourses)');
                         conn_menu('nullstr',{'No covariate','file selected'});
                         conn_menu('framewhitehighlight',boffset+[.18,.28,.075,.46]+[0 -.02 0 .02],' ');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigblue',boffset+[.18,.28,.075,.46],'Covariates','',['<HTML>Select first-level covariate <br/> - click after the last item to add a new covariate <br/> - ',CONN_gui.rightclick,'-click for additional options<br></HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
@@ -4670,12 +4727,17 @@ else
                             case 8,
 								nl1covariates1=get(CONN_h.menus.m_setup_00{1},'value'); 
                                 nl1covariates0=length(CONN_x.Setup.l1covariates.names);
-                                nl1covariates=setdiff(nl1covariates1,[nl1covariates0]);
-                                nl1covariates=setdiff(1:nl1covariates0,nl1covariates);
+                                nl1covariates=setdiff(nl1covariates1,[nl1covariates0]); % 1st-level covariates to remove
+                                if any(ismember(nl1covariates, CONN_x.Setup.conditions.param))
+                                    conn_msgbox({'Warning: Attempting to delete a 1st-level covariate that is currently in use','Some of the selected 1st-level covariates are being defined as condition-specific temporal weights in Setup.Conditions.TemporalWeights','Please remove first this association in the Setup->Conditions tab before proceeding to delete this 1st-level covariate'},'',true);
+                                    return;
+                                end
+                                CONN_x.Setup.conditions.param=CONN_x.Setup.conditions.param-arrayfun(@(x)sum(x>nl1covariates),CONN_x.Setup.conditions.param);
+                                nl1covariates=setdiff(1:nl1covariates0,nl1covariates); % 1st-level covariates to keep
                                 CONN_x.Setup.l1covariates.names={CONN_x.Setup.l1covariates.names{nl1covariates}};
                                 nl1covariates=setdiff(nl1covariates,nl1covariates0);
                                 for n1=1:length(CONN_x.Setup.l1covariates.files), CONN_x.Setup.l1covariates.files{n1}={CONN_x.Setup.l1covariates.files{n1}{nl1covariates}}; end
-        						set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.l1covariates.names,'value',max(1,min(length(CONN_x.Setup.l1covariates.names)-1,max(nl1covariates1))));
+                                set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.l1covariates.names,'value',max(1,min(length(CONN_x.Setup.l1covariates.names)-1,max(nl1covariates1))));
                             case 14,
                                 if numel(varargin)>=3, val=varargin{3};
                                 else val=get(CONN_h.menus.m_setup_00{14},'value');
@@ -4890,15 +4952,15 @@ else
                     end
                     
                 case 7, % covariates second-level
-                    boffset=[.02 -.01 0 0];
+                    boffset=[.02 -.02 0 0];
 					if nargin<2,
-						conn_menu('frame',boffset+[.21,.15,.60,.67],'2nd-level covariates (between-subject effects)');
-                        conn_menu('framewhitehighlight',boffset+[.23,.25,.135,.49]+[0 -.02 0 .02],' ');
-						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigblue',boffset+[.23,.25,.135,.49],'Covariates','',['<HTML>Select second-level covariate <br/> - click after the last item to add a new covariate <br/> - ',CONN_gui.rightclick,'-click for additional options<br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
+						conn_menu('frame',boffset+[.15,.15,.71,.67],'2nd-level covariates (between-subject factors)');
+                        conn_menu('framewhitehighlight',boffset+[.18,.25,.185,.49]+[0 -.02 0 .02],' ');
+						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigblue',boffset+[.18,.25,.185,.49],'Covariates','',['<HTML>Select second-level covariate <br/> - click after the last item to add a new covariate <br/> - ',CONN_gui.rightclick,'-click for additional options<br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
 						CONN_h.menus.m_setup_00{3}=conn_menu('edit',boffset+[.43,.71,.22,.04],'Covariate name','','Second-level covariate name','conn(''gui_setup'',3);');
 						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{4}]=conn_menu('edit',boffset+[.43,.60,.36,.04],'Values',[],'<HTML>values of this covariate for each subject <br/> - enter one value per subject <br/> - for multiple covariates enter one row of values per covariate (separated by '';'') <br/> - you may also enter functions of other covariates (e.g. AllSubjects - Males)<br/> - other valid syntaxes  include any valid Matlab command or variable name evaluated in the base workspace (e.g. rand)<br/> - note: changes to second-level covariates do not require re-running <i>Setup</i> and subsequent steps<br/> (they are directly available in the <i>second-level Results</i> tab)</HTML>','conn(''gui_setup'',2);');
 						CONN_h.menus.m_setup_00{6}=conn_menu('table',boffset+[.43,.29,.36,.14],'',[],'<HTML>values of this covariate for each subject <br/> - enter one value per subject <br/></HTML>','conn(''gui_setup'',6);');
-                        CONN_h.menus.m_setup_00{11}=conn_menu('popup',boffset+[.22,.15,.20,.05],'',{'<HTML><i> ——— covariate tools ———</i></HTML>','Create interaction(s) of selected covariates','Discretize selected covariate','Orthogonalize selected covariate(s)','Import new covariate(s) data from file','Export selected covariate(s) data to file'},'<HTML><i> - Create interaction</i> creates 2nd- or higher-order interaction terms among the selected covariates <br/><i> - Discretize</i> converts the selected multi-valued covariates (e.g. a single covarite with values 1 to N) into multiple categorical covariates (e.g. N covariates with values 0/1)<br/><i> - Orthogonalize</i> makes the selected covariate(s) orthogonal to other covariate(s) (e.g. for centering or when interested in the unique variance associated with this effect) <br/> - <i>Import</i> loads selected covariate values from a file (Text, Spreadsheet, or Matlab format)<br/> - <i>Export</i> saves selected covariate values to a file (Text, Spreadsheet, or Matlab format)</HTML>','conn(''gui_setup'',10+get(gcbo,''value''));');
+                        CONN_h.menus.m_setup_00{11}=conn_menu('popup',boffset+[.17,.15,.25,.05],'',{'<HTML><i> ——— covariate tools ———</i></HTML>','Create interaction(s) of selected covariates','Discretize selected covariate','Orthogonalize selected covariate(s)','Import new covariate(s) data from file','Export selected covariate(s) data to file'},'<HTML><i> - Create interaction</i> creates 2nd- or higher-order interaction terms among the selected covariates <br/><i> - Discretize</i> converts the selected multi-valued covariates (e.g. a single covarite with values 1 to N) into multiple categorical covariates (e.g. N covariates with values 0/1)<br/><i> - Orthogonalize</i> makes the selected covariate(s) orthogonal to other covariate(s) (e.g. for centering or when interested in the unique variance associated with this effect) <br/> - <i>Import</i> loads selected covariate values from a file (Text, Spreadsheet, or Matlab format)<br/> - <i>Export</i> saves selected covariate values to a file (Text, Spreadsheet, or Matlab format)</HTML>','conn(''gui_setup'',10+get(gcbo,''value''));');
                         %CONN_h.menus.m_setup_00{11}=conn_menu('pushbutton',boffset+[.4,.24,.05,.045],'','import','imports values from file','conn(''gui_setup'',11);');
                         %CONN_h.menus.m_setup_00{12}=conn_menu('pushbutton',boffset+[.45,.24,.05,.045],'','export','exports values to file','conn(''gui_setup'',12);');
                         %set([CONN_h.menus.m_setup_00{11},CONN_h.menus.m_setup_00{12}],'visible','off');%,'fontweight','bold');
@@ -5355,7 +5417,7 @@ else
                 case 9, % options
                     boffset=[.05 -.05 0 0];
                     if nargin<2,
-                        conn_menu('frame',boffset+[.19,.20,.57,.65],'Processing options');
+                        conn_menu('frame',boffset+[.12,.18,.71,.67],'Processing options');
                         analysistypes={'ROI-to-ROI','Seed-to-Voxel','Voxel-to-Voxel','Dynamic Circuits'};
                         CONN_h.menus.m_setup_00{1}=conn_menu('checkbox0',boffset+[.2,.75,.15,.04],'Enabled analyses',analysistypes,{'Enable ROI-to-ROI analyses','Enable Seed-to-Voxel analyses','Enable Voxel-to-Voxel analyses','Enable dynamic connectivity analyses'},'conn(''gui_setup'',1);');
                         values=CONN_x.Setup.steps;
@@ -6646,16 +6708,16 @@ else
 				conn_menu('frame',boffset+[.04,.10,.39,.70],'Denoising options');
 				[nill,CONN_h.menus.m_preproc_00{7}]=conn_menu('text',boffset+[.05,.70,.36,.05],'Linear regression of confounding effects:',[]);
                 set(CONN_h.menus.m_preproc_00{7},'horizontalalignment','left');
-                %conn_menu('framehighlight',boffset+[.06,.52,.175,.16]+[0 -.02 0 .02],' ');
-				%CONN_h.menus.m_preproc_00{2}=conn_menu('listboxbigblue',boffset+[.06,.52,.175,.16],'Confounds','','<HTML>List of potential confounding effects (e.g. physiological/movement). <br/> - Linear regression will be used to remove these effects from the BOLD signal <br/> - Select effects in the <i>all effects</i> list and click <b> &lt </b> to add new effects to this list <br/> - Select effects in this list and click <b> &gt </b> to remove them from this list <br/> - By default this list includes White matter and CSF BOLD timeseries (CompCor), all first-level covariates <br/> (e.g. motion-correction and scrubbing), and all main task effects (for task designs) </HTML>','conn(''gui_preproc'',2);');
-				CONN_h.menus.m_preproc_00{2}=conn_menu('listbox',boffset+[.07,.50,.165,.20],'Confounds','','<HTML>List of potential confounding effects (e.g. physiological/movement). <br/> - Linear regression will be used to remove these effects from the BOLD signal <br/> - Select effects in the <i>all effects</i> list and click <b> &lt </b> to add new effects to this list <br/> - Select effects in this list and click <b> &gt </b> to remove them from this list <br/> - By default this list includes White matter and CSF BOLD timeseries (CompCor), all first-level covariates <br/> (e.g. motion-correction and scrubbing), and all main task effects (for task designs) </HTML>','conn(''gui_preproc'',2);');
+                conn_menu('framewhitehighlight',boffset+[.06,.52,.175,.16]+[0 -.02 0 .02],' ');
+				CONN_h.menus.m_preproc_00{2}=conn_menu('listboxbigblue',boffset+[.06,.50,.165,.20],'Confounds','','<HTML>List of potential confounding effects (e.g. physiological/movement). <br/> - Linear regression will be used to remove these effects from the BOLD signal <br/> - Select effects in the <i>all effects</i> list and click <b> &lt </b> to add new effects to this list <br/> - Select effects in this list and click <b> &gt </b> to remove them from this list <br/> - By default this list includes White matter and CSF BOLD timeseries (CompCor), all first-level covariates <br/> (e.g. motion-correction and scrubbing), and all main task effects (for task designs) </HTML>','conn(''gui_preproc'',2);');
+				%CONN_h.menus.m_preproc_00{2}=conn_menu('listbox',boffset+[.07,.50,.165,.20],'Confounds','','<HTML>List of potential confounding effects (e.g. physiological/movement). <br/> - Linear regression will be used to remove these effects from the BOLD signal <br/> - Select effects in the <i>all effects</i> list and click <b> &lt </b> to add new effects to this list <br/> - Select effects in this list and click <b> &gt </b> to remove them from this list <br/> - By default this list includes White matter and CSF BOLD timeseries (CompCor), all first-level covariates <br/> (e.g. motion-correction and scrubbing), and all main task effects (for task designs) </HTML>','conn(''gui_preproc'',2);');
 				CONN_h.menus.m_preproc_00{1}=conn_menu('listbox',boffset+[.27,.50,.125,.20],'all effects','',['<HTML>List of all effects<br/> - ROI timeseries<br/> - First-level covariates<br/> - Condition/task timeseries<br> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_preproc'',1);');
                 CONN_h.menus.m_preproc_00{10}=conn_menu('pushbutton',boffset+[.245,.50,.025,.20],'',CONN_gui.leftarrow,'move elements between ''Confounds'' and ''all effects'' lists', 'conn(''gui_preproc'',0);');
 				CONN_h.menus.m_preproc_00{6}=conn_menu('edit',boffset+[.27,.39,.15,.04],'Confound dimensions','','<HTML>Number of components/timeseries of selected effect to be included in regression model (<i>inf</i> to include all available dimensions)</HTML>','conn(''gui_preproc'',6);');
 				CONN_h.menus.m_preproc_00{4}=conn_menu('popup',boffset+[.27,.35,.15,.04],'',{'no temporal expansion','add 1st-order derivatives','add 2nd-order derivatives'},'<HTML>Temporal/Taylor expansion of regressor timeseries<br/> - Include temporal derivates up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, dx/dt] for first-order derivatives<br/> - [x, dx/dt, d2x/dt2] for second-order derivatives </HTML>','conn(''gui_preproc'',4);');
 				CONN_h.menus.m_preproc_00{8}=conn_menu('popup',boffset+[.27,.31,.15,.04],'',{'no polynomial expansion','add quadratic effects','add cubic effects'},'<HTML>Polynomial expansion of regressor timeseries<br/> - Include powers up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, x^2] for quadratic effects<br/> - [x, x^2, x^3] for cubic effects</HTML>','conn(''gui_preproc'',8);');
 				CONN_h.menus.m_preproc_00{9}=conn_menu('checkbox',boffset+[.27,.28,.02,.025],'Band-pass filtered','','<HTML>Band-pass filter regressors timeseries before entering them into linear regression model <br/> - filtering a confound regressor allows to model and remove potential confound-by-frequency interactions<br/> - note: this option only applies when using <i>RegBP</i> (when using <i>simult</i> this options is disregarded as all regressors are automatically filtered)</HTML>','conn(''gui_preproc'',9);');
-				CONN_h.menus.m_preproc_00{30}=conn_menu('checkbox',boffset+[.27,.25,.02,.025],'Session-invariant','','<HTML>specifies whether this confound''s effect is estimated as a constant term across all runs/sessions (session-invariant effect) or as a variable term per run/session (session-specific effect)<br/> - modeling it as a session-invariant effect allows a more efficient estimation when the effect of this confound on the BOLD signal does not vary across runs or sessions<br/> -  modeling it as a session-specific effect is preferable when the effect of this confound on the BOLD signal may vary across different runs or sessions <br/> note: the "Preview effect of denoising" display will not show the effect of this setting (only in the way it affects dof''s), but the effect of this setting will be correctly displayed in all denoising QC plots</HTML>','conn(''gui_preproc'',30);');
+				CONN_h.menus.m_preproc_00{30}=conn_menu('checkbox',boffset+[.27,.25,.02,.025],'Session-invariant','','<HTML>specifies whether this confound''s effect is estimated as a fixed term across all runs/sessions (session-invariant effect) or as a variable term per run/session (session-specific effect)<br/> - modeling it as a session-invariant effect allows a more efficient estimation when the effect of this confound on the BOLD signal does not vary across runs or sessions<br/> -  modeling it as a session-specific effect is preferable when the effect of this confound on the BOLD signal may vary across different runs or sessions <br/> note: the "Preview effect of denoising" display will not show the effect of this setting (only in the way it affects dof''s), but the effect of this setting will be correctly displayed in all denoising QC plots</HTML>','conn(''gui_preproc'',30);');
 				CONN_h.menus.m_preproc_00{5}=conn_menu('edit',boffset+[.05,.15,.17,.05],'Band-pass filter (Hz):',mat2str(CONN_x.Preproc.filter),'BOLD signal Band-Pass filter threshold. Two values (in Hz): high-pass and low-pass thresholds, respectively','conn(''gui_preproc'',5);');
                 CONN_h.menus.m_preproc_00{20}=conn_menu('popup',boffset+[.05,.10,.17,.05],'',{'After regression (RegBP)','Simultaneous (simult)'},'<HTML>Order of band-pass filtering step<br/> - <i>RegBP</i>: regression followed by band-pass filtering<br/> - <i>Simult</i>: simultaneous regression&band-pass filtering steps<br/>note: <i>simult</i> allows to model confound-by-frequency interactions. It is implemented as a RegBP procedure with pre-filtering <br/>of all regressors/confounds. See the regressor-specific ''filtered'' field if you need control over individual regressors/confounds</HTML>','conn(''gui_preproc'',20);');
 				CONN_h.menus.m_preproc_00{18}=conn_menu('popup',boffset+[.27,.15,.15,.05],'Additional steps:',{'No detrending','Linear detrending','Quadratic detrending','Cubic detrending'},'<HTML>BOLD signal session-specific detrending<br/> - detrending is implemented by automatically adding the associated linear/quadratic/cubic regressors to the confounding effects model</HTML>','conn(''gui_preproc'',18);');
@@ -6664,7 +6726,7 @@ else
                                                uicontrol('style','frame','units','norm','position',boffset+[.05,.23,.38,.25],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig)];
                 CONN_h.menus.m_preproc_00{21}=uicontrol('style','frame','units','norm','position',boffset+[.245,.50,.15,.25],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                 %CONN_h.menus.m_preproc_00{21}=conn_menu('popup',boffset+[.22,.07,.15,.05],'',{'No dynamic estimation','Estimate dynamic effects'},'Estimates temporal components characterizing potential dynamic functional connectivity effects','conn(''gui_setup'',21);');
-				CONN_h.menus.m_preproc_00{3}=conn_menu('image',boffset+[.07,.27,.17,.16],'Confound timeseries');
+				CONN_h.menus.m_preproc_00{3}=conn_menu('image',boffset+[.06,.27,.17,.16],'Confound timeseries');
                 
 				conn_menu('frame2semiborder',boffset+[.48,.03,.52,.79],'Preview effect of Denoising');
 				CONN_h.menus.m_preproc_00{11}=conn_menu('listbox2',boffset+[.80,.55,.08,.19],'Subjects','','Select subject to display','conn(''gui_preproc'',11);');
@@ -6693,7 +6755,10 @@ else
                 
 				pos=[.82,.19,.15,.28];
 				if any(CONN_x.Setup.steps([2,3])),
-                    conn_menu('title2',boffset+[pos(1)+.01 pos(2)+pos(4)+.02 pos(3) .04],'BOLD % variance explained by');
+                    %conn_menu('title2',boffset+[pos(1)+.01 pos(2)+pos(4)+.02 pos(3) .04],'BOLD % variance explained by');
+                    %uicontrol('style','text','units','norm','position',boffset+[pos(1)+.01 pos(2)+pos(4)+.02 pos(3) .04],'string','BOLD % variance explained by','fontname',CONN_gui.fontname,'fontsize',10+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','left','parent',CONN_h.screen.hfig); 
+                    ht=conn_menu('text2',boffset+[pos(1)+.01 pos(2)+pos(4)+.02 pos(3) .04],'','BOLD % variance explained by'); 
+                    set(ht,'horizontalalignment','left','foregroundcolor',CONN_gui.fontcolorA,'fontsize',10+CONN_gui.font_offset);%,'fontweight','bold');
                     CONN_h.menus.m_preproc_00{13}=conn_menu('popup2',boffset+[pos(1)+.01,pos(2)+pos(4)-.01,pos(3),.04],'',{' TOTAL'},'Select confound to display','conn(''gui_preproc'',13);');
                     uicontrol('style','text','units','norm','position',boffset+[pos(1)-.01,pos(2)-1*.060,.070,.045],'string','threshold','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','right','parent',CONN_h.screen.hfig); 
                     CONN_h.menus.m_preproc_00{15}=conn_menu('slider',boffset+[pos(1)+pos(3),pos(2),.015,pos(4)],'','','z-slice','conn(''gui_preproc'',15);');
@@ -7319,11 +7384,11 @@ else
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 conn_menu('nullstr',{'Analysis not','computed yet'});
-                if ~isempty(state),     conn_menu('frame',[.05,.13,.53,.70],'Connectivity analyses (1st-level)');
+                if ~isempty(state),     conn_menu('frame',[.03,.13,.55,.70],'Connectivity analyses (1st-level)');
 %                 elseif ~isempty(state)&&state(1)==1,     conn_menu('frame',[.02,.11,.56,.75],'Seed-based connectivity analysis');
 %                 elseif ~isempty(state)&&state(1)==2, conn_menu('frame',[.02,.11,.56,.75]+0*[.015,.385,.47,.475],'Network-based conectivity analysis');
 %                 elseif ~isempty(state)&&state(1)==3, conn_menu('frame',[.02,.11,.56,.75]+0*[.015,.255,.55,.605],'Dynamic connectivity analysis');
-                else [nill,temp]=conn_menu('frame',[.05 .13 .12 .75],''); %set(temp,'horizontalalignment','left','fontweight','normal');
+                else [nill,temp]=conn_menu('frame',[.03 .13 .16 .75],''); %set(temp,'horizontalalignment','left','fontweight','normal');
                 end
                 CONN_h.menus.m_analyses.analyses_listnames={};CONN_h.menus.m_analyses.analyses_listtype=[];CONN_h.menus.m_analyses.analyses_listidx=[];
                 txt={CONN_x.Analyses(:).name};
@@ -7739,7 +7804,7 @@ else
                     CONN_h.menus.m_analyses_00{9}=conn_menu('popup',boffset+[.175,.59,.31,.04],'Analysis options',{'ROI-to-ROI analyses only','Seed-to-Voxel analyses only','ROI-to-ROI and Seed-to-Voxel analyses'},'Choose type of connectivity analysis (seed-to-voxel and/or ROI-to-ROI)','conn(''gui_analyses'',9);');
                     connmeasures={'correlation (bivariate)','correlation (semipartial)','regression (bivariate)','regression (multivariate)'};
                     CONN_h.menus.m_analyses_00{7}=conn_menu('popup',boffset+[.175,.55,.18,.04],'',connmeasures,'<HTML>Choose functional connectivity measure<br/> - <i>bivariate</i> measures are computed separately for each pair of source&target ROIs (ROI-to-ROI analyses)<br/> or for each pair of source ROI and target voxel (seed-to-voxel analyses)<br/> - <i>semipartial</i> and <i>multivariate</i> measures are computed entering all the chosen source ROIs simultaneously <br/>into a single regression model (separately for each target ROI/voxel) <br/> - <i>correlation</i> measures output Fisher-transformed correlation-coefficients (bivariate or semipartial) and <br/>are typically associated with measures of <i>functional</i> connectivity<br/> - <i>regression</i> measures output regression coefficients (bivariate or multivariate) and are typically associated <br/>with measures of <i>effective</i> connectivity</HTML>','conn(''gui_analyses'',7);');
-                    CONN_h.menus.m_analyses_00{8}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'no weighting','hrf weighting','hanning weighting','task/condition factor'},'<HTML>Choose method for weighting scans/samples within each condition block when computing condition-specific connectivity measures (for weighted GLM analyses only) <br/> - <i>no weighting</i> uses binary 0/1 weights identifying scans associated with each condition<br/> - <i>hrf weights</i> additionally convolves the above binary weights with a canonical hemodynamic response function<br/> - <i>hanning weights</i> uses instead a hanning window across within-condition scans/samples  as weights (focusing only on center segment within each block)<br/> - <i>task/condition factor</i> uses instead the factor timeseries defined in <i>Setup.Conditions.TaskModulationFactor</i> as weights (for other custom weighting)</HTML>','conn(''gui_analyses'',8);');
+                    CONN_h.menus.m_analyses_00{8}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'no weighting','hrf weighting','hanning weighting'},'<HTML>Choose method for weighting scans/samples within each condition block when computing condition-specific connectivity measures (for weighted GLM analyses only) <br/> - <i>no weighting</i> uses binary 0/1 weights identifying scans associated with each condition<br/> - <i>hrf weights</i> additionally convolves the above binary weights with a canonical hemodynamic response function<br/> - <i>hanning weights</i> uses instead a hanning window across within-condition scans/samples  as weights (focusing only on center segment within each block)<br/></HTML>','conn(''gui_analyses'',8);');
                     CONN_h.menus.m_analyses_00{25}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'connectivity-change with each task','total-connectivity during each task'},'<HTML>Choose output measure<br/> - "connectivity change" outputs the gPPI model regressor coefficient associated with the <i>psychophysiological interaction</i> term alone, measuring differences<br/> in connectivity between each task and the gPPI model implicit baseline condition<br/> - "total connectivity" outputs the sum of the gPPI model regressor coefficients associated with the <i>main physiological</i> and the <i>psychophysiological interaction</i><br/> terms, measuring the total connectivity strength during each task)</HTML>','conn(''gui_analyses'',25);');
                     set(CONN_h.menus.m_analyses_00{25},'visible','off');
                     %[nill,CONN_h.menus.m_analyses_00{16}]=conn_menu('text',boffset+[.125,.48,.26,.05],'Functional connectivity seeds/sources:');
@@ -10703,19 +10768,25 @@ else
                     CONN_h.menus.m_results.suggest_within=conn_wilkinson('suggest_within',tnames(CONN_h.menus.m_results.shownconditions));
                     switch(state)
                         case 1,
-                            if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0, 
-                                CONN_h.menus.m_results.suggest_within_mnamelong='ROI-to-ROI Connectivity modulation (RRC)';
-                                CONN_h.menus.m_results.suggest_within_mnameshort='connectivity-modulation';
+                            if ischar(CONN_x.Analyses(ianalysis).modulation), 
+                                CONN_h.menus.m_results.suggest_within_mnamelong='temporal modulation of connectivity between ROI pairs (RRC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='temporal modulation of connectivity';
+                            elseif ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>0, 
+                                CONN_h.menus.m_results.suggest_within_mnamelong='task-related connectivity between ROI pairs (RRC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='task-related connectivity';
                             else
-                                CONN_h.menus.m_results.suggest_within_mnamelong='ROI-to-ROI Connectivity (RRC)';
+                                CONN_h.menus.m_results.suggest_within_mnamelong='connectivity between ROI pairs (RRC)';
                                 CONN_h.menus.m_results.suggest_within_mnameshort='connectivity';
                             end
                         case 2,
-                            if ischar(CONN_x.Analyses(ianalysis).modulation)||CONN_x.Analyses(ianalysis).modulation>0, 
-                                CONN_h.menus.m_results.suggest_within_mnamelong='Seed-Based Connectivity modulation (SBC)';
-                                CONN_h.menus.m_results.suggest_within_mnameshort='connectivity-modulation';
+                            if ischar(CONN_x.Analyses(ianalysis).modulation), 
+                                CONN_h.menus.m_results.suggest_within_mnamelong='temporal modulation of connectivity (SBC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='temporal modulation of connectivity';
+                            elseif ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>0, 
+                                CONN_h.menus.m_results.suggest_within_mnamelong='task-related connectivity (SBC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='task-related connectivity';
                             else
-                                CONN_h.menus.m_results.suggest_within_mnamelong='Seed-Based Connectivity (SBC)';
+                                CONN_h.menus.m_results.suggest_within_mnamelong='seed-based connectivity (SBC)';
                                 CONN_h.menus.m_results.suggest_within_mnameshort='connectivity';
                             end
                         case 3
@@ -11848,7 +11919,7 @@ else
                         cellfun(@(x)max(abs(reshape(x(1:min(numel(CONN_x.Results.xX.cconditions),numel(x))),[],1)-reshape(CONN_x.Results.xX.cconditions(1:min(numel(CONN_x.Results.xX.cconditions),numel(x))),[],1)))<1e-10,CONN_h.menus.m_results.suggest_within.ceffects));                   
                     if isempty(newnconditions), 
                         newnconditions=numel(CONN_h.menus.m_results.suggest_within.ceffects)+1; 
-                        set(CONN_h.menus.m_results_00{56},'string',regexprep([CONN_h.menus.m_results.suggest_within.descrip,{'custom combination of functional connectivity strength acrosss multiple conditions'}],{'.*','functional connectivity'},{'Analysis of $0',CONN_h.menus.m_results.suggest_within_mnamelong}),'value',newnconditions); 
+                        set(CONN_h.menus.m_results_00{56},'string',regexprep([CONN_h.menus.m_results.suggest_within.descrip,{'custom contrast of functional connectivity strength acrosss different conditions'}],{'.*','functional connectivity'},{'Analysis of $0',CONN_h.menus.m_results.suggest_within_mnamelong}),'value',newnconditions); 
                     else
                         set(CONN_h.menus.m_results_00{56},'string',regexprep(CONN_h.menus.m_results.suggest_within.descrip,{'.*','functional connectivity'},{'Analysis of $0',CONN_h.menus.m_results.suggest_within_mnamelong}),'value',newnconditions(1)); 
                         %if ~any(get(CONN_h.menus.m_results_00{56},'value')==newnconditions), set(CONN_h.menus.m_results_00{56},'value',newnconditions(1)); end
@@ -11893,7 +11964,7 @@ else
                         end
                     end
                     if newnconditions<=numel(CONN_h.menus.m_results.suggest_within.str), newname=CONN_h.menus.m_results.suggest_within.str{newnconditions};
-                    else newname='connectivity-combination';
+                    else newname='connectivity-contrast';
                     end
                     newname=regexprep(newname,'connectivity',CONN_h.menus.m_results.suggest_within_mnameshort);
                     if newneffects>numel(CONN_h.menus.m_results.suggest_between.neffects), set(CONN_h.menus.m_results_00{57},'string',[regexprep(CONN_h.menus.m_results.suggest_between.descrip,'connectivity',newname),{'<HTML><i>custom model</i></HTML>'}],'value',newneffects);
@@ -12890,8 +12961,9 @@ else
     ht4d=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.4,.35,.2],'string',vars(1,:),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
     ht4c=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.5,.19,.10],'string','All Steps','value',0,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4d,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
 end
-ht4f=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.6,.35,.2],'string',arrayfun(@(x)sprintf('Subject %d',x),1:CONN_x.Setup.nsubjects,'uni',0),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
-ht4e=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.7,.19,.10],'string','All Subjects','value',all(islogical(subjectsoption)),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4f,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
+ht4f=uicontrol(thfig,'style','listbox','units','norm','position',[.6,.6,.35,.15],'string',arrayfun(@(x)sprintf('Subject %d',x),1:CONN_x.Setup.nsubjects,'uni',0),'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
+ht4f2=uicontrol(thfig,'style','pushbutton','units','norm','position',[.6,.75,.35,.05],'string','select group','fontsize',8+CONN_gui.font_offset,'callback',@(varargin)conn_menu_selectsubjects(ht4f));
+ht4e=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.7,.19,.10],'string','All Subjects','value',all(islogical(subjectsoption)),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',[ht4f ht4f2],'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
 ht4h=uicontrol(thfig,'style','listbox','units','norm','position',[.65,.5,.3,.2],'string',CONN_x.Results.saved.names,'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
 ht4g=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.6,.24,.10],'string','Current contrasts','value',1,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',ht4h,'callback','h=get(gcbo,''userdata'');if get(gcbo,''value''), set(h,''visible'',''off''); else set(h,''visible'',''on''); end');
 ht4j=uicontrol(thfig,'style','listbox','units','norm','position',[.65,.7,.3,.2],'string',{''},'value',1,'fontsize',8+CONN_gui.font_offset,'max',2);
@@ -12912,8 +12984,8 @@ end
 set([ht4g, ht4h,ht4i,ht4j],'visible','off');
 if dosecondlevel, set([ht4g,ht4i],'visible','on'); end
 if ~all(islogical(subjectsoption)), set(ht4f,'value',subjectsoption); 
-elseif subjectsoption, set([ht4f],'visible','off'); 
-else set([ht4e,ht4f],'visible','off'); 
+elseif subjectsoption, set([ht4f ht4f2],'visible','off'); 
+else set([ht4e,ht4f,ht4f2],'visible','off'); 
 end
 if ~isempty(dispoption), ht5=uicontrol(thfig,'style','checkbox','units','norm','position',[.4,.5,.24,.10],'string','Additional steps','value',0,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','userdata',[],'callback','if get(gcbo,''value'')==1, val=get(gcbo,''userdata''); set(gcbo,''userdata'',listdlg(''name'',''Group-level analyses'',''PromptString'',''Select additional analysis steps:'',''ListString'',{''Display GUI with group-level results'',''Apply standard settings for cluster-based inferences #1'',''Apply standard settings for cluster-based inferences #2'',''Apply standard settings for cluster-based inferences #3'',''Print results to JPG file'',''Export mask to NIFTI file''},''SelectionMode'',''multiple'',''InitialValue'',val,''ListSize'',[400 200])); end'); else ht5=[]; end
 if ~isempty(groupsoption), ht6=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.32,.8,.08],'string',{'all steps','group-level analyses only (step1)','subject-level backprojection only (step2)'},'value',1+groupsoption,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w'); else ht6=[]; end

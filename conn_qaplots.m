@@ -1180,7 +1180,7 @@ if any(procedures==Iprocedure) % QA_COV
         assert(numel(nsubs)>0);
         if isempty(nl2covariates), 
             [x,nl2covariates]=conn_module('get','l2covariates','^QC_'); 
-            nl2covariates=nl2covariates(cellfun('length',regexp(nl2covariates,'^(QC_ProportionValidScans|QC_MeanMotion|QC_MeanGSchange|QC_NORM_func|QC_NORM_struct|QC_DOF|QC_MeanFC|QC_StdFC)$'))>0);
+            nl2covariates=nl2covariates(cellfun('length',regexp(nl2covariates,'^(QC_ProportionValidScans|QC_MeanMotion|QC_MeanGSchange|QC_NORM_struct|QC_DOF|QC_MeanFC|QC_StdFC)$'))>0);
         end
         [x,xnames,xdescr]=conn_module('get','l2covariates');
         if ischar(nl2covariates)||iscell(nl2covariates), 

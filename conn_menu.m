@@ -18,7 +18,7 @@ if nargin<7, callback2=''; end
 if nargin<8, callback3=''; end
 if ~ischar(type), [type,position,title]=deal(title,get(type,'userdata'),get(type,'value')); end
 if ~CONN_gui.tooltips, tooltipstring=''; end
-titleopts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA,'fontsize',10+CONN_gui.font_offset};
+titleopts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA,'fontsize',11+CONN_gui.font_offset};
 titleopts2=titleopts;titleopts2(7:8)={'color',CONN_gui.fontcolorA};
 contropts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset};
 contropts2=contropts;contropts2(7:8)={'color',CONN_gui.fontcolorA};
@@ -453,39 +453,39 @@ switch(lower(type)),
         set([h.h1,h.h2,h.h3,h.h4,h.h5,h.h6,h.h7,h.h8],'visible','off');
 	case 'filesearchprojectload',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1,'reduced',true,'button','Open','buttonhelp','Loads selected CONN project');
 	case 'filesearchprojectsave',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.40,.10,.20,.65],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1,'type','files','filename',tooltipstring,'reduced',true,'button','Save','buttonhelp','Saves new CONN project');
 	case 'filesearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1);
 	case 'foldersearch_local',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.56,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.56,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','folder',pwd,'inserver',false);
 	case 'foldersearch_remote',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','folder',conn_projectmanager('pwd'),'inserver',true);
     case 'foldersearch_multiple',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',2,'type','folders');
 	case 'foldersearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders');
 	case 'dicomfoldersearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.10,.20,.75],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','button','Import','buttonhelp','<HTML>Select DICOM root folder (directory where DICOM files for the selected subject are stored -including sub-directories-)</HTML>');
 	case 'filesearchlocal',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1,'localcopy',1);
 	case {'frame','framewhite','framehighlight','framewhitehighlight','frame2highlight','frame2','frame2blue','framewhitenoborder','framewhitesemiborder','framewhiteborderl','frameblue','frame2blue','framebluenoborder','framebluesemiborder','frameblueborderl','frame2noborder','frame2semiborder','frame2border','frame2borderl'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -519,7 +519,7 @@ switch(lower(type)),
                 h2=uicontrol('style','frame','units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig);
                 h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
                 if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
-                if strcmpi(type,'frame'), set(h2,'fontsize',15+CONN_gui.font_offset,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
+                if strcmpi(type,'frame'), set(h2,'fontsize',18+CONN_gui.font_offset,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
                 else set(h2,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
                 end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
             else

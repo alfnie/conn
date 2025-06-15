@@ -248,7 +248,7 @@ switch(lower(option))
                 ivtag=find(vtag,1); % first job finished
                 if isempty(ivtag)
                     if dogui&&(isequal(CONN_x.gui,1)||(isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'display')&&CONN_x.gui.display))
-                        answ=conn_questdlg({'Warning: There are pending jobs submitted but not yet finished','Changes to this project are temporal until pending jobs are finished or canceled', 'Do you want to see the status of these pending jobs now?'},'Warning!','Yes','No','Yes');
+                        answ=conn_questdlg({'There are pending jobs submitted but not yet finished',' ','Until then, changes to this project are temporal (they may be disregarded','if they conflict with other changes performed by these pending jobs)', ' ','Do you want to see the status of these pending jobs now?'},'Warning!','Yes','No','Yes');
                         if isequal(answ,'Yes'), conn_jobmanager(info); end
                         return;
                     else
@@ -262,6 +262,7 @@ switch(lower(option))
                 alllogs=alllogs{ivtag};
             end
             trackchange=false;
+            didmerge=false;
             if ~isempty(allfiles)
                 conn_disp(allfiles);
                 conn_disp('fprintf','Merging finished jobs. Please wait...');
@@ -357,6 +358,7 @@ switch(lower(option))
                         end
                     end
                 end
+                didmerge=true;
                 conn_disp('fprintf','Done\n');
             end
             localfilename=conn_projectmanager('projectfile',CONN_x.filename,struct('id','*','isextended',true),'.emat');
@@ -393,6 +395,14 @@ switch(lower(option))
                     if ok, conn_disp('fprintf','Changes in current local project (%s) succesfully merged\n',sprintf('%s ',trackchange_fields1{round(linspace(1,numel(trackchange_fields1),min(10,numel(trackchange_fields1))))}) ); end
                 end
                 CONN_x.pobj.importedfiles=[CONN_x.pobj.importedfiles;{backupfile}];
+            end
+            if didmerge&&dogui&&(isequal(CONN_x.gui,1)||(isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'display')&&CONN_x.gui.display))
+                answ=conn_questdlg({'Pending jobs have been successfully merged','Save these changes to CONN project?'},'','Now','Later','Now');
+                if isequal(answ,'Now')
+                    hm=conn_msgbox('Saving project, please wait','',-1);
+                    conn gui_setup_save;
+                    if ishandle(hm), delete(hm); end
+                end
             end
         end
         

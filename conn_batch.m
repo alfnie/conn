@@ -131,13 +131,16 @@ function varargout=conn_batch(varargin)
 %                                         1 if there exist an associated .txt or .xls file with the same filename and in the same folder as 
 %                                         the roi file)
 %      Setup.rois.labelfiles            : rois.labelfiles{nroi} to import label file from alternative location
-%      Setup.rois.mask                  : rois.mask(nroi) 1/0 to mask with grey matter voxels [0] 
-%      Setup.rois.regresscovariates     : rois.regresscovariates(nroi) 1/0 to regress known first-level covariates before computing PCA 
-%                                         decomposition of BOLD signal within ROI [1 if dimensions>1; 0 otherwise] 
 %      Setup.rois.dataset               : rois.dataset(nroi) index n to Secondary Dataset #n identifying the version of functional data 
 %                                         coregistered  to this ROI to extract BOLD timeseries from [1] (set to 0 to extract BOLD signal 
 %                                         from functional data instead; secondary datasets may be identified by their index or by their 
 %                                         label -see 'functional_label' preprocessing step)
+%      Setup.rois.mask                  : rois.mask(nroi) 1/0 to mask with grey matter voxels [0] 
+%      Setup.rois.regresscovariates     : rois.regresscovariates(nroi) 1/0 to regress known first-level covariates before computing PCA 
+%                                         decomposition of BOLD signal within ROI [1 if dimensions>1; 0 otherwise] 
+%      Setup.rois.regresscovariateschoose : rois.regresscovariateschoose cell array with names of 1st-level covariates to be regressed 
+%                                         before computing PCA for those ROIs where dimensions(nroi)>1 & regresscovariate(nroi)=1 []
+%                                         (default: all 1st-level covariates except those named QC_* or QA_*) 
 %      Setup.rois.add                   : 1/0; use 0 (default) to define the full set of ROIs to be used in your analyses; use 1 to define 
 %                                         an additional set of ROIs (to be added to any already-existing ROIs in your project) [0]
 %  
@@ -649,6 +652,7 @@ function varargout=conn_batch(varargin)
 %   QA.l1contrasts                  : (only for plots==23) l1 contrast name (defaults to first contrast)
 %   QA.conditions                   : (only for plots==11,13,14,15) FC & QC-FC plots aggregate across sesssions where 
 %                                      the selected conditions are present (defaults to all sessions)
+%   QA.controlcovariates            : (only for plot=13) list of l2 covariates to be used as control variables in FC-QC correlations
 %__________________________________________________________________________________________________________________
 % 
 % See 
@@ -1081,6 +1085,7 @@ if isfield(batch,'Setup'),
                     if isfield(batch.Setup.masks.(masks{nmask}),'dataset'), CONN_x.Setup.rois.unsmoothedvolumes(nmask)=batch.Setup.masks.(masks{nmask}).dataset; 
                     elseif isfield(batch.Setup.masks.(masks{nmask}),'roiextract'), CONN_x.Setup.rois.unsmoothedvolumes(nmask)=batch.Setup.masks.(masks{nmask}).roiextract; 
                     end
+                    if isfield(batch.Setup.masks.(masks{nmask}),'regresscovariateschoose'), CONN_x.Setup.rois.regresscovariateschoose=batch.Setup.masks.(masks{nmask}).regresscovariateschoose; end
                     CONN_x.Setup.rois.subjectspecific(nmask)=subjectspecific;
                     CONN_x.Setup.rois.sessionspecific(nmask)=sessionspecific;
                 end
@@ -1187,6 +1192,7 @@ if isfield(batch,'Setup'),
         for nsub=1:CONN_x.Setup.nsubjects,% disregards other existing rois
             CONN_x.Setup.rois.files{nsub}=CONN_x.Setup.rois.files{nsub}(1:n0+length(batch.Setup.rois.files)); 
         end
+        if isfield(batch.Setup.rois,'regresscovariateschoose'), CONN_x.Setup.rois.regresscovariateschoose=batch.Setup.rois.regresscovariateschoose; end
         CONN_x.Setup.rois.names=CONN_x.Setup.rois.names(1:n0+length(batch.Setup.rois.files)+1);
         CONN_x.Setup.rois.names{end}=' ';
         CONN_x.Setup.rois.dimensions=CONN_x.Setup.rois.dimensions(1:n0+length(batch.Setup.rois.files));
@@ -1733,11 +1739,14 @@ if isfield(batch,'QA'),
     if isfield(batch.QA,'conditions'), validconditions=batch.QA.conditions; 
     else validconditions=[];
     end
+    if isfield(batch.QA,'controlcovariates'), controlcovariates=batch.QA.controlcovariates; 
+    else controlcovariates=[];
+    end
     if isfield(batch,'parallel')&&isfield(batch.parallel,'N')&&batch.parallel.N>0,
         PAR_CMD{end+1}='qaplots';
-        PAR_ARG{end+1}={[],qafolder,procedures,SUBJECTS,validrois,validsets,nl2covariates,nl1contrasts,validconditions};
+        PAR_ARG{end+1}={[],qafolder,procedures,SUBJECTS,validrois,validsets,nl2covariates,nl1contrasts,validconditions,controlcovariates};
     else
-        conn_process('qaplots',qafolder,procedures,SUBJECTS,validrois,validsets,nl2covariates,nl1contrasts,validconditions);
+        conn_process('qaplots',qafolder,procedures,SUBJECTS,validrois,validsets,nl2covariates,nl1contrasts,validconditions,controlcovariates);
         CONN_x.gui=1;
     end
 end

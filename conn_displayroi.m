@@ -728,6 +728,7 @@ switch(lower(option)),
         return
                              
     case 'export_data'
+        DOSORT=true; % set to false to keep original ROI order; set to true to use ROI order from these analyses
         data=get(hfig,'userdata');
         if margin>1, tfilename=varargin{1};
         else
@@ -740,17 +741,20 @@ switch(lower(option)),
         if isfield(data.results,'data'), Y=permute(data.results(1).data,[1,3,4,2]);
         else Y=permute(cat(4,data.results.y),[1,3,4,2]);
         end
-        Y=Y(:,:,data.displaytheserois(data.displaytheserois<=size(Y,3)),data.displaytheserois(data.displaytheserois<=size(Y,3)));
+        if DOSORT, idx=data.displaytheserois(data.displaytheserois<=size(Y,3));
+        else idx=sort(data.displaytheserois(data.displaytheserois<=size(Y,3)));
+        end
+        Y=Y(:,:,idx,idx);
         Y=permute(Y,[3,4,1,2]); 
-        ColumnNames=data.names2(data.displaytheserois);
-        ColumnGroups=data.clusters(data.displaytheserois);
+        ColumnNames=data.names2(idx);
+        ColumnGroups=data.clusters(idx);
         
         SampleNames=repmat({''},size(Y,3),size(Y,4));
         idx=find(data.results(1).xX.SelectedSubjects);
         if isfield(data.results(1),'ynames'), for n1=1:numel(idx), for n2=1:size(Y,4), SampleNames{n1,n2}=sprintf('subject %d %s',idx(n1),data.results(1).ynames{n2}); end; end        
         else for n1=1:numel(idx), for n2=1:size(Y,4), SampleNames{n1,n2}=sprintf('subject %d measure %d',idx(n1),n2); end; end        
         end
-        conn_mtx_write(tfilename,Y(:,:,:),ColumnNames, data.xyz2(data.displaytheserois), SampleNames);
+        conn_mtx_write(tfilename,Y(:,:,:),ColumnNames, data.xyz2(idx), SampleNames);
         conn_disp('fprintf','Connectivity matrix data saved in %s\n',tfilename);
         return
         

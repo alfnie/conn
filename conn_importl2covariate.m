@@ -74,7 +74,9 @@ if dogui
                     CONN_x.Setup.l2covariates.names{icov}=newname{n};
                     CONN_x.Setup.l2covariates.descrip{icov}=['CONN imported values ',newname{n}];
                     CONN_x.Setup.l2covariates.names{icov+1}=' ';
-                    for n1=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{n1}{icov}=y{n}(n1); end
+                    for n1=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{n1}{icov}=nan; end
+                    for n1=validsubjects(:)', CONN_x.Setup.l2covariates.values{n1}{icov}=y{n}(n1); end
+                    %for n1=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{n1}{icov}=y{n}(n1); end
                 end
                 delete(thfig);
                 conn_msgbox({sprintf('%d new second-level covariates added',numel(selected)),'(see Tools->Calculator to explore their values)'},'',1);

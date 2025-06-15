@@ -19,14 +19,30 @@ if isremotefile, remotefilename=filename; filename=conn_cache('pull',remotefilen
 vol = spm_vol(filename);
 if nargin>1&&~isempty(fileref)
     if nargin<=2||isempty(hold), hold=0; end
-    if conn_server('util_isremotefile',fileref), fileref=conn_cache('pull',fileref); end
-    volref = spm_vol(fileref);
-    [x,y,z]=ndgrid(1:volref(1).dim(1), 1:volref(1).dim(2), 1:volref(1).dim(3));
-    xyz=volref(1).mat*[x(:) y(:) z(:) ones(numel(x),1)]';
-    data = [];
-    for nvol=1:numel(vol), 
-        txyz = pinv(vol(nvol).mat)*xyz;
-        data = cat(4,data, reshape(spm_sample_vol(vol(nvol),txyz(1,:),txyz(2,:),txyz(3,:),hold),volref(1).dim)); 
+    if isstruct(fileref) % input spm_vol structure of reference file directly
+        volref = fileref;
+    else
+        if conn_server('util_isremotefile',fileref), fileref=conn_cache('pull',fileref); end
+        volref = spm_vol(fileref);
+    end
+    if numel(vol)==1&&isequal(volref.mat,vol.mat)&&isequal(volref.dim,vol.dim)
+        try
+            data = spm_read_vols(vol);
+        catch
+            data=[];
+            for nvol=1:numel(vol)
+                tdata=spm_read_vols(vol(nvol));
+                data=cat(4,data,tdata);
+            end
+        end
+    else
+        [x,y,z]=ndgrid(1:volref(1).dim(1), 1:volref(1).dim(2), 1:volref(1).dim(3));
+        xyz=volref(1).mat*[x(:) y(:) z(:) ones(numel(x),1)]';
+        data = [];
+        for nvol=1:numel(vol),
+            txyz = pinv(vol(nvol).mat)*xyz;
+            data = cat(4,data, reshape(spm_sample_vol(vol(nvol),txyz(1,:),txyz(2,:),txyz(3,:),hold),volref(1).dim));
+        end
     end
 else
     try

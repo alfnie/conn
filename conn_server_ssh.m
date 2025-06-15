@@ -274,9 +274,11 @@ switch(lower(option))
                     if ~ispc||~isfield(params.info,'windowscmbugfixed')||params.info.windowscmbugfixed
                         fprintf('Establishing secure communication path to remote session (%d:%s:%d)\n',params.info.local_port,params.info.remote_ip,params.info.remote_port);
                         [ok,msg]=system(sprintf('%s -o ControlPath=''%s'' -O forward -L%d:%s:%d %s', params.options.cmd_ssh, params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        try, disp(char(msg)); end
                     else
                         tstr=sprintf('SSH secure communication channel %d:%s:%d',params.info.local_port,params.info.remote_ip,params.info.remote_port);
                         [ok,msg]=system(sprintf('start "%s" cmd /c "%s -f -N -L%d:%s:%d %s"', tstr, params.options.cmd_ssh, params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
+                        try, disp(char(msg)); end
                     end
                     if ok~=0, 
                         params.info.local_port=[]; 

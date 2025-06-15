@@ -145,7 +145,8 @@ fh=@conn_mvpaexplore_update;
         switch(option)
             case 'importvalues'
                 if ~isempty(Z)
-                    conn_importl2covariate({sprintf('fc-MVPA: seed (%d,%d,%d) eigenpattern #%d scores during %s',XYZ(1),XYZ(2),XYZ(3),neig,CONN_x.Setup.conditions.names{ncondition})},{Z},true,validsubjects,{sprintf('Imported eigenpattern scores from analysis %s',CONN_x.vvAnalyses(CONN_x.vvAnalysis).name)});
+                    Zallsubjects=nan(CONN_x.Setup.nsubjects,size(Z,2)); Zallsubjects(validsubjects,:)=Z;
+                    conn_importl2covariate({sprintf('fc-MVPA: seed (%d,%d,%d) eigenpattern #%d scores during %s',XYZ(1),XYZ(2),XYZ(3),neig,CONN_x.Setup.conditions.names{ncondition})},{Zallsubjects},true,validsubjects,{sprintf('Imported eigenpattern scores from analysis %s',CONN_x.vvAnalyses(CONN_x.vvAnalysis).name)});
                 end
                 return
             case 'display3d'
