@@ -249,7 +249,6 @@ if ~isempty(maskfile),
         end
     else
         vmaskfile=spm_vol(char(maskfile));
-        mask_data=all(spm_get_data(vmaskfile,pinv(vmaskfile(1).mat)*SPM.xY.VY(1).mat*xyz)>0,1);
     end
 end
 if issurface||ismatrix||ismember(secondlevelanalyses,[1 3]) % nonparametric stats
@@ -264,6 +263,7 @@ if issurface||ismatrix||ismember(secondlevelanalyses,[1 3]) % nonparametric stat
         xyz=[xyz0; n2+zeros(1,size(xyz0,2)); ones(1,size(xyz0,2))];
         y=spm_get_data(SPM.xY.VY(:)',xyz);
         maskthis=~any(isnan(y),1)&any(diff(y,1,1)~=0,1);
+        if ~isempty(maskfile)&&~ismatrix, mask_data=all(spm_get_data(vmaskfile,pinv(vmaskfile(1).mat)*SPM.xY.VY(1).mat*xyz)>0,1); end
         if ~isempty(maskfile), maskthis=maskthis&mask_data; end
         %mask(n2,:,:)=reshape(maskthis,[1 SPM.xY.VY(1).dim(2:3)]);
         mask(:,:,n2)=reshape(maskthis,[SPM.xY.VY(1).dim(1:2)]);
