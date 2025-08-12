@@ -64,7 +64,7 @@ DOSQRT=true;
 fh=@(varargin)conn_polar_display_refresh([],[],varargin{:});
 if ~nargin, help(mfilename); return; end
 
-if numel(varargin)>=1&&~isempty(varargin{1}), filetemplate=varargin{2}; else filetemplate=''; end
+if numel(varargin)>=1&&~isempty(varargin{1}), filetemplate=varargin{1}; else filetemplate=''; end
 if numel(varargin)>=2&&~isempty(varargin{2}), ispercentage=varargin{2}; else ispercentage=[]; end
 if numel(varargin)>=3&&~isempty(varargin{3}), manualscale=varargin{3}; else manualscale=[]; end
 if numel(varargin)>=4&&~isempty(varargin{4}), datatitle=varargin{4}; else datatitle=''; end
@@ -75,6 +75,14 @@ if iscell(data)||ischar(data)
     if isempty(ispercentage), ispercentage=false; end
     filedata=data;
     if ischar(filedata), filedata={filedata}; end
+    if isequal(filetemplate,'?'), 
+        filetemplate='';
+        answ=conn_questdlg('Reference atlas:','conn_polar_display','Yeo&Buckner 7 networks (2011)','Other','Yeo&Buckner 7 networks (2011)');
+        if strcmp(answ,'Other'), 
+            [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select reference atlas file');
+            if ischar(tfilename), filetemplate=fullfile(tpathname,tfilename); end
+        end
+    end
     if isempty(filetemplate), 
         filetemplate=fullfile(fileparts(which(mfilename)),'utils','surf','YeoBuckner2011.nii'); 
         templateorder=[6,7,5,1,2,4,3]; % t(n) in what position should network#n should go

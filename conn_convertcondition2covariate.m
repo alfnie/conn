@@ -70,7 +70,7 @@ for ncondition=nconditions(:)'
                     x=convn(x,hrf);
                 end
                 x=mean(reshape(x(offs+(1:10*nscans)),[10,nscans]),1)';%x=x(1+10*(0:nscans-1));
-                if usecovariateweighting&&CONN_x.Setup.conditions.param(ncondition)>0
+                if usecovariateweighting&&CONN_x.Setup.conditions.param(ncondition)>0&&nnz(x)>0
                     %try
                         covfilename=CONN_x.Setup.l1covariates.files{nsub}{CONN_x.Setup.conditions.param(ncondition)}{nses}{1};
                         switch(covfilename),

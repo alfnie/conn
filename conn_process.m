@@ -1299,6 +1299,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
 	n=0;
 	for nsub=validsubjects,
         missingdata=arrayfun(@(n)isempty(dir(fullfile(filepathresults,['DATA_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(n),'%03d'),'.mat']))),validconditions);
+        % note: need to add a check here to see if the number of runs or number of scans within each condition file has changed (until then, use the 'overwrite' option during denoising when changing the number of runs or the number of scans within any run)
         if isempty(REDO)&&~all(missingdata),
             if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end;
         end

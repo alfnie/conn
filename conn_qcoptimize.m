@@ -59,6 +59,8 @@ if options.removingoutliersubjects
     end
 end
 if isempty(options.initoutliers), options.initoutliers=0; end
+if ~isempty(options.minoutliers), options.initoutliers=max(options.initoutliers,options.minoutliers); end
+if ~isempty(options.maxoutliers), options.initoutliers=min(options.initoutliers,options.maxoutliers); end
 if options.changingwmcsfcomponents
     iWM=find(strcmp(CONN_x.Preproc.confounds.names,'White Matter'),1);
     iCSF=find(strcmp(CONN_x.Preproc.confounds.names,'CSF'),1);
@@ -156,13 +158,13 @@ for npass=NPASS
                             LIST_IKEEP{nremove}=keep;
                             conn_disp('fprintf','CONSIDERING REMOVING THE FOLLOWING SUBJECTS (%d): %s\n',nremove,mat2str(setdiff(1:CONN_x.Setup.nsubjects,keep)));
                         end
-                        if nremove>0
-                            if options.exhaustivesearch>0, keep=LIST_IKEEP{nremove};
-                            elseif options.exhaustivesearch<0, keep=setdiff(1:CONN_x.Setup.nsubjects,LIST_IKEEP{nremove});
-                            else keep=sort(idxsubjects(1:end-nremove));
-                            end
-                            addoptions=[addoptions, {'subjects',keep}];
+                    end
+                    if nremove>0
+                        if options.exhaustivesearch>0, keep=LIST_IKEEP{nremove};
+                        elseif options.exhaustivesearch<0, keep=setdiff(1:CONN_x.Setup.nsubjects,LIST_IKEEP{nremove});
+                        else keep=sort(idxsubjects(1:end-nremove));
                         end
+                        addoptions=[addoptions, {'subjects',keep}];
                     end
                     conn_batch(...
                         'QA.plots',         {'QA_DENOISE FC-QC'},...
