@@ -34,12 +34,13 @@ function var=conn_updatefilepaths(varargin)
 
 
 global CONN_x CONN_gui;
-persistent ht htcancel changed changes holdon silent remote local hcount;
+persistent ht htcancel changed changes holdon clearon silent remote local hcount;
 
 connfolder=fileparts(which(mfilename));
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 if isempty(changed),changed=0;end
 if isempty(holdon),holdon=0;end
+if isempty(clearon),clearon=0;end
 if isempty(silent),silent=0;end
 if isempty(remote),remote=0;end
 if isempty(local),local=0;end
@@ -87,6 +88,7 @@ if nargin==1,
         else
             if  ~strcmp(deblank(var{1}(1,:)),'[raw values]')&&~conn_existfile(var{1}(1,:),true),
                 filename=fliplr(deblank(fliplr(deblank(var{1}))));
+                iscleared=false;
                 switch(filesep),case '\',idx=find(filename=='/');case '/',idx=find(filename=='\');end; filename(idx)=filesep;
                 n=0; while n<size(filename,1),
                     ok=conn_existfile(filename(n+1,:),true);
@@ -123,6 +125,9 @@ if nargin==1,
                                 filename=strvcat(filename(1:n,:),fullfile(connfolder,'utils','surf',[name1,ext1,num1]),filename(n+2:end,:));
                             elseif strcmp(pathname1,fullfile(connfolder,'rois'))&&conn_existfile(fullfile(connfolder,'utils','otherrois',[name1,ext1])) % automatic fixes: fix ROIs that moved from conn/rois to conn/utils/otherrois
                                 filename=strvcat(filename(1:n,:),fullfile(connfolder,'utils','otherrois',[name1,ext1,num1]),filename(n+2:end,:));
+                            elseif clearon
+                                filename=[];
+                                iscleared=true;
                             else
                                 conn_disp(['conn_updatefilepaths: file ',fullname1,' not found']);
                                 [name2,pathname2]=uigetfile(['*',ext1],['File not found: ',name1,ext1],['*',name1,ext1]);
@@ -145,7 +150,11 @@ if nargin==1,
                     try,
                         if isempty(var{3})&&~isempty(varargin{1}{3}), var{3}=varargin{1}{3}; end
                     end
-                else var=[]; end
+                elseif iscleared,
+                    var={[],[],[]};
+                else 
+                    var=[]; 
+                end
             else
                 if ~isstruct(var{3})||(isfield(var{3},'fname')&&numel(var{3})==1)
                     try
@@ -208,6 +217,9 @@ elseif nargin>1&&ischar(varargin{1}),
             remote=false;
             local=false;
             var=holdon;
+        case 'clear'
+            if ~isempty(varargin{2}), clearon=strcmp(lower(varargin{2}),'on'); end
+            var=clearon;
         otherwise
             error('unknown option %s',varargin{1});
     end

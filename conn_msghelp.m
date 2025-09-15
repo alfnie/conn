@@ -1,10 +1,10 @@
 function conn_msghelp(option,varargin)
-persistent dates dates_num titles msgs ids dlg titles_fmt selected keys sortby;
+persistent dates dates_num titles msgs ids authors dlg titles_fmt selected keys sortby;
 global CONN_gui;
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 if isempty(titles)
-    if conn_existfile(conn_prepend('',which(mfilename),'.mat')), load(conn_prepend('',which(mfilename),'.mat'),'strall','titles','msgs','ids','dates','dates_num','titles_fmt');
+    if conn_existfile(conn_prepend('',which(mfilename),'.mat')), load(conn_prepend('',which(mfilename),'.mat'),'strall','titles','msgs','ids','authors','dates','dates_num','titles_fmt');
     else conn_msghelp compile;
     end
     selected=1:numel(titles);
@@ -45,9 +45,9 @@ switch(option)
         str=regexprep(strall,{'<div class="quote">(.*?)</div>|<div class="attachment">(.*?)</div>|<a href(.*?)</a>'},{'$1'});
         str=regexprep(str,'</?td.*?>|</?br>|<!.*?>|</?span.*?>|</?strong>|</?tr.*?>|</?table.*?>','');
         str=regexprep(str,'<xml.*?>.*?</xml>|<!--[if.*?<![endif','');
-        msg=regexp(str,'<div class="forum-post[^"]*"><div class="header">((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d+,\s*\d+).*?</div><div class="subject">(.*?)</div><div class="body">(.*?)</div>.*?<div class="footer">.*?msg_id=(\d+)','tokens');
+        msg=regexp(str,'<div class="forum-post[^"]*"><div class="header">((Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d+,\s*\d+)[^\|]*\|(.*?)</div><div class="subject">(.*?)</div><div class="body">(.*?)</div>.*?<div class="footer">.*?msg_id=(\d+)','tokens');
         if numel(msg)<1e3, error('There was a problem reading from the NITRC forum site. Please try again later'); end
-        [dates,titles,msgs,ids]=cellfun(@(x)deal(x{:}),msg,'uni',0);
+        [dates,authors,titles,msgs,ids]=cellfun(@(x)deal(x{:}),msg,'uni',0);
         %str=regexprep(strall,{'<div class="quote">(.*?)</div>','<div class="bbcode.*?">(.*?)</div>'},{'$1','<DIV CLASS="STARTMESSAGE">$1</DIV>'});
         %str=regexprep(str,'</?td.*?>|</?br>|</?div.*?>|<!.*?>|</?span.*?>|</?strong>|</?tr.*?>|</?table.*?>','');
         %str=regexprep(str,'<xml.*?>.*?</xml>|<!--[if.*?<![endif|','');
@@ -59,7 +59,7 @@ switch(option)
         titles=regexprep(titles,'^\s+|\s+$|<.*?>|\n','');
         titles_fmt=cellfun(@(a,b)sprintf('%s (%s)',a,regexprep(b,'\s*\d+,','')),titles,dates,'uni',0);
         dates_num=reshape(datenum(dates),size(dates));
-        save(conn_prepend('',which(mfilename),'.mat'),'strall','titles','msgs','ids','dates','dates_num','titles_fmt');
+        save(conn_prepend('',which(mfilename),'.mat'),'strall','titles','msgs','ids','authors','dates','dates_num','titles_fmt');
         fprintf('Done (%d entries)\n',numel(msgs));
 
     case 'show',
@@ -77,7 +77,7 @@ switch(option)
             uicontrol(dlg.fig,'units','norm','position',[.8 .90 .1 .05],'style','pushbutton','string','Search','fontsize',CONN_gui.font_offset+8,'tooltipstring','Search database of support questions/answers','callback','conn_msghelp(''key'')');
             dlg.titlelist=uicontrol(dlg.fig,'units','norm','position',[.1 .78 .8 .025],'style','text','string','Posts:','backgroundcolor','w','fontsize',CONN_gui.font_offset+10,'fontweight','bold','horizontalalignment','left');
             dlg.list=uicontrol(dlg.fig,'units','norm','position',[.1 .50 .8 .27],'style','listbox','max',1,'fontname','monospaced','fontsize',CONN_gui.font_offset+8,'tooltipstring','select post','callback','conn_msghelp(''show'',get(gcbo,''value''))');
-            dlg.sort=uicontrol(dlg.fig,'units','norm','position',[.7 .46 .2 .04],'style','pushbutton','string','sorted by relevance','fontsize',CONN_gui.font_offset+8,'tooltipstring','Switch between ''sorted by relevance'' and ''sorted by date''','callback','conn_msghelp(''sort'')');
+            dlg.sort=uicontrol(dlg.fig,'units','norm','position',[.7 .46 .2 .04],'style','popupmenu','string',{'sorted by relevance','sorted by date'},'fontsize',CONN_gui.font_offset+8,'tooltipstring','Switch between ''sorted by relevance'' and ''sorted by date''','callback','conn_msghelp(''sort'')');
             dlg.title=uicontrol(dlg.fig,'units','norm','position',[.1 .40 .8 .025],'style','text','string','','backgroundcolor','w','horizontalalignment','left','fontsize',CONN_gui.font_offset+10,'fontweight','bold');
             dlg.box=uicontrol(dlg.fig,'units','norm','position',[.1 .1 .8 .29],'style','listbox','max',2,'string','','backgroundcolor','w','horizontalalignment','left','fontsize',CONN_gui.font_offset+8);
             dlg.goto=uicontrol(dlg.fig,'units','norm','position',[.7 .06 .2 .04],'style','pushbutton','string','original post','fontsize',CONN_gui.font_offset+8,'tooltipstring','See this post in the NITRC CONN Forum website');
@@ -96,6 +96,7 @@ switch(option)
             strid=ids{imsg};
             strtitle=titles_fmt{imsg};
             str=msgs{imsg};
+            str=regexprep(str,'\<img[^\>]*\>','');
             str=regexprep(str,'Originally posted by(.*?:)','\n\nOriginally posted by$1\n');
             str=regexp(str,'[\r\n]','split');
             str=regexprep(str,{'(CONN|conn|v\.|\s)(\d\d[a-z])(\W)'},{'<b>$1$2</b>$3'});
@@ -125,7 +126,7 @@ switch(option)
             uicontrol(dlg.fig,'units','norm','position',[.8 .90 .1 .05],'style','pushbutton','string','Search','fontsize',CONN_gui.font_offset+8,'tooltipstring','Search database of support questions/answers','callback','conn_msghelp(''key'')');
             dlg.titlelist=uicontrol(dlg.fig,'units','norm','position',[.1 .78 .8 .025],'style','text','string','Posts:','backgroundcolor','w','fontsize',CONN_gui.font_offset+10,'fontweight','bold','horizontalalignment','left');
             dlg.list=uicontrol(dlg.fig,'units','norm','position',[.1 .50 .8 .27],'style','listbox','max',1,'fontname','monospaced','fontsize',CONN_gui.font_offset+8,'tooltipstring','select post','callback','conn_msghelp(''show'',get(gcbo,''value''))');
-            dlg.sort=uicontrol(dlg.fig,'units','norm','position',[.7 .46 .2 .04],'style','pushbutton','string','sorted by relevance','fontsize',CONN_gui.font_offset+8,'tooltipstring','Switch between ''sorted by relevance'' and ''sorted by date''','callback','conn_msghelp(''sort'')');
+            dlg.sort=uicontrol(dlg.fig,'units','norm','position',[.7 .46 .2 .04],'style','popupmenu','string',{'sorted by relevance','sorted by date'},'fontsize',CONN_gui.font_offset+8,'tooltipstring','Switch between ''sorted by relevance'' and ''sorted by date''','callback','conn_msghelp(''sort'')');
             dlg.title=uicontrol(dlg.fig,'units','norm','position',[.1 .40 .8 .025],'style','text','string','','backgroundcolor','w','horizontalalignment','left','fontsize',CONN_gui.font_offset+10,'fontweight','bold');
             dlg.box=uicontrol(dlg.fig,'units','norm','position',[.1 .1 .8 .29],'style','listbox','max',2,'string','','backgroundcolor','w','horizontalalignment','left','fontsize',CONN_gui.font_offset+8);
             dlg.goto=uicontrol(dlg.fig,'units','norm','position',[.7 .06 .2 .04],'style','pushbutton','string','original post','fontsize',CONN_gui.font_offset+8,'tooltipstring','See this post in the NITRC CONN Forum website');
@@ -176,7 +177,8 @@ switch(option)
         if DOFILE, fclose(fh); end
 
     case 'sort'
-        sortby=1+(sortby==1);
+        if ~ishandle(dlg.fig), return; end
+        sortby=get(dlg.sort,'value');
         conn_msghelp('key');
         
     case 'key'
@@ -190,7 +192,9 @@ switch(option)
         keys=cellfun(@(x)['(' x ')'],keys,'uni',0);
         ok=zeros(numel(keys),numel(msgs));
         for n=1:numel(keys)
-            ok(n,:)=2*cellfun('length',regexpi(titles_fmt,keys{n}))+cellfun('length',regexpi(msgs,keys{n}));
+            if ~isempty(regexp(keys{n},'author:')), ok(n,:)=cellfun('length',regexpi(authors,regexprep(keys{n},'author:','')));
+            else ok(n,:)=2*cellfun('length',regexpi(titles_fmt,keys{n}))+cellfun('length',regexpi(msgs,keys{n}));
+            end
         end
 %ok=ok==0; 
         selected=find(all(ok,1));
@@ -200,10 +204,10 @@ switch(option)
         switch(thissortby)
             case 1, % sort by relevance
                 [nill,idx]=sort(prod(ok(:,selected),1)+1e-10*selected,'descend');
-                set(dlg.sort,'string','sorted by relevance');
+                set(dlg.sort,'value',1);
             case 2, % sort by date
                 [nill,idx]=sort(dates_num(selected)+1e-10*selected,'descend');
-                set(dlg.sort,'string','sorted by date');
+                set(dlg.sort,'value',2);
         end
         selected=selected(idx);
         set(dlg.list,'string',titles_fmt(selected),'value',max(1,min(numel(selected), get(dlg.list,'value'))));

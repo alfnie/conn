@@ -5,7 +5,7 @@ function fh = conn_mtx_display(filename, varargin)
 %  filename : input filename *.mtx.nii
 %
 % alternative syntax:
-% conn_mtx_display(data [, names, coords, samples])
+% conn_mtx_display(data [, names, coords, samples, borders, borders_names])
 % SEE ALSO: conn_mtx_read, conn_mtx_write
 % 
 
@@ -28,8 +28,8 @@ fh=conn_montage_display(...
     samples,...
     'matrix',...
     [],{},... % cov
-    [],{},... % borders
-    clusters,clusters_names,... % clusters
+    clusters,clusters_names,... % borders
+    [],{},... % clusters
     coords, names ... % rois
     );
 

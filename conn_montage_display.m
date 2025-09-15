@@ -206,7 +206,7 @@ if strcmp(state.style,'matrix'),
 end
 if ~isempty(state.xrois_name) % rows/columns names
     hold(state.handles.hax,'on');
-    state.handles.hyticks=text(0-.01*size(state.y,2)+zeros(1,numel(state.xrois_name)),1:numel(state.xrois_name),state.xrois_name(:)','horizontalalignment','right','fontsize',max(1,state.fontsize-3),'color',.25*[1 1 1],'interpreter','none','parent',state.handles.hax);
+    state.handles.hyticks=text(0-.01*size(state.y,2)+zeros(1,numel(state.xrois_name)),1:numel(state.xrois_name),state.xrois_name(:)','horizontalalignment','right','fontsize',max(1,state.fontsize(end)-3),'color',.25*[1 1 1],'interpreter','none','parent',state.handles.hax);
     hold(state.handles.hax,'off'); 
 end
 if ~isempty(state.x_border) % clusters of rows/columns
@@ -218,7 +218,7 @@ if ~isempty(state.x_border) % clusters of rows/columns
         plot3([.4 0 0 .4],tb(n1+[0 0 1 1])+[0 .2 -.2 0],1+zeros(1,4),'k-','color',0*[1 1 1],'linewidth',1+(size(state.y,1)<32),'parent',state.handles.hax);
     end
     if ~isempty(state.x_border_name)
-        state.handles.hylticks=text(.5-.30*size(state.y,2)+zeros(1,numel(state.x_border_name)),convn([.5,state.x_border(:)',size(state.y,1)+.5],[.5 .5],'valid'),state.x_border_name(:)','horizontalalignment','right','fontsize',max(1,state.fontsize-1),'parent',state.handles.hax);
+        state.handles.hylticks=text(.5-.30*size(state.y,2)+zeros(1,numel(state.x_border_name)),convn([.5,state.x_border(:)',size(state.y,1)+.5],[.5 .5],'valid'),state.x_border_name(:)','horizontalalignment','right','fontsize',max(1,state.fontsize(1)-1),'parent',state.handles.hax);
     end
     hold(state.handles.hax,'off'); 
 end
@@ -250,8 +250,8 @@ if strcmp(state.style,'matrix')
     state.handles.hcolorbar=image(permute(flipud(state.colormap),[1,3,2]),'parent',state.handles.haxcolorbar);
     set(state.handles.haxcolorbar,'xlim',[.5 1.5],'ylim',[.5 size(state.colormap,1)+.5],'xtick',[],'ytick',[],'box','on');
     hold(state.handles.haxcolorbar,'on');
-    state.handles.htxtcolorbar1=text(1,.5+size(state.colormap,1)*1.05,num2str(-state.datalim),'fontsize',max(1,state.fontsize-3),'color',.25*[1 1 1],'horizontalalignment','center');
-    state.handles.htxtcolorbar2=text(1,.5-size(state.colormap,1)*0.05,num2str(state.datalim),'fontsize',max(1,state.fontsize-3),'color',.25*[1 1 1],'horizontalalignment','center');
+    state.handles.htxtcolorbar1=text(1,.5+size(state.colormap,1)*1.05,num2str(-state.datalim),'fontsize',max(1,state.fontsize(end)-3),'color',.25*[1 1 1],'horizontalalignment','center');
+    state.handles.htxtcolorbar2=text(1,.5-size(state.colormap,1)*0.05,num2str(state.datalim),'fontsize',max(1,state.fontsize(end)-3),'color',.25*[1 1 1],'horizontalalignment','center');
     hold(state.handles.haxcolorbar,'off');
 else
     [state.handles.haxcolorbar,state.handles.hcolorbar,state.handles.htxtcolorbar1,state.handles.htxtcolorbar2]=deal([]);
@@ -274,15 +274,15 @@ if ~isempty(state.xcov)
     xcov=repmat(size(state.xcov,2)-1:-1:0, size(state.xcov,1),1) + .65*state.xcov./repmat(max(eps,maxxcov),size(state.xcov,1),1);
     state.handles.himcov=plot(xcov,'parent',state.handles.haxcov,'color',.5*[1 1 1]);%state.handles.himcov=image((size(state.colormap,1)+1)/2+(size(state.colormap,1)-1)/2*state.xcov','parent',state.handles.haxcov);
     hold(state.handles.haxcov,'on'); state.handles.refcov=plot([0 0],[min(xcov(:)) max(xcov(:))],'b','parent',state.handles.haxcov); hold(state.handles.haxcov,'off');%hold(state.handles.haxcov,'on'); state.handles.refcov=plot([1 1],[.5,size(state.xcov,2)+.5],'b','parent',state.handles.haxcov); hold(state.handles.haxcov,'off');
-    hold(state.handles.haxcov,'on'); state.handles.scalecov=text(repmat(-5,[1,size(xcov,2)*2]),[min(xcov,[],1) max(xcov,[],1)],arrayfun(@num2str,[min(state.xcov,[],1) max(state.xcov,[],1)],'uni',0),'color',.75*[1 1 1],'horizontalalignment','right','fontsize',max(1,state.fontsize-3),'parent',state.handles.haxcov); hold(state.handles.haxcov,'off');
+    hold(state.handles.haxcov,'on'); state.handles.scalecov=text(repmat(-5,[1,size(xcov,2)*2]),[min(xcov,[],1) max(xcov,[],1)],arrayfun(@num2str,[min(state.xcov,[],1) max(state.xcov,[],1)],'uni',0),'color',.75*[1 1 1],'horizontalalignment','right','fontsize',max(1,state.fontsize(end)-3),'parent',state.handles.haxcov); hold(state.handles.haxcov,'off');
     axis(state.handles.haxcov,'tight','off');
     if ~isempty(state.xcov_name),
         if numel(state.xcov_name)==1, 
             state.handles.titlecov=text(1.02*size(state.xcov,1),size(state.xcov,2)/2,state.xcov_name,'parent',state.handles.haxcov); 
-            set(state.handles.titlecov,'rotation',90,'color',.5*[1 1 1],'horizontalalignment','center','fontsize',max(1,state.fontsize-2),'interpreter','none');
+            set(state.handles.titlecov,'rotation',90,'color',.5*[1 1 1],'horizontalalignment','center','fontsize',max(1,state.fontsize(1)-2),'interpreter','none');
         else
             state.handles.titlecov=text(1.02*size(state.xcov,1)+zeros(1,numel(state.xcov_name)),.25+size(state.xcov,2)-(1:numel(state.xcov_name)),state.xcov_name,'parent',state.handles.haxcov);
-            set(state.handles.titlecov,'color',.5*[1 1 1],'horizontalalignment','left','fontsize',max(1,state.fontsize-2),'interpreter','none');
+            set(state.handles.titlecov,'color',.5*[1 1 1],'horizontalalignment','left','fontsize',max(1,state.fontsize(1)-2),'interpreter','none');
         end
     end
 else [state.handles.haxcov,state.handles.himcov,state.handles.scalecov,state.handles.refcov,state.handles.titlecov]=deal([]);
@@ -351,10 +351,10 @@ end
                 elseif isequal(opt,'?'), opt=conn_menu_inputdlg('Enter fontsize','conn_montage_display',1,{num2str(state.fontsize)}); if ~isempty(opt), opt=str2num(opt{1}); end; if isempty(opt), return; end
                 end
                 state.fontsize=opt;
-                if isfield(state.handles,'scalecov')&&all(ishandle(state.handles.scalecov)), set(state.handles.scalecov,'fontsize',max(1,state.fontsize-3)); end
-                if isfield(state.handles,'hyticks')&&all(ishandle(state.handles.hyticks)), set(state.handles.hyticks,'fontsize',max(1,state.fontsize-3)); end
-                if isfield(state.handles,'hylticks')&&all(ishandle(state.handles.hylticks)), set(state.handles.hylticks,'fontsize',max(1,state.fontsize-1)); end
-                if isfield(state.handles,'titlecov')&&all(ishandle(state.handles.titlecov)), set(state.handles.titlecov,'fontsize',max(1,state.fontsize-2)); end
+                if isfield(state.handles,'scalecov')&&all(ishandle(state.handles.scalecov)), set(state.handles.scalecov,'fontsize',max(1,state.fontsize(end)-3)); end
+                if isfield(state.handles,'hyticks')&&all(ishandle(state.handles.hyticks)), set(state.handles.hyticks,'fontsize',max(1,state.fontsize(end)-3)); end
+                if isfield(state.handles,'hylticks')&&all(ishandle(state.handles.hylticks)), set(state.handles.hylticks,'fontsize',max(1,state.fontsize(1)-1)); end
+                if isfield(state.handles,'titlecov')&&all(ishandle(state.handles.titlecov)), set(state.handles.titlecov,'fontsize',max(1,state.fontsize(1)-2)); end
             case {'colorscale','colorbar'}
                 opt=varargin{1};
                 switch(opt)

@@ -2,6 +2,8 @@ function filename=conn_gz2nii(filename)
 % CONN_GZ2NII converts .gz files to NIFTI .nii format
 %
 % filename = conn_gz2nii(filename)
+% 
+% note: conn_gz2nii will not overwrite output file if it exists
 %
 
 if any(conn_server('util_isremotefile',filename)), filename=conn_server('util_remotefile',conn_server('run',mfilename,conn_server('util_localfile',filename))); return; end
