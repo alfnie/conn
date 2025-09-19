@@ -1,9 +1,13 @@
 function str=conn_cell2html(str)
+global CONN_gui
+
 if ischar(str), str=cellstr(str); end
 if ~iscell(str), str={str}; end
 str=cellfun(@char,str,'uni',0);
 str=regexprep(str,'\\|\/','\\');
-if numel(str)>1, str=['<HTML>',strjoinstr(str,'<br/>'),'</HTML>']; end
+if numel(str)>1, 
+    if isfield(CONN_gui,'isjava')&&CONN_gui.isjava, str=['<HTML>',strjoinstr(str,'<br/>'),'</HTML>']; end
+end
 str=char(str);
 end
 

@@ -18,7 +18,10 @@ if nargin<7, callback2=''; end
 if nargin<8, callback3=''; end
 if ~ischar(type), [type,position,title]=deal(title,get(type,'userdata'),get(type,'value')); end
 if ~CONN_gui.tooltips, tooltipstring=''; end
-titleopts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA,'fontsize',11+CONN_gui.font_offset};
+if CONN_gui.isjava, titleopts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA,'fontsize',11+CONN_gui.font_offset};
+else titleopts={'fontname',fname,'fontangle','normal','fontweight','bold','foregroundcolor',CONN_gui.fontcolorA,'fontsize',11+CONN_gui.font_offset};
+end
+if ~CONN_gui.isjava, tooltipstring=regexprep(tooltipstring,{'<\/?HTML>|<\/?b>|<\/?i>','<br/>'},{'','\n'},'ignorecase'); end
 titleopts2=titleopts;titleopts2(7:8)={'color',CONN_gui.fontcolorA};
 contropts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset};
 contropts2=contropts;contropts2(7:8)={'color',CONN_gui.fontcolorA};
@@ -26,30 +29,45 @@ contropts3=contropts([1:6 9:numel(contropts)]);
 doemphasis1=CONN_gui.doemphasis1;
 doemphasis2=CONN_gui.doemphasis2;
 %type=regexprep(type,'white','');
-if any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','frame2highlight','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2'})), bgcolor=CONN_gui.backgroundcolor; mapcolor=CONN_h.screen.colormap;
-else bgcolor=CONN_gui.backgroundcolorA; mapcolor=CONN_h.screen.colormapA;
+if any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','frame2highlight','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2'})), 
+    bgcolor=CONN_gui.backgroundcolor; 
+    mapcolor=CONN_h.screen.colormap;
+    skipborders=~CONN_gui.isjava;
+else 
+    bgcolor=CONN_gui.backgroundcolorA; 
+    mapcolor=CONN_h.screen.colormapA;
+    skipborders=~CONN_gui.isjava;
 end
-bgwhite=CONN_gui.backgroundcolorE; %.5*bgcolor+.5*round(bgcolor); %.9*bgcolor+.1*round(1-bgcolor); %[.95 .95 .9]
+bgwhite=CONN_gui.backgroundcolorA; %.5*bgcolor+.5*round(bgcolor); %.9*bgcolor+.1*round(1-bgcolor); %[.95 .95 .9]
 
 switch(lower(type)),
     case 'nullstr',
         nullstr=position;
-	case {'pushbutton','togglebutton','pushbutton2','togglebutton2','pushbuttonblue','pushbuttonblue2','pushbuttonwhite'}
-        if strcmp(type,'pushbuttonwhite'), bgcolor=bgwhite; end
+	case {'pushbutton','togglebutton','pushbutton2','togglebutton2','pushbuttonblue','pushbuttonblue2','pushbuttonwhite','pushbuttonwhite2'}
+        if ~isempty(regexp(type,'white')), bgcolor=bgwhite; fgcolor=[];%[.5 .5 .5];
+        elseif ~isempty(regexp(type,'blue')), fgcolor=[]; %.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5);
+        else fgcolor=[]; 
+        end
         type2=regexprep(type,{'2$','blue$','white$'},'');
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
+
 		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,.03,0,0],'string',title,'backgroundcolor',bgcolor,titleopts{:},'fontunits','norm','horizontalalignment','left','parent',CONN_h.screen.hfig); end
 		if strcmp(lower(type2),'togglebutton')&&CONN_gui.domacGUIbugfix==2, bgcolor(:)=1; end
         h=uicontrol('style',type2,'units','norm','position',position,'backgroundcolor',bgcolor,'horizontalalignment','left','string',string,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,contropts{:},'parent',CONN_h.screen.hfig);%,'fontweight','bold');
-        if ismember(lower(type),{'pushbuttonblue','pushbuttonblue2'}), set(h,'backgroundcolor',CONN_gui.backgroundcolorE); end
+        if ismember(lower(type),{'pushbuttonblue','pushbuttonblue2'}), set(h,'backgroundcolor',CONN_gui.backgroundcolorE); end %bgcolor=CONN_gui.backgroundcolorE; end
+        if ~isempty(fgcolor), set(h,'foregroundcolor',fgcolor); end
         set(h,'units','pixels');
         tpos=get(h,'position');
-        htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-2*CONN_gui.uicontrol_border,0,2*CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-            uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-            uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,2*CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-            uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
         set(h,'units','norm');
-        if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
+        htb=[]; 
+        if ~skipborders,
+            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-2*CONN_gui.uicontrol_border,0,2*CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,2*CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
+        end
+        set(h,'units','norm');
         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
 % 	case {'pushbutton2','togglebutton2'}
 %         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -73,13 +91,22 @@ switch(lower(type)),
         if strcmp(lower(type),'textedit')||strcmp(lower(type),'textedit2'), set([h h2],'horizontalalignment','center'); end
         set(h,'units','pixels');
         tpos=get(h,'position');
-        htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_border-2,0,CONN_gui.uicontrol_border+2-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-             uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-        	 uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-        	 uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
         set(h,'units','norm');
+        htb=[]; 
+        if ~skipborders,
+            % htb=[axes('units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_border-2,0,CONN_gui.uicontrol_border+2-tpos(3),0],'color',bgcolor,'xtick',[],'ytick',[],'xcolor',bgcolor,'ycolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+            %     axes('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'color',bgcolor,'xtick',[],'ytick',[],'xcolor',bgcolor,'ycolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+            %     axes('units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'color',bgcolor,'xtick',[],'ytick',[],'xcolor',bgcolor,'ycolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+            %     axes('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'color',bgcolor,'xtick',[],'ytick',[],'xcolor',bgcolor,'ycolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_border-2,0,CONN_gui.uicontrol_border+2-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+           	 uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+             uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            if ~strcmp(lower(type),'textedit')&&~strcmp(lower(type),'textedit2')
+                if doemphasis1, conn_menumanager('onregion',htb(3:4),-1,get(h,'position'),h); end
+            end
+        end
         if ~strcmp(lower(type),'textedit')&&~strcmp(lower(type),'textedit2')
-            if doemphasis1, conn_menumanager('onregion',htb(3:4),-1,get(h,'position'),h); end
             if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
         end
 	case 'edit0'
@@ -90,12 +117,15 @@ switch(lower(type)),
         set(h,'units','pixels');
         tpos=get(h,'position');
         set(h,'units','norm');
-        htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
-        conn_menumanager('onregion',htb,-1,get(h,'position'),h);
-        htb=[uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig)];
-        uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig);
-        uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig);
-        if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
+        htb=[]; 
+        if ~skipborders,
+            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            conn_menumanager('onregion',htb,-1,get(h,'position'),h);
+            htb=[uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig)];
+            uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig);
+            uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig);
+            if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
+        end
         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
 	case {'table','table2','tablewhite'}
         if strcmp(type,'tablewhite'), bgcolor=bgwhite; end
@@ -107,25 +137,30 @@ switch(lower(type)),
         set(h,'units','pixels');
         tpos=get(h,'position');
         set(h,'units','norm');
-        htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-            uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,22-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
-        conn_menumanager('onregion',htb,-1,get(h,'position'),h);
-        htb=uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-        %uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-        htc=uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border-1,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-        if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
+        htb=[]; htc=[];
+        if ~skipborders,
+            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,22-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            conn_menumanager('onregion',htb,-1,get(h,'position'),h);
+            htb=uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            %uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            htc=uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border-1,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
+        end
         if 0,%strcmp(type,'tablewhite'), set(h,'foregroundcolor',[0 0 0]);
         elseif doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); 
         end
         set(h,'position',position.*[1 1 1 0]+[0 0 0 .001]);
         h=struct('h1',h,'h2',htc,'h3',h3,'pos',position);
-	case {'listbox','listbox2','listboxbigblue'}
+    case {'listbox','listbox2','listboxbigblue','listboxbigwhite'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-        if strcmpi(type,'listboxbigblue'), bgcolor=CONN_gui.backgroundcolorE; end %.75*bgcolor+.25*(1/6*.25+.75*[2/6,2/6,4/6]); end
+        if strcmpi(type,'listboxbigwhite'), bgcolor=CONN_gui.backgroundcolorA; 
+        elseif strcmpi(type,'listboxbigblue'), bgcolor=CONN_gui.backgroundcolorE; 
+        end 
 		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,position(4),0,.04-position(4)],'string',title,'backgroundcolor',bgcolor,titleopts{:},'fontunits','norm','horizontalalignment','left','parent',CONN_h.screen.hfig); end
         if isempty(string), string=' '; end
         h=uicontrol('style','listbox','units','norm','position',position,'foregroundcolor',.0+1.0*([0 0 0]+(mean(bgcolor)<.5)),'backgroundcolor',bgcolor,'string',string,'max',1,'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,'keypressfcn',@conn_menu_search,contropts{:},'parent',CONN_h.screen.hfig);
-        if strcmpi(type,'listboxbigblue'), set(h,'fontsize',10+CONN_gui.font_offset); end
+        if ~isempty(regexp(type,'big')), set(h,'fontsize',10+CONN_gui.font_offset); end
         set(h,'units','pixels');
         tpos=get(h,'position');
         tpos2=get(h,'extent');
@@ -133,28 +168,31 @@ switch(lower(type)),
 %         tpos=get(h,'position');
         set(h,'units','norm');
 %         position1=get(h,'position');
-        ht=[uicontrol('style','frame','units','pixels','position',tpos+[0,-1,0,CONN_gui.uicontrol_border+2-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-        	uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-            uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
-        if doemphasis1, conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h); end
-        %uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,.5*tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-        ht=uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-        conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h);
-        %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-        %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-6,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-        ht=uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-        %conn_menumanager('onregion',ht,-1,get(h,'position'),@(x)get(h,'extent')*max(1,(get(h,'max')==1)*numel(cellstr(get(h,'string'))))*[0;0;0;1]>=get(h,'position')*[0;0;0;1]);
-        %%conn_menumanager('onregion',ht,-1,get(h,'position'));
+        ht=[]; 
+        if ~skipborders,
+            ht=[uicontrol('style','frame','units','pixels','position',tpos+[0,-1,0,CONN_gui.uicontrol_border+2-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+            	uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            if doemphasis1, conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h); end
+            %uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,.5*tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            ht=uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h);
+            %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-6,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            ht=uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            %conn_menumanager('onregion',ht,-1,get(h,'position'),@(x)get(h,'extent')*max(1,(get(h,'max')==1)*numel(cellstr(get(h,'string'))))*[0;0;0;1]>=get(h,'position')*[0;0;0;1]);
+            %%conn_menumanager('onregion',ht,-1,get(h,'position'));
+        end
         if ~isempty(callback2), 
             if ~iscell(callback2), callback2={['h=get(gcbo,''userdata''); set(h,''value'',numel(cellstr(get(h,''string'')))); ',callback],callback2}; end
             %ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 0 .03-position(4)],'',['Add new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...
             %    conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[max(.02,position(3)-.02) 0 .02-position(3) .03-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
             if isempty(deblank(callback2{2}))
-                ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .03-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1})];
+                ht=[conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .025-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1})];
                 set(ht(1),'userdata',h,'fontweight','bold','visible','on','fontsize',9+CONN_gui.font_offset);
             else
-                ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .03-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...
-                    conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[max(.02,position(3)-.02) -.03 .02-position(3) .03-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
+                ht=[conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .025-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...
+                    conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[max(.02,position(3)-.02) -.03 .02-position(3) .025-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
                 set(ht(1),'userdata',h,'fontweight','bold','visible','on','fontsize',9+CONN_gui.font_offset);
                 set(ht(2:end),'userdata',h,'fontweight','bold','visible','off'); 
                 conn_menumanager('onregion',ht(2:end),1,get(h,'position')+[0 -.04 0 .04],h);
@@ -174,12 +212,15 @@ switch(lower(type)),
 %         tpos=get(h,'position');
         set(h,'units','norm');
 %         position1=get(h,'position');
-        htb=uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
-        conn_menumanager('onregion',htb,-1,get(h,'position'),h);
-%             conn_menumanager('onregion',htb,-1,get(h,'position'),@(x)set(h,'position',position+(~x)*(position1-position)));
-        uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
-        uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
-        uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
+        htb=[]; 
+        if ~skipborders,
+            htb=uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
+            conn_menumanager('onregion',htb,-1,get(h,'position'),h);
+            %             conn_menumanager('onregion',htb,-1,get(h,'position'),@(x)set(h,'position',position+(~x)*(position1-position)));
+            uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
+            uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
+            uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
+        end
         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
 	case {'text','text2','textwhite','textblue'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -222,13 +263,13 @@ switch(lower(type)),
         end
         xtraborder=0;
         opts=contropts;
-        if ~isempty(regexp(type,'blue')), bgcolor=0*bgcolor+1*CONN_gui.backgroundcolorE; fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5);
-        elseif ~isempty(regexp(type,'white')), bgcolor=bgwhite; fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5);
+        if ~isempty(regexp(type,'blue')), bgcolor=0*bgcolor+1*CONN_gui.backgroundcolorE; if CONN_gui.isjava, fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5); else fgcolor=[]; end
+        elseif ~isempty(regexp(type,'white')), bgcolor=bgwhite; if CONN_gui.isjava, fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5); else fgcolor=[]; end
         else fgcolor=[];
         end %opts=titleopts; end %.75*bgcolor+.25*(2/6*.5+.5*[1/6,2/6,4/6]); end
         if isempty(string), string=' '; end
 		if ~isempty(regexp(type,'popupbig')), 
-            h=uicontrol('style','frame','units','norm','position',position,'backgroundcolor',bgcolor,'foregroundcolor',bgcolor,'parent',CONN_h.screen.hfig);
+            if ~skipborders, h=uicontrol('style','frame','units','norm','position',position,'backgroundcolor',bgcolor,'foregroundcolor',bgcolor,'parent',CONN_h.screen.hfig); end
             h=uicontrol('style','popupmenu','units','norm','position',position+[.01 .005 -.02 -.01],'backgroundcolor',bgcolor,'string',cellstr(string),'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,opts{:},'parent',CONN_h.screen.hfig);
         else
             h=uicontrol('style','popupmenu','units','norm','position',position,                     'backgroundcolor',bgcolor,'string',cellstr(string),'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,opts{:},'parent',CONN_h.screen.hfig);
@@ -248,16 +289,18 @@ switch(lower(type)),
         tpos=tpos+[0,tpos(4)-tpos2(4)-4*CONN_gui.uicontrol_border,0,tpos2(4)-tpos(4)+4*CONN_gui.uicontrol_border]; 
         %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-2,0,2-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm'),...
         
-        %uicontrol('style','checkbox','units','pixels','position',tpos+[tpos(3)-18,tpos(4)-12,10-tpos(3),10-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'cdata',max(0,min(1,conn_bsxfun(@plus,shiftdim(bgcolor,-1),conn_bsxfun(@times,shiftdim(bgcolor-bgcolor,-1),[0 0 0 0 0 0 0;0 0 0 0 0 0 0;1 1 1 1 1 1 1;0 1 1 1 1 1 0;0 0 1 1 1 0 0;0 0 0 1 0 0 0;0 0 0 0 0 0 0;0 0 0 0 0 0 0])))),'units','norm');
-        htb=[];
-        htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_borderpopup,0,CONN_gui.uicontrol_borderpopup-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-            uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-            uicontrol('style','frame','units','pixels','position',tpos+[0,0-xtraborder,0,5+CONN_gui.uicontrol_border-tpos(4)+xtraborder],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-            uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
-        %if strcmpi(type,'popupbigblue'), delete(htb(3)); end
-        %uicontrol('style','frame','units','pixels','position',tpos+[0-3,tpos(4)-11,3-tpos(3),3-tpos(4)],'foregroundcolor',CONN_gui.fontcolorB,'backgroundcolor',CONN_gui.fontcolorB,'units','norm');
         set(h,'units','norm');
-        if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
+        %uicontrol('style','checkbox','units','pixels','position',tpos+[tpos(3)-18,tpos(4)-12,10-tpos(3),10-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'cdata',max(0,min(1,conn_bsxfun(@plus,shiftdim(bgcolor,-1),conn_bsxfun(@times,shiftdim(bgcolor-bgcolor,-1),[0 0 0 0 0 0 0;0 0 0 0 0 0 0;1 1 1 1 1 1 1;0 1 1 1 1 1 0;0 0 1 1 1 0 0;0 0 0 1 0 0 0;0 0 0 0 0 0 0;0 0 0 0 0 0 0])))),'units','norm');
+        htb=[]; 
+        if ~skipborders,
+            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_borderpopup,0,CONN_gui.uicontrol_borderpopup-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                uicontrol('style','frame','units','pixels','position',tpos+[0,0-xtraborder,0,5+CONN_gui.uicontrol_border-tpos(4)+xtraborder],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
+            %if strcmpi(type,'popupbigblue'), delete(htb(3)); end
+            %uicontrol('style','frame','units','pixels','position',tpos+[0-3,tpos(4)-11,3-tpos(3),3-tpos(4)],'foregroundcolor',CONN_gui.fontcolorB,'backgroundcolor',CONN_gui.fontcolorB,'units','norm');
+        end
         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
         %if doemphasis2&&~(strcmpi(type,'popupbigblue')||strcmpi(type,'popupblue')), conn_menumanager('onregion',h,0,get(h,'position')); end
 	case {'checkbox','checkbox2'}
@@ -426,15 +469,16 @@ switch(lower(type)),
 % 		set([h.h2],'userdata',data);
 	case 'scatter',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
+        othercolor=.6*[1 1 .85];
 		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,position(4),0,.04-position(4)],'string',title,'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},'fontunits','norm','horizontalalignment','center','parent',CONN_h.screen.hfig); end
 		h.h1=axes('units','norm','position',position,'fontsize',8+CONN_gui.font_offset,'parent',CONN_h.screen.hfig); 
 		hold(h.h1,'on'); h.h2=plot(zeros(2,64),zeros(2,64),'.','parent',h.h1); hold(h.h1,'off');
         h.h2=fliplr(h.h2(:)');
 		hold(h.h1,'on'); h.h3=plot(0,0,'w:','parent',h.h1); hold(h.h1,'off');
         h.mapcolor=mapcolor;
-        set(h.h2(1),'color',.75/2*[1,1,1]);set(h.h2(2),'color',1/2*[1,1,0]); 
-        set(h.h2(3),'color',.75/4*[1,1,1]);set(h.h2(4),'color',1/4*[1,1,0]); 
-		set(h.h1,'color',CONN_gui.backgroundcolor,'xcolor',.5+0.0*([0 0 0]+(mean(CONN_gui.backgroundcolor)<.5)),'ycolor',.5+0.0*([0 0 0]+(mean(CONN_gui.backgroundcolor)<.5)),'visible','off'); 
+        set(h.h2(1),'color',.75/2*[1,1,1]);set(h.h2(2),'color',othercolor); 
+        set(h.h2(3),'color',.75/4*[1,1,1]);set(h.h2(4),'color',1/2*othercolor); 
+		set(h.h1,'color',CONN_gui.backgroundcolor,'xcolor',mod(mean(CONN_gui.backgroundcolor)+.55,1)*[1 1 1],'ycolor',mod(mean(CONN_gui.backgroundcolor)+.55,1)*[1 1 1],'visible','off'); 
         grid(h.h1,'on');
         set([h.h1,h.h2,h.h3],'visible','off');
 	case 'hist',
@@ -449,7 +493,7 @@ switch(lower(type)),
 		h.h7=text(0,0,'after denoising','fontsize',8+CONN_gui.font_offset,'parent',h.h1); 
         hold(h.h1,'on'); h.h8=plot(nan,nan,'.','color',.75*[1 1 1]);hold(h.h1,'off'); 
         h.mapcolor=mapcolor;
-		set(h.h1,'color',CONN_gui.backgroundcolor,'ytick',[],'xcolor',.5+0.0*([0 0 0]+(mean(CONN_gui.backgroundcolor)<.5)),'ycolor',CONN_gui.backgroundcolor,'visible','off'); 
+		set(h.h1,'color',CONN_gui.backgroundcolor,'ytick',[],'xcolor',mod(mean(CONN_gui.backgroundcolor)+.55,1)*[1 1 1],'ycolor',CONN_gui.backgroundcolor,'visible','off'); 
         set([h.h1,h.h2,h.h3,h.h4,h.h5,h.h6,h.h7,h.h8],'visible','off');
 	case 'filesearchprojectload',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -489,7 +533,7 @@ switch(lower(type)),
 			'title',title,'filter',string,'callback',callback,'max',1,'localcopy',1);
 	case {'frame','framewhite','framehighlight','framewhitehighlight','frame2highlight','frame2','frame2blue','framewhitenoborder','framewhitesemiborder','framewhiteborderl','frameblue','frame2blue','framebluenoborder','framebluesemiborder','frameblueborderl','frame2noborder','frame2semiborder','frame2border','frame2borderl'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-        if ~isempty(regexp(type,'white')),bgcolor=bgwhite; fgcolor=round(1-bgcolor); type=regexprep(type,'white',''); 
+        if ~isempty(regexp(type,'white')),bgcolor=bgwhite; fgcolor=[0 0 0]; type=regexprep(type,'white',''); 
         elseif ~isempty(regexp(type,'blue')),bgcolor=CONN_gui.backgroundcolorE; fgcolor=[0 0 0]; type=regexprep(type,'blue',''); 
         else fgcolor=[]; 
         end
@@ -516,11 +560,11 @@ switch(lower(type)),
                 %if strcmpi(type,'frame'), temp=(position+[0,position(4),0,0]).*[1,1,1,0]+[.005,0,-.010,.039];
                 else temp=(position+[position(3)*0,position(4),0,0]).*[1,1,1,0]+[1*.001,0,1*-.002,.049];
                 end
-                h2=uicontrol('style','frame','units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig);
+                if CONN_gui.isjava, h2=uicontrol('style','frame','units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig); end
                 h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
                 if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
-                if strcmpi(type,'frame'), set(h2,'fontsize',18+CONN_gui.font_offset,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
-                else set(h2,'foregroundcolor',.5*[1 1 1],'fontweight','normal'); 
+                if strcmpi(type,'frame'), set(h2,'fontsize',22+CONN_gui.font_offset,'foregroundcolor',mod(mean(bg2)-.45,1)*[1 1 1],'fontweight','normal'); 
+                else set(h2,'foregroundcolor',mod(mean(bg2)-.45,1)*[1 1 1],'fontweight','normal'); 
                 end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
             else
                 %h2=conn_menu('pushbutton2',(position+[0,position(4),0,0]).*[1,1,1,0]+[0,0*.01,0,.04],'',title);
@@ -553,7 +597,7 @@ switch(lower(type)),
             %%b1=max(0,min(1, b1));
             %%if strcmpi(type,'frame')||strcmpi(type,'frame2border'), b1=.5*b1; end
             if strcmpi(type,'frame'), 
-                bg2=1*max(0,min(1,CONN_gui.backgroundcolor)); lw2=1; % border emphasis
+                bg2=1*max(0,min(1,CONN_gui.backgroundcolor)); lw2=2; % border emphasis
             elseif strcmpi(type,'frame2border')
                 bg2=max(0,min(1,CONN_gui.backgroundcolor-.05)); lw2=1;
             elseif strcmpi(type,'frame2borderl')
@@ -632,12 +676,13 @@ switch(lower(type)),
 			set([position.h1,position.h2,position.h3,position.h4,position.h5,position.h6,position.h7],'visible','off'); 
         else 
             skiptitles=false;
-            set(position.h3,'xdata',title{1},'ydata',title{2},'facecolor',[.5,.5,0],'facealpha',1,'edgecolor','none');
+            othercolor=.6*[1 1 .85];
+            set(position.h3,'xdata',title{1},'ydata',title{2},'facecolor',othercolor,'facealpha',1,'edgecolor','none');
             if numel(title)<3, title{3}=title{2}; skiptitles=true; subtitle=''; 
             elseif ischar(title{3}), skiptitles=true; subtitle=title{3}; title{3}=title{2}; 
             end
             set(position.h4,'xdata',title{1},'ydata',title{3},'facecolor',[.35,.35,.35],'facealpha',1,'edgecolor','none');
-            set(position.h5,'xdata',title{1},'ydata',min(title{2},title{3}),'facecolor',.75*[.35,.35,.35]+.25*[.5,.5,0],'facealpha',1,'edgecolor','none');
+            set(position.h5,'xdata',title{1},'ydata',min(title{2},title{3}),'facecolor',.75*[.35,.35,.35]+.25*othercolor,'facealpha',1,'edgecolor','none');
             set(position.h2,'xdata',[0,0],'ydata',[0,max(max(title{2}),max(title{3}))*1.35],'color','w');
             axis(position.h1,'tight');
             [nill,idxtemp]=max(title{3});
@@ -648,7 +693,7 @@ switch(lower(type)),
             elseif ybak1>ybak2&&(ybak1-ybak2)/max(ybak2,ybak1)<.15, ybak1=ybak2+.15*max(ybak1,ybak2);
             end
             set(position.h6,'position',[xbak1,ybak1,1],'color',.75/2*[1,1,1],'horizontalalignment','center','verticalalignment','bottom');
-            set(position.h7,'position',[xbak2,ybak2,1],'color',1/2*[1,1,0],'horizontalalignment','center','verticalalignment','bottom');
+            set(position.h7,'position',[xbak2,ybak2,1],'color',othercolor,'horizontalalignment','center','verticalalignment','bottom');
             if skiptitles, 
                 if ~isempty(subtitle), set(position.h6,'string',subtitle); set([position.h1,position.h2,position.h3,position.h4,position.h5,position.h6],'visible','on');
                 else set([position.h1,position.h2,position.h3,position.h4,position.h5],'visible','on');
@@ -995,9 +1040,9 @@ switch(lower(type)),
 			else  
 				if isstruct(title), title=permute(conn_spm_read_vols(title),[2,1,3,4]); end
                 if size(title,2)==1&&size(title,1)<=min(nmax,100),
-                    set(position.h4(1),'xdata',(1:size(title,1))','ydata',title,'zdata',title,'linestyle','none','marker','o','markerfacecolor','r','markeredgecolor','r','tag','plot');
-                    for n1=1:min(nmax-1,size(title,1)),set(position.h4(1+n1),'xdata',n1+[0 0],'ydata',[0 title(n1)],'zdata',title(n1)+[1 1],'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none');end
-                    set(position.h4(size(title,1)+2:nmax),'xdata',(1:size(title,1))','ydata',zeros(size(title,1),1),'zdata',zeros(size(title,1),1),'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none');
+                    set(position.h4(1),'xdata',(1:size(title,1))','ydata',title,'zdata',title,'linestyle','none','marker','o','markerfacecolor','r','markeredgecolor','r','tag','plot','visible','on');
+                    for n1=1:min(nmax-1,size(title,1)),set(position.h4(1+n1),'xdata',n1+[0 0],'ydata',[0 title(n1)],'zdata',title(n1)+[1 1],'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none','visible','on');end
+                    set(position.h4(size(title,1)+2:nmax),'xdata',(1:size(title,1))','ydata',zeros(size(title,1),1),'zdata',zeros(size(title,1),1),'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none','visible','off');
                     %for n1=size(title,1)+2:nmax,set(position.h4(n1),'xdata',(1:size(title,1))','ydata',zeros(size(title,1),1),'zdata',zeros(size(title,1),1),'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none');end
                 else
                     titleraw=title;
@@ -1028,14 +1073,14 @@ switch(lower(type)),
                     else offsets=0; markers={'marker','o','markerfacecolor','r','markeredgecolor','r'};
                     end
                     colors=get(position.h3,'colorOrder');
-                    for n1=1:size(title,2),set(position.h4(n1),'xdata',(1:size(title,1))','ydata',title(:,n1),'zdata',titleraw(:,n1),'linestyle','-','color',colors(1+mod(n1,size(colors,1)),:),'tag','plot',markers{:});end
-                    for n1=size(title,2)+1:nmax,set(position.h4(n1),'xdata',(1:size(title,1))','ydata',offsets(1+mod(n1-1,numel(offsets)))+zeros(size(title,1),1),'zdata',zeros(size(title,1),1),'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none');end
+                    for n1=1:size(title,2),set(position.h4(n1),'xdata',(1:size(title,1))','ydata',title(:,n1),'zdata',titleraw(:,n1),'linestyle','-','color',colors(1+mod(n1,size(colors,1)),:),'tag','plot','visible','on',markers{:});end
+                    for n1=size(title,2)+1:nmax,set(position.h4(n1),'xdata',(1:size(title,1))','ydata',offsets(1+mod(n1-1,numel(offsets)))+zeros(size(title,1),1),'zdata',zeros(size(title,1),1),'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none','visible','off');end
                 end
 				minmaxt=[min(0,min(title(:))),max(0,max(title(:)))]; set(position.h3,'xlim',[0,size(title,1)+1],'ylim',minmaxt*[1.1,-.1;-.1,1.1]+[-1e-10,1e-10]); 
                 data.buttondown=struct('callback',position.hcallback,'callbackclick',position.hcallback2);
                 set(position.h2,'userdata',data);
                 set(position.h4,'userdata',data);
-				set([position.h3,position.h4],'visible','on'); 
+				set([position.h3],'visible','on');  % [position.h3,position.h4]
                 set([position.h1,position.h2,position.h2b,position.h2c,position.h5,position.h5b,position.h7,position.h8,position.h8a,position.h9,position.h9a,position.h10,position.h10a,position.h11,position.h12,position.h13,position.h22],'visible','off'); 
                 conn_menumanager('onregionremove',position.h5);
                 conn_menumanager('onregionremove',position.h5b);

@@ -14,9 +14,9 @@ for n0=utypes(:)'
         c=zeros(1,n);
         c(idx)=1/numel(idx);
         contrasts{end+1}=c;
-        names{end+1}=['<HTML>(T-contrast) Main effect of <i>',strjoinstr(str(values(idx)),' & '),'</i>',' (',mat2str(contrasts{end},3),')'];
+        names{end+1}=['(T-contrast) Main effect of ',strjoinstr(str(values(idx)),' & '),'',' (',mat2str(contrasts{end},3),')'];
         if numel(idx)==numel(types),rnames{end+1}='Average';
-        else rnames{end+1}=['<HTML>Average of <i>',strjoinstr(str(values(idx)),' & '),'</i>'];
+        else rnames{end+1}=['Average of ',strjoinstr(str(values(idx)),' & '),''];
         end
     end
     if  numel(idx)>1&&numel(idx)<4
@@ -24,8 +24,8 @@ for n0=utypes(:)'
             for n2=idx(:)'
                 if n1~=n2,
                     contrasts{end+1}=full(sparse([1 1],[n1 n2],[1 -1],1,n));
-                    names{end+1}=['<HTML>(T-contrast) <i>',str{values(n1)},'</i> > <i>',str{values(n2)},'</i>',' (',mat2str(contrasts{end},3),')'];
-                    rnames{end+1}=['<HTML>Difference <i>',str{values(n1)},'</i> > <i>',str{values(n2)},'</i>'];
+                    names{end+1}=['(T-contrast) ',str{values(n1)},' > ',str{values(n2)},'',' (',mat2str(contrasts{end},3),')'];
+                    rnames{end+1}=['Difference ',str{values(n1)},' > ',str{values(n2)},''];
                 end
             end
         end
@@ -34,30 +34,30 @@ for n0=utypes(:)'
         c=zeros(numel(idx),n);
         c(:,idx)=eye(numel(idx));
         contrasts{end+1}=c;
-        names{end+1}=['<HTML>(F-contrast) Any effect among <i>',strjoinstr(str(values(idx)),' or '),'</i>',' (',mat2str(contrasts{end},3),')'];
+        names{end+1}=['(F-contrast) Any effect among ',strjoinstr(str(values(idx)),' or '),'',' (',mat2str(contrasts{end},3),')'];
         if numel(idx)==numel(types), rnames{end+1}='Any effects (F-test)';
-        else rnames{end+1}=['<HTML>Any effect among <i>',strjoinstr(str(values(idx)),' or '),'</i>'];
+        else rnames{end+1}=['Any effect among ',strjoinstr(str(values(idx)),' or '),''];
         end
     end
     if numel(idx)>2
         c=zeros(numel(idx)-1,n);
         c(:,idx)=convn(eye(numel(idx)),[1;-1],'valid');
         contrasts{end+1}=c;
-        names{end+1}=['<HTML>(F-contrast) Any difference between <i>',strjoinstr(str(values(idx)),' & '),'</i>',' (',mat2str(contrasts{end},3),')'];
+        names{end+1}=['(F-contrast) Any difference between ',strjoinstr(str(values(idx)),' & '),'',' (',mat2str(contrasts{end},3),')'];
         if numel(idx)==numel(types), rnames{end+1}='Any differences (F-test)';
-        else rnames{end+1}=['<HTML>Any difference between <i>',strjoinstr(str(values(idx)),' & '),'</i>'];
+        else rnames{end+1}=['Any difference between ',strjoinstr(str(values(idx)),' & '),''];
         end
     end
 end
 if n==1
     contrasts{end+1}=1;
-    names{end+1}=['<HTML>(T-contrast) Effect of <i>',str{values(1)},'</i>',' (',mat2str(contrasts{end},3),')'];
-    rnames{end+1}=['<HTML>Effect of <i>',str{values(1)},'</i>'];
+    names{end+1}=['(T-contrast) Effect of ',str{values(1)},'',' (',mat2str(contrasts{end},3),')'];
+    rnames{end+1}=['Effect of ',str{values(1)},''];
 else
     for n1=1:n,
         contrasts{end+1}=full(sparse(1,n1,1,1,n));
-        names{end+1}=['<HTML>(T-contrast) Simple main effect of <i>',str{values(n1)},'</i>',' (',mat2str(contrasts{end},3),')'];
-        rnames{end+1}=['<HTML>Effect of <i>',str{values(n1)},'</i>'];
+        names{end+1}=['(T-contrast) Simple main effect of ',str{values(n1)},'',' (',mat2str(contrasts{end},3),')'];
+        rnames{end+1}=['Effect of ',str{values(n1)},''];
     end
 end
 if n>1,%&&numel(utypes)>1
@@ -67,10 +67,10 @@ if n>1,%&&numel(utypes)>1
 end
 hc0=get(handle,'userdata');
 if isempty(hc0), 
-    hc0=conn_menu('popup',get(handle,'position')*[1 0 0 0;0 1 0 0;0 0 1 0;0 -1 0 1],'',[{'<HTML><i>custom contrast</i></HTML>'},rnames],['List of suggested possible contrasts for the selected set of ',title],@(varargin)conn_contrasthelpcallback(handle,contrasts));
+    hc0=conn_menu('popup',get(handle,'position')*[1 0 0 0;0 1 0 0;0 0 1 0;0 -1 0 1],'',[{'custom contrast'},rnames],['List of suggested possible contrasts for the selected set of ',title],@(varargin)conn_contrasthelpcallback(handle,contrasts));
     set(handle,'value',1,'userdata',hc0);
     set(hc0,'fontsize',get(hc0,'fontsize'));
-else set(hc0,'string',[{'<HTML><i>custom contrast</i></HTML>'},rnames],'value',1,'callback',@(varargin)conn_contrasthelpcallback(handle,contrasts));
+else set(hc0,'string',[{'custom contrast'},rnames],'value',1,'callback',@(varargin)conn_contrasthelpcallback(handle,contrasts));
 end
 contrast_value=full(str2num(get(handle,'string')));
 findval=find(cellfun(@(x)isequal(full(x),contrast_value),contrasts));

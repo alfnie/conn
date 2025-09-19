@@ -177,7 +177,7 @@ switch(spm_ver),
     case 'SPM5', spm_ver=5;
     case {'SPM8b','SPM8'}, spm_ver=8;
     case {'SPM12b','SPM','SPM12'}, spm_ver=12;
-    otherwise, art_disp(['Warning! unrecognized SPM version ',spm_ver]); spm_ver=12;
+    otherwise, spm_ver=12;
 end
 
 %clear data from previous sessions
@@ -1898,7 +1898,7 @@ if (isempty(SPM))
         case 'SPM5', spm_ver=5;
         case {'SPM8b','SPM8'}, spm_ver=8;
         case {'SPM12b','SPM12'}, spm_ver=12;
-        otherwise, art_disp(['Warning! unrecognized SPM version ',spm_ver]); spm_ver=8;
+        otherwise, spm_ver=12;
     end
     switch spm_ver
         case {1,2}

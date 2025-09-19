@@ -196,7 +196,7 @@ if ischar(handle),
                 if ~isequal(md,CONN_MM.onregioninside)
                     CONN_MM.private.time=clock;
                     match=conn_bsxfun(@eq,CONN_MM.onregioninside',md);
-                    for n0=CONN_MM.onregioninside(~any(match,2)'),%reshape(setdiff(CONN_MM.onregioninside,md),1,[]) %out
+                    for n0=CONN_MM.onregioninside(~any(match,2)'),%reshape(setdiff(CONN_MM.onregioninside,md),1,[]) % going out of these regions
                         if n0>0
                             if ~isempty(CONN_MM.onregioncallback{n0})&&CONN_MM.onregionvisible(n0)~=2,
                                 if ishandle(CONN_MM.onregioncallback{n0}), cond=all(strcmp(get(CONN_MM.onregioncallback{n0},'visible'),'on')); %if ~cond, offregions=[offregions CONN_MM.onregionhandle{n0}]; end
@@ -213,16 +213,16 @@ if ischar(handle),
                     end
 %                 elseif etime(clock,CONN_MM.private.time)>.025
 %                     for n0=md,%setdiff(md,CONN_MM.onregioninside) %in
-                    for n0=md(~any(match,1)),%reshape(setdiff(md,CONN_MM.onregioninside),1,[]) %in
+                    for n0=md(~any(match,1)),%reshape(setdiff(md,CONN_MM.onregioninside),1,[]) % going into these regions
                         if ~isempty(CONN_MM.onregioncallback{n0})&&CONN_MM.onregionvisible(n0)~=2,
                             if ishandle(CONN_MM.onregioncallback{n0}), cond=all(strcmp(get(CONN_MM.onregioncallback{n0},'visible'),'on')); %if ~cond, offregions=[offregions CONN_MM.onregionhandle{n0}]; end
                             else cond=all(feval(CONN_MM.onregioncallback{n0},CONN_MM.onregionhandle{n0}));
                             end
                         else cond=1; end
                         if cond&&all(ishandle(CONN_MM.onregionhandle{n0})),
-                            if CONN_MM.onregionvisible(n0)==1, onregions=[onregions CONN_MM.onregionhandle{n0}]; %set(CONN_MM.onregionhandle{n0},'visible','on');
-                            elseif CONN_MM.onregionvisible(n0)==-1, offregions=[offregions CONN_MM.onregionhandle{n0}]; %set(CONN_MM.onregionhandle{n0},'visible','off');
-                            elseif CONN_MM.onregionvisible(n0)==0, colorC=[colorC CONN_MM.onregionhandle{n0}]; 
+                            if CONN_MM.onregionvisible(n0)==1, onregions=[onregions CONN_MM.onregionhandle{n0}]; %set(CONN_MM.onregionhandle{n0},'visible','on'); % make visible when over this region
+                            elseif CONN_MM.onregionvisible(n0)==-1, offregions=[offregions CONN_MM.onregionhandle{n0}]; %set(CONN_MM.onregionhandle{n0},'visible','off'); % make invisible when over this region
+                            elseif CONN_MM.onregionvisible(n0)==0, colorC=[colorC CONN_MM.onregionhandle{n0}]; % change color when over this region
                             end
                         end
                     end
@@ -233,14 +233,24 @@ if ischar(handle),
                     if ~isempty(colorB), colorB=colorB(arrayfun(@(x)~strcmp(get(x,'style'),'popupmenu'),colorB)); end
                     if ~isempty(colorC), colorC=colorC(arrayfun(@(x)~strcmp(get(x,'style'),'popupmenu'),colorC)); end
                 end
+                if ~CONN_gui.isjava
+                    if ~isempty(colorB), colorB=colorB(arrayfun(@(x)~strcmp(get(x,'style'),'pushbutton'),colorB)); end
+                    if ~isempty(colorC), colorC=colorC(arrayfun(@(x)~strcmp(get(x,'style'),'pushbutton'),colorC)); end
+                end
                 %if ~isempty(colorB), set(colorB,'foregroundcolor',[.4 .4 .4]+.2*(mean(CONN_gui.backgroundcolor)<.5)); end
                 %if ~isempty(colorC), set(colorC,'foregroundcolor',[0 0 0]+1*(mean(CONN_gui.backgroundcolor)<.5)); end
-                if ~isempty(colorB), for n1=1:numel(colorB), set(colorB(n1),'foregroundcolor',[.4 .4 .4]+.2*(mean(get(colorB(n1),'backgroundcolor'))<.5)); 
-                        %if isequal(get(colorB(n1),'style'),'popupmenu'), set(colorB(n1),'position',get(colorB(n1),'position')*[1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 2]); end
+                if CONN_gui.isjava
+                    if ~isempty(colorB), for n1=1:numel(colorB), set(colorB(n1),'foregroundcolor',[.4 .4 .4]+.2*(mean(get(colorB(n1),'backgroundcolor'))<.5)); % color when going out
                     end; end
-                if ~isempty(colorC), for n1=1:numel(colorC), set(colorC(n1),'foregroundcolor',[0 0 0]+1*(mean(get(colorC(n1),'backgroundcolor'))<.5)); 
-                        %if isequal(get(colorC(n1),'style'),'popupmenu'), set(colorC(n1),'position',get(colorC(n1),'position')*[1 0 0 0;0 1 0 0;0 0 1 0;0 0 0 .5]); end
+                    if ~isempty(colorC), for n1=1:numel(colorC), set(colorC(n1),'foregroundcolor',[0 0 0]+1*(mean(get(colorC(n1),'backgroundcolor'))<.5)); % color when going in
                     end; end
+                else
+                    if ~isempty(colorB), for n1=1:numel(colorB), set(colorB(n1),'foregroundcolor', CONN_gui.fontcolorB,'backgroundcolor',CONN_gui.backgroundcolor);
+                    end; end
+                    if ~isempty(colorC), for n1=1:numel(colorC), set(colorC(n1),'foregroundcolor',[0 0 0],'backgroundcolor',max(0,min(1,CONN_gui.backgroundcolorA+.05)));
+                    %if ~isempty(colorC), for n1=1:numel(colorC), set(colorC(n1),'foregroundcolor',[0 0 0]+1*(mean(get(colorC(n1),'backgroundcolor'))<.5),'backgroundcolor',max(0,min(1,CONN_gui.backgroundcolorA-.1)));
+                    end; end
+                end
                 if CONN_gui.doemphasis3
                     if ~isempty(colorB), colorB=colorB(arrayfun(@(x)isequal(get(x,'backgroundcolor'),max(0,min(1,.9*CONN_gui.backgroundcolorA+.1*[.5 .5 .5]))),colorB)); end
                     if ~isempty(colorC), colorC=colorC(arrayfun(@(x)isequal(get(x,'backgroundcolor'),CONN_gui.backgroundcolorA),colorC)); end
@@ -353,11 +363,11 @@ if ischar(handle),
         case 'helpstring'
             bg=get(CONN_MM.gcf,'color');
             if ishandle(CONN_MM.HELP.handle), 
-                set(CONN_MM.HELP.handle,'string',[varargin{:}],'visible','on','color',1-bg);
+                set(CONN_MM.HELP.handle,'string',[varargin{:}],'visible','on','color',mod(bg-.3,1));
                 %set(CONN_MM.HELP.handle,'string',[varargin{:}],'visible','on','foregroundcolor',1-bg);
             else
                 ha=axes('units','norm','position',[.15,.02,.7,.03],'visible','off','parent',CONN_MM.gcf);
-                CONN_MM.HELP.handle=text(0,1,[varargin{:}],'color',1-bg,'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
+                CONN_MM.HELP.handle=text(0,1,[varargin{:}],'color',mod(bg-.3,1),'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
                 set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
                 %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string',[varargin{:}],'fontsize',8+CONN_gui.font_offset);
             end
@@ -408,6 +418,10 @@ else
             'off',0,...                                         % Set to 1 to hide the object
             'value',0,...                                       %  private (what item is mouse on)
             'handle',struct('axes',[],'image',[],'text',[]));   %  private (handles to draw objects)
+        if ~CONN_gui.isjava, 
+            params.fontcolor=[.25,.25,.25; 1,1,1;1,1,.9]; 
+            params.colorb=repmat([0.2917 0.2917 0.2917 ],[3,1]);
+        end
         for n1=1:2:nargin-2, params.(lower(varargin{n1}))=varargin{n1+1}; end
         if isempty(params.string), params.string=cell(1,params.n); end
         if isempty(params.callback), for n1=1:params.n, params.callback{n1}={}; end; end
@@ -621,7 +635,7 @@ else
                     end
                 else
                     ha=axes('units','norm','position',[.3,.015,.4,.03],'visible','off','parent',CONN_MM.gcf);
-                    CONN_MM.HELP.handle=text(0,1,CONN_MM.HELP.string,'color',1-bg,'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
+                    CONN_MM.HELP.handle=text(0,1,CONN_MM.HELP.string,'color',mod(bg-.3,1),'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
                     set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
                     %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string',CONN_MM.HELP.string,'fontsize',8+CONN_gui.font_offset); 
                 end
@@ -632,7 +646,7 @@ else
                     end
                 else
                     ha=axes('units','norm','position',[.3,.015,.4,.03],'visible','off','parent',CONN_MM.gcf);
-                    CONN_MM.HELP.handle=text(0,1,'','color',1-bg,'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
+                    CONN_MM.HELP.handle=text(0,1,'','color',mod(bg-.3,1),'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
                     set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
                     %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string','','fontsize',8+CONN_gui.font_offset); 
                 end
