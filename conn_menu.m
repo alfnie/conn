@@ -387,7 +387,7 @@ switch(lower(type)),
 		h.h7=axes('position',[position(1)-.015,position(2)+position(4)*.15,.01,position(4)*.7],'color',bgcolor,'xtick',[],'ytick',[],'parent',CONN_h.screen.hfig); 
 		h.h8=image((1:128)','parent',h.h7); 
         hold(h.h7,'on');h.h8a=text(.25,64.5,'0','color',.5*[1 1 1],'fontsize',6+CONN_gui.font_offset,'horizontalalignment','right','parent',h.h7);hold(h.h7,'off');
-        [h.h9,nill,h.h9a]=conn_menu(regexprep(type,{'imagep?','0$'},{'edit',''}),[position(1)-.015-.03,position(2)+position(4)*.85-.02,.03,.035],'',mat2str(data.cscale,2),'display colorscale',{@conn_menu,'updatecscale'});
+        [h.h9,nill,h.h9a]=conn_menu(regexprep(type,{'imagep?','0$'},{'edit',''}),[position(1)-.015-.015,position(2)+position(4)*.85-.02,.015,.035],'',mat2str(data.cscale,2),'display colorscale',{@conn_menu,'updatecscale'});
         set(h.h9,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','right');
         [h.h10,nill,h.h10a]=conn_menu(regexprep(type,{'imagep?','0$'},{'edit',''}),[position(1)+position(3)/2,position(2)-1*.05,min(position(3)/4,.05),.04],'',num2str(data.thr),'display threshold',{@conn_menu,'updatethr'});
 		h.h6a=uicontrol('units','norm','position',[.0001 .0001 .0001 .0001],'style','text','fontsize',8+CONN_gui.font_offset,'foregroundcolor',.75*[1 1 1],'backgroundcolor',.25*[1 1 1],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
@@ -563,8 +563,8 @@ switch(lower(type)),
                 if CONN_gui.isjava, h2=uicontrol('style','frame','units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig); end
                 h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
                 if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
-                if strcmpi(type,'frame'), set(h2,'fontsize',22+CONN_gui.font_offset,'foregroundcolor',mod(mean(bg2)-.45,1)*[1 1 1],'fontweight','normal'); 
-                else set(h2,'foregroundcolor',mod(mean(bg2)-.45,1)*[1 1 1],'fontweight','normal'); 
+                if strcmpi(type,'frame'), set(h2,'fontsize',24+CONN_gui.font_offset,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorB); %mod(mean(bg2)-.45,1)*[1 1 1]); 
+                else set(h2,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorB); %mod(mean(bg2)-.45,1)*[1 1 1]); 
                 end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
             else
                 %h2=conn_menu('pushbutton2',(position+[0,position(4),0,0]).*[1,1,1,0]+[0,0*.01,0,.04],'',title);
@@ -1041,8 +1041,8 @@ switch(lower(type)),
 				if isstruct(title), title=permute(conn_spm_read_vols(title),[2,1,3,4]); end
                 if size(title,2)==1&&size(title,1)<=min(nmax,100),
                     set(position.h4(1),'xdata',(1:size(title,1))','ydata',title,'zdata',title,'linestyle','none','marker','o','markerfacecolor','r','markeredgecolor','r','tag','plot','visible','on');
-                    for n1=1:min(nmax-1,size(title,1)),set(position.h4(1+n1),'xdata',n1+[0 0],'ydata',[0 title(n1)],'zdata',title(n1)+[1 1],'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none','visible','on');end
-                    set(position.h4(size(title,1)+2:nmax),'xdata',(1:size(title,1))','ydata',zeros(size(title,1),1),'zdata',zeros(size(title,1),1),'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none','visible','off');
+                    for n1=1:min(nmax-1,size(title,1)),set(position.h4(1+n1),'xdata',n1+[0 0],'ydata',[0 title(n1)],'zdata',title(n1)-[1 1],'linestyle',':','marker','none','color',mod(CONN_gui.backgroundcolor+.2,1),'tag','none','visible','on');end
+                    set(position.h4(size(title,1)+2:nmax),'xdata',(1:size(title,1))','ydata',zeros(size(title,1),1),'zdata',zeros(size(title,1),1),'linestyle',':','marker','none','color',CONN_gui.backgroundcolor,'tag','none','visible','off');
                     %for n1=size(title,1)+2:nmax,set(position.h4(n1),'xdata',(1:size(title,1))','ydata',zeros(size(title,1),1),'zdata',zeros(size(title,1),1),'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none');end
                 else
                     titleraw=title;
@@ -1073,7 +1073,7 @@ switch(lower(type)),
                     else offsets=0; markers={'marker','o','markerfacecolor','r','markeredgecolor','r'};
                     end
                     colors=get(position.h3,'colorOrder');
-                    for n1=1:size(title,2),set(position.h4(n1),'xdata',(1:size(title,1))','ydata',title(:,n1),'zdata',titleraw(:,n1),'linestyle','-','color',colors(1+mod(n1,size(colors,1)),:),'tag','plot','visible','on',markers{:});end
+                    for n1=1:size(title,2),set(position.h4(n1),'xdata',(1:size(title,1))','ydata',title(:,n1),'zdata',titleraw(:,n1),'linestyle','-','color',colors(1+mod(n1-1,size(colors,1)),:),'tag','plot','visible','on',markers{:});end
                     for n1=size(title,2)+1:nmax,set(position.h4(n1),'xdata',(1:size(title,1))','ydata',offsets(1+mod(n1-1,numel(offsets)))+zeros(size(title,1),1),'zdata',zeros(size(title,1),1),'linestyle',':','marker','none','color',[.5 .5 .5],'tag','none','visible','off');end
                 end
 				minmaxt=[min(0,min(title(:))),max(0,max(title(:)))]; set(position.h3,'xlim',[0,size(title,1)+1],'ylim',minmaxt*[1.1,-.1;-.1,1.1]+[-1e-10,1e-10]); 

@@ -1,5 +1,8 @@
 
 function varargout=conn_qcoptimize(varargin)
+% internal function - in development
+% optimize denoising parameters (maximizing null-hypothesis overlap measure in QC-FC correlations)
+%
 
 global CONN_x CONN_gui;
 

@@ -111,7 +111,7 @@ function varargout=conn_module(option,varargin)
 %    Note: before using conn_module functionality with externally defined data it is recommended to close CONN's gui in order to avoid potentially loosing any unsaved changes
 %    
 
-persistent defaults modules modulespath;
+persistent defaults modules modulespath cpm_lastjob;
 
 if isempty(defaults), defaults=struct('mat_format','-v7.3'); end
 if isempty(modules), 
@@ -491,6 +491,215 @@ switch(lower(option))
         end
         conn_batch(Batch);
         
+    case 'cpm'
+        switch(lower(varargin{1}))
+            case {'create','predict'}
+                filename_project=varargin{2}; 
+                options=struct('predictor',[],'outcome',[],'covariate',[],'fit',false,'null',false,'parallel',false,'nnull',100,'folder','');
+                validfields=fieldnames(options);
+                for n=3:2:numel(varargin)-1
+                    fieldname=lower(varargin{n});
+                    fieldvalue=varargin{n+1};
+                    assert(isfield(options,fieldname),'incorrect field %s (valid field names: %s)',fieldname,sprintf('%s ',validfields{:}));
+                    options=setfield(options,fieldname,fieldvalue);
+                end
+                if ischar(options.fit), options.fit=str2num(options.fit); end
+                if ischar(options.null), options.null=str2num(options.null); end
+                if ischar(options.parallel), options.parallel=str2num(options.parallel); end
+                if ischar(options.nnull), options.nnull=str2num(options.nnull); end
+                if isempty(options.folder), options.folder=pwd; end
+                data_type='unknown';
+                do_gui=(isempty(options.predictor)|isempty(options.outcome))&~options.parallel;
+                if isempty(options.predictor)||ischar(options.predictor)
+                    if isempty(options.predictor), 
+                        disp('Select file containing PREDICTOR MEASURES'); 
+                        [tfilename,tpathname]=uigetfile({ '*',  'All Files (*)'; '*.mtx.nii','matrix NIFTI files (*.mtx.nii)'; '*.surf.nii','surface NIFTI files (*.surf.nii)'; '*.nii','volume NIFTI files (*.nii)'},'Select file with PREDICTOR MEASURES');
+                        if ~ischar(tfilename)||isempty(tfilename), return; end
+                        options.predictor=fullfile(tpathname,tfilename);
+                    end
+                    if ~isempty(regexp(options.predictor,'\.mtx\.nii$'))
+                        [data_predictor,info{1:3}]=conn_mtx_read(options.predictor); % info: names,coords,samples
+                        data_predictor=reshape(data_predictor,[],size(data_predictor,3))'; % samples x connections
+                        data_type='mtx';
+                    elseif ~isempty(regexp(options.predictor,'\.surf\.nii$'))
+                        data_predictor=conn_surf_read(options.predictor);
+                        data_predictor=data_predictor'; % samples x vertices
+                        data_type='surf';
+                    else
+                        [data_predictor,info]=conn_vol_read(options.predictor);
+                        data_type='vol';
+                        data_predictor=reshape(data_predictor,[],size(data_predictor,4))'; % samples x voxels
+                    end
+                else 
+                    data_predictor=options.predictor;
+                end
+                if strcmp(lower(varargin{1}),'predict')
+                    load(conn_prepend('',filename_project,'.mat'),'model');
+                    if isempty(options.covariate), Yfit = model.predict(data_predictor);
+                    else Yfit = model.predict(data_predictor,options.covariate);
+                    end
+                    if nargout>0, varargout={Yfit}
+                    else disp(Yfit);
+                    end
+                    return
+                end
+                if isempty(options.outcome)||ischar(options.outcome)
+                    if isempty(options.outcome)
+                        disp('Select file containing OUTCOME MEASURE'); 
+                        [tfilename,tpathname]=uigetfile({'*',  'All Files (*)';'*.mat','MATLAB file (*.mat)'; '*.csv','CSV file (*.csv)'},'Select file with OUTCOME MEASURE');
+                        if ~ischar(tfilename)||isempty(tfilename), return; end
+                        options.outcome=fullfile(tpathname,tfilename);
+                    end
+                    if ~isempty(regexp(options.outcome,'\.mat$'))
+                        data=load(options.outcome);
+                    else
+                        data=conn_loadtextfile(options.outcome)
+                    end
+                    if isfield(data,'B')&&isfield(data,'Bnames') % for .mat files that contain a "B" field ([samples x variables] values) and a "Bnames" field (variable names)
+                        fnames=data.Bnames;
+                        idx=1:numel(fnames);
+                        if numel(idx)>1
+                            disp('Select outcome measure');
+                            nselect=listdlg('liststring',fnames(idx),'selectionmode','single','promptstring',{'Select Outcome Measure'},'ListSize',[500 200]);
+                            if isempty(nselect), return; end
+                            idx=idx(nselect);
+                        end
+                        options.outcome=data.B(:,idx);
+                    else % for .csv and for all other .mat files
+                        fnames=fieldnames(data);
+                        idx=find(cellfun(@(v)isnumeric(data.(v)),fnames));
+                        if numel(idx)>1
+                            disp('Select outcome measure');
+                            nselect=listdlg('liststring',fnames(idx),'selectionmode','single','promptstring',{'Select Outcome Measure'},'ListSize',[500 200]);
+                            if isempty(nselect), return; end
+                            idx=idx(nselect);
+                        end
+                        options.outcome=data.(fnames{idx});
+                    end
+                end
+                if size(options.outcome,1)~=size(data_predictor,1)&&size(options.outcome,2)==size(data_predictor,1), options.outcome=options.outcome'; end
+                if ~isempty(options.covariate)&&ischar(options.covariate)
+                    if isempty(options.covariate)
+                        disp('Select file containing COVARIATE MEASURE'); 
+                        [tfilename,tpathname]=uigetfile({ '*',  'All Files (*)'; '*.mat','MATLAB file (*.mat)'; '*.csv','CSV file (*.csv)'},'Select file with COVARIATE MEASURE');
+                        if ~ischar(tfilename)||isempty(tfilename), return; end
+                        options.covariate=fullfile(tpathname,tfilename);
+                    end
+                    if ~isempty(regexp(options.covariate,'\.mat$'))
+                        data=load(options.covariate);
+                    else
+                        data=conn_loadtextfile(options.covariate)
+                    end
+                    if isfield(data,'B')&&isfield(data,'Bnames') % for .mat files that contain a "B" field ([samples x variables] values) and a "Bnames" field (variable names)
+                        fnames=data.Bnames;
+                        idx=1:numel(fnames);
+                        if numel(idx)>1
+                            disp('Select covariate measure');
+                            nselect=listdlg('liststring',fnames(idx),'selectionmode','multiple','promptstring',{'Select Covariate Measure'},'ListSize',[500 200]);
+                            if isempty(nselect), return; end
+                            idx=idx(nselect);
+                        end
+                        options.covariate=data.B(:,idx);
+                    else
+                        fnames=fieldnames(data);
+                        idx=find(cellfun(@(v)isnumeric(data.(v)),fnames));
+                        if numel(idx)>1
+                            disp('Select covariate measure');
+                            nselect=listdlg('liststring',fnames(idx),'selectionmode','multiple','promptstring',{'Select Covariate Measure(s)'},'ListSize',[500 200]);
+                            if isempty(nselect), return; end
+                            idx=idx(nselect);
+                        end
+                        options.covariate=[]; for n=1:numel(idx), options.covariate=[options.covariate, data.(fnames{idx(n)})]; end
+                    end
+                end
+                if do_gui
+                    thfig=figure('units','norm','position',[.4,.4,.2,.3],'color',1*[1 1 1],'name','CPM options','numbertitle','off','menubar','none');
+                    uicontrol('style','text','units','norm','position',[.05,.7,.9,.10],'string','Other options (select all that apply)','backgroundcolor',1*[1 1 1]);
+                    ht1=uicontrol('style','checkbox','units','norm','position',[.2,.55,.6,.10],'string','Compute fit values','value',options.fit,'backgroundcolor',1*[1 1 1],'tooltipstring','Computes fit values in training dataset using nested crossvalidation');
+                    ht2=uicontrol('style','checkbox','units','norm','position',[.2,.45,.6,.10],'string','Compute p values','value',options.null,'backgroundcolor',1*[1 1 1],'tooltipstring','Computes null-hypothesis distribution of MSE scores using permutation analyses');
+                    ht3=uicontrol('style','checkbox','units','norm','position',[.2,.35,.6,.10],'string','Run in background','value',options.parallel,'backgroundcolor',1*[1 1 1],'tooltipstring','Runs remotely or in background using default HPC settings in CONN');
+                    uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.10],'callback','uiresume');
+                    uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.10],'callback','delete(gcbf)');
+                    uiwait(thfig);
+                    if ~ishandle(thfig), return; end
+                    options.fit=get(ht1,'value');
+                    options.null=get(ht2,'value');
+                    options.parallel=get(ht3,'value');
+                    delete(thfig);
+                    drawnow;
+                end
+                if options.parallel
+                    cpm_lastjob = conn('submit',mfilename,option,varargin{:},'predictor',options.predictor,'outcome',options.outcome,'covariate',options.covariate,'fit',options.fit,'null',options.null,'parallel',false,'folder',options.folder);
+                    varargout={cpm_lastjob};
+                    return
+                end                
+                if options.fit
+                    [model,Yfit]=conn_clusterregress(data_predictor,options.outcome,'covariates',options.covariate);
+                    fprintf('Model %s: MSE = %f\n',filename_project,model.fit.MSE_std);
+                else
+                    [model]=conn_clusterregress(data_predictor,options.outcome,'covariates',options.covariate);
+                    fprintf('Model %s: MSE = %f\n',filename_project,model.error.MSE_std);
+                    Yfit = [];
+                end
+                save(fullfile(options.folder,conn_prepend('',filename_project,'.mat')), 'model', 'Yfit', 'options');
+                switch(data_type)
+                    case 'mtx', conn_mtx_write(fullfile(options.folder,conn_prepend('',filename_project,'.mtx.nii')),reshape(model.parameters.B_std,sqrt(numel(model.parameters.B_std))*[1 1]),info{1:2});
+                    case 'surf',conn_surf_write(fullfile(options.folder,conn_prepend('',filename_project,'.surf.nii')),model.parameters.B_std);
+                    case 'vol', conn_vol_write(fullfile(options.folder,conn_prepend('',filename_project,'.nii')),reshape(model.parameters.B_std,info.dim(1:3)),info);
+                end
+                if options.null
+                    rand('state',0);
+                    clear ModelNull;
+                    mse=[];
+                    for n=1:options.nnull,
+                        randidx=randperm(size(data_predictor,1));
+                        model=conn_clusterregress(data_predictor,options.outcome(randidx,:),'covariates',options.covariate);
+                        ModelNull(n)=model;
+                        mse(n)=Model(n).error.MSE_std;
+                        fprintf('Model NULL %d: MSE = %f\n',n,mse(n));
+                    end
+                    p = mean(mse<=model.error.MSE_std); 
+                    fprintf('Model %s: MSE = %f ; p = %f\n',filename_project,model.error.MSE_std,p);
+                    save(fullfile(options.folder,conn_prepend('',filename_project,'.null.mat')),'ModelNull', 'p');
+                end
+
+            case {'parallel.status','parallel_status'}
+                if ~isempty(cpm_lastjob)
+                    conn_jobmanager('statusjob', cpm_lastjob, [], true, true);
+                end
+
+            case {'display.scatter','display_scatter'}
+                filename_project=varargin{2}; 
+                load(conn_prepend('',filename_project,'.mat'), 'model','options');
+                assert(isfield(model,'fit'),'Fit values not computed yet. Please run CPM using the syntax conn_module(''CPM'',...,''fit'', true) to compute fit values for the training set');
+                figure;
+                conn_menu_plotscatter( options.outcome, model.fit.Yfit, varargin(3:end));
+                xlabel 'Outcome measure';
+                ylabel 'Predicted values';
+
+            case {'display.forward','display_forward'}
+                filename_project=varargin{2}; 
+                load(conn_prepend('',filename_project,'.mat'), 'options');
+                if (iscell(options.predictor)||ischar(options.predictor))&&~all(conn_existfile(options.predictor)), 
+                    fprintf('warning: unable to find data file %s\n',options.predictor);
+                    options.predictor=regexprep(options.predictor,'.*[\/\\]','');
+                    assert(all(conn_existfile(options.predictor)),'unable to find data file %s',options.predictor);
+                end                
+                conn_module('glm','data',options.predictor,'design_matrix',[ones(size(options.outcome,1),1),options.outcome],'contrast_between',[zeros(size(options.outcome,2),1), eye(size(options.outcome,2))],'folder',filename_project);
+
+            case 'display'
+                filename_project=varargin{2}; 
+                dispoptions=varargin(3:end);
+                if conn_existfile(conn_prepend('',filename_project,'.mtx.nii'))
+                    if isempty(dispoptions), dispoptions={'top100'};end
+                    conn_mtx_braindisplay(conn_prepend('',filename_project,'.mtx.nii'), dispoptions{:});
+                elseif conn_existfile(conn_prepend('',filename_project,'.surf.nii'))
+                    conn_mesh_display(conn_prepend('',filename_project,'.surf.nii'),dispoptions{:});
+                elseif conn_existfile(conn_prepend('',filename_project,'.vol.nii'))
+                    conn_mesh_display(conn_prepend('',filename_project,'.nii'),dispoptions{:});
+                end
+        end
+
     case 'glm'        
         % loads .cfg files
         options=struct;

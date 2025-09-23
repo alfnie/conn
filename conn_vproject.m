@@ -728,7 +728,8 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                         end
                         if ~isfield(info,'ROIinfo'), info.ROIinfo=[]; end
                         if ~isfield(info,'gui'), info.gui=true; end
-                        conn_rex('test',xX,info.ROIdata(:,s),c,cname,{info.ROInames{s}},s,info.ROIinfo,mstats,mcon,info.SPM.SPM,true);
+                        PLOTBETA=true; % true: displays size of regressor effects; false: displays size of contrast effects
+                        conn_rex('test',xX,info.ROIdata(:,s),c,cname,{info.ROInames{s}},s,info.ROIinfo,mstats,mcon,info.SPM.SPM,true,PLOTBETA);
                     end
                 end
                 cd(cwd);

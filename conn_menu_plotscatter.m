@@ -1,4 +1,4 @@
-function handles=conn_menu_plotscatter(x,y,varargin)
+function handles=conn_menu_plotscatter(x,y,order,varargin)
 % CONN_MENU_PLOTSCATTER scatter plot with confidence intervals
 %    dots       : x/y data
 %    black line : linear regression fit
@@ -13,10 +13,12 @@ function handles=conn_menu_plotscatter(x,y,varargin)
 % y=x+randn(10,1);
 % conn_menu_plotscatter(x,y)
 %
+if nargin<3||isempty(order), order=1; end % linear fit
+
 mask=~isnan(x)&~isnan(y);
 x=x(mask); y=y(mask);
 N=numel(x);
-X=[ones(N,1),x(:)];
+X=[ones(N,1),conn_bsxfun(@power,x(:),(1:order))];
 B=X\y(:);
 yfit=X*B;
 mx=mean(x(:));
@@ -25,11 +27,11 @@ sy=sum(abs(y(:)-yfit).^2);
 
 mm=[min(x), max(x)];
 tx=linspace(mm*[1.1;-.1],mm*[-.1;1.1],100)';
-ty=[ones(100,1) tx]*B;
-RMSE=sqrt(sy/(N-2));
+ty=[ones(100,1) conn_bsxfun(@power,tx,(1:order))]*B;
+RMSE=sqrt(sy/(N-1-order));
 SE1=RMSE*sqrt(1/N + (tx-mx).^2 ./ sx);
 SE2=RMSE*sqrt(1 + 1/N + (tx-mx).^2 ./ sx);
-k=spm_invTcdf(.975,N-2); % note: 95% ci's
+k=spm_invTcdf(.975,N-1-order); % note: 95% ci's
 
 cla;
 hold on;

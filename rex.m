@@ -1422,12 +1422,15 @@ ResMS=ResSS/xX.trRV;
 end
 
 % ESTIMATES CONTRAST IN SPM
-function [cbeta,CI,F_T,F_p,F_P,F_dof,F_statsname]=rex_test(xX,Y,c,effnames,roinames,s,ROIinfo,mstats,mcon,SPM,dogui)
+function [cbeta,CI,F_T,F_p,F_P,F_dof,F_statsname]=rex_test(xX,Y,c,effnames,roinames,s,ROIinfo,mstats,mcon,SPM,dogui,showindividualeffects)
 global CONN_gui
+if nargin<12||isempty(showindividualeffects), showindividualeffects=true; end
 SMPDISP=true; % simplified display
 F_c=c;
 idxc=find(any(c,1));
-c=full(sparse(1:numel(idxc),idxc,1,numel(idxc),size(c,2)));
+if showindividualeffects,
+    c=full(sparse(1:numel(idxc),idxc,1,numel(idxc),size(c,2)));
+end
 if 0
     [beta,ResMS]=rex_modelestimate(xX,Y);
     cbeta=c*beta;

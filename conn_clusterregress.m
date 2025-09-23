@@ -2,8 +2,9 @@ function varargout=conn_clusterregress(X,Y,varargin)
 % Ensemble Clustered Regression (ECR)
 % Y(X) = A + X*B + noise
 % for robust regression when size(X,2)>>size(X,1)
-% with clustering over columns of B and split-half 
-% resampling for variable selection and fitting
+% with clustering over columns of B, split-half 
+% resampling for variable selection and fitting,
+% and bagging across multiple resampling splits.
 %
 % [Model,Yfit]=conn_clusterregress(X,Y);
 % Y                       : outcome variables [# samples x # outcomes]
@@ -16,7 +17,7 @@ function varargout=conn_clusterregress(X,Y,varargin)
 % Yfit                    : outcome variable model fits for training data [# samples x # outcomes]
 %
 % [Model]=conn_clusterregress(X,Y);
-% Use this option to skip the outer LOO Cross-validation loop needed to estimate Yfit (model fits for the training dataset)
+% Use this option to skip the outer cross-validation loop needed to estimate Yfit (model fits for the training dataset)
 % This will also output a faster but slightly less accurate estimate of out-of-sample MSE using partial estimates computed during training before bagging
 %
 % conn_clusterregress(X,Y,'paramName',paramValue,...);
@@ -94,11 +95,12 @@ Yfit=[];
 if nargout>1 % use CV to estimate Yfit on training data
     Yfit=zeros([N,Ny]);
     Nfit=zeros(N,1);
-    nsamples=min(N-1,ceil(N*.20)); % uses 80% of the samples for training; 20% of the samples for testing
+    K=5; % k-fold cv
+    nsamples=ceil(N/K); % uses 80% of the samples for training; 20% of the samples for testing (5-fold crossvalidation)
     state=rand('seed'); rand('seed',0);
-    for n1=1:4 % we want each sample included 4 times in a testing dataset
+    for n1=1:4 % total 4*K folds (balanced sampling, each sample included 4 times in a testing dataset)
         samples=randperm(N); 
-        for n2=0:floor(N/nsamples)
+        for n2=0:K-1
             test=samples(nsamples*n2+1:min(N,nsamples*(n2+1)));
             train=setdiff(1:N,test);
             if isempty(Z), 

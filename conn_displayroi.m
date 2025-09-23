@@ -695,7 +695,9 @@ switch(lower(option)),
         if isempty(y3)
         elseif strcmpi(option,'import_values')
             if ~isfield(CONN_x,'filename')||isempty(CONN_x.filename)||~isfield(CONN_x,'Setup')||~isfield(CONN_x.Setup,'nsubjects')||isempty(CONN_x.Setup.nsubjects)||any(rem(cellfun(@numel,y),CONN_x.Setup.nsubjects)), % no conn project loaded
-                [tfilename,tfilepath]=uiputfile('*.mat','Save data as',fileparts(tfilename));
+                try, [tfilename,tfilepath]=uiputfile('*.mat','Save data as',fileparts(tfilename));
+                catch, [tfilename,tfilepath]=uiputfile('*.mat','Save data as');
+                end
                 if ischar(tfilename), conn_savematfile(fullfile(tfilepath,tfilename),'name','y'); fprintf('data saved to file %s\n',fullfile(tfilepath,tfilename)); end
             elseif get(data.handles(9),'value')||isempty(y2), % one variable per connection
                 conn_importl2covariate(name,y);
@@ -713,15 +715,16 @@ switch(lower(option)),
                 conn_importl2covariate(name3,y3);
             end
         else
+            PLOTBETA=true; % true: displays size of regressor effects; false: displays size of contrast effects
             if get(data.handles(9),'value')||isempty(y2), % one plot per connection
-                conn_rex('test',data.results(1).xX,reshape(y3(selectedsubjects,:,:),[nnz(selectedsubjects)*size(y3,2),size(y3,3)]),data.results(1).c,names_conditions,name3,[],[],true,data.results(1).c2,[],true);
+                conn_rex('test',data.results(1).xX,reshape(y3(selectedsubjects,:,:),[nnz(selectedsubjects)*size(y3,2),size(y3,3)]),data.results(1).c,names_conditions,name3,[],[],true,data.results(1).c2,[],true,PLOTBETA);
             else % one plot per cluster
                 breaks=[y2,size(y3,3)];
                 y2=zeros([size(y3,1),size(y3,2),numel(breaks)-1]);
                 for n=1:numel(breaks)-1,
                     y2(:,:,n)=mean(y3(:,:,breaks(n)+1:breaks(n+1)),3);
                 end
-                conn_rex('test',data.results(1).xX,reshape(y2(selectedsubjects,:,:),[nnz(selectedsubjects)*size(y2,2),size(y2,3)]),data.results(1).c,names_conditions,name2,[],[],true,data.results(1).c2,[],true);
+                conn_rex('test',data.results(1).xX,reshape(y2(selectedsubjects,:,:),[nnz(selectedsubjects)*size(y2,2),size(y2,3)]),data.results(1).c,names_conditions,name2,[],[],true,data.results(1).c2,[],true,PLOTBETA);
             end
         end
         if ishandle(hmsginit), delete(hmsginit); end
@@ -2208,6 +2211,7 @@ switch(data.display),
                         y=permute(reshape(y,[sy(1),sy(3),ndims2]),[1,3,2]); % subjects x components x conditions
                         data.cMVPApcacov=d(1:ndims2)/sum(d);
                         [data.cMVPAh,data.cMVPAF(num1,num2),data.cMVPAp(num1,num2),data.cMVPAdof,data.cMVPAstatsname{num1,num2}]=conn_glm(data.results(1).xX.X,y(:,:),data.results(1).c,kron(data.results(1).c2,eye(size(y,2))));
+                        if ~nnz(diff(y(:,:),1)), data.cMVPAp(num1,num2)=NaN; data.cMVPAF(num1,num2)=0; end % note: skips constant data
                         if isequal(data.cMVPAstatsname{num1,num2},'T'),
                             data.cMVPAstatsname{num1,num2}='F';
                             data.cMVPAF(num1,num2)=data.cMVPAF(num1,num2).^2;
@@ -3256,7 +3260,7 @@ switch(data.display),
                 for na2=1:length(data.displaytheserois), % connections
                     n2=data.displaytheserois(na2); %n2=[1:n1-1,n1+1:N2], 
                     %if n1~=n2&&((n1<n2&&z(n1,n2)>0)||(n1>n2&&z(n1,n2)>0&&n2<=N&&~(z(n2,n1)>0))), %(n2<=N||~data.displayreduced)&&(z(n1,n2)>0),
-                    if n1~=n2&&z(n1,n2)>0, %(n2<=N||~data.displayreduced)&&(z(n1,n2)>0),
+                    if z(n1,n2)>0,%&&n1~=n2, %(n2<=N||~data.displayreduced)&&(z(n1,n2)>0),
                         if data.issymmetric&&n2<n1&&z(n2,n1)>0 % avoids duplicated lines
                             %idxplotsadd1=find(data.list2(:,1)==n1&data.list2(:,2)==n2);
                             %idxplotsadd2=find(data.list2(:,1)==n2&data.list2(:,2)==n1);
@@ -4524,6 +4528,7 @@ end
 function uiwrap(h)
 global CONN_gui;
 if ~isfield(CONN_gui,'uicontrol_border'), CONN_gui.uicontrol_border=2; end
+if isfield(CONN_gui,'isjava')&&~CONN_gui.isjava, return; end
 for nh=1:numel(h)
     hpar=get(h(nh),'parent');
     bgcolor=get(hpar,'color');
