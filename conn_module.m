@@ -653,9 +653,8 @@ switch(lower(option))
                     mse=[];
                     for n=1:options.nnull,
                         randidx=randperm(size(data_predictor,1));
-                        model=conn_clusterregress(data_predictor,options.outcome(randidx,:),'covariates',options.covariate);
-                        ModelNull(n)=model;
-                        mse(n)=Model(n).error.MSE_std;
+                        ModelNull(n)=conn_clusterregress(data_predictor,options.outcome(randidx,:),'covariates',options.covariate);
+                        mse(n)=ModelNull(n).error.MSE_std;
                         fprintf('Model NULL %d: MSE = %f\n',n,mse(n));
                     end
                     p = mean(mse<=model.error.MSE_std); 
@@ -673,7 +672,7 @@ switch(lower(option))
                 load(conn_prepend('',filename_project,'.mat'), 'model','options');
                 assert(isfield(model,'fit'),'Fit values not computed yet. Please run CPM using the syntax conn_module(''CPM'',...,''fit'', true) to compute fit values for the training set');
                 figure;
-                conn_menu_plotscatter( options.outcome, model.fit.Yfit, varargin(3:end));
+                conn_menu_plotscatter( options.outcome, model.fit.Yfit, varargin{3:end});
                 xlabel 'Outcome measure';
                 ylabel 'Predicted values';
 
