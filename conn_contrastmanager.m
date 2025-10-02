@@ -59,7 +59,7 @@ if nargin
 end
 thfig=dialog('units','norm','position',[.3,.4,.6,.3],'windowstyle','normal','name','2nd-level design manager','color','w','resize','on');
 uicontrol(thfig,'style','text','units','norm','position',[.05,.85,.7,.08],'string','2nd-level designs:','backgroundcolor','w','horizontalalignment','left','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
-ht1=uicontrol(thfig,'style','listbox','units','norm','position',[.05,.2,.7,.65],'max',1,'string','','value',[],'fontsize',8+CONN_gui.font_offset,'tooltipstring','<HTML>List of 2nd-level designs of interest <br/> - This list can be used for quick access to commonly used 2nd-level designs (combinations of between-subjects and between-conditions effects and contrasts)<br/> - To add a new design to this list first define it in the main CONN gui <i>second-level results</i> tab and then click the <i>save new contrast</i> button</HTML>');
+ht1=uicontrol(thfig,'style','listbox','units','norm','position',[.05,.2,.7,.65],'max',1,'string','','value',[],'fontsize',8+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>List of 2nd-level designs of interest <br/> - This list can be used for quick access to commonly used 2nd-level designs (combinations of between-subjects and between-conditions effects and contrasts)<br/> - To add a new design to this list first define it in the main CONN gui <i>second-level results</i> tab and then click the <i>save new contrast</i> button</HTML>'));
 ht_add=uicontrol(thfig,'style','pushbutton','string','New','units','norm','position',[.8,.75,.15,.10],'callback',@(varargin)conn_contrastmanager_update('add'),'fontsize',8+CONN_gui.font_offset,'tooltipstring','Adds current 2nd-level design definition (defined in the main CONN gui) to this list');
 ht_del=uicontrol(thfig,'style','pushbutton','string','Delete','units','norm','position',[.8,.65,.15,.10],'callback',@(varargin)conn_contrastmanager_update('delete'),'fontsize',8+CONN_gui.font_offset,'tooltipstring','Deletes selected 2nd-level design from this list');
 ht_ren=uicontrol(thfig,'style','pushbutton','string','Edit','units','norm','position',[.8,.55,.15,.10],'callback',@(varargin)conn_contrastmanager_update('edit'),'fontsize',8+CONN_gui.font_offset,'tooltipstring','Edits selected 2nd-level design');
@@ -113,6 +113,7 @@ end
                 else nameext=sprintf('<b>%s</b> <i>(%s)</i>',name,descrip);
                 end
                 label=['<HTML>',nameext,' <small>Subject effects: <i>',strjoinstr(CONN_x.Setup.l2covariates.names(CONN_x.Results.xX.nsubjecteffects),' & '),'{',mat2str(CONN_x.Results.xX.csubjecteffects),'}</i> ; Conditions: <i>',strjoinstr(CONN_x.Setup.conditions.names(CONN_x.Results.xX.nconditions),' & '),'{',mat2str(CONN_x.Results.xX.cconditions),'}</i></small></HTML>'];
+                label=conn_menu_formathtml(label);
                 ncontrast=numel(CONN_x.Results.saved.names)+1;
                 CONN_x.Results.saved.names{ncontrast}=name;
                 CONN_x.Results.saved.labels{ncontrast}=label;
@@ -170,6 +171,7 @@ end
                     else nameext=sprintf('<b>%s</b> <i>(%s)</i>',name,CONN_x.Results.saved.descrip{ncontrast});
                     end
                     label=['<HTML>',nameext,' <small>Subject effects: ',strjoinstr(CONN_x.Results.saved.nsubjecteffects{ncontrast},' & '),'{',mat2str(CONN_x.Results.saved.csubjecteffects{ncontrast}),'} ; Conditions: ',strjoinstr(CONN_x.Results.saved.nconditions{ncontrast},' & '),'{',mat2str(CONN_x.Results.saved.cconditions{ncontrast}),'}</small></HTML>'];
+                    label=conn_menu_formathtml(label);
                     %label=['<HTML><b>',name,'</b>',regexprep(CONN_x.Results.saved.labels{ncontrast},'<HTML><b>.*?</b>','')];
                     CONN_x.Results.saved.names{ncontrast}=name;
                     CONN_x.Results.saved.labels{ncontrast}=label;
@@ -215,6 +217,7 @@ end
 for n2=find(changed(:))'
     str{n2}=['<HTML>' str{n2} '</HTML>'];
 end
+str=conn_menu_formathtml(str);
 end
 
 

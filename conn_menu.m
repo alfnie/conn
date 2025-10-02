@@ -18,33 +18,38 @@ if nargin<7, callback2=''; end
 if nargin<8, callback3=''; end
 if ~ischar(type), [type,position,title]=deal(title,get(type,'userdata'),get(type,'value')); end
 if ~CONN_gui.tooltips, tooltipstring=''; end
-if CONN_gui.isjava, titleopts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorA,'fontsize',11+CONN_gui.font_offset};
-else titleopts={'fontname',fname,'fontangle','normal','fontweight','bold','foregroundcolor',CONN_gui.fontcolorA,'fontsize',11+CONN_gui.font_offset};
+
+if any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','frame2highlight','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2','hist2'})), 
+    bgcolor=CONN_gui.backgroundcolor; 
+    fgcolor=CONN_gui.fontcolor;
+    fgcolortitle=CONN_gui.fontcolor;
+    mapcolor=CONN_h.screen.colormap;
+else 
+    bgcolor=CONN_gui.backgroundcolorA; 
+    fgcolor=CONN_gui.fontcolorA;
+    fgcolortitle=1*round(CONN_gui.fontcolorA)+0*CONN_gui.fontcolorA;
+    mapcolor=CONN_h.screen.colormapA;
 end
+skipborders=false;
+bgwhite=CONN_gui.backgroundcolorE; %.5*bgcolor+.5*round(bgcolor); %.9*bgcolor+.1*round(1-bgcolor); %[.95 .95 .9]
+%fgcolor=[.4 .4 .4]+.2*(mean(bgcolor)<.5);
+%fgcolor=CONN_gui.fontcolorA.*(abs(mean(CONN_gui.fontcolorA)-mean(bgcolor))>.25)+(.5+.5*CONN_gui.fontcolorA).*(abs(mean(CONN_gui.fontcolorA)-mean(bgcolor))<=.25);
+titleopts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',fgcolortitle,'fontsize',11+CONN_gui.font_offset};
 if ~CONN_gui.isjava, tooltipstring=regexprep(tooltipstring,{'<\/?HTML>|<\/?b>|<\/?i>','<br/>'},{'','\n'},'ignorecase'); end
-titleopts2=titleopts;titleopts2(7:8)={'color',CONN_gui.fontcolorA};
-contropts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset};
-contropts2=contropts;contropts2(7:8)={'color',CONN_gui.fontcolorA};
+titleopts2=titleopts;titleopts2(7:8)={'color',fgcolortitle}; %CONN_gui.fontcolorA};
+contropts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',fgcolor,'fontsize',8+CONN_gui.font_offset};
+contropts2=contropts;contropts2(7:8)={'color',fgcolor}; %CONN_gui.fontcolorA};
 contropts3=contropts([1:6 9:numel(contropts)]);
 doemphasis1=CONN_gui.doemphasis1;
 doemphasis2=CONN_gui.doemphasis2;
 %type=regexprep(type,'white','');
-if any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','frame2highlight','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2'})), 
-    bgcolor=CONN_gui.backgroundcolor; 
-    mapcolor=CONN_h.screen.colormap;
-    skipborders=~CONN_gui.isjava;
-else 
-    bgcolor=CONN_gui.backgroundcolorA; 
-    mapcolor=CONN_h.screen.colormapA;
-    skipborders=~CONN_gui.isjava;
-end
-bgwhite=CONN_gui.backgroundcolorA; %.5*bgcolor+.5*round(bgcolor); %.9*bgcolor+.1*round(1-bgcolor); %[.95 .95 .9]
 
 switch(lower(type)),
     case 'nullstr',
         nullstr=position;
-	case {'pushbutton','togglebutton','pushbutton2','togglebutton2','pushbuttonblue','pushbuttonblue2','pushbuttonwhite','pushbuttonwhite2'}
+    case {'pushbutton','togglebutton','pushbutton2','togglebutton2','pushbuttonblue','pushbuttonblue2','pushbuttonblueinblue','pushbuttonwhite','pushbuttonwhite2'}
         if ~isempty(regexp(type,'white')), bgcolor=bgwhite; fgcolor=[];%[.5 .5 .5];
+        elseif ~isempty(regexp(type,'blueinblue')), type=regexprep(type,'blueinblue','blue'); bgcolor=CONN_gui.backgroundcolorE; fgcolor=[]; 
         elseif ~isempty(regexp(type,'blue')), fgcolor=[]; %.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5);
         else fgcolor=[]; 
         end
@@ -61,10 +66,10 @@ switch(lower(type)),
         set(h,'units','norm');
         htb=[]; 
         if ~skipborders,
-            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-2*CONN_gui.uicontrol_border,0,2*CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-                uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-                uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,2*CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-                uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            htb=[conn_menu_mask('units','pixels','position',tpos+[tpos(3)-2*CONN_gui.uicontrol_border,0,2*CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                conn_menu_mask('units','pixels','position',tpos+[0,0,0,2*CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                conn_menu_mask('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
             if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
         end
         set(h,'units','norm');
@@ -77,10 +82,10 @@ switch(lower(type)),
 % 		h=uicontrol('style',regexprep(type,'2$',''),'units','norm','position',position,'backgroundcolor',bgcolor,'horizontalalignment','left','string',string,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,contropts{:});
 %         set(h,'units','pixels');
 %         tpos=get(h,'position');
-%         htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm'),...
-%             uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm'),...
-%             uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm'),...
-%             uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm')];
+%         htb=[conn_menu_mask('units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm'),...
+%             conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm'),...
+%             conn_menu_mask('units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm'),...
+%             conn_menu_mask('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm')];
 %         set(h,'units','norm');
 %         %conn_menumanager('onregion',htb,-1,get(h,'position'),h);
 %         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
@@ -98,10 +103,10 @@ switch(lower(type)),
             %     axes('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'color',bgcolor,'xtick',[],'ytick',[],'xcolor',bgcolor,'ycolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
             %     axes('units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'color',bgcolor,'xtick',[],'ytick',[],'xcolor',bgcolor,'ycolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
             %     axes('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'color',bgcolor,'xtick',[],'ytick',[],'xcolor',bgcolor,'ycolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
-            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_border-2,0,CONN_gui.uicontrol_border+2-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-                uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-           	 uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-             uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            htb=[conn_menu_mask('units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_border-2,0,CONN_gui.uicontrol_border+2-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+           	 conn_menu_mask('units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+             conn_menu_mask('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
             if ~strcmp(lower(type),'textedit')&&~strcmp(lower(type),'textedit2')
                 if doemphasis1, conn_menumanager('onregion',htb(3:4),-1,get(h,'position'),h); end
             end
@@ -119,11 +124,11 @@ switch(lower(type)),
         set(h,'units','norm');
         htb=[]; 
         if ~skipborders,
-            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            htb=[conn_menu_mask('units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
             conn_menumanager('onregion',htb,-1,get(h,'position'),h);
-            htb=[uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig)];
-            uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig);
-            uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig);
+            htb=[conn_menu_mask('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig)];
+            conn_menu_mask('units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig);
+            conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm','parent',CONN_h.screen.hfig);
             if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
         end
         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
@@ -139,12 +144,12 @@ switch(lower(type)),
         set(h,'units','norm');
         htb=[]; htc=[];
         if ~skipborders,
-            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-                uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,22-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            htb=[conn_menu_mask('units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                conn_menu_mask('units','pixels','position',tpos+[0,0,0,22-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
             conn_menumanager('onregion',htb,-1,get(h,'position'),h);
-            htb=uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-            %uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-            htc=uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border-1,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            htb=conn_menu_mask('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            %conn_menu_mask('units','pixels','position',tpos+[0,0,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            htc=conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border-1,0,CONN_gui.uicontrol_border+1-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
             if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
         end
         if 0,%strcmp(type,'tablewhite'), set(h,'foregroundcolor',[0 0 0]);
@@ -154,7 +159,7 @@ switch(lower(type)),
         h=struct('h1',h,'h2',htc,'h3',h3,'pos',position);
     case {'listbox','listbox2','listboxbigblue','listboxbigwhite'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-        if strcmpi(type,'listboxbigwhite'), bgcolor=CONN_gui.backgroundcolorA; 
+        if strcmpi(type,'listboxbigwhite'), bgcolor=CONN_gui.backgroundcolorE; 
         elseif strcmpi(type,'listboxbigblue'), bgcolor=CONN_gui.backgroundcolorE; 
         end 
 		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,position(4),0,.04-position(4)],'string',title,'backgroundcolor',bgcolor,titleopts{:},'fontunits','norm','horizontalalignment','left','parent',CONN_h.screen.hfig); end
@@ -170,16 +175,16 @@ switch(lower(type)),
 %         position1=get(h,'position');
         ht=[]; 
         if ~skipborders,
-            ht=[uicontrol('style','frame','units','pixels','position',tpos+[0,-1,0,CONN_gui.uicontrol_border+2-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-            	uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-                uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            ht=[conn_menu_mask('units','pixels','position',tpos+[0,-1,0,CONN_gui.uicontrol_border+2-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+            	conn_menu_mask('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
             if doemphasis1, conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h); end
-            %uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,.5*tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-            ht=uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            %conn_menu_mask('units','pixels','position',tpos+[0,0,0,.5*tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            ht=conn_menu_mask('units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
             conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h);
-            %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-            %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-6,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-            ht=uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            %conn_menu_mask('units','pixels','position',tpos+[tpos(3)-18,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            %conn_menu_mask('units','pixels','position',tpos+[tpos(3)-6,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+            ht=conn_menu_mask('units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
             %conn_menumanager('onregion',ht,-1,get(h,'position'),@(x)get(h,'extent')*max(1,(get(h,'max')==1)*numel(cellstr(get(h,'string'))))*[0;0;0;1]>=get(h,'position')*[0;0;0;1]);
             %%conn_menumanager('onregion',ht,-1,get(h,'position'));
         end
@@ -214,12 +219,12 @@ switch(lower(type)),
 %         position1=get(h,'position');
         htb=[]; 
         if ~skipborders,
-            htb=uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
+            htb=conn_menu_mask('units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
             conn_menumanager('onregion',htb,-1,get(h,'position'),h);
             %             conn_menumanager('onregion',htb,-1,get(h,'position'),@(x)set(h,'position',position+(~x)*(position1-position)));
-            uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
-            uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
-            uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
+            conn_menu_mask('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
+            conn_menu_mask('units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
+            conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'units','norm','parent',CONN_h.screen.hfig);
         end
         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
 	case {'text','text2','textwhite','textblue'}
@@ -263,13 +268,13 @@ switch(lower(type)),
         end
         xtraborder=0;
         opts=contropts;
-        if ~isempty(regexp(type,'blue')), bgcolor=0*bgcolor+1*CONN_gui.backgroundcolorE; if CONN_gui.isjava, fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5); else fgcolor=[]; end
-        elseif ~isempty(regexp(type,'white')), bgcolor=bgwhite; if CONN_gui.isjava, fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5); else fgcolor=[]; end
+        if ~isempty(regexp(type,'blue')), bgcolor=0*bgcolor+1*CONN_gui.backgroundcolorE; if 0&&CONN_gui.isjava, fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5); else fgcolor=[]; end
+        elseif ~isempty(regexp(type,'white')), bgcolor=bgwhite; if 0&&CONN_gui.isjava, fgcolor=.4*[1 1 1]+.2*(mean(CONN_gui.backgroundcolor)<.5); else fgcolor=[]; end
         else fgcolor=[];
         end %opts=titleopts; end %.75*bgcolor+.25*(2/6*.5+.5*[1/6,2/6,4/6]); end
         if isempty(string), string=' '; end
 		if ~isempty(regexp(type,'popupbig')), 
-            if ~skipborders, h=uicontrol('style','frame','units','norm','position',position,'backgroundcolor',bgcolor,'foregroundcolor',bgcolor,'parent',CONN_h.screen.hfig); end
+            if ~skipborders, h=conn_menu_mask('units','norm','position',position,'backgroundcolor',bgcolor,'foregroundcolor',bgcolor,'parent',CONN_h.screen.hfig); end
             h=uicontrol('style','popupmenu','units','norm','position',position+[.01 .005 -.02 -.01],'backgroundcolor',bgcolor,'string',cellstr(string),'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,opts{:},'parent',CONN_h.screen.hfig);
         else
             h=uicontrol('style','popupmenu','units','norm','position',position,                     'backgroundcolor',bgcolor,'string',cellstr(string),'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,opts{:},'parent',CONN_h.screen.hfig);
@@ -286,20 +291,22 @@ switch(lower(type)),
         set(h,'units','pixels');
         tpos=get(h,'position');
         tpos2=get(h,'extent');
-        tpos=tpos+[0,tpos(4)-tpos2(4)-4*CONN_gui.uicontrol_border,0,tpos2(4)-tpos(4)+4*CONN_gui.uicontrol_border]; 
-        %uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-2,0,2-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm'),...
+        if CONN_gui.isjava, tpos=tpos+[0,tpos(4)-tpos2(4)-4*CONN_gui.uicontrol_border,0,tpos2(4)-tpos(4)+4*CONN_gui.uicontrol_border]; 
+        else tpos=tpos+[0,tpos(4)-tpos2(4)-1*CONN_gui.uicontrol_border,0,tpos2(4)-tpos(4)+1*CONN_gui.uicontrol_border]; 
+        end
+        %conn_menu_mask('units','pixels','position',tpos+[tpos(3)-2,0,2-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm'),...
         
         set(h,'units','norm');
         %uicontrol('style','checkbox','units','pixels','position',tpos+[tpos(3)-18,tpos(4)-12,10-tpos(3),10-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'cdata',max(0,min(1,conn_bsxfun(@plus,shiftdim(bgcolor,-1),conn_bsxfun(@times,shiftdim(bgcolor-bgcolor,-1),[0 0 0 0 0 0 0;0 0 0 0 0 0 0;1 1 1 1 1 1 1;0 1 1 1 1 1 0;0 0 1 1 1 0 0;0 0 0 1 0 0 0;0 0 0 0 0 0 0;0 0 0 0 0 0 0])))),'units','norm');
         htb=[]; 
         if ~skipborders,
-            htb=[uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_borderpopup,0,CONN_gui.uicontrol_borderpopup-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-                uicontrol('style','frame','units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-                uicontrol('style','frame','units','pixels','position',tpos+[0,0-xtraborder,0,5+CONN_gui.uicontrol_border-tpos(4)+xtraborder],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
-                uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
+            htb=[conn_menu_mask('units','pixels','position',tpos+[tpos(3)-CONN_gui.uicontrol_borderpopup,0,CONN_gui.uicontrol_borderpopup-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                conn_menu_mask('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                conn_menu_mask('units','pixels','position',tpos+[0,0-xtraborder,0,5+CONN_gui.uicontrol_border-tpos(4)+xtraborder],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
+                conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
             if doemphasis1, conn_menumanager('onregion',htb,-1,get(h,'position'),h); end
             %if strcmpi(type,'popupbigblue'), delete(htb(3)); end
-            %uicontrol('style','frame','units','pixels','position',tpos+[0-3,tpos(4)-11,3-tpos(3),3-tpos(4)],'foregroundcolor',CONN_gui.fontcolorB,'backgroundcolor',CONN_gui.fontcolorB,'units','norm');
+            %conn_menu_mask('units','pixels','position',tpos+[0-3,tpos(4)-11,3-tpos(3),3-tpos(4)],'foregroundcolor',CONN_gui.fontcolorA,'backgroundcolor',CONN_gui.fontcolorA,'units','norm');
         end
         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
         %if doemphasis2&&~(strcmpi(type,'popupbigblue')||strcmpi(type,'popupblue')), conn_menumanager('onregion',h,0,get(h,'position')); end
@@ -327,10 +334,10 @@ switch(lower(type)),
         try, if iscell(callback)&&~isempty(callback), addlistener(h, 'ContinuousValueChange',@(varargin)feval(callback{1},h,[],callback{2:end})); end; end
 %         set(h,'units','pixels');
 %         tpos=get(h,'position');
-%         uicontrol('style','frame','units','pixels','position',tpos+[tpos(3)-2,0,2-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm');
-%         uicontrol('style','frame','units','pixels','position',tpos+[0,0,2-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm');
-%         uicontrol('style','frame','units','pixels','position',tpos+[0,0,0,2-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm');
-%         uicontrol('style','frame','units','pixels','position',tpos+[0,tpos(4)-2,0,2-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm');
+%         conn_menu_mask('units','pixels','position',tpos+[tpos(3)-2,0,2-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm');
+%         conn_menu_mask('units','pixels','position',tpos+[0,0,2-tpos(3),0],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm');
+%         conn_menu_mask('units','pixels','position',tpos+[0,0,0,2-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm');
+%         conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-2,0,2-tpos(4)],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'units','norm');
 %         set(h,'units','norm');
 	case 'axes',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -478,10 +485,10 @@ switch(lower(type)),
         h.mapcolor=mapcolor;
         set(h.h2(1),'color',.75/2*[1,1,1]);set(h.h2(2),'color',othercolor); 
         set(h.h2(3),'color',.75/4*[1,1,1]);set(h.h2(4),'color',1/2*othercolor); 
-		set(h.h1,'color',CONN_gui.backgroundcolor,'xcolor',mod(mean(CONN_gui.backgroundcolor)+.55,1)*[1 1 1],'ycolor',mod(mean(CONN_gui.backgroundcolor)+.55,1)*[1 1 1],'visible','off'); 
+		set(h.h1,'color',CONN_gui.backgroundcolor,'xcolor',mod(mean(CONN_gui.backgroundcolor)+.3,1)*[1 1 1],'ycolor',mod(mean(CONN_gui.backgroundcolor)+.3,1)*[1 1 1],'visible','off'); 
         grid(h.h1,'on');
         set([h.h1,h.h2,h.h3],'visible','off');
-	case 'hist',
+	case {'hist','hist2'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
 		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,position(4),0,.04-position(4)],'string',title,'backgroundcolor',CONN_gui.backgroundcolor,titleopts{:},'fontunits','norm','horizontalalignment','center','parent',CONN_h.screen.hfig); end
 		h.h1=axes('units','norm','position',position,'fontsize',8+CONN_gui.font_offset,'parent',CONN_h.screen.hfig); 
@@ -493,7 +500,7 @@ switch(lower(type)),
 		h.h7=text(0,0,'after denoising','fontsize',8+CONN_gui.font_offset,'parent',h.h1); 
         hold(h.h1,'on'); h.h8=plot(nan,nan,'.','color',.75*[1 1 1]);hold(h.h1,'off'); 
         h.mapcolor=mapcolor;
-		set(h.h1,'color',CONN_gui.backgroundcolor,'ytick',[],'xcolor',mod(mean(CONN_gui.backgroundcolor)+.55,1)*[1 1 1],'ycolor',CONN_gui.backgroundcolor,'visible','off'); 
+		set(h.h1,'color',CONN_gui.backgroundcolor,'ytick',[],'xcolor',mod(mean(CONN_gui.backgroundcolor)+.3,1)*[1 1 1],'ycolor',CONN_gui.backgroundcolor,'visible','off'); 
         set([h.h1,h.h2,h.h3,h.h4,h.h5,h.h6,h.h7,h.h8],'visible','off');
 	case 'filesearchprojectload',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -560,11 +567,11 @@ switch(lower(type)),
                 %if strcmpi(type,'frame'), temp=(position+[0,position(4),0,0]).*[1,1,1,0]+[.005,0,-.010,.039];
                 else temp=(position+[position(3)*0,position(4),0,0]).*[1,1,1,0]+[1*.001,0,1*-.002,.049];
                 end
-                if CONN_gui.isjava, h2=uicontrol('style','frame','units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig); end
+                h2=conn_menu_mask('units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig);
                 h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
-                if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
-                if strcmpi(type,'frame'), set(h2,'fontsize',24+CONN_gui.font_offset,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorB); %mod(mean(bg2)-.45,1)*[1 1 1]); 
-                else set(h2,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorB); %mod(mean(bg2)-.45,1)*[1 1 1]); 
+                %if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
+                if strcmpi(type,'frame'), set(h2,'fontsize',18+CONN_gui.font_offset); %,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 
+                else set(h2,'fontweight','normal'); %,'foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 
                 end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
             else
                 %h2=conn_menu('pushbutton2',(position+[0,position(4),0,0]).*[1,1,1,0]+[0,0*.01,0,.04],'',title);
@@ -710,8 +717,8 @@ switch(lower(type)),
             if 1
                 c3a=''; c3b='';
             else
-                fgcolor=CONN_gui.fontcolorA;
-                bgcolor=.9*bgcolor+.1*fgcolor;
+                %fgcolor=CONN_gui.fontcolorA;
+                %bgcolor=.9*bgcolor+.1*fgcolor;
                 c1=sprintf('rgb(%d,%d,%d)',round(255*fgcolor(1)),round(255*fgcolor(2)),round(255*fgcolor(3)));
                 c2=sprintf('rgb(%d,%d,%d)',round(255*bgcolor(1)),round(255*bgcolor(2)),round(255*bgcolor(3)));
                 c3a = ['<HTML><table border=0 width=100 bgcolor=',c2,'><TR><TD><FONT color=',c1,'>'];

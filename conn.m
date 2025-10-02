@@ -63,10 +63,6 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     conn_dounixGUIbugfix=true;
     conn_checkupdates=true;                                     
     conn_isjava=CONN_gui.matlabversion<2025;
-    if ~conn_isjava
-        conn_backgroundcolor=.49*[1 1 1];  % temporal bugfix to hide borders of new ui objects
-        conn_backgroundcolorA=.49*[1 1 1]; 
-    end
 
     try
         if ispc, filename=conn_fullfile(getenv('USERPROFILE'),'conn_font_default.dat');
@@ -95,16 +91,10 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
         CONN_gui.backgroundcolorA=CONN_gui.backgroundcolor;
     else CONN_gui.backgroundcolorA=conn_backgroundcolorA;
     end
-    if ~conn_isjava, 
-        %CONN_gui.backgroundcolorE=max(0,min(1, .25*CONN_gui.backgroundcolor+.75*[.077 .6 1]));
-        CONN_gui.backgroundcolorE=[0.0902 0.3255 0.5216].^.5; %35*[1 1 1];
-        CONN_gui.fontcolorA=[.1 .1 .2]+[.8 .8 .6]*(mean(CONN_gui.backgroundcolorA)<.45);
-        CONN_gui.fontcolorB=[0 0 0]+1*(mean(CONN_gui.backgroundcolorA)<.45);
-    else 
-        CONN_gui.backgroundcolorE=max(0,min(1, .5*CONN_gui.backgroundcolor+.5*[.077 .6 1]));
-        CONN_gui.fontcolorA=[.10 .10 .10]+.8*(mean(CONN_gui.backgroundcolorA)<.5);
-        CONN_gui.fontcolorB=[.4 .4 .4]+.2*(mean(CONN_gui.backgroundcolorA)<.5);
-    end
+    CONN_gui.backgroundcolorE=max(0,min(1, .5*CONN_gui.backgroundcolor+.5*[.077 .6 1]));
+    CONN_gui.fontcolor=[.4 .4 .4]+.2*(mean(CONN_gui.backgroundcolorA)<.5); % fontcolor against background
+    CONN_gui.fontcolorA=[.3 .3 .3]+.4*(mean(CONN_gui.backgroundcolorA)<.5); % fontcolor against highlight
+    %CONN_gui.fontcolorB=[.4 .4 .4]+.2*(mean(CONN_gui.backgroundcolorA)<.45);
     CONN_gui.fontname=get(0,'defaultTextFontName');
     try
         filename=fullfile(fileparts(which(mfilename)),'conn_font_names.txt');
@@ -133,8 +123,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     %cmapA=max(0,min(1, repmat((2*(CONN_gui.backgroundcolorA<.5)-1).*max(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA),128,1).*cmap+repmat(CONN_gui.backgroundcolorA,128,1) ));
     jetmap=jet(192); jetmap=jetmap(32+(1:128),:); %[linspace(.1,1,64)',zeros(64,2)];jetmap=[flipud(fliplr(jetmap));jetmap];
     %jetmap=[zeros(1,64/2) linspace(0,1,64/2) ones(1,64/2) linspace(1,.5,64/2); linspace(0,1,64) linspace(1,0,64/2) zeros(1,64/2); linspace(.5,1,64/2) ones(1,64/2) linspace(1,0,64/2) zeros(1,64/2)]'; jetmap=repmat(abs(linspace(-1,1,2*64)'),1,3).*jetmap+(1-repmat(abs(linspace(-1,1,2*64)'),1,3))*1;
-    CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap] +(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,1-CONN_gui.backgroundcolor) ));
-    CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap] +(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA) ));
+    CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap] +(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,CONN_gui.backgroundcolor) ));
+    CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap] +(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,CONN_gui.backgroundcolorA) ));
     h0=get(0,'screensize'); h0=h0(1,3:4)-h0(1,1:2)+1; h0(1)=min(h0(1),2*h0(2)); %h0=h0/max(1,max(abs(h0))/2000);
     %if any(h0(3:4)<[1200 700]), fprintf('Increase resolution size for optimal viewing\n(screen resolution %dx%d; minimum recommended %dx%d\n)',h0(3),h0(4),1200,700); end
     if ~isempty(varargin)&&isequal(varargin{1},'lite'), h0=h0/2; minheight=250;
@@ -1607,7 +1597,7 @@ else
             
         case 'gui_settings',
             dlg.fig=figure('units','norm','position',[.3,.1,.5,.4],'menubar','none','numbertitle','off','name','CONN GUI options','color','w','visible','off');
-            %uicontrol('style','frame','unit','norm','position',[.05,.5,.9,.45],'backgroundcolor','w','foregroundcolor',[.5 .5 .5]);
+            %conn_menu_mask('unit','norm','position',[.05,.5,.9,.45],'backgroundcolor','w','foregroundcolor',[.5 .5 .5]);
             uicontrol('style','text','units','norm','position',[.1,.86,.45,.075],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','right','string','GUI font size (pts):','parent',dlg.fig);
             dlg.m1=uicontrol('style','edit','units','norm','position',[.6,.86,.1,.075],'string',num2str(8+CONN_gui.font_offset),'tooltipstring','Changes the default font size used in the CONN toolbox GUI','parent',dlg.fig);
             dlg.m4A=uicontrol('style','pushbutton','units','norm','position',[.65,.775,.05,.075],'string',' ','backgroundcolor',min(1,CONN_gui.backgroundcolorA),'tooltipstring','Changes the frame color used in the CONN toolbox GUI','callback','color=get(gcbo,''backgroundcolor'');if numel(color)~=3, color=uisetcolor; else color=uisetcolor(color); end; if numel(color)==3, set(gcbo,''backgroundcolor'',color); set(gcbf,''userdata'',1); uiresume(gcbf); end','parent',dlg.fig);
@@ -1627,7 +1617,7 @@ else
 %               uimenu(hc1,'label','Remove GUI background image','callback','conn_guibackground clear'); 
 %               set(dlg.m4,'uicontextmenu',hc1);
             uicontrol('style','popupmenu','units','norm','position',[.1,.775,.45,.075],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','left','string',{'Select GUI background color/image','Light text on dark background theme','Dark text on light background theme','Random background image','Screenshot background image','Custom background image'},'userdata',[dlg.m4 dlg.m4A],'callback',...
-                'h=get(gcbo,''userdata''); switch(get(gcbo,''value'')), case 1, conn_guibackground clear; color=uisetcolor; if numel(color)==3, set(h(1),''backgroundcolor'',color); colorA=color;set(h(2),''backgroundcolor'',colorA); end; case 2, conn_guibackground clear; color=.12*[1 1.05 1.10]; set(h(1),''backgroundcolor'',color); colorA=.18*[1 1.05 1.10];set(h(2),''backgroundcolor'',colorA); case 3, conn_guibackground clear; color=.925*[1 1 1]; set(h(1),''backgroundcolor'',color); colorA=.875*[1 1 1];set(h(2),''backgroundcolor'',colorA); case 4, answ=conn_guibackground(''setfiledefault''); case 5, answ=conn_guibackground(''cleartrans''); case 6, answ=conn_guibackground(''setfile''); end; set(gcbf,''userdata'',1); uiresume(gcbf);',...
+                'h=get(gcbo,''userdata''); switch(get(gcbo,''value'')), case 1, conn_guibackground clear; color=uisetcolor; if numel(color)==3, set(h(1),''backgroundcolor'',color); colorA=color;set(h(2),''backgroundcolor'',colorA); end; case 2, conn_guibackground clear; color=.12*[1 1.05 1.10]; set(h(1),''backgroundcolor'',color); colorA=.18*[1 1.05 1.10];set(h(2),''backgroundcolor'',colorA); case 3, conn_guibackground clear; color=.995*[1 1 1]; set(h(1),''backgroundcolor'',color); colorA=.925*[1 1 1];set(h(2),''backgroundcolor'',colorA); case 4, answ=conn_guibackground(''setfiledefault''); case 5, answ=conn_guibackground(''cleartrans''); case 6, answ=conn_guibackground(''setfile''); end; set(gcbf,''userdata'',1); uiresume(gcbf);',...
                 'tooltipstring','Changes the default theme colors in the CONN toolbox GUI','parent',dlg.fig);
             uicontrol('style','frame','unit','norm','position',[.05,.15,.9,.25],'backgroundcolor','w','foregroundcolor',[.5 .5 .5],'parent',dlg.fig);
             %uicontrol('style','text','unit','norm','position',[.07,.91,.3,.08],'string','Appearance','backgroundcolor','w','foregroundcolor',[.5 .5 .5]);
@@ -1645,7 +1635,7 @@ else
                     switch(lower(varargin{2}))
                         case 'dark', hmsg=conn_msgbox('Setting dark-mode color theme... please wait','',-1); conn_guibackground clear; color=.12*[1 1.05 1.10] ; set(dlg.m4,'backgroundcolor',color); colorA=.18*[1 1.05 1.10]; set(dlg.m4A,'backgroundcolor',colorA);
                         case 'color', hmsg=conn_msgbox('Setting color theme... please wait','',-1); conn_guibackground clear; if 1, color=.1*rand(1,3); colorA=.19/.14*color; else color=.85+.15*rand(1,3); colorA=color+.25*(1-color); end; set(dlg.m4,'backgroundcolor',color); set(dlg.m4A,'backgroundcolor',colorA); CONN_gui.backgroundcolor=color; CONN_gui.backgroundcolorA=colorA; conn_guibackground setfilecolor;
-                        case 'light', hmsg=conn_msgbox('Setting light-mode color theme... please wait','',-1); conn_guibackground clear; color=.925*[1 1 1]; set(dlg.m4,'backgroundcolor',color); colorA=.875*[1 1 1]; set(dlg.m4A,'backgroundcolor',colorA);
+                        case 'light', hmsg=conn_msgbox('Setting light-mode color theme... please wait','',-1); conn_guibackground clear; color=.995*[1 1 1]; set(dlg.m4,'backgroundcolor',color); colorA=.925*[1 1 1]; set(dlg.m4A,'backgroundcolor',colorA);
                         case 'font+', hmsg=conn_msgbox('Increasing fontsize... please wait','',-1); fontsize=str2num(get(dlg.m1,'string')); fontsize=fontsize+1; if numel(fontsize)==1, set(dlg.m1 ,'string',num2str(fontsize)); end
                         case 'font-', hmsg=conn_msgbox('Decreasing fontsize... please wait','',-1); fontsize=str2num(get(dlg.m1,'string')); fontsize=max(0,fontsize-1); if numel(fontsize)==1, set(dlg.m1 ,'string',num2str(fontsize)); end
                     end
@@ -1677,16 +1667,9 @@ else
                 answA=get(dlg.m4A,'backgroundcolor');
                 CONN_gui.backgroundcolor=answ;%/2;
                 CONN_gui.backgroundcolorA=answA;
-                if ~CONN_gui.isjava,
-                    %CONN_gui.backgroundcolorE=max(0,min(1, .25*CONN_gui.backgroundcolor+.75*[.077 .6 1]));
-                    CONN_gui.backgroundcolorE=[0.0902 0.3255 0.5216]; %35*[1 1 1];
-                    CONN_gui.fontcolorA=[0 0 0]+1*(mean(CONN_gui.backgroundcolorA)<.5);
-                    CONN_gui.fontcolorB=[0 0 0]+1*(mean(CONN_gui.backgroundcolorA)<.5);
-                else
-                    CONN_gui.backgroundcolorE=max(0,min(1, .5*CONN_gui.backgroundcolor+.5*[.077 .6 1]));
-                    CONN_gui.fontcolorA=[.10 .10 .10]+.8*(mean(CONN_gui.backgroundcolorA)<.5);
-                    CONN_gui.fontcolorB=[.4 .4 .4]+.2*(mean(CONN_gui.backgroundcolorA)<.5);
-                end
+                CONN_gui.backgroundcolorE=max(0,min(1, .5*CONN_gui.backgroundcolor+.5*[.077 .6 1]));
+                CONN_gui.fontcolor=[.4 .4 .4]+.2*(mean(CONN_gui.backgroundcolorA)<.5); % fontcolor against background
+                CONN_gui.fontcolorA=[.2 .2 .2]+.6*(mean(CONN_gui.backgroundcolorA)<.5); % fontcolor against highlight
                 cmap=0+1*(7*gray(128) + 1*(hot(128)))/8; if mean(CONN_gui.backgroundcolor)>.5,cmap=flipud(cmap); end
                 cmapB=cmap;
                 cmapA=cmap;
@@ -1694,8 +1677,8 @@ else
                 %cmapA=max(0,min(1, repmat((2*(CONN_gui.backgroundcolorA<.5)-1).*max(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA),128,1).*cmap+repmat(CONN_gui.backgroundcolorA,128,1) ));
                 jetmap=jet(192); jetmap=jetmap(32+(1:128),:); %jetmap=jet(128); %[linspace(.1,1,64)',zeros(64,2)];jetmap=[flipud(fliplr(jetmap));jetmap];
                 %jetmap=[zeros(1,64/2) linspace(0,1,64/2) ones(1,64/2) linspace(1,.5,64/2); linspace(0,1,64) linspace(1,0,64/2) zeros(1,64/2); linspace(.5,1,64/2) ones(1,64/2) linspace(1,0,64/2) zeros(1,64/2)]'; jetmap=repmat(abs(linspace(-1,1,2*64)'),1,3).*jetmap+(1-repmat(abs(linspace(-1,1,2*64)'),1,3))*1;
-                CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap] )); %+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,1-CONN_gui.backgroundcolor) ));
-                CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap] )); %+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA) ));
+                CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap] +(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,CONN_gui.backgroundcolor) ));
+                CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap] +(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,CONN_gui.backgroundcolorA) ));
                 set(CONN_h.screen.hfig,'color',CONN_gui.backgroundcolor,'colormap',CONN_h.screen.colormap);
                 conn_menumanager updatebackgroundcolor;
                 try, 
@@ -1808,8 +1791,8 @@ else
                 end
             else jetmap=option; assert(size(jetmap,1)==128&size(jetmap,2)==3,'colormap must be 128x3'); 
             end
-            CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,1-CONN_gui.backgroundcolor) ));
-            CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,1-CONN_gui.backgroundcolorA) ));
+            CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,CONN_gui.backgroundcolor) ));
+            CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap]+(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,CONN_gui.backgroundcolorA) ));
             tstate=conn_menumanager(CONN_h.menus.m0,'state');
             if any(tstate)
                 switch(find(tstate))
@@ -2313,7 +2296,7 @@ else
                         %CONN_h.menus.m_setup_00{14}=uicontrol('style','pushbutton','units','norm','position',boffset+[.37,.20,.15,.04],'string','Check registration','tooltipstring','Check coregistration of functional and structural files for selected subject(s)/session(s)','callback','conn(''gui_setup'',14);','fontsize',8+CONN_gui.font_offset);
                         %CONN_h.menus.m_setup_00{14}=uicontrol('style','popupmenu','units','norm','position',boffset+[.37,.16,.15,.04],'string',{' - options:','check registration','preprocessing steps'},'foregroundcolor','w','backgroundcolor',CONN_gui.backgroundcolorA,'fontsize',8+CONN_gui.font_offset,'callback','conn(''gui_setup'',14);','tooltipstring','Functional volumes additional options');
 						%CONN_h.menus.m_setup_00{11}=conn_menu('checkbox',boffset+[.38,.205,.02,.04],'spatially-normalized images','','','conn(''gui_setup'',11);');
-                        CONN_h.menus.m_setup_00{11}=uicontrol('style','frame','units','norm','position',[.77,.08,.23,.82],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'parent',CONN_h.screen.hfig);
+                        CONN_h.menus.m_setup_00{11}=conn_menu_mask('units','norm','position',[.77,.08,.23,.82],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'parent',CONN_h.screen.hfig);
 						set(CONN_h.menus.m_setup_00{3}.files,'max',2);
 						set(CONN_h.menus.m_setup_00{1},'max',2);
 						set(CONN_h.menus.m_setup_00{1},'string',[repmat('Subject ',[CONN_x.Setup.nsubjects,1]),num2str((1:CONN_x.Setup.nsubjects)')]);
@@ -5930,7 +5913,7 @@ else
                         h=conn_menu('checkbox',boffset+[.56,.18,.02,.035],'SPM covariates','','When checked, SPM covariates (in SPM.Sess.C) will be imported in CONN as a first-level covariate named "SPM covariates" for the selected subjects');set(h,'value',1);CONN_h.menus.m_setup_00{13}=h;
                         h=conn_menu('checkbox',boffset+[.56,.14,.02,.035],'realignment covariates','','When checked, rp_[functional].txt files, if available, will be imported in CONN as a first-level covariate named "realignment" for the selected subjects');set(h,'value',0);CONN_h.menus.m_setup_00{14}=h;
                         h=conn_menu('checkbox',boffset+[.56,.10,.02,.035],'ART covariates','','When checked, art_regresion_outliers_[functional].txt files, if available, will be imported in CONNas a first-level covariate named "ART covariates" for the selected subjects');set(h,'value',0);CONN_h.menus.m_setup_00{15}=h;
-                        CONN_h.menus.m_setup_00{21}=uicontrol('style','frame','units','norm','position',boffset+[.30,.095,.40,.70],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        CONN_h.menus.m_setup_00{21}=conn_menu_mask('units','norm','position',boffset+[.30,.095,.40,.70],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                         set(CONN_h.menus.m_setup_00{1},'string',[repmat('Subject ',[CONN_x.Setup.nsubjects,1]),num2str((1:CONN_x.Setup.nsubjects)')],'max',2);
                         set(CONN_h.menus.m_setup_00{3}.files,'max',2);
                     else
@@ -6041,7 +6024,7 @@ else
                         CONN_h.menus.m_setup_00{8}=conn_menu('popup',boffset+[.47,.14,.15,.04],'',{'as structural','as functional','as fieldmap'},'<HTML>Specify whether the selected DICOM series should be imported into CONN as structural or functional volumes<br/> - note: when selecting multiple DICOM series, the <i>as entire functional/structural data</i> option will automatically change the number of <br/>sessions per subject in your study to match the number of DICOM series selected</HTML>','conn(''gui_setup_import'',8)');
                         CONN_h.menus.m_setup_00{9}=conn_menu('pushbuttonblue',boffset+[.36,.14,.10,.04],'','Import','<HTML>Imports selected DICOM series as structural/functional data <b>for selected subject(s)</b></HTML>','conn(''gui_setup_import'',9)');
                         CONN_h.menus.m_setup_00{10}=conn_menu('popup',boffset+[.36,.09,.15,.05],'',{'import selected files','copy to project BIDS folder and import'},'<HTML>Controls behavior of ''Import'' button:<br/> - <i>import selected files</i> : (default) selected files will be imported into your CONN project directly from their original locations/folders<br/> - <i>copy first to project BIDS folder</i> : selected files will be first copied to your project conn_*/data/BIDS folder and then imported into your CONN project <br/>(e.g. use this when importing data from read-only folders if the files need to be further modified, uncompressed, or processed)</HTML>');
-                        CONN_h.menus.m_setup_00{21}=uicontrol('style','frame','units','norm','position',boffset+[.30,.095,.40,.35],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        CONN_h.menus.m_setup_00{21}=conn_menu_mask('units','norm','position',boffset+[.30,.095,.40,.35],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                         hc1=uicontextmenu('parent',CONN_h.screen.hfig);
                         uimenu(hc1,'Label','select suggested anatomical series','callback','conn(''gui_setup_import'',12,''isanat'');');
                         uimenu(hc1,'Label','select suggested functional series','callback','conn(''gui_setup_import'',12,''isfunc'');');
@@ -6297,8 +6280,8 @@ else
                         %h=conn_menu('checkbox',boffset+[.56,.18,.02,.04],'BIDS covariates','','When checked, BIDS covariates (in SPM.Sess.C) will be imported in CONN as a first-level covariate named "BIDS covariates" for the selected subjects');set(h,'value',1);CONN_h.menus.m_setup_00{13}=h;
                         %h=conn_menu('checkbox',boffset+[.56,.14,.02,.04],'realignment covariates','','When checked, rp_[functional].txt files, if available, will be imported in CONN as a first-level covariate named "realignment" for the selected subjects');set(h,'value',0);CONN_h.menus.m_setup_00{14}=h;
                         %h=conn_menu('checkbox',boffset+[.56,.10,.02,.04],'ART covariates','','When checked, art_regresion_outliers_[functional].txt files, if available, will be imported in CONNas a first-level covariate named "ART covariates" for the selected subjects');set(h,'value',0);CONN_h.menus.m_setup_00{15}=h;
-                        if CONN_h.menus.m_setup_import_isfmriprep, CONN_h.menus.m_setup_00{21}=uicontrol('style','frame','units','norm','position',boffset+[.20,.09,.30,.69],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
-                        else CONN_h.menus.m_setup_00{21}=uicontrol('style','frame','units','norm','position',boffset+[.20,.09,.50,.69],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        if CONN_h.menus.m_setup_import_isfmriprep, CONN_h.menus.m_setup_00{21}=conn_menu_mask('units','norm','position',boffset+[.20,.09,.30,.69],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        else CONN_h.menus.m_setup_00{21}=conn_menu_mask('units','norm','position',boffset+[.20,.09,.50,.69],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                         end
                         hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',5,''manual'');');set(CONN_h.menus.m_setup_00{5},'uicontextmenu',hc1);
                         hc1=uicontextmenu('parent',CONN_h.screen.hfig);uimenu(hc1,'Label','manual filter','callback','conn(''gui_setup_import'',6,''manual'');');set(CONN_h.menus.m_setup_00{6},'uicontextmenu',hc1);
@@ -6746,7 +6729,7 @@ else
 				CONN_h.menus.m_preproc_00{2}=conn_menu('listboxbigwhite',boffset+[.06,.50,.15,.20],'Confounds','','<HTML>List of potential confounding effects (e.g. physiological/movement). <br/> - Linear regression will be used to remove these effects from the BOLD signal <br/> - Select effects in the <i>all effects</i> list and click <b> &lt </b> to add new effects to this list <br/> - Select effects in this list and click <b> &gt </b> to remove them from this list <br/> - By default this list includes White matter and CSF BOLD timeseries (CompCor), all first-level covariates <br/> (e.g. motion-correction and scrubbing), and all main task effects (for task designs) </HTML>','conn(''gui_preproc'',2);');
 				%CONN_h.menus.m_preproc_00{2}=conn_menu('listbox',boffset+[.07,.50,.165,.20],'Confounds','','<HTML>List of potential confounding effects (e.g. physiological/movement). <br/> - Linear regression will be used to remove these effects from the BOLD signal <br/> - Select effects in the <i>all effects</i> list and click <b> &lt </b> to add new effects to this list <br/> - Select effects in this list and click <b> &gt </b> to remove them from this list <br/> - By default this list includes White matter and CSF BOLD timeseries (CompCor), all first-level covariates <br/> (e.g. motion-correction and scrubbing), and all main task effects (for task designs) </HTML>','conn(''gui_preproc'',2);');
 				CONN_h.menus.m_preproc_00{1}=conn_menu('listbox',boffset+[.27,.50,.125,.20],'all effects','',['<HTML>List of all effects<br/> - ROI timeseries<br/> - First-level covariates<br/> - Condition/task timeseries <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_preproc'',1);');
-                CONN_h.menus.m_preproc_00{10}=conn_menu('pushbutton',boffset+[.21,.50,.025,.20],'',CONN_gui.leftarrow,'move elements between ''Confounds'' and ''all effects'' lists', 'conn(''gui_preproc'',0);');
+                CONN_h.menus.m_preproc_00{10}=conn_menu('pushbuttonblueinblue',boffset+[.21,.50,.025,.20],'',CONN_gui.leftarrow,'move elements between ''Confounds'' and ''all effects'' lists', 'conn(''gui_preproc'',0);');
 				CONN_h.menus.m_preproc_00{6}=conn_menu('edit',boffset+[.27,.39,.15,.04],'Confound dimensions','','<HTML>Number of components/timeseries of selected effect to be included in regression model (<i>inf</i> to include all available dimensions)</HTML>','conn(''gui_preproc'',6);');
 				CONN_h.menus.m_preproc_00{4}=conn_menu('popup',boffset+[.27,.35,.15,.04],'',{'no temporal expansion','add 1st-order derivatives','add 2nd-order derivatives'},'<HTML>Temporal/Taylor expansion of regressor timeseries<br/> - Include temporal derivates up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, dx/dt] for first-order derivatives<br/> - [x, dx/dt, d2x/dt2] for second-order derivatives </HTML>','conn(''gui_preproc'',4);');
 				CONN_h.menus.m_preproc_00{8}=conn_menu('popup',boffset+[.27,.31,.15,.04],'',{'no polynomial expansion','add quadratic effects','add cubic effects'},'<HTML>Polynomial expansion of regressor timeseries<br/> - Include powers up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, x^2] for quadratic effects<br/> - [x, x^2, x^3] for cubic effects</HTML>','conn(''gui_preproc'',8);');
@@ -6757,8 +6740,8 @@ else
 				CONN_h.menus.m_preproc_00{18}=conn_menu('popup',boffset+[.27,.15,.15,.05],'Additional steps:',{'No detrending','Linear detrending','Quadratic detrending','Cubic detrending'},'<HTML>BOLD signal session-specific detrending<br/> - detrending is implemented by automatically adding the associated linear/quadratic/cubic regressors to the confounding effects model</HTML>','conn(''gui_preproc'',18);');
 				CONN_h.menus.m_preproc_00{19}=conn_menu('popup',boffset+[.27,.10,.15,.05],'',{'No despiking','Despiking before regression','Despiking after regression'},'BOLD signal despiking with a hyperbolic tangent squashing function (before or after confound removal regression)','conn(''gui_preproc'',19);');
                 CONN_h.menus.m_preproc_00{22}=[...%uicontrol('style','frame','units','norm','position',boffset+[.30,.47,.13,.30],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA),...
-                                               uicontrol('style','frame','units','norm','position',boffset+[.05,.23,.38,.25],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig)];
-                CONN_h.menus.m_preproc_00{21}=uicontrol('style','frame','units','norm','position',boffset+[.245,.50,.15,.25],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                                               conn_menu_mask('units','norm','position',boffset+[.05,.23,.38,.25],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig)];
+                CONN_h.menus.m_preproc_00{21}=conn_menu_mask('units','norm','position',boffset+[.245,.50,.15,.25],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                 %CONN_h.menus.m_preproc_00{21}=conn_menu('popup',boffset+[.22,.07,.15,.05],'',{'No dynamic estimation','Estimate dynamic effects'},'Estimates temporal components characterizing potential dynamic functional connectivity effects','conn(''gui_setup'',21);');
 				CONN_h.menus.m_preproc_00{3}=conn_menu('image',boffset+[.06,.27,.17,.16],'Confound timeseries');
                 
@@ -6766,11 +6749,11 @@ else
 				CONN_h.menus.m_preproc_00{11}=conn_menu('listbox2',boffset+[.80,.55,.07,.19],'Subjects','','Select subject to display','conn(''gui_preproc'',11);');
 				CONN_h.menus.m_preproc_00{12}=conn_menu('listbox2',boffset+[.88,.55,.07,.19],'Sessions','','Select session to display','conn(''gui_preproc'',12);');
 				%CONN_h.menus.m_preproc_00{13}=conn_menu('listbox',boffset+[.59,.45,.075,.3],'Confounds','','Select confound to display','conn(''gui_preproc'',13);');
-				[CONN_h.menus.m_preproc_00{16},CONN_h.menus.m_preproc_00{17}]=conn_menu('hist',boffset+[.50,.59,.175,.16],'');
+				[CONN_h.menus.m_preproc_00{16},CONN_h.menus.m_preproc_00{17}]=conn_menu('hist2',boffset+[.50,.59,.175,.16],'Distribution of connectivity values (r)');
                 %CONN_h.menus.m_preproc_00{21}=uicontrol('style','text','units','norm','position',boffset+[.48,.47,.215,.04],'string','voxel-to-voxel r','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset);
 				[CONN_h.menus.m_preproc_00{23},CONN_h.menus.m_preproc_00{24}]=conn_menu('scatter',boffset+[.50,.40,.175,.165]);
-                CONN_h.menus.m_preproc_00{25}=uicontrol('style','text','units','norm','position',boffset+[.49,.35,.195,.04],'string','connectivity between voxels (r)','backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset,'parent',CONN_h.screen.hfig);
-                uicontrol('style','text','units','norm','position',boffset+[.49,.05,.195,.04],'string','time (s)','backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset,'parent',CONN_h.screen.hfig);
+                CONN_h.menus.m_preproc_00{25}=uicontrol('style','text','units','norm','position',boffset+[.49,.35,.195,.04],'string','connectivity between voxels (r)','backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',mod(mean(CONN_gui.backgroundcolor)+.3,1)*[1 1 1],'fontsize',8+CONN_gui.font_offset,'parent',CONN_h.screen.hfig);
+                uicontrol('style','text','units','norm','position',boffset+[.49,.05,.195,.04],'string','time (s)','backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',mod(mean(CONN_gui.backgroundcolor)+.3,1)*[1 1 1],'fontsize',8+CONN_gui.font_offset,'parent',CONN_h.screen.hfig);
                 uicontrol('style','text','units','norm','position',boffset+[.50+.18,.23,.08,.04],'string','carpetplot original','fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',.75/2*[1,1,1],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
                 uicontrol('style','text','units','norm','position',boffset+[.50+.18,.16,.08,.04],'string','carpetplot after denoising','fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',.6*[1 1 .85],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
                 uicontrol('style','text','units','norm','position',boffset+[.50+.18,.10,.08,.04],'string','Global Signal original','fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',.75/2*[1,1,1],'horizontalalignment','left','parent',CONN_h.screen.hfig); 
@@ -6779,8 +6762,8 @@ else
                 set(CONN_h.menus.m_preproc_00{23}.h2,'markersize',1);set(CONN_h.menus.m_preproc_00{23}.h1,'ydir','reverse','yaxislocation','right','xtick',-1:.5:1,'xticklabel',[]);ylabel(CONN_h.menus.m_preproc_00{23}.h1,'distance between voxels (mm)','fontsize',8+CONN_gui.font_offset);
                 %CONN_h.menus.m_preproc_00{25}=uicontrol('style','text','units','norm','position',boffset+[.73,.03,.185,.04],'string','voxel-to-voxel dist (mm)','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset);
                 %CONN_h.menus.m_preproc_00{21}=uicontrol('style','text','units','norm','position',boffset+[.47,.08,.225,.04],'string','voxel-to-voxel r','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset);
-                ht=conn_menu('text2',boffset+[.49,.74,.195,.04],'','Distribution of connectivity values (r)');
-                set(ht,'foregroundcolor',CONN_gui.fontcolorA,'fontweight','normal','fontsize',10+CONN_gui.font_offset);%,'fontweight','bold');
+                %ht=conn_menu('text2',boffset+[.49,.74,.195,.04],'','Distribution of connectivity values (r)');
+                %set(ht,'foregroundcolor',CONN_gui.fontcolorA,'fontweight','normal','fontsize',10+CONN_gui.font_offset);%,'fontweight','bold');
                 %CONN_h.menus.m_preproc_00{33}=conn_menu('pushbuttonblue2',boffset+[.48,.72,.215,.04],'','Distribution of connectivity values (r)','<HTML>compute and display histograms of voxel-to-voxel connectivity values for all subjects/sessions (QA_DENOISE)<br/> - note: QA_DENOISE plots will be added to you most recent Quality Assurance set <br/> - use<i> Setup.QA plots</i> to display previously generated plot(s) </HTML>','conn(''gui_preproc'',33);');
                 %hc1=uicontextmenu;uimenu(hc1,'Label','Show Histogram for all subjects/sessions','callback',@conn_displaydenoisinghistogram);set([CONN_h.menus.m_preproc_00{16}.h1, CONN_h.menus.m_preproc_00{16}.h3, CONN_h.menus.m_preproc_00{16}.h4, CONN_h.menus.m_preproc_00{16}.h5],'uicontextmenu',hc1);
                 %set([CONN_h.menus.m_preproc_00{33}],'visible','off');%,'fontweight','bold');
@@ -6792,9 +6775,9 @@ else
 				if any(CONN_x.Setup.steps([2,3])),
                     %conn_menu('title2',boffset+[pos(1)+.01 pos(2)+pos(4)+.02 pos(3) .04],'BOLD % variance explained by');
                     %uicontrol('style','text','units','norm','position',boffset+[pos(1)+.01 pos(2)+pos(4)+.02 pos(3) .04],'string','BOLD % variance explained by','fontname',CONN_gui.fontname,'fontsize',10+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','left','parent',CONN_h.screen.hfig); 
-                    ht=conn_menu('text2',boffset+[pos(1)+.01 pos(2)+pos(4)+.02 pos(3) .04],'','BOLD % variance explained by'); 
-                    set(ht,'horizontalalignment','left','foregroundcolor',CONN_gui.fontcolorA,'fontsize',10+CONN_gui.font_offset);%,'fontweight','bold');
-                    CONN_h.menus.m_preproc_00{13}=conn_menu('popup2',boffset+[pos(1)+.01,pos(2)+pos(4)-.01,pos(3),.04],'',{' TOTAL'},'Select confound to display','conn(''gui_preproc'',13);');
+                    %ht=conn_menu('text2',boffset+[pos(1)+.01 pos(2)+pos(4)+.02 pos(3) .04],'','BOLD % variance explained by'); 
+                    %set(ht,'horizontalalignment','left','fontsize',10+CONN_gui.font_offset);%,'fontweight','bold');'foregroundcolor',CONN_gui.fontcolorA,
+                    CONN_h.menus.m_preproc_00{13}=conn_menu('popup2',boffset+[pos(1)+.01,pos(2)+pos(4)-.01,pos(3),.04],'BOLD % variance explained by',{' TOTAL'},'Select confound to display','conn(''gui_preproc'',13);');
                     uicontrol('style','text','units','norm','position',boffset+[pos(1)-.01,pos(2)-1*.060,.070,.045],'string','threshold','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','right','parent',CONN_h.screen.hfig); 
                     CONN_h.menus.m_preproc_00{15}=conn_menu('slider',boffset+[pos(1)+pos(3),pos(2),.015,pos(4)],'','','z-slice','conn(''gui_preproc'',15);');
                     try, addlistener(CONN_h.menus.m_preproc_00{15}, 'ContinuousValueChange',@(varargin)conn('gui_preproc',15)); end
@@ -7490,6 +7473,7 @@ else
                             'dyn-ICA',          'DYN',  '<HTML><b>dyn-ICA</b> (dynamic independent component analysis)</HTML>',     {'data-driven Independent Component Analyses (ICA) characterizing independent sets of functional connections',' ','for method details see: Nieto-Castanon, A. (2020). Handbook of fcMRI methods in CONN. Boston, MA: Hilbert Press'} };
                             %'S2V',              'S2V',  '<HTML>any user-defined seed-based or ROI-to-ROI connectivity analyses</HTML>','';...
                             %'V2V',              'V2V',  '<HTML>any user-defined network-based or voxel-to-voxel connectivity analyses</HTML>',''};
+                        if ~CONN_gui.isjava, str(:,3)=regexprep(str(:,3),'<[^>]*>',''); end
                         thfig=dialog('units','norm','position',[.2,.3,.7,.6],'windowstyle','normal','name','New first-level analysis','color','w','resize','on');
                         uicontrol(thfig,'style','text','units','norm','position',[.1,.88,.5,.04],'string','Analysis name:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','fontweight','bold');
                         ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.80,.5,.08],'string','SBC_01','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','<HTML>Enter a custom name for this first-level analysis<br/> - analysis names must be unique and containing only alphanumeric characters (case sensitive, no spaces, ideally short</HTML>');
@@ -7725,8 +7709,8 @@ else
                 CONN_h.menus.m_analyses_00{14}=conn_menu('image2',boffset+pos,' ','','',[],@conn_callbackdisplay_firstlevelclick);
                 conn_menu('nullstr',' ');
                 CONN_h.menus.m_analyses_00{29}=conn_menu('image2',boffset+pos+[.02 -.18 -.02 -pos(4)+.07],'voxel BOLD timeseries');
-                CONN_h.menus.m_analyses_00{44}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.07,pos(2)-.26,.08,.045],'','plot subject','display subject results using alternative views','conn(''gui_analyses'',44);');
-                CONN_h.menus.m_analyses_00{24}=uicontrol('style','frame','units','norm','position',boffset+[pos(1),pos(2)-.26,pos(3),.26],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'visible','off','parent',CONN_h.screen.hfig);
+                CONN_h.menus.m_analyses_00{44}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.05,pos(2)-.26,pos(3)-.1,.045],'','plot subject','display subject results using alternative views','conn(''gui_analyses'',44);');
+                CONN_h.menus.m_analyses_00{24}=conn_menu_mask('units','norm','position',boffset+[pos(1),pos(2)-.26,pos(3),.26],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'visible','off','parent',CONN_h.screen.hfig);
                 set([CONN_h.menus.m_analyses_00{44} CONN_h.menus.m_analyses_00{15} CONN_h.menus.m_analyses_00{11} CONN_h.menus.m_analyses_00{12} temp1 temp2],'visible','off');
                 conn_menumanager('onregion',[CONN_h.menus.m_analyses_00{14}.h10 CONN_h.menus.m_analyses_00{45}],1,boffset+[.595,.02,.37,.81]);
                 conn_menumanager('onregion',[CONN_h.menus.m_analyses_00{44} CONN_h.menus.m_analyses_00{11} CONN_h.menus.m_analyses_00{12} temp1 temp2],1,boffset+[.595,.02,.37,.81]);
@@ -7842,21 +7826,21 @@ else
                     connmeasures={'correlation (bivariate)','correlation (semipartial)','regression (bivariate)','regression (multivariate)'};
                     CONN_h.menus.m_analyses_00{7}=conn_menu('popup',boffset+[.175,.55,.18,.04],'',connmeasures,'<HTML>Choose functional connectivity measure<br/> - <i>bivariate</i> measures are computed separately for each pair of source&target ROIs (ROI-to-ROI analyses)<br/> or for each pair of source ROI and target voxel (seed-to-voxel analyses)<br/> - <i>semipartial</i> and <i>multivariate</i> measures are computed entering all the chosen source ROIs simultaneously <br/>into a single regression model (separately for each target ROI/voxel) <br/> - <i>correlation</i> measures output Fisher-transformed correlation-coefficients (bivariate or semipartial) and <br/>are typically associated with measures of <i>functional</i> connectivity<br/> - <i>regression</i> measures output regression coefficients (bivariate or multivariate) and are typically associated <br/>with measures of <i>effective</i> connectivity</HTML>','conn(''gui_analyses'',7);');
                     CONN_h.menus.m_analyses_00{8}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'no weighting','hrf weighting','hanning weighting'},'<HTML>Choose method for weighting scans/samples within each condition block when computing condition-specific connectivity measures (for weighted GLM analyses only) <br/> - <i>no weighting</i> uses binary 0/1 weights identifying scans associated with each condition<br/> - <i>hrf weights</i> additionally convolves the above binary weights with a canonical hemodynamic response function<br/> - <i>hanning weights</i> uses instead a hanning window across within-condition scans/samples  as weights (focusing only on center segment within each block)<br/></HTML>','conn(''gui_analyses'',8);');
-                    CONN_h.menus.m_analyses_00{25}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'connectivity-change with each task','total-connectivity during each task'},'<HTML>Choose output measure<br/> - "connectivity change" outputs the gPPI model regressor coefficient associated with the <i>psychophysiological interaction</i> term alone, measuring differences<br/> in connectivity between each task and the gPPI model implicit baseline condition<br/> - "total connectivity" outputs the sum of the gPPI model regressor coefficients associated with the <i>main physiological</i> and the <i>psychophysiological interaction</i><br/> terms, measuring the total connectivity strength during each task)</HTML>','conn(''gui_analyses'',25);');
+                    CONN_h.menus.m_analyses_00{25}=conn_menu('popup',boffset+[.175,.51,.18,.04],'',{'connectivity-change with each task','total-connectivity during each task'},'<HTML>Choose output measure<br/> - "connectivity change" outputs the gPPI model regressor coefficient associated with the <i>psychophysiological interaction</i> term alone, measuring differences<br/> in connectivity between each task and the gPPI model implicit baseline condition<br/> - "total connectivity" outputs the sum of the gPPI model regressor coefficients associated with the <i>main physiological</i> and the <i>psychophysiological interaction</i><br/> terms, measuring the total connectivity strength during each task</HTML>','conn(''gui_analyses'',25);');
                     set(CONN_h.menus.m_analyses_00{25},'visible','off');
                     %[nill,CONN_h.menus.m_analyses_00{16}]=conn_menu('text',boffset+[.125,.48,.26,.05],'Functional connectivity seeds/sources:');
                     %set(CONN_h.menus.m_analyses_00{16},'horizontalalignment','left');
                     CONN_h.menus.m_analyses_00{1}=conn_menu('listbox',boffset+[.39,.31,.155,.13],'all ROIs','',['<HTML>List of all seeds/ROIs <br/> - this list includes all ROI timeseres and first-level covariates except those<br/> which have already been defined/used as confounds during the denoising step <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',1);');
                     CONN_h.menus.m_analyses_00{2}=conn_menu('listbox',boffset+[.175,.31,.195,.13],'Selected Seeds/Sources','',['<HTML>List of seeds/ROIs to be included in this analysis  <br/> - Connectivity measures will be computed among all selected ROIs (for ROI-to-ROI analyses) and/or between the selected ROIs and all brain voxels (seed-to-voxel analyses) <br/> - Select ROIs in the <i>all ROIs</i> list and click <b> &lt </b> to add new sources to this list<br/> - Select ROIs in this list and click <b> &gt </b> to remove them from this list  <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);');
                     CONN_h.menus.m_analyses_00{30}=conn_menu('pushbutton',boffset+[.37,.31,.02,.13],'',CONN_gui.leftarrow,'move elements between ''Seeds/Sources'' and ''all ROIs'' lists', 'conn(''gui_analyses'',0);');
-                    CONN_h.menus.m_analyses_00{6}=conn_menu('edit',boffset+[.41,.19,.15,.04],'Source dimensions','','Number of dimensions/components of selected source','conn(''gui_analyses'',6);');
-                    CONN_h.menus.m_analyses_00{4}=conn_menu('popup',boffset+[.41,.14,.15,.04],'',{'no temporal expansion','add 1st-order derivatives','add 2nd-order derivatives'},'<HTML>Temporal/Taylor expansion of selected seed/source timeseries<br/> - Include temporal derivates up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, dx/dt] for first-order derivatives<br/> - [x, dx/dt, d2x/dt2] for second-order derivatives </HTML>','conn(''gui_analyses'',4);');
-                    CONN_h.menus.m_analyses_00{5}=conn_menu('popup',boffset+[.41,.10,.15,.04],'',{'no frequency decomposition','frequency decomposition'},'Number of frequency bands for spectral decomposition of selected seed/source timeseries (''none'' for single-band covering entire band-pass filtered data)','conn(''gui_analyses'',5);');
+                    CONN_h.menus.m_analyses_00{6}=conn_menu('edit',boffset+[.41,.19,.135,.04],'Source dimensions','','Number of dimensions/components of selected source','conn(''gui_analyses'',6);');
+                    CONN_h.menus.m_analyses_00{4}=conn_menu('popup',boffset+[.41,.14,.135,.04],'',{'no temporal expansion','add 1st-order derivatives','add 2nd-order derivatives'},'<HTML>Temporal/Taylor expansion of selected seed/source timeseries<br/> - Include temporal derivates up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, dx/dt] for first-order derivatives<br/> - [x, dx/dt, d2x/dt2] for second-order derivatives </HTML>','conn(''gui_analyses'',4);');
+                    CONN_h.menus.m_analyses_00{5}=conn_menu('popup',boffset+[.41,.10,.135,.04],'',{'no frequency decomposition','frequency decomposition'},'Number of frequency bands for spectral decomposition of selected seed/source timeseries (''none'' for single-band covering entire band-pass filtered data)','conn(''gui_analyses'',5);');
                     CONN_h.menus.m_analyses_00{19}=conn_menu('popup',boffset+[.23,.22,.14,.04],'',{'Source timeseries','First-level analysis design matrix'},'<HTML>Choose display type<br/> - <i>Source timeseries</i> displays the BOLD signal timeseries for the selected source/subject/session<br/> - <i>Design matrix</i> displays the scans-by-regressors first-level design matrix for the selected <br/> source/subject/session (highlighted the regressor of interest for second-level analyses)</HTML>','conn(''gui_analyses'',19);');
                     CONN_h.menus.m_analyses_00{3}=conn_menu('image',boffset+[.185,.09,.205,.12],'');%'Source timeseries');
                     CONN_h.menus.m_analyses_00{22}=[...%uicontrol('style','frame','units','norm','position',boffset+[.405,.30,.125,.33],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA),...
-                        uicontrol('style','frame','units','norm','position',boffset+[.166,.08,.379,.23],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig)];
-                    CONN_h.menus.m_analyses_00{23}=uicontrol('style','frame','units','norm','position',boffset+[.37,.31,.175,.24],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                        conn_menu_mask('units','norm','position',boffset+[.166,.08,.379,.23],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig)];
+                    CONN_h.menus.m_analyses_00{23}=conn_menu_mask('units','norm','position',boffset+[.37,.31,.175,.24],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                     conn_menumanager('onregion',CONN_h.menus.m_analyses_00{23},-1,boffset+[.175 .31 .38 .24]);
                     
                     set(CONN_h.menus.m_analyses_00{13},'string',{'Analysis results (from disk)','Analysis results (preview)'},'value',max(1,min(2,get(CONN_h.menus.m_analyses_00{13},'value'))));
@@ -9383,7 +9367,7 @@ else
                     CONN_h.menus.m_analyses_00{2}=conn_menu('listbox',boffset+[.105,.30,.195,.15],'Seeds/Sources','',['<HTML>List of seeds/ROIs to be included in this analysis  <br/>- Select ROIs in the <i>all ROIs</i> list and click <b> &lt </b> to add new sources to this list<br/> - Select sources in this list and click <b> &gt </b> to remove them from this list  <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);');
                     CONN_h.menus.m_analyses_00{1}=conn_menu('listbox',boffset+[.32,.30,.145,.15],'all ROIs','',['<HTML>List of all seeds/ROIs <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all/<HTML>'],'conn(''gui_analyses'',1);');
                     CONN_h.menus.m_analyses_00{30}=conn_menu('pushbutton',boffset+[.30,.30,.02,.15],'',CONN_gui.leftarrow,'move elements between ''Seeds/Sources'' and ''all ROIs'' lists', 'conn(''gui_analyses'',0);');
-                    CONN_h.menus.m_analyses_00{23}=uicontrol('style','frame','units','norm','position',boffset+[.30,.30,.165,.20],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
+                    CONN_h.menus.m_analyses_00{23}=conn_menu_mask('units','norm','position',boffset+[.30,.30,.165,.20],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
                     conn_menumanager('onregion',CONN_h.menus.m_analyses_00{23},-1,boffset+[.105 .10 .38 .40]);
                     if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).output), CONN_x.dynAnalyses(CONN_x.dynAnalysis).output=[1 1 0]; end
                     %for n=1:3, set(CONN_h.menus.m_analyses_00{8+n},'value',CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(n)); end
@@ -10469,10 +10453,10 @@ else
                         set(CONN_h.menus.m_results_00{61},'max',1,'string',regexprep({CONN_x.Analyses(CONN_h.menus.m_results.shownanalyses).name},{'^.*(\\|\/)','Dynamic factor 0*(\d+)'},{'','Circuit_$1'}),'value',find(CONN_h.menus.m_results.shownanalyses==ianalysis,1));
                     end
                     
-                    CONN_h.menus.m_results_00{48}=uicontrol('style','frame','units','norm','position',boffset+[.375-.005,.39-dp1,.175+.01,.35+dp1-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','off','parent',CONN_h.screen.hfig);                    
-                    CONN_h.menus.m_results_00{53}=uicontrol('style','frame','units','norm','position',boffset+[.375,.39-dp1,.18,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
-                    CONN_h.menus.m_results_00{54}=uicontrol('style','frame','units','norm','position',boffset+[-.025,.39-dp1,.185,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
-                    CONN_h.menus.m_results_00{55}=uicontrol('style','frame','units','norm','position',boffset+[.185,.39-dp1,.17,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
+                    CONN_h.menus.m_results_00{48}=conn_menu_mask('units','norm','position',boffset+[.375-.005,.39-dp1,.175+.01,.35+dp1-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','off','parent',CONN_h.screen.hfig);                    
+                    CONN_h.menus.m_results_00{53}=conn_menu_mask('units','norm','position',boffset+[.375,.39-dp1,.18,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
+                    CONN_h.menus.m_results_00{54}=conn_menu_mask('units','norm','position',boffset+[-.025,.39-dp1,.185,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
+                    CONN_h.menus.m_results_00{55}=conn_menu_mask('units','norm','position',boffset+[.185,.39-dp1,.17,.17-dp3],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'visible','on','parent',CONN_h.screen.hfig);
                     CONN_h.menus.m_results_00{23}=conn_menu('pushbutton',boffset+[.435,.435-dp1-.10,.07,.04],'','','<HTML>Second-level model design information<br/> - click to display design matrix and additional details</HTML>',@(varargin)conn_displaydesign);
                     CONN_h.menus.m_results_00{59}=conn_menu('pushbutton',boffset+[.505,.435-dp1-.10,.05,.04],'','bookmark','<HTML>Bookmarks this second-level analysis results<br/> - bookmarked results can be quickly accessed from all <i>Second-level Results</i> tabs</HTML>','conn(''gui_results'',43);');
                     %connmeasures={'correlation (bivariate)','correlation (semipartial)','regression (bivariate)','regression (multivariate)'};
@@ -13582,8 +13566,8 @@ if isfield(CONN_x,'filename')
             if k0, str0=''; else str0='(read-only)'; end
             str=sprintf('storage: %.1fGb available (%d%%) %s',(k1*1e-9),round((1-k)*100),str0);
         end
-        %d=max(0,min(1, mod(conn_bsxfun(@times,1+1*c,shiftdim(CONN_gui.backgroundcolor,-1)),1.1) ));
-        d=max(0,min(1, mod(conn_bsxfun(@plus,.1*c,shiftdim(CONN_gui.backgroundcolor,-1)),1) ));
+        d=max(0,min(1, mod(conn_bsxfun(@times,1+1*c,shiftdim(CONN_gui.backgroundcolor,-1)),1.1) ));
+        %d=max(0,min(1, mod(conn_bsxfun(@plus,.1*c,shiftdim(CONN_gui.backgroundcolor,-1)),1) ));
         d(conn_bsxfun(@plus,[0 2]*numel(c),find(c==2)))=d(conn_bsxfun(@plus,[2 0]*numel(c),find(c==2)));
         ha=axes('units','norm','position',[.425,.0,.05,.015],'parent',CONN_h.screen.hfig); ht=image(d,'parent',ha); axis(ha,'tight','off'); set(ht,'tag','infoline:bar');
         ht=conn_menu('text0',[.485,.00,.25,.015],'',str);
@@ -13603,10 +13587,10 @@ if conn_menumanager('ison')&&isfield(CONN_gui,'isremote')&&CONN_gui.isremote,
     end
 end
 if conn_menumanager('ison')
-    h=conn_menu('pushbutton2',[.74,.01,.016,.02],'','','color theme: light (dark text on light background)','conn(''gui_settings'',''light'');'); set(h,'backgroundcolor','w');
-    h=conn_menu('pushbutton2',[.756,.01,.016,.02],'','','color theme: dark (default; light text on dark background)','conn(''gui_settings'',''dark'');'); set(h,'backgroundcolor',[.5 .5 .5]);
-    h=conn_menu('pushbutton2',[.776,.01,.016,.02],'','A','font size: increase','conn(''gui_settings'',''font+'');'); set(h,'fontsize',10+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
-    h=conn_menu('pushbutton2',[.792,.01,.016,.02],'','A','font size: decrease','conn(''gui_settings'',''font-'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
+    h=conn_menu('pushbutton2',[.74,.01,.016,.02],'','','color theme: light (dark text on light background)','conn(''gui_settings'',''light'');'); set(h,'backgroundcolor',[.9 .9 .9]);
+    h=conn_menu('pushbutton2',[.756,.01,.016,.02],'','','color theme: dark (default; light text on dark background)','conn(''gui_settings'',''dark'');'); set(h,'backgroundcolor',[.1 .1 .1]);
+    h=conn_menu('pushbutton2',[.776,.01,.016,.02],'','A+','font size: increase','conn(''gui_settings'',''font+'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
+    h=conn_menu('pushbutton2',[.792,.01,.016,.02],'','A-','font size: decrease','conn(''gui_settings'',''font-'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
     h=conn_menu('pushbutton2',[.812,.01,.016,.02],'','','colormap: jet','conn(''gui_colormap'',1);'); set(h,'cdata',permute(repmat([0 0.33 1;0 0.5 1;0 0.67 1;0 0.83 1;0 1 1;0.17 1 0.83;0.33 1 0.67;0.5 1 0.5;0.67 1 0.33;0.83 1 0.17;1 1 0;1 0.83 0;1 0.67 0;1 0.5 0;1 0.33 0;1 0.17 0],[1,1,8]),[3,1,2]));
     h=conn_menu('pushbutton2',[.828,.01,.016,.02],'','','colormap: yellowblackblue','conn(''gui_colormap'',3);'); set(h,'cdata',permute(repmat([0 0.68 0.89;0 0.6 0.76;0 0.53 0.64;0 0.46 0.51;0 0.39 0.39;0.064 0.26 0.23;0.051 0.13 0.093;0.004 0.0079 0.004;0.082 0.12 0.044;0.21 0.24 0.059;0.37 0.37 0;0.5 0.45 0;0.62 0.51 0;0.75 0.58 0;0.87 0.66 0;1 0.76 0],[1,1,8]),[3,1,2]));
     h=conn_menu('pushbutton2',[.844,.01,.016,.02],'','','colormap: redwhiteblue','conn(''gui_colormap'',4);'); set(h,'cdata',permute(repmat([0.11 0.21 0.66;0.24 0.42 0.8;0.36 0.6 0.92;0.49 0.74 1;0.7 0.85 1;0.87 0.93 1;0.97 0.98 1;1 1 1;1 0.97 0.97;1 0.88 0.88;1 0.73 0.73;1 0.5 0.5;0.93 0.38 0.38;0.82 0.25 0.25;0.68 0.13 0.13;0.5 0 0],[1,1,8]),[3,1,2]));

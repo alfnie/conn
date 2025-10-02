@@ -337,16 +337,19 @@ c=iidx(c);
 end
 
 function str=conn_strexpand(varargin)
+global CONN_gui;
 if nargin<1, str={}; return; end
 str=varargin{1};
 changed=false(size(str));
-for n1=2:nargin
-    for n2=1:min(numel(str),numel(varargin{n1}))
-        if ~isempty(varargin{n1}{n2}), changed(n2)=true; str{n2}=[str{n2} ' <i>(' varargin{n1}{n2} ')</i>']; end
+if isfield(CONN_gui,'isjava')&&CONN_gui.isjava,
+    for n1=2:nargin
+        for n2=1:min(numel(str),numel(varargin{n1}))
+            if ~isempty(varargin{n1}{n2}), changed(n2)=true; str{n2}=[str{n2} ' <i>(' varargin{n1}{n2} ')</i>']; end
+        end
     end
-end
-for n2=find(changed(:))'
-    str{n2}=['<HTML>' str{n2} '</HTML>'];
+    for n2=find(changed(:))'
+        str{n2}=['<HTML>' str{n2} '</HTML>'];
+    end
 end
 end
 

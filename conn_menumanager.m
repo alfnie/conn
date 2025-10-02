@@ -233,24 +233,41 @@ if ischar(handle),
                     if ~isempty(colorB), colorB=colorB(arrayfun(@(x)~strcmp(get(x,'style'),'popupmenu'),colorB)); end
                     if ~isempty(colorC), colorC=colorC(arrayfun(@(x)~strcmp(get(x,'style'),'popupmenu'),colorC)); end
                 end
-                if ~CONN_gui.isjava
+                if 0,%~CONN_gui.isjava
                     if ~isempty(colorB), colorB=colorB(arrayfun(@(x)~strcmp(get(x,'style'),'pushbutton'),colorB)); end
                     if ~isempty(colorC), colorC=colorC(arrayfun(@(x)~strcmp(get(x,'style'),'pushbutton'),colorC)); end
                 end
                 %if ~isempty(colorB), set(colorB,'foregroundcolor',[.4 .4 .4]+.2*(mean(CONN_gui.backgroundcolor)<.5)); end
                 %if ~isempty(colorC), set(colorC,'foregroundcolor',[0 0 0]+1*(mean(CONN_gui.backgroundcolor)<.5)); end
-                if CONN_gui.isjava
-                    if ~isempty(colorB), for n1=1:numel(colorB), set(colorB(n1),'foregroundcolor',[.4 .4 .4]+.2*(mean(get(colorB(n1),'backgroundcolor'))<.5)); % color when going out
-                    end; end
-                    if ~isempty(colorC), for n1=1:numel(colorC), set(colorC(n1),'foregroundcolor',[0 0 0]+1*(mean(get(colorC(n1),'backgroundcolor'))<.5)); % color when going in
-                    end; end
-                else
-                    if ~isempty(colorB), for n1=1:numel(colorB), set(colorB(n1),'foregroundcolor', CONN_gui.fontcolorB,'backgroundcolor',CONN_gui.backgroundcolor);
-                    end; end
-                    if ~isempty(colorC), for n1=1:numel(colorC), set(colorC(n1),'foregroundcolor',[0 0 0],'backgroundcolor',max(0,min(1,CONN_gui.backgroundcolorA+.05)));
-                    %if ~isempty(colorC), for n1=1:numel(colorC), set(colorC(n1),'foregroundcolor',[0 0 0]+1*(mean(get(colorC(n1),'backgroundcolor'))<.5),'backgroundcolor',max(0,min(1,CONN_gui.backgroundcolorA-.1)));
-                    end; end
+                %if ~isempty(colorB), for n1=1:numel(colorB), set(colorB(n1),'foregroundcolor',[.4 .4 .4]+.2*(mean(get(colorB(n1),'backgroundcolor'))<.5)); % color when going out
+                %end; end
+                %if ~isempty(colorC), for n1=1:numel(colorC), set(colorC(n1),'foregroundcolor',[0 0 0]+1*(mean(get(colorC(n1),'backgroundcolor'))<.5)); % color when going in
+                %end; end
+                deltacolor=.025;%*(1-2*(CONN_gui.backgroundcolor>.5));
+                if ~isempty(colorB), % color when going out
+                    for n1=1:numel(colorB),
+                        tbg=get(colorB(n1),'backgroundcolor');
+                        tal=0;%~CONN_gui.isjava&isequal(get(colorB(n1),'style'),'popupmenu');
+                        if all(tbg==max(0,min(1,CONN_gui.backgroundcolor+deltacolor))), set(colorB(n1),'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolor);
+                        elseif all(tbg==max(0,min(1,CONN_gui.backgroundcolorA+deltacolor))), set(colorB(n1),'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA);
+                        elseif all(tbg==max(0,min(1,CONN_gui.backgroundcolorE+deltacolor))), set(colorB(n1),'backgroundcolor',CONN_gui.backgroundcolorE,'foregroundcolor',CONN_gui.fontcolorA);
+                        end 
+                    end
                 end
+                if ~isempty(colorC), % color when going in
+                    for n1=1:numel(colorC),
+                        tbg=get(colorC(n1),'backgroundcolor');
+                        tal=0;%~CONN_gui.isjava&isequal(get(colorC(n1),'style'),'popupmenu');
+                        if all(tbg==CONN_gui.backgroundcolor), set(colorC(n1),'backgroundcolor',max(0,min(1,CONN_gui.backgroundcolor+deltacolor)),'foregroundcolor',tal*[.5 .5 .5]+(1-tal)*round(CONN_gui.fontcolor));
+                        elseif all(tbg==CONN_gui.backgroundcolorA), set(colorC(n1),'backgroundcolor',max(0,min(1,CONN_gui.backgroundcolorA+deltacolor)),'foregroundcolor',tal*[.5 .5 .5]+(1-tal)*round(CONN_gui.fontcolorA));
+                        elseif all(tbg==CONN_gui.backgroundcolorE), set(colorC(n1),'backgroundcolor',max(0,min(1,CONN_gui.backgroundcolorE+deltacolor)),'foregroundcolor',tal*[.5 .5 .5]+(1-tal)*round(CONN_gui.fontcolorA));
+                        end 
+                    end
+                end
+                    %if ~isempty(colorB), for n1=1:numel(colorB), set(colorB(n1),'foregroundcolor',[.0 .0 .0]+1*(mean(get(colorB(n1),'backgroundcolor'))>=.5)); % color when going out
+                    %end; end
+                    %if ~isempty(colorC), for n1=1:numel(colorC), set(colorC(n1),'foregroundcolor',[0 0 0]+1*(mean(get(colorC(n1),'backgroundcolor'))<.5)); % color when going in
+                    %end; end
                 if CONN_gui.doemphasis3
                     if ~isempty(colorB), colorB=colorB(arrayfun(@(x)isequal(get(x,'backgroundcolor'),max(0,min(1,.9*CONN_gui.backgroundcolorA+.1*[.5 .5 .5]))),colorB)); end
                     if ~isempty(colorC), colorC=colorC(arrayfun(@(x)isequal(get(x,'backgroundcolor'),CONN_gui.backgroundcolorA),colorC)); end
@@ -310,9 +327,9 @@ if ischar(handle),
                     delete(hc(ishandle(hc)));
                 else
                     hax=axes('units','norm','position',[.78,.93,.20,.02],'parent',CONN_MM.gcf);
-                    text(1,0,sprintf('GUI busy\\fontsize{%d} (perhaps%s)\\fontsize{%d} please wait',5+CONN_gui.font_offset,regexprep(conn_msg(1),', please wait.*$',''),6+CONN_gui.font_offset),'horizontalalignment','right','interpreter','tex','color',CONN_gui.fontcolorB, 'fontsize',6+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
+                    text(1,0,sprintf('GUI busy\\fontsize{%d} (perhaps%s)\\fontsize{%d} please wait',5+CONN_gui.font_offset,regexprep(conn_msg(1),', please wait.*$',''),6+CONN_gui.font_offset),'horizontalalignment','right','interpreter','tex','color',CONN_gui.fontcolorA, 'fontsize',6+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
                     %hax=axes('units','norm','position',[.4,.05,.20,.025],'parent',CONN_MM.gcf);
-                    %text(0,0,['GUI busy',conn_msg(1)],'horizontalalignment','center','color',CONN_gui.fontcolorB, 'fontsize',8+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
+                    %text(0,0,['GUI busy',conn_msg(1)],'horizontalalignment','center','color',CONN_gui.fontcolorA, 'fontsize',8+CONN_gui.font_offset,'fontangle','normal','parent',hax); set(hax,'xlim',[-1 1],'ylim',[-1 1],'visible','off');
                     drawnow;
                 end
             end
@@ -418,10 +435,6 @@ else
             'off',0,...                                         % Set to 1 to hide the object
             'value',0,...                                       %  private (what item is mouse on)
             'handle',struct('axes',[],'image',[],'text',[]));   %  private (handles to draw objects)
-        if ~CONN_gui.isjava, 
-            params.fontcolor=[.25,.25,.25; 1,1,1;1,1,.9]; 
-            params.colorb=repmat([0.2917 0.2917 0.2917 ],[3,1]);
-        end
         for n1=1:2:nargin-2, params.(lower(varargin{n1}))=varargin{n1+1}; end
         if isempty(params.string), params.string=cell(1,params.n); end
         if isempty(params.callback), for n1=1:params.n, params.callback{n1}={}; end; end
@@ -475,7 +488,7 @@ else
             end
             for n1=changed(:)',%1:length(CONN_MM.MENU{thishandle}.handle.axes),
 				if numel(CONN_MM.MENU{thishandle}.handle.axes)>=n1&&any(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1})),
-					delete(CONN_MM.MENU{thishandle}.handle.text{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.text{n1})));
+					%delete(CONN_MM.MENU{thishandle}.handle.text{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.text{n1})));
 					%if ~CONN_gui.dounixGUIbugfix, delete(CONN_MM.MENU{thishandle}.handle.image(n1)); end
                     if KEEPHANDLES, set(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1})),'visible','off'); 
                     else delete(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1}))); 
@@ -497,7 +510,7 @@ else
                 x=1+(CONN_MM.MENU{thishandle}.value==n1 & ~CONN_MM.MENU{thishandle}.state(n1))+2*CONN_MM.MENU{thishandle}.state(n1);
                 ximage=CONN_MM.CDATA{thishandle}{n1}{x};
                 if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, 
-                    ximage=max(0,min(1,ximage*3)); ximage=ximage.*repmat(.3+.3*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
+                    ximage=max(0,min(1,ximage*1)); ximage=ximage.*repmat(.75+.20*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
                     if 0,%CONN_MM.MENU{thishandle}.order(1)~='h'
                         ximage0=.5+0*round(ximage);
                         if t4(n1)==0, ximagei1=ceil(min(size(ximage,1)*.05,8));
@@ -545,7 +558,7 @@ else
                 end
                 
                 if 1,%CONN_gui.dounixGUIbugfix,
-                    CONN_MM.MENU{thishandle}.handle.text{n1}=[];
+                    %CONN_MM.MENU{thishandle}.handle.text{n1}=[];
                     sstrings=cellstr(CONN_MM.MENU{thishandle}.string{n1});
                     nstrings=numel(sstrings);
                     for n2=1:nstrings
@@ -553,11 +566,11 @@ else
                         else tpos=[pos(1) pos(2)+pos(4)-n2/nstrings*pos(4)-1e-3 pos(3) pos(4)/nstrings+2e-3];
                         end
                         %htemp=uicontrol('style','text','units','norm','position',tpos,'string',sstrings{n2},'buttondownfcn','conn_menumanager(''cursorup'');','enable','inactive',...
-                        if 1,%CONN_gui.ismac||CONN_MM.MENU{thishandle}.linkon
+                        if 0||CONN_MM.MENU{thishandle}.linkon
                             if numel(CONN_MM.MENU{thishandle}.handle.axes)>=n1&&numel(CONN_MM.MENU{thishandle}.handle.axes{n1})>=n2&&ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1}(n2)), 
                                 htemp=CONN_MM.MENU{thishandle}.handle.axes{n1}(n2); 
                             else
-                                htemp=uicontrol('style','togglebutton','units','norm','position',tpos,'string',sstrings{n2},'parent',CONN_MM.gcf,'callback','conn_menumanager(''cursorup'');',...
+                                htemp=uicontrol('style','togglebutton','units','norm','position',tpos,'string',sstrings{n2},...
                                     'backgroundcolor',CONN_gui.backgroundcolor,...
                                     'fontname',CONN_MM.MENU{thishandle}.fontname,...
                                     'fontsize',fontsize+CONN_gui.font_offset,...
@@ -565,14 +578,29 @@ else
                                     'horizontalalignment',CONN_MM.MENU{thishandle}.horizontalalignment,...
                                     'fontweight',fontweight,...
                                     'fontangle',CONN_MM.MENU{thishandle}.fontangle,...
-                                    'visible','off');
+                                    'parent',CONN_MM.gcf,'callback','conn_menumanager(''cursorup'');','visible','off');
                             end
                             if UIXCONTROLTOOLTIP&&CONN_gui.tooltips,set(htemp,'tooltipstring',CONN_MM.MENU{thishandle}.help{n1}); end
                         else
-                            htemp=axes('units','norm','position',tpos,'parent',CONN_MM.gcf,'visible','off');
+                            if numel(CONN_MM.MENU{thishandle}.handle.axes)>=n1&&numel(CONN_MM.MENU{thishandle}.handle.axes{n1})>=n2&&ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1}(n2)), 
+                                htemp=CONN_MM.MENU{thishandle}.handle.axes{n1}(n2); 
+                            else
+                                htemp1=axes('units','norm','position',tpos,'xtick',[],'ytick',[],'color',CONN_gui.backgroundcolor,'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor,'parent',CONN_MM.gcf);
+                                htemp2=image(0,'parent',htemp1,'visible','off');
+                                htemp3=text(0,0,sstrings{n2},'clipping','on','parent',htemp1,...
+                                    'fontname',CONN_MM.MENU{thishandle}.fontname,...
+                                    'fontsize',fontsize+CONN_gui.font_offset,...
+                                    'fontunits','points',...
+                                    'horizontalalignment','center',...
+                                    'fontweight',CONN_MM.MENU{thishandle}.fontweight,...
+                                    'fontangle',CONN_MM.MENU{thishandle}.fontangle);
+                                htemp=htemp2;
+                                set(htemp2,'userdata',htemp3);
+                            end
                         end
-                        set(htemp,'units','pixels');
-                        xextent=round(get(htemp,'position'))+4;
+                        xextent=round((get(0,'screensize')*[0 0 0 0;0 0 0 0;1 0 1 0;0 1 0 1]).*tpos + 4);
+                        %set(htemp(1),'units','pixels');
+                        %xextent=round(get(htemp(1),'position'))+4;
 %                         if CONN_MM.MENU{thishandle}.order(1)=='h', tximage=ximage(round(linspace(1,size(ximage,1),xextent(4)*3)),round(linspace(1+(n2-1)/nstrings*size(ximage,2),n2/nstrings*size(ximage,2),xextent(3)*3)),:);
 %                         else tximage=ximage(round(linspace(1+(n2-1)/nstrings*size(ximage,1),n2/nstrings*size(ximage,1),xextent(4)*3)),round(linspace(1,size(ximage,2),xextent(3)*3)),:);
 %                         end
@@ -592,30 +620,25 @@ else
                         %if n2==1, CONN_MM.MENU{thishandle}.handle.axes{n1}=htemp;
                         %else CONN_MM.MENU{thishandle}.handle.axes{n1}=[CONN_MM.MENU{thishandle}.handle.axes{n1}(:)',htemp(:)'];
                         %end
-                        if 1,%CONN_gui.ismac||CONN_MM.MENU{thishandle}.linkon
+                        if 0||CONN_MM.MENU{thishandle}.linkon
                             set(htemp,'cdata',tximage);%,'backgroundcolor',mx1);
                             if ~CONN_MM.MENU{thishandle}.enable(n1), set(htemp,'fontsize',fontsize+CONN_gui.font_offset,'fontangle','italic','fontweight','normal','foregroundcolor',.5*fontcolor+.5*mean(ximage(:)));
                             else set(htemp,'fontsize',fontsize+CONN_gui.font_offset,'foregroundcolor',fontcolor,'fontweight',fontweight);
                             end
+                            turnon=[turnon htemp(:)']; %set(htemp,'visible','on');
                         else
-                            htemp2=image(tximage,'parent',htemp); axis(htemp,'tight','off');
-                            set(htemp,'xlim',[.5 size(tximage,2)+.5],'ylim',[.5 size(tximage,1)+.5],'ydir','normal','visible','off');
-                            offset=[0 0];
-                            htemp3=text(size(tximage,2)/2+offset(1),size(tximage,1)/2+offset(2),sstrings{n2},'clipping','on','parent',htemp,...
-                                'fontname',CONN_MM.MENU{thishandle}.fontname,...
-                                'fontsize',fontsize+CONN_gui.font_offset,...
-                                'fontunits','points',...
-                                'horizontalalignment',CONN_MM.MENU{thishandle}.horizontalalignment,...
-                                'fontweight',CONN_MM.MENU{thishandle}.fontweight,...
-                                'fontangle',CONN_MM.MENU{thishandle}.fontangle);
-                            if ~CONN_MM.MENU{thishandle}.enable(n1), set(htemp3,'fontangle','italic','color',.5*fontcolor+.5*mean(ximage(:)));
-                            else set(htemp3,'color',fontcolor);
+                            set(htemp,'cdata',tximage);
+                            htemp2=get(htemp,'parent');
+                            htemp3=get(htemp,'userdata');
+                            set(htemp2,'xlim',[.5 size(tximage,2)+.5],'ylim',[.5 size(tximage,1)+.5],'ydir','normal','visible','off','xtick',[],'ytick',[],'color',CONN_gui.backgroundcolor,'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor);
+                            if ~CONN_MM.MENU{thishandle}.enable(n1), set(htemp3,'position',[size(tximage,2)/2 size(tximage,1)/2 0],'fontangle','italic','color',.5*fontcolor+.5*mean(ximage(:)));
+                            else set(htemp3,'position',[size(tximage,2)/2 size(tximage,1)/2 0],'color',fontcolor);
                             end
-                            if n2==1, CONN_MM.MENU{thishandle}.handle.text{n1}=htemp3;
-                            else CONN_MM.MENU{thishandle}.handle.text{n1}=[CONN_MM.MENU{thishandle}.handle.text{n1}(:)' htemp3(:)']; 
-                            end
+                            %if n2==1, CONN_MM.MENU{thishandle}.handle.text{n1}=htemp(3);
+                            %else CONN_MM.MENU{thishandle}.handle.text{n1}=[CONN_MM.MENU{thishandle}.handle.text{n1}(:)' htemp(:)']; 
+                            %end
+                            turnon=[turnon htemp htemp2 htemp3]; %set(htemp,'visible','on');
                         end
-                        turnon=[turnon htemp(:)']; %set(htemp,'visible','on');
                         %if CONN_MM.MENU{thishandle}.roll&&numel(changed)==CONN_MM.MENU{thishandle}.n, drawnow; end
                     end
                 end

@@ -48,7 +48,7 @@ if nargin>=1&&ischar(varargin{1})&&size(varargin{1},1)==1&&~isempty(regexp(varar
             try
                 if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display)&&isfield(CONN_h,'screen')&&isfield(CONN_h.screen,'hfig')&&ishandle(CONN_h.screen.hfig)
                     str={' '};
-                    set(CONN_h.screen.hlogstr,'string',str,'value',numel(str),'listboxtop', numel(str),'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB);
+                    set(CONN_h.screen.hlogstr,'string',str,'value',numel(str),'listboxtop', numel(str),'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA);
                     drawnow;
                     set(CONN_h.screen.hlogstr,'value',[]);
                     lastdate='';
@@ -88,7 +88,7 @@ if nargin>=1&&ischar(varargin{1})&&size(varargin{1},1)==1&&~isempty(regexp(varar
                         else iscropped=0;
                         end
                         %pivot=cellfun('length',regexp(str,'^\d+-\w+-\d+\s+\d+:\d+'));
-                        set(CONN_h.screen.hlogstr,'string',str,'value',numel(str),'listboxtop', numel(str),'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB);
+                        set(CONN_h.screen.hlogstr,'string',str,'value',numel(str),'listboxtop', numel(str),'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA);
                         drawnow;
                         set(CONN_h.screen.hlogstr,'value',[]);
                         lastdate='';
@@ -113,7 +113,7 @@ if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.g
         pos=get(CONN_h.screen.hfig,'position');
         try, fntname=CONN_gui.fontname; catch, fntname=get(0,'FixedWidthFontName'); end
         CONN_h.screen.hlog=figure('units','pixels','position',[pos(1),1,pos(3),max(200,pos(2))],'color',CONN_gui.backgroundcolor,'doublebuffer','on','tag','conn_logwindow','name','CONN log history','numbertitle','off','menubar','none','resize','on','interruptible','off');
-        CONN_h.screen.hlogstr=uicontrol('units','norm','position',[0 0 1 1],'style','listbox','string',{' '},'horizontalalignment','left','max',2,'keypressfcn',@conn_menu_search,'fontname',fntname,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB,'fontsize',8+CONN_gui.font_offset,'tooltipstring',['<HTML>Log of CONN''s processing and analysis steps<br/> - ',CONN_gui.rightclick,'-click for additional options<br> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>']);
+        CONN_h.screen.hlogstr=uicontrol('units','norm','position',[0 0 1 1],'style','listbox','string',{' '},'horizontalalignment','left','max',2,'keypressfcn',@conn_menu_search,'fontname',fntname,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',8+CONN_gui.font_offset,'tooltipstring',['<HTML>Log of CONN''s processing and analysis steps<br/> - ',CONN_gui.rightclick,'-click for additional options<br> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>']);
         set(CONN_h.screen.hlogstr,'units','pixels');
         tpos=get(CONN_h.screen.hlogstr,'position');
         tpos2=get(CONN_h.screen.hlogstr,'extent');
@@ -228,7 +228,7 @@ if nargin>=1
         end
     end
 elseif mirrorscreen
-    try, set(CONN_h.screen.hlogstr,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorB); end
+    try, set(CONN_h.screen.hlogstr,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA); end
 end
 %end
 end

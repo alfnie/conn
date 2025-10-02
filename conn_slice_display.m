@@ -361,16 +361,16 @@ for n=1:3,
     state.handles.pointer_mm(n)=uicontrol('style','edit','units','norm','position',[.7+.05*(n-1) .50 .05 .05],'string',num2str(state.pointer_mm(n)),'fontsize',fontsize,'callback',{@conn_slice_display_refresh,'pointer_mm'});
 end
 for n=1:3,
-    state.handles.pointer_mm_delta(2*n-1)=uicontrol('style','pushbutton','units','norm','position',[.7+.025*(2*n-2) .470 .025 .03],'string','-','callback',{@conn_slice_display_refresh,'pointer_mm','-',n});
-    state.handles.pointer_mm_delta(2*n-0)=uicontrol('style','pushbutton','units','norm','position',[.7+.025*(2*n-1) .470 .025 .03],'string','+','callback',{@conn_slice_display_refresh,'pointer_mm','+',n});
+    state.handles.pointer_mm_delta(2*n-1)=uicontrol('style','pushbutton','units','norm','position',[.7+.025*(2*n-2) .465 .025 .035],'string','-','callback',{@conn_slice_display_refresh,'pointer_mm','-',n});
+    state.handles.pointer_mm_delta(2*n-0)=uicontrol('style','pushbutton','units','norm','position',[.7+.025*(2*n-1) .465 .025 .035],'string','+','callback',{@conn_slice_display_refresh,'pointer_mm','+',n});
 end
 uicontrol('style','text','units','norm','position',[.55 .375 .10 .07],'string','Coordinates (voxels):');
 for n=1:3,
     state.handles.pointer_vox(n)=uicontrol('style','edit','units','norm','position',[.7+.05*(n-1) .40 .05 .05],'string',num2str(state.pointer_vox(n)),'fontsize',fontsize,'callback',{@conn_slice_display_refresh,'pointer_vox'});
 end
 for n=1:3,
-    state.handles.pointer_vox_delta(2*n-1)=uicontrol('style','pushbutton','units','norm','position',[.7+.025*(2*n-2) .37 .025 .03],'string','-','callback',{@conn_slice_display_refresh,'pointer_vox','-',n});
-    state.handles.pointer_vox_delta(2*n-0)=uicontrol('style','pushbutton','units','norm','position',[.7+.025*(2*n-1) .37 .025 .03],'string','+','callback',{@conn_slice_display_refresh,'pointer_vox','+',n});
+    state.handles.pointer_vox_delta(2*n-1)=uicontrol('style','pushbutton','units','norm','position',[.7+.025*(2*n-2) .365 .025 .035],'string','-','callback',{@conn_slice_display_refresh,'pointer_vox','-',n});
+    state.handles.pointer_vox_delta(2*n-0)=uicontrol('style','pushbutton','units','norm','position',[.7+.025*(2*n-1) .365 .025 .035],'string','+','callback',{@conn_slice_display_refresh,'pointer_vox','+',n});
 end
 state.handles.view(1)=uicontrol('style','checkbox','units','norm','position',[.55 .90 .15 .05],'string',sprintf('View yz plane (%s)',state.cameraviewnames{1}),'value',state.view(1),'callback',{@conn_slice_display_refresh,'view'});
 state.handles.view(2)=uicontrol('style','checkbox','units','norm','position',[.55 .85 .15 .05],'string',sprintf('View xz plane (%s)',state.cameraviewnames{2}),'value',state.view(2),'callback',{@conn_slice_display_refresh,'view'});
@@ -380,12 +380,12 @@ state.handles.view(4)=uicontrol('style','checkbox','units','norm','position',[.5
 %     if state.isstat, str='View activation volume'; else str='View volume'; end
 %     state.handles.view(5)=uicontrol('style','checkbox','units','norm','position',[.55 .75 .15 .05],'string',str,'value',state.view(5),'callback',{@conn_slice_display_refresh,'view'},'visible','off');
 % end
-state.handles.multislice1=uicontrol('style','edit','units','norm','position',[.85 .875 .05 .075],'string',num2str(state.nslices),'callback',{@conn_slice_display_refresh,'multislice'},'tooltipstring','<HTML>Maximum number of slices shown in multi-slice display<br/> - Set to 1 for single-slice display</HTML>');
-state.handles.multislice2=uicontrol('style','edit','units','norm','position',[.90 .875 .05 .075],'string',num2str(state.dslices),'callback',{@conn_slice_display_refresh,'multislice'},'tooltipstring','Distance between displayed slices (in voxels)');
-state.handles.multislice1_delta(1)=uicontrol('style','pushbutton','units','norm','position',[.85+.025*0 .845 .025 .03],'string','-','callback',{@conn_slice_display_refresh,'multislice','-',1});
-state.handles.multislice1_delta(2)=uicontrol('style','pushbutton','units','norm','position',[.85+.025*1 .845 .025 .03],'string','+','callback',{@conn_slice_display_refresh,'multislice','+',1});
-state.handles.multislice2_delta(1)=uicontrol('style','pushbutton','units','norm','position',[.90+.025*0 .845 .025 .03],'string','-','callback',{@conn_slice_display_refresh,'multislice','-',2});
-state.handles.multislice2_delta(2)=uicontrol('style','pushbutton','units','norm','position',[.90+.025*1 .845 .025 .03],'string','+','callback',{@conn_slice_display_refresh,'multislice','+',2});
+state.handles.multislice1=uicontrol('style','edit','units','norm','position',[.85 .875 .05 .05],'string',num2str(state.nslices),'callback',{@conn_slice_display_refresh,'multislice'},'tooltipstring',conn_menu_formathtml('<HTML>Maximum number of slices shown in multi-slice display<br/> - Set to 1 for single-slice display</HTML>'));
+state.handles.multislice2=uicontrol('style','edit','units','norm','position',[.90 .875 .05 .05],'string',num2str(state.dslices),'callback',{@conn_slice_display_refresh,'multislice'},'tooltipstring','Distance between displayed slices (in voxels)');
+state.handles.multislice1_delta(1)=uicontrol('style','pushbutton','units','norm','position',[.85+.025*0 .840 .025 .035],'string','-','callback',{@conn_slice_display_refresh,'multislice','-',1});
+state.handles.multislice1_delta(2)=uicontrol('style','pushbutton','units','norm','position',[.85+.025*1 .840 .025 .035],'string','+','callback',{@conn_slice_display_refresh,'multislice','+',1});
+state.handles.multislice2_delta(1)=uicontrol('style','pushbutton','units','norm','position',[.90+.025*0 .840 .025 .035],'string','-','callback',{@conn_slice_display_refresh,'multislice','-',2});
+state.handles.multislice2_delta(2)=uicontrol('style','pushbutton','units','norm','position',[.90+.025*1 .840 .025 .035],'string','+','callback',{@conn_slice_display_refresh,'multislice','+',2});
 state.handles.multislice0=uicontrol('style','checkbox','units','norm','position',[.85 .925 .15 .05],'string','Multi-slice display','horizontalalignment','center','fontweight','bold','callback',{@conn_slice_display_refresh,'multisliceset'});
 if all(state.nslices==1), set(state.handles.multislice0,'value',0); set([state.handles.multislice1 state.handles.multislice2 state.handles.multislice1_delta state.handles.multislice2_delta],'visible','off'); else set(state.handles.multislice0,'value',1); end
 state.handles.text1=uicontrol('style','edit','units','norm','position',[.55 .20 .4 .05],'string','','horizontalalignment','center');
@@ -446,7 +446,7 @@ if state.isvol
     uicontrol('style','text','units','norm','position',[.69 .775 .15 .05],'string','Overlay threshold','horizontalalignment','right');
     state.handles.actthr=uicontrol('style','slider','units','norm','position',[.85 .775 .10 .04],'callback',{@conn_slice_display_refresh,'actthr'},'tooltipstring','Select overlay threshold');
     set(state.handles.actthr,'value',max(0,min(1, abs(state.actthr)/max(eps,max(abs(state.Vrange))))));
-    state.handles.actthr_txt=uicontrol('style','edit','units','norm','position',[.96 .785 .04 .04],'string',mat2str(state.actthr,2),'callback',{@conn_slice_display_refresh,'actthrset'});
+    state.handles.actthr_txt=uicontrol('style','edit','units','norm','position',[.96 .775 .035 .04],'string',mat2str(state.actthr,2),'callback',{@conn_slice_display_refresh,'actthrset'});
     try, addlistener(state.handles.actthr, 'ContinuousValueChange',@(varargin)conn_slice_display_refresh(state.handles.actthr,[],'actthr')); end
     state.handles.viewoverlay=uicontrol('style','checkbox','units','norm','position',[.55 .75 .15 .05],'string','View overlay','value',state.viewoverlay,'callback',{@conn_slice_display_refresh,'viewoverlay'});    
 else state.handles.actthr=[]; state.handles.viewoverlay=[];
@@ -454,7 +454,7 @@ end
 uicontrol('style','text','units','norm','position',[.69 .725 .15 .05],'string','Background threshold','horizontalalignment','right');
 state.handles.volthr=uicontrol('style','slider','units','norm','position',[.85 .725 .10 .04],'callback',{@conn_slice_display_refresh,'volthr'},'tooltipstring','Select background image threshold');
 set(state.handles.volthr,'value',max(0,min(1, (state.volthr-state.Srange(1))/max(eps,state.Srange(2)-state.Srange(1)))));
-state.handles.volthr_txt=uicontrol('style','edit','units','norm','position',[.96 .735 .04 .04],'string',mat2str(state.volthr,2),'callback',{@conn_slice_display_refresh,'volthrset'});
+state.handles.volthr_txt=uicontrol('style','edit','units','norm','position',[.96 .725 .035 .04],'string',mat2str(state.volthr,2),'callback',{@conn_slice_display_refresh,'volthrset'});
 uicontrol('style','text','units','norm','position',[.69 .675 .15 .05],'string','Background brightness','horizontalalignment','right');
 state.handles.bright=uicontrol('style','slider','units','norm','position',[.85 .675 .10 .04],'callback',{@conn_slice_display_refresh,'bright'},'tooltipstring','Select background image brightness');
 set(state.handles.bright,'value',max(0,min(1, .5+.5*tanh(state.colorbrightness))));
