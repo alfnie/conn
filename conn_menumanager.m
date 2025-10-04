@@ -490,8 +490,8 @@ else
 				if numel(CONN_MM.MENU{thishandle}.handle.axes)>=n1&&any(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1})),
 					%delete(CONN_MM.MENU{thishandle}.handle.text{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.text{n1})));
 					%if ~CONN_gui.dounixGUIbugfix, delete(CONN_MM.MENU{thishandle}.handle.image(n1)); end
-                    if KEEPHANDLES, set(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1})),'visible','off'); 
-                    else delete(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1}))); 
+                    if KEEPHANDLES, set(findobj(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1}))),'visible','off'); 
+                    else delete(findobj(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1})))); 
                     end
 				end
             end
@@ -539,8 +539,9 @@ else
                 else pos=[CONN_MM.MENU{thishandle}.position(1), CONN_MM.MENU{thishandle}.position(2)+CONN_MM.MENU{thishandle}.position(4)-t4(n1+1)*CONN_MM.MENU{thishandle}.position(4), CONN_MM.MENU{thishandle}.position(3), CONN_MM.MENU{thishandle}.position(4)*(t4(n1+1)-t4(n1))]; end
                 if CONN_MM.MENU{thishandle}.state(n1), pos(1:2)=pos(1:2)+CONN_MM.MENU{thishandle}.dposition; end
                 if length(CONN_MM.MENU{thishandle}.handle.axes)>=n1 && any(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1})), 
-                    if KEEPHANDLES, set(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1})),'visible','off'); 
-                    else delete(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1}))); 
+                    if KEEPHANDLES, 
+                        set(findobj(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1}))),'visible','off'); 
+                    else delete(findobj(CONN_MM.MENU{thishandle}.handle.axes{n1}(ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1})))); 
                     end
                 end
                 fontsize=CONN_MM.MENU{thishandle}.fontsize; 
@@ -566,11 +567,11 @@ else
                         else tpos=[pos(1) pos(2)+pos(4)-n2/nstrings*pos(4)-1e-3 pos(3) pos(4)/nstrings+2e-3];
                         end
                         %htemp=uicontrol('style','text','units','norm','position',tpos,'string',sstrings{n2},'buttondownfcn','conn_menumanager(''cursorup'');','enable','inactive',...
-                        if 0||CONN_MM.MENU{thishandle}.linkon
+                        if CONN_gui.isjava % draws menus as uicontrol objects in R2024 or below
                             if numel(CONN_MM.MENU{thishandle}.handle.axes)>=n1&&numel(CONN_MM.MENU{thishandle}.handle.axes{n1})>=n2&&ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1}(n2)), 
                                 htemp=CONN_MM.MENU{thishandle}.handle.axes{n1}(n2); 
                             else
-                                htemp=uicontrol('style','togglebutton','units','norm','position',tpos,'string',sstrings{n2},...
+                                htemp=uicontrol('style','togglebutton','visible','off','units','norm','position',tpos,'string',sstrings{n2},...
                                     'backgroundcolor',CONN_gui.backgroundcolor,...
                                     'fontname',CONN_MM.MENU{thishandle}.fontname,...
                                     'fontsize',fontsize+CONN_gui.font_offset,...
@@ -578,24 +579,32 @@ else
                                     'horizontalalignment',CONN_MM.MENU{thishandle}.horizontalalignment,...
                                     'fontweight',fontweight,...
                                     'fontangle',CONN_MM.MENU{thishandle}.fontangle,...
-                                    'parent',CONN_MM.gcf,'callback','conn_menumanager(''cursorup'');','visible','off');
+                                    'parent',CONN_MM.gcf,'callback','conn_menumanager(''cursorup'');');
                             end
                             if UIXCONTROLTOOLTIP&&CONN_gui.tooltips,set(htemp,'tooltipstring',CONN_MM.MENU{thishandle}.help{n1}); end
-                        else
+                        else 
                             if numel(CONN_MM.MENU{thishandle}.handle.axes)>=n1&&numel(CONN_MM.MENU{thishandle}.handle.axes{n1})>=n2&&ishandle(CONN_MM.MENU{thishandle}.handle.axes{n1}(n2)), 
                                 htemp=CONN_MM.MENU{thishandle}.handle.axes{n1}(n2); 
                             else
-                                htemp1=axes('units','norm','position',tpos,'xtick',[],'ytick',[],'color',CONN_gui.backgroundcolor,'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor,'parent',CONN_MM.gcf);
+                                if CONN_MM.MENU{thishandle}.linkon % draws floating menus as uipanel objects in R2025a and above (avoids flickering effect when using uicontrols, and "behind-uicontrols" effect when using axes)
+                                    htemp=uipanel('units','norm','position',tpos,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.backgroundcolor,'bordercolor',CONN_gui.backgroundcolor,'visible','off','parent',CONN_MM.gcf);
+                                    htemp1=axes('units','norm','position',[0 0 1 1],'xtick',[],'ytick',[],'color',CONN_gui.backgroundcolor,'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor,'visible','off','parent',htemp);
+                                else % draws fixed menus as axes objects in R2025a and above (avoids flickering effect when using uicontrols, and off/on effect when using uipanels)
+                                    htemp1=axes('units','norm','position',tpos,'xtick',[],'ytick',[],'color',CONN_gui.backgroundcolor,'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor,'visible','off','parent',CONN_MM.gcf);
+                                    htemp=htemp1;
+                                end
                                 htemp2=image(0,'parent',htemp1,'visible','off');
-                                htemp3=text(0,0,sstrings{n2},'clipping','on','parent',htemp1,...
+                                htemp3=text(0,0,sstrings{n2},'clipping','on','parent',htemp1,'visible','off',...
+                                    'interpreter','none',...
                                     'fontname',CONN_MM.MENU{thishandle}.fontname,...
                                     'fontsize',fontsize+CONN_gui.font_offset,...
                                     'fontunits','points',...
                                     'horizontalalignment','center',...
                                     'fontweight',CONN_MM.MENU{thishandle}.fontweight,...
                                     'fontangle',CONN_MM.MENU{thishandle}.fontangle);
-                                htemp=htemp2;
-                                set(htemp2,'userdata',htemp3);
+                                if CONN_MM.MENU{thishandle}.linkon, set(htemp,'userdata',[htemp1 htemp2 htemp3]);
+                                else set(htemp,'userdata',[htemp2 htemp3]);
+                                end
                             end
                         end
                         xextent=round((get(0,'screensize')*[0 0 0 0;0 0 0 0;1 0 1 0;0 1 0 1]).*tpos + 4);
@@ -620,24 +629,27 @@ else
                         %if n2==1, CONN_MM.MENU{thishandle}.handle.axes{n1}=htemp;
                         %else CONN_MM.MENU{thishandle}.handle.axes{n1}=[CONN_MM.MENU{thishandle}.handle.axes{n1}(:)',htemp(:)'];
                         %end
-                        if 0||CONN_MM.MENU{thishandle}.linkon
+                        if CONN_gui.isjava   % draws menus as uicontrol objects
                             set(htemp,'cdata',tximage);%,'backgroundcolor',mx1);
                             if ~CONN_MM.MENU{thishandle}.enable(n1), set(htemp,'fontsize',fontsize+CONN_gui.font_offset,'fontangle','italic','fontweight','normal','foregroundcolor',.5*fontcolor+.5*mean(ximage(:)));
                             else set(htemp,'fontsize',fontsize+CONN_gui.font_offset,'foregroundcolor',fontcolor,'fontweight',fontweight);
                             end
                             turnon=[turnon htemp(:)']; %set(htemp,'visible','on');
                         else
-                            set(htemp,'cdata',tximage);
-                            htemp2=get(htemp,'parent');
-                            htemp3=get(htemp,'userdata');
-                            set(htemp2,'xlim',[.5 size(tximage,2)+.5],'ylim',[.5 size(tximage,1)+.5],'ydir','normal','visible','off','xtick',[],'ytick',[],'color',CONN_gui.backgroundcolor,'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor);
+                            if CONN_MM.MENU{thishandle}.linkon % draws menus as uipanel objects
+                                htempn=get(htemp,'userdata');
+                                htemp1=htempn(1); htemp2=htempn(2); htemp3=htempn(3);
+                                turnon=[turnon htemp htemp2 htemp3]; %set(htemp,'visible','on');
+                            else % draws menus as axes objects
+                                htempn=get(htemp,'userdata');
+                                htemp1=htemp; htemp2=htempn(1); htemp3=htempn(2);
+                                turnon=[turnon htemp2 htemp3]; %set(htemp,'visible','on');
+                            end
+                            set(htemp2,'cdata',tximage);
+                            set(htemp1,'xlim',[.5 size(tximage,2)+.5],'ylim',[.5 size(tximage,1)+.5],'ydir','normal','visible','off','xtick',[],'ytick',[],'color',CONN_gui.backgroundcolor,'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor);
                             if ~CONN_MM.MENU{thishandle}.enable(n1), set(htemp3,'position',[size(tximage,2)/2 size(tximage,1)/2 0],'fontangle','italic','color',.5*fontcolor+.5*mean(ximage(:)));
                             else set(htemp3,'position',[size(tximage,2)/2 size(tximage,1)/2 0],'color',fontcolor);
                             end
-                            %if n2==1, CONN_MM.MENU{thishandle}.handle.text{n1}=htemp(3);
-                            %else CONN_MM.MENU{thishandle}.handle.text{n1}=[CONN_MM.MENU{thishandle}.handle.text{n1}(:)' htemp(:)']; 
-                            %end
-                            turnon=[turnon htemp htemp2 htemp3]; %set(htemp,'visible','on');
                         end
                         %if CONN_MM.MENU{thishandle}.roll&&numel(changed)==CONN_MM.MENU{thishandle}.n, drawnow; end
                     end

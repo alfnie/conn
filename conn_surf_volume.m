@@ -91,10 +91,10 @@ end
         if isempty(refnames), uicontrol('style','text','units','norm','position',[.05,.90,.3,.05],'string','Intensity threshold','horizontalalignment','right','backgroundcolor',bg,'parent',hfig); end
         uicontrol('style','text','units','norm','position',[.05,.85,.3,.05],'string','Smoothing level','horizontalalignment','right','backgroundcolor',bg,'parent',hfig);
         if isempty(refnames), 
-            HANDLES(1)=uicontrol('style','edit','units','norm','position',[.36,.90,.1,.05],'string','','tooltipstring','<HTML>Select voxels based on intensity values <br/> - Entering v selects voxels with I>=v<br/> - Entering v w selects voxels with I>=v & I<=w<br/> - Entering multiple pairs v1 w1 ... vn wn selects voxels with (I>=v1 & I<=w1) | ... | (I>=vn & I<=wn)</HTML>','callback',@conn_surf_volume_update,'parent',hfig); 
+            HANDLES(1)=uicontrol('style','edit','units','norm','position',[.36,.90,.1,.05],'string','','tooltipstring',conn_menu_formathtml('<HTML>Select voxels based on intensity values <br/> - Entering v selects voxels with I>=v<br/> - Entering v w selects voxels with I>=v & I<=w<br/> - Entering multiple pairs v1 w1 ... vn wn selects voxels with (I>=v1 & I<=w1) | ... | (I>=vn & I<=wn)</HTML>'),'callback',@conn_surf_volume_update,'parent',hfig); 
             try, set(HANDLES(1),'string',mat2str(THR)); end
         else 
-            HANDLES(1)=uicontrol('style','listbox','units','norm','position',[.05,.30,.4,.40],'string',refnames,'max',2,'tooltipstring','<HTML>Select ROIs</HTML>','callback',@conn_surf_volume_update,'parent',hfig); 
+            HANDLES(1)=uicontrol('style','listbox','units','norm','position',[.05,.30,.4,.40],'string',refnames,'max',2,'tooltipstring',conn_menu_formathtml('<HTML>Select ROIs</HTML>'),'callback',@conn_surf_volume_update,'parent',hfig); 
             try, set(HANDLES(1),'value',find(ismember(refidx,THR))); end
             HANDLES(5)=uicontrol('style','pushbutton','units','norm','position',[.05,.25,.4,.05],'string','Select all','value',0,'callback','h=get(gcbo,''userdata''); set(h,''value'',1:numel(get(h,''string''))); feval(get(h,''callback''));','userdata',HANDLES(1),'parent',hfig);
         end

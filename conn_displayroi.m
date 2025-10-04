@@ -329,7 +329,8 @@ switch(lower(option)),
         %color2=[.5/6,1/6,2/6];
         hmsg=[];%figure('units','norm','position',[.01,.1,.98,.8],'numbertitle','off','name','ROI second-level results. Initializing...','color',color1,'colormap',gray,'menubar','none','toolbar','none','interruptible','off');
         h0=get(0,'screensize');
-        hfig=figure('visible','off','renderer','opengl','units','pixels','position',[h0(3)-.75*h0(3)+2,h0(4)-.9*h0(4)-48,.75*h0(3)-2*2,.9*h0(4)]);
+        if isfield(CONN_gui,'isjava')&&~CONN_gui.isjava, themeopts={'theme','light'}; else themeopts={}; end
+        hfig=figure('visible','off','renderer','opengl','units','pixels','position',[h0(3)-.75*h0(3)+2,h0(4)-.9*h0(4)-48,.75*h0(3)-2*2,.9*h0(4)],themeopts{:});
         %h0=get(0,'screensize'); h0=h0(1,3:4)-h0(1,1:2)+1; h0=h0/max(1,max(abs(h0))/2000);
         %minheight=500;
         %hfig=figure('visible','off','renderer','opengl','units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-48,h0(1)-0*72-1,max(minheight,.5*h0(1))]);

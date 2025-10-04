@@ -337,7 +337,8 @@ else % voxel-based
         end
     end
     h0=get(0,'screensize');
-    hfigure=figure('menubar','none','numbertitle','off','color','w','units','pixels','position',[h0(3)-.75*h0(3)+2,h0(4)-.9*h0(4)-48,.75*h0(3)-2,.9*h0(4)]);
+    if isfield(CONN_gui,'isjava')&&~CONN_gui.isjava, themeopts={'theme','light'}; else themeopts={}; end
+    hfigure=figure('menubar','none','numbertitle','off',themeopts{:},'color','w','units','pixels','position',[h0(3)-.75*h0(3)+2,h0(4)-.9*h0(4)-48,.75*h0(3)-2,.9*h0(4)]);
     close(hm);
     conn_vproject(param,nonparam,[],[],THR,side,parametric,[],[],[],.50,[],SPMfilename,voxeltovoxel,issurface);
 end

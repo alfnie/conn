@@ -126,10 +126,16 @@ dlg.handles.firstlevelinfo=uicontrol('style','listbox','units','norm','position'
 dlg.handles.txt3=uicontrol('style','text','units','norm','position',[.775,.88,.20,.04],'backgroundcolor',bgc,'foregroundcolor','k','string','Select inferential method used:','fontsize',9+font_offset,'horizontalalignment','left');
 dlg.handles.secondlevelinfo=uicontrol('style','popupmenu','units','norm','position',[.775,.75,.20,.13],'max',1,'backgroundcolor',bgc,'foregroundcolor','k','string',options.secondlevel_txt{guifields.secondleveltype},'value',guifields.secondlevelinfo,'tooltipstring','Select inferential method / false-positive control option used in second-level analyses','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'secondlevel'},'interruptible','off');
 
-warning('off','MATLAB:ui:javacomponent:FunctionToBeRemoved');
-jBrowserPanel = javaObjectEDT(com.mathworks.mlwidgets.help.LightweightHelpPanel);
-[dlg.handles.html, dlg.handles.text] = javacomponent(jBrowserPanel, [], gcf);
-set(dlg.handles.text, 'Units','norm','Position',[.025,.05,.95,.625]);
+if isfield(CONN_gui,'isjava')&&~CONN_gui.isjava
+    set(dlg.handles.hfig,'units','pixels');
+    dlg.handles.html = uihtml('Position',(get(dlg.handles.hfig,'position')*[0 0 0 0;0 0 0 0;1 0 1 0;0 1 0 1]).*[.025,.05,.95,.625],'parent',dlg.handles.hfig);
+    set(dlg.handles.hfig,'units','norm');
+else
+    warning('off','MATLAB:ui:javacomponent:FunctionToBeRemoved');
+    jBrowserPanel = javaObjectEDT(com.mathworks.mlwidgets.help.LightweightHelpPanel);
+    [dlg.handles.html, dlg.handles.text] = javacomponent(jBrowserPanel, [], gcf);
+    set(dlg.handles.text, 'Units','norm','Position',[.025,.05,.95,.625]);
+end
 uicontrol('style','pushbutton','units','norm','position',[.575,.0,.20,.04],'string','Export to Word','fontsize',9+font_offset,'horizontalalignment','center','callback',{@conn_referenceexplore_export,'word'});
 uicontrol('style','pushbutton','units','norm','position',[.775,.0,.20,.04],'string','Export to html','fontsize',9+font_offset,'horizontalalignment','center','callback',{@conn_referenceexplore_export,'html'});
 
@@ -175,7 +181,11 @@ if ~ishandle(dlg.handles.hfig), return; end
                 %options.analyses_listtype=[options.analyses_listtype, 1];
                 %options.analyses_listidx=[options.analyses_listidx, n1];
                 str=conn_reference(steps,'preproclog',preproclog,'firstlevelinfo',firstlevelinfo,'secondlevelinfo',secondlevelinfo,'fileout',guifields.fileout);
-                dlg.handles.html.getLightweightBrowser.load(['file://',guifields.fileout]);
+                if isfield(CONN_gui,'isjava')&&~CONN_gui.isjava
+                    set(dlg.handles.html,'HTMLSource',fileread(guifields.fileout));
+                else
+                    dlg.handles.html.getLightweightBrowser.load(['file://',guifields.fileout]);
+                end
                 %set(dlg.handles.text,'string',str);
                 %set(dlg.handles.text,'string',cellfun(@(x)['<HTML>',x,'</HTML>'],regexp(str,'(\n|<br>)+','split'),'uni',0));
                 %set(dlg.handles.text,'string',['<HTML>',regexprep(str,'\n',''),'</HTML>']);

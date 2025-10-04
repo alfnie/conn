@@ -25,7 +25,7 @@ function varargout=conn(varargin)
 % alfnie@gmail.com
 %
 
-connver='22.v2407';
+connver='25.a';
 dodebug=false;
 
 global CONN_h CONN_x CONN_gui;
@@ -40,8 +40,6 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
          warning('off','MATLAB:load:variableNotFound');
          warning('off','MATLAB:DELETE:FileNotFound');
     end
-    conn_backgroundcolor=.12*[1 1.05 1.10];                 % backgroundcolor
-    conn_backgroundcolorA=.18*[1 1.05 1.10];                % highlight
     if ismac, CONN_gui.uicontrol_border=3;            % crops borders GUI elements
     else      CONN_gui.uicontrol_border=2;
     end
@@ -63,6 +61,15 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     conn_dounixGUIbugfix=true;
     conn_checkupdates=true;                                     
     conn_isjava=CONN_gui.matlabversion<2025;
+    conn_theme='dark';
+    %try, if ~conn_isjava, if isequal(getfield(theme,'BaseColorStyle'),'light'), conn_theme='light'; end; end; end % uncomment to follow Matlab's color theme (R2025a and above)
+    if isequal(conn_theme,'dark')
+        conn_backgroundcolor=.12*[1 1.05 1.10];                 % backgroundcolor
+        conn_backgroundcolorA=.18*[1 1.05 1.10];                % highlight
+    else
+        conn_backgroundcolor=.995*[1 1 1];                      % backgroundcolor
+        conn_backgroundcolorA=.925*[1 1 1];                     % highlight
+    end
 
     try
         if ispc, filename=conn_fullfile(getenv('USERPROFILE'),'conn_font_default.dat');
@@ -132,7 +139,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     end
     tname=strcat(connversion{:});
     if isdeployed, tname=strcat(tname,' (standalone)'); end
-	CONN_h.screen.hfig=figure('units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-1,h0(1)-0*72-1,max(minheight,.5*h0(1))],'color',CONN_gui.backgroundcolor,'doublebuffer','on','tag',connversion{1},'name',tname,'numbertitle','off','menubar','none','resize','on','colormap',CONN_h.screen.colormap,'closerequestfcn',@conn_closerequestfcn,'deletefcn',@conn_deletefcn,'resizefcn',@conn_resizefcn,'interruptible','off');
+    if ~CONN_gui.isjava, themeopts={'theme',conn_theme}; else themeopts={}; end
+	CONN_h.screen.hfig=figure('units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-1,h0(1)-0*72-1,max(minheight,.5*h0(1))],themeopts{:},'color',CONN_gui.backgroundcolor,'doublebuffer','on','tag',connversion{1},'name',tname,'numbertitle','off','menubar','none','resize','on','colormap',CONN_h.screen.colormap,'closerequestfcn',@conn_closerequestfcn,'deletefcn',@conn_deletefcn,'resizefcn',@conn_resizefcn,'interruptible','off');
     try, if isequal(datestr(now,'mmdd'),'0401'), conn_guibackground('setfiledefault',[],'True color'); end; end
     conn_menuframe;
     ht=conn_menu('text0c',[.3 .7 .4 .2],'','CONN'); set(ht,'fontunits','norm','fontsize',.5,'horizontalalignment','center','color',[0 0 0]+(mean(CONN_gui.backgroundcolor)<.5));
@@ -772,6 +780,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     conn gui_setup;
     conn_disp;
     conn_register;
+    figure(CONN_h.screen.hfig);
 
 else
     if ~isempty(regexp(char(varargin{1}),'\.mat$')); % conn projectfile.mat ... syntax
@@ -1669,7 +1678,7 @@ else
                 CONN_gui.backgroundcolorA=answA;
                 CONN_gui.backgroundcolorE=max(0,min(1, .5*CONN_gui.backgroundcolor+.5*[.077 .6 1]));
                 CONN_gui.fontcolor=[.4 .4 .4]+.2*(mean(CONN_gui.backgroundcolorA)<.5); % fontcolor against background
-                CONN_gui.fontcolorA=[.2 .2 .2]+.6*(mean(CONN_gui.backgroundcolorA)<.5); % fontcolor against highlight
+                CONN_gui.fontcolorA=[.3 .3 .3]+.4*(mean(CONN_gui.backgroundcolorA)<.5); % fontcolor against highlight
                 cmap=0+1*(7*gray(128) + 1*(hot(128)))/8; if mean(CONN_gui.backgroundcolor)>.5,cmap=flipud(cmap); end
                 cmapB=cmap;
                 cmapA=cmap;
@@ -1679,7 +1688,9 @@ else
                 %jetmap=[zeros(1,64/2) linspace(0,1,64/2) ones(1,64/2) linspace(1,.5,64/2); linspace(0,1,64) linspace(1,0,64/2) zeros(1,64/2); linspace(.5,1,64/2) ones(1,64/2) linspace(1,0,64/2) zeros(1,64/2)]'; jetmap=repmat(abs(linspace(-1,1,2*64)'),1,3).*jetmap+(1-repmat(abs(linspace(-1,1,2*64)'),1,3))*1;
                 CONN_h.screen.colormap=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapB;jetmap] +(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolor,CONN_gui.backgroundcolor) ));
                 CONN_h.screen.colormapA=max(0,min(1, diag((1-linspace(1,0,256)'.^50))*[cmapA;jetmap] +(linspace(1,0,256)'.^50)*min(CONN_gui.backgroundcolorA,CONN_gui.backgroundcolorA) ));
-                set(CONN_h.screen.hfig,'color',CONN_gui.backgroundcolor,'colormap',CONN_h.screen.colormap);
+                if mean(CONN_gui.backgroundcolor)>.5, conn_theme='light'; else conn_theme='dark'; end
+                if ~CONN_gui.isjava, themeopts={'theme',conn_theme}; else themeopts={}; end
+                set(CONN_h.screen.hfig,'color',CONN_gui.backgroundcolor,'colormap',CONN_h.screen.colormap,themeopts{:});
                 conn_menumanager updatebackgroundcolor;
                 try, 
                     set(CONN_h.menus.waiticon,'Background',java.awt.Color(CONN_gui.backgroundcolor(1),CONN_gui.backgroundcolor(2),CONN_gui.backgroundcolor(3)));
@@ -1836,7 +1847,7 @@ else
             h.button4=uicontrol(thfig,'style','pushbutton','string','Check connection','units','norm','position',[.05,.01,.30,.10],'callback','h=get(gcbf,''userdata'');  if conn(''gui_isconnected''), set(h.text3,''string'',''connection working correctly''); else set(h.text3,''string'',''connection failed''); end','fontsize',6+CONN_gui.font_offset,'tooltipstring','checks the connection with an existing/running remote CONN session');
             h.button9=uicontrol(thfig,'style','pushbutton','string','Restart SSH control socket','units','norm','position',[.35,.01,.30,.10],'callback','if conn_server_ssh(''checkcontrolmaster''), close(gcbf); conn gui_server; end','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-authenticate to create a new SSH control socket for an existing connection');
             h.button5=uicontrol(thfig,'style','pushbutton','string','Restart connection','units','norm','position',[.65,.01,.30,.10],'callback','close(gcbf); conn_remotely softrestart','fontsize',6+CONN_gui.font_offset,'tooltipstring','re-establish the connection to an existing/running remote CONN session');
-            %h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.725,.01,.225,.10],'callback','close(gcbf); conn_remotely softstart','fontsize',6+CONN_gui.font_offset,'tooltipstring','<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_remotely forceoff" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>');
+            %h.button6=uicontrol(thfig,'style','pushbutton','string','Start new session','units','norm','position',[.725,.01,.225,.10],'callback','close(gcbf); conn_remotely softstart','fontsize',6+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>start a new remote CONN session and connect to it <br/> - note: if the current remote CONN session is unresponsive, you may run "conn_remotely forceoff" to make sure it is terminated <br/> before starting a new one (as remote CONN sessions are otherwise only terminated when you exit the CONN gui locally)</HTML>'));
             try, if isempty(info.remote_ip), set([h.button1 h.button7 h.button8],'enable','off'); end; end
             try, if isempty(info.remote_log), set(h.button2,'enable','off'); end; end
             try, if isempty(info.host), set([h.button2 h.button6 h.button8],'enable','off'); end; end
@@ -3999,18 +4010,18 @@ else
                                     NEIGHB=CONN_x.Setup.erosion.erosion_neighb(nrois);
                                     thfig=dialog('units','norm','position',[.3,.3,.3,.3],'windowstyle','normal','name',sprintf('%s erosion settings',CONN_x.Setup.rois.names{nrois}),'color','w','resize','on','userdata',false);
                                     ht1a=uicontrol(thfig,'style','text','units','norm','position',[.1,.88,.8,.07],'string','Binarization threshold:','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
-                                    ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.80,.2,.07],'string',num2str(THR),'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring','<HTML>Defines binarization threshold <br/> - Original volumes are binarized by considering only suprathrehsold voxels with values above this threshold<br/> - e.g. use .5 to keep only voxels with >50% posterior probability from tissue probability maps</HTML>');
-                                    ht1b=uicontrol(thfig,'style','popupmenu','units','norm','position',[.35,.80,.55,.07],'string',{'absolute value','percentile'},'value',THRTYPE,'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring','<HTML>Threshold type<br/> - Switches between absolute and percentile binary thresholding operations</HTML>');
+                                    ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.80,.2,.07],'string',num2str(THR),'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring',conn_menu_formathtml('<HTML>Defines binarization threshold <br/> - Original volumes are binarized by considering only suprathrehsold voxels with values above this threshold<br/> - e.g. use .5 to keep only voxels with >50% posterior probability from tissue probability maps</HTML>'));
+                                    ht1b=uicontrol(thfig,'style','popupmenu','units','norm','position',[.35,.80,.55,.07],'string',{'absolute value','percentile'},'value',THRTYPE,'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring',conn_menu_formathtml('<HTML>Threshold type<br/> - Switches between absolute and percentile binary thresholding operations</HTML>'));
                                     if nrois>1, 
                                         ht4a=uicontrol(thfig,'style','text','units','norm','position',[.1,.68,.8,.07],'string','Exclusion mask (Grey Matter):','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
-                                        ht4=uicontrol(thfig,'style','edit','units','norm','position',[.1,.6,.8,.07],'string',num2str(THRGM),'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring','<HTML>Defines binarization threshold of Grey Matter mask<br/> - Voxels with Grey Matter values above this threshold will be excluded from this ROI<br/> - Use NaN for no Grey Matter exclusion mask</HTML>');
+                                        ht4=uicontrol(thfig,'style','edit','units','norm','position',[.1,.6,.8,.07],'string',num2str(THRGM),'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring',conn_menu_formathtml('<HTML>Defines binarization threshold of Grey Matter mask<br/> - Voxels with Grey Matter values above this threshold will be excluded from this ROI<br/> - Use NaN for no Grey Matter exclusion mask</HTML>'));
                                     else ht4=[];
                                     end                                    
                                     ht2a=uicontrol(thfig,'style','text','units','norm','position',[.1,.48,.8,.07],'string','Erosion level:','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
                                     ht2=uicontrol(thfig,'style','edit','units','norm','position',[.1,.40,.2,.07],'string',num2str(ERODE),'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w');
-                                    ht2b=uicontrol(thfig,'style','popupmenu','units','norm','position',[.35,.40,.55,.07],'string',{'number of erosions steps','proportion of post-erosion voxels'},'value',ERODETYPE,'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring','<HTML>Erosion method<br/> - Switches between fixed erosion kernel size, or fixed proportion of voxels post-erosion</HTML>');
+                                    ht2b=uicontrol(thfig,'style','popupmenu','units','norm','position',[.35,.40,.55,.07],'string',{'number of erosions steps','proportion of post-erosion voxels'},'value',ERODETYPE,'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring',conn_menu_formathtml('<HTML>Erosion method<br/> - Switches between fixed erosion kernel size, or fixed proportion of voxels post-erosion</HTML>'));
                                     ht3a=uicontrol(thfig,'style','text','units','norm','position',[.1,.28,.8,.07],'string','Erosion neighborhood:','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
-                                    ht3=uicontrol(thfig,'style','edit','units','norm','position',[.1,.20,.8,.07],'string',num2str(NEIGHB),'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring','<HTML>Defines erosion kernel neighborhood<br/> - A value of M defines that a voxel will be eroded if there are more than M zeros within the (2*N+1)^3-neighborhood of each voxel <br/> - e.g. use N=1,M=0 for a 26-neighborhood erosion; N=1,M=8 for 18-neighborhood erosion</HTML>');
+                                    ht3=uicontrol(thfig,'style','edit','units','norm','position',[.1,.20,.8,.07],'string',num2str(NEIGHB),'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring',conn_menu_formathtml('<HTML>Defines erosion kernel neighborhood<br/> - A value of M defines that a voxel will be eroded if there are more than M zeros within the (2*N+1)^3-neighborhood of each voxel <br/> - e.g. use N=1,M=0 for a 26-neighborhood erosion; N=1,M=8 for 18-neighborhood erosion</HTML>'));
                                     uicontrol(thfig,'style','pushbutton','string','Ok','units','norm','position',[.1,.01,.38,.15],'callback','set(gcbf,''userdata'',true); uiresume','fontsize',8+CONN_gui.font_offset);
                                     uicontrol(thfig,'style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.15],'callback','delete(gcbf)','fontsize',8+CONN_gui.font_offset);
                                     ht1b_tooltip={'<HTML>Defines binarization threshold <br/> - Original volumes are binarized by considering only suprathrehsold voxels with values above this threshold<br/> - e.g. use .5 to keep only voxels with >50% posterior probability from tissue probability maps</HTML>', '<HTML>Defines binarization threshold <br/> - Original volumes are binarized by considering only voxels above the given percentile value<br/> - e.g. use .5 to keep only voxels with posterior probability values above the median</HTML>'};
@@ -7476,9 +7487,9 @@ else
                         if ~CONN_gui.isjava, str(:,3)=regexprep(str(:,3),'<[^>]*>',''); end
                         thfig=dialog('units','norm','position',[.2,.3,.7,.6],'windowstyle','normal','name','New first-level analysis','color','w','resize','on');
                         uicontrol(thfig,'style','text','units','norm','position',[.1,.88,.5,.04],'string','Analysis name:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','fontweight','bold');
-                        ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.80,.5,.08],'string','SBC_01','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','<HTML>Enter a custom name for this first-level analysis<br/> - analysis names must be unique and containing only alphanumeric characters (case sensitive, no spaces, ideally short</HTML>');
+                        ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.80,.5,.08],'string','SBC_01','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring',conn_menu_formathtml('<HTML>Enter a custom name for this first-level analysis<br/> - analysis names must be unique and containing only alphanumeric characters (case sensitive, no spaces, ideally short</HTML>'));
                         uicontrol(thfig,'style','text','units','norm','position',[.1,.70,.5,.04],'string','Analysis type:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','fontweight','bold');
-                        ht2=uicontrol(thfig,'style','listbox','units','norm','position',[.1,.15,.5,.55],'max',1,'string',str(:,3),'value',1,'fontsize',8+CONN_gui.font_offset,'tooltipstring','<HTML>Select new first-level analysis type<br/> - note: analysis details may be modified later');
+                        ht2=uicontrol(thfig,'style','listbox','units','norm','position',[.1,.15,.5,.55],'max',1,'string',str(:,3),'value',1,'fontsize',8+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Select new first-level analysis type<br/> - note: analysis details may be modified later</HTML>'));
                         ht3=uicontrol(thfig,'style','text','units','norm','position',[.65,.15,.25,.55],'string',str{1,4},'backgroundcolor','w','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left');
                         uicontrol(thfig,'style','pushbutton','string','Ok','units','norm','position',[.56,.01,.19,.07],'callback','uiresume','fontsize',8+CONN_gui.font_offset);
                         uicontrol(thfig,'style','pushbutton','string','Cancel','units','norm','position',[.75,.01,.19,.07],'callback','delete(gcbf)','fontsize',8+CONN_gui.font_offset);
@@ -7697,7 +7708,7 @@ else
                 set(CONN_h.menus.m_analyses_00{13},'value',1);
                 pos=[.65,.30,.20,.39];
                 if any(CONN_x.Setup.steps([2,3])),
-                    CONN_h.menus.m_analyses_00{45}=uicontrol('style','text','units','norm','position',boffset+[pos(1)+pos(3)/2-.080,pos(2)-1*.06,.070,.045],'string','threshold','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','right','tooltipstring','<HTML>display only results with absolute effect-sizes above this threshold<br/> - note: this threshold is for display purposes only, analysis results are unchanged</HTML>','visible','off','parent',CONN_h.screen.hfig);
+                    CONN_h.menus.m_analyses_00{45}=uicontrol('style','text','units','norm','position',boffset+[pos(1)+pos(3)/2-.080,pos(2)-1*.06,.070,.045],'string','threshold','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','right','tooltipstring',conn_menu_formathtml('<HTML>display only results with absolute effect-sizes above this threshold<br/> - note: this threshold is for display purposes only, analysis results are unchanged</HTML>'),'visible','off','parent',CONN_h.screen.hfig);
                     CONN_h.menus.m_analyses_00{15}=conn_menu('slider',boffset+[pos(1)+pos(3)-0*.015,pos(2),.015,pos(4)],'','','z-slice','conn(''gui_analyses'',15);');
                     try, addlistener(CONN_h.menus.m_analyses_00{15}, 'ContinuousValueChange',@(varargin)conn('gui_analyses',15)); end
                     set(CONN_h.menus.m_analyses_00{15},'visible','off');
@@ -10511,7 +10522,7 @@ else
                         conn_menu('nullstr',{'Results not','computed yet'});
                         [CONN_h.menus.m_results_00{14}]=conn_menu('imagep2',boffset+pos+[.03 0 -.10 0],'','','',@conn_callbackdisplay_dataname,@conn_callbackdisplay_secondlevelclick);
                         conn_menu('nullstr',' ');
-                        set(CONN_h.menus.m_results_00{14}.h10,'tooltipstring','<HTML>voxel-level false positive threshold<br/> - note: displaying uncorrected results; click on ''display results'' below for multiple-comparison corrections</HTML>')
+                        set(CONN_h.menus.m_results_00{14}.h10,'tooltipstring',conn_menu_formathtml('<HTML>voxel-level false positive threshold<br/> - note: displaying uncorrected results; click on ''display results'' below for multiple-comparison corrections</HTML>'))
                         conn_menu('nullstr',' ');
                         CONN_h.menus.m_results_00{29}=conn_menu('image2',boffset+pos+[.08 -.20 -pos(3)+.125 -pos(4)+.05],'connectivity values'); %,'','',@conn_callbackdisplay_dataname,@conn_callbackdisplay_secondlevelclick);
                         %[CONN_h.menus.m_results_00{34}]=conn_menu('image',boffset+[.1 .1 .4 .1],'','','',@conn_callbackdisplay_dataname);
@@ -10582,7 +10593,7 @@ else
                         %CONN_h.menus.m_results_00{30}=uicontrol('style','edit','units','norm','position',boffset+[.66,.08,.05,.045],'string',num2str(CONN_x.Results.xX.inferencelevel),'fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','enter false-positive threshold value','callback','conn(''gui_results'',30);');
                         %CONN_h.menus.m_results_00{31}=uicontrol('style','popupmenu','units','norm','position',boffset+[.66,.77,.23,.045],'string',strstr3,'fontsize',8+CONN_gui.font_offset,'value',CONN_x.Results.xX.displayrois,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','choose target ROIs','callback','conn(''gui_results'',31);');
                         CONN_h.menus.m_results_00{49}=conn_menu('imagep2',boffset+pos+[.05 .01 -.10 -.04]);
-                        set(CONN_h.menus.m_results_00{49}.h10,'tooltipstring','<HTML>connection-level false positive threshold<br/> - note: displaying uncorrected results; click on ''display results'' below for multiple-comparison corrections</HTML>')
+                        set(CONN_h.menus.m_results_00{49}.h10,'tooltipstring',conn_menu_formathtml('<HTML>connection-level false positive threshold<br/> - note: displaying uncorrected results; click on ''display results'' below for multiple-comparison corrections</HTML>'));
                         CONN_h.menus.m_results_00{24}=[];%uicontrol('style','text','units','norm','position',boffset+[pos(1)+pos(3)/2-.15,pos(2)-1*.045,.15,.04],'string','p-uncorrected <','fontname','default','fontsize',8+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'foregroundcolor',CONN_gui.fontcolorA,'horizontalalignment','right','parent',CONN_h.screen.hfig);
                         conn_menumanager('onregionremove',CONN_h.menus.m_results_00{49}.h10);set([CONN_h.menus.m_results_00{49}.h10],'visible','off');
                         CONN_h.menus.m_results_00{25}=conn_menu('axes',boffset+pos);
