@@ -340,14 +340,14 @@ switch(lower(option)),
         hframe1=conn_menu_mask('units','norm','position',[0,0,1,.27],'backgroundcolor',color2,'foregroundcolor',color2,'parent',data.hfig);
         hframe2=conn_menu_mask('units','norm','position',[0,.87,1,.13],'backgroundcolor',color3,'foregroundcolor',color3,'parent',data.hfig);
         hframe3=0;%conn_menu_mask('units','norm','position',[.62,.35,.33,.45],'backgroundcolor',1*[1 1 1],'foregroundcolor',.85*[1,1,1],'parent',data.hfig);
-        huicontrol_cthr=uicontrol('style','popupmenu','units','norm','position',[.20,.965,.605,.03],'string',{...
+        huicontrol_cthr=uicontrol('style','popupmenu','units','norm','position',[.20,.965,.605,.03],'string',conn_menu_formathtml({...
             'standard settings for cluster-based inferences #1: Functional Network Connectivity',...
             'standard settings for cluster-based inferences #2: Spatial Pairwise Clustering',...
             'standard settings for cluster-based inferences #3: Threshold Free Cluster Enhancement',...
             'alternative settings for connection-based inferences: parametric univariate statistics ',...
             'alternative settings for ROI-based inferences: parametric multivariate statistics',...
             'alternative settings for network-based inferences: Network Based Statistics',...
-            '<HTML><i>customize (advanced Family-Wise Error control settings)</i></HTML>'},'tag','highlight','fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_displayroi,'fwec.option'},'value',data.thres,'tooltipstring',conn_menu_formathtml('Select false-positive control method'),'backgroundcolor',.9*[1,1,1]);
+            '<HTML><i>customize (advanced Family-Wise Error control settings)</i></HTML>'}),'tag','highlight','fontname','arial','fontsize',8+CONN_gui.font_offset,'callback',{@conn_displayroi,'fwec.option'},'value',data.thres,'tooltipstring',conn_menu_formathtml('Select false-positive control method'),'backgroundcolor',.9*[1,1,1]);
         huicontrol_cthr0=uicontrol('style','text','units','norm','position',[.03,.925,.17,.03],'fontsize',8+CONN_gui.font_offset,'string','connection threshold: p < ','horizontalalignment','right','fontweight','bold','foregroundcolor',1-color3,'backgroundcolor',color3,'interruptible','off','parent',data.hfig);
         huicontrol_cthr1=uicontrol('style','edit','units','norm','position',[.20,.925,.10,.03],'fontsize',8+CONN_gui.font_offset,'string',num2str(data.thr),'foregroundcolor',1-color3,'backgroundcolor',color3,'interruptible','off','callback',{@conn_displayroi,'fwec.connectionlevel.value'},'tooltipstring',conn_menu_formathtml('Connection-level threshold value (false-positive threshold value for individual connections)'),'parent',data.hfig);
         huicontrol_cthr2=uicontrol('style','popupmenu','units','norm','position',[.325,.915,.25,.04],'fontsize',8+CONN_gui.font_offset,'string',{'p-uncorrected','p-FDR corrected','p-FDR corrected (TFCE)','p-FWE corrected (TFCE)','F/T/X stat'},'foregroundcolor',1-color3,'backgroundcolor',color3,'tooltipstring',conn_menu_formathtml('<HTML>False-positive control type for individual connections</HTML>'),'interruptible','off','callback',{@conn_displayroi,'fwec.connectionlevel.type'},'value',max(1,min(5, data.thrtype)),'parent',data.hfig);
@@ -1340,9 +1340,12 @@ switch(lower(option)),
                 'vfontsize',max(1,data.plotconnoptions.FONTSIZE(1)-2),...
                 'dfontsize',.5*data.plotconnoptions.FONTSIZE(1));
             if strcmp(lower(option),'lines_print')
-                set([hstruct.hfig hstruct.hax],'color',[1 1 1]);
-                conn_print(options{:});
-                close(hstruct.hfig);
+                hstruct('background',[1 1 1]);
+                hstruct('print',options{:});
+                hstruct('close');
+                %set([hstruct.hfig hstruct.hax],'color',[1 1 1]);
+                %conn_print(options{:});
+                %close(hstruct.hfig);
             end
         else % glass
             z=nan(numel(idxkeep));

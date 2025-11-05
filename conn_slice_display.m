@@ -45,7 +45,14 @@ function fh=conn_slice_display(data,structural,defaultfilepath,actthr,titlestr)
 
 global CONN_x CONN_gui;
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
-if nargin<2||isempty(structural), structural=''; 
+if ~nargin
+    [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select background image (e.g. anatomical)');
+    if ~ischar(tfilename), return; end
+    structural=fullfile(tpathname,tfilename);
+    [tfilename,tpathname]=conn_fileutils('uigetfile','*.nii; *.img','Select overlay image (e.g. functional)');
+    if ~ischar(tfilename), return; end
+    data=fullfile(tpathname,tfilename);
+elseif nargin<2||isempty(structural), structural=''; 
 elseif isequal(structural,'hires'), structural=0;
 end
 if nargin<3||isempty(defaultfilepath), defaultfilepath=pwd; end

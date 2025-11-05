@@ -100,11 +100,13 @@ end
                     thisdata=data;
                     thisrlabel=options.rlabel;
                     thisclabel=options.clabel;
+                    thissigndata=signdata;
                 else
                     if isempty(options.showtril_idx), [options.showtril_idx,nill]=dmperm((data'*data)~=0); end
                     thisdata=triu(data(options.showtril_idx,options.showtril_idx));
                     thisrlabel=options.rlabel(options.showtril_idx);
                     thisclabel=options.clabel(options.showtril_idx);
+                    thissigndata=triu(signdata(options.showtril_idx,options.showtril_idx));
                 end
                 sx1=sum(thisdata,2)';
                 sx2=sum(thisdata,1);
@@ -128,7 +130,7 @@ end
                             b2=x2(n2)+(x2(n2+1)-x2(n2))*(options.separation/2+(1-options.separation)*k2);
                             
                             y=[a1+(b1-a1)*wy, b2+(a2-b2)*wy];
-                            if options.colorsign,       color=options.color(round(1+(size(options.color,1)-1)*(signdata(n1,n2)>0)),:);
+                            if options.colorsign,       color=options.color(round(1+(size(options.color,1)-1)*(thissigndata(n1,n2)>0)),:);
                             elseif options.colordim==1, color=options.color(round(1+(size(options.color,1)-1)*(x1(n1)+x1(n1+1))/2),:);
                             else,                       color=options.color(round(1+(size(options.color,1)-1)*(x2(n2)+x2(n2+1))/2),:);
                             end
@@ -137,7 +139,7 @@ end
                             hold(hstruct.hax,'on'); 
                             plot([wx(1) wx(1)],[y(1) y(end)],'k-','linewidth',3,'parent',hstruct.hax); 
                             plot([wx(256) wx(256)],[y(256) y(257)],'k-','linewidth',3,'parent',hstruct.hax); 
-                            if round(thisdata(n1,n2))>=1e3, ldata=num2str(signdata(n1,n2)*round(thisdata(n1,n2))); else ldata=mat2str(signdata(n1,n2)*thisdata(n1,n2),3); end
+                            if round(thisdata(n1,n2))>=1e3, ldata=num2str(thissigndata(n1,n2)*round(thisdata(n1,n2))); else ldata=mat2str(thissigndata(n1,n2)*thisdata(n1,n2),3); end
                             hstruct.vtext(end+1)=text(wx(1)+.02,(y(1)+y(end))/2,ldata,'horizontalalignment','left','fontsize',max(1,options.vfontsize+options.dfontsize*(-1+2*thisdata(n1,n2)/mx)),'color',options.fontcolor,'tag','values','parent',hstruct.hax); 
                             hstruct.vtext(end+1)=text(wx(256)-.02,(y(256)+y(257))/2,ldata,'horizontalalignment','right','fontsize',max(1,options.vfontsize+options.dfontsize*(-1+2*thisdata(n1,n2)/mx)),'color',options.fontcolor,'tag','values','parent',hstruct.hax); 
                             hold(hstruct.hax,'off');
@@ -255,6 +257,9 @@ end
                     set(h(idx),'color',max(0,min(1,tcolor-sign(mean(tcolor-.5))*abs(nc'-nc0)))); 
                 end
                 options.background=tcolor;
+                
+            case 'close'
+                close(hstruct.hfig);
                 
             case 'print'
                 if numel(varargin)>0, pfilename=varargin{1}; options=varargin(2:end);

@@ -108,9 +108,9 @@ posimage=[.725,.73,.20,.10];
 [ht21,ht22]=conn_menu('hist',boffset+posimage,'');
 ht21title=conn_menu('text2',boffset+[posimage(1),posimage(2)-.07,posimage(3),.04],'','eigenpattern scores');
 ht24=conn_menu('edit2',boffset+[posimage(1)+posimage(3)/2,posimage(2)+posimage(4)+.05,.06,.04],'','','<HTML>Select eigenpattern scores threshold dividing low- and high- scoring subjects<br/> - leave empty to specify the sample median (default)</HTML>',@(varargin)conn_mvpaexplore_update('threshold'));
-ht25=uicontrol('style','frame','units','norm','position',boffset+[posimage(1)+posimage(3)/2-.01,posimage(2)+posimage(4)+.05-.01,.06+.02,.04+.02],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'parent',CONN_h.screen.hfig);
+ht25=conn_menu_mask('units','norm','position',boffset+[posimage(1)+posimage(3)/2-.01,posimage(2)+posimage(4)+.05-.01,.06+.02,.04+.02],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'parent',CONN_h.screen.hfig);
 set(ht25,'visible','on'); conn_menumanager('onregion',ht25,-1,boffset+[posimage(1)-.01,posimage(2)-.07,posimage(3)+.02,posimage(4)+.17]);
-ht23=uicontrol('style','frame','units','norm','position',boffset+[posimage(1)-.01,posimage(2)-.07,posimage(3)+.02,posimage(4)+.12],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'parent',CONN_h.screen.hfig);
+ht23=conn_menu_mask('units','norm','position',boffset+[posimage(1)-.01,posimage(2)-.07,posimage(3)+.02,posimage(4)+.12],'foregroundcolor',CONN_gui.backgroundcolor,'backgroundcolor',CONN_gui.backgroundcolor,'parent',CONN_h.screen.hfig);
 
 conn_menu('updateimage',ht2,volref);
 conn_menu('updateslider1',ht2,Sslice);

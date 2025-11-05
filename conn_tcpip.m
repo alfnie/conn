@@ -43,18 +43,14 @@ function varargout = conn_tcpip(option, varargin)
 %     *************************************************************************************************************
 % 
 %     To connect to this server from a different machine, use the Matlab syntax:
-%        conn_tcpip open client alfonsosmbp2018.lan
-% 
-%     To connect to this server using ssh-tunneling, use the following syntax instead:
-%        $(OS-command)     :   ssh -L 6111:localhost:6111 alfnie@alfonsosmbp2018.lan
-%        >(Matlab-command) :   conn_tcpip open client 127.0.0.1 6111
+%        conn_tcpip open client servercomputer.lan
 % 
 %     *************************************************************************************************************
 %
 %   ON MACHINE #2 (client)
 %
-%     >> conn_tcpip open client alfonsosmbp2018.lan
-%     Connecting to alfonsosmbp2018.lan:6111...
+%     >> conn_tcpip open client servercomputer.lan
+%     Connecting to servercomputer.lan:6111...
 %     Succesfully established connection to server
 %
 %   ON MACHINE #1 or #2
@@ -140,8 +136,8 @@ switch(lower(option))
                 end
                 [nill,str2]=system('whoami');
                 if disphelp>1 % help for conn_server use
-                    if isempty(connection.id), fullid=[num2str(connection.port), 'CONN'];
-                    else fullid=[num2str(connection.port), 'CONN', 'privatekey'];
+                    if isempty(connection.id), fullid=[num2str(connection.port), ':'];
+                    else fullid=[num2str(connection.port), ':', 'PRIVATEKEY'];
                     end
                     fprintf('******************************************************************************\n\n');
                     fprintf('To connect to this server, use the Matlab syntax:\n');
@@ -438,7 +434,7 @@ switch(lower(option))
                 end
                 ok=true;
             catch
-                fprintf('   Unable to send TCP packet (possibly unresponsive server)\n');
+                fprintf('   Sever is unresponsive (TCP write fail)\n');
             end
         else % save to file then send file
             filename=fullfile(connection.cache,['cachetmp_',char(conn_tcpip('hash',mat2str(now))),'.mat']);
@@ -470,7 +466,7 @@ switch(lower(option))
         try
             connection.output.stream.writeUTF(header);
         catch
-            fprintf('   Unable to send TCP packet (possibly unresponsive server)\n');
+            fprintf('   Sever is unresponsive (TCP write fail)\n');
         end
         while fsize>0&&~ok
             if numel(data)<connection.maxlength, 
@@ -486,7 +482,7 @@ switch(lower(option))
                 connection.output.stream.writeUTF(data(idx));
                 data(idx)=[];
             catch
-                fprintf('   Unable to send TCP packet (possibly unresponsive server)\n');
+                fprintf('   Sever is unresponsive (TCP write fail)\n');
                 break;
             end
         end

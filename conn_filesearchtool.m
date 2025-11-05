@@ -79,7 +79,9 @@ if nargin<1 || ischar(varargin{1}),
             set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
             h.selectspm=[];
         else
-            h.find=conn_menu('pushbutton',[1,.51,.31,.44,.06]*M,'','Find','Recursively searchs file names matching the files/filter options below starting from the current folder');
+            if isfield(CONN_gui,'isjava')&&~CONN_gui.isjava, h.find=conn_menu('togglebutton',[1,.51,.31,.44,.06]*M,'','Find','Recursively searchs file names matching the files/filter options below starting from the current folder');
+            else h.find=conn_menu('pushbutton',[1,.51,.31,.44,.06]*M,'','Find','Recursively searchs file names matching the files/filter options below starting from the current folder');
+            end
             set(h.find,'value',0,'fontsize',10+CONN_gui.font_offset);
             h.selectspm=conn_menu('pushbutton',[1,.7,.93,.29,.05]*M,'','ALTselect','<HTML>Alternative GUIs for file selection (OS-specific, spm_select GUI, select data from this or other CONN projects, etc.)</HTML>');
         end

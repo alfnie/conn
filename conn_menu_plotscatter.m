@@ -1,4 +1,4 @@
-function handles=conn_menu_plotscatter(x,y,order,varargin)
+function handles=conn_menu_plotscatter(x,y,varargin)
 % CONN_MENU_PLOTSCATTER scatter plot with confidence intervals
 %    dots       : x/y data
 %    black line : linear regression fit
@@ -13,12 +13,21 @@ function handles=conn_menu_plotscatter(x,y,order,varargin)
 % y=x+randn(10,1);
 % conn_menu_plotscatter(x,y)
 %
-if nargin<3||isempty(order), order=1; end % linear fit
+% additional options:
+% conn_menu_plotscatter(...,'order',n)          Uses n-th order polynomial fit (default 1: linear fit)
+% conn_menu_plotscatter(...,'newfigure',false)  Plots on current figure window (default true: creates a new figure window)
+%
+
+options=struct('order',1,'newfigure',true);
+for n=1:2:numel(varargin)
+    assert(isfield(options,lower(varargin{n})),'unrecognized option %s',varargin{n});
+    options.(lower(varargin{n}))=varargin{n+1};
+end
 
 mask=~isnan(x)&~isnan(y);
 x=x(mask); y=y(mask);
 N=numel(x);
-X=[ones(N,1),conn_bsxfun(@power,x(:),(1:order))];
+X=[ones(N,1),conn_bsxfun(@power,x(:),(1:options.order))];
 B=X\y(:);
 yfit=X*B;
 mx=mean(x(:));
@@ -27,12 +36,15 @@ sy=sum(abs(y(:)-yfit).^2);
 
 mm=[min(x), max(x)];
 tx=linspace(mm*[1.1;-.1],mm*[-.1;1.1],100)';
-ty=[ones(100,1) conn_bsxfun(@power,tx,(1:order))]*B;
-RMSE=sqrt(sy/(N-1-order));
+ty=[ones(100,1) conn_bsxfun(@power,tx,(1:options.order))]*B;
+RMSE=sqrt(sy/(N-1-options.order));
 SE1=RMSE*sqrt(1/N + (tx-mx).^2 ./ sx);
 SE2=RMSE*sqrt(1 + 1/N + (tx-mx).^2 ./ sx);
-k=spm_invTcdf(.975,N-1-order); % note: 95% ci's
+k=spm_invTcdf(.975,N-1-options.order); % note: 95% ci's
 
+if options.newfigure, hfig=figure; 
+else hfig=gcf; 
+end
 cla;
 hold on;
 color=.7-.2*exp(-N/10);

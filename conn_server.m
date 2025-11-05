@@ -16,18 +16,18 @@ function varargout = conn_server(option, varargin)
 %                                                             Opening port 60039...
 %                                                             ******************************************************************************
 %                                                             To connect to this server, use the Matlab syntax:
-%                                                                conn_server connect mbp-2018.lan 60039CONNprivatekey
+%                                                                conn_server connect mbp-2018.lan 60039:PRIVATEKEY
 %
 %                                                             To connect to this server using ssh-tunneling, use the following syntax instead:
 %                                                                $(OS-command)     :   ssh -L 6111:alfonsosmbp2018.lan:60039 alfnie@YOUR-INSTITUTION-SSH-LOGIN-NODE
-%                                                                >(Matlab-command) :   conn_server connect localhost 6111CONNprivatekey
+%                                                                >(Matlab-command) :   conn_server connect localhost 6111:PRIVATEKEY
 %                                                             ******************************************************************************%
 % COMMANDS FROM CLIENT SIDE: (e.g. from a computer at home/office where you work)
 %   conn_server('connect', IP , SERVER_ID)          : stablishes connection to CONN server
 %                                                     IP : address of computer running conn_server
-%                                                     SERVER_ID: keyword of the form <PORT>CONN<PRIVATEKEY> (e.g. 60039CONNe5823002ac891dacbf3c48ae54d8f438, where PORT=60039 and PRIVATEKEY=e5823002ac891dacbf3c48ae54d8f438)
+%                                                     SERVER_ID: keyword of the form <PORT>:<PRIVATEKEY> (e.g. 60039:e5823002ac891dacbf3c48ae54d8f438, where PORT=60039 and PRIVATEKEY=e5823002ac891dacbf3c48ae54d8f438)
 %                                                     e.g.
-%                                                       >> conn_server('connect', 'mbp-2018.lan', '60039CONNe5823002ac891dacbf3c48ae54d8f438');
+%                                                       >> conn_server('connect', 'mbp-2018.lan', '60039:e5823002ac891dacbf3c48ae54d8f438');
 %                                                            Connecting to 127.0.0.1:60039...
 %                                                            Succesfully established connection to server
 %
@@ -124,8 +124,8 @@ switch(lower(option))
         if numel(varargin)>=2&&~isempty(varargin{2}), sid=varargin{2}; else sid=[]; end
         varargout={false};
         params.isserver=false;
-        port=str2double(regexprep(sid,'CONN.*',''));
-        id=regexprep(sid,'^\d*CONN','');
+        port=str2double(regexprep(sid,'(CONN|:).*',''));
+        id=regexprep(sid,'^\d*(CONN|:)','');
         finished=false; ok=false;
         while ~finished
             try

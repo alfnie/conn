@@ -691,9 +691,15 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                     dof0=size(x0,1)-1;
                     %dof=max(0,sum(fy)^2/sum(fy.^2)-size(X{nses},2)); % change dof displayed to WelchSatterthwaite residual dof approximation
                     dof1=max(0,sum(fy)^2/sum(fy.^2)); % WelchSatterthwaite residual dof approximation
-                    if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, dof2=max(0,sX{nses}(1)*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0-sX{nses}(2));
-                    elseif nnz(ifilter{nses}),                                   dof2=max(0,(sX{nses}(1)-sX{nses}(2)+nnz(ifilter{nses}(IsFixed{nses}))/nsess+nnz(ifilter{nses}(~IsFixed{nses})))*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0-nnz(ifilter{nses}(IsFixed{nses}))/nsess-nnz(ifilter{nses}(~IsFixed{nses})));
-                    else                                                         dof2=max(0,(sX{nses}(1)-sX{nses}(2))*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0);
+                    if isfield(CONN_x.Preproc,'regbp')&&CONN_x.Preproc.regbp==2, % simult
+                        dof2=max(0,sX{nses}(1)*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0-sX{nses}(2));
+                        dof1=max(0,dof1+0-sX{nses}(2));
+                    elseif nnz(ifilter{nses}), % filtered regressors                                  
+                        dof2=max(0,(sX{nses}(1)-sX{nses}(2)+nnz(ifilter{nses}(IsFixed{nses}))/nsess+nnz(ifilter{nses}(~IsFixed{nses})))*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0-nnz(ifilter{nses}(IsFixed{nses}))/nsess-nnz(ifilter{nses}(~IsFixed{nses})));
+                        dof1=max(0,(sX{nses}(1)-sX{nses}(2)+nnz(ifilter{nses}(IsFixed{nses}))/nsess + nnz(ifilter{nses}(~IsFixed{nses})))/max(1,sX{nses}(1))*dof1 +0-nnz(ifilter{nses}(IsFixed{nses}))/nsess-nnz(ifilter{nses}(~IsFixed{nses})));
+                    else % regbp                                                        
+                        dof2=max(0,(sX{nses}(1)-sX{nses}(2))*(min(1/(2*max(conn_get_rt(nsub,nses))),CONN_x.Preproc.filter(2))-max(0,CONN_x.Preproc.filter(1)))/(1/(2*max(conn_get_rt(nsub,nses))))+0);
+                        dof1=max(0,(sX{nses}(1)-sX{nses}(2))/max(1,sX{nses}(1))*dof1);
                     end
 
                     if iscell(validconditions), validconditions=find(ismember(CONN_x.Setup.conditions.names(1:end-1),validconditions)); end
@@ -866,6 +872,19 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                             pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
                             CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
                             CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising)';
+                            CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
+                            for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                        elseif isub==1,
+                            for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                        end
+                        CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
+                        pmatch=dof1;
+                        pmatch_name='QC_WelchSatterthwaite';
+                        pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                        if isempty(pmatch_icov),
+                            pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
+                            CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
+                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising) estimated using Welch-Satterthwaite approximation';
                             CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
                             for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
                         elseif isub==1,

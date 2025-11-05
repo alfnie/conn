@@ -126,7 +126,7 @@ switch(lower(option))
             localcachefolder=conn_cache('private.local_folder');
         end
         params.info.scp=false;
-        params.info.windowscmbugfixed=false; % allows use of SSH ControlMaster option in Windows
+        params.info.windowscmbugfixed=false; % allows use of SSH ControlMaster option in Windows; set to true when Microsoft's OpenSSH for Windows fully supports -o ControlMaster
         if isempty(params.options.cmd_ssh), 
             error('No SSH client found (see Tools.RemoteOptions.Configuration)');
         else
@@ -259,7 +259,7 @@ switch(lower(option))
                 end
                 if isempty(params.info.host)
                     if strcmpi(option,'restart'), conn_tcpip('open','client',params.info.remote_ip,params.info.remote_port,params.info.remote_id,0); params.state='on';
-                    else conn_server('connect',params.info.remote_ip,sprintf('%dCONN%s',params.info.remote_port,params.info.remote_id));
+                    else conn_server('connect',params.info.remote_ip,sprintf('%d:%s',params.info.remote_port,params.info.remote_id));
                     end
                 else
                     % stablishes port-forward link between this computer and server#2
@@ -286,7 +286,7 @@ switch(lower(option))
                         %system(sprintf('ssh -f -N -T -o ExitOnForwardFailure=yes -o ControlPath=''%s'' -L%d:%s:%d %s', params.info.filename_ctrl,params.info.local_port,params.info.remote_ip,params.info.remote_port,params.info.login_ip));
                         %fprintf('Connecting to server\n');
                         if strcmpi(option,'restart'), conn_tcpip('open','client','localhost',params.info.local_port,params.info.remote_id,0); params.state='on';
-                        else conn_server('connect','localhost',sprintf('%dCONN%s',params.info.local_port,params.info.remote_id));
+                        else conn_server('connect','localhost',sprintf('%d:%s',params.info.local_port,params.info.remote_id));
                         end
                     end
                 end
@@ -426,10 +426,10 @@ switch(lower(option))
                 ok=~isempty(regexp(str,'Waiting for client connection'));
                 if ~ok, pause(1+rand); end
             end
-            if ok,
+            if ok, % reads from conn_tcpip printout the target HOST&PORT
                 fprintf('\nSSH_SUBMITSTART finished succesfully\n');
                 match1=regexp(str,'\<ssh -L 6111:([^:]*):(\d+)','tokens');
-                match2=regexp(str,'\<conn_server connect localhost \d+CONN(\w+)','tokens');
+                match2=regexp(str,'\<conn_server connect localhost \d+:(\w+)','tokens');
                 fprintf('HOST:%s\nPORT:%s\nID:%s\nLOG:%s\n',match1{1}{1},match1{1}{2},match2{1}{1},info.pathname);
             else fprintf('SSH_SUBMITSTART error\n');
             end

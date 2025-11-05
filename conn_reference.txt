@@ -1,12 +1,13 @@
 #line_begin
 Analyses of fMRI data were performed using CONN[CITATION1] (RRID:SCR_009550) release [CONNRELEASE][CITATION0] and SPM[CITATION2] (RRID:SCR_007037) release [SPMRELEASE].
 
-#CITATION0 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2022). CONN functional connectivity toolbox: RRID SCR_009550, release 22. doi:10.56441/hilbertpress.2246.5840.
+#CITATION0 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2025). CONN functional connectivity toolbox: RRID SCR_009550, release 25. doi:10.56441/hilbertpress.2246.5840.
 #CITATION1 Whitfield-Gabrieli, S., & Nieto-Castanon, A. (2012). Conn: a functional connectivity toolbox for correlated and anticorrelated brain networks. Brain connectivity, 2(3), 125-141.
 #CITATION2 Penny, W. D., Friston, K. J., Ashburner, J. T., Kiebel, S. J., & Nichols, T. E. (Eds.). (2011). Statistical parametric mapping: the analysis of functional brain images. Elsevier.
 
 
 % DOI's of previous versions of CONN
+#VERSION25 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2025). CONN functional connectivity toolbox: RRID SCR_009550, release 25. doi:10.56441/hilbertpress.2246.5840.
 #VERSION22 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2022). CONN functional connectivity toolbox: RRID SCR_009550, release 22. doi:10.56441/hilbertpress.2246.5840.
 #VERSION21 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2021). CONN functional connectivity toolbox: RRID SCR_009550, release 21. doi:10.56441/hilbertpress.2161.7292.
 #VERSION20 Nieto-Castanon, A. & Whitfield-Gabrieli, S. (2020). CONN functional connectivity toolbox: RRID SCR_009550, release 20. doi:10.56441/hilbertpress.2048.3738.

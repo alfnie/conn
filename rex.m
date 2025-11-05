@@ -1540,8 +1540,9 @@ end
                 [filename,filepath]=uiputfile({'*.mat','MAT-files (*.mat)'; '*.txt','text files (*.txt)'; '*.csv','CSV-files (*.csv)'; '*',  'All Files (*)'},'Save effects as');
                 if ~ischar(filename), return; end
                 filename=fullfile(filepath,filename);
-                if ~isempty(regexp(filename,'\.mat$')), conn_savematfile(filename,'-struct',struct('data',cbeta(:,selectedROIs),'data_minCI',cbeta(:,selectedROIs)-CI(:,selectedROIs),'data_maxCI',cbeta(:,selectedROIs)+CI(:,selectedROIs),'names',{roinames(selectedROIs)}));
+                if ~isempty(regexp(filename,'\.mat$')), conn_savematfile(filename,'-struct',struct('data',cbeta(:,selectedROIs),'data_minCI',cbeta(:,selectedROIs)-CI(:,selectedROIs),'data_maxCI',cbeta(:,selectedROIs)+CI(:,selectedROIs),'measures',{effnames},'names',{roinames(selectedROIs)}));
                 else conn_savetextfile(filename,cbeta(:,selectedROIs),roinames(selectedROIs));
+                    fprintf('note: rows of file %s contain the effects sorted as: %s\n',filename,sprintf('%s ',effnames{:}));
                 end
                 fprintf('Effects exported to %s\n',filename);
                 return

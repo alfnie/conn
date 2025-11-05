@@ -7,8 +7,9 @@ function fh = conn_mtx_braindisplay(filename, threshold)
 %
 % alternative syntax:
 % conn_mtx_braindisplay(data, threshold) % displays only connections with abs(data)>threshold
+% conn_mtx_braindisplay(data, 'all')     % displays all connections
 % conn_mtx_braindisplay(data, 'top100')  % displays only top 100 strongest connections
-% conn_mtx_braindisplay(data, 'perc95')  % displays only connections with abs(data) above its 95% percentile
+% conn_mtx_braindisplay(data, 'perc99')  % displays only connections with abs(data) above its 99% percentile (default)
 %
 % SEE ALSO: conn_mtx_read, conn_mtx_write
 %
@@ -20,7 +21,9 @@ if nargin<2, threshold=prctile(abs(data(:)),99); end
 n=size(data,1);
 if size(data,3)>1, data=mean(data,3); end
 if n~=3&&size(coords,1)==3, coords=coords'; end
-if ischar(threshold)&&~isempty(regexp(threshold,'^top'))
+if ischar(threshold)&&strcmpi(threshold,'all')
+    mask=~isnan(data)&data~=0;
+elseif ischar(threshold)&&~isempty(regexp(threshold,'^top'))
     [nill,idx]=sort(abs(data(:)),'descend');
     idx(idx)=1:numel(idx);
     mask=reshape(idx,size(data))<=str2double(regexprep(threshold,'^top',''));

@@ -35,7 +35,7 @@ bgwhite=CONN_gui.backgroundcolorE; %.5*bgcolor+.5*round(bgcolor); %.9*bgcolor+.1
 %fgcolor=[.4 .4 .4]+.2*(mean(bgcolor)<.5);
 %fgcolor=CONN_gui.fontcolorA.*(abs(mean(CONN_gui.fontcolorA)-mean(bgcolor))>.25)+(.5+.5*CONN_gui.fontcolorA).*(abs(mean(CONN_gui.fontcolorA)-mean(bgcolor))<=.25);
 titleopts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',fgcolortitle,'fontsize',11+CONN_gui.font_offset};
-if ~CONN_gui.isjava, tooltipstring=regexprep(tooltipstring,{'<\/?HTML>|<\/?b>|<\/?i>','<br/>'},{'','\n'},'ignorecase'); end
+if ~CONN_gui.isjava, tooltipstring=conn_menu_formathtml(tooltipstring); end
 titleopts2=titleopts;titleopts2(7:8)={'color',fgcolortitle}; %CONN_gui.fontcolorA};
 contropts={'fontname',fname,'fontangle','normal','fontweight','normal','foregroundcolor',fgcolor,'fontsize',8+CONN_gui.font_offset};
 contropts2=contropts;contropts2(7:8)={'color',fgcolor}; %CONN_gui.fontcolorA};
@@ -91,7 +91,7 @@ switch(lower(type)),
 %         if doemphasis2, conn_menumanager('onregion',h,0,get(h,'position')); end
 	case {'edit','edit2','textedit','textedit2'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,.03,0,0],'string',title,'backgroundcolor',bgcolor,titleopts{:},'fontunits','norm','horizontalalignment','left','parent',CONN_h.screen.hfig); end
+		if ~isempty(title), h2=uicontrol('style','text','units','norm','position',position+[0,position(4),0,.03-position(4)],'string',title,'backgroundcolor',bgcolor,titleopts{:},'fontunits','norm','horizontalalignment','left','parent',CONN_h.screen.hfig); end
 		h=uicontrol('style','edit','units','norm','position',position,'backgroundcolor',bgcolor,'horizontalalignment','left','string',string,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,contropts{:},'parent',CONN_h.screen.hfig);
         if strcmp(lower(type),'textedit')||strcmp(lower(type),'textedit2'), set([h h2],'horizontalalignment','center'); end
         set(h,'units','pixels');
@@ -157,7 +157,7 @@ switch(lower(type)),
         end
         set(h,'position',position.*[1 1 1 0]+[0 0 0 .001]);
         h=struct('h1',h,'h2',htc,'h3',h3,'pos',position);
-    case {'listbox','listbox2','listboxbigblue','listboxbigwhite'}
+    case {'listbox','listbox2','listboxblue','listboxwhite','listboxbigblue','listboxbigwhite'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
         if strcmpi(type,'listboxbigwhite'), bgcolor=CONN_gui.backgroundcolorE; 
         elseif strcmpi(type,'listboxbigblue'), bgcolor=CONN_gui.backgroundcolorE; 
@@ -196,8 +196,8 @@ switch(lower(type)),
                 ht=[conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .025-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1})];
                 set(ht(1),'userdata',h,'fontweight','bold','visible','on','fontsize',9+CONN_gui.font_offset);
             else
-                ht=[conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .025-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...
-                    conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[max(.02,position(3)-.02) -.03 .02-position(3) .025-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
+                ht=[conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.03,position(3)-.03)-position(3) .025-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...
+                    conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[max(.03,position(3)-.03) -.03 .03-position(3) .025-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
                 set(ht(1),'userdata',h,'fontweight','bold','visible','on','fontsize',9+CONN_gui.font_offset);
                 set(ht(2:end),'userdata',h,'fontweight','bold','visible','off'); 
                 conn_menumanager('onregion',ht(2:end),1,get(h,'position')+[0 -.04 0 .04],h);
@@ -274,7 +274,7 @@ switch(lower(type)),
         end %opts=titleopts; end %.75*bgcolor+.25*(2/6*.5+.5*[1/6,2/6,4/6]); end
         if isempty(string), string=' '; end
 		if ~isempty(regexp(type,'popupbig')), 
-            if ~skipborders, h=conn_menu_mask('units','norm','position',position,'backgroundcolor',bgcolor,'foregroundcolor',bgcolor,'parent',CONN_h.screen.hfig); end
+            %if ~skipborders, h=conn_menu_mask('units','norm','position',position,'backgroundcolor',bgcolor,'foregroundcolor',bgcolor,'parent',CONN_h.screen.hfig); end
             h=uicontrol('style','popupmenu','units','norm','position',position+[.01 .005 -.02 -.01],'backgroundcolor',bgcolor,'string',cellstr(string),'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,opts{:},'parent',CONN_h.screen.hfig);
         else
             h=uicontrol('style','popupmenu','units','norm','position',position,                     'backgroundcolor',bgcolor,'string',cellstr(string),'value',1,'tooltipstring',tooltipstring,'interruptible','off','callback',callback,opts{:},'parent',CONN_h.screen.hfig);
@@ -346,10 +346,10 @@ switch(lower(type)),
 	case {'image','image2','image20','imagep','imagep2','imageonly','imageonly2'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
 		if ~isempty(title), 
-            %h.htitle=uicontrol('style','text','units','norm','position',(position+[0,position(4),0,0]).*[1,1,1,0]+[0,0,0,.04],'string',title,'backgroundcolor',bgcolor,titleopts{:},'fontunits','norm','horizontalalignment','center'); 
-            ht=axes('units','norm','position',position+[0,position(4),0,.04-position(4)],'visible','off','parent',CONN_h.screen.hfig);
-            h.htitle=text(0,0,title,titleopts2{:},'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ht); 
-            set(ht,'xlim',[-1,1],'ylim',[-1,1]);
+            h.htitle=uicontrol('style','text','units','norm','position',position+[0,position(4),0,.04-position(4)],'string',title,'backgroundcolor',bgcolor,titleopts{:},'horizontalalignment','center'); 
+            %ht=axes('units','norm','position',position+[0,position(4),0,.04-position(4)],'visible','off','parent',CONN_h.screen.hfig);
+            %h.htitle=text(0,0,title,titleopts2{:},'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ht); 
+            %set(ht,'xlim',[-1,1],'ylim',[-1,1]);
             h2=h.htitle;
         end
         if any(strcmpi(type,{'imagep','imagep2'})), data=struct('n',[],'thr',1,'cscale',1,'x0',[],'x1',[],'p',1,'view',[],'viewselect',false); 
@@ -512,7 +512,7 @@ switch(lower(type)),
 			'title',title,'filter',string,'callback',callback,'max',1,'type','files','filename',tooltipstring,'reduced',true,'button','Save','buttonhelp','Saves new CONN project');
 	case 'filesearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.16,.18,.65],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1);
 	case 'foldersearch_local',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -536,7 +536,7 @@ switch(lower(type)),
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','button','Import','buttonhelp','<HTML>Select DICOM root folder (directory where DICOM files for the selected subject are stored -including sub-directories-)</HTML>');
 	case 'filesearchlocal',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.21,.18,.55],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
+		h=conn_filesearchtool('position',[.78,.16,.18,.65],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1,'localcopy',1);
 	case {'frame','framewhite','framehighlight','framewhitehighlight','frame2highlight','frame2','frame2blue','framewhitenoborder','framewhitesemiborder','framewhiteborderl','frameblue','frame2blue','framebluenoborder','framebluesemiborder','frameblueborderl','frame2noborder','frame2semiborder','frame2border','frame2borderl'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
