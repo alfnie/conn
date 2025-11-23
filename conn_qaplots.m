@@ -18,6 +18,7 @@ function filenames=conn_qaplots(qafolder,procedures,validsubjects,validrois0,val
 %     13: QA_DENOISE FC-QC      : histogram of FC-QC associations; between-subject correlation between QC (Quality Control) and FC (Functional Connectivity) measures
 %     14: QA_DENOISE_scatterplot: scatterplot of FC (Functional Connectivity r coeff) vs. distance (mm)
 %     15: QA_DENOISE_FC-QCscatterplot: scatterplot of FC-QC associations (r coeff correlations between QC and FC measures) vs. distance (mm)
+%     16: QA_DENOISE update     : update of second-level QC variables
 %     21: QA_SPM design         : SPM review design matrix (from SPM.mat files)
 %     22: QA_SPM contrasts      : SPM review contrast specification (from SPM.mat files)
 %     23: QA_SPM results        : SPM review contrast effect-size (from SPM.mat files)
@@ -65,6 +66,7 @@ if iscell(procedures)
                     13,'QA_DENOISE FC-QC';
                     14,'QA_DENOISE_scatterplot';
                     15,'QA_DENOISE FC-QC scatterplot';
+                    16,'QA_DENOISE update';
                     21,'QA_SPM design';
                     22,'QA_SPM contrasts';
                     23,'QA_SPM results';
@@ -76,7 +78,7 @@ end
 
 if ~usejava('awt'), conn_disp('fprintf','warning: unable to find Java AWT graphics framework (possibly missing graphic display capabilities)\n         if experiencing incomplete plots or unexpected crashes, please connect using VNC or some other graphic-capable method and try again\n'); end
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), try, conn_font_init; end; end
-if ~nargout, ht=conn_waitbar(0,'Creating displays. Please wait...'); 
+if ~nargout, ht=conn_waitbar(0,'Creating QC displays. Please wait...'); 
 else ht=[];
 end
 filenames={};
@@ -568,7 +570,7 @@ if any(procedures==Iprocedure) % QA_REG functional-structural
     end
 end
 
-Iprocedure=[11,12,13,14,15];
+Iprocedure=[11,12,13,14,15,16,31];
 if any(ismember(procedures,Iprocedure)) % QA_DENOISE
     PERRUN=false;
     %try
@@ -581,8 +583,8 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
         results_str={};
         results_info={};
         results_label={};
-        NptsHist=100; % number of bins in histograms
-        NptsScat=100; % number of bins in # vs. distance plots
+        NptsHist=101; % number of bins in histograms
+        NptsScat=101; % number of bins in # vs. distance plots
         maxa=-inf;
         FC_X0=[];FC_X1=[];FC_N=[];FC_D=[];k=[];
         nl1covariates=[find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),'scrubbing'),1) find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),'QC_timeseries'),1)];
@@ -713,11 +715,13 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                         dof2all=[dof2all; dof2];
                     end
 
-                    if PERRUN && any(ismember(procedures,[11,14])) % FC histogram and scatterplot
+                    if PERRUN && any(ismember(procedures,[11,14,16,31])) % FC histogram and scatterplot
                         z0=corrcoef(x0);z1=corrcoef(x1);d0=shiftdim(sqrt(sum(abs(conn_bsxfun(@minus, xyz,permute(xyz,[1,3,2]))).^2,1)),1);
                         maskz=z0~=1&z1~=1;
                         z0=z0(maskz);z1=z1(maskz);d0=d0(maskz);
                         [a0,b0]=hist(z0(:),linspace(-1,1,NptsHist));[a1,b1]=hist(z1(:),linspace(-1,1,NptsHist));
+                        [peakz0,peakf0]=findpeak(a0,b0); [peakz1,peakf1]=findpeak(a1,b1); 
+                        pdf0=a0(ceil(NptsHist/2))/peakf0; pdf1=a1(ceil(NptsHist/2))/peakf1;
                         maxa=max(maxa,max(max(a0),max(a1)));
                         if iscell(validconditions), validconditions=find(ismember(CONN_x.Setup.conditions.names(1:end-1),validconditions)); end
                         if any(ismember(procedures,[11]))
@@ -727,9 +731,9 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                                     results_patch={};results_info={};results_str={};results_label={};
                                 else
                                     results_patch={[b1(1),b1,b1(end)],[0,a1,0],[0,a0,0]};
-                                    results_info=struct('units','Functional Connectivity (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
+                                    results_info=struct('units','Functional Connectivity (r)','PeakBefore',peakz0, 'MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'PeakAfter',peakz1,'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
                                     tstr={sprintf('FC for subject %d. session %d',nsub,nses),sprintf('FC = edge connectivity (r) in %d-node network',numel(x0valid))};
-                                    results_str=[tstr{1} sprintf(' before denoising: mean %f std %f; after denoising: mean %f std %f (dof=%.1f, dof_WS=%.1f)',mean(z0(z0~=1)),std(z0(z0~=1)),mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
+                                    results_str=[tstr{1} sprintf(' before denoising: peak %f mean %f std %f; after denoising: peak % mean %f std %f (dof=%.1f, dof_WS=%.1f)',peakz0,mean(z0(z0~=1)),std(z0(z0~=1)),peakz1,mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
                                     results_label=tstr;
                                 end
                                 filename=fullfile(qafolder,sprintf('QA_DENOISE.subject%03d.session%03d.mat',nsub,nses));
@@ -752,9 +756,9 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                                     sz1=reshape(z1(tidx(1:kpoints*NptsScat)),kpoints,NptsScat); msz1=mean(sz1,1);ssz1=std(sz1,0,1);
                                     results_patch={[msd0 fliplr(msd0)]', [msz1+ssz1 fliplr(msz1-ssz1)]', [msz0+ssz0 fliplr(msz0-ssz0)]'};
                                     results_line={msd0', msz1', msz0'};
-                                    results_info=struct('units','Functional Connectivity (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
+                                    results_info=struct('units','Functional Connectivity (r)','PeakBefore',peakz0, 'MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'PeakAfter',peakz1,'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
                                     tstr={sprintf('FC (r mean%cstd) vs. distance (mm) for subject %d. session %d',177,nsub,nses),sprintf('FC = edge connectivity (r) in %d-node network',numel(x0valid)),sprintf('distance = edge distance (mm) in %d-node network',numel(x0valid))};
-                                    results_str=[tstr{1} sprintf(' before denoising: mean %f std %f; after denoising: mean %f std %f (dof=%.1f, dof_WS=%.1f)',mean(z0(z0~=1)),std(z0(z0~=1)),mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
+                                    results_str=[tstr{1} sprintf(' before denoising: peak %f mean %f std %f; after denoising: peak % mean %f std %f (dof=%.1f, dof_WS=%.1f)',peakz0,mean(z0(z0~=1)),std(z0(z0~=1)),peakz1,mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
                                     results_label=tstr;
                                 end
                                 filename=fullfile(qafolder,sprintf('QA_DENOISE_scatterplot.subject%03d.session%03d.mat',nsub,nses));
@@ -824,11 +828,13 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                     dof0=sum(dof0all);
                     dof1=sum(dof1all);
                     dof2=sum(dof2all);
-                    if any(ismember(procedures,[11,14])) % FC histogram and scatterplot
+                    if any(ismember(procedures,[11,14,16,31])) % FC histogram and scatterplot
                         z0=corrcoef(x0);z1=corrcoef(x1);d0=shiftdim(sqrt(sum(abs(conn_bsxfun(@minus, xyz,permute(xyz,[1,3,2]))).^2,1)),1);
                         maskz=z0~=1&z1~=1;
                         z0=z0(maskz);z1=z1(maskz);d0=d0(maskz);
                         [a0,b0]=hist(z0(:),linspace(-1,1,NptsHist));[a1,b1]=hist(z1(:),linspace(-1,1,NptsHist));
+                        [peakz0,peakf0]=findpeak(a0,b0); [peakz1,peakf1]=findpeak(a1,b1);                         
+                        pdf0=a0(ceil(NptsHist/2))/peakf0; pdf1=a1(ceil(NptsHist/2))/peakf1;
                         maxa=max(maxa,max(max(a0),max(a1)));
                         if iscell(validconditions), validconditions=find(ismember(CONN_x.Setup.conditions.names(1:end-1),validconditions)); end
                         if any(ismember(procedures,[11]))
@@ -837,9 +843,9 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                                 results_patch={};results_info={};results_str={};results_label={};
                             else
                                 results_patch={[b1(1),b1,b1(end)],[0,a1,0],[0,a0,0]};
-                                results_info=struct('units','Functional Connectivity (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
+                                results_info=struct('units','Functional Connectivity (r)','PeakBefore',peakz0, 'MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'PeakAfter',peakz1,'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
                                 tstr={sprintf('FC for subject %d',nsub),sprintf('FC = edge connectivity (r) in %d-node network',numel(x0valid))};
-                                results_str=[tstr{1} sprintf(' before denoising: mean %f std %f; after denoising: mean %f std %f (dof=%.1f, dof_WS=%.1f)',mean(z0(z0~=1)),std(z0(z0~=1)),mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
+                                results_str=[tstr{1} sprintf(' before denoising: peak %f mean %f std %f; after denoising: peak % mean %f std %f (dof=%.1f, dof_WS=%.1f)',peakz0,mean(z0(z0~=1)),std(z0(z0~=1)),peakz1,mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
                                 results_label=tstr;
                             end
                             filename=fullfile(qafolder,sprintf('QA_DENOISE.subject%03d.mat',nsub));
@@ -857,21 +863,23 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                                 sz1=reshape(z1(tidx(1:kpoints*NptsScat)),kpoints,NptsScat); msz1=mean(sz1,1);ssz1=std(sz1,0,1);
                                 results_patch={[msd0 fliplr(msd0)]', [msz1+ssz1 fliplr(msz1-ssz1)]', [msz0+ssz0 fliplr(msz0-ssz0)]'};
                                 results_line={msd0', msz1', msz0'};
-                                results_info=struct('units','Functional Connectivity (r)','MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
+                                results_info=struct('units','Functional Connectivity (r)','PeakBefore',peakz0, 'MeanBefore',mean(z0(z0~=1)),'StdBefore',std(z0(z0~=1)),'PeakAfter',peakz1,'MeanAfter',mean(z1(z1~=1)),'StdAfter',std(z1(z1~=1)),'DofBefore',dof0,'DofAfter',dof2); %'dof',dof2);
                                 tstr={sprintf('FC (r mean%cstd) vs. distance (mm) for subject %d',177,nsub),sprintf('FC = edge connectivity (r) in %d-node network',numel(x0valid)),sprintf('distance = edge distance (mm) in %d-node network',numel(x0valid))};
-                                results_str=[tstr{1} sprintf(' before denoising: mean %f std %f; after denoising: mean %f std %f (dof=%.1f, dof_WS=%.1f)',mean(z0(z0~=1)),std(z0(z0~=1)),mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
+                                results_str=[tstr{1} sprintf(' before denoising: peak %f mean %f std %f; after denoising: peak % mean %f std %f (dof=%.1f, dof_WS=%.1f)',peakz0,mean(z0(z0~=1)),std(z0(z0~=1)),peakz1,mean(z1(z1~=1)),std(z1(z1~=1)),dof2,dof1)];
                                 results_label=tstr;
                             end
                             filename=fullfile(qafolder,sprintf('QA_DENOISE_scatterplot.subject%03d.mat',nsub));
                             conn_savematfile(filename,'results_patch','results_line','results_info','results_label','results_str','-v7.3');
                         end
+                    end
+                    if any(ismember(procedures,[11,14,16,31])) % update QC variables
                         pmatch=dof2;
                         pmatch_name='QC_DOF';
                         pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
                         if isempty(pmatch_icov),
                             pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
                             CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
-                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising)';
+                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Effective degrees of freedom after denoising (quality control: higher values are better)';
                             CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
                             for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
                         elseif isub==1,
@@ -879,25 +887,64 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                         end
                         CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
                         pmatch=dof1;
-                        pmatch_name='QC_WelchSatterthwaite';
+                        pmatch_name='QC_DOF_WelchSatterthwaite';
                         pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
                         if isempty(pmatch_icov),
                             pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
                             CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
-                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Effective degrees of freedom (after denoising) estimated using Welch-Satterthwaite approximation';
+                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Effective degrees of freedom after denoising (estimated using Welch-Satterthwaite approximation)';
                             CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
                             for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
                         elseif isub==1,
                             for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
                         end
                         CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
+                        pmatch=peakz1;
+                        pmatch_name='QC_PeakFC';
+                        pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                        if isempty(pmatch_icov),
+                            pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
+                            CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
+                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Mode of Functional Connectivity distribution (peak r coefficient) after denoising (quality control: values should be close to zero)';
+                            CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
+                            for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                        elseif isub==1,
+                            for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                        end
+                        CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
+                        pmatch=prctile(z1(z1~=1),75)-prctile(z1(z1~=1),25);
+                        pmatch_name='QC_IqrFC';
+                        pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                        if isempty(pmatch_icov),
+                            pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
+                            CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
+                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: InterQuartile Range of Functional Connectivity distribution after denoising (quality control: values should be similar across all subjects)';
+                            CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
+                            for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                        elseif isub==1,
+                            for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                        end
+                        CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
+                        % pmatch=pdf1;
+                        % pmatch_name='QC_Centering';
+                        % pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                        % if isempty(pmatch_icov),
+                        %     pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
+                        %     CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
+                        %     CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Functional Connectivity distribution centering (PDF(r=0)/PDF(r=peak) probability density ratio) after denoising (quality control: values should be close to 1)';
+                        %     CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
+                        %     for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                        % elseif isub==1,
+                        %     for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
+                        % end
+                        % CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
                         pmatch=mean(z1(z1~=1));
                         pmatch_name='QC_MeanFC';
                         pmatch_icov=find(strcmp(pmatch_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
                         if isempty(pmatch_icov),
                             pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
                             CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
-                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Global Correlation';
+                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Mean of Functional Connectivity distribution after denoising (quality control: values should be small and positive)';
                             CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
                             for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
                         elseif isub==1,
@@ -910,14 +957,14 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
                         if isempty(pmatch_icov),
                             pmatch_icov=numel(CONN_x.Setup.l2covariates.names);
                             CONN_x.Setup.l2covariates.names{pmatch_icov}=pmatch_name;
-                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Global Correlation';
+                            CONN_x.Setup.l2covariates.descrip{pmatch_icov}='CONN Quality Assurance: Standard deviation of Functional Connectivity distribution after denoising (quality control: values should be similar across all subjects)';
                             CONN_x.Setup.l2covariates.names{pmatch_icov+1}=' ';
                             for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
                         elseif isub==1,
                             for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
                         end
                         CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=pmatch;
-                        if ~donemsg, conn_disp('fprintf','QC_DOF, QC_MeanFC, and QC_StdFC 2nd-level covariates updated\n'); donemsg=true; end
+                        if ~donemsg, conn_disp('fprintf','QC_DOF, QC_PeakFC, QC_IqrFC, QC_MeanFC, and QC_StdFC 2nd-level covariates updated\n'); donemsg=true; end
                     end
                     if any(ismember(procedures,[13,15])) % QC-FC
                         if numel(k)~=numel(x0valid)
@@ -990,7 +1037,7 @@ if any(ismember(procedures,Iprocedure)) % QA_DENOISE
             X=X./repmat(sqrt(max(eps,sum(abs(X).^2,1))),size(X,1),1);
             Y=y';
             Y=Y-repmat(mean(Y,1),size(Y,1),1);
-            if ~isempty(nl2controlcovariates), Y=Y-xcontrol*(ixcontrol*xcontrol'*Y); end
+            %if ~isempty(nl2controlcovariates), Y=Y-xcontrol*(ixcontrol*xcontrol'*Y); end
             Y=Y./repmat(sqrt(max(eps,sum(abs(Y).^2,1))),size(Y,1),1);
             R{nmeasure}=X'*Y;
             P{nmeasure}=nan(size(R{nmeasure})); try, P{nmeasure}=2*spm_Tcdf(-abs(R{nmeasure}.*sqrt((size(Y,1)-numel(nl2controlcovariates)-2)./max(eps,1-R{nmeasure}.^2))),size(Y,1)-numel(nl2controlcovariates)-2); end
@@ -1199,7 +1246,7 @@ if any(procedures==Iprocedure) % QA_COV
         assert(numel(nsubs)>0);
         if isempty(nl2covariates), 
             [x,nl2covariates]=conn_module('get','l2covariates','^QC_'); 
-            nl2covariates=nl2covariates(cellfun('length',regexp(nl2covariates,'^(QC_ProportionValidScans|QC_MeanMotion|QC_MeanGSchange|QC_NORM_struct|QC_DOF|QC_MeanFC|QC_StdFC)$'))>0);
+            nl2covariates=nl2covariates(cellfun('length',regexp(nl2covariates,'^(QC_ProportionValidScans|QC_MeanMotion|QC_MeanGSchange|QC_NORM_struct|QC_DOF|QC_PeakFC|QC_StdFC)$'))>0);
         end
         [x,xnames,xdescr]=conn_module('get','l2covariates');
         if ischar(nl2covariates)||iscell(nl2covariates), 
@@ -1287,7 +1334,7 @@ if any(procedures==Iprocedure) % QA_COV
                         for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{pmatch_icov}=nan; end
                     end
                     CONN_x.Setup.l2covariates.values{nsub}{pmatch_icov}=0./~pmatch;
-                    if ~donemsg, conn_disp('fprintf','QC_OutlierSubjects, QC_ValidSubjects, and QC_RemoveSubjects 2nd-level covariates updated\n'); donemsg=true; end
+                    if ~donemsg, conn_disp('fprintf','QC_ValidSubjects, QC_OutlierSubjects, QC_OutlierScore, and ExcludeOutlierSubjects 2nd-level covariates updated\n'); donemsg=true; end
                 end
                 %             sx=sort(X,1); IQ=interp1(linspace(0,1,size(sx,1))',sx,[.25 .5 .75]'); IQR=max(1e-10,IQ(3,:)-IQ(1,:)); IQL=[IQ(1,:)-1.5*IQR; IQ(3,:)+1.5*IQR]; IQ=[IQL(1,:);IQ;IQL(2,:)];
                 %             Ka=-IQL(1,:)./max(eps,IQL(2,:)-IQL(1,:));
@@ -1338,3 +1385,14 @@ str=sprintf('%s ',str{:});
 str=regexprep(str,'\n',' ');
 end
 
+function [peakx,peaky]=findpeak(y,x)
+% parabolic interpolation peak location and height
+% better approx than [peaky,idx]=max(y); peakx=x(idx);
+[nill,idx]=max(y); 
+i3=max(1,min(numel(y), idx+(-1:1)));
+x3=x(i3);
+y3=y(i3); 
+k=max(-1,min(1, (y3(3)-y3(1))/max(eps,2*y3(2)-y3(1)-y3(3)) ));
+peakx=x3(2)+(x3(3)-x3(1))*k/4;
+peaky=y3(2)+(y3(3)-y3(1))*k/8;
+end

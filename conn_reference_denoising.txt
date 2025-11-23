@@ -1,38 +1,38 @@
 #line_begin
-In addition, functional data were denoised using a standard denoising pipeline [CITATION2] including the regression of potential confounding effects characterized by
+In addition, functional data were denoised using a confound regression pipeline incorporating established nuisance regressors [CITATION2]. This included the removal of potential confounding effects derived from
 
 #session
-[IF confounds_session_filter 1 filtered ]session [IF confounds_session_power 2 linear and quadratic ]effects [IF confounds_session_deriv 1 and their first order derivatives ][IF confounds_session_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_session_dimensions] factors)
+[IF confounds_session_filter 1 filtered ]session [IF confounds_session_power 2 linear and quadratic ]effects [IF confounds_session_deriv 1 and their first order derivatives ][IF confounds_session_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_session_dimensions] regressors)
 
 #task
-[IF confounds_task_filter 1 filtered ]session and task [IF confounds_task_power 2 linear and quadratic ]effects [IF confounds_task_deriv 1 and their first order derivatives ][IF confounds_task_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_task_dimensions] factors)
+[IF confounds_task_filter 1 filtered ]session and task [IF confounds_task_power 2 linear and quadratic ]effects [IF confounds_task_deriv 1 and their first order derivatives ][IF confounds_task_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_task_dimensions] regressors)
 
 #realignment
-[IF confounds_realignment_filter 1 filtered ]motion [IF confounds_realignment_power 2 linear and quadratic ]parameters [IF confounds_realignment_deriv 1 and their first order derivatives ][IF confounds_realignment_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_realignment_dimensions] factors) [CITATION4]
+[IF confounds_realignment_filter 1 filtered ]motion [IF confounds_realignment_power 2 linear and quadratic ]parameters [IF confounds_realignment_deriv 1 and their first order derivatives ][IF confounds_realignment_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_realignment_dimensions] regressors) [CITATION4]
 
 #scrubbing
-[IF confounds_scrubbing_filter 1 filtered ]outlier scans [IF confounds_scrubbing_deriv 1 and their first order derivatives ][IF confounds_scrubbing_deriv 2 and their first and second order derivatives ](below [VALUE 1 confounds_scrubbing_dimensions] factors) [CITATION5]
+[IF confounds_scrubbing_filter 1 filtered ]outlier scans [IF confounds_scrubbing_deriv 1 and their first order derivatives ][IF confounds_scrubbing_deriv 2 and their first and second order derivatives ](<[VALUE 1 confounds_scrubbing_dimensions] regressors) [CITATION5]
 
 #acompcor
-CompCor[CITATION6][CITATION3] noise components within white matter and CSF were estimated by computing the average BOLD signal as well as the largest principal components orthogonal to the BOLD average[IF confounds_names realignment , motion parameters][IF confounds_names scrubbing , and outlier scans] within each subject's eroded segmentation masks.
+CompCor regressors [CITATION6][CITATION3] were estimated within each subject's eroded white matter and CSF masks by extracting the mean signal and the largest principal components orthogonal to the mean signal[IF confounds_names realignment , motion parameters][IF confounds_names scrubbing , and outlier scans].
 
 #wmcsf
-[IF confounds_wmcsf_filter 1 filtered ]white matter [IF confounds_wmcsf_power 2 linear and quadratic ][IF confounds_wmcsf_deriv 1 and their first order derivatives ][IF confounds_wmcsf_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_wmcsf_dimensions] CompCor noise components) and CSF [IF confounds_csf_power 2 linear and quadratic ]timeseries [IF confounds_csf_deriv 1 and their first order derivatives ][IF confounds_csf_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_csf_dimensions] CompCor noise components) [CITATION6][CITATION3]
+[IF confounds_wmcsf_filter 1 filtered ]white matter [IF confounds_wmcsf_power 2 linear and quadratic ][IF confounds_wmcsf_deriv 1 and their first order derivatives ][IF confounds_wmcsf_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_wmcsf_dimensions] regressors) and CSF [IF confounds_csf_power 2 linear and quadratic ][IF confounds_csf_deriv 1 and their first order derivatives ][IF confounds_csf_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_csf_dimensions] regressors) [CITATION6][CITATION3]
 
 #wm
-[IF confounds_wm_filter 1 filtered ]white matter [IF confounds_wm_power 2 linear and quadratic ]timeseries [IF confounds_wm_deriv 1 and their first order derivatives ][IF confounds_wm_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_wm_dimensions] CompCor noise components)
+[IF confounds_wm_filter 1 filtered ]white matter [IF confounds_wm_power 2 linear and quadratic ][IF confounds_wm_deriv 1 and their first order derivatives ][IF confounds_wm_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_wm_dimensions] regressors)
 
 #csf
-[IF confounds_csf_filter 1 filtered ]CSF [IF confounds_csf_power 2 linear and quadratic ]timeseries [IF confounds_csf_deriv 1 and their first order derivatives ][IF confounds_csf_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_csf_dimensions] CompCor noise components)
+[IF confounds_csf_filter 1 filtered ]CSF [IF confounds_csf_power 2 linear and quadratic ][IF confounds_csf_deriv 1 and their first order derivatives ][IF confounds_csf_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_csf_dimensions] regressors)
 
 #gm
-[IF confounds_gm_filter 1 filtered ]grey matter [IF confounds_gm_power 2 linear and quadratic ]timeseries [IF confounds_gm_deriv 1 and their first order derivatives ][IF confounds_gm_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_gm_dimensions] components) [CITATION6]
+[IF confounds_gm_filter 1 filtered ]grey matter [IF confounds_gm_power 2 linear and quadratic ][IF confounds_gm_deriv 1 and their first order derivatives ][IF confounds_gm_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_gm_dimensions] components) [CITATION6]
 
 #otherwise
 [IF confounds_otherwise_filter 1 filtered ]otherwise [IF confounds_otherwise_power 2 linear and quadratic ]regressors [IF confounds_otherwise_deriv 1 and their first order derivatives ][IF confounds_otherwise_deriv 2 and their first and second order derivatives ]([VALUE 1 confounds_otherwise_dimensions] components)
 
 #detrending
-[IF detrending 0 a constant term (1 factor) within each functional run][IF detrending 1 linear trends (2 factors) within each functional run][IF detrending 2 quadratic trends (3 factors) within each functional run][IF detrending 3 cubic trends (4 factors) within each functional run]
+[IF detrending 0 a constant term (1 factor) within each functional run][IF detrending 1 linear trends (2 regressors) within each functional run][IF detrending 2 quadratic trends (3 regressors) within each functional run][IF detrending 3 cubic trends (4 regressors) within each functional run]
 
 #bandpass
 [IF regbp 1 followed by ][IF regbp 2 and simultaneous ]bandpass frequency filtering of the BOLD timeseries[CITATION8] between [VALUE 1 filter] Hz and [VALUE 2 filter] Hz
@@ -44,7 +44,7 @@ CompCor[CITATION6][CITATION3] noise components within white matter and CSF were 
 [IF regbp 1 followed by ][IF regbp 2 and simultaneous ]low-pass frequency filtering of the BOLD timeseries[CITATION8] below [VALUE 2 filter] Hz
 
 #line_summary1
-From the number of noise terms included in this denoising strategy, the effective degrees of freedom of the BOLD signal after denoising were estimated to range from [VALUE 1 QC_DOF_min] to [VALUE 1 QC_DOF_max] (average [VALUE 1 QC_DOF_mean]) across all subjects[CITATION7].
+Based on the number of nuisance regressors included, the effective temporal degrees of freedom of the denoised BOLD signal ranged from [VALUE 1 QC_DOF_min] to [VALUE 1 QC_DOF_max] (mean [VALUE 1 QC_DOF_mean]) across subjects[CITATION7].
 
 #line_summary2
 After outlier removal there were an average of [VALUE 1 QC_ValidScans_mean] functional scans/acquisitions per subject (ranging from [VALUE 1 QC_ValidScans_min] to [VALUE 1 QC_ValidScans_max]).
@@ -57,7 +57,7 @@ Residual inter-scan motion (also computed after outlier removal) was [VALUE 1 QC
 #CITATION4 Friston, K. J., Williams, S., Howard, R., Frackowiak, R. S., & Turner, R. (1996). Movement-related effects in fMRI time-series. Magnetic resonance in medicine, 35(3), 346-355.
 #CITATION5 Power, J. D., Mitra, A., Laumann, T. O., Snyder, A. Z., Schlaggar, B. L., & Petersen, S. E. (2014). Methods to detect, characterize, and remove motion artifact in resting state fMRI. Neuroimage, 84, 320-341.
 #CITATION6 Behzadi, Y., Restom, K., Liau, J., & Liu, T. T. (2007). A component based noise correction method (CompCor) for BOLD and perfusion based fMRI. Neuroimage, 37(1), 90-101.
-#CITATION7 Nieto-Castanon, A. (submitted). Preparing fMRI Data for Statistical Analysis. In M. Filippi (Ed.). fMRI techniques and protocols. Springer. doi:10.48550/arXiv.2210.13564
+#CITATION7 Nieto-Castanon, A. (2025). Preparing fMRI data for statistical analysis. In fMRI techniques and protocols (pp. 163-191). New York, NY: Springer US.
 #CITATION8 Hallquist, M. N., Hwang, K., & Luna, B. (2013). The nuisance of nuisance regression: spectral misspecification in a common approach to resting-state fMRI preprocessing reintroduces noise and obscures functional connectivity. Neuroimage, 82, 208-225.
-
+#CITATION9 Inman, H. F., & Bradley Jr, E. L. (1989). The overlapping coefficient as a measure of agreement between probability distributions and point estimation of the overlap of two normal densities. Communications in Statistics-theory and Methods, 18(10), 3851-3874.
 

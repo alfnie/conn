@@ -174,14 +174,16 @@ switch(lower(type)),
         set(h,'units','norm');
 %         position1=get(h,'position');
         ht=[]; 
-        if ~skipborders,
+        if ~skipborders, 
             ht=[conn_menu_mask('units','pixels','position',tpos+[0,-1,0,CONN_gui.uicontrol_border+2-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
             	conn_menu_mask('units','pixels','position',tpos+[0,0,CONN_gui.uicontrol_border-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig),...
                 conn_menu_mask('units','pixels','position',tpos+[0,tpos(4)-CONN_gui.uicontrol_border,0,CONN_gui.uicontrol_border-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig)];
             if doemphasis1, conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h); end
             %conn_menu_mask('units','pixels','position',tpos+[0,0,0,.5*tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-            ht=conn_menu_mask('units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
-            conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h);
+            if CONN_gui.isjava
+                ht=conn_menu_mask('units','pixels','position',tpos+[0,0,0,tpos2(4)-tpos(4)],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
+                conn_menumanager('onregion',ht,-1,get(h,'position')+~isempty(callback2)*[0 -.04 0 0],h);
+            end
             %conn_menu_mask('units','pixels','position',tpos+[tpos(3)-18,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
             %conn_menu_mask('units','pixels','position',tpos+[tpos(3)-6,0,6-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);
             ht=conn_menu_mask('units','pixels','position',tpos+[tpos(3)-18,0,18-tpos(3),0],'foregroundcolor',bgcolor,'backgroundcolor',bgcolor,'units','norm','parent',CONN_h.screen.hfig);

@@ -119,7 +119,7 @@ Surface-level functional data were smoothed using [VALUE 1 diffusionsteps] itera
 #CITATION4 Henson, R. N. A., Buechel, C., Josephs, O., & Friston, K. J. (1999). The slice-timing problem in event-related fMRI. NeuroImage, 9, 125.
 #CITATION5 Whitfield-Gabrieli, S., Nieto-Castanon, A., & Ghosh, S. (2011). Artifact detection tools (ART). Cambridge, MA. Release Version, 7(19), 11.
 #CITATION6 Power, J. D., Mitra, A., Laumann, T. O., Snyder, A. Z., Schlaggar, B. L., & Petersen, S. E. (2014). Methods to detect, characterize, and remove motion artifact in resting state fMRI. Neuroimage, 84, 320-341.
-#CITATION7 Nieto-Castanon, A. (submitted). Preparing fMRI Data for Statistical Analysis. In M. Filippi (Ed.). fMRI techniques and protocols. Springer. doi:10.48550/arXiv.2210.13564
+#CITATION7 Nieto-Castanon, A. (2025). Preparing fMRI data for statistical analysis. In fMRI techniques and protocols (pp. 163-191). New York, NY: Springer US.
 #CITATION8 Ashburner, J., & Friston, K. J. (2005). Unified segmentation. Neuroimage, 26(3), 839-851.
 #CITATION9 Friston, K. J., Ashburner, J., Frith, C. D., Poline, J. B., Heather, J. D., & Frackowiak, R. S. (1995). Spatial registration and normalization of images. Human brain mapping, 3(3), 165-189.
 #CITATION10 Sladky, R., Friston, K. J., Tröstl, J., Cunnington, R., Moser, E., & Windischberger, C. (2011). Slice-timing effects and their correction in functional MRI. Neuroimage, 58(2), 588-594.

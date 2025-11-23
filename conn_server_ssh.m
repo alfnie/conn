@@ -80,8 +80,8 @@ switch(lower(option))
             params=conn_server_ssh_updatefilekey(params);
             delete(h.hfig);
             if params.options.use_key&&~isempty(params.options.file_key), startwithgui_hmsg=conn_msgbox('Connecting to remote server. Please wait','');
-            elseif ispc, startwithgui_hmsg=conn_msgbox('Connecting to remote server. Please enter your access credentials in a new OS command-line windows when prompted','');
-            else startwithgui_hmsg=conn_msgbox('Connecting to remote server. Please enter your access credentials in Matlab''s command-line window when prompted','');
+            elseif ispc, startwithgui_hmsg=conn_msgbox({'Connecting to remote server','Please enter your access credentials in a new OS command-line windows when prompted      '},'');
+            else startwithgui_hmsg=conn_msgbox({'Connecting to remote server','Please enter your access credentials in Matlab''s command-line window when prompted      '},'');
             end
         end
         if params.options.use_ssh, 

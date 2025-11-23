@@ -162,6 +162,7 @@ if nargin<1||isempty(conn_x),
     if isfield(CONN_x.Preproc,'confounds')&&~isfield(CONN_x.Preproc.confounds,'filter'), CONN_x.Preproc.confounds.filter=repmat({0},1,length(CONN_x.Preproc.confounds.names)); end
     if isfield(CONN_x.Preproc,'variables')&&~isfield(CONN_x.Preproc.variables,'fixed'), CONN_x.Preproc.variables.fixed=repmat({0},1,length(CONN_x.Preproc.variables.names)); end
     if isfield(CONN_x.Preproc,'confounds')&&~isfield(CONN_x.Preproc.confounds,'fixed'), CONN_x.Preproc.confounds.fixed=repmat({0},1,length(CONN_x.Preproc.confounds.names)); end
+    if ~isfield(CONN_x.Preproc,'qa'), CONN_x.Preproc.qa=struct('folders',{{}},'DataValidityScore',[],'DataQualityScore',[],'DataSensitivityScore',[]); end
     if ~isfield(CONN_x,'Analysis'), CONN_x.Analysis=1; end
     if ~isempty(CONN_x.Analyses)&&~isfield(CONN_x,'Analysis_variables')
         CONN_x.Analysis_variables=CONN_x.Analyses(1).variables;
@@ -414,6 +415,7 @@ else
     if isfield(conn_x.Preproc,'confounds')&&~isfield(conn_x.Preproc.confounds,'filter'), conn_x.Preproc.confounds.filter=repmat({0},1,length(conn_x.Preproc.confounds.names)); end
     if isfield(conn_x.Preproc,'variables')&&~isfield(conn_x.Preproc.variables,'fixed'), conn_x.Preproc.variables.fixed=repmat({0},1,length(conn_x.Preproc.variables.names)); end
     if isfield(conn_x.Preproc,'confounds')&&~isfield(conn_x.Preproc.confounds,'fixed'), conn_x.Preproc.confounds.fixed=repmat({0},1,length(conn_x.Preproc.confounds.names)); end
+    if ~isfield(conn_x.Preproc,'qa'), conn_x.Preproc.qa=struct('folders',{{}},'DataValidityScore',[],'DataQualityScore',[],'DataSensitivityScore',[]); end
     if ~isfield(conn_x,'Analysis'), conn_x.Analysis=1; end
     if ~isempty(conn_x.Analyses)&&~isfield(conn_x,'Analysis_variables')
         conn_x.Analysis_variables=conn_x.Analyses(1).variables;

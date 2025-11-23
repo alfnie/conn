@@ -96,19 +96,22 @@ if isempty(dlg.handles.hfig)||~ishandle(dlg.handles.hfig), dlg.handles.hfig=figu
 else figure(dlg.handles.hfig); clf(dlg.handles.hfig);
 end
 uicontrol('style','frame','units','norm','position',[0,.71,1,.29],'backgroundcolor',bgc,'foregroundcolor',bgc,'fontsize',9+font_offset);
-if isempty(guifields.include), guifields.include=true(1,4); end
+if isempty(guifields.include), guifields.include=true(1,5); end
 if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log')||isempty(CONN_x.SetupPreproc.log), guifields.include(1)=false; end
 if ~CONN_x.isready(2), guifields.include(2)=false; end
 if ~CONN_x.isready(3), guifields.include(3)=false; end
 if ~CONN_x.isready(4), guifields.include(4)=false; end
+if ~isfield(CONN_x.Preproc,'qa')||~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<3, guifields.include(5)=false; end
 dlg.handles.cb1=uicontrol('style','checkbox','units','norm','position',[.025,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(1),'string','Describe Preprocessing steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'preprocessing'},'interruptible','off');
-dlg.handles.cb2=uicontrol('style','checkbox','units','norm','position',[.275,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(2),'string','Describe Denoising (1st-level) steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'denoising'},'interruptible','off');
+dlg.handles.cb2=uicontrol('style','checkbox','units','norm','position',[.275,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(2),'string','Describe Denoising steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'denoising'},'interruptible','off');
 dlg.handles.cb3=uicontrol('style','checkbox','units','norm','position',[.525,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(3),'string','Describe Analyses (1st-level) steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'firstlevel'},'interruptible','off');
 dlg.handles.cb4=uicontrol('style','checkbox','units','norm','position',[.775,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(4),'string','Describe Results (2nd-level) steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'secondlevel'},'interruptible','off');
+dlg.handles.cb5=uicontrol('style','checkbox','units','norm','position',[.275,.875,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(5),'string','Describe Quality Control steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'qualitycontrol'},'interruptible','off');
 if ~guifields.include(1), set(dlg.handles.cb1,'enable','off'); end
 if ~guifields.include(2), set(dlg.handles.cb2,'enable','off'); end
 if ~guifields.include(3), set(dlg.handles.cb3,'enable','off'); end
 if ~guifields.include(4), set(dlg.handles.cb4,'enable','off'); end
+if ~guifields.include(5), set(dlg.handles.cb5,'enable','off'); end
 
 if ischar(guifields.preproclog), guifields.preproclog=find(strcmp(guifields.preproclog,options.preproclog_text),1); end
 if isempty(guifields.preproclog), guifields.preproclog=~isempty(options.preproclog_text); end
@@ -147,12 +150,13 @@ if ~ishandle(dlg.handles.hfig), return; end
     function conn_referenceexplore_update(hObject,eventdata,option,varargin)
         if isfield(dlg,'handles')&&isfield(dlg.handles,'hfig')&&~ishandle(dlg.handles.hfig), return; end
         switch(lower(option))
-            case {'init','preprocessing','denoising','firstlevel','secondlevel'}
+            case {'init','preprocessing','denoising','qualitycontrol','firstlevel','secondlevel'}
                 steps={'init'};
                 if get(dlg.handles.cb1,'value')>0, steps{end+1}='preprocessing'; set([dlg.handles.txt1,dlg.handles.preproclog],'enable','on'); 
                 else set([dlg.handles.txt1,dlg.handles.preproclog],'enable','off'); 
                 end                
                 if get(dlg.handles.cb2,'value')>0, steps{end+1}='denoising'; end
+                if get(dlg.handles.cb5,'value')>0, steps{end+1}='qualitycontrol'; end
                 if get(dlg.handles.cb3,'value')>0, steps{end+1}='firstlevel'; set([dlg.handles.txt2,dlg.handles.firstlevelinfo],'enable','on'); 
                 else set([dlg.handles.txt2,dlg.handles.firstlevelinfo],'enable','off');
                 end

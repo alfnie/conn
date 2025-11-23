@@ -1107,6 +1107,11 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
                 filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']);
                 save(filename,'sampledata','samplexyz','-append');
             end
+            if sampledatachange
+                CONN_x.Preproc.qa.options1=[]; % note: warns to recompute quality control scores if sample data has been re-imported
+                CONN_x.Preproc.qa.options2=[];
+                CONN_x.Preproc.qa.options3=[];
+            end
 %             if str2num(version('-release'))>=14, save(filename,'-V6','data','names','source','xyz','sampledata');
 %             else, save(filename,'data','names','source','xyz','sampledata');end
 		end

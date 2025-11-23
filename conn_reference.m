@@ -7,6 +7,7 @@ function [fh,TXT]=conn_reference(opts, varargin)
 % conn_reference('init');
 % conn_reference('preprocessing');
 % conn_reference('denoising')
+% conn_reference('qualitycontrol')
 % conn_reference('firstlevel');
 % conn_reference('secondlevel');
 %
@@ -16,6 +17,7 @@ persistent connversions;
 
 fields=struct('preproclog',[],...
               'denoisinginfo',[],...
+              'qualitycontrolinfo',[],...
               'firstlevelinfo',[],...
               'secondlevelinfo',[],...
               'fileout',[]);
@@ -28,7 +30,7 @@ if isempty(fields.fileout),
 end
 
 TXT={};CITATIONS={};
-if isempty(opts), opts={'init','preprocessing','denoising','firstlevel'}; end
+if isempty(opts), opts={'init','preprocessing','denoising','qualitycontrol','firstlevel'}; end
 if ischar(opts), opts={opts}; end
 for nopt=1:numel(opts),
     opt=opts{nopt};
@@ -253,6 +255,56 @@ for nopt=1:numel(opts),
                 TXT=[TXT, TTXT];
             end
 
+        case 'qualitycontrol'
+            TTXT={};
+            lines=conn_loadcfgfile(fullfile(fileparts(which(mfilename)),'conn_reference_qualitycontrol.txt'));
+            if isfield(CONN_x,'ver'), conn_version=CONN_x.ver; 
+            else conn_version=conn('ver');
+            end
+            lines.CITATION0=connversions.(['VERSION',regexprep(conn_version,'\..*','')]);
+            options=struct;
+            options.runqa1=false;
+            options.runqa2=false;
+            options.runqa3=false;
+            if conn_existfile(fullfile(CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'))
+                options.runqa1=true;
+                options.qa1=conn_loadmatfile(fullfile(CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'));
+            end
+            if conn_existfile(fullfile(CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'))
+                options.runqa2=true;
+                options.qa2=conn_loadmatfile(fullfile(CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'));
+            end
+            if conn_existfile(fullfile(CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'))
+                options.runqa3=true;
+                options.qa3=conn_loadmatfile(fullfile(CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'));
+            end
+            options.scores=[nan nan nan];
+            if options.runqa1, options.scores(1)=options.qa1.DataValidityScore; end
+            if options.runqa2, options.scores(2)=min(options.qa2.DataQualityScore); end
+            if options.runqa3, options.scores(3)=options.qa3.DataSensitivityScore; end
+            options.score1=1+(options.scores(1)>=0.80)+(options.scores(1)>=0.95);
+            options.score2=1+(options.scores(2)>=0.80)+(options.scores(2)>=0.95);
+            options.score3=1+(options.scores(3)>=0.80)+(options.scores(3)>=0.95);
+            options.allpass=sum(options.scores>=0.95);
+            options.scores=arrayfun(@(x)mat2str(100*x,3),options.scores,'uni',0);
+
+            txt={}; citations={};
+            toptions=options;
+            line={'line_begin','results'};
+            LTXT={};
+            for nline=1:numel(line)
+                if isfield(lines,line{nline})
+                    [txt,citations]=conn_reference_processtext(lines.(line{nline}), lines, CITATIONS, toptions, conn_version);
+                    if ~isempty(txt)&&isempty(LTXT), txt{1}=['Quality Control (QC): ',txt{1}]; end
+                    if ~isempty(txt), LTXT=[LTXT txt]; end
+                    if ~isempty(citations), CITATIONS=[CITATIONS citations]; end
+                end
+            end
+            if ~isempty(LTXT), TTXT=[TTXT conn_reference_singleparagraph(LTXT,false)]; end
+
+            TTXT=conn_reference_singleparagraph(TTXT,false);
+            TXT=[TXT, TTXT];
+            
         case {'firstlevel','first-level'}
             TTXT={};
             lines=conn_loadcfgfile(fullfile(fileparts(which(mfilename)),'conn_reference_firstlevel.txt'));
@@ -429,6 +481,7 @@ if ~isempty(TXT)
             txt=regexprep(txt,'\]<\/sup><sup>\[',',');
             txt=regexprep(txt,'^Preprocessing: ','<b>Preprocessing</b>: ');
             txt=regexprep(txt,'^Denoising: ','<b>Denoising</b>: ');
+            txt=regexprep(txt,'^Quality Control \(QC\): ','<b>Quality Control (QC)</b>: ');
             txt=regexprep(txt,'^First-level analysis (.*)?\: ','<b>First-level analysis</b> $1: ');
             txt=regexprep(txt,'^Group-level analyses','<b>Group-level analyses</b>');
             txt=regexprep(txt,'\n','');
@@ -459,6 +512,7 @@ if ~isempty(TXT)
             txt=regexprep(txt,'\]<\/sup><sup>\[',',');
             txt=regexprep(txt,'^Preprocessing: ','<b>Preprocessing</b>: ');
             txt=regexprep(txt,'^Denoising: ','<b>Denoising</b>: ');
+            txt=regexprep(txt,'^Quality Control \(QC\): ','<b>Quality Control (QC)</b>: ');
             txt=regexprep(txt,'^First-level analysis (.*)?\: ','<b>First-level analysis</b> $1: ');
             txt=regexprep(txt,'^Group-level analyses','<b>Group-level analyses</b>');
             txt=regexprep(txt,'\n','');
@@ -582,6 +636,7 @@ for nline=1:numel(line)
                 case '[CONNFULLVERSION]', keyout=sprintf('CONN (%s)',conn_version);
                 case '[CONNRELEASE]', keyout=conn_version;
                 case '[VALUE 1 ver_SPM]', if isfield(options,'ver_SPM'), keyout=regexprep(options.ver_SPM,'\s.*$',''); else keyout=spm('ver'); end
+                case '[PRC]', keyout='%'; 
                 otherwise
                     if ~isempty(regexp(key,'^\[CITATION\d+')) % adds a citation
                         txt=char(lines.(regexprep(key,'\[|\]','')));
