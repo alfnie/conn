@@ -202,10 +202,10 @@ switch(lower(option)),
         end
         data.names=results(1).names;
         data.names=regexprep(data.names,{'_1_1$','^rs\.','^rsREL\.','^aal\.'},'');
-        data.namesreduced=regexprep(data.names,{'^BA\.(\d+) \(([LR])\)\. .*','^\((-?\d+),(-?\d+),(-?\d+)\)$','^SLrois\.|^aal\.|^atlas\.|^networks\.','\s\(([LlRr])\)','([^\(\)]*[^\.])\s*\(.+\)\s*$'},{'$1$2','($1 $2 $3)','',' ${lower($1)}','$1'});
+        data.namesreduced=regexprep(data.names,{'^BA\.(\d+) \(([LR])\)\. .*','^\((-?\d+),(-?\d+),(-?\d+)\)$','^SLrois\.|^aal\.|^atlas\.|^networks\.|^schaefer\.|^Schaefer\.','\s\(([LlRr])\)','([^\(\)]*[^\.])\s*\(.+\)\s*$'},{'$1$2','($1 $2 $3)','',' ${lower($1)}','$1'});
         data.names2=results(1).names2;
         data.names2=regexprep(data.names2,{'_1_1$','^rs\.','^rsREL\.','^aal\.'},'');
-        data.names2reduced=regexprep(data.names2,{'^BA\.(\d+) \(([LR])\)\. .*','^\((-?\d+),(-?\d+),(-?\d+)\)$','^SLrois\.|^aal\.|^atlas\.|^networks\.','\s\(([LlRr])\)','([^\(\)]*[^\.])\s*\(.+\)\s*$'},{'$1$2','($1 $2 $3)','',' ${lower($1)}','$1'});
+        data.names2reduced=regexprep(data.names2,{'^BA\.(\d+) \(([LR])\)\. .*','^\((-?\d+),(-?\d+),(-?\d+)\)$','^SLrois\.|^aal\.|^atlas\.|^networks\.|^schaefer\.|^Schaefer\.','\s\(([LlRr])\)','([^\(\)]*[^\.])\s*\(.+\)\s*$'},{'$1$2','($1 $2 $3)','',' ${lower($1)}','$1'});
         data.xyz=cat(1,results(1).xyz{:});
         data.xyz2=cat(1,results(1).xyz2{:});
         data.displaytheserois=1:length(data.names);
@@ -335,6 +335,7 @@ switch(lower(option)),
         %minheight=500;
         %hfig=figure('visible','off','renderer','opengl','units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-48,h0(1)-0*72-1,max(minheight,.5*h0(1))]);
         data.hfig=hfig;
+        data.hfignumber=double(hfig);
         set(hfig,'units','norm','numbertitle','off','name',['ROI second-level results explorer ',data.defaultfilepath],'color',color1,'colormap',gray,'menubar','none','toolbar','none','interruptible','off','tag','conn_displayroi','keypressfcn',@conn_displayroi_keypress,'windowbuttondownfcn',@(varargin)conn_display_windowbuttonmotionfcn('down'),'windowbuttonupfcn',@(varargin)conn_display_windowbuttonmotionfcn('up'),'visible','on'); 
         %conn_menu_mask('units','norm','position',[.0,.95,.5,.05],'backgroundcolor',color2,'foregroundcolor',color2);
         hframe1=conn_menu_mask('units','norm','position',[0,0,1,.27],'backgroundcolor',color2,'foregroundcolor',color2,'parent',data.hfig);
@@ -364,6 +365,9 @@ switch(lower(option)),
             'interruptible','off','callback',{@conn_displayroi,'fwec.clusterlevel.type'},'value',max([1,find(data.mvpathrtype_shown==data.mvpathrtype,1)]),'parent',data.hfig);
         huicontrol_cthr4=uicontrol('style','checkbox','units','norm','position',[.88,.87,.12,.03],'string','show details','tag','highlight','value',0,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','right','foregroundcolor',1-color3,'backgroundcolor',color3,'callback',{@conn_displayroi,'advancedthr'},'tooltipstring',conn_menu_formathtml('Displays advanced thresholding options')); 
         hhelp=uicontrol('style','pushbutton','units','norm','position',[.81,.965,.02,.03],'fontsize',7+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'string','?','tag','highlight','tooltipstring',conn_menu_formathtml('<HTML>Documentation about available methods of statistical inference</HTML>'),'interruptible','off','callback',@(varargin)conn('gui_help','url','http://www.conn-toolbox.org/fmri-methods/cluster-level-inferences'),'parent',data.hfig);
+        htitle1=uicontrol('style','text','units','norm','position',[.64,.76,.14,.03],'string','Display&Print','horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'parent',data.hfig);
+        htitle2=uicontrol('style','text','units','norm','position',[.80,.76,.14,.03],'string','Tools','horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'parent',data.hfig);
+        htitle3=uicontrol('style','text','units','norm','position',[.64,.40,.29,.03],'string','Analysis Options','horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'parent',data.hfig);
         
         %huicontrol_ccthr3=uicontrol('style','popupmenu','units','norm','position',[.66,.35,.33,.04],'fontsize',8+CONN_gui.font_offset,'string',{'threshold seed ROIs (F-test)','threshold seed ROIs (NBS; by intensity)','threshold seed ROIs (NBS; by size)','threshold networks (NBS; by intensity)','threshold networks (NBS; by size)'},'foregroundcolor',1-color2,'backgroundcolor',color2,'fontweight','bold','horizontalalignment','right','value',data.mvpathrmeasure,'tooltipstring','Threshold individual seed ROIs or individual networks (subsets of connected ROIs)','interruptible','off','callback',{@conn_displayroi,'mvpathrmeasure'},'parent',data.hfig);
         data.handles=[...
@@ -376,11 +380,11 @@ switch(lower(option)),
             uicontrol('style','text','units','norm','position',[.05,.22,.90,.03],'fontsize',7+CONN_gui.font_offset,'string',sprintf('%-24s  %-20s  %+12s  %+12s  %+12s','Analysis Unit','Statistic','p-unc','p-FDR','p-FWE'),'foregroundcolor',.5*[1 1 1],'backgroundcolor',color2,'fontname','monospaced','horizontalalignment','left','parent',data.hfig),...
             uicontrol('style','listbox','units','norm','position',[.05,.07,.90,.15],'fontsize',7+CONN_gui.font_offset,'string',' ','tag','highlight','fontname','monospaced','foregroundcolor',round(1-color2),'backgroundcolor',color2,'tooltipstring',conn_menu_formathtml('Statistics for each connection, ROI, or cluster. Right-click to export table to .txt file'),'max',2,'interruptible','off','callback',{@conn_displayroi,'list2'},'keypressfcn',@conn_menu_search,'parent',data.hfig),...
             uicontrol('style','checkbox','units','norm','position',[.05,.04,.20,.03],'fontsize',8+CONN_gui.font_offset,'string','display extended stats','tag','highlight','foregroundcolor',1-color2,'backgroundcolor',color2,'interruptible','off','callback',{@conn_displayroi,'displayconnectionstats'},'value',data.displayconnectionstats,'tooltipstring',conn_menu_formathtml('Check to display additional and post-hoc statistics for all suprathreshold units'),'parent',data.hfig),... %uicontrol('style','text','units','norm','position',[.61,.50,.38,.04],'fontsize',8+CONN_gui.font_offset,'string','Define thresholds:','foregroundcolor',color2,'backgroundcolor',1-.5*color2,'fontweight','bold','horizontalalignment','left','parent',data.hfig),...
-            uicontrol('style','text','units','norm','position',[.64,.76,.14,.03],'string','Display&Print','horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'parent',data.hfig),... %uicontrol('style','pushbutton','units','norm','position',[.84,.05,.14,.04],'fontsize',8+CONN_gui.font_offset,'string','non-parametric stats','callback',{@conn_displayroi,'enableperm'},'tooltipstring','Enables permutation-test based statistics (Cluster and ROI size/mass statistics)','parent',data.hfig),...
-            uicontrol('style','text','units','norm','position',[.80,.76,.14,.03],'string','Tools','horizontalalignment','center','fontweight','bold','fontname','arial','fontsize',9+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'parent',data.hfig),... %uicontrol('style','text','units','norm','position',[.61,.95,.38,.04],'fontsize',8+CONN_gui.font_offset,'string','Define connectivity matrix:','foregroundcolor',color2,'backgroundcolor',1-.5*color2,'fontweight','bold','horizontalalignment','left','parent',data.hfig),...
-            uicontrol('style','pushbutton','units','norm','position',[.64,.40,.29,.04],'fontsize',7+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'string',sprintf('Analysis of %d connections among %d ROIs',numel(data.names)*(numel(data.names)-1)/2*(1+~data.issymmetric),numel(data.names)),'tag','highlight','tooltipstring',conn_menu_formathtml('<HTML>Defines subset of ROIs to include in these analyses (among all the sources selected in the first-level analysis definition)<br/>note: this choice affects all inferences</HTML>'),'interruptible','off','callback',{@conn_displayroi,'roi.select'},'parent',data.hfig),...
+            htitle1,... %uicontrol('style','pushbutton','units','norm','position',[.84,.05,.14,.04],'fontsize',8+CONN_gui.font_offset,'string','non-parametric stats','callback',{@conn_displayroi,'enableperm'},'tooltipstring','Enables permutation-test based statistics (Cluster and ROI size/mass statistics)','parent',data.hfig),...
+            htitle2,... %uicontrol('style','text','units','norm','position',[.61,.95,.38,.04],'fontsize',8+CONN_gui.font_offset,'string','Define connectivity matrix:','foregroundcolor',color2,'backgroundcolor',1-.5*color2,'fontweight','bold','horizontalalignment','left','parent',data.hfig),...
+            uicontrol('style','pushbutton','units','norm','position',[.64,.36,.29,.04],'fontsize',7+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'string',sprintf('Analysis of %d connections among %d ROIs',numel(data.names)*(numel(data.names)-1)/2*(1+~data.issymmetric),numel(data.names)),'tag','highlight','tooltipstring',conn_menu_formathtml('<HTML>Defines subset of ROIs to include in these analyses (among all the sources selected in the first-level analysis definition)<br/>note: this choice affects all inferences</HTML>'),'interruptible','off','callback',{@conn_displayroi,'roi.select'},'parent',data.hfig),...
             uicontrol('style','checkbox','units','norm','position',[.25,.04,.20,.03],'fontsize',8+CONN_gui.font_offset,'string','display extended roi labels','tag','highlight','foregroundcolor',1-color2,'backgroundcolor',color2,'interruptible','off','callback',{@conn_displayroi,'displayroilabelstats'},'value',data.displayroilabelsinstats,'visible','off','tooltipstring',conn_menu_formathtml('Check to include complete labels when describing ROIs'),'parent',data.hfig),... %uicontrol('style','pushbutton','units','norm','position',[.61,.10,.38,.04],'fontsize',8+CONN_gui.font_offset,'string','Select all','tooltipstring',conn_menu_formathtml('Looks at the connectivity between all ROIs in the network','interruptible','off','callback',{@conn_displayroi,'selectall'},'parent',data.hfig),...
-            uicontrol('style','pushbutton','units','norm','position',[.64,.36,.29,.04],'fontsize',7+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'string','ROIs sorted using hierarchical clustering','tag','highlight','tooltipstring',conn_menu_formathtml('<HTML>Defines ROIs order and clusters<br/>note: this choice affects all cluster-based inferences (but not connection- ROI- or network-based inferences)</HTML>'),'interruptible','off','callback',{@conn_displayroi,'roi.order'},'parent',data.hfig),...
+            uicontrol('style','pushbutton','units','norm','position',[.64,.32,.29,.04],'fontsize',7+CONN_gui.font_offset,'foregroundcolor',foregroundcolor,'backgroundcolor',color2,'string','ROIs sorted using hierarchical clustering','tag','highlight','tooltipstring',conn_menu_formathtml('<HTML>Defines ROIs order and clusters<br/>note: this choice affects all cluster-based inferences (but not connection- ROI- or network-based inferences)</HTML>'),'interruptible','off','callback',{@conn_displayroi,'roi.order'},'parent',data.hfig),...
             huicontrol_ccthr1,...
             huicontrol_ccthr2,...
             uicontrol('style','pushbutton','units','norm','position',[.80,.68,.13,.04],'fontsize',8+CONN_gui.font_offset,'string','Export mask','tag','highlight','foregroundcolor',foregroundcolor,'backgroundcolor',color2,'callback',{@conn_displayroi,'export_mask'},'tooltipstring',conn_menu_formathtml('Exports list of suprathreshold connections in ROI-to-ROI connectivity matrix'),'parent',data.hfig),... %0,...%uicontrol('style','popupmenu','units','norm','position',[.68,.34,.15,.04],'fontsize',8+CONN_gui.font_offset,'string',{'connection-level results','seed-level results','network-level results'},'foregroundcolor',1-color2,'backgroundcolor',color2,'tooltipstring','Criteria for sorting results in statistics table','interruptible','off','callback',{@conn_displayroi,'mvpasort'},'value',data.mvpasortresultsby),...
@@ -732,7 +736,7 @@ switch(lower(option)),
         return
                              
     case 'export_data'
-        DOSORT=true; % set to false to keep original ROI order; set to true to use ROI order from these analyses
+        DOSORT=false; % set to false to keep original ROI order; set to true to use ROI order from these analyses
         data=get(hfig,'userdata');
         if margin>1, tfilename=varargin{1};
         else
@@ -1033,14 +1037,15 @@ switch(lower(option)),
         data=get(hfig,'userdata');
         exstr='';
         Answ={'Use hierarchical clustering method (default)',...
-            'Use CONN atlas apriori order/groups (atlas ROIs only)',...
-            'Use CONN networks apriori order/groups (network ROIs only)',...
+            'Use predefined order/groups for Schaefer atlas ROIs (keeps schaefer ROIs only)',...
+            'Use predefined order/groups for Harvard-Oxford atlas ROIs (keeps atlas ROIs only)',...
+            'Use predefined order/groups for CONN network ROIs (keeps network ROIs only)',...
             'Load ROI order/groups from file',...
             'Load ROI order/groups from clipboard',...
             'Save ROI order/groups to file' ,...
             'Save ROI order/groups to clipboard',...
+            'Remove ROI order/groups',...
             'Manually define ROI order/groups'};
-%             'Edit cluster labels'};
         option=regexprep(option,{'load/import|import/load|import','save/export|export/save|export'},{'load','save'},'ignorecase');
         if strcmpi(option,'roi.order.loadfromfile')
             varargin=[Answ(4),varargin{:}];
@@ -1051,29 +1056,36 @@ switch(lower(option)),
             if isnumeric(answ), answ=Answ{answ}; end
         else
             if strcmpi(option,'roi.order')
-                answ=conn_questdlg('','Define ROI order:',Answ{:},Answ{1});
+                answ=conn_questdlg('','Define order & groups of ROIs:',Answ{:},Answ{1});
             else
-                answ=conn_questdlg('','Load ROI order:',Answ{2:5},Answ{2});
+                answ=conn_questdlg('','Load ROI order:',Answ{2:6},Answ{2});
             end
         end
         if isequal(answ,Answ{1})
             conn_displayroi(hfig,[],'clusters','hc');
             return
         elseif isequal(answ,Answ{2})
+            if ~conn_existfile(fullfile(fileparts(which('conn')),'rois','schaefer.groups.mat')), conn_msgbox('Unable to find schaefer.groups.mat file. Please update to latest release of CONN and try again','',2); return; 
+            else
+                load(fullfile(fileparts(which('conn')),'rois','schaefer.groups.mat'),'ROIconfiguration','-mat');
+                exstr='ROIs sorted using Schaefer atlas apriori order/groups';
+                data.plotconnoptions.DOFFSET=.35;
+            end
+        elseif isequal(answ,Answ{3})
             if ~conn_existfile(fullfile(fileparts(which('conn')),'rois','atlas.groups.mat')), conn_msgbox('Unable to find atlas.groups.mat file. Please update to latest release of CONN and try again','',2); return; 
             else
                 load(fullfile(fileparts(which('conn')),'rois','atlas.groups.mat'),'ROIconfiguration','-mat');
                 exstr='ROIs sorted using CONN atlas apriori order/groups';
                 data.plotconnoptions.DOFFSET=.35;
             end
-        elseif isequal(answ,Answ{3})
+        elseif isequal(answ,Answ{4})
             if ~conn_existfile(fullfile(fileparts(which('conn')),'rois','networks.groups.mat')), conn_msgbox('Unable to find networks.groups.mat file. Please update to latest release of CONN and try again','',2); return; 
             else
                 load(fullfile(fileparts(which('conn')),'rois','networks.groups.mat'),'ROIconfiguration','-mat');
                 exstr='ROIs sorted using CONN networks apriori order/groups';
                 data.plotconnoptions.DOFFSET=.70;
             end
-        elseif isequal(answ,Answ{4})
+        elseif isequal(answ,Answ{5})
             if margin>2&&~isempty(varargin{2}), tfilename=varargin{2};
             else 
                 [tfilename,tfilepath]=conn_fileutils('uigetfile','connROIorder.mat','Load ROI order from');
@@ -1084,17 +1096,20 @@ switch(lower(option)),
                 ROIconfiguration=struct; conn_loadmatfile(tfilename,'ROIconfiguration','-mat');
                 exstr='ROIs sorted manually (from file)';
             end
-        elseif isequal(answ,Answ{5})
+        elseif isequal(answ,Answ{6})
             try, ROIconfiguration=evalin('base','ROIconfiguration');
                 exstr='ROIs sorted manually (from clipboard)';
             catch, conn_msgbox('Unable to import ROI configuration information. Please use ''Save ROI order/groups to clipboard'' first from this or a different ROI second-level results window','',2); return; 
             end
-        elseif isequal(answ,Answ{6})||isequal(answ,Answ{7})
+        elseif isequal(answ,Answ{7})||isequal(answ,Answ{8})
             conn_displayroi(hfig,[],'roi.order.save',answ,varargin{2:end});
             return
-        elseif isequal(answ,Answ{8})
+        elseif isequal(answ,Answ{9})
+            ROIconfiguration=struct('displaytheserois',sort(data.displaytheserois),'clusters',1+0*data.clusters,'names2',{data.names2});
+            exstr='ROIs not sorted / single-group';
+        elseif isequal(answ,Answ{10})
             ROIconfiguration=struct('xy2',data.xy2,'displaytheserois',data.displaytheserois,'xy2_clusters',data.xy2_clusters,'clusters',data.clusters,'names2',{data.names2},'names_clusters',{data.names_clusters});
-            tfilename=conn_roiclusters(ROIconfiguration,[],[],[],fullfile(data.defaultfilepath,'ROIorder.mat'));
+            tfilename=conn_roiclusters(ROIconfiguration,[],[],[],[],fullfile(data.defaultfilepath,'ROIorder.mat'));
             if isempty(tfilename), return; end
             conn_loadmatfile(tfilename,'ROIconfiguration','-mat');
             exstr='ROIs sorted manually';
@@ -1105,9 +1120,13 @@ switch(lower(option)),
         oldclusters=data.clusters;
         extnames2=ROIconfiguration.names2(ROIconfiguration.displaytheserois);
         ok=ismember(extnames2,data.names);
+        lnames=lower(data.names);
         for n1=reshape(find(~ok),1,[])
-            idx=strmatch(extnames2{n1},data.names); % allows partial-name matches
-            if numel(idx)==1, extnames2{n1}=data.names{idx}; end
+            if ismember(lower(extnames2{n1}),lnames), extnames2{n1}=data.names{idx}; 
+            else
+                idx=strmatch(extnames2{n1},data.names); % allows partial-name matches
+                if numel(idx)==1, extnames2{n1}=data.names{idx}; end
+            end
         end
         [ok,idx]=ismember(data.names,extnames2);
         if ~nnz(ok), 
@@ -1130,6 +1149,8 @@ switch(lower(option)),
         if isfield(ROIconfiguration,'xy2_clusters'), 
             data.xy2_clusters=data.xy2;
             data.xy2_clusters(data.displaytheserois,:)=ROIconfiguration.xy2_clusters(ROIconfiguration.displaytheserois(idx(ok)),:);
+            mxy2_clusters=[]; for n1=1:max(data.clusters), if any(data.clusters==n1), mxy2_clusters(n1,:)=mean(data.xy2_clusters(data.clusters==n1,:),1); end; end
+            data.xy2_clusters(data.clusters>0,:)=mxy2_clusters(data.clusters(data.clusters>0),:);
         elseif ~isempty(data.clusters) % note: automatic fill-in if missing
             data.xy2_clusters=data.xy2;
             mxy2_clusters=[]; for n1=1:max(data.clusters), if any(data.clusters==n1), mxy2_clusters(n1,:)=mean(data.xy2(data.clusters==n1,:),1); end; end
@@ -1146,7 +1167,12 @@ switch(lower(option)),
         %data.displaytheserois=ROIconfiguration.displaytheserois;
         %data.xy2=ROIconfiguration.xy2; 
         %data.clusters=ROIconfiguration.clusters;
-        [nill,tidx]=sort(mod(pi+angle(data.xy2(data.displaytheserois,:)*[1;1i]),2*pi));data.displaytheserois=data.displaytheserois(tidx);
+        if isfield(ROIconfiguration,'x2'), % order of ROIs (takes precedence over order listed in displaytheserois)
+            [nill,tidx]=sort(ROIconfiguration.x2(ROIconfiguration.displaytheserois(idx(ok))));
+        else
+            [nill,tidx]=sort(mod(pi+angle(data.xy2(data.displaytheserois,:)*[1;1i]),2*pi));
+        end
+        data.displaytheserois=data.displaytheserois(tidx);
         data.proj=[];data.x=[];data.y=[];data.z=[];
         data.bgz=0;
         data.visible='on';
@@ -1253,9 +1279,9 @@ switch(lower(option)),
         datax=data.xyz2(:,1);%*data.proj(:,1);
         datay=data.xyz2(:,2);%*data.proj(:,2);
         dataz=data.xyz2(:,3);%*data.proj(:,3);
-        weight1=cumpatch({hfig,1},'maskout');
-        weight2=cumpatch({hfig,2},'maskout');
-        weight3=cumpatch({hfig,3},'maskout');  
+        weight1=cumpatch({data.hfignumber,1},'maskout');
+        weight2=cumpatch({data.hfignumber,2},'maskout');
+        weight3=cumpatch({data.hfignumber,3},'maskout');  
         if isempty(weight3), return; end
         idxkeep_source=weight3(1,weight3(2,:)>0);
         idxkeep=weight2(1,weight2(2,:)>0);
@@ -1505,19 +1531,19 @@ switch(lower(option)),
                 set(data.handles(21),'string','');
             end
             if isempty(maskc), 
-                v=cumpatch({hfig,1},'mask',[1:numel(mask);  mask]); 
+                v=cumpatch({data.hfignumber,1},'mask',[1:numel(mask);  mask]); 
                 w=zeros(size(v));
                 if ~isempty(maskr)&&all(maskr<=numel(v)), v(maskr)=max(1,max(v(maskr))); w(maskr)=1; end 
                 if isequal(size(v),size(w)), z=1i*w+v; else z=w; end
-                cumpatch({hfig,2},'mask',[1:numel(mask); z]);
-                cumpatch({hfig,3},'mask',[1:numel(mask); z]);
+                cumpatch({data.hfignumber,2},'mask',[1:numel(mask); z]);
+                cumpatch({data.hfignumber,3},'mask',[1:numel(mask); z]);
             else
-                cumpatch({hfig,1},'mask',maskc);
+                cumpatch({data.hfignumber,1},'mask',maskc);
                 w=zeros(size(maskc));
                 if ~isempty(maskr)&&all(maskr<=numel(mask)), mask(maskr)=max(1,max(mask(maskr))); w(maskr)=1; end
                 %if isequal(size(v),size(w)), z=w+v; else z=w; end
-                cumpatch({hfig,2},'mask',[1:numel(mask); mask]);
-                cumpatch({hfig,3},'mask',[1:numel(mask); mask]);
+                cumpatch({data.hfignumber,2},'mask',[1:numel(mask); mask]);
+                cumpatch({data.hfignumber,3},'mask',[1:numel(mask); mask]);
             end
             
 %             if 0
@@ -2737,6 +2763,7 @@ switch(data.display),
         
         tp2=[];sort2=[];txt2={};index2=[];
         sortmeasure=P-1e-10*abs(data.F); % sorting connections for display
+        nottoomany=true; %nnz(z>0)<=1e5;
         for na1=1:length(data.displaytheserois),
             n1=data.displaytheserois(na1);
             for na2=1:length(data.displaytheserois),
@@ -2744,7 +2771,7 @@ switch(data.display),
                 if n1<=N&&n1~=n2&&z(n1,n2)>0, % connection info
                     if data.mvpathrtype_isroi(data.mvpathrtype)||~isfield(data,'issymmetric')||~data.issymmetric||na1<na2
                         index2(end+1)=N*(n2-1)+n1; % indexes to z matrix
-                        if nnz(z>0)<=1e5 % skip connection-level stats if above 1e5
+                        if nottoomany % skip connection-level stats if above 1e5?
                             %txt2{end+1}=(sprintf('%-6s %-6s  %6.2f  %6.2f  %4d  %12.6f  %12.6f',['(',num2str(na1),')'],['(',num2str(na2),')'],data.h(n1,n2),data.F(n1,n2),data.dof(n1,end),p(n1,n2),P(n1,n2)));
                             %if data.displayroilabelsinstats, tname1=sprintf('(%s)',data.names2reduced{n1}); else tname1=sprintf('(%d)',sortedroinumbers(n1)); end %na1); end
                             %if data.displayroilabelsinstats, tname2=sprintf('(%s)',data.names2reduced{n2}); else tname2=sprintf('(%d)',sortedroinumbers(n2)); end %na2); end
@@ -2763,11 +2790,14 @@ switch(data.display),
                             end
                         else txt2{end+1}='--';
                         end
-                        tp2=cat(1,tp2,sortmeasure(n1,n2)); sort2=cat(1,sort2,[n1,n2]);
+                        %tp2=cat(1,tp2,sortmeasure(n1,n2)); sort2=cat(1,sort2,[n1,n2]);
+                        sort2=[sort2, [n1 n2]];
                     end
                 end
             end
         end
+        sort2=reshape(sort2,2,[])';
+        tp2=sortmeasure(sort2(:,1)+size(sortmeasure,1)*(sort2(:,2)-1));
         [nill,idxsort2]=sort(tp2); sort2=sort2(idxsort2,:); txt2=txt2(idxsort2); index2=index2(idxsort2);
         
         data.list2=[];
@@ -3128,13 +3158,13 @@ switch(data.display),
             datay=data.y;
             dataz=data.z;
         end
-        cumpatch({data.hfig,1},'init'); % lines 
-        cumpatch({data.hfig,2},'init'); % brain black selector
-        cumpatch({data.hfig,3},'init'); % ring black selector
+        cumpatch({data.hfignumber,1},'init'); % lines 
+        cumpatch({data.hfignumber,2},'init'); % brain black selector
+        cumpatch({data.hfignumber,3},'init'); % ring black selector
 %         set(data.hfig,'windowbuttonmotionfcn',[]);
-        ringsquares=struct('x',[],'y',[],'index',[],'cluster',[],'h',[],'names',{{}},'gca',data.plotaxes,'gcf',data.hfig,'gct',data.handles(21));
+        ringsquares=struct('x',[],'y',[],'index',[],'cluster',[],'h',[],'names',{{}},'gca',data.plotaxes,'gcf',data.hfig,'gct',data.handles(21),'gcfnumber',data.hfignumber);
         [nill,datarank]=sort(angle(data.xy2(data.displaytheserois,1)+1i*data.xy2(data.displaytheserois,2)));datarank(datarank)=1:numel(datarank);
-        if nnz(z>0)>1e5, LINESTYLEMTX=max(1,data.plotconnoptions.LINESTYLEMTX);
+        if 0, %nnz(z>0)>1e5, LINESTYLEMTX=max(1,data.plotconnoptions.LINESTYLEMTX);
         else LINESTYLEMTX=data.plotconnoptions.LINESTYLEMTX;
         end
         if LINESTYLEMTX>1
@@ -3185,7 +3215,7 @@ switch(data.display),
 %                         else facecolor=cmap(round(1+(size(cmap,1)-1)*(1+k)/2),:);facealpha=1;
 %                         end
 %                         tpatch=struct('vertices',[tx,ty,tz],'faces',1:numel(tx),'facevertexcdata',repmat(facecolor,numel(tx),1),'facevertexalphadata',repmat(facealpha,numel(tx),1),'coords',{data.names2(n1)},'index',n1);
-%                         h=cumpatch({data.hfig,2},tpatch,'edgecolor','none','parent',data.plotaxes);
+%                         h=cumpatch({data.hfignumber,2},tpatch,'edgecolor','none','parent',data.plotaxes);
 %                         if (n1<=size(z,1)&&seedz(n1)>0&&data.mvpathrtype>1) || (((n1<=size(z,1)&&any(z(n1,:)>0))||any(z(:,n1)>0))&&data.mvpathrtype==1), markthese(n1)=2; %set(h,'facecolor',1-get(data.hfig,'color')); 
 %                         elseif any(na1==data.source), %set(h,'facecolor',.4+.2*get(data.hfig,'color'));
 %                         else %set(h,'facecolor',.3+.4*get(data.hfig,'color'));
@@ -3216,7 +3246,7 @@ switch(data.display),
                 %else facealpha=0;
                 %end
                 tpatch=struct('vertices',[tx,ty,tz],'faces',1:numel(tx),'facevertexcdata',repmat(facecolor,numel(tx),1),'facevertexalphadata',repmat(facealpha,numel(tx),1),'coords',{data.names2(n1)},'index',n1);
-                h=cumpatch({data.hfig,3},tpatch,'edgecolor','none','parent',data.plotaxes);
+                h=cumpatch({data.hfignumber,3},tpatch,'edgecolor','none','parent',data.plotaxes);
                 if ~data.view&&LINESTYLEMTX % diagonal reference
                     x=[datax([n1;n1]),datay([n1;n1])];
                     if LINESTYLEMTX==2||LINESTYLEMTX==4
@@ -3357,7 +3387,7 @@ switch(data.display),
                                     tsemic1.coords=[x];
                                     tsemic1.index=[n1;n2];
                                 end
-                                h=cumpatch({data.hfig,1},tsemic1,'edgecolor','none','parent',data.plotaxes); %max(1,data.plotconnoptions.LINEWIDTH*(1+0*(n1<=numel(seedz)&seedz(min(numel(seedz),n1))>0&n2<=numel(seedz)&seedz(min(numel(seedz),n2))>0)))));
+                                h=cumpatch({data.hfignumber,1},tsemic1,'edgecolor','none','parent',data.plotaxes); %max(1,data.plotconnoptions.LINEWIDTH*(1+0*(n1<=numel(seedz)&seedz(min(numel(seedz),n1))>0&n2<=numel(seedz)&seedz(min(numel(seedz),n2))>0)))));
                             else % lines
                                 x=x*[1;1i];
                                 dx=dx(1,:)*[1;1i];
@@ -3402,7 +3432,8 @@ switch(data.display),
                                 end
                                 %dwidth=1i*(xt(end)-xt(1));dwidth=1*linewidth*dwidth/abs(dwidth);
                                 dwidth=1i*[xt(2)-xt(1) xt(3:end)-xt(1:end-2) xt(end)-xt(end-1)]; 
-                                dwidth=linewidth*exp(1i*angle(dwidth)).*dwidthfactor1;
+                                %dwidth=linewidth*exp(1i*angle(dwidth)).*dwidthfactor1;
+                                dwidth=linewidth*dwidth./abs(dwidth).*dwidthfactor1;
                                 %dwidth=linewidth*exp(1i*angle(dwidth)).*[abs(rsquare(1,2))*[1 .5] ones(1,numel(xt)-4) [.5 1]*abs(rsquare(1,2))]/2;
                                 %dwidth=linewidth*exp(1i*angle(dwidth)).*ones(1,numel(xt))/2;
                                 %dwidth=linewidth*exp(1i*angle(dwidth)).*[0 .5 ones(1,numel(xt)-4) .5 0]/2;
@@ -3418,7 +3449,7 @@ switch(data.display),
                                 else tsemic1.coords=[x;1000*sign(data.h(n1,n2))]; % note: for sign-specific smoothing
                                 end
                                 tsemic1.index=[n1;n2];
-                                h=cumpatch({data.hfig,1},tsemic1,'edgecolor','none','parent',data.plotaxes); %max(1,data.plotconnoptions.LINEWIDTH*(1+0*(n1<=numel(seedz)&seedz(min(numel(seedz),n1))>0&n2<=numel(seedz)&seedz(min(numel(seedz),n2))>0)))));
+                                h=cumpatch({data.hfignumber,1},tsemic1,'edgecolor','none','parent',data.plotaxes); %max(1,data.plotconnoptions.LINEWIDTH*(1+0*(n1<=numel(seedz)&seedz(min(numel(seedz),n1))>0&n2<=numel(seedz)&seedz(min(numel(seedz),n2))>0)))));
                                 %h=patch(tsemic1,'edgecolor','none','facecolor',tempc,'facealpha',linetrans); %max(1,data.plotconnoptions.LINEWIDTH*(1+0*(n1<=numel(seedz)&seedz(min(numel(seedz),n1))>0&n2<=numel(seedz)&seedz(min(numel(seedz),n2))>0)))));
 %                                 h=patch([real(xt),fliplr(real(xt))],...
 %                                     [imag(xt),fliplr(imag(xt))],...
@@ -3498,7 +3529,7 @@ switch(data.display),
                     if isempty(data.clusters), a0=2*pi/NPLOTS*n1;
                     else a0=angle(mx);
                     end
-                    if isfield(data,'displaybrains')&&data.displaybrains<2 % cluster reference markers
+                    if isfield(data,'displaybrains')&&data.displaybrains<2 % cluster reference markers (brackets for ROI groups)
                         joffset=min(50,1.0*2*pi*200/length(data.displaytheserois)/1.125)/200/2;
 %                         if ~isempty(data.names_clusters)&&isfield(data,'displaylabels')&&data.displaylabels, 
 % %                             koffset=.11+data.plotconnoptions.DOFFSET;
@@ -3507,9 +3538,9 @@ switch(data.display),
 %                             koffset=.11+.95*data.plotconnoptions.DOFFSET;
 %                             plot((1+koffset+.0*rem(n1,2))*200*[.98,ones(1,62),.98].*exp(1i*(a0+linspace(-joffset+min(angle(xy(idx).*exp(-1i*a0))),joffset+max(angle(xy(idx).*exp(-1i*a0))),64))),'k-','color',.7-.4*get(data.hfig,'color'),'linewidth',2,'parent',data.plotaxes);
 %                         end
-                        koffset=.11;
+                        koffset=.11; 
                         %if isfield(data,'displaybrains')&&data.displaybrains, koffset=offset; else koffset=.11; end
-                        plot((1+koffset+.0*rem(n1,2))*200*[.98,ones(1,62),.98].*exp(1i*(a0+linspace(-joffset+min(angle(xy(idx).*exp(-1i*a0))),joffset+max(angle(xy(idx).*exp(-1i*a0))),64))),'k-','color',.7-.4*get(data.hfig,'color'),'linewidth',2,'parent',data.plotaxes);
+                        plot((1+koffset+.0*rem(n1,2))*200*[.97,.99,ones(1,60),.99,.97].*exp(1i*(a0+linspace(-joffset+min(angle(xy(idx).*exp(-1i*a0))),joffset+max(angle(xy(idx).*exp(-1i*a0))),64))),'k-','color',.7-.4*get(data.hfig,'color'),'linewidth',2,'parent',data.plotaxes);
                         ltemp=[(1+koffset)*195,(1+koffset)*195*ones(1,62),(1+koffset)*195,(1+.11)*180,(1+.11)*180*ones(1,62),(1+.11)*180].*exp(1i*(a0+[linspace(-joffset+min(angle(xy(idx).*exp(-1i*a0))),joffset+max(angle(xy(idx).*exp(-1i*a0))),64),linspace(joffset+max(angle(xy(idx).*exp(-1i*a0))),-joffset+min(angle(xy(idx).*exp(-1i*a0))),64)]));
                         patch(real(ltemp),imag(ltemp),0*1000+zeros(size(ltemp)),'k','facecolor',.1+.8*data.plotconnoptions.BCOLOR,'edgecolor','none','linewidth',2,'parent',data.plotaxes);
                         patch(real(ltemp),imag(ltemp),1000+zeros(size(ltemp)),'k','facecolor','none','edgecolor',round(data.plotconnoptions.BCOLOR),'linewidth',2,'parent',data.plotaxes);
@@ -3573,12 +3604,12 @@ switch(data.display),
                             tpatch=struct('vertices',[tx,ty,tz],'faces',1:numel(tx),'facevertexcdata',repmat(facecolor,numel(tx),1),'facevertexalphadata',repmat(facealpha,numel(tx),1),'coords',{data.names2(idx(n2))},'index',idx(n2));
                             ttxt={['x,y,z = (',num2str(data.xyz2(idx(n2),1),'%1.0f'),',',num2str(data.xyz2(idx(n2),2),'%1.0f'),',',num2str(data.xyz2(idx(n2),3),'%1.0f'),') mm'],...
                                data.names2{idx(n2)}};
-                            h=cumpatch({data.hfig,2},tpatch,'edgecolor','none','parent',data.plotaxes,'tag','conn_displayroi_roi','buttondownfcn',@conn_displayroi_menubuttondownfcn,'userdata',[{data.hfig} ttxt],'interruptible','off');
+                            h=cumpatch({data.hfignumber,2},tpatch,'edgecolor','none','parent',data.plotaxes,'tag','conn_displayroi_roi','buttondownfcn',@conn_displayroi_menubuttondownfcn,'userdata',[{data.hfig} ttxt],'interruptible','off');
 %                             k=KK(idx(n2));
 %                             if isnan(k), set(h,'facecolor','none');
 %                             %else set(h,'facecolor',cmap(round(1+(size(cmap,1)-1)*(1+k)/2),:));
 %                             end
-%                             set(h,'buttondownfcn',@conn_displayroi_menubuttondownfcn,'userdata',{data.hfig, idx(n2)},'interruptible','off');
+%                             set(h,'buttondownfcn',@conn_displayroi_menubuttondownfcn,'userdata',{data.hfignumber, idx(n2)},'interruptible','off');
                             %ttxt={['x,y,z = (',num2str(data.xyz2(idx(n2),1),'%1.0f'),',',num2str(data.xyz2(idx(n2),2),'%1.0f'),',',num2str(data.xyz2(idx(n2),3),'%1.0f'),') mm'],...
                             %    data.names2{idx(n2)}};
                             %set(h,'buttondownfcn',@conn_displayroi_menubuttondownfcn,'userdata',[{data.hfig} ttxt],'interruptible','off');
@@ -3593,50 +3624,51 @@ switch(data.display),
             end
         end
                 
-        if ~LINESTYLEMTX&&data.displaybrains<2, cumpatch({data.hfig,1},'smooth&update',data.plotconnoptions.LBUNDL);
-        else cumpatch({data.hfig,1},'update');
+        if ~LINESTYLEMTX&&data.displaybrains<2, cumpatch({data.hfignumber,1},'smooth&update',data.plotconnoptions.LBUNDL);
+        else cumpatch({data.hfignumber,1},'update');
         end
-        h1=cumpatch({data.hfig,2},'update');
-        h2=cumpatch({data.hfig,3},'update');
+        h1=cumpatch({data.hfignumber,2},'update');
+        h2=cumpatch({data.hfignumber,3},'update');
         set([h1(:);h2(:)],'buttondownfcn',@conn_displayroi_menubuttondownfcn,'userdata',data.hfig,'interruptible','off');
         if ~isempty(markthese), 
-            cumpatch({data.hfig,2},'mask',[1:numel(markthese);double(markthese'>1)]); 
-            cumpatch({data.hfig,3},'mask',[1:numel(markthese);double(markthese'>1)]); 
+            cumpatch({data.hfignumber,2},'mask',[1:numel(markthese);double(markthese'>1)]); 
+            cumpatch({data.hfignumber,3},'mask',[1:numel(markthese);double(markthese'>1)]); 
         end
         data.plot_idxselected=idxtext(idxtexthl>0);
         data.plot_K=K;
         data.plot_cmap=cmap;
         data.plot_z=z;
-        %%cumpatch({data.hfig,3},'mask',[1:N; zeros(1,N)]);
+        %%cumpatch({data.hfignumber,3},'mask',[1:N; zeros(1,N)]);
 
         if isfield(data,'displaylabels')&&data.displaylabels % text labels
             temp=data.names2reduced; for n1=1:numel(temp), if numel(temp{n1})>50, temp{n1}=temp{n1}(1:50); end; end
             tmvpaz=[seedz;0];
-            if isfield(data,'names_clusters')&&~isempty(data.names_clusters)&&data.plotconnoptions.DOFFSET<=.01, efact=1.05; else efact=1; end
+            if isfield(data,'names_clusters')&&~isempty(data.names_clusters)&&data.plotconnoptions.DOFFSET<=.01, efact=1.05; else efact=1.025; end
+            if isfield(data,'names_clusters')&&~isempty(data.names_clusters), tfact=1/3; else tfact=1; end
             h=text(efact*1.025*datax(data.displaytheserois(idxtext)),efact*1.025*datay(data.displaytheserois(idxtext)),...
                 max(0,5*data.z(data.displaytheserois(idxtext)))*EPS+202,{temp{data.displaytheserois(idxtext)}},'parent',data.plotaxes);
                 %(tmvpaz(min(numel(tmvpaz),data.displaytheserois(idxtext)))>0)+1002,{temp{data.displaytheserois(idxtext)}});
                 %(seedz(data.displaytheserois(idxtext(data.displaytheserois(idxtext)<=size(z,1))))>0)+202,{temp{data.displaytheserois(idxtext)}});
             set(h,'tag','textstringpartial','clipping','off');
             if data.view>0
-                set(h,'fontsize',data.plotconnoptions.FONTSIZE(1),'color','k','horizontalalignment','center','interpreter','none','fontweight','normal','backgroundcolor','none');
+                set(h,'fontsize',data.plotconnoptions.FONTSIZE(1)*tfact,'color','k','horizontalalignment','center','interpreter','none','fontweight','normal','backgroundcolor','none');
             else
                 fontsize=data.plotconnoptions.FONTSIZE(1);
                 %if isfield(data,'displaybrains')&&data.displaybrains, fontsize=max(4,fontsize-3); end
-                set(h,'fontsize',fontsize,'color',.1*.5+.9*data.plotconnoptions.BCOLOR,'horizontalalignment','left','interpreter','none','fontweight','normal','backgroundcolor','none');
+                set(h,'fontsize',fontsize*tfact,'color',.1*.5+.9*data.plotconnoptions.BCOLOR,'horizontalalignment','left','interpreter','none','fontweight','normal','backgroundcolor','none');
                 if LABELONSIGNONLY, set(h,'visible','off'); end 
                 set(h(LABELONALL|idxtexthl>0),'color',1-data.plotconnoptions.BCOLOR,'tag','textstring','visible','on');%,'fontweight','bold');
                 %set(h(seedz(data.displaytheserois(idxtext(data.displaytheserois(idxtext)<=size(z,1))))>0),'color',1-get(data.hfig,'color'),'visible','on');%,'fontweight','bold');
                 roundang=5; %45;
                 for n1=1:numel(h),tpos=get(h(n1),'position');ang=angle(tpos*[1;1i;0])/pi*180+data.plotconnoptions.FONTANGLE;if abs(mod(ang,360)-180)<90, set(h(n1),'rotation',roundang*round(ang/roundang)+180,'position',tpos*1.10,'horizontalalignment','right'); else set(h(n1),'rotation',roundang*round(ang/roundang),'position',tpos*1.10); end; end
-                cumpatch({data.hfig,3},'addfield',data.displaytheserois(idxtext),'text',h);
+                cumpatch({data.hfignumber,3},'addfield',data.displaytheserois(idxtext),'text',h);
             end
             set(h,'buttondownfcn',@conn_displayroi_menubuttondownfcn,'userdata',data.hfig,'interruptible','off');            
         else
             data.displaylabels=0;
         end
         
-        %%cumpatch({data.hfig,1},'update');
+        %%cumpatch({data.hfignumber,1},'update');
         conn_display_windowbuttonmotionfcn('init',ringsquares);
         set(data.hfig,'windowbuttonmotionfcn',@conn_display_windowbuttonmotionfcn);
         if data.pausegui, conn_display_windowbuttonmotionfcn('pause',data.pausegui); end
@@ -3914,8 +3946,11 @@ elseif strcmp(TYPE,'hc')
     end
     data.xy2=zeros(length(data.names2),2);
     data.xy2(data.displaytheserois(idx),:)=200*[real(xy)',imag(xy)'];
-    data.xy2_clusters=zeros(length(data.names2),2);
-    data.xy2_clusters(data.displaytheserois(idx),:)=200*[real(xy_clusters)',imag(xy_clusters)'];
+    %data.xy2_clusters=zeros(length(data.names2),2);
+    %data.xy2_clusters(data.displaytheserois(idx),:)=200*[real(xy_clusters)',imag(xy_clusters)'];
+    data.xy2_clusters=data.xy2;
+    mxy2_clusters=[]; for n1=1:max(data.clusters), if any(data.clusters==n1), mxy2_clusters(n1,:)=mean(data.xy2(data.clusters==n1,:),1); end; end
+    data.xy2_clusters(data.clusters>0,:)=mxy2_clusters(data.clusters(data.clusters>0),:);    
     data.displaytheserois=data.displaytheserois(idx);
     data.names_clusters={};
     data.clusters_options=struct('type','hc','groups',NCLUSTERS,'param',LAMBDAPOS);
@@ -4157,6 +4192,7 @@ if ischar(option)
             end
         case 'smooth&update',
             if numel(patchobj)>=npatch&&~isempty(patchobj{npatch})
+                GROUPBYCLUSTERS=true;
                 if ~isempty(varargin), lbundl=varargin{1}; end
                 vertices=cat(1,patchobj{npatch}.vertices);
                 if lbundl>0
@@ -4171,11 +4207,23 @@ if ischar(option)
                         N=2*N;
                     end
                     d1=sum(abs(coords).^2,1);
-                    if N<1e4, 
+                    if GROUPBYCLUSTERS&&size(coords,1)>2 % group connection lines based on clusters
+                        [nill,nill,i1]=unique(coords(3:end,:)','rows');
+                        if max(i1)>2,
+                            dogroup=true;
+                            H=i1;
+                        else
+                            dogroup=false;
+                            H=speye(N);
+                        end
+                    elseif N<1e4, % group connection lines based on proximity
+                        dogroup=false;
                         H=exp(-(sqrt(max(0,repmat(d1,[N,1])+repmat(d1',[1,N])-2*real(coords'*coords)))/max(eps,200*lbundl)).^2);
-                    elseif 0
+                    elseif 1
+                        dogroup=false;
                         H=speye(N);
-                    else
+                    else % group connection lines based on proximity
+                        dogroup=false;
                         tdmax=sqrt(-log(.001))*max(eps,200*lbundl);
                         i=[];j=[];k=[];
                         for n1=1:N, 
@@ -4189,9 +4237,17 @@ if ischar(option)
                         end
                         H=sparse(i,j,k,N,N);
                     end
-                    H=sparse(1:N,1:N,1./max(eps,sum(H,2)))*H;
                     newvertices=vertices;
-                    newvertices(:,:)=full(H*vertices(:,:));
+                    if dogroup, 
+                        for ni1=1:max(H)
+                            i=H==ni1;
+                            mvertices=mean(vertices(i,:,:),1);
+                            newvertices(i,:,:)=repmat(mvertices,[nnz(i),1,1]);
+                        end
+                    else
+                        H=sparse(1:N,1:N,1./max(eps,sum(H,2)))*H;
+                        newvertices(:,:)=full(H*vertices(:,:));
+                    end
                     newvertices(:,:,3)=vertices(:,:,3);
                     if 1, % avoids duplicated lines
                         vertices=vertices(1:end/2,:,:);
@@ -4199,9 +4255,15 @@ if ischar(option)
                         coords=coords(:,1:end/2);
                         N=N/2;
                     end
-                    p1=(max(0,sqrt(max(0,sum(vertices(:,:,1:2).^2,3)))/200-.75)/.25).^2;
-                    p2=0*repmat(exp(-(abs(coords(1,:)-coords(2,:))'/50).^2),[1,size(vertices,2)]);
-                    p=repmat(min(1,p1+p2),[1,1,size(vertices,3)]);
+                    if dogroup
+                        p1=(max(0,sqrt(max(0,sum(vertices(:,:,1:2).^2,3)))/200-.65)/.35).^2;
+                        p2=0*repmat(exp(-(abs(coords(1,:)-coords(2,:))'/50).^2),[1,size(vertices,2)]);
+                        p=repmat(max(.1,min(1,p1+p2)),[1,1,size(vertices,3)]);
+                    else
+                        p1=(max(0,sqrt(max(0,sum(vertices(:,:,1:2).^2,3)))/200-.75)/.25).^2;
+                        p2=0*repmat(exp(-(abs(coords(1,:)-coords(2,:))'/50).^2),[1,size(vertices,2)]);
+                        p=repmat(min(1,p1+p2),[1,1,size(vertices,3)]);
+                    end
                     vertices=vertices.*p + newvertices.*(1-p);
                     vertices=reshape(permute(vertices,[2,1,3]),[],size(vertices,3));
                 end
@@ -4345,6 +4407,7 @@ elseif nargin>0&&ischar(option)&&strcmp(option,'init')
     data(ndata).gta=varargin{1}.gca;
     data(ndata).gtf=varargin{1}.gcf;
     data(ndata).gtt=varargin{1}.gct;
+    data(ndata).gtfnumber=varargin{1}.gcfnumber;
     data(ndata).highight.h1=findobj(varargin{1}.gcf,'tag','highlight');
     %data(ndata).highight.h2=findobj(gcbf,'tag','highlight_pointer');
     busy=false;
@@ -4404,21 +4467,21 @@ elseif numel(data)>=ndata&&~isempty(data(ndata).x)
                 %w=exp(-(10*(d/mind-1)).^2);
                 w=exp(-((d-mind)*(10+mind)/max(eps,mind)/25).^2);
                 set(data(ndata).gtt,'string','');%sprintf('FWHM = %d ROIs around %s',nnz(w>.5),data(ndata).names{idx}));%,'visible','on');
-                v=cumpatch({data(ndata).gtf,1},'mask',[data(ndata).index; w]);
+                v=cumpatch({data(ndata).gtfnumber,1},'mask',[data(ndata).index; w]);
                 if isequal(size(v),size(w)), z=1i*w+v; else z=w; end
-                cumpatch({data(ndata).gtf,2},'mask',[data(ndata).index; z]);
-                cumpatch({data(ndata).gtf,3},'mask',[data(ndata).index; z]);
+                cumpatch({data(ndata).gtfnumber,2},'mask',[data(ndata).index; z]);
+                cumpatch({data(ndata).gtfnumber,3},'mask',[data(ndata).index; z]);
             else %if numel(xlim)==2,%&&pos(1)>=xlim(1)&&pos(1)<=xlim(2) %&& numel(ylim)==2&&pos(2)>=ylim(1)&&pos(2)<=ylim(2) % mouse outside of ring
                 conn_displayroi(hfig,[],'list2clear');
 %                 w=ones(size(data(ndata).index));
-%                 v=cumpatch({data(ndata).gtf,1},'mask',[data(ndata).index; w]);
+%                 v=cumpatch({data(ndata).gtfnumber,1},'mask',[data(ndata).index; w]);
 %                 if isequal(size(v),size(w)), z=w+v; else z=w; end
-%                 cumpatch({data(ndata).gtf,2},'mask',[data(ndata).index; z]);
-%                 cumpatch({data(ndata).gtf,3},'mask',[data(ndata).index; z]);
+%                 cumpatch({data(ndata).gtfnumber,2},'mask',[data(ndata).index; z]);
+%                 cumpatch({data(ndata).gtfnumber,3},'mask',[data(ndata).index; z]);
 %                 set(data(ndata).gtt,'string','');%,'visible','on');
-%                 cumpatch({data(ndata).gtf,1},'mask');
-%                 %cumpatch({data(ndata).gtf,2},'mask');
-%                 cumpatch({data(ndata).gtf,3},'mask');%,[data(ndata).index; zeros(1,numel(data(ndata).index))]);
+%                 cumpatch({data(ndata).gtfnumber,1},'mask');
+%                 %cumpatch({data(ndata).gtfnumber,2},'mask');
+%                 cumpatch({data(ndata).gtfnumber,3},'mask');%,[data(ndata).index; zeros(1,numel(data(ndata).index))]);
 %                 %set(h,'facealpha',1);
             %else
             %    set(data(ndata).gtt,'string','','visible','on');
@@ -4427,18 +4490,18 @@ elseif numel(data)>=ndata&&~isempty(data(ndata).x)
             if npos>216&&npos<=200*(1.11+.35), % mouse inside cluster (behavior when unpaused or mouse clicked) 
                 w=data(ndata).cluster==data(ndata).cluster(idx);
                 set(data(ndata).gtt,'string','');%sprintf('FWHM = %d ROIs around %s',nnz(w>.5),data(ndata).names{idx}));%,'visible','on');
-                v=cumpatch({data(ndata).gtf,1},'mask',[data(ndata).index; w]);
+                v=cumpatch({data(ndata).gtfnumber,1},'mask',[data(ndata).index; w]);
                 if isequal(size(v),size(w)), z=1i*w+v; else z=w; end
-                cumpatch({data(ndata).gtf,2},'mask',[data(ndata).index; z]);
-                cumpatch({data(ndata).gtf,3},'mask',[data(ndata).index; z]);
+                cumpatch({data(ndata).gtfnumber,2},'mask',[data(ndata).index; z]);
+                cumpatch({data(ndata).gtfnumber,3},'mask',[data(ndata).index; z]);
             else % mouse inside an ROI (behavior when unpaused or mouse clicked)
                 set(data(ndata).gtt,'string',sprintf('connectivity with %s',data(ndata).names{idx}));%,'visible','on');
                 w=data(ndata).index==data(ndata).index(idx);
                 %w=(1:numel(data(ndata).index))==idx;
-                v=cumpatch({data(ndata).gtf,1},'mask',[data(ndata).index; w]);
+                v=cumpatch({data(ndata).gtfnumber,1},'mask',[data(ndata).index; w]);
                 if isequal(size(v),size(w)), z=1i*w+v; else z=w; end
-                cumpatch({data(ndata).gtf,2},'mask',[data(ndata).index; z]);
-                cumpatch({data(ndata).gtf,3},'mask',[data(ndata).index; z]);
+                cumpatch({data(ndata).gtfnumber,2},'mask',[data(ndata).index; z]);
+                cumpatch({data(ndata).gtfnumber,3},'mask',[data(ndata).index; z]);
             end
         end
         busy=false;

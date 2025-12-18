@@ -228,7 +228,7 @@ for nopt=1:numel(opts),
                 other={};
                 if any(ismember({'wm','csf'},options.confounds_names)), other{end+1}='acompcor'; end
                 if 1,
-                    idx=find(cellfun('length',regexp(CONN_x.Setup.l2covariates.names,'^QC_DOF_session\d+$')));
+                    idx=find(cellfun('length',regexp(CONN_x.Setup.l2covariates.names,'^QC_DOF$')));
                     if ~isempty(idx)
                         DOF2=zeros(1,CONN_x.Setup.nsubjects);
                         for nidx=1:numel(idx)

@@ -63,7 +63,7 @@ try
         z=angle(ROIconfiguration.xy2(idx1(ok),:)*[1;1i]).';
         [nill,idx2]=sort(z);
         idxorder=[ok(idx2), setdiff(1:numel(ROInames), ok)];
-    elseif numel(ok)<=500 && numel(ok)>50
+    elseif 0, %numel(ok)<=500 && numel(ok)>50
         %x=conn_bsxfun(@times,cat(1,.0*B0,B),sqrt(mean(cat(2,H0,H).^2,1))');
         x=tanh(B); %double(abs(B)>2);
         x=reshape(x,[],size(B,3));

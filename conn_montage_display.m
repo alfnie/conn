@@ -107,6 +107,7 @@ if ~isfield(state,'xrois'),
 end
 if ~isfield(state,'x_orig'), state.x_orig=state.x; end
 if ~isfield(state,'fontsize'), state.fontsize=6+CONN_gui.font_offset; end
+if ~isfield(state,'skiplabels'), state.skiplabels=1; end
 if ~isfield(state,'xnonzero'),%||~isfield(state,'xnonzeroorder'),
     state.xnonzero=repmat(any(any(state.x~=0,4),3),[1,1,size(state.x,3),size(state.x,4)]);
 %     idx=find(any(any(state.x~=0,4),3));
@@ -155,6 +156,8 @@ if ~isempty(state.xrois_name)||~isempty(state.x_border_name)||~isempty(state.xco
     uimenu(hc2,'Label','increase labels fontsize','callback',{@conn_montage_display_refresh,'fontsize','+'});
     uimenu(hc2,'Label','decrease labels fontsize','callback',{@conn_montage_display_refresh,'fontsize','-'});
     uimenu(hc2,'Label','set labels fontsize','callback',{@conn_montage_display_refresh,'fontsize','?'});
+    uimenu(hc2,'Label','reduce number of labels shown','callback',{@conn_montage_display_refresh,'skiplabels','-'});
+    uimenu(hc2,'Label','increase number of labels shown','callback',{@conn_montage_display_refresh,'skiplabels','+'});
 end
 hc2=uimenu(hc1,'Label','style');
 if ~strcmp(style,'timeseries')
@@ -344,6 +347,14 @@ end
             case 'print',
                 conn_print(state.handles.hfig,varargin{:});
                 return;
+            case 'skiplabels'
+                opt=varargin{1};
+                if isequal(opt,'-'), opt=state.skiplabels+1;
+                elseif isequal(opt,'+'), opt=state.skiplabels-1;
+                end
+                opt=max(1,min(numel(state.handles.hyticks)-1, opt));
+                state.skiplabels=opt;
+                if isfield(state.handles,'hyticks')&&all(ishandle(state.handles.hyticks)), set(state.handles.hyticks,'visible','off'); set(state.handles.hyticks(1:state.skiplabels:end),'visible','on'); end
             case 'fontsize'
                 opt=varargin{1};
                 if isequal(opt,'+'), opt=state.fontsize+1;

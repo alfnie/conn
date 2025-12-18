@@ -1,10 +1,11 @@
-function filename=conn_roiclusters(rois,xy2,xyz2,groups,filename)
+function filename=conn_roiclusters(rois,x2,xy2,xyz2,groups,filename)
 % CONN_ROICLUSTERS creates ROIorder.mat file defining list of ROIs as well as ROI order&clusters 
 % that can be used by conn_display in ROI-to-ROI analyses
 %
 % fileout = conn_roiclusters(rois [,coords2, coords3, groups, fileout])
 %   rois        : list of ROI names; (1xN) cell array describing N groups of ROIs (each group with an arbitrary number of ROIs) listed as rois{ngroup}{nroi}
-%   coords2     : (optional) wheel coordinates for each ROI; (1xM) cell array or (2xM) matrix (default: distributed in unit circle based on group membership)
+%   coords1     : (optional) line coordinates for each ROI (used in matrix display of ROI-to-ROI connections); (1xM) vector (default: angle(coords2))
+%   coords2     : (optional) wheel coordinates for each ROI (used in circular display of ROI-to-ROI connections); (1xM) cell array or (2xM) matrix (default: distributed in unit circle based on group membership)
 %   coords3     : (optional) spatial coordinates for each ROI; (1xM) cell array or (3xM) matrix (default: {})
 %                 alternatively, filename of atlas file defining these ROIs (coordinates will be extracted using conn_roicenters)
 %   groups      : (optional) list of group names; (1xN) cell array (default {})
@@ -15,10 +16,11 @@ function filename=conn_roiclusters(rois,xy2,xyz2,groups,filename)
 
 global CONN_gui;
 
-if nargin<2||isempty(xy2), xy2={}; end
-if nargin<3||isempty(xyz2), xyz2={}; end
-if nargin<4||isempty(groups),groups={}; end
-if nargin<5||isempty(filename), filename=fullfile(pwd,'ROIorder.mat'); end
+if nargin<2||isempty(x2), x2={}; end
+if nargin<3||isempty(xy2), xy2={}; end
+if nargin<4||isempty(xyz2), xyz2={}; end
+if nargin<5||isempty(groups),groups={}; end
+if nargin<6||isempty(filename), filename=fullfile(pwd,'ROIorder.mat'); end
 
 if isstruct(rois)  % accepts alternative format ROIconfiguration struct
     roinames=rois.names2(rois.displaytheserois);            % roi_names: list of valid roi-names (other names in roi_groups will be interpreted as group-names)
@@ -56,6 +58,7 @@ if isstruct(rois)  % accepts alternative format ROIconfiguration struct
             end
         end
     end
+    groups=cellfun(@deblank,groups,'uni',0);
     groups=groups(cellfun('length',groups)>0);
     groupname={'grouproi'};
     grouprois={[]};
@@ -98,6 +101,7 @@ elseif iscell(xyz2), xyz2=reshape(cat(2,xyz2{:}),3,N);
 end
 
 ROIconfiguration=struct('names2',{names2},'xy2',200*xy2.','displaytheserois',displaytheserois,'clusters',clusters);
+if ~isempty(x2), ROIconfiguration.x2=x2(:); end
 if ~isempty(groups), ROIconfiguration.names_clusters=groups; end
 if ~isempty(xyz2), ROIconfiguration.xyz2=xyz2.'; end
 assert(size(xy2,2)==N,'incorrect number of elements in coords2 input (found %d expected %d)',size(xy2,2),N); 

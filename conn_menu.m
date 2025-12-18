@@ -191,18 +191,35 @@ switch(lower(type)),
             %%conn_menumanager('onregion',ht,-1,get(h,'position'));
         end
         if ~isempty(callback2), 
-            if ~iscell(callback2), callback2={['h=get(gcbo,''userdata''); set(h,''value'',numel(cellstr(get(h,''string'')))); ',callback],callback2}; end
+            if ~iscell(callback2), callback2={callback2}; end
+            if numel(callback2)<2, callback2=[{['h=get(gcbo,''userdata''); set(h,''value'',numel(cellstr(get(h,''string'')))); ',callback]},callback2]; end
             %ht=[conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 0 .03-position(4)],'',['Add new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...
             %    conn_menu(regexprep(type,{'listboxbigblue','listbox'},{'pushbuttonwhite','pushbuttonblue'}),position+[max(.02,position(3)-.02) 0 .02-position(3) .03-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
-            if isempty(deblank(callback2{2}))
-                ht=[conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .025-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1})];
+            ht=[]; htonregion=[];
+            if ~isempty(deblank(callback2{1})) % + button
+                ht(end+1)=conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.02,position(3)-.02)-position(3) .025-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1});
                 set(ht(1),'userdata',h,'fontweight','bold','visible','on','fontsize',9+CONN_gui.font_offset);
-            else
-                ht=[conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[0 -.03 min(.03,position(3)-.03)-position(3) .025-position(4)],'',['+'],['Adds new ',regexprep(lower(title),{'s$','lyse$'},{'','lysis'})],callback2{1}),...
-                    conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[max(.03,position(3)-.03) -.03 .03-position(3) .025-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
-                set(ht(1),'userdata',h,'fontweight','bold','visible','on','fontsize',9+CONN_gui.font_offset);
-                set(ht(2:end),'userdata',h,'fontweight','bold','visible','off'); 
-                conn_menumanager('onregion',ht(2:end),1,get(h,'position')+[0 -.04 0 .04],h);
+            end
+            if ~isempty(deblank(callback2{2})) % del button
+                ht(end+1)=conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[max(.03,position(3)-.03) -.03 .03-position(3) .025-position(4)],'',CONN_gui.delchar,['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end']);
+                set(ht(end),'userdata',h,'visible','off'); 
+                htonregion(end+1)=ht(end);
+            end
+            if numel(callback2)<3||~isempty(deblank(callback2{3})) % select all button
+                if isempty(deblank(callback2{1}))&&isempty(deblank(callback2{2}))
+                    if numel(callback2)<3, callback2=[callback2, {['h=get(gcbo,''userdata''); if get(h,''max'')>1, set(h,''value'',1:numel(cellstr(get(h,''string'')))); end; ',callback]}]; end
+                    ht(end+1)=conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbutton'}),position+[0 -.03 min(.06,max(.03,position(3)-.03))-position(3) .025-position(4)],'','Select all',['Selects all ',lower(title)],callback2{3});
+                    set(ht(end),'userdata',h,'visible','off');
+                    htonregion(end+1)=ht(end);
+                elseif min(.03,position(3)-.03) + .09 < max(.03,position(3)-.03)
+                    if numel(callback2)<3, callback2=[callback2, {['h=get(gcbo,''userdata''); if get(h,''max'')>1, set(h,''value'',1:numel(cellstr(get(h,''string'')))-1); end; ',callback]}]; end
+                    ht(end+1)=conn_menu(regexprep(type,{'listboxbigblue','listboxbigwhite','listbox'},{'pushbuttonwhite','pushbuttonwhite','pushbuttonblue'}),position+[min(.03,position(3)-.03) -.03 min(.06,max(.03,position(3)-.03)-min(.03,position(3)-.03))-position(3) .025-position(4)],'','Select all',['Selects all ',lower(title)],callback2{3});
+                    set(ht(end),'userdata',h,'visible','off');
+                    htonregion(end+1)=ht(end);
+                end
+            end
+            if ~isempty(htonregion)
+                conn_menumanager('onregion',htonregion,1,get(h,'position')+[0 -.04 0 .04],h);
             end
             %ht=[conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[0 -.04 .02-position(3) .04-position(4)],'','+',['Adds new ',lower(title)],callback2{1}),...
             %    conn_menu(regexprep(type,{'bigblue','listbox'},{'','pushbuttonblue'}),position+[.02 -.04 .02-position(3) .04-position(4)],'','-',['Removes selected ',lower(title)],['if isequal(conn_questdlg(''Are you sure you want to delete the selected ',lower(title),'?'','''',''Yes'',''No'',''Yes''),''Yes''), ',callback2{2},'; end'])];
@@ -385,7 +402,7 @@ switch(lower(type)),
         uimenu(hc1,'Label','Posterior view','callback','set(gca,''cameraposition'',[0 -1000 0],''cameraupvector'',[0 0 1])');
         set([h.h11 h.h12],'uicontextmenu',hc1);
 		h.h5=conn_menu('slider',[position(1)+position(3)-0*.015,position(2),.015,max(.001,position(4)-.04)],'','','',{@conn_menu,'updateslider1'});
-        h.h5b=uicontrol('style','pushbutton','string','+','units','norm','position',[position(1)+position(3)+.35*.015,position(2)+position(4)-.03,.65*.015,.65*.03],'tooltipstring','switch view (axial/coronal/sagittal)','callback',{@conn_menu,'updateview'},'parent',CONN_h.screen.hfig);
+        h.h5b=uicontrol('style','pushbutton','string','⋅','units','norm','position',[position(1)+position(3)+0*.015,position(2)+position(4)-.03,1*.015,1*.03],'tooltipstring','switch view (axial/coronal/sagittal)','callback',{@conn_menu,'updateview'},'parent',CONN_h.screen.hfig);
         %h.h5b=conn_menu('pushbuttonblue',[position(1)+position(3)-0*.015,position(2)+position(4)-.04,.015,.04],'','','switch view',{@conn_menu,'updateview'});
         %try, addlistener(h.h5, 'ContinuousValueChange',@(varargin)conn_menu([],[],'updateslider1')); end
 		%h.h6=conn_menu('slider',[position(1),position(2)-.035,position(3),.03],'','','display threshold',{@conn_menu,'updateslider2'});

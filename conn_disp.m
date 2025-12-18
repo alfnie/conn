@@ -129,7 +129,7 @@ if isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.g
         uimenu(hc1,'Label','Copy selected log history lines to clipboard','callback',@(varargin)conn_disp('__copy'));
         uimenu(hc1,'Label','Export selected log history lines to file','callback',@(varargin)conn_exportlist(CONN_h.screen.hlogstr,[],[],true));
         set(CONN_h.screen.hlogstr,'uicontextmenu',hc1)
-        figure(CONN_h.screen.hfig);
+        drawnow; figure(CONN_h.screen.hfig); 
     end
 elseif isfield(CONN_h,'screen')&&isfield(CONN_h.screen,'hlog')&&ishandle(CONN_h.screen.hlog)&&isfield(CONN_h.screen,'hlogstr')&&ishandle(CONN_h.screen.hlogstr), mirrorscreen=true;
 end

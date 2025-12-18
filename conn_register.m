@@ -3,8 +3,8 @@ function askagain=conn_register(option)
 if nargin<1, option='register'; end
 file_registered=fullfile(fileparts(which(mfilename)),'conn_register.txt');
 if strcmp(option,'register')&&conn_existfile(file_registered)
-    answ=conn_questdlg({'We would like to collect some simple demographic information from our users.','This serves to keep track of the toolbox impact and it helps in our funding applications.','Would you like to register now? (registration takes less than a minute)'},'CONN toolbox registration','Yes','No, ask me later','No, never ask again','No, ask me later');
-    if strcmp(answ,'Yes'), option='forceregister'; end
+    answ=conn_questdlg({'Register to help us quantify CONN''s usage in the research community','and to receive CONN''s newsletter, with monthly news and updates about CONN.', ' ', 'Would you like to register now?',' ','You may use CONN without registering. Registration is optional, free, and takes under a minute.'},'CONN toolbox registration','Yes, register now','Not now','No, never ask again','Not now');
+    if strcmp(answ,'Yes, register now'), option='forceregister'; end
     if strcmp(answ,'No, never ask again'), option='donotaskagain'; end
 end
 if strcmp(option,'forceregister'),

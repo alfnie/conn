@@ -1,5 +1,6 @@
 function [ROInames,ROIidx]=conn_roilabels(filename) 
 % internal: reads ROI labels from atlas file
+% [ROInames,ROIidx]=conn_roilabels(filename) 
 
 [roi_path_dir,roi_path_name,roi_path_ext]=fileparts(char(filename));
 ok=false; 

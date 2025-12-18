@@ -85,26 +85,34 @@ end
         if numel(HANDLES)>=2, SMOOTH=str2num(get(HANDLES(2),'string')); end
         if numel(HANDLES)>=3, DISREGARDZEROS=get(HANDLES(3),'value'); end
         if numel(HANDLES)>=4, HEMSEPARATE=get(HANDLES(4),'value'); end
-        clf(hfig);
-        bg=.9*[1 1 1];
-        uicontrol('style','frame','units','norm','position',[0,.83,1,.17],'foregroundcolor',bg,'backgroundcolor',bg,'parent',hfig);
-        if isempty(refnames), uicontrol('style','text','units','norm','position',[.05,.90,.3,.05],'string','Intensity threshold','horizontalalignment','right','backgroundcolor',bg,'parent',hfig); end
-        uicontrol('style','text','units','norm','position',[.05,.85,.3,.05],'string','Smoothing level','horizontalalignment','right','backgroundcolor',bg,'parent',hfig);
-        if isempty(refnames), 
-            HANDLES(1)=uicontrol('style','edit','units','norm','position',[.36,.90,.1,.05],'string','','tooltipstring',conn_menu_formathtml('<HTML>Select voxels based on intensity values <br/> - Entering v selects voxels with I>=v<br/> - Entering v w selects voxels with I>=v & I<=w<br/> - Entering multiple pairs v1 w1 ... vn wn selects voxels with (I>=v1 & I<=w1) | ... | (I>=vn & I<=wn)</HTML>'),'callback',@conn_surf_volume_update,'parent',hfig); 
-            try, set(HANDLES(1),'string',mat2str(THR)); end
-        else 
-            HANDLES(1)=uicontrol('style','listbox','units','norm','position',[.05,.30,.4,.40],'string',refnames,'max',2,'tooltipstring',conn_menu_formathtml('<HTML>Select ROIs</HTML>'),'callback',@conn_surf_volume_update,'parent',hfig); 
-            try, set(HANDLES(1),'value',find(ismember(refidx,THR))); end
-            HANDLES(5)=uicontrol('style','pushbutton','units','norm','position',[.05,.25,.4,.05],'string','Select all','value',0,'callback','h=get(gcbo,''userdata''); set(h,''value'',1:numel(get(h,''string''))); feval(get(h,''callback''));','userdata',HANDLES(1),'parent',hfig);
+        if isempty(HANDLES)
+            clf(hfig);
+            bg=.9*[1 1 1];
+            uicontrol('style','frame','units','norm','position',[0,.83,1,.17],'foregroundcolor',bg,'backgroundcolor',bg,'parent',hfig);
+            if isempty(refnames), uicontrol('style','text','units','norm','position',[.05,.90,.3,.05],'string','Intensity threshold','horizontalalignment','right','backgroundcolor',bg,'parent',hfig); end
+            uicontrol('style','text','units','norm','position',[.05,.85,.3,.05],'string','Smoothing level','horizontalalignment','right','backgroundcolor',bg,'parent',hfig);
+            if isempty(refnames),
+                HANDLES(1)=uicontrol('style','edit','units','norm','position',[.36,.90,.1,.05],'string','','tooltipstring',conn_menu_formathtml('<HTML>Select voxels based on intensity values <br/> - Entering v selects voxels with I>=v<br/> - Entering v w selects voxels with I>=v & I<=w<br/> - Entering multiple pairs v1 w1 ... vn wn selects voxels with (I>=v1 & I<=w1) | ... | (I>=vn & I<=wn)</HTML>'),'callback',@conn_surf_volume_update,'parent',hfig);
+                try, set(HANDLES(1),'string',mat2str(THR)); end
+            else
+                HANDLES(1)=uicontrol('style','listbox','units','norm','position',[.05,.30,.4,.40],'string',refnames,'max',2,'tooltipstring',conn_menu_formathtml('<HTML>Select ROIs</HTML>'),'callback',@conn_surf_volume_update,'parent',hfig);
+                try, set(HANDLES(1),'value',find(ismember(refidx,THR))); end
+                HANDLES(5)=uicontrol('style','pushbutton','units','norm','position',[.05,.25,.4,.05],'string','Select all','value',0,'callback','h=get(gcbo,''userdata''); set(h,''value'',1:numel(get(h,''string''))); feval(get(h,''callback''));','userdata',HANDLES(1),'parent',hfig);
+            end
+            HANDLES(2)=uicontrol('style','edit','units','norm','position',[.36,.85,.1,.05],'string',num2str(SMOOTH),'backgroundcolor',bg,'tooltipstring','Smooth suprathreshold surfaces (enter number of diffusion iterations)','callback',@conn_surf_volume_update,'parent',hfig);
+            HANDLES(3)=uicontrol('style','checkbox','units','norm','position',[.55,.90,.3,.05],'string','Disregard Intensity=0 values','value',DISREGARDZEROS,'backgroundcolor',bg,'callback',@conn_surf_volume_update,'parent',hfig);
+            if ~isempty(refnames), set(HANDLES(3),'visible','off'); end
+            HANDLES(4)=uicontrol('style','checkbox','units','norm','position',[.55,.85,.3,.05],'string','Separate by hemisphere','value',HEMSEPARATE,'backgroundcolor',bg,'callback',@conn_surf_volume_update,'parent',hfig);
+            %uicontrol('style','frame','units','norm','position',[0,.0,1,.15],'foregroundcolor','w','parent',hfig);
+            uicontrol('style','pushbutton','units','norm','position',[.65,.03,.15,.09],'string','Cancel','callback','delete(gcbf)','parent',hfig);
+            uicontrol('style','pushbutton','units','norm','position',[.80,.03,.15,.09],'string','Ok','callback','uiresume(gcbf)','parent',hfig);
+        else
+            if isempty(refnames),
+                try, set(HANDLES(1),'string',mat2str(THR)); end
+            else
+                try, set(HANDLES(1),'value',find(ismember(refidx,THR))); end
+            end
         end
-        HANDLES(2)=uicontrol('style','edit','units','norm','position',[.36,.85,.1,.05],'string',num2str(SMOOTH),'backgroundcolor',bg,'tooltipstring','Smooth suprathreshold surfaces (enter number of diffusion iterations)','callback',@conn_surf_volume_update,'parent',hfig);
-        HANDLES(3)=uicontrol('style','checkbox','units','norm','position',[.55,.90,.3,.05],'string','Disregard Intensity=0 values','value',DISREGARDZEROS,'backgroundcolor',bg,'callback',@conn_surf_volume_update,'parent',hfig);
-        if ~isempty(refnames), set(HANDLES(3),'visible','off'); end
-        HANDLES(4)=uicontrol('style','checkbox','units','norm','position',[.55,.85,.3,.05],'string','Separate by hemisphere','value',HEMSEPARATE,'backgroundcolor',bg,'callback',@conn_surf_volume_update,'parent',hfig);
-        %uicontrol('style','frame','units','norm','position',[0,.0,1,.15],'foregroundcolor','w','parent',hfig);
-        uicontrol('style','pushbutton','units','norm','position',[.65,.03,.15,.09],'string','Cancel','callback','delete(gcbf)','parent',hfig);
-        uicontrol('style','pushbutton','units','norm','position',[.80,.03,.15,.09],'string','Ok','callback','uiresume(gcbf)','parent',hfig);
         try
             if DODISP, set(hfig,'pointer','watch');pause(.001); hmsg=conn_msgbox({'Computing contours','Please wait...'}); end
             if ~isequal(DISREGARDZEROS,OLDDISREGARDZEROS)||~isequal(THR,OLDTHR)||~isequal(HEMSEPARATE,OLDHEMSEPARATE)

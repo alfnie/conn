@@ -329,16 +329,16 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_help','doc'},{@conn,'gui_help','url','https://www.conn-toolbox.org/resources'},{@conn,'gui_help','url','https://www.conn-toolbox.org/support'}} );
-	CONN_h.menus.m_setup_07b=conn_menumanager([],	'n',5,...
-									'string',{'Search by topic','Documentation & Support', 'Tutorials', 'Training', 'About CONN'},...
-									'help',{'Search for topics in a database of support questions','Access CONN documentation and user-support resources','Visit online tutorials', 'Learn about online and in-person courses', 'Information about this CONN version'},...
+	CONN_h.menus.m_setup_07b=conn_menumanager([],	'n',6,...
+									'string',{'Search by topic','Documentation & Support', 'Tutorials', 'Training', 'Newsletter','About CONN'},...
+									'help',{'Search for topics in a database of support questions','Access CONN documentation and user-support resources','Visit online tutorials', 'Learn about online and in-person courses', 'Register to receive CONN''s Monthly newsletter', 'Information about this CONN version'},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.09,.955-5*.035,.129,5*.035],...
+									'position',[.09,.955-6*.035,.129,6*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn_msghelp},CONN_h.menus.m_setup_07c, {@conn,'gui_help','url','https://www.conn-toolbox.org/tutorials'}, CONN_h.menus.m_setup_07g, {@conn,'gui_about'}} );
+									'callback',{{@conn_msghelp},CONN_h.menus.m_setup_07c, {@conn,'gui_help','url','https://www.conn-toolbox.org/tutorials'}, CONN_h.menus.m_setup_07g, {@conn,'gui_newsletter'}, {@conn,'gui_about'}} );
 	CONN_h.menus.m_setup_01c=conn_menumanager([], 'n',6,...
 									'string',{'','','','','',''},...
 									'help',{'','','','','',''},...
@@ -1474,6 +1474,11 @@ else
             end
             return;
             
+        case 'gui_newsletter'
+            answ=conn_questdlg({'CONN Monthly newsletter contains tips, highlights, and news about CONN',' ','Simply register as a CONN user to start receiving CONN Monthly newsletter (you may unsubscribe at any time)', 'Would you like to register now?'},'CONN Monthly newsletter','Register now','Cancel','Register now');
+            if strcmp(answ,'Register now'), conn_register forceregister; end
+            return
+
         case 'gui_about',
             str={};
             str{end+1}='CONN toolbox';
@@ -2272,8 +2277,8 @@ else
                         nset=1;
 						if state==3, 
                             doffset=[0 0 0 0];
-    						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.170,.30,.070,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
-    						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.245,.30,.070,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
+    						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.170,.30,.070,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);',{'',''});
+    						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.245,.30,.070,.33],'Sessions','','Select session','conn(''gui_setup'',2);',{'',''});
                             conn_setselectallmenu(CONN_h.menus.m_setup_00{1},'subjects');
                             conn_setselectallmenu(CONN_h.menus.m_setup_00{2},'sessions');
                             CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import functional data files:','*.img; *.nii; *.gii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
@@ -2290,8 +2295,8 @@ else
                             analysistypes=arrayfun(@(n)sprintf('%s',CONN_x.Setup.secondarydataset(n).label),1:numel(CONN_x.Setup.secondarydataset),'uni',0);
                             if numel(analysistypes)>0&&~isempty(CONN_x.Setup.secondarydataset(end).label), analysistypes=[analysistypes,{' '}]; end
                             CONN_h.menus.m_setup_00{7}=conn_menu('listboxbigwhite',boffset+[.140,.30,.125,.49],'Data type',analysistypes,'<HTML>Manage additional/optional imaging data files (e.g. Fieldmap files, Voxel Displacement Map files, Tissue Probability Map files, other functional datasets, etc.)<br/>Importing these imaging data files is optional. They can be used:<br/>    a) in <i>Setup.ROIs</i> to specify functional images associated with individual ROIs;<br/>    b) during <i>Preprocessing</i> as additional reference/template/fieldmap data;<br/>    or c) just for safekeeping, to facilitate viewing or restoring your functional/structural data to their state at specific landmark points during preprocessing;<br/> <br/> - select the data-type that you wish to edit, or click after the last data-type to add a new set of imaging data <br/><br/>Suggested optional data types:<br/> - <b>unsmoothed volumes</b> : enter functional data that has not been spatially smoothed, and combine with options in <i>Setup.ROIs</i> tab to allow a more accurate ROI BOLD-signal extraction<br/> - <b>FMAP</b> : enter fieldmap files for susceptibility distortion correction (e.g. phasediff and magnitude volumes) and combine with SDC options during preprocessing<br/> - <b>VDM</b> : enter voxel displacement maps for susceptibility distortion correction (e.g. vdm5_* volumes) and combine with realign-and-unwarp options during preprocessing<br/> - <b>TPM</b> : enter subject-specific tissue probability maps and combine with normalization options during preprocessing to enable anatomical/functional segmentation and normalization to non-standard templates <br/> - <b>original functional data</b> : enter raw functional data here before any preprocessing step for quality control purposes or move it to ''functionals'' if you need to restart preprocessing from scratch<br/> - <b>subject-space functional data</b> : enter functional data that is in the same space as your structural images, and combine with options in <i>Setup.ROIs</i> tab to allow the use of subject-space ROIs<br/><br/>Secondary datasets that are not explicitly used during preprocessing or explicitly selected by any ROI as their BOLD signal source will be simply ignored by CONN''s Setup/Denoising/Analysis pipeline.</HTML>','conn(''gui_setup'',7);','conn(''gui_setup'',8);'); 
-    						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.285,.30,.065,.49],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
-    						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.355,.30,.065,.49],'Sessions','','Select session','conn(''gui_setup'',2);');
+    						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.285,.30,.065,.49],'Subjects','','Select subject(s)','conn(''gui_setup'',1);',{'',''});
+    						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.355,.30,.065,.49],'Sessions','','Select session','conn(''gui_setup'',2);',{'',''});
                             conn_setselectallmenu(CONN_h.menus.m_setup_00{1},'subjects');
                             conn_setselectallmenu(CONN_h.menus.m_setup_00{2},'sessions');
                             CONN_h.menus.m_setup_00{3}=conn_menu('filesearchlocal',[],'Import other imaging data files:','*.img; *.nii; *.gii; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
@@ -2914,7 +2919,7 @@ else
                         conn_menu('frame',boffset+[.12,.08,.57,.67],'Structural data');
                         conn_menu('nullstr',{'No structural','data imported'});
 						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.180,.63,.15,.05],'',{'One anatomical scan per subject','Multiple anatomical scans per subject'},'<HTML>(only applies to studies with multiple sessions/runs) <br/> - Select the first option when the structural data does not change across sessions (enter one structural volume per subject) <br/> - Select the second option when the structural data may change across sessions (enter one structural volume per session; e.g. longitudinal studies)</HTML>','conn(''gui_setup'',13);');
-						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.180,.25,.070,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);');
+						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.180,.25,.070,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);',{'',''});
 						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.255,.25,.070,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
                         conn_setselectallmenu(CONN_h.menus.m_setup_00{1},'subjects');
                         conn_setselectallmenu(CONN_h.menus.m_setup_00{2},'sessions');
@@ -3279,8 +3284,8 @@ else
                         conn_menu('nullstr',{'No ROI','file selected'});
                         conn_menu('framewhitehighlight',boffset+[.15,.13,.075,.46]+[0 -.02 0 .02],' ');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigwhite',boffset+[.15,.13,.075,.46],'ROIs','',['<HTML>Select Region Of Interest (ROI) <br/> - click after the last item to add a new ROI <br/> - ',CONN_gui.rightclick,'-click for additional options<br/></HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
-						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{19}]=conn_menu('listbox',boffset+[.245,.13,.070,.46],'Subjects','','Select subject(s)','conn(''gui_setup'',2);');
-						[CONN_h.menus.m_setup_00{16},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.32,.13,.070,.46],'Sessions','','Select session','conn(''gui_setup'',16);');
+						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{19}]=conn_menu('listbox',boffset+[.245,.13,.070,.46],'Subjects','','Select subject(s)','conn(''gui_setup'',2);',{'',''});
+						[CONN_h.menus.m_setup_00{16},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.32,.13,.070,.46],'Sessions','','Select session','conn(''gui_setup'',16);',{'',''});
                         conn_setselectallmenu(CONN_h.menus.m_setup_00{2},'subjects');
                         conn_setselectallmenu(CONN_h.menus.m_setup_00{16},'sessions');
 						CONN_h.menus.m_setup_00{3}=conn_menu('filesearch',[],'Import ROI files:','*.img; *.nii; *.gii; *.tal; *.mgh; *.mgz; *.annot; *.gz; *-1.dcm','',{@conn,'gui_setup',3},'conn(''gui_setup'',4);');
@@ -4238,8 +4243,8 @@ else
                         conn_menu('frame',boffset+[.14,.14,.71,.67],'Experiment conditions    (within-subject factors)');
                         conn_menu('framewhitehighlight',boffset+[.18,.25,.075,.49]+[0 -.02 0 .02],' ');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigwhite',boffset+[.18,.25,.075,.49],'Conditions','',['<HTML>Select condition (experimental conditions or individual cells in your study within-subject design) <br/> - click after the last item to add a new condition <br/> - ',CONN_gui.rightclick,'-click for additional options</HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
-						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.25,.070,.49],'Subjects','','Select subject(s)','conn(''gui_setup'',2);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('listbox',boffset+[.350,.25,.070,.49],'Sessions','','Select session(s)','conn(''gui_setup'',3);');
+						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.25,.070,.49],'Subjects','','Select subject(s)','conn(''gui_setup'',2);',{'',''});
+						CONN_h.menus.m_setup_00{3}=conn_menu('listbox',boffset+[.350,.25,.070,.49],'Sessions','','Select session(s)','conn(''gui_setup'',3);',{'',''});
                         conn_setselectallmenu(CONN_h.menus.m_setup_00{2},'subjects');
                         conn_setselectallmenu(CONN_h.menus.m_setup_00{3},'sessions');
 						CONN_h.menus.m_setup_00{6}=conn_menu('edit',boffset+[.48,.71,.08,.04],'Condition name','','Condition name','conn(''gui_setup'',6);');
@@ -4711,8 +4716,8 @@ else
                         conn_menu('nullstr',{'No covariate','file selected'});
                         conn_menu('framewhitehighlight',boffset+[.18,.28,.075,.46]+[0 -.02 0 .02],' ');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigwhite',boffset+[.18,.28,.075,.46],'Covariates','',['<HTML>Select first-level covariate <br/> - click after the last item to add a new covariate <br/> - ',CONN_gui.rightclick,'-click for additional options</HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
-						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.28,.070,.46],'Subjects','','Select subject(s)','conn(''gui_setup'',2);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('listbox',boffset+[.350,.28,.070,.46],'Sessions','','Select session(s)','conn(''gui_setup'',3);');
+						CONN_h.menus.m_setup_00{2}=conn_menu('listbox',boffset+[.275,.28,.070,.46],'Subjects','','Select subject(s)','conn(''gui_setup'',2);',{'',''});
+						CONN_h.menus.m_setup_00{3}=conn_menu('listbox',boffset+[.350,.28,.070,.46],'Sessions','','Select session(s)','conn(''gui_setup'',3);',{'',''});
                         conn_setselectallmenu(CONN_h.menus.m_setup_00{2},'subjects');
                         conn_setselectallmenu(CONN_h.menus.m_setup_00{3},'sessions');
 						CONN_h.menus.m_setup_00{4}=conn_menu('filesearch',[],'Import covariate files:','*.mat; *.txt; *.par; *.1d; *.csv; *.tsv','',{@conn,'gui_setup',4},'conn(''gui_setup'',5);');
@@ -6839,7 +6844,7 @@ else
                 CONN_h.menus.m_preproc_00{55}=conn_menu('pushbutton',boffset+[.32,.08,.04,.03],'','details','display distribution of QC-FC correlations and additional stats','conn(''gui_preproc'',46);'); set(CONN_h.menus.m_preproc_00{55},'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
                 
                 CONN_h.menus.m_preproc_00{47}=uicontrol('style','text','units','norm','position',boffset+[.39,.25,.14,.05],'string',{'Participant selection','Sensitivity score (0-100):'},'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',mod(mean(CONN_gui.backgroundcolor)+.3,1)*[1 1 1],'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
-                CONN_h.menus.m_preproc_00{48}=uicontrol('style','text','units','norm','position',boffset+[.39,.21,.14,.04],'string','?','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',15+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Participant-selection<br/><br/>Suggested participant-selection excludes subjects with any subject-level QC metrics in the "extreme outlier" range (values above Q3+3*IQR or below Q1-3*IQR)<br/><br/>Suggested participant-selection group is stored in QC_ValidSubjects 2nd-level covariate<br/><br/> CONN does not enforce this participant-selection suggestion. If you wish use it (e.g. to exclude outlier subjects from a second-level analysis) simply include the 2nd-level covariate ExcludeOutlierSubjects also generated by this step in your 2nd-level model<br/><br/> Data Sensitivity score<br/><br/> Data Sensitivity score is computed as the power to detect with a p<.05 an average r=0.1 correlation in a fixed-effects analysis across subjects (excluding outlier subjects)<br/><br/> Power values above 95% are considered ideal / very-high quality <br/><br/> Power analyses approximate between-subjects variance by first-level measurement error only. Fisher transformed standard error approximation se = 1/sqrt(dof-3). Group-level analysis normal distribution approximation power = 1-CDF(1.645-0.1003*sqrt(sum(dof-3))) </HTML>'));
+                CONN_h.menus.m_preproc_00{48}=uicontrol('style','text','units','norm','position',boffset+[.39,.21,.14,.04],'string','?','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',15+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Participant-selection<br/><br/>Suggested participant-selection excludes subjects with any subject-level QC metrics in the "extreme outlier" range (values above Q3+3*IQR or below Q1-3*IQR)<br/><br/>Suggested participant-selection group is stored in QC_ValidSubjects 2nd-level covariate (and defined as QC_OutlierScore>3 when using an "extreme outlier" threshold)<br/><br/> CONN does not enforce this participant-selection suggestion. If you wish to use it (e.g. to exclude outlier subjects from a second-level analysis) simply include the 2nd-level covariate ExcludeOutlierSubjects also generated by this step in your 2nd-level model<br/><br/> Data Sensitivity score<br/><br/> Data Sensitivity score is computed as the power to detect with a p<.05 an average r=0.1 correlation in a fixed-effects analysis across subjects (excluding outlier subjects)<br/><br/> Power values above 95% are considered ideal / very-high quality <br/><br/> Power analyses approximate between-subjects variance by first-level measurement error only. Fisher transformed standard error approximation se = 1/sqrt(dof-3). Group-level analysis normal distribution approximation power = 1-CDF(1.645-0.1003*sqrt(sum(dof-3))) </HTML>'));
                 CONN_h.menus.m_preproc_00{49}=conn_menu('text',boffset+[.39,.12,.14,.07],'','','<HTML>Additional information from subject-level QC metrics<br/><br/> Suggested participant selection results (exclude subjects with any extreme outlier value in subject-level QC metrics) <br/> Average single-subject sensitivty score and degrees of freedom</HTML>'); set(CONN_h.menus.m_preproc_00{49},'foregroundcolor',CONN_gui.fontcolor,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
                 CONN_h.menus.m_preproc_00{53}=conn_menu('pushbutton',boffset+[.39,.08,.10,.03],'','','<HTML>recompute subject-level QC plots and suggested participants inclusion/exclusion using current denoising options</HTML>','conn(''gui_preproc'',48);'); set(CONN_h.menus.m_preproc_00{53},'fontsize',6+CONN_gui.font_offset);
                 CONN_h.menus.m_preproc_00{56}=conn_menu('pushbutton',boffset+[.49,.08,.04,.03],'','details','display subject-level QC measures and additional stats','conn(''gui_preproc'',49);'); set(CONN_h.menus.m_preproc_00{56},'foregroundcolor',CONN_gui.fontcolor,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
@@ -7301,7 +7306,7 @@ else
                     case 48,
                         thfig=figure('units','norm','position',[.3,.7,.5,.2],'color',1*[1 1 1],'name','Participant inclusion/exclusion criteria','numbertitle','off','menubar','none');
                         uicontrol('style','text','units','norm','position',[.1,.5,.8,.4],'string',{'Analyze distributions of subject-level QC metrics using current denoising options',' and recomputes subject-level QC outlier scores and suggested participant-selection group',' ','(quality control inputs: QC_ProportionValidScans,QC_MeanMotion,QC_MeanGSchange,QC_NORM_struct,QC_DOF,QC_PeakFC,QC_StdFC)','(quality control outputs: DS score, QC_OutlierScore, QC_ValidSubjects, QC_OutlierSubjects, ExcludeOutlierSubjects)'},'backgroundcolor',1*[1 1 1]);
-                        ht0=uicontrol('style','popupmenu','units','norm','position',[.1,.25,.8,.2],'string',{'exclusion criteria: subjects with QC metrics in extreme-outlier range (QC outlier scores above 3)','exclusion criteria: subjects with QC metrics in mild-outlier range (QC outlier scores above 1.5)','exclusion criteria: custom number of subjects with worst QC metrics (highest QC outlier scores)'},'value',1,'backgroundcolor',1*[1 1 1]);
+                        ht0=uicontrol('style','popupmenu','units','norm','position',[.1,.25,.8,.2],'string',{'exclusion criteria: subjects with QC metrics in extreme-outlier range (QC outlier scores above 3)','exclusion criteria: subjects with QC metrics in mild-outlier range (QC outlier scores above 1.5)','exclusion criteria: custom number of subjects with worse QC metrics (higher QC outlier scores)'},'value',1,'backgroundcolor',1*[1 1 1]);
                         if isfield(CONN_x.Preproc.qa,'selections3')&&~isempty(CONN_x.Preproc.qa.selections3{1}), set(ht0,'value',3-isequal(CONN_x.Preproc.qa.selections3{1},'mild')); end 
                         uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.20],'callback','uiresume');
                         uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.20],'callback','delete(gcbf)');
@@ -8238,14 +8243,14 @@ else
                     %set(CONN_h.menus.m_analyses_00{16},'horizontalalignment','left');
                     if CONN_x.Analyses(ianalysis).type==1, 
                         CONN_h.menus.m_analyses_00{1}=[]; %conn_menu('listbox',boffset+[.39,.31,.155,.13],'add to ROIs','',['<HTML>List of all possible ROIs <br/> - this list includes all ROI timeseres and first-level covariates except those<br/> which have already been defined/used as confounds during the denoising step <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',1);');
-                        CONN_h.menus.m_analyses_00{2}=conn_menu('listbox',boffset+[.175,.31,.37,.13],'ROIs','',['<HTML>List of ROIs to be included in this analysis  <br/> - Connectivity measures will be computed among all selected ROIs (for ROI-to-ROI analyses)<br/> - Select ROIs in the <i>add to Seeds/Sources</i> list and click <b> &lt </b> to add new sources to this list<br/> - Select ROIs in this list and click <b> &gt </b> to remove them from this list  <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);','conn(''gui_analyses'',0);');
+                        [CONN_h.menus.m_analyses_00{2},CONN_h.menus.m_analyses_00{31}]=conn_menu('listbox',boffset+[.175,.31,.37,.13],'ROIs','',['<HTML>List of ROIs to be included in this analysis  <br/> - Connectivity measures will be computed among all selected ROIs (for ROI-to-ROI analyses)<br/> - Select ROIs in the <i>add to Seeds/Sources</i> list and click <b> &lt </b> to add new sources to this list<br/> - Select ROIs in this list and click <b> &gt </b> to remove them from this list  <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);','conn(''gui_analyses'',0);');
                         CONN_h.menus.m_analyses_00{30}=[]; %conn_menu('pushbutton',boffset+[.37,.31,.02,.13],'',CONN_gui.leftarrow,'add/remove elements from the list of ROIs for this analysis', 'conn(''gui_analyses'',0);');
                         CONN_h.menus.m_analyses_00{6}=conn_menu('edit',boffset+[.345,.19,.20,.04],'ROI components','','<HTML>Number of dimensions/components of selected ROI <br/> - note: all dimensions/components will be entered into a single/combined first-level GLM analysis</HTML>','conn(''gui_analyses'',6);');
                         CONN_h.menus.m_analyses_00{19}=conn_menu('popup',boffset+[.22,.22,.09,.04],'',{'ROI timeseries','First-level analysis design matrix'},'<HTML>Choose display type<br/> - <i>ROI timeseries</i> displays the BOLD signal timeseries for the selected ROI/subject/session<br/> - <i>Design matrix</i> displays the scans-by-regressors first-level design matrix for the selected <br/> ROI/subject/session (highlighted the regressor of interest for second-level analyses)</HTML>','conn(''gui_analyses'',19);');
                     else
                         %conn_menu('framewhitehighlight',boffset+[.175,.29,.35,.14],' ');
                         CONN_h.menus.m_analyses_00{1}=[]; %conn_menu('listbox',boffset+[.39,.31,.155,.13],'add to Seeds','',['<HTML>List of all possible seeds/ROIs <br/> - this list includes all ROI timeseres and first-level covariates except those<br/> which have already been defined/used as confounds during the denoising step <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',1);');
-                        CONN_h.menus.m_analyses_00{2}=conn_menu('listbox',boffset+[.175,.31,.37,.13],'Seeds','',['<HTML>List of seeds/ROIs to be included in this analysis  <br/> - Connectivity measures will be computed among all selected ROIs (for ROI-to-ROI analyses) and/or between the selected ROIs and all brain voxels (seed-to-voxel analyses) <br/> - Select ROIs in the <i>add to Seeds/Sources</i> list and click <b> &lt </b> to add new sources to this list<br/> - Select ROIs in this list and click <b> &gt </b> to remove them from this list  <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);','conn(''gui_analyses'',0);');
+                        [CONN_h.menus.m_analyses_00{2},CONN_h.menus.m_analyses_00{31}]=conn_menu('listbox',boffset+[.175,.31,.37,.13],'Seeds','',['<HTML>List of seeds/ROIs to be included in this analysis  <br/> - Connectivity measures will be computed among all selected ROIs (for ROI-to-ROI analyses) and/or between the selected ROIs and all brain voxels (seed-to-voxel analyses) <br/> - Select ROIs in the <i>add to Seeds/Sources</i> list and click <b> &lt </b> to add new sources to this list<br/> - Select ROIs in this list and click <b> &gt </b> to remove them from this list  <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);','conn(''gui_analyses'',0);');
                         CONN_h.menus.m_analyses_00{30}=[]; %conn_menu('pushbutton',boffset+[.37,.31,.02,.13],'',CONN_gui.leftarrow,'add/remove elements from the list of Seeds/Sources for this analysis', 'conn(''gui_analyses'',0);');
                         CONN_h.menus.m_analyses_00{6}=conn_menu('edit',boffset+[.345,.19,.20,.04],'Seed components','','<HTML>Number of dimensions/components of selected Seeds/Sources<br/> - note: all dimensions/components will be entered into a single/combined first-level GLM analysis</HTML>','conn(''gui_analyses'',6);');
                         CONN_h.menus.m_analyses_00{19}=conn_menu('popup',boffset+[.22,.22,.09,.04],'',{'Seed timeseries','First-level analysis design matrix'},'<HTML>Choose display type<br/> - <i>Source timeseries</i> displays the BOLD signal timeseries for the selected seed/subject/session<br/> - <i>Design matrix</i> displays the scans-by-regressors first-level design matrix for the selected <br/> seed/subject/session (highlighted the regressor of interest for second-level analyses)</HTML>','conn(''gui_analyses'',19);');
@@ -8303,7 +8308,8 @@ else
                     %tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names)),'uni',0);
                     %set(CONN_h.menus.m_analyses_00{1},'string',tnames);
                     tnames=CONN_x.Analyses(ianalysis).regressors.names; tnames{end+1}=' ';
-                    set(CONN_h.menus.m_analyses_00{2},'string',tnames);
+                    set(CONN_h.menus.m_analyses_00{2},'string',tnames); 
+                    if CONN_x.Analyses(ianalysis).type==1, ,set(CONN_h.menus.m_analyses_00{31},'string',sprintf('ROIs (%d)',numel(tnames)-1)); else set(CONN_h.menus.m_analyses_00{31},'string',sprintf('Seeds (%d)',numel(tnames)-1)); end
                     %conn_menumanager(CONN_h.menus.m_analyses_01,'on',1);
                     if ~isempty(CONN_x.Analyses(ianalysis).regressors.names), set(CONN_h.menus.m_analyses_00{2},'value',1); end %set(CONN_h.menus.m_analyses_00{13},'value',2); end
                     %set(CONN_h.menus.m_analyses_00{4},'visible','off');%
@@ -8324,6 +8330,7 @@ else
                             CONN_x.Analyses(ianalysis).regressors.dimensions={CONN_x.Analyses(ianalysis).regressors.dimensions{idx}};
                             tnames=CONN_x.Analyses(ianalysis).regressors.names; tnames{end+1}=' ';
                             set(CONN_h.menus.m_analyses_00{2},'string',tnames,'value',[]);
+                            if CONN_x.Analyses(ianalysis).type==1, ,set(CONN_h.menus.m_analyses_00{31},'string',sprintf('ROIs (%d)',numel(tnames)-1)); else set(CONN_h.menus.m_analyses_00{31},'string',sprintf('Seeds (%d)',numel(tnames)-1)); end
                             %set(CONN_h.menus.m_analyses_00{13},'string',{' all confounds',CONN_x.Analyses(ianalysis).regressors.names{:}},'value',min(max(get(CONN_h.menus.m_analyses_00{13},'value')),length(CONN_x.Analyses(ianalysis).regressors.names)+1));
                             %tnames=CONN_x.Analysis_variables.names;
                             %tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.Analysis_variables.names,CONN_x.Analyses(ianalysis).regressors.names)),'uni',0);
@@ -8381,6 +8388,7 @@ else
                                         end
                                         tnames=CONN_x.Analyses(ianalysis).regressors.names; tnames{end+1}=' ';
                                         set(CONN_h.menus.m_analyses_00{2},'string',tnames);
+                                        if CONN_x.Analyses(ianalysis).type==1, ,set(CONN_h.menus.m_analyses_00{31},'string',sprintf('ROIs (%d)',numel(tnames)-1)); else set(CONN_h.menus.m_analyses_00{31},'string',sprintf('Seeds (%d)',numel(tnames)-1)); end
                                     end
                                 end
                                 %set(CONN_h.menus.m_analyses_00{13},'value',nregressors+1);
@@ -11036,7 +11044,7 @@ else
                         %CONN_h.menus.m_results_00{31}=conn_menu('popup2',boffset+[.63,pos(2)+pos(4),.26,.04],'',strstr3,'choose target ROIs','conn(''gui_results'',31);');
                         %set(CONN_h.menus.m_results_00{31},'value',CONN_x.Results.xX.displayrois);
                         CONN_h.menus.m_results_00{46}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.095,.165,.045],'','Display Results','<HTML>Computes (or displays, if already computed) analyses of the entire ROI-to-ROI connectivity matrix, including connection-level and cluster-level statistics</HTML>','conn(''gui_results'',46);');
-                        CONN_h.menus.m_results_00{52}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.140,.165,.045],'','GRAPH-THEORY RESULTS','<HTML>Computes graph-theoretical analyses of the entire ROI-to-ROI connectivity matrix, including network- and ROI-level statistics</HTML>','conn(''gui_results_graphtheory'');');
+                        CONN_h.menus.m_results_00{52}=conn_menu('pushbuttonblue2',boffset+[pos(1)+.09,pos(2)-.140,.165,.045],'','Graph-Theory Results','<HTML>Computes graph-theoretical analyses of the entire ROI-to-ROI connectivity matrix, including network- and ROI-level statistics</HTML>','conn(''gui_results_graphtheory'');');
                         
                         %CONN_h.menus.m_results_00{28}=uicontrol('style','popupmenu','units','norm','position',boffset+[.81,.08,.08,.045],'string',strstr1,'fontsize',8+CONN_gui.font_offset,'value',CONN_x.Results.xX.inferencetype,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','choose inference directionality','callback','conn(''gui_results'',28);');
                         %CONN_h.menus.m_results_00{27}=uicontrol('style','popupmenu','units','norm','position',boffset+[.71,.08,.10,.045],'string',strstr2,'fontsize',8+CONN_gui.font_offset,'value',CONN_x.Results.xX.inferenceleveltype,'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',[0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),'tooltipstring','choose type of false-positive control','callback','conn(''gui_results'',29);');

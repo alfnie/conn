@@ -1,8 +1,25 @@
 function score=conn_qascores(option, folderout, subjects, QC_variables, Control_variables, SubjectExclusionCriteria)
-% internal function
+% internal function to compute Data Validity, Data Quality, and Data Sensitivity scores (see https://web.conn-toolbox.org/fmri-methods/denoising-pipeline for definitions and other details)
+%
 % conn_qascore('DataValidity', folderout, subjects)
+%   Computes Data Validity score (DataValidityScore.mat output file)
+%   Creates FC histogram plot with details of each subject's FC distribution
+%   Additional outputs: QC_DOF, QC_PeakFC, QC_IqrFC, QC_MeanFC, QC_StdFC (2nd-level covariates updated to use current denoising options in CONN project)
+%
 % conn_qascore('DataQuality', folderout, subjects, QC_variables, Control_variables)
-% conn_qascore('DataSensitivity', folderout, subjects, QC_variables)
+%   Computes Data Quality score (DataQualityScore.mat output file)
+%   Creates QC-FC correlation plots with details of each subject's association between quality control and functional connectivity measures
+%   QC_variables        : QC variables to be used in QC-FC correlations; default {'QC_InvalidScans','QC_ProportionValidScans','QC_MeanMotion'}
+%   Control_variables   : Control variables (QC-FC correlations while controlling by these factors); default {}
+%
+% conn_qascore('DataSensitivity', folderout, subjects, QC_variables, [], SubjectExclusionCriteria)
+%   Computes Data Sensitivity score (DataSensitivityScore.mat output file)
+%   Creates QC histogram plots with details of each subject quality control measures (identifying potential outlier subjects)
+%   QC_variables        : QC variables to be used for subject outliers; default {'QC_ProportionValidScans','QC_MeanMotion','QC_MeanGSchange','QC_NORM_struct','QC_DOF','QC_PeakFC','QC_StdFC'}
+%   SubjectExclusionCriteria : 'extreme' (default) subjects with QC_OutlierScore above 3 are selected as potential outliers (QC values above 3 IQR above Q3 or below Q1)
+%                              'mild' subjects with QC_OutlierScore above 1.5 are selected as potential outliers (QC values above 1.5 IQR above Q3 or below Q1)
+%                              [N] number of subjects with highest QC_OutierScore values to select as potential outliers
+%   Additional outputs: QC_DOF, QC_PeakFC, QC_IqrFC, QC_MeanFC, QC_StdFC (2nd-level covariates updated to use current denoising options in CONN project)
 
 global CONN_x;
 
@@ -84,6 +101,13 @@ switch(lower(option)) % Data Validity score
             conn_disp('Unable to compute Data Sensitivity. Expected the following QC_ 2nd-level covariates: QC_ProportionValidScans|QC_MeanMotion|QC_MeanGSchange|QC_NORM_struct|QC_DOF|QC_PeakFC|QC_StdFC');
         else
             if nargin<5, SubjectExclusionCriteria=[]; end
+            if ischar(SubjectExclusionCriteria), 
+                switch(lower(SubjectExclusionCriteria))
+                    case 'mild', SubjectExclusionCriteria='mild';
+                    case 'extreme', SubjectExclusionCriteria=[];
+                    otherwise, error('unrecognized SubjectExclusionCriteria value %s',SubjectExclusionCriteria);
+                end
+            end
             try
                 conn_process('qaplots',conn_server('util_localfile',folderout),{'QA_COV'},subjects,[],[],QC_variables);
                 %conn_batch(...
@@ -92,7 +116,7 @@ switch(lower(option)) % Data Validity score
                 %    'QA.foldername',    folderout,...
                 %    'subjects',subjects);
                 QC_OutlierScore=conn_module('get','l2covariates','QC_OutlierScore');
-                if isequal(SubjectExclusionCriteria,'mild') % note: default behavior is to remove severe outliers (QC_OutlierScore>3)
+                if isequal(SubjectExclusionCriteria,'mild') % note: default behavior of QC_COV is to have QC_ValidSubjects identify severe outliers (QC_OutlierScore>3)
                     QC_ValidSubjects=QC_OutlierScore<=1.5;
                     conn_importl2covariate({'QC_ValidSubjects','QC_OutlierSubjects','ExcludeOutlierSubjects'},{QC_ValidSubjects,~QC_ValidSubjects,0./~QC_ValidSubjects},0);
                 elseif ~isempty(SubjectExclusionCriteria) % changes QC_ValidSubjects, QC_OutlierSubjects, and ExcludeOutlierSubjects to new participant exclusion criteria (fixed number of excluded subjects, instead of default OutlierScore>3 threshold)

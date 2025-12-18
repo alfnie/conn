@@ -1,0 +1,14 @@
+Schaefer 2018 parcellation 
+400 ROIs
+7 networks
+
+Original source: Schaefer2018_400Parcels_7Networks_order_FSLMNI152_1mm
+Labels modified to:
+  + add ROI centroid coordinates in mm units
+  + add Harvard-Oxford atlas label of region with maximum overlap volume with each Schaefer400 ROI
+
+
+References:
+[1] https://github.com/ThomasYeoLab/CBIG/tree/v0.14.3-Update_Yeo2011_Schaefer2018_labelname/stable_projects/brain_parcellation/Schaefer2018_LocalGlobal/Parcellations. Accessed: 2021-05-19.
+[2] Alexander Schaefer, Ru Kong, Evan M Gordon, Timothy O Laumann, Xi-Nian Zuo, Avram J Holmes, Simon B Eickhoff, and B T Thomas Yeo. Local-Global Parcellation of the Human Cerebral Cortex from Intrinsic Functional Connectivity MRI. Cerebral Cortex, 28(9):3095–3114, 07 2017. doi:10.1093/cercor/bhx179.
+[3] B. T. Thomas Yeo, Fenna M. Krienen, Jorge Sepulcre, Mert R. Sabuncu, Danial Lashkari, Marisa Hollinshead, Joshua L. Roffman, Jordan W. Smoller, Lilla Zöllei, Jonathan R. Polimeni, Bruce Fischl, Hesheng Liu, and Randy L. Buckner. The organization of the human cerebral cortex estimated by intrinsic functional connectivity. Journal of Neurophysiology, 106(3):1125–1165, 2011. PMID: 21653723. doi:10.1152/jn.00338.2011.

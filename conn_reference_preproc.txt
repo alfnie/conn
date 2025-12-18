@@ -84,7 +84,7 @@ Functional data were normalized into standard MNI space and resampled to [VALUE 
 Functional and anatomical data were coregistered using SPM intermodality coregistration procedure [CITATION13] with a normalised mutual information objective function [CITATION14]. 
 
 #functional_coregister_affine_reslice
-Functional and anatomical data were coregistered using SPM intermodality coregistration procedure [CITATION13] with a normalised mutual information objective function [CITATION14], and resampled using b-spline interpolation. 
+Functional and anatomical data were coregistered using SPM intermodality coregistration procedure [CITATION13] with a normalised mutual information objective function [CITATION14]. 
 
 #functional_coregister_nonlinear
 Functional and anatomical data were coregistered following a direct normalization procedure [CITATION7][CITATION11] using SPM unified segmentation and normalization algorithm [CITATION8][CITATION12] [IFEMPTY tpm_template 1 with the default IXI-549 tissue probability map template][IFEMPTY tpm_template 0 with an alternative tissue probability map (TPM) template].
