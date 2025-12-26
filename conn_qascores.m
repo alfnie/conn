@@ -19,6 +19,7 @@ function score=conn_qascores(option, folderout, subjects, QC_variables, Control_
 %   SubjectExclusionCriteria : 'extreme' (default) subjects with QC_OutlierScore above 3 are selected as potential outliers (QC values above 3 IQR above Q3 or below Q1)
 %                              'mild' subjects with QC_OutlierScore above 1.5 are selected as potential outliers (QC values above 1.5 IQR above Q3 or below Q1)
 %                              [N] number of subjects with highest QC_OutierScore values to select as potential outliers
+%                              otherwise name of second-level covariate defining group of subjects to include (1's) and exclude (0's)
 %   Additional outputs: QC_DOF, QC_PeakFC, QC_IqrFC, QC_MeanFC, QC_StdFC (2nd-level covariates updated to use current denoising options in CONN project)
 
 global CONN_x;
@@ -105,7 +106,7 @@ switch(lower(option)) % Data Validity score
                 switch(lower(SubjectExclusionCriteria))
                     case 'mild', SubjectExclusionCriteria='mild';
                     case 'extreme', SubjectExclusionCriteria=[];
-                    otherwise, error('unrecognized SubjectExclusionCriteria value %s',SubjectExclusionCriteria);
+                    otherwise, assert(~isempty(conn_module('get','l2covariates',SubjectExclusionCriteria)),'unrecognized SubjectExclusionCriteria value %s',SubjectExclusionCriteria);
                 end
             end
             try
@@ -116,8 +117,12 @@ switch(lower(option)) % Data Validity score
                 %    'QA.foldername',    folderout,...
                 %    'subjects',subjects);
                 QC_OutlierScore=conn_module('get','l2covariates','QC_OutlierScore');
-                if isequal(SubjectExclusionCriteria,'mild') % note: default behavior of QC_COV is to have QC_ValidSubjects identify severe outliers (QC_OutlierScore>3)
-                    QC_ValidSubjects=QC_OutlierScore<=1.5;
+                if ~isempty(SubjectExclusionCriteria)&&ischar(SubjectExclusionCriteria)
+                    if isequal(SubjectExclusionCriteria,'mild') % note: default behavior of QC_COV is to have QC_ValidSubjects identify severe outliers (QC_OutlierScore>3)
+                        QC_ValidSubjects=QC_OutlierScore<=1.5;
+                    else 
+                        QC_ValidSubjects=conn_module('get','l2covariates',SubjectExclusionCriteria)>0;
+                    end
                     conn_importl2covariate({'QC_ValidSubjects','QC_OutlierSubjects','ExcludeOutlierSubjects'},{QC_ValidSubjects,~QC_ValidSubjects,0./~QC_ValidSubjects},0);
                 elseif ~isempty(SubjectExclusionCriteria) % changes QC_ValidSubjects, QC_OutlierSubjects, and ExcludeOutlierSubjects to new participant exclusion criteria (fixed number of excluded subjects, instead of default OutlierScore>3 threshold)
                     [nill,idx]=sort(QC_OutlierScore);

@@ -2,207 +2,773 @@ ROI order/clusters for Harvard-Oxford ROIs (conn/rois/atlas.nii)
 
 These clusters have been derived using CONN's default ROI clustering and ordering procedures (complete-linkage 
 hierarchical clustering, Sorensen 1948; optimal leaf ordering for hierarchical clustering, Bar-Joseph 
-et al. 2001) applied to Cambridge 1000-connectomes resting state datadataset (n=198; http://www.nitrc.org/projects/fcon_1000;
-dataset preprocessed and denoised using CONN19b default options for volume-based analyses, direct MNI normalization) 
+et al. 2001) applied to Cambridge 1000-connectomes resting state datadataset (n=590; http://www.nitrc.org/projects/fcon_1000;
+dataset preprocessed and denoised using CONN22 default options for volume-based analyses, direct MNI normalization) 
 
+These analyses resulted in the following groups/order, manually labeled to match current network-level naming conventions:
 
-22 networks / 132 ROIs
+Auditory
+-----------------------------------------------------------
+atlas.IC l (Insular Cortex Left)
+atlas.IC r (Insular Cortex Right)
+atlas.PP r (Planum Polare Right)
+atlas.HG r (Heschl's Gyrus Right)
+atlas.PT r (Planum Temporale Right)
+atlas.PO r (Parietal Operculum Cortex Right)
+atlas.CO r (Central Opercular Cortex Right)
+atlas.CO l (Central Opercular Cortex Left)
+atlas.PO l (Parietal Operculum Cortex Left)
+atlas.PT l (Planum Temporale Left)
+atlas.HG l (Heschl's Gyrus Left)
+atlas.PP l (Planum Polare Left)
 
-pDMN (posterior Default Mode Network)
+SomatoMotor
 -----------------------------------------------------------
-atlas.PC (Cingulate Gyrus, posterior division)
-atlas.Precuneous (Precuneous Cortex)          
- 
-aDMN (anterior Default Mode Network)
+atlas.aSTG l (Superior Temporal Gyrus, anterior division Left)
+atlas.pSTG l (Superior Temporal Gyrus, posterior division Left)
+atlas.pSTG r (Superior Temporal Gyrus, posterior division Right)
+atlas.aSTG r (Superior Temporal Gyrus, anterior division Right)
+atlas.PostCG r (Postcentral Gyrus Right)
+atlas.PostCG l (Postcentral Gyrus Left)
+atlas.PreCG l (Precentral Gyrus Left)
+atlas.PreCG r (Precentral Gyrus Right)
+atlas.SMA r (Juxtapositional Lobule Cortex -formerly Supplementary Motor Cortex- Right)
+atlas.SMA L(Juxtapositional Lobule Cortex -formerly Supplementary Motor Cortex- Left)
+
+Subcortical
 -----------------------------------------------------------
-atlas.aMTG r (Middle Temporal Gyrus, anterior division Right)
-atlas.aMTG l (Middle Temporal Gyrus, anterior division Left) 
-atlas.MedFC (Frontal Medial Cortex)                          
-atlas.SubCalC (Subcallosal Cortex)                           
- 
-PaCiG (paracingulate Gyrus)
------------------------------------------------------------
-atlas.PaCiG r (Paracingulate Gyrus Right)
-atlas.PaCiG l (Paracingulate Gyrus Left) 
- 
-Thalamus
------------------------------------------------------------
-atlas.Thalamus r 
-atlas.Thalamus l 
-atlas.Caudate r  
-atlas.Caudate l  
+atlas.Putamen r
+atlas.Putamen l
+atlas.Pallidum l
+atlas.Pallidum r
 atlas.Accumbens r
 atlas.Accumbens l
- 
-FPN (R) (Fronto Parietal Network, right hemisphere)
------------------------------------------------------------
-atlas.FP r (Frontal Pole Right)           
-atlas.SFG r (Superior Frontal Gyrus Right)
-atlas.MidFG r (Middle Frontal Gyrus Right)
- 
-Lang (R) (Language Network, right Hemisphere)
------------------------------------------------------------
-atlas.IFG oper r (Inferior Frontal Gyrus, pars opercularis Right) 
-atlas.toMTG r (Middle Temporal Gyrus, temporooccipital part Right)
-atlas.pSMG r (Supramarginal Gyrus, posterior division Right)      
- 
-Limbic / aPaHC (Limbic & anterior Parahippocampal Cortex)
------------------------------------------------------------
-atlas.aPaHC r (Parahippocampal Gyrus, anterior division Right)     
-atlas.aPaHC l (Parahippocampal Gyrus, anterior division Left)      
-atlas.aTFusC r (Temporal Fusiform Cortex, anterior division Right) 
-atlas.aTFusC l (Temporal Fusiform Cortex, anterior division Left)  
-atlas.pTFusC r (Temporal Fusiform Cortex, posterior division Right)
-atlas.pTFusC l (Temporal Fusiform Cortex, posterior division Left) 
-atlas.Hippocampus r                                                
-atlas.Hippocampus l                                                
-atlas.Amygdala r                                                   
-atlas.Amygdala l                                                   
- 
-Cerebellum / pPaHC (Cerebellum & posterior Parahippocampal Cortex)
------------------------------------------------------------
-atlas.pPaHC r (Parahippocampal Gyrus, posterior division Right)
-atlas.pPaHC l (Parahippocampal Gyrus, posterior division Left) 
-atlas.Brain-Stem                                               
-atlas.Cereb3 l (Cerebelum 3 Left)                              
-atlas.Cereb3 r (Cerebelum 3 Right)                             
-atlas.Cereb9 l (Cerebelum 9 Left)                              
-atlas.Cereb9 r (Cerebelum 9 Right)                             
-atlas.Ver12 (Vermis 1 2)                                       
-atlas.Ver3 (Vermis 3)                                          
-atlas.Ver10 (Vermis 10)                                        
- 
-ITG (Inferior Temporal Gyrus)
------------------------------------------------------------
-atlas.IFG tri r (Inferior Frontal Gyrus, pars triangularis Right)
-atlas.aITG r (Inferior Temporal Gyrus, anterior division Right)  
-atlas.aITG l (Inferior Temporal Gyrus, anterior division Left)   
-atlas.pITG r (Inferior Temporal Gyrus, posterior division Right) 
-atlas.pITG l (Inferior Temporal Gyrus, posterior division Left)  
-atlas.FOrb r (Frontal Orbital Cortex Right)                      
-atlas.FOrb l (Frontal Orbital Cortex Left)                       
- 
-FPN / Lang (L) (Fronto Parietal & Language Network, left hemisphere)
------------------------------------------------------------
-atlas.FP l (Frontal Pole Left)                                   
-atlas.SFG l (Superior Frontal Gyrus Left)                        
-atlas.MidFG l (Middle Frontal Gyrus Left)                        
-atlas.IFG tri l (Inferior Frontal Gyrus, pars triangularis Left) 
-atlas.IFG oper l (Inferior Frontal Gyrus, pars opercularis Left) 
-atlas.toMTG l (Middle Temporal Gyrus, temporooccipital part Left)
-atlas.pSMG l (Supramarginal Gyrus, posterior division Left)      
- 
-Motor (Motor areas)
------------------------------------------------------------
-atlas.PreCG r (Precentral Gyrus Right)  
-atlas.PreCG l (Precentral Gyrus Left)   
-atlas.PostCG r (Postcentral Gyrus Right)
-atlas.PostCG l (Postcentral Gyrus Left) 
- 
-Auditory (Auditory areas)
------------------------------------------------------------
-atlas.IC r (Insular Cortex Right)                                                      
-atlas.IC l (Insular Cortex Left)                                                       
-atlas.SMA r (Juxtapositional Lobule Cortex -formerly Supplementary Motor Cortex- Right)
-atlas.SMA L(Juxtapositional Lobule Cortex -formerly Supplementary Motor Cortex- Left)  
-atlas.CO r (Central Opercular Cortex Right)                                            
-atlas.CO l (Central Opercular Cortex Left)                                             
-atlas.PO r (Parietal Operculum Cortex Right)                                           
-atlas.PO l (Parietal Operculum Cortex Left)                                            
-atlas.PP r (Planum Polare Right)                                                       
-atlas.PP l (Planum Polare Left)                                                        
-atlas.HG r (Heschl's Gyrus Right)                                                      
-atlas.HG l (Heschl's Gyrus Left)                                                       
-atlas.PT r (Planum Temporale Right)                                                    
-atlas.PT l (Planum Temporale Left)                                                     
- 
-sLOC (superior Latereal Occipital Cortex)
------------------------------------------------------------
-atlas.sLOC r (Lateral Occipital Cortex, superior division Right)
-atlas.sLOC l (Lateral Occipital Cortex, superior division Left) 
- 
-Cereb Crus (Cerebellar Crus)
------------------------------------------------------------
-atlas.Cereb1 l (Cerebelum Crus1 Left) 
-atlas.Cereb1 r (Cerebelum Crus1 Right)
-atlas.Cereb2 l (Cerebelum Crus2 Left) 
-atlas.Cereb2 r (Cerebelum Crus2 Right)
-atlas.Cereb7 l (Cerebelum 7b Left)    
-atlas.Cereb7 r (Cerebelum 7b Right)   
- 
-lDMN (lateral Default Mode Network areas)
------------------------------------------------------------
-atlas.pMTG r (Middle Temporal Gyrus, posterior division Right)
-atlas.pMTG l (Middle Temporal Gyrus, posterior division Left) 
-atlas.AG r (Angular Gyrus Right)                              
-atlas.AG l (Angular Gyrus Left)                               
- 
-STG (Superior Temporal Gyrus)
------------------------------------------------------------
-atlas.TP r (Temporal Pole Right)                                
-atlas.TP l (Temporal Pole Left)                                 
-atlas.aSTG r (Superior Temporal Gyrus, anterior division Right) 
-atlas.aSTG l (Superior Temporal Gyrus, anterior division Left)  
-atlas.pSTG r (Superior Temporal Gyrus, posterior division Right)
-atlas.pSTG l (Superior Temporal Gyrus, posterior division Left) 
- 
-aSMG (anterior Supramarginal Gyrus)
+atlas.Caudate r
+atlas.Caudate l
+atlas.Thalamus l
+atlas.Thalamus r
+
+Salience
 -----------------------------------------------------------
 atlas.aSMG r (Supramarginal Gyrus, anterior division Right)
-atlas.aSMG l (Supramarginal Gyrus, anterior division Left) 
- 
-Salience (Salience network)
------------------------------------------------------------
+atlas.aSMG l (Supramarginal Gyrus, anterior division Left)
+atlas.FO l (Frontal Operculum Cortex Left)
+atlas.FO r (Frontal Operculum Cortex Right)
 atlas.AC (Cingulate Gyrus, anterior division)
-atlas.FO r (Frontal Operculum Cortex Right)  
-atlas.FO l (Frontal Operculum Cortex Left)   
-atlas.Putamen r                              
-atlas.Putamen l                              
-atlas.Pallidum r                             
-atlas.Pallidum l                             
- 
-Visual. Primary (primary Visual areas)
+atlas.PaCiG r (Paracingulate Gyrus Right)
+atlas.PaCiG l (Paracingulate Gyrus Left)
+
+FPN (left hemisphere)
 -----------------------------------------------------------
-atlas.ICC r (Intracalcarine Cortex Right)
-atlas.ICC l (Intracalcarine Cortex Left) 
-atlas.Cuneal r (Cuneal Cortex Right)     
-atlas.Cuneal l (Cuneal Cortex Left)      
-atlas.LG r (Lingual Gyrus Right)         
-atlas.LG l (Lingual Gyrus Left)          
-atlas.SCC r (Supracalcarine Cortex Right)
-atlas.SCC l (Supracalcarine Cortex Left) 
- 
-Visual. Secondary (secondary Visual areas)
+atlas.FP l (Frontal Pole Left)
+atlas.SFG l (Superior Frontal Gyrus Left)
+atlas.MidFG l (Middle Frontal Gyrus Left)
+atlas.IFG tri l (Inferior Frontal Gyrus, pars triangularis Left)
+atlas.IFG oper l (Inferior Frontal Gyrus, pars opercularis Left)
+atlas.toMTG l (Middle Temporal Gyrus, temporooccipital part Left)
+atlas.pSMG l (Supramarginal Gyrus, posterior division Left)
+atlas.AG l (Angular Gyrus Left)
+atlas.pMTG l (Middle Temporal Gyrus, posterior division Left)
+
+FPN (right hemisphere)
 -----------------------------------------------------------
-atlas.iLOC r (Lateral Occipital Cortex, inferior division Right)
-atlas.iLOC l (Lateral Occipital Cortex, inferior division Left) 
-atlas.TOFusC r (Temporal Occipital Fusiform Cortex Right)       
-atlas.TOFusC l (Temporal Occipital Fusiform Cortex Left)        
-atlas.OFusG r (Occipital Fusiform Gyrus Right)                  
-atlas.OFusG l (Occipital Fusiform Gyrus Left)                   
-atlas.OP r (Occipital Pole Right)                               
-atlas.OP l (Occipital Pole Left)                                
- 
-DAN (Dorsal Attention Network)
+atlas.pMTG r (Middle Temporal Gyrus, posterior division Right)
+atlas.AG r (Angular Gyrus Right)
+atlas.MidFG r (Middle Frontal Gyrus Right)
+atlas.FP r (Frontal Pole Right)
+atlas.SFG r (Superior Frontal Gyrus Right)
+atlas.pSMG r (Supramarginal Gyrus, posterior division Right)
+atlas.IFG oper r (Inferior Frontal Gyrus, pars opercularis Right)
+atlas.IFG tri r (Inferior Frontal Gyrus, pars triangularis Right)
+atlas.toMTG r (Middle Temporal Gyrus, temporooccipital part Right)
+
+DMN (anterior)
 -----------------------------------------------------------
+atlas.pITG r (Inferior Temporal Gyrus, posterior division Right)
+atlas.aITG r (Inferior Temporal Gyrus, anterior division Right)
+atlas.aITG l (Inferior Temporal Gyrus, anterior division Left)
+atlas.pITG l (Inferior Temporal Gyrus, posterior division Left)
+atlas.FOrb l (Frontal Orbital Cortex Left)
+atlas.FOrb r (Frontal Orbital Cortex Right)
+atlas.TP r (Temporal Pole Right)
+atlas.TP l (Temporal Pole Left)
+atlas.aMTG l (Middle Temporal Gyrus, anterior division Left)
+atlas.aMTG r (Middle Temporal Gyrus, anterior division Right)
+atlas.MedFC (Frontal Medial Cortex)
+atlas.SubCalC (Subcallosal Cortex)
+
+Limbic
+-----------------------------------------------------------
+atlas.aPaHC r (Parahippocampal Gyrus, anterior division Right)
+atlas.aPaHC l (Parahippocampal Gyrus, anterior division Left)
+atlas.Hippocampus l
+atlas.Hippocampus r
+atlas.Amygdala r
+atlas.Amygdala l
+atlas.aTFusC l (Temporal Fusiform Cortex, anterior division Left)
+atlas.aTFusC r (Temporal Fusiform Cortex, anterior division Right)
+atlas.pTFusC r (Temporal Fusiform Cortex, posterior division Right)
+atlas.pTFusC l (Temporal Fusiform Cortex, posterior division Left)
+atlas.pPaHC l (Parahippocampal Gyrus, posterior division Left)
+atlas.pPaHC r (Parahippocampal Gyrus, posterior division Right)
+
+DMN (posterior)
+-----------------------------------------------------------
+atlas.PC (Cingulate Gyrus, posterior division)
+atlas.Precuneous (Precuneous Cortex)
+atlas.sLOC r (Lateral Occipital Cortex, superior division Right)
+atlas.sLOC l (Lateral Occipital Cortex, superior division Left)
+atlas.toITG l (Inferior Temporal Gyrus, temporooccipital part Left)
 atlas.toITG r (Inferior Temporal Gyrus, temporooccipital part Right)
-atlas.toITG l (Inferior Temporal Gyrus, temporooccipital part Left) 
-atlas.SPL r (Superior Parietal Lobule Right)                        
-atlas.SPL l (Superior Parietal Lobule Left)                         
- 
-Cerebellum
+atlas.SPL r (Superior Parietal Lobule Right)
+atlas.SPL l (Superior Parietal Lobule Left)
+
+Cereb (anterior)
 -----------------------------------------------------------
-atlas.Cereb45 l (Cerebelum 4 5 Left) 
+atlas.Cereb10 r (Cerebelum 10 Right)
+atlas.Cereb10 l (Cerebelum 10 Left)
+atlas.Ver10 (Vermis 10)
+atlas.Ver12 (Vermis 1 2)
+atlas.Cereb3 l (Cerebelum 3 Left)
+atlas.Cereb3 r (Cerebelum 3 Right)
+atlas.Ver3 (Vermis 3)
+atlas.Brain-Stem
+atlas.Ver9 (Vermis 9)
+atlas.Cereb9 l (Cerebelum 9 Left)
+atlas.Cereb9 r (Cerebelum 9 Right)
+atlas.Cereb8 r (Cerebelum 8 Right)
+atlas.Cereb8 l (Cerebelum 8 Left)
+atlas.Cereb7 l (Cerebelum 7b Left)
+atlas.Cereb2 l (Cerebelum Crus2 Left)
+atlas.Cereb1 l (Cerebelum Crus1 Left)
+atlas.Cereb7 r (Cerebelum 7b Right)
+atlas.Cereb2 r (Cerebelum Crus2 Right)
+atlas.Cereb1 r (Cerebelum Crus1 Right)
+
+Cereb (posterior)
+-----------------------------------------------------------
+atlas.Cereb6 r (Cerebelum 6 Right)
+atlas.Cereb6 l (Cerebelum 6 Left)
+atlas.Ver6 (Vermis 6)
+atlas.Ver7 (Vermis 7)
+atlas.Ver8 (Vermis 8)
+atlas.Ver45 (Vermis 4 5)
 atlas.Cereb45 r (Cerebelum 4 5 Right)
-atlas.Cereb6 l (Cerebelum 6 Left)    
-atlas.Cereb6 r (Cerebelum 6 Right)   
-atlas.Cereb8 l (Cerebelum 8 Left)    
-atlas.Cereb8 r (Cerebelum 8 Right)   
-atlas.Cereb10 l (Cerebelum 10 Left)  
-atlas.Cereb10 r (Cerebelum 10 Right) 
-atlas.Ver45 (Vermis 4 5)             
-atlas.Ver6 (Vermis 6)                
-atlas.Ver7 (Vermis 7)                
-atlas.Ver8 (Vermis 8)                
-atlas.Ver9 (Vermis 9)                
- 
+atlas.Cereb45 l (Cerebelum 4 5 Left)
+
+Visual (lateral)
+-----------------------------------------------------------
+atlas.TOFusC l (Temporal Occipital Fusiform Cortex Left)
+atlas.TOFusC r (Temporal Occipital Fusiform Cortex Right)
+atlas.iLOC r (Lateral Occipital Cortex, inferior division Right)
+atlas.iLOC l (Lateral Occipital Cortex, inferior division Left)
+atlas.OFusG l (Occipital Fusiform Gyrus Left)
+atlas.OFusG r (Occipital Fusiform Gyrus Right)
+atlas.OP l (Occipital Pole Left)
+atlas.OP r (Occipital Pole Right)
+
+Visual (medial)
+-----------------------------------------------------------
+atlas.SCC l (Supracalcarine Cortex Left)
+atlas.Cuneal l (Cuneal Cortex Left)
+atlas.Cuneal r (Cuneal Cortex Right)
+atlas.SCC r (Supracalcarine Cortex Right)
+atlas.ICC l (Intracalcarine Cortex Left)
+atlas.ICC r (Intracalcarine Cortex Right)
+atlas.LG l (Lingual Gyrus Left)
+atlas.LG r (Lingual Gyrus Right)
+
+
+These analyses used the following subset of subjects from FCP1000 (n=590 high-quality subjects selected from the n=1276 complete FCP1000 dataset minimizing QC_OutlierScore values):
+
+Baltimore/sub19738              
+Baltimore/sub23750              
+Baltimore/sub23927              
+Baltimore/sub30072              
+Baltimore/sub31837              
+Baltimore/sub52358              
+Baltimore/sub54257              
+Baltimore/sub54329              
+Baltimore/sub76160              
+Baltimore/sub81887              
+Baltimore/sub85922              
+Baltimore/sub86414              
+Baltimore/sub90658              
+Baltimore/sub91622              
+Baltimore/sub94042              
+Bangor/sub01903                 
+Bangor/sub03557                 
+Bangor/sub04097                 
+Bangor/sub14388                 
+Bangor/sub36736                 
+Bangor/sub46870                 
+Bangor/sub48632                 
+Bangor/sub68050                 
+Bangor/sub73082                 
+Bangor/sub77520                 
+Bangor/sub87568                 
+Bangor/sub91556                 
+Beijing_Zang/sub00440     
+Beijing_Zang/sub01244     
+Beijing_Zang/sub02403     
+Beijing_Zang/sub05267     
+Beijing_Zang/sub06880     
+Beijing_Zang/sub06899     
+Beijing_Zang/sub07144     
+Beijing_Zang/sub07716     
+Beijing_Zang/sub07717     
+Beijing_Zang/sub08001     
+Beijing_Zang/sub08251     
+Beijing_Zang/sub08816     
+Beijing_Zang/sub08992     
+Beijing_Zang/sub10186     
+Beijing_Zang/sub10277     
+Beijing_Zang/sub10869     
+Beijing_Zang/sub10973     
+Beijing_Zang/sub11072     
+Beijing_Zang/sub11344     
+Beijing_Zang/sub12220     
+Beijing_Zang/sub14238     
+Beijing_Zang/sub15441     
+Beijing_Zang/sub16943     
+Beijing_Zang/sub17093     
+Beijing_Zang/sub17159     
+Beijing_Zang/sub17315     
+Beijing_Zang/sub17586     
+Beijing_Zang/sub17603     
+Beijing_Zang/sub17642     
+Beijing_Zang/sub17688     
+Beijing_Zang/sub18326     
+Beijing_Zang/sub18758     
+Beijing_Zang/sub18960     
+Beijing_Zang/sub19642     
+Beijing_Zang/sub19974     
+Beijing_Zang/sub20127     
+Beijing_Zang/sub20246     
+Beijing_Zang/sub20765     
+Beijing_Zang/sub20948     
+Beijing_Zang/sub21115     
+Beijing_Zang/sub22201     
+Beijing_Zang/sub22595     
+Beijing_Zang/sub22661     
+Beijing_Zang/sub22715     
+Beijing_Zang/sub22890     
+Beijing_Zang/sub26713     
+Beijing_Zang/sub28206     
+Beijing_Zang/sub28698     
+Beijing_Zang/sub28792     
+Beijing_Zang/sub28801     
+Beijing_Zang/sub28907     
+Beijing_Zang/sub28965     
+Beijing_Zang/sub29590     
+Beijing_Zang/sub29785     
+Beijing_Zang/sub30272     
+Beijing_Zang/sub30310     
+Beijing_Zang/sub30556     
+Beijing_Zang/sub30616     
+Beijing_Zang/sub30988     
+Beijing_Zang/sub31058     
+Beijing_Zang/sub31729     
+Beijing_Zang/sub32517     
+Beijing_Zang/sub32587     
+Beijing_Zang/sub33747     
+Beijing_Zang/sub33943     
+Beijing_Zang/sub33991     
+Beijing_Zang/sub34895     
+Beijing_Zang/sub34943     
+Beijing_Zang/sub35309     
+Beijing_Zang/sub35776     
+Beijing_Zang/sub35806     
+Beijing_Zang/sub36580     
+Beijing_Zang/sub36942     
+Beijing_Zang/sub37602     
+Beijing_Zang/sub38602     
+Beijing_Zang/sub39725     
+Beijing_Zang/sub40037     
+Beijing_Zang/sub40427     
+Beijing_Zang/sub41170     
+Beijing_Zang/sub41621     
+Beijing_Zang/sub42512     
+Beijing_Zang/sub42555     
+Beijing_Zang/sub42843     
+Beijing_Zang/sub43290     
+Beijing_Zang/sub44573     
+Beijing_Zang/sub45552     
+Beijing_Zang/sub46058     
+Beijing_Zang/sub46259     
+Beijing_Zang/sub46541     
+Beijing_Zang/sub48501     
+Beijing_Zang/sub48563     
+Beijing_Zang/sub49782     
+Beijing_Zang/sub50498     
+Beijing_Zang/sub50873     
+Beijing_Zang/sub50972     
+Beijing_Zang/sub50985     
+Beijing_Zang/sub51015     
+Beijing_Zang/sub51586     
+Beijing_Zang/sub52044     
+Beijing_Zang/sub52259     
+Beijing_Zang/sub53572     
+Beijing_Zang/sub53998     
+Beijing_Zang/sub54890     
+Beijing_Zang/sub55301     
+Beijing_Zang/sub55736     
+Beijing_Zang/sub55856     
+Beijing_Zang/sub56136     
+Beijing_Zang/sub56703     
+Beijing_Zang/sub56757     
+Beijing_Zang/sub58029     
+Beijing_Zang/sub58332     
+Beijing_Zang/sub58614     
+Beijing_Zang/sub59347     
+Beijing_Zang/sub59448     
+Beijing_Zang/sub61961     
+Beijing_Zang/sub62083     
+Beijing_Zang/sub62438     
+Beijing_Zang/sub62843     
+Beijing_Zang/sub62966     
+Beijing_Zang/sub64923     
+Beijing_Zang/sub65659     
+Beijing_Zang/sub66158     
+Beijing_Zang/sub66528     
+Beijing_Zang/sub66781     
+Beijing_Zang/sub66889     
+Beijing_Zang/sub67435     
+Beijing_Zang/sub67844     
+Beijing_Zang/sub68012     
+Beijing_Zang/sub68597     
+Beijing_Zang/sub69518     
+Beijing_Zang/sub69696     
+Beijing_Zang/sub71693     
+Beijing_Zang/sub72654     
+Beijing_Zang/sub72678     
+Beijing_Zang/sub73098     
+Beijing_Zang/sub73245     
+Beijing_Zang/sub73279     
+Beijing_Zang/sub73421     
+Beijing_Zang/sub74386     
+Beijing_Zang/sub74587     
+Beijing_Zang/sub75878     
+Beijing_Zang/sub76377     
+Beijing_Zang/sub77440     
+Beijing_Zang/sub80551     
+Beijing_Zang/sub80569     
+Beijing_Zang/sub80927     
+Beijing_Zang/sub81062     
+Beijing_Zang/sub81074     
+Beijing_Zang/sub82352     
+Beijing_Zang/sub82426     
+Beijing_Zang/sub82714     
+Beijing_Zang/sub82826     
+Beijing_Zang/sub82980     
+Beijing_Zang/sub83430     
+Beijing_Zang/sub83624     
+Beijing_Zang/sub83728     
+Beijing_Zang/sub85030     
+Beijing_Zang/sub85543     
+Beijing_Zang/sub85818     
+Beijing_Zang/sub87089     
+Beijing_Zang/sub87776     
+Beijing_Zang/sub88306     
+Beijing_Zang/sub89088     
+Beijing_Zang/sub89238     
+Beijing_Zang/sub89592     
+Beijing_Zang/sub89742     
+Beijing_Zang/sub89941     
+Beijing_Zang/sub91145     
+Beijing_Zang/sub91399     
+Beijing_Zang/sub91952     
+Beijing_Zang/sub92430     
+Beijing_Zang/sub92490     
+Beijing_Zang/sub92544     
+Beijing_Zang/sub92602     
+Beijing_Zang/sub92799     
+Beijing_Zang/sub92859     
+Beijing_Zang/sub93689     
+Beijing_Zang/sub93856     
+Beijing_Zang/sub94536     
+Beijing_Zang/sub95575     
+Beijing_Zang/sub95755     
+Beijing_Zang/sub96163     
+Beijing_Zang/sub97442     
+Beijing_Zang/sub98353     
+Beijing_Zang/sub98617     
+Cambridge_Buckner/sub00156
+Cambridge_Buckner/sub00294
+Cambridge_Buckner/sub01361
+Cambridge_Buckner/sub02591
+Cambridge_Buckner/sub02953
+Cambridge_Buckner/sub04187
+Cambridge_Buckner/sub04270
+Cambridge_Buckner/sub04491
+Cambridge_Buckner/sub04665
+Cambridge_Buckner/sub05306
+Cambridge_Buckner/sub05453
+Cambridge_Buckner/sub06037
+Cambridge_Buckner/sub06272
+Cambridge_Buckner/sub06987
+Cambridge_Buckner/sub07413
+Cambridge_Buckner/sub07798
+Cambridge_Buckner/sub07902
+Cambridge_Buckner/sub08204
+Cambridge_Buckner/sub08588
+Cambridge_Buckner/sub08723
+Cambridge_Buckner/sub08947
+Cambridge_Buckner/sub09015
+Cambridge_Buckner/sub09397
+Cambridge_Buckner/sub09633
+Cambridge_Buckner/sub10268
+Cambridge_Buckner/sub10619
+Cambridge_Buckner/sub11388
+Cambridge_Buckner/sub12346
+Cambridge_Buckner/sub13093
+Cambridge_Buckner/sub13187
+Cambridge_Buckner/sub13216
+Cambridge_Buckner/sub13902
+Cambridge_Buckner/sub14183
+Cambridge_Buckner/sub14194
+Cambridge_Buckner/sub14278
+Cambridge_Buckner/sub15172
+Cambridge_Buckner/sub15258
+Cambridge_Buckner/sub15432
+Cambridge_Buckner/sub15905
+Cambridge_Buckner/sub16122
+Cambridge_Buckner/sub16390
+Cambridge_Buckner/sub17737
+Cambridge_Buckner/sub17772
+Cambridge_Buckner/sub18295
+Cambridge_Buckner/sub18449
+Cambridge_Buckner/sub19717
+Cambridge_Buckner/sub20389
+Cambridge_Buckner/sub20543
+Cambridge_Buckner/sub20563
+Cambridge_Buckner/sub21755
+Cambridge_Buckner/sub23869
+Cambridge_Buckner/sub24670
+Cambridge_Buckner/sub24757
+Cambridge_Buckner/sub25044
+Cambridge_Buckner/sub25058
+Cambridge_Buckner/sub25099
+Cambridge_Buckner/sub26348
+Cambridge_Buckner/sub27065
+Cambridge_Buckner/sub27613
+Cambridge_Buckner/sub27796
+Cambridge_Buckner/sub29044
+Cambridge_Buckner/sub29425
+Cambridge_Buckner/sub29800
+Cambridge_Buckner/sub31522
+Cambridge_Buckner/sub34586
+Cambridge_Buckner/sub34741
+Cambridge_Buckner/sub35512
+Cambridge_Buckner/sub39065
+Cambridge_Buckner/sub39737
+Cambridge_Buckner/sub40635
+Cambridge_Buckner/sub41567
+Cambridge_Buckner/sub41773
+Cambridge_Buckner/sub41814
+Cambridge_Buckner/sub42146
+Cambridge_Buckner/sub42253
+Cambridge_Buckner/sub43358
+Cambridge_Buckner/sub45344
+Cambridge_Buckner/sub45354
+Cambridge_Buckner/sub45604
+Cambridge_Buckner/sub47162
+Cambridge_Buckner/sub47231
+Cambridge_Buckner/sub47278
+Cambridge_Buckner/sub47498
+Cambridge_Buckner/sub49259
+Cambridge_Buckner/sub49998
+Cambridge_Buckner/sub50272
+Cambridge_Buckner/sub50454
+Cambridge_Buckner/sub50953
+Cambridge_Buckner/sub51050
+Cambridge_Buckner/sub51172
+Cambridge_Buckner/sub51512
+Cambridge_Buckner/sub51671
+Cambridge_Buckner/sub52036
+Cambridge_Buckner/sub52300
+Cambridge_Buckner/sub52442
+Cambridge_Buckner/sub53193
+Cambridge_Buckner/sub53296
+Cambridge_Buckner/sub53615
+Cambridge_Buckner/sub54846
+Cambridge_Buckner/sub55114
+Cambridge_Buckner/sub55660
+Cambridge_Buckner/sub55874
+Cambridge_Buckner/sub57221
+Cambridge_Buckner/sub58360
+Cambridge_Buckner/sub58682
+Cambridge_Buckner/sub58874
+Cambridge_Buckner/sub59434
+Cambridge_Buckner/sub59729
+Cambridge_Buckner/sub60578
+Cambridge_Buckner/sub60797
+Cambridge_Buckner/sub61185
+Cambridge_Buckner/sub61209
+Cambridge_Buckner/sub61436
+Cambridge_Buckner/sub61753
+Cambridge_Buckner/sub62383
+Cambridge_Buckner/sub62424
+Cambridge_Buckner/sub62732
+Cambridge_Buckner/sub62908
+Cambridge_Buckner/sub63412
+Cambridge_Buckner/sub63661
+Cambridge_Buckner/sub64308
+Cambridge_Buckner/sub64985
+Cambridge_Buckner/sub65373
+Cambridge_Buckner/sub66351
+Cambridge_Buckner/sub67117
+Cambridge_Buckner/sub68101
+Cambridge_Buckner/sub68425
+Cambridge_Buckner/sub69287
+Cambridge_Buckner/sub69315
+Cambridge_Buckner/sub69397
+Cambridge_Buckner/sub71849
+Cambridge_Buckner/sub72068
+Cambridge_Buckner/sub73317
+Cambridge_Buckner/sub73399
+Cambridge_Buckner/sub73477
+Cambridge_Buckner/sub76631
+Cambridge_Buckner/sub76745
+Cambridge_Buckner/sub77337
+Cambridge_Buckner/sub77435
+Cambridge_Buckner/sub77598
+Cambridge_Buckner/sub77989
+Cambridge_Buckner/sub78552
+Cambridge_Buckner/sub78614
+Cambridge_Buckner/sub80557
+Cambridge_Buckner/sub81289
+Cambridge_Buckner/sub81524
+Cambridge_Buckner/sub81562
+Cambridge_Buckner/sub82113
+Cambridge_Buckner/sub82213
+Cambridge_Buckner/sub82435
+Cambridge_Buckner/sub83409
+Cambridge_Buckner/sub83683
+Cambridge_Buckner/sub84064
+Cambridge_Buckner/sub84256
+Cambridge_Buckner/sub84504
+Cambridge_Buckner/sub84845
+Cambridge_Buckner/sub86115
+Cambridge_Buckner/sub86637
+Cambridge_Buckner/sub87846
+Cambridge_Buckner/sub88445
+Cambridge_Buckner/sub88464
+Cambridge_Buckner/sub88853
+Cambridge_Buckner/sub89107
+Cambridge_Buckner/sub89435
+Cambridge_Buckner/sub89894
+Cambridge_Buckner/sub90059
+Cambridge_Buckner/sub90674
+Cambridge_Buckner/sub90681
+Cambridge_Buckner/sub90699
+Cambridge_Buckner/sub92288
+Cambridge_Buckner/sub92393
+Cambridge_Buckner/sub92440
+Cambridge_Buckner/sub93269
+Cambridge_Buckner/sub93609
+Cambridge_Buckner/sub95187
+Cambridge_Buckner/sub98528
+Cambridge_Buckner/sub98624
+Cambridge_Buckner/sub99085
+Cambridge_Buckner/sub99330
+Cambridge_Buckner/sub99462
+Dallas/sub04288                 
+Dallas/sub05892                 
+Dallas/sub32183                 
+Dallas/sub40897                 
+Dallas/sub51824                 
+Dallas/sub57450                 
+Dallas/sub58347                 
+Dallas/sub80418                 
+Dallas/sub89418                 
+Leiden_2180/sub08518            
+Leiden_2180/sub09796            
+Leiden_2180/sub10481            
+Leiden_2180/sub12255            
+Leiden_2180/sub19281            
+Leiden_2180/sub28473            
+Leiden_2180/sub38454            
+Leiden_2180/sub52853            
+Leiden_2180/sub56299            
+Leiden_2180/sub58194            
+Leiden_2180/sub99856            
+Leiden_2200/sub01787            
+Leiden_2200/sub04484            
+Leiden_2200/sub13537            
+Leiden_2200/sub18456            
+Leiden_2200/sub30943            
+Leiden_2200/sub36743            
+Leiden_2200/sub40907            
+Leiden_2200/sub52922            
+Leiden_2200/sub57187            
+Leiden_2200/sub64642            
+Leiden_2200/sub66131            
+Leiden_2200/sub68050            
+Leiden_2200/sub86034            
+Leiden_2200/sub87320            
+Leiden_2200/sub92061            
+Leiden_2200/sub93194            
+Leipzig/sub00321                
+Leipzig/sub01002                
+Leipzig/sub02075                
+Leipzig/sub07374                
+Leipzig/sub07516                
+Leipzig/sub23427                
+Leipzig/sub25344                
+Leipzig/sub31577                
+Leipzig/sub31637                
+Leipzig/sub41241                
+Leipzig/sub52858                
+Leipzig/sub53063                
+Leipzig/sub59494                
+Leipzig/sub59709                
+Leipzig/sub59861                
+Leipzig/sub61373                
+Leipzig/sub63957                
+Leipzig/sub64446                
+Leipzig/sub72508                
+Leipzig/sub75886                
+Leipzig/sub80206                
+Leipzig/sub80552                
+Leipzig/sub85213                
+Leipzig/sub92903                
+Leipzig/sub94784                
+Munchen/sub09035                
+Munchen/sub26223                
+Munchen/sub26670                
+Munchen/sub28902                
+Munchen/sub50162                
+Munchen/sub66933                
+Munchen/sub72095                
+Munchen/sub74607                
+Munchen/sub96591                
+Munchen/sub96752                
+Newark/sub13411                 
+Newark/sub32580                 
+Newark/sub36023                 
+Newark/sub41006                 
+Newark/sub43517                 
+Newark/sub49705                 
+Newark/sub53422                 
+Newark/sub54933                 
+Newark/sub55760                 
+Newark/sub58526                 
+Newark/sub59397                 
+Newark/sub59799                 
+Newark/sub62985                 
+Newark/sub71042                 
+Newark/sub71743                 
+Newark/sub78225                 
+Newark/sub86204                 
+NewYork_a/sub01912        
+NewYork_a/sub05208        
+NewYork_a/sub07578        
+NewYork_a/sub09539        
+NewYork_a/sub10011        
+NewYork_a/sub10582        
+NewYork_a/sub15213        
+NewYork_a/sub16607        
+NewYork_a/sub17078        
+NewYork_a/sub18638        
+NewYork_a/sub19579        
+NewYork_a/sub20732        
+NewYork_a/sub21212        
+NewYork_a/sub26267        
+NewYork_a/sub27123        
+NewYork_a/sub28808        
+NewYork_a/sub29216        
+NewYork_a/sub29353        
+NewYork_a/sub29935        
+NewYork_a/sub30247        
+NewYork_a/sub30623        
+NewYork_a/sub33062        
+NewYork_a/sub33581        
+NewYork_a/sub35262        
+NewYork_a/sub37864        
+NewYork_a/sub41546        
+NewYork_a/sub44395        
+NewYork_a/sub44979        
+NewYork_a/sub45217        
+NewYork_a/sub47087        
+NewYork_a/sub47633        
+NewYork_a/sub48830        
+NewYork_a/sub50559        
+NewYork_a/sub51677        
+NewYork_a/sub53710        
+NewYork_a/sub54541        
+NewYork_a/sub54696        
+NewYork_a/sub54887        
+NewYork_a/sub55656        
+NewYork_a/sub58451        
+NewYork_a/sub59589        
+NewYork_a/sub61001        
+NewYork_a/sub61241        
+NewYork_a/sub63280        
+NewYork_a/sub66085        
+NewYork_a/sub66941        
+NewYork_a/sub70566        
+NewYork_a/sub70752        
+NewYork_a/sub80566        
+NewYork_a/sub82228        
+NewYork_a/sub82716        
+NewYork_a/sub82754        
+NewYork_a/sub83782        
+NewYork_a/sub84224        
+NewYork_a/sub84978        
+NewYork_a/sub91953        
+NewYork_a/sub93262        
+NewYork_a/sub93975        
+NewYork_a/sub94169        
+NewYork_a/sub94945        
+NewYork_a/sub95971        
+NewYork_a/sub96705        
+NewYork_a/sub97008        
+NewYork_a/sub98076        
+NewYork_a/sub98802        
+NYU_TRT/sub05676      
+NYU_TRT/sub08224      
+NYU_TRT/sub08889      
+NYU_TRT/sub09607      
+NYU_TRT/sub14864      
+NYU_TRT/sub22894      
+NYU_TRT/sub33259      
+NYU_TRT/sub34482      
+NYU_TRT/sub38579      
+NYU_TRT/sub39529      
+NYU_TRT/sub45463      
+NYU_TRT/sub47000      
+NYU_TRT/sub52738      
+NYU_TRT/sub55441      
+NYU_TRT/sub58949      
+NYU_TRT/sub60624      
+NYU_TRT/sub76987      
+NYU_TRT/sub84403      
+NYU_TRT/sub86146      
+NYU_TRT/sub94293      
+Oxford/sub02248                 
+Oxford/sub07210                 
+Oxford/sub13304                 
+Oxford/sub16112                 
+Oxford/sub17516                 
+Oxford/sub24528                 
+Oxford/sub40095                 
+Oxford/sub47141                 
+Oxford/sub48778                 
+Oxford/sub56945                 
+Oxford/sub57368                 
+Oxford/sub66945                 
+Oxford/sub68195                 
+Oxford/sub71633                 
+Oxford/sub74429                 
+Oxford/sub76621                 
+Oxford/sub79611                 
+Oxford/sub82071                 
+Oxford/sub85152                 
+Taipei_b/sub08358               
+Taipei_b/sub32589               
+Taipei_b/sub35634               
+Taipei_b/sub40471               
+Taipei_b/sub43181               
+Taipei_b/sub58177           
+

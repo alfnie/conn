@@ -502,7 +502,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                         conn_process('qaplots',conn_server('util_localfile',fullfile(qafolder,tag)),procedures,validsubjects,validrois,validsets,nl2covariates,nl1contrasts,validconditions);
                     else
                         if numel(validsubjects)>1
-                            answer=conn_menu_inputdlg('Number of parallel jobs?','CONN HPC',1,{'1'});
+                            answer=conn_menu_inputdlg('Number of parallel processes (run simultaneously)?','CONN HPC',1,{'1'});
                             if isempty(answer), return; end
                             N=str2num(answer{1});
                         else N=1;

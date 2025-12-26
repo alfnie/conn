@@ -247,7 +247,7 @@ else
             [nill,ht(2)]=conn_menu_plotmatrix('',ht,[1 1 10],[.3 .4 .4 .1]);
             %axes('units','norm','position',[.3 .4 .4 .1]);
             %ht(2)=image(max(0,.5*conn_hanning(16)*(0+50*(sin(16*pi*(0:199)/200))))); axis tight off;
-            uicontrol('units','norm','position',[0 .6 1 .3],'style','text','backgroundcolor','w','string',{'Checking if data files have been edited or moved','Press ''Cancel'' to skip this step'},'fontsize',8+CONN_gui.font_offset);
+            uicontrol('units','norm','position',[0 .6 1 .3],'style','text','backgroundcolor','w','string',{'Checking if any of this project''s data files have been edited or moved.','(press ''Cancel'' to skip this step)'},'fontsize',8+CONN_gui.font_offset);
             drawnow;
         end
         if ~ischar(CONN_x.filename) || ~conn_existfile(CONN_x.filename), CONN_x.filename=''; end

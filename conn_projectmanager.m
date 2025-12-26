@@ -248,11 +248,11 @@ switch(lower(option))
                 ivtag=find(vtag,1); % first job finished
                 if isempty(ivtag)
                     if dogui&&(isequal(CONN_x.gui,1)||(isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'display')&&CONN_x.gui.display))
-                        answ=conn_questdlg({'There are pending jobs submitted but not yet finished',' ','Until then, changes to this project are temporal (they may be disregarded','if they conflict with other changes performed by these pending jobs)', ' ','Do you want to see the status of these pending jobs now?'},'Warning!','Yes','No','Yes');
-                        if isequal(answ,'Yes'), conn_jobmanager(info); end
+                        answ=conn_questdlg({'This project has background analyses in progress or awaiting import.',' ','Would you like to view their status now?',' ','note: to avoid conflicts, consider waiting until background analyses are imported before making major project changes','(results imported from background analyses will take precedence in case of conflicting changes)'},'Warning!','Yes, view status','Not now','Yes, view status');
+                        if isequal(answ,'Yes, view status'), conn_jobmanager(info); end
                         return;
                     else
-                        conn_disp('fprintf','Warning: pending jobs in %s not finished yet. Until then, changes to this project are temporal (they may be disregarded if they conflict with other changes performed by these pending jobs)\n',localfilename);
+                        conn_disp('fprintf','Warning: background analyses in %s still in progress or waiting to be imported into this project. Until then, changes to this project are temporal (they may be disregarded if they conflict with other changes performed by these background analyses)\n',localfilename);
                         return;
                     end
                 elseif numel(vtag)>1

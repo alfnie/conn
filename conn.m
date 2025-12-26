@@ -250,7 +250,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'callback',{{@conn_remotely,'settings'},{@conn,'gui_server'},{@conn,'gui_filetransfer'},{@conn,'gui_help','url','https://web.conn-toolbox.org/resources/ssh-configuration'}} ); %{@conn,'gui_help','help','conn_remotely.m'}} );
 	CONN_h.menus.m_setup_07f=conn_menumanager([],	'n',4,...
 									'string',{'Configuration','Active/pending jobs','Job history','Help'},...
-									'help',{'Configuration settings in distributed cluster or multi-processor environments','Displays status of currently running, pending, or queued jobs','Displays all jobs (past and present)',''},...
+									'help',{'Configuration settings in distributed cluster or multi-processor environments','Displays status of currently running, pending, or queued background analyses','Displays all background analyses (past and present)',''},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
@@ -379,8 +379,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'bordertype','square',...
 									'callback',{CONN_h.menus.m_setup_01a,CONN_h.menus.m_setup_07a,CONN_h.menus.m_setup_07b} );
 	CONN_h.menus.m_setup_08=conn_menumanager([],	'n',1,...
-									'string',{'note: pending jobs'},...
-									'help',{'there are currently running or pending jobs in this CONN project - click here to check their status'},...
+									'string',{'analyses in progress'},...
+									'help',{'there are currently background analyses in progress or awaiting import in this CONN project - click here to check their status'},...
                                     'order','horizontal',...
                                     'toggle',0,...
                                     'fontangle','italic',...
@@ -6832,7 +6832,7 @@ else
 				conn_menu('frame',boffset+[.04,.08,.50,.22],'Quality Control');
                 if ~isfield(CONN_x.Preproc,'qa'), CONN_x.Preproc.qa=struct('folders',{{}},'DataValidityScore',[],'DataQualityScore',[],'DataSensitivityScore',[]); end
                 CONN_h.menus.m_preproc_00{41}=uicontrol('style','text','units','norm','position',boffset+[.05,.25,.14,.05],'string',{'Removal of biases in FC estimates','Data Validity score (0-100):'},'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',mod(mean(CONN_gui.backgroundcolor)+.3,1)*[1 1 1],'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
-                CONN_h.menus.m_preproc_00{42}=uicontrol('style','text','units','norm','position',boffset+[.05,.21,.14,.04],'string','?','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',15+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Data Validity score<br/><br/> This score measures how far the peak of the FC distribution is away from zero (its expected value in the absence of global biases)<br/><br/> Score values above 95% (approximately peak displacements below 5% SD) are considered ideal / very-high quality<br/><br/> Data Validity scores are computed as 100*exp(-|a/b|) where a is the average distribution peak (mode) location and b is the average distribution width (normalized interquartile range) of the distribution of functional connectivity values for each subject</HTML>'));
+                CONN_h.menus.m_preproc_00{42}=uicontrol('style','text','units','norm','position',boffset+[.05,.21,.14,.04],'string','?','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',15+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Data Validity score<br/><br/> This score measures how far the peak of the FC distribution is away from zero (its expected value in the absence of global biases)<br/><br/> Score values above 95% (approximately peak displacements below 5% SD) are considered ideal / very-high quality<br/><br/> Data Validity scores are computed as 100*exp(-|a/b|) where a is the average peak (mode) location and b is the average width (normalized interquartile range) of the distribution of functional connectivity values for each subject</HTML>'));
                 CONN_h.menus.m_preproc_00{43}=conn_menu('text',boffset+[.05,.12,.14,.07],'','','<HTML>Additional information from FC distribution analyses and plots<br/><br/>Peak (mode) and width (interquartile range) of FC distributions across subjects (mean±std)</HTML>'); set(CONN_h.menus.m_preproc_00{43},'foregroundcolor',CONN_gui.fontcolor,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
                 CONN_h.menus.m_preproc_00{51}=conn_menu('pushbutton',boffset+[.05,.08,.10,.03],'','','<HTML>recompute Data Validity score using current denoising options</HTML>','conn(''gui_preproc'',42);'); set(CONN_h.menus.m_preproc_00{51},'fontsize',6+CONN_gui.font_offset);
                 CONN_h.menus.m_preproc_00{54}=conn_menu('pushbutton',boffset+[.15,.08,.04,.03],'','details','display FC distributions for each subject and additional stats','conn(''gui_preproc'',43);'); set(CONN_h.menus.m_preproc_00{54},'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
@@ -6844,7 +6844,7 @@ else
                 CONN_h.menus.m_preproc_00{55}=conn_menu('pushbutton',boffset+[.32,.08,.04,.03],'','details','display distribution of QC-FC correlations and additional stats','conn(''gui_preproc'',46);'); set(CONN_h.menus.m_preproc_00{55},'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
                 
                 CONN_h.menus.m_preproc_00{47}=uicontrol('style','text','units','norm','position',boffset+[.39,.25,.14,.05],'string',{'Participant selection','Sensitivity score (0-100):'},'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',mod(mean(CONN_gui.backgroundcolor)+.3,1)*[1 1 1],'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
-                CONN_h.menus.m_preproc_00{48}=uicontrol('style','text','units','norm','position',boffset+[.39,.21,.14,.04],'string','?','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',15+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Participant-selection<br/><br/>Suggested participant-selection excludes subjects with any subject-level QC metrics in the "extreme outlier" range (values above Q3+3*IQR or below Q1-3*IQR)<br/><br/>Suggested participant-selection group is stored in QC_ValidSubjects 2nd-level covariate (and defined as QC_OutlierScore>3 when using an "extreme outlier" threshold)<br/><br/> CONN does not enforce this participant-selection suggestion. If you wish to use it (e.g. to exclude outlier subjects from a second-level analysis) simply include the 2nd-level covariate ExcludeOutlierSubjects also generated by this step in your 2nd-level model<br/><br/> Data Sensitivity score<br/><br/> Data Sensitivity score is computed as the power to detect with a p<.05 an average r=0.1 correlation in a fixed-effects analysis across subjects (excluding outlier subjects)<br/><br/> Power values above 95% are considered ideal / very-high quality <br/><br/> Power analyses approximate between-subjects variance by first-level measurement error only. Fisher transformed standard error approximation se = 1/sqrt(dof-3). Group-level analysis normal distribution approximation power = 1-CDF(1.645-0.1003*sqrt(sum(dof-3))) </HTML>'));
+                CONN_h.menus.m_preproc_00{48}=uicontrol('style','text','units','norm','position',boffset+[.39,.21,.14,.04],'string','?','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',15+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Participant-selection<br/><br/>Suggested participant-selection excludes subjects with any subject-level QC metrics in the "extreme outlier" range (values above Q3+3*IQR or below Q1-3*IQR)<br/><br/>Suggested participant-selection group is stored in QC_ValidSubjects 2nd-level covariate (and defined as QC_OutlierScore>3 when using an "extreme outlier" threshold)<br/><br/> CONN does not enforce this participant-selection suggestion. If you wish to use it (e.g. to exclude outlier subjects from a second-level analysis) simply add the 2nd-level covariate ExcludeOutlierSubjects, also generated by this step, as a control variable in your 2nd-level analysis<br/><br/> Data Sensitivity score<br/><br/> Data Sensitivity score is computed as the power to detect with a p<.05 an average r=0.1 correlation in a fixed-effects analysis across subjects (excluding outlier subjects)<br/><br/> Power values above 95% are considered ideal / very-high quality <br/><br/> Power analyses approximate between-subjects variance by first-level measurement error only. Fisher transformed standard error approximation se = 1/sqrt(dof-3). Group-level analysis normal distribution approximation power = 1-CDF(1.645-0.1003*sqrt(sum(dof-3))) </HTML>'));
                 CONN_h.menus.m_preproc_00{49}=conn_menu('text',boffset+[.39,.12,.14,.07],'','','<HTML>Additional information from subject-level QC metrics<br/><br/> Suggested participant selection results (exclude subjects with any extreme outlier value in subject-level QC metrics) <br/> Average single-subject sensitivty score and degrees of freedom</HTML>'); set(CONN_h.menus.m_preproc_00{49},'foregroundcolor',CONN_gui.fontcolor,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
                 CONN_h.menus.m_preproc_00{53}=conn_menu('pushbutton',boffset+[.39,.08,.10,.03],'','','<HTML>recompute subject-level QC plots and suggested participants inclusion/exclusion using current denoising options</HTML>','conn(''gui_preproc'',48);'); set(CONN_h.menus.m_preproc_00{53},'fontsize',6+CONN_gui.font_offset);
                 CONN_h.menus.m_preproc_00{56}=conn_menu('pushbutton',boffset+[.49,.08,.04,.03],'','details','display subject-level QC measures and additional stats','conn(''gui_preproc'',49);'); set(CONN_h.menus.m_preproc_00{56},'foregroundcolor',CONN_gui.fontcolor,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
@@ -7222,7 +7222,7 @@ else
                         end
                         return
                     case 42,
-                        thfig=figure('units','norm','position',[.3,.7,.5,.2],'color',1*[1 1 1],'name','Data Validity score','numbertitle','off','menubar','none');
+                        thfig=figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Data Validity score','numbertitle','off','menubar','none');
                         uicontrol('style','text','units','norm','position',[.1,.5,.8,.4],'string',{'Analyze FC distributions using current denoising options','and recompute Data Validity (DV) score',' ','(quality control outputs: DV score, QC_DOF, QC_PeakFC, QC_IqrFC, QC_MeanFC, QC_StdFC)'},'backgroundcolor',1*[1 1 1]);
                         ht0=uicontrol('style','popupmenu','units','norm','position',[.1,.25,.8,.2],'string',{'compute DV score when using all subjects','compute DV score using custom subject group (user-defined)','compute DV score using subjects in participant-selection group (QC_ValidSubjects)'},'value',1,'backgroundcolor',1*[1 1 1]);
                         if isfield(CONN_x.Preproc.qa,'selections1')&&~isempty(CONN_x.Preproc.qa.selections1{1}), set(ht0,'value',2+isequal(CONN_x.Preproc.qa.selections1{1},{'QC_ValidSubjects'})); end
@@ -7256,7 +7256,7 @@ else
                             conn_qaplotsexplore(CONN_x.Preproc.qa.folders{1});
                         end
                     case 45,
-                        thfig=figure('units','norm','position',[.3,.7,.5,.2],'color',1*[1 1 1],'name','Data Quality score','numbertitle','off','menubar','none');
+                        thfig=figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Data Quality score','numbertitle','off','menubar','none');
                         uicontrol('style','text','units','norm','position',[.1,.6,.8,.3],'string',{'Analyze QC-FC correlations using current denoising options','and recompute Data Quality (DQ) score',' ','(quality control inputs: QC_MeanMotion, QC_InvalidScans, QC_ProportionValidScans)'},'backgroundcolor',1*[1 1 1]);
                         ht0=uicontrol('style','popupmenu','units','norm','position',[.1,.4,.8,.15],'string',{'compute DQ score using all subjects','compute DQ score using custom subject group (user-defined)','compute DV score using subjects in participant-selection group (QC_ValidSubjects)'},'value',1,'backgroundcolor',1*[1 1 1]);
                         ht1=uicontrol('style','popupmenu','units','norm','position',[.1,.25,.8,.15],'string',{'QC-FC correlations','QC-FC correlations controlling by covariate(s) (user-defined)'},'value',1,'backgroundcolor',1*[1 1 1]);
@@ -7304,10 +7304,14 @@ else
                             conn_qaplotsexplore(CONN_x.Preproc.qa.folders{2});
                         end
                     case 48,
-                        thfig=figure('units','norm','position',[.3,.7,.5,.2],'color',1*[1 1 1],'name','Participant inclusion/exclusion criteria','numbertitle','off','menubar','none');
-                        uicontrol('style','text','units','norm','position',[.1,.5,.8,.4],'string',{'Analyze distributions of subject-level QC metrics using current denoising options',' and recomputes subject-level QC outlier scores and suggested participant-selection group',' ','(quality control inputs: QC_ProportionValidScans,QC_MeanMotion,QC_MeanGSchange,QC_NORM_struct,QC_DOF,QC_PeakFC,QC_StdFC)','(quality control outputs: DS score, QC_OutlierScore, QC_ValidSubjects, QC_OutlierSubjects, ExcludeOutlierSubjects)'},'backgroundcolor',1*[1 1 1]);
-                        ht0=uicontrol('style','popupmenu','units','norm','position',[.1,.25,.8,.2],'string',{'exclusion criteria: subjects with QC metrics in extreme-outlier range (QC outlier scores above 3)','exclusion criteria: subjects with QC metrics in mild-outlier range (QC outlier scores above 1.5)','exclusion criteria: custom number of subjects with worse QC metrics (higher QC outlier scores)'},'value',1,'backgroundcolor',1*[1 1 1]);
-                        if isfield(CONN_x.Preproc.qa,'selections3')&&~isempty(CONN_x.Preproc.qa.selections3{1}), set(ht0,'value',3-isequal(CONN_x.Preproc.qa.selections3{1},'mild')); end 
+                        thfig=figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Participant inclusion/exclusion criteria','numbertitle','off','menubar','none');
+                        uicontrol('style','text','units','norm','position',[.1,.5,.8,.4],'string',{'Analyze distributions of subject-level QC metrics using current denoising options',' and recompute Data Sensitivity (DS) score and suggested participant-selection group',' ','(quality control inputs: QC_ProportionValidScans, QC_MeanMotion, QC_MeanGSchange, QC_NORM_struct, QC_DOF, QC_PeakFC, QC_StdFC)','(quality control outputs: DS score, QC_OutlierScore, QC_ValidSubjects, QC_OutlierSubjects, ExcludeOutlierSubjects)'},'backgroundcolor',1*[1 1 1]);
+                        ht0=uicontrol('style','popupmenu','units','norm','position',[.1,.25,.8,.2],'string',{'exclusion criteria: subjects with QC metrics in extreme-outlier range (QC outlier scores above 3)','exclusion criteria: subjects with QC metrics in mild-outlier range (QC outlier scores above 1.5)','exclusion criteria: custom number of subjects with worse QC metrics (higher QC outlier scores)','exclusion criteria: custom group of subjects (manually define)'},'value',1,'backgroundcolor',1*[1 1 1]);
+                        if isfield(CONN_x.Preproc.qa,'selections3')&&~isempty(CONN_x.Preproc.qa.selections3{1}), 
+                            if ischar(CONN_x.Preproc.qa.selections3{1}), set(ht0,'value',4-2*isequal(CONN_x.Preproc.qa.selections3{1},'mild')); 
+                            else set(ht0,'value',3); 
+                            end 
+                        end
                         uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.20],'callback','uiresume');
                         uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.20],'callback','delete(gcbf)');
                         uiwait(thfig);
@@ -7316,8 +7320,16 @@ else
                             updateqaplots_subjects=[];
                             updateqaplots_exclude=[];
                             updateqaplots_QC_variables=[];
-                            if value==3, 
-                                initialvalue=0; if isfield(CONN_x.Preproc.qa,'selections3')&&~isempty(CONN_x.Preproc.qa.selections3{1}), initialvalue=CONN_x.Preproc.qa.selections3{1}; end
+                            if value==4,
+                                covall=find(cellfun('length',regexp(CONN_x.Setup.l2covariates.names(1:end-1),'^_'))==0);
+                                initialvalue=[]; if isfield(CONN_x.Preproc.qa,'selections3')&&~isempty(CONN_x.Preproc.qa.selections3{1})&&ischar(CONN_x.Preproc.qa.selections3{1}), initialvalue=find(ismember(CONN_x.Setup.l2covariates.names(covall),CONN_x.Preproc.qa.selections3{1}),1); end
+                                covselected=listdlg('liststring',CONN_x.Setup.l2covariates.names(covall),'selectionmode','single','initialvalue',initialvalue,'promptstring','Select covariate identifying a group of subjects:','ListSize',[500 200]);
+                                if isempty(covselected), delete(thfig); return; end
+                                val=CONN_x.Setup.l2covariates.names{covall(covselected)};
+                                updateqaplots_exclude=val;
+                                CONN_x.Preproc.qa.selections3{1}=CONN_x.Setup.l2covariates.names{val};
+                            elseif value==3, 
+                                initialvalue=0; if isfield(CONN_x.Preproc.qa,'selections3')&&~isempty(CONN_x.Preproc.qa.selections3{1})&&~ischar(CONN_x.Preproc.qa.selections3{1}), initialvalue=CONN_x.Preproc.qa.selections3{1}; end
                                 answ=conn_menu_inputdlg('Number of subjects to exclude (participants with highest QC_OutlierScore values)','participant exclusion threshold',1,{num2str(initialvalue)});
                                 if isempty(answ)||isempty(str2num(answ{1})), delete(thfig); return; end
                                 val=str2num(answ{1});
@@ -7432,7 +7444,7 @@ else
                             elseif ~any(results.QC_ValidSubjects==0), thr=max(3,max(results.QC_OutlierScore(results.QC_ValidSubjects>0)));
                             else thr=min(3,min(results.QC_OutlierScore(results.QC_ValidSubjects==0)));
                             end
-                            set(CONN_h.menus.m_preproc_00{49},'string',{'QC distribution analyses:',sprintf('exclude %d subjects with outlier scores > %s',CONN_x.Setup.nsubjects-results.Nsubjects,mat2str(thr,3)),sprintf('single-subject sensitivity = %s%% (df=%.1f) ',mat2str(100*results.DataSensitivityScore_singlesubject,3),mean(results.QC_DOF(results.QC_ValidSubjects>0)))});
+                            set(CONN_h.menus.m_preproc_00{49},'string',{'QC distribution analyses:',sprintf('exclude %d subjects with outlier scores > %.2f',CONN_x.Setup.nsubjects-results.Nsubjects,thr),sprintf('single-subject sensitivity = %s%% (df=%.1f) ',mat2str(100*results.DataSensitivityScore_singlesubject,3),mean(results.QC_DOF(results.QC_ValidSubjects>0)))});
                         else set(CONN_h.menus.m_preproc_00{49},'string',{sprintf('QC distribution analyses (n=%d):',numel(results.subjects)),sprintf('suggested n = %d (exclude %d subjects)',results.Nsubjects,CONN_x.Setup.nsubjects-results.Nsubjects),sprintf('degrees of freedom = %.1f ± %.1f',mean(results.QC_DOF(results.QC_ValidSubjects>0)),std(results.QC_DOF(results.QC_ValidSubjects>0)))});
                         end
                     end
@@ -9811,7 +9823,7 @@ else
                     %CONN_h.menus.m_analyses_00{10}=[]; [CONN_h.menus.m_analyses_00{10}(1),CONN_h.menus.m_analyses_00{10}(2)]=conn_menu('checkbox',boffset+[.105,.25,.02,.025],'Export modulatory timeseries','','(optional) Export the estimated modulatory timeseries as first-level covariates for additional analyses','conn(''gui_analyses'',10);');
                     %[nill,CONN_h.menus.m_analyses_00{16}]=conn_menu('text',boffset+[.105,.30,.26,.05],'ROI-to-ROI seeds/sources:');
                     %set(CONN_h.menus.m_analyses_00{16},'horizontalalignment','left');
-                    CONN_h.menus.m_analyses_00{2}=conn_menu('listbox',boffset+[.105,.30,.195,.15],'ROIs','',['<HTML>List of ROIs to be included in this analysis  <br/>- click after the last item to add new ROIs to this list<br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);','conn(''gui_analyses'',0);');
+                    [CONN_h.menus.m_analyses_00{2},CONN_h.menus.m_analyses_00{31}]=conn_menu('listbox',boffset+[.105,.30,.195,.15],'ROIs','',['<HTML>List of ROIs to be included in this analysis  <br/>- click after the last item to add new ROIs to this list<br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_analyses'',2);','conn(''gui_analyses'',0);');
                     CONN_h.menus.m_analyses_00{1}=[]; %conn_menu('listbox',boffset+[.32,.30,.145,.15],'add to ROIs','',['<HTML>List of all possible ROIs <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all/<HTML>'],'conn(''gui_analyses'',1);');
                     CONN_h.menus.m_analyses_00{30}=[]; %conn_menu('pushbutton',boffset+[.30,.30,.02,.15],'',CONN_gui.leftarrow,'add/remove elements from the list of ROIs for this analysis', 'conn(''gui_analyses'',0);');
                     CONN_h.menus.m_analyses_00{23}=[]; %conn_menu_mask('units','norm','position',boffset+[.30,.30,.165,.20],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig);
@@ -9831,6 +9843,7 @@ else
                     %set(CONN_h.menus.m_analyses_00{1},'string',tnames);
                     tnames=CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names; tnames{end+1}=' ';
                     set(CONN_h.menus.m_analyses_00{2},'string',tnames);
+                    set(CONN_h.menus.m_analyses_00{31},'string',sprintf('ROIs (%d)',numel(tnames)-1)); 
                     %conn_menumanager(CONN_h.menus.m_analyses_01b,'on',1);
                     set(CONN_h.menus.m_analyses_00{2},'value',[]);
                     set(CONN_h.menus.m_analyses_00{4}(1),'string',num2str(CONN_x.dynAnalyses(CONN_x.dynAnalysis).Ncomponents));
@@ -9854,6 +9867,7 @@ else
                             CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names={CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names{idx}};
                             tnames=CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names; tnames{end+1}=' ';
                             set(CONN_h.menus.m_analyses_00{2},'string',tnames,'value',[]);
+                            set(CONN_h.menus.m_analyses_00{31},'string',sprintf('ROIs (%d)',numel(tnames)-1)); 
                             %tnames=CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names;
                             %tnames(ismember(CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names,CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names))=cellfun(@(x)[CONN_gui.parse_html{1},x,CONN_gui.parse_html{2}],tnames(ismember(CONN_x.dynAnalyses(CONN_x.dynAnalysis).variables.names,CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names)),'uni',0);
                             %set(CONN_h.menus.m_analyses_00{1},'string',tnames);
@@ -9897,6 +9911,7 @@ else
                                     end
                                     tnames=CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names; tnames{end+1}=' ';
                                     set(CONN_h.menus.m_analyses_00{2},'string',tnames);
+                                    set(CONN_h.menus.m_analyses_00{31},'string',sprintf('ROIs (%d)',numel(tnames)-1)); 
                                 end
                             end
                         case 4,
@@ -12448,9 +12463,14 @@ else
                         %else set(CONN_h.menus.m_results_00{57},'value',newneffects(1));
                         end
                         CONN_h.menus.m_results.shownuisance=CONN_h.menus.m_results.suggest_between.ctrl{newneffects};
-                        if isempty(controlvars)||isempty(controlvars{1}), set(CONN_h.menus.m_results_00{58},'string',[{'  ... '},cellfun(@(x)sprintf(' - add/remove %s as a control covariate',x),CONN_h.menus.m_results.suggest_between.ctrl{newneffects},'uni',0)],'value',1);
-                        elseif numel(controlvars{1})==1, set(CONN_h.menus.m_results_00{58},'string',[{sprintf([' ... ',CONN_h.menus.m_results.suggest_between.ctrl_label{newneffects},'?'],CONN_x.Results.xX.nsubjecteffectsbyname{controlvars{1}})},cellfun(@(x)sprintf(' - add/remove %s as a control covariate',x),CONN_h.menus.m_results.suggest_between.ctrl{newneffects},'uni',0)],'value',1);
-                        else set(CONN_h.menus.m_results_00{58},'string',[{sprintf([' ... ',CONN_h.menus.m_results.suggest_between.ctrl_label{newneffects},'?'],sprintf('%s and %s',conn_strjoinstr(CONN_x.Results.xX.nsubjecteffectsbyname(controlvars{1}(1:end-1)),', '),CONN_x.Results.xX.nsubjecteffectsbyname{controlvars{1}(end)}))},cellfun(@(x)sprintf(' - add/remove %s as a control covariate',x),CONN_h.menus.m_results.suggest_between.ctrl{newneffects},'uni',0)],'value',1);
+                        controlcovariates=cellfun(@(x)sprintf(' - add/remove %s as a control covariate',x),CONN_h.menus.m_results.suggest_between.ctrl{newneffects},'uni',0);
+                        if any(strcmp(CONN_x.Setup.l2covariates.names(1:end-1),'ExcludeOutlierSubjects')), 
+                            CONN_h.menus.m_results.shownuisance{end+1}='ExcludeOutlierSubjects';
+                            controlcovariates{end+1}=' - add/remove ExcludeOutlierSubjects as a control covariate (enforces QC participant-selection suggestion)'; 
+                        end
+                        if isempty(controlvars)||isempty(controlvars{1}), set(CONN_h.menus.m_results_00{58},'string',[{'  ... '},controlcovariates],'value',1);
+                        elseif numel(controlvars{1})==1, set(CONN_h.menus.m_results_00{58},'string',[{sprintf([' ... ',CONN_h.menus.m_results.suggest_between.ctrl_label{newneffects},'?'],CONN_x.Results.xX.nsubjecteffectsbyname{controlvars{1}})},controlcovariates],'value',1);
+                        else set(CONN_h.menus.m_results_00{58},'string',[{sprintf([' ... ',CONN_h.menus.m_results.suggest_between.ctrl_label{newneffects},'?'],sprintf('%s and %s',conn_strjoinstr(CONN_x.Results.xX.nsubjecteffectsbyname(controlvars{1}(1:end-1)),', '),CONN_x.Results.xX.nsubjecteffectsbyname{controlvars{1}(end)}))},controlcovariates],'value',1);
                         end
                     end
                     if newnconditions<=numel(CONN_h.menus.m_results.suggest_within.str), newname=CONN_h.menus.m_results.suggest_within.str{newnconditions};

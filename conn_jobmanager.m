@@ -374,9 +374,9 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
         if isempty(files), 
             varargout={[]};
             if ~nargout,
-                if whichoption==1, conn_msgbox({'There are no finished or pending jobs associated with this project',' ','To submit new jobs simply switch the option that reads','''local processing (run on this computer)'' to ''distributed processing''','when running Preprocessing/Setup/Denoising/Analyses steps'},'',true);
-                elseif ~isempty(whichoption)&&~isequal(whichoption,10), conn_disp('There are no pending jobs associated with this project');
-                else conn_msgbox('There are no pending jobs associated with this project','',true);
+                if whichoption==1, conn_msgbox({'There are no background analyses in progress or awaiting import in this project',' ','To run a new background analysis simply switch the option that reads','''local processing (run on this computer)'' to ''distributed processing''','when running Preprocessing/Setup/Denoising/Analyses steps'},'',true);
+                elseif ~isempty(whichoption)&&~isequal(whichoption,10), conn_disp('There are no background analyses in progress or waiting import in this project');
+                else conn_msgbox('There are no background analyses in progress or awaiting import in this project','',true);
                 end
             end
             if ishandle(hmsg), delete(hmsg); end
@@ -405,9 +405,9 @@ if ~nargin||(nargin==1&&ischar(option)&&any(strcmp(option,qoptions)))||(nargin==
             validlabels={'finished','canceled'}; %{'finished','stopped'};
             if ishandle(hmsg), delete(hmsg); end
             if all(ismember(info.tagmsg,validlabels)),
-                answ=conn_questdlg({'Your pending job has finished','Finished jobs need to be merged with your current CONN project','Would you like to do this now?'},'Finished job','Merge now','Later','Merge now');
-                if isequal(answ,'Merge now'), 
-                    hmsg=conn_msgbox({'Merging projects','This procedure may take several minutes. Please wait...'},'',-1);
+                answ=conn_questdlg({'Your background analysis has finished.','The results are ready to be imported into your CONN project.','Would you like to do this now?'},'Finished job','Import now','Later','Import now');
+                if isequal(answ,'Import now'), 
+                    hmsg=conn_msgbox({'Importing results.','This procedure may take several minutes. Please wait...'},'',-1);
                     if isequal(whichoption,10), conn save; end
                     filename=regexprep(info.private{1}(1).project,'\?.*$','');
                     conn('load',filename);
@@ -589,7 +589,7 @@ else
             elseif nargin>3&&~isempty(varargin{3}), N=varargin{3};
             else
                 if numel(subjects)>1
-                    answer=conn_menu_inputdlg(sprintf('Number of parallel jobs? (1-%d)',numel(subjects)),'CONN HPC',1,{'1'}); %num2str(numel(subjects))});
+                    answer=conn_menu_inputdlg(sprintf('Number of parallel processes (run simultaneously)? (1-%d)',numel(subjects)),'CONN HPC',1,{'1'}); %num2str(numel(subjects))});
                     if isempty(answer), return; end
                     N=str2num(answer{1});
                 else N=1;
@@ -1313,7 +1313,7 @@ set(handles.axes,'visible','off');
 hold(handles.axes,'on');
 handles.txt=text(.5,1,'','horizontalalignment','center','color','w','parent',handles.axes);
 hold(handles.axes,'off');
-handles.contall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.2,.075,.2,.05],'string','Ok','callback','close(gcbf)','tooltipstring',conn_menu_formathtml('<HTML>Closes this GUI (all jobs will continue running)<br/> - processes will continue running in their current location (as background processes or in the cluster)<br/> - visit Tools.Cluster/HPC.PendingJobs at any time to see this job progress, and merge it when finished<br/> - note: until this job is finished&merged any modifications to this project may be overwritten if they conflict with the contents of this job</HTML>'));
+handles.contall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.2,.075,.2,.05],'string','Ok','callback','close(gcbf)','tooltipstring',conn_menu_formathtml('<HTML>Closes this GUI (all jobs will continue running)<br/> - processes will continue running in their current location (as background processes or in the cluster)<br/> - visit Tools.Cluster/HPC.PendingJobs at any time to see this job progress, and import its results when finished<br/> - note: until this job is finished&imported any modifications to this project may be overwritten if they conflict with the contents of this job</HTML>'));
 handles.stopall=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.4,.075,.2,.05],'string','Cancel job','callback',@(varargin)conn_jobmanager_update('cancelallask'),'tooltipstring','Cancels all unfinished nodes and finishes this job pipeline');
 handles.enable=uicontrol(handles.hfig,'style','checkbox','value',0,'units','norm','position',[.64,.075,.3,.05],'string','Show advanced options','backgroundcolor','w','callback',@(varargin)conn_jobmanager_update('enable'));
 handles.refresh_status=uicontrol(handles.hfig,'style','text','units','norm','position',[0,.26,.99,.04],'string','','backgroundcolor',1*[1 1 1],'foregroundcolor','k','fontsize',9,'horizontalalignment','right');

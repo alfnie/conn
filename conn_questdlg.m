@@ -68,7 +68,7 @@ else
     hext2=max([100*Nc 60],hext(end-1:end)+[60 90]);
     hpos=get(h,'position');
     set(h,'position',[hpos(1)-hext2(1)/2,hpos(2)-hext2(2)/2,hext2(1),hext2(2)]);
-    set(ha,'position',[30 60 hext(end-1) hext(end)],'string',txt);
+    set(ha,'position',[15 60 hext(end-1)+15 hext(end)],'string',txt);
     set(hb,'units','pixels'); for nc=1:numel(hb), ipos=get(hb(nc),'position'); set(hb(nc),'position',[ipos(1:3) ipos0(4)]); end
 end
 conn('modalfig',h);

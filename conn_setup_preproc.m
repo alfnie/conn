@@ -640,7 +640,7 @@ if ~nargin||isempty(STEPS)||dogui,
             end
         end
         if numel(subjects)>1,
-            answer=conn_menu_inputdlg(sprintf('Number of parallel jobs? (1-%d)',numel(subjects)),'CONN HPC',1,{num2str(1)});
+            answer=conn_menu_inputdlg(sprintf('Number of parallel processes (run simultaneously)? (1-%d)',numel(subjects)),'CONN HPC',1,{num2str(1)});
             if isempty(answer)||isempty(str2num(answer{1})), return; end
             parallel_N=str2num(answer{1});
         else parallel_N=1;
