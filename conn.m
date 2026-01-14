@@ -8139,7 +8139,9 @@ else
                 set(CONN_h.menus.m_analyses_00{11},'string',[repmat('Subject ',[CONN_x.Setup.nsubjects,1]),num2str((1:CONN_x.Setup.nsubjects)')]);
                 nconditions=length(CONN_x.Setup.conditions.names)-1;
                 CONN_h.menus.m_analyses.listedconditions=find(cellfun('length',CONN_x.Setup.conditions.model)==0);
-                try, if ~isempty(CONN_x.Analyses(ianalysis).conditions), CONN_h.menus.m_analyses.listedconditions=CONN_h.menus.m_analyses.listedconditions(ismember(CONN_x.Setup.conditions.names(CONN_h.menus.m_analyses.listedconditions),CONN_x.Analyses(ianalysis).conditions)); end; end
+                if state(1)==1
+                    try, if ~isempty(CONN_x.Analyses(ianalysis).conditions), CONN_h.menus.m_analyses.listedconditions=CONN_h.menus.m_analyses.listedconditions(ismember(CONN_x.Setup.conditions.names(CONN_h.menus.m_analyses.listedconditions),CONN_x.Analyses(ianalysis).conditions)); end; end
+                end
                 set(CONN_h.menus.m_analyses_00{12},'string',CONN_x.Setup.conditions.names(CONN_h.menus.m_analyses.listedconditions),'value',min(numel(CONN_h.menus.m_analyses.listedconditions),get(CONN_h.menus.m_analyses_00{12},'value')));
                 %set(CONN_h.menus.m_analyses_00{13},'string',{' all confounds',CONN_x.Analyses(ianalysis).regressors.names{:}});
                 %set(CONN_h.screen.hfig,'pointer',CONN_gui.waiticon);
@@ -10260,6 +10262,17 @@ else
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
+                end
+                if 1 % note: placeholder creation of CONN_x.Analyses structure storing some of the outputs (this avoids conflicts when submitting multiple dyn analyses at the same time)
+                    for ncomp=1:CONN_x.dynAnalyses(CONN_x.dynAnalysis).Ncomponents
+                        name=fullfile(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,sprintf('Dynamic factor %02d',ncomp));
+                        tianalysis=find(strcmp({CONN_x.Analyses.name},name));
+                        if isempty(tianalysis), 
+                            tianalysis=numel(CONN_x.Analyses)+1; 
+                            CONN_x.Analyses(tianalysis).name=name; 
+                            CONN_x.Analyses(tianalysis).sourcenames={};
+                        end
+                    end                    
                 end
                 if CONN_x.gui.parallel~=0, 
                     ispending=isequal(CONN_x.gui.parallel,find(strcmp('Null profile',conn_jobmanager('profiles'))));
@@ -14079,8 +14092,8 @@ if isfield(CONN_x,'filename')
         d=max(0,min(1, mod(conn_bsxfun(@times,1+1*c,shiftdim(CONN_gui.backgroundcolor,-1)),1.1) ));
         %d=max(0,min(1, mod(conn_bsxfun(@plus,.1*c,shiftdim(CONN_gui.backgroundcolor,-1)),1) ));
         d(conn_bsxfun(@plus,[0 2]*numel(c),find(c==2)))=d(conn_bsxfun(@plus,[2 0]*numel(c),find(c==2)));
-        ha=axes('units','norm','position',[.415,.005,.05,.016],'parent',CONN_h.screen.hfig); ht=image(d,'parent',ha); axis(ha,'tight','off'); set(ht,'tag','infoline:bar');
-        ht=conn_menu('text0',[.475,.005,.25,.016],'',str);
+        ha=axes('units','norm','position',[.325,.005,.05,.016],'parent',CONN_h.screen.hfig); ht=image(d,'parent',ha); axis(ha,'tight','off'); set(ht,'tag','infoline:bar');
+        ht=conn_menu('text0',[.385,.005,.25,.016],'',str);
         set(ht,'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'color',.5*CONN_gui.fontcolorA+.5*CONN_gui.backgroundcolor,'tag','infoline:text');
         %text(120,(size(c,1))/2,str,'horizontalalignment','left','fontsize',5+CONN_gui.font_offset,'color',[.5 .5 .5]+.0*(mean(CONN_gui.backgroundcolor)<.5));
 %     end
@@ -14097,15 +14110,15 @@ if conn_menumanager('ison')&&isfield(CONN_gui,'isremote')&&CONN_gui.isremote,
     end
 end
 if conn_menumanager('ison')
-    h=conn_menu('pushbutton2',[.28,.0,.016,.02],'','','color theme: light (dark text on light background)','conn(''gui_settings'',''light'');'); set(h,'backgroundcolor',[.9 .9 .9]);
-    h=conn_menu('pushbutton2',[.296,.0,.016,.02],'','','color theme: dark (default; light text on dark background)','conn(''gui_settings'',''dark'');'); set(h,'backgroundcolor',[.1 .1 .1]);
-    h=conn_menu('pushbutton2',[.312,.0,.016,.02],'','A+','font size: increase','conn(''gui_settings'',''font+'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
-    h=conn_menu('pushbutton2',[.328,.0,.016,.02],'','A-','font size: decrease','conn(''gui_settings'',''font-'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
-    h=conn_menu('pushbutton2',[.344,.0,.016,.02],'','','colormap: jet','conn(''gui_colormap'',1);'); set(h,'cdata',permute(repmat([0 0.33 1;0 0.5 1;0 0.67 1;0 0.83 1;0 1 1;0.17 1 0.83;0.33 1 0.67;0.5 1 0.5;0.67 1 0.33;0.83 1 0.17;1 1 0;1 0.83 0;1 0.67 0;1 0.5 0;1 0.33 0;1 0.17 0],[1,1,8]),[3,1,2]));
-    h=conn_menu('pushbutton2',[.360,.0,.016,.02],'','','colormap: yellowblackblue','conn(''gui_colormap'',3);'); set(h,'cdata',permute(repmat([0 0.68 0.89;0 0.6 0.76;0 0.53 0.64;0 0.46 0.51;0 0.39 0.39;0.064 0.26 0.23;0.051 0.13 0.093;0.004 0.0079 0.004;0.082 0.12 0.044;0.21 0.24 0.059;0.37 0.37 0;0.5 0.45 0;0.62 0.51 0;0.75 0.58 0;0.87 0.66 0;1 0.76 0],[1,1,8]),[3,1,2]));
-    h=conn_menu('pushbutton2',[.376,.0,.016,.02],'','','colormap: redwhiteblue','conn(''gui_colormap'',4);'); set(h,'cdata',permute(repmat([0.11 0.21 0.66;0.24 0.42 0.8;0.36 0.6 0.92;0.49 0.74 1;0.7 0.85 1;0.87 0.93 1;0.97 0.98 1;1 1 1;1 0.97 0.97;1 0.88 0.88;1 0.73 0.73;1 0.5 0.5;0.93 0.38 0.38;0.82 0.25 0.25;0.68 0.13 0.13;0.5 0 0],[1,1,8]),[3,1,2]));
-    if isfield(CONN_gui,'tooltips')&&CONN_gui.tooltips, h=conn_menu('pushbutton2',[.392,.0,.016,.02],'','on','click here to stop displaying contextual help when hovering over GUI elements','conn(''gui_helptips'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
-    else h=conn_menu('pushbutton2',[.392,.0,.016,.02],'','off','','conn(''gui_helptips'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'tooltip','click here to display contextual help when hovering over GUI elements');
+    h=conn_menu('pushbutton2',[.15,.0,.016,.02],'','','color theme: light (dark text on light background)','conn(''gui_settings'',''light'');'); set(h,'backgroundcolor',[.9 .9 .9]);
+    h=conn_menu('pushbutton2',[.166,.0,.016,.02],'','','color theme: dark (default; light text on dark background)','conn(''gui_settings'',''dark'');'); set(h,'backgroundcolor',[.1 .1 .1]);
+    h=conn_menu('pushbutton2',[.182,.0,.016,.02],'','A+','font size: increase','conn(''gui_settings'',''font+'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
+    h=conn_menu('pushbutton2',[.198,.0,.016,.02],'','A-','font size: decrease','conn(''gui_settings'',''font-'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
+    h=conn_menu('pushbutton2',[.214,.0,.016,.02],'','','colormap: jet','conn(''gui_colormap'',1);'); set(h,'cdata',permute(repmat([0 0.33 1;0 0.5 1;0 0.67 1;0 0.83 1;0 1 1;0.17 1 0.83;0.33 1 0.67;0.5 1 0.5;0.67 1 0.33;0.83 1 0.17;1 1 0;1 0.83 0;1 0.67 0;1 0.5 0;1 0.33 0;1 0.17 0],[1,1,8]),[3,1,2]));
+    h=conn_menu('pushbutton2',[.230,.0,.016,.02],'','','colormap: yellowblackblue','conn(''gui_colormap'',3);'); set(h,'cdata',permute(repmat([0 0.68 0.89;0 0.6 0.76;0 0.53 0.64;0 0.46 0.51;0 0.39 0.39;0.064 0.26 0.23;0.051 0.13 0.093;0.004 0.0079 0.004;0.082 0.12 0.044;0.21 0.24 0.059;0.37 0.37 0;0.5 0.45 0;0.62 0.51 0;0.75 0.58 0;0.87 0.66 0;1 0.76 0],[1,1,8]),[3,1,2]));
+    h=conn_menu('pushbutton2',[.246,.0,.016,.02],'','','colormap: redwhiteblue','conn(''gui_colormap'',4);'); set(h,'cdata',permute(repmat([0.11 0.21 0.66;0.24 0.42 0.8;0.36 0.6 0.92;0.49 0.74 1;0.7 0.85 1;0.87 0.93 1;0.97 0.98 1;1 1 1;1 0.97 0.97;1 0.88 0.88;1 0.73 0.73;1 0.5 0.5;0.93 0.38 0.38;0.82 0.25 0.25;0.68 0.13 0.13;0.5 0 0],[1,1,8]),[3,1,2]));
+    if isfield(CONN_gui,'tooltips')&&CONN_gui.tooltips, h=conn_menu('pushbutton2',[.262,.0,.016,.02],'','on','click here to stop displaying contextual help when hovering over GUI elements','conn(''gui_helptips'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor);
+    else h=conn_menu('pushbutton2',[.262,.0,.016,.02],'','off','','conn(''gui_helptips'');'); set(h,'fontsize',6+CONN_gui.font_offset,'backgroundcolor',CONN_gui.backgroundcolor,'tooltip','click here to display contextual help when hovering over GUI elements');
     end
     if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, str=conn_menumanager(CONN_h.menus.m_setup_01a,'string'); str{end}='Disconnect from remote'; conn_menumanager(CONN_h.menus.m_setup_01a,'string',str);
     else str=conn_menumanager(CONN_h.menus.m_setup_01a,'string'); str{end}='Connect to remote projects'; conn_menumanager(CONN_h.menus.m_setup_01a,'string',str);
@@ -14118,8 +14131,8 @@ c2([1239:1256 1275:1292 1311:1328 1347:1364 1383:1400 1419:1436])=2;
 if isempty(icon2), icon2=imread(conn_fullfile(fileparts(which(mfilename)),'conn_icon2.png')); end
 nf=ceil(size(icon2,1)/(size(c2,1)-1));
 c=c2(round(1:1/nf:size(c2,1)),round(1:1/nf:size(c2,2)));
-% c=[c zeros(size(c,1),64) [double(icon2(:,:,1)>64); zeros(size(c,1)-size(icon2,1),size(icon2,2))]];
-c=[[double(icon2(:,:,1)>64); zeros(size(c,1)-size(icon2,1),size(icon2,2))] zeros(size(c,1),256) c];
+c=[c zeros(size(c,1),64) [double(icon2(:,:,1)>64); zeros(size(c,1)-size(icon2,1),size(icon2,2))]];
+% c=[[double(icon2(:,:,1)>64); zeros(size(c,1)-size(icon2,1),size(icon2,2))] zeros(size(c,1),256) c];
 % c2=zeros(36,52);
 % c2([75:106 111:142 147:148 177:178 183:184 213:214 219:220 249:250 255:256 285:286 291:292 321:322 327:328 357:358 363:364 393:394 399:400 429:430 435:436 465:466 471:472 501:502 507:508 537:538 543:544 573:574 579:580 609:610 615:616 645:646 651:652 681:682 687:688 717:718 723:724 753:754 759:760 789:790 795:796 825:826 831:832 861:862 867:868 897:898 903:904 933:934 939:940 969:970 975:976 1005:1006 1011:1012 1041:1042 1047:1048 1077:1078 1083:1084 1113:1114 1119:1120 1149:1150 1155:1156 1185:1186 1191:1192 1221:1222 1227:1228 1257:1258 1263:1264 1293:1294 1299:1300 1329:1330 1335:1336 1365:1366 1371:1372 1401:1402 1407:1408 1437:1438 1443:1444 1473:1474 1479:1480 1509:1510 1515:1516 1545:1546 1551:1552 1581:1582 1587:1588 1617:1618 1623:1624 1653:1654 1659:1660 1689:1690 1695:1696 1725:1726 1731:1762 1767:1798])=1;
 % c2([335:336 350 371:372 386 407:422 443:458 479:494 515:530 551:552 558 565:566 587:588 594 602 623:624 629:630 638 659:660 665:667 673:674 695:697 700:703 709:710 732:746 768:781 805:808 811:817 849:851 875:876 911:912 947:959 983:997 1019:1033 1055:1056 1067:1070 1091:1092 1104:1106 1141:1143 1177:1179 1213:1215 1249:1251 1285:1287 1321:1322 1343:1344 1357:1358 1379:1380 1392:1394 1415:1429 1451:1464 1487:1499 1523:1524 1559:1560])=2;

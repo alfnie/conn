@@ -220,6 +220,7 @@ try,
     print(hfig,varargin{:});
 catch
     warning('off','MATLAB:prnRenderer:opengl');
+    warning('off','MATLAB:print:InvertHardcopyIgnoredDefaultColorUsed');
     if doerror
         print(hfig,'-noui',varargin{:});
     else
@@ -234,6 +235,7 @@ catch
             %end
         end
     end
+    warning('on','MATLAB:print:InvertHardcopyIgnoredDefaultColorUsed');
     warning('on','MATLAB:prnRenderer:opengl');
 %     filename=varargin{end};
 %     pos=get(hfig,'position');

@@ -263,6 +263,7 @@ switch(lower(option))
             end
             trackchange=false;
             didmerge=false;
+            mergingfiles=allfiles;
             if ~isempty(allfiles)
                 conn_disp(allfiles);
                 conn_disp('fprintf','Merging finished jobs. Please wait...');
@@ -361,8 +362,10 @@ switch(lower(option))
                 didmerge=true;
                 conn_disp('fprintf','Done\n');
             end
-            localfilename=conn_projectmanager('projectfile',CONN_x.filename,struct('id','*','isextended',true),'.emat');
-            allfiles=conn_dir(localfilename,'-R');
+            delayedprocessingfile=conn_prepend('',regexprep(cellstr(mergingfiles),'^\s+|\s+$',''),'.emat');
+            allfiles=char(delayedprocessingfile(conn_existfile(delayedprocessingfile)));
+            %localfilename=conn_projectmanager('projectfile',CONN_x.filename,struct('id','*','isextended',true),'.emat');
+            %allfiles=conn_dir(localfilename,'-R');
             if ~isempty(allfiles)
                 conn_disp('fprintf','Performing delayed processing steps. Please wait...');
                 conn_disp(unique(cellstr(allfiles)));

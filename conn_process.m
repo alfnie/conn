@@ -547,7 +547,8 @@ if any(options==2),
                 clear samples weights;
                 nscans=CONN_x.Setup.nscans;
                 for nl1covariate=1:nl1covariates,
-                    filename=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{1};
+                    filename=[];
+                    try, filename=CONN_x.Setup.l1covariates.files{nsub}{nl1covariate}{nses}{1}; end
                     if isempty(filename)
                         data{nl1covariate}=zeros(nscans{nsub}{nses},0);
                     else
@@ -2596,7 +2597,8 @@ if any(options==10) && any(CONN_x.Setup.steps([2])) && ~(isfield(CONN_x,'gui')&&
                             filename=fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(value1).name,['dyn_Subject',num2str(nsub,'%03d'),'.mat']);
                             xmod=load(filename);
                             [ok,idx]=ismember(name2,xmod.names);
-                            if ok, wx=xmod.data(:,[setdiff(1:size(xmod.data,2),idx),idx]);
+                            if ok, wx=xmod.data(:,[idx]);
+                            %if ok, wx=xmod.data(:,[setdiff(1:size(xmod.data,2),idx),idx]);
                             else error('Temporal factor not found');
                             end
                             wx=conn_bsxfun(@times,wx,X1.conditionweights{1}>0);
@@ -2939,7 +2941,8 @@ if any(options==11) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                             filename=fullfile(CONN_x.folders.firstlevel_dyn,CONN_x.dynAnalyses(value1).name,['dyn_Subject',num2str(nsub,'%03d'),'.mat']);
                             xmod=load(filename);
                             [ok,idx]=ismember(name2,xmod.names);
-                            if ok, wx=xmod.data(:,[setdiff(1:size(xmod.data,2),idx),idx]);
+                            if ok, wx=xmod.data(:,[idx]);
+                            %if ok, wx=xmod.data(:,[setdiff(1:size(xmod.data,2),idx),idx]);
                             else error('Temporal factor not found');
                             end
                             if ~isempty(wx), wx=conn_bsxfun(@times,wx,X1.conditionweights{1}>0); end
@@ -4072,7 +4075,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'subjects'), validsubjects=CONN_x.gui.subjects; else validsubjects=1:CONN_x.Setup.nsubjects; end
     if isfield(CONN_x,'pobj')&&isstruct(CONN_x.pobj)&&isfield(CONN_x.pobj,'subjects'), validsubjects=CONN_x.pobj.subjects; end
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'conditions')&&~isempty(CONN_x.gui.conditions), validconditions=CONN_x.gui.conditions; else validconditions=1:length(CONN_x.Setup.conditions.names)-1; end
-    icondition=[];isnewcondition=[];for ncondition=validconditions,[icondition(ncondition),isnewcondition(ncondition)]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition},'+'); end
+    icondition=[];isnewcondition=[];for ncondition=1:nconditions,if ismember(ncondition,validconditions),[icondition(ncondition),isnewcondition(ncondition)]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition},'+'); else, [icondition(ncondition),isnewcondition(ncondition)]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition}); end; end 
     %h=conn_waitbar(0,['Step ',num2str(sum(options<=14)),'/',num2str(length(options)),': dynamic temporal-components estimation']);
     if any(arrayfun(@(n)isempty(dir(fullfile(filepath,['ROI_Subject',num2str(n,'%03d'),'_Condition',num2str(0,'%03d'),'.mat']))),validsubjects)), error(['Data not ready yet. Re-run Denoising step']); end
     dogrouplevel=any(options==14|options==14.1); if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'grouplevel')&&~ismember(CONN_x.gui.grouplevel,[0 1]),dogrouplevel=false; end 
@@ -4085,6 +4088,8 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
     
         Ncomponents=CONN_x.dynAnalyses(CONN_x.dynAnalysis).Ncomponents; % number of components to estimate
         selectedcondition=CONN_x.dynAnalyses(CONN_x.dynAnalysis).condition;    % selected condition (determines span of BOLD timeseries to use in these analyses)
+        if isempty(selectedcondition)&&numel(validconditions)==1, selectedcondition=validconditions; end % note: comment this line to disable running dynamic-ICA on individual-condition data
+        if ~isempty(selectedcondition)&&ischar(selectedcondition), selectedcondition=find(strcmp(selectedcondition,CONN_x.Setup.conditions.names(1:end-1))); assert(numel(selectedcondition)==1); end
         roinames=CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names;  % cell-array of ROI names (empty to use all ROIs)
         window=CONN_x.dynAnalyses(CONN_x.dynAnalysis).window;
         roixyzs={};
@@ -4141,21 +4146,31 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     filename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(0,'%03d'),'.mat']);
                     if ~conn_existfile(filename), conn_disp(['Not ready to process step conn_process_135']); return; end %conn_waitbar('close',h);return; end
                     X1=load(filename); 
+                    if ~isempty(selectedcondition)
+                        tfilename=fullfile(filepath,['ROI_Subject',num2str(nsub,'%03d'),'_Condition',num2str(icondition(selectedcondition),'%03d'),'.mat']);
+                        tX1=load(tfilename,'names','data','xyz','conditionweights'); % note: loads condition-specific data if applicable
+                        X1.names=tX1.names;
+                        X1.data=tX1.data;
+                        X1.xyz=tX1.xyz;
+                    end
                     if isempty(roinames), roinames=X1.names(~ismember(X1.names,{'White Matter','CSF','MotionMask'})); end
                     [ok,idx]=ismember(roinames,X1.names);
                     if ~all(ok), error('Missing ROI data in subject %d',nsub); end
                     y=cat(2,X1.data{idx});
                     if isempty(roixyzs), roixyzs=X1.xyz(idx); end
                     if nsub~=validsubjects(1)&&size(y,2)~=size(Y,2), error('Incorrect number of ROI timeseries in subject %d',nsub); end
-                    if ~isempty(selectedcondition)
-                        matchedcondition=find(strcmp(X1.conditionsnames,CONN_x.Setup.conditions.names{selectedcondition}),1);
-                        if isempty(matchedcondition), error('Condition name %s not found in %s. Please re-run Denoising step',CONN_x.Setup.conditions.names{selectedcondition},filename); end
-                        if numel(X1.conditionsweights)>=matchedcondition&&~isempty(X1.conditionsweights{matchedcondition})
-                            wx=X1.conditionsweights{matchedcondition}{1}; % hrf
-                            wx=max(0,wx);
-                            y=conn_wdemean(y,wx);
-                            y=y.*repmat(wx,[1,size(y,2)]);
-                        end
+                    if ~isempty(selectedcondition)&&~all(tX1.conditionweights{1}>0), % note: condition-specific data weighted by condition timeseries
+                        wx=double(tX1.conditionweights{1}>0); % hrf
+                        y=conn_wdemean(y,wx);
+                        y=y.*repmat(wx,[1,size(y,2)]);
+                        % matchedcondition=find(strcmp(X1.conditionsnames,CONN_x.Setup.conditions.names{selectedcondition}),1);
+                        % if isempty(matchedcondition), error('Condition name %s not found in %s. Please re-run Denoising step',CONN_x.Setup.conditions.names{selectedcondition},filename); end
+                        % if numel(X1.conditionsweights)>=matchedcondition&&~isempty(X1.conditionsweights{matchedcondition})
+                        %     wx=X1.conditionsweights{matchedcondition}{1}; % hrf
+                        %     wx=max(0,wx);
+                        %     y=conn_wdemean(y,wx);
+                        %     y=y.*repmat(wx,[1,size(y,2)]);
+                        % end
                     end
                     y=conn_bsxfun(@rdivide,y,max(eps,sqrt(mean(abs(y).^2,1))));
                     if any(all(y==0,1)), conn_disp(sprintf('Warning: %d null ROI timeseries in subject %d',sum(all(y==0,1)),nsub)); end
@@ -4180,6 +4195,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     Xfilter=[Xfilter sparse(size(Xfilter,1),size(xfilter,2)); sparse(size(xfilter,1),size(Xfilter,2)) xfilter];
                     IDX_subject=cat(1,IDX_subject,nsub+zeros(size(y,1),1));
                     IDX_session=cat(1,IDX_session,X1.data_sessions);
+
                     ok=cellfun(@(x)numel(x{1})==numel(X1.data_sessions),X1.conditionsweights,'ErrorHandler',@(varargin)false);
                     %if nsub==validsubjects(1), COND_names=X1.conditionsnames(ok); COND_weights=cell(1,nnz(ok)); end
                     ok1=find(ok&ismember(X1.conditionsnames(1:numel(ok)),COND_names));
@@ -4195,6 +4211,17 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 end
                 drawnow;
                 if DEMEAN, tX=X; else tX=[]; end
+                if 0 % bootstrap resampling placeholder
+                    state=rng;
+                    for nboot=1:100
+                        disp(nboot);
+                        rng(nboot,'twister');
+                        idxboot=sort(ceil(size(Y,1)*rand(1,size(Y,1))));
+                        [H,B,H0,B0]=conn_invPPI(Y(idxboot,:),Ncomponents,tX,Xfilter(idxboot,idxboot),1);
+                        save(sprintf('dyn_Base_bootstrap%03d.mat',nboot),'H','B','H0','B0');
+                    end
+                    rng(state);
+                end
                 [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,1);
                 Ncomponents=size(H,2);
                 CONN_x.dynAnalyses(CONN_x.dynAnalysis).sources=roinames;
@@ -4253,11 +4280,11 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         w=max(eps,accumarray(IDX_subject,max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1]));
                         H_std_weighted=sqrt(max(0,accumarray(IDX_subject,H(:,ncomp).^2.*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w - (accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w).^2));
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d @ %s',ncomp,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d @ %s',ncomp,COND_names_all{n});
                             else new_names{end+1}=sprintf('_Variability Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
                             end
                         else
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             else new_names{end+1}=sprintf('_Variability Dynamic factor %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             end
                         end
@@ -4270,11 +4297,11 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         w=max(eps,accumarray(IDX_subject,max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1]));
                         H_avg_weighted=accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w;
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d @ %s',ncomp,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d @ %s',ncomp,COND_names_all{n});
                             else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
                             end
                         else
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             end
                         end
@@ -4289,11 +4316,11 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         H_std_weighted=H_std_weighted+(max(0,accumarray(IDX_subject,H(:,ncomp).^2.*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w - (accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w).^2));
                     end
                     if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total @ %s',COND_names_all{n});
+                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total @ %s',COND_names_all{n});
                         else new_names{end+1}=sprintf('_Variability Dynamic Total_%s @ %s',CONN_x.Setup.conditions.names{selectedcondition},COND_names_all{n});
                         end
                     else
-                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total %s @ %s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total %s @ %s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                         else new_names{end+1}=sprintf('_Variability Dynamic Total_%s %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                         end
                     end
@@ -4315,11 +4342,11 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         if isempty(allrt), allrt=conn_get_rt; end
                         H_freq_weighted=H_freq_weighted./reshape(allrt,CONN_x.Setup.nsubjects,1)/2;
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,COND_names_all{n});
                             else new_names{end+1}=sprintf('_Frequency Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
                             end
                         else
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             else new_names{end+1}=sprintf('_Frequency Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             end
                         end
@@ -4337,11 +4364,11 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 
                 if 1,
                     if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name='QC_dynamicfactors';
+                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name='QC_dynamicfactors';
                         else name=sprintf('QC_dynamicfactors_%s',CONN_x.Setup.conditions.names{selectedcondition});
                         end
                     else
-                        if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('QC_dynamicfactors_%s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name);
+                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('QC_dynamicfactors_%s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name);
                         else name=sprintf('QC_dynamicfactors_%s_%s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,CONN_x.Setup.conditions.names{selectedcondition});
                         end
                     end
@@ -4361,11 +4388,11 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 if CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(3)
                     for ncomp=1:Ncomponents
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d',ncomp);
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d',ncomp);
                             else name=sprintf('Dynamic factor %s_%02d',CONN_x.Setup.conditions.names{selectedcondition},ncomp);
                             end
                         else
-                            if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name);
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name);
                             else name=sprintf('Dynamic factor %s_%02d %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name);
                             end
                         end
@@ -4386,7 +4413,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 %                 if 1, %CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(1)
                 newanalyses=[];
                 for ncomp=1:Ncomponents
-                    if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d',ncomp);
+                    if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d',ncomp);
                     else name=sprintf('Dynamic factor %s_%02d',CONN_x.Setup.conditions.names{selectedcondition},ncomp);
                     end
                     name=fullfile(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,name);
@@ -4396,7 +4423,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     newanalyses=[newanalyses tianalysis];
                     CONN_x.Analyses(tianalysis).name=name;
                     CONN_x.Analyses(tianalysis).modulation=fullfile(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,sprintf('Dynamic factor %02d',ncomp));
-                    CONN_x.Analyses(tianalysis).measure=1;
+                    CONN_x.Analyses(tianalysis).measure=3;
                     CONN_x.Analyses(tianalysis).weight=2;
                     CONN_x.Analyses(tianalysis).type=1;
                     CONN_x.Analyses(tianalysis).regressors.names=CONN_x.dynAnalyses(CONN_x.dynAnalysis).regressors.names;
@@ -4428,7 +4455,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
             
             newanalyses=[];
             for ncomp=1:Ncomponents
-                if isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d',ncomp);
+                if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d',ncomp);
                 else name=sprintf('Dynamic factor %s_%02d',CONN_x.Setup.conditions.names{selectedcondition},ncomp);
                 end
                 name=fullfile(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,name);

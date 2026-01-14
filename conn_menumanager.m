@@ -384,8 +384,8 @@ if ischar(handle),
                 %set(CONN_MM.HELP.handle,'string',[varargin{:}],'visible','on','foregroundcolor',1-bg);
             else
                 ha=axes('units','norm','position',[.15,.02,.7,.03],'visible','off','parent',CONN_MM.gcf);
-                CONN_MM.HELP.handle=text(0,1,[varargin{:}],'color',mod(bg-.3,1),'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
-                set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
+                CONN_MM.HELP.handle=text(0,1,[varargin{:}],'color',mod(bg-.3,1),'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','verticalalignment','middle','interpreter','none','parent',ha);
+                set(ha,'xlim',[0 1],'ylim',[0 2],'visible','off');
                 %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string',[varargin{:}],'fontsize',8+CONN_gui.font_offset);
             end
             
@@ -670,9 +670,9 @@ else
                     else set(CONN_MM.HELP.handle,'string',CONN_MM.HELP.string,'visible','on');
                     end
                 else
-                    ha=axes('units','norm','position',[.3,.015,.4,.03],'visible','off','parent',CONN_MM.gcf);
-                    CONN_MM.HELP.handle=text(0,1,CONN_MM.HELP.string,'color',mod(bg-.3,1),'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
-                    set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
+                    ha=axes('units','norm','position',[.15,.02,.7,.03],'visible','off','parent',CONN_MM.gcf);
+                    CONN_MM.HELP.handle=text(0,1,CONN_MM.HELP.string,'color',mod(bg-.3,1),'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','verticalalignment','middle','interpreter','none','parent',ha);
+                    set(ha,'xlim',[0 1],'ylim',[0 2],'visible','off');
                     %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string',CONN_MM.HELP.string,'fontsize',8+CONN_gui.font_offset); 
                 end
             else
@@ -681,9 +681,9 @@ else
                     else set(CONN_MM.HELP.handle,'string',['Project: ',CONN_x.filename],'visible','on');
                     end
                 else
-                    ha=axes('units','norm','position',[.3,.015,.4,.03],'visible','off','parent',CONN_MM.gcf);
-                    CONN_MM.HELP.handle=text(0,1,'','color',mod(bg-.3,1),'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','verticalalignment','middle','interpreter','none','parent',ha);
-                    set(ha,'xlim',[-1 1],'ylim',[0 2],'visible','off');
+                    ha=axes('units','norm','position',[.15,.02,.7,.03],'visible','off','parent',CONN_MM.gcf);
+                    CONN_MM.HELP.handle=text(0,1,'','color',mod(bg-.3,1),'fontname','default','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','verticalalignment','middle','interpreter','none','parent',ha);
+                    set(ha,'xlim',[0 1],'ylim',[0 2],'visible','off');
                     %CONN_MM.HELP.handle=uicontrol('style','text','units','norm','position',[.15,.02,.7,.03],'backgroundcolor',bg,'foregroundcolor',1-bg,'fontname','default','string','','fontsize',8+CONN_gui.font_offset); 
                 end
             end

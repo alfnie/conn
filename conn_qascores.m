@@ -123,12 +123,12 @@ switch(lower(option)) % Data Validity score
                     else 
                         QC_ValidSubjects=conn_module('get','l2covariates',SubjectExclusionCriteria)>0;
                     end
-                    conn_importl2covariate({'QC_ValidSubjects','QC_OutlierSubjects','ExcludeOutlierSubjects'},{QC_ValidSubjects,~QC_ValidSubjects,0./~QC_ValidSubjects},0);
+                    conn_importl2covariate({'QC_ValidSubjects','QC_OutlierSubjects','ExcludeOutlierSubjects'},{QC_ValidSubjects,~QC_ValidSubjects,0./QC_ValidSubjects},0);
                 elseif ~isempty(SubjectExclusionCriteria) % changes QC_ValidSubjects, QC_OutlierSubjects, and ExcludeOutlierSubjects to new participant exclusion criteria (fixed number of excluded subjects, instead of default OutlierScore>3 threshold)
                     [nill,idx]=sort(QC_OutlierScore);
                     QC_ValidSubjects=~isnan(QC_OutlierScore);
                     QC_ValidSubjects(idx(numel(idx)-SubjectExclusionCriteria+1:end))=false;
-                    conn_importl2covariate({'QC_ValidSubjects','QC_OutlierSubjects','ExcludeOutlierSubjects'},{QC_ValidSubjects,~QC_ValidSubjects,0./~QC_ValidSubjects},0);
+                    conn_importl2covariate({'QC_ValidSubjects','QC_OutlierSubjects','ExcludeOutlierSubjects'},{QC_ValidSubjects,~QC_ValidSubjects,0./QC_ValidSubjects},0);
                 end
                 QC_ValidSubjects=conn_module('get','l2covariates','QC_ValidSubjects');
                 QC_DOF=conn_module('get','l2covariates','QC_DOF_WelchSatterthwaite');

@@ -44,7 +44,7 @@ h0=text(x(1),y(1),str,varargin{:},'parent',haxis);
 h1=plot(x,y,'.','parent',haxis);
 %hold(haxis,'off');
 ext=get(h0,'extent');
-L0=ext(3);
+L0=.95*ext(3);
 L1=ext(4);
 dL=sqrt(max(0,reshape(x(2:end)-x(1:end-1),1,[]).^2+reshape(y(2:end)-y(1:end-1),1,[]).^2));
 dL=[0 dL];
