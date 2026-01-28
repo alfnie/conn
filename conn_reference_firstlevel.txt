@@ -79,4 +79,4 @@ First-level analysis [VALUE 1 name]: Dynamic independent component analyses (dyn
 #CITATION15 Hyvarinen, A. (1999). Fast and robust fixed-point algorithms for independent component analysis. IEEE transactions on Neural Networks, 10(3), 626-634.
 #CITATION16 Erhardt, E. B., Rachakonda, S., Bedrick, E. J., Allen, E. A., Adali, T., & Calhoun, V. D. (2011). Comparison of multi‐subject ICA methods for analysis of fMRI data. Human brain mapping, 32(12), 2075-2095.
 #CITATION17 Andersen, A. H., Gash, D. M., & Avison, M. J. (1999). Principal component analysis of the dynamic response measured by fMRI: a generalized linear systems framework. Magnetic Resonance Imaging, 17(6), 795-815.
-
+#CITATION18 Schaefer, A., Kong, R., Gordon, E. M., Laumann, T. O., Zuo, X. N., Holmes, A. J., ... & Yeo, B. T. (2018). Local-global parcellation of the human cerebral cortex from intrinsic functional connectivity MRI. Cerebral cortex, 28(9), 3095-3114.

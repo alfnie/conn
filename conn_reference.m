@@ -339,6 +339,7 @@ for nopt=1:numel(opts),
                     if ~options.multipleconditions, toptions.weight=-toptions.weight; end % marks single-condition analyses
                     if numel(toptions.sources)==1, toptions.listseeds=toptions.sources{1};
                     elseif numel(toptions.sources)<=4, toptions.listseeds=[toptions.sources{1},sprintf(', %s',toptions.sources{2:end-1}),' and ',toptions.sources{end}];
+                    elseif all(cellfun('length',regexp(toptions.sources,'^schaefer\.'))), toptions.listseeds=sprintf('%d Schaefer atlas ROIs [CITATION18]',numel(toptions.sources));
                     elseif all(cellfun('length',regexp(toptions.sources,'^networks\.'))), toptions.listseeds=sprintf('%d HPC-ICA network ROIs [CITATION0]',numel(toptions.sources));
                     elseif all(cellfun('length',regexp(toptions.sources,'^atlas\.'))), toptions.listseeds=sprintf('%d Harvard-Oxford atlas ROIs [CITATION2]',numel(toptions.sources));
                     elseif all(cellfun('length',regexp(toptions.sources,'^atlas\.|^networks\.'))), toptions.listseeds=sprintf('%d HPC-ICA networks [CITATION0] and Harvard-Oxford atlas ROIs [CITATION2]',numel(toptions.sources));
