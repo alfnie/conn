@@ -531,7 +531,7 @@ switch(lower(type)),
 			'title',title,'filter',string,'callback',callback,'max',1,'type','files','filename',tooltipstring,'reduced',true,'button','Save','buttonhelp','Saves new CONN project');
 	case 'filesearch',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.16,.18,.65],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
+		h=conn_filesearchtool('position',[.753,.062,.238,.878],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1);
 	case 'foldersearch_local',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
@@ -555,17 +555,19 @@ switch(lower(type)),
 			'title',title,'button',string,'callback',callback,'max',1,'type','folders','button','Import','buttonhelp','<HTML>Select DICOM root folder (directory where DICOM files for the selected subject are stored -including sub-directories-)</HTML>');
 	case 'filesearchlocal',
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
-		h=conn_filesearchtool('position',[.78,.16,.18,.65],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
+		h=conn_filesearchtool('position',[.753,.062,.238,.878],'backgroundcolor',CONN_gui.backgroundcolorA,titleopts{:},...
 			'title',title,'filter',string,'callback',callback,'max',1,'localcopy',1);
-	case {'frame','framewhite','framehighlight','framewhitehighlight','frame2highlight','frame2','frame2blue','framewhitenoborder','framewhitesemiborder','framewhiteborderl','frameblue','frame2blue','framebluenoborder','framebluesemiborder','frameblueborderl','frame2noborder','frame2semiborder','frame2border','frame2borderl'}
+    case {'frame','framebig','framewhite','framehighlight','framewhitehighlight','frame2highlight','frame2','frame2blue','framewhitenoborder','framewhitesemiborder','framewhiteborderl','frameblue','frame2blue','framebluenoborder','framebluesemiborder','frameblueborderl','frame2noborder','frame2semiborder','frame2border','frame2borderl'}
         %if ~isequal(CONN_h.screen.hfig,gcf), figure(CONN_h.screen.hfig); end
         if ~isempty(regexp(type,'white')),bgcolor=bgwhite; fgcolor=[0 0 0]; type=regexprep(type,'white',''); 
         elseif ~isempty(regexp(type,'blue')),bgcolor=CONN_gui.backgroundcolorE; fgcolor=[0 0 0]; type=regexprep(type,'blue',''); 
         else fgcolor=[]; 
         end
+        if strcmpi(type,'framebig'), type='frame'; titleoffset=true; 
+        else titleoffset=false;
+        end
         
         bordercolor=[]; if ~isempty(regexp(type,'highlight')), bordercolor=0*(1-bgcolor)+0*round(bgcolor)+CONN_gui.backgroundcolorE; type=regexprep(type,'highlight',''); end
-        
 		if ~isempty(title), 
             if 0
                 if 0,%strcmpi(type,'frame')
@@ -582,14 +584,14 @@ switch(lower(type)),
                 if strcmpi(type,'frame')&&~isempty(deblank(title)), bg2=bgcolor;%CONN_gui.backgroundcolorE; 
                 else bg2=bgcolor;
                 end
-                if strcmpi(type,'frame'), temp=(position+[position(3)*.05,position(4),0,0]).*[1,1,.9,0]+[.001,.005,0,.054];
+                if strcmpi(type,'frame'), temp=(position+[position(3)*.05,position(4),0,0]).*[1,1,.9,0]+[.001,.005-.05*titleoffset,0,.049];
                 %if strcmpi(type,'frame'), temp=(position+[0,position(4),0,0]).*[1,1,1,0]+[.005,0,-.010,.039];
-                else temp=(position+[position(3)*0,position(4),0,0]).*[1,1,1,0]+[1*.001,0,1*-.002,.049];
+                else temp=(position+[position(3)*0,position(4),0,0]).*[1,1,1,0]+[1*.001,0-.05*titleoffset,1*-.002,.049];
                 end
                 h2=conn_menu_mask('units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig);
                 h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
                 %if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
-                if strcmpi(type,'frame'), set(h2,'fontsize',18+CONN_gui.font_offset); %,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 
+                if strcmpi(type,'frame'), set(h2,'fontsize',14+CONN_gui.font_offset); %,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 
                 else set(h2,'fontweight','normal'); %,'foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 
                 end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
             else
@@ -610,7 +612,9 @@ switch(lower(type)),
             ht2=axes('units','norm','position',position,'parent',CONN_h.screen.hfig);
             set(ht2,'unit','pixels');
             bscale=1;%.75;
-            tpos=get(ht2,'position')+1*14*[-1 -1 2 2]*bscale; 
+            if strcmpi(type,'frame2border'), tpos=get(ht2,'position')+1*07*[-1 -1 2 2]*bscale; 
+            else tpos=get(ht2,'position')+1*14*[-1 -1 2 2]*bscale; 
+            end
             %if extendshade, tpos(4)=(tpos(4)-1*24)*(1+.04/position(4))+1*24; end
             %tpos=get(ht2,'position')+1*[-8 -12 20 20];
             set(ht2,'position',tpos,'color',0*min(1,CONN_gui.backgroundcolor),'xtick',[],'ytick',[],'xcolor',max(0,CONN_gui.backgroundcolor),'ycolor',max(0,CONN_gui.backgroundcolor),'box','off','yaxislocation','right');
@@ -640,7 +644,8 @@ switch(lower(type)),
             else
                 b1=bgcolor;
                 %set(ht2,'visible','off','units','norm');
-                t=linspace(0,pi/2,32);tA=30*tpos(3:4)/max(300,min(tpos(3:4)));
+                t=linspace(0,pi/2,32);
+                tA=tpos(3:4)/20; %tA=30*tpos(3:4)/max(300,min(tpos(3:4)));
                 %h3=patch([1 tA(1)-1 tA(1)-1+cos(3*pi/2+t) tA(1) tA(1) tA(1)-1+cos(t) tA(1)-1 1 1+cos(pi/2+t) 0 0 1+cos(pi+t)],[0 0 1+sin(3*pi/2+t) 1 tA(2)-1 tA(2)-1+sin(t) tA(2) tA(2) tA(2)-1+sin(pi/2+t) tA(2)-1 1 1+sin(pi+t)],'k','edgecolor',bg2,'facecolor',bgcolor,'linewidth',lw2,'parent',ht2);
                 h3a=patch([1 tA(1)-1 tA(1)-1+cos(3*pi/2+t) tA(1) tA(1) tA(1)-1+cos(t) tA(1)-1 1 1+cos(pi/2+t) 0 0 1+cos(pi+t)],[0 0 1+sin(3*pi/2+t) 1 tA(2)-1 tA(2)-1+sin(t) tA(2) tA(2) tA(2)-1+sin(pi/2+t) tA(2)-1 1 1+sin(pi+t)],'k','edgecolor','none','facecolor',bgcolor,'linewidth',lw2,'parent',ht2);
                 %if strcmpi(type,'frame'),hold(ht2,'on'); plot([1 tA(1)-1 tA(1)-1+cos(3*pi/2+t) tA(1) tA(1) tA(1)-1+cos(t) tA(1)-1 1 1+cos(pi/2+t) 0 0 1+cos(pi+t)],[0 0 1+sin(3*pi/2+t) 1 tA(2)-1 tA(2)-1+sin(t) tA(2) tA(2) tA(2)-1+sin(pi/2+t) tA(2)-1 1 1+sin(pi+t)],'k','color',0*bg2,'linewidth',lw2,'parent',ht2); hold(ht2,'off'); end

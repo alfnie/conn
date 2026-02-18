@@ -2010,6 +2010,11 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                 end
             end
             save(filename,'data','names','xyz','source','crop','data_sessions',   'conditionsweights','conditionsnames','conditionsnamesvalid');
+            if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=7&&CONN_x.Setup.outputfiles(7), % create confound-corrected ROI file
+                outputfilename=fullfile(filepathresults,['dROI_Subject',num2str(nsub,'%03d'),'.csv']);
+                enames=cellfun(@(nroi)arrayfun(@(n)sprintf('%s_%d',names{nroi},n),1:size(data{nroi},2),'uni',0),1:numel(data),'uni',0);
+                conn_savetextfile(outputfilename,round(cat(2,data_sessions,data{:}),8),[{'SessionNumber'},cat(2,enames{:})]);
+            end
         end
         
         n=n+1;
@@ -4214,15 +4219,15 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 if 0 % bootstrap resampling placeholder
                     state=rng;
                     for nboot=1:100
-                        disp(nboot);
+                        fprintf('Bootstrap resample %d/%d\n',nboot,100);
                         rng(nboot,'twister');
                         idxboot=sort(ceil(size(Y,1)*rand(1,size(Y,1))));
-                        [H,B,H0,B0]=conn_invPPI(Y(idxboot,:),Ncomponents,tX,Xfilter(idxboot,idxboot),1);
-                        save(sprintf('dyn_Base_bootstrap%03d.mat',nboot),'H','B','H0','B0');
+                        [H,B,H0,B0]=conn_invPPI(Y(idxboot,:),Ncomponents,tX,Xfilter(idxboot,idxboot),false);
+                        save(fullfile(filepathresults,sprintf('dyn_Base_bootstrap%03d.mat',nboot)),'H','B','H0','B0');
                     end
                     rng(state);
                 end
-                [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,1);
+                [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,true);
                 Ncomponents=size(H,2);
                 CONN_x.dynAnalyses(CONN_x.dynAnalysis).sources=roinames;
                 filename=fullfile(filepathresults,'dyn_Base.mat');
@@ -4844,6 +4849,10 @@ if any(options==15) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                     regressors=CONN_x.Analyses(ianalysis).regressors;
                     filename=fullfile(filepathresults,['resultsROI_Condition',num2str(icondition(ncondition),'%03d'),'.mat']);
                     save(filename,'Z','regressors','names','names2','xyz','SE','DOF');
+                    if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=8&&CONN_x.Setup.outputfiles(8), % create .mtx.nii files
+                        outputfilename=fullfile(filepathresults,['resultsROI_Condition',num2str(icondition(ncondition),'%03d'),'.mtx.nii']);
+                        conn_mtx_write(outputfilename,Z,names,xyz,arrayfun(@(n)sprintf('Subject%03d',n),validsubjects,'uni',0));
+                    end
                 end
                 if ~isempty(names), CONN_x.Analyses(ianalysis).sources=names; end
             end

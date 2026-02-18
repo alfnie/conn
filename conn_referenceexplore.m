@@ -4,7 +4,7 @@ function fh=conn_referenceexplore(varargin)
 
 global CONN_x CONN_gui;
 guifields=struct(...
-    'include',[],...        % [0/1,0/1,0/1,0/1] describe fields to display initially
+    'include',[],...        % [0/1,0/1,0/1,0/1,0/1] describe fields to display initially
     'preproclog',[],...     % number of SetupPreproc.log entry to display initially
     'firstlevelinfo',[],... % number/name of Analysis.name entry to display initially
     'secondlevelinfo',[],...% number/name of thresholding option to display initially
@@ -107,11 +107,11 @@ dlg.handles.cb2=uicontrol('style','checkbox','units','norm','position',[.275,.92
 dlg.handles.cb3=uicontrol('style','checkbox','units','norm','position',[.525,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(3),'string','Describe Analyses (1st-level) steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'firstlevel'},'interruptible','off');
 dlg.handles.cb4=uicontrol('style','checkbox','units','norm','position',[.775,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(4),'string','Describe Results (2nd-level) steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'secondlevel'},'interruptible','off');
 dlg.handles.cb5=uicontrol('style','checkbox','units','norm','position',[.275,.875,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(5),'string','Describe Quality Control steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'qualitycontrol'},'interruptible','off');
-if ~guifields.include(1), set(dlg.handles.cb1,'enable','off'); end
-if ~guifields.include(2), set(dlg.handles.cb2,'enable','off'); end
-if ~guifields.include(3), set(dlg.handles.cb3,'enable','off'); end
-if ~guifields.include(4), set(dlg.handles.cb4,'enable','off'); end
-if ~guifields.include(5), set(dlg.handles.cb5,'enable','off'); end
+% if ~guifields.include(1), set(dlg.handles.cb1,'enable','off'); end
+% if ~guifields.include(2), set(dlg.handles.cb2,'enable','off'); end
+% if ~guifields.include(3), set(dlg.handles.cb3,'enable','off'); end
+% if ~guifields.include(4), set(dlg.handles.cb4,'enable','off'); end
+% if ~guifields.include(5), set(dlg.handles.cb5,'enable','off'); end
 
 if ischar(guifields.preproclog), guifields.preproclog=find(strcmp(guifields.preproclog,options.preproclog_text),1); end
 if isempty(guifields.preproclog), guifields.preproclog=~isempty(options.preproclog_text); end

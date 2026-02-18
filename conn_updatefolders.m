@@ -51,8 +51,8 @@ if nargin<1||isempty(conn_x),
     if ~isfield(CONN_x.Setup,'steps'), CONN_x.Setup.steps=[1,1,0,0]; end 
     if numel(CONN_x.Setup.steps)~=4, CONN_x.Setup.steps=[CONN_x.Setup.steps(1:min(numel(CONN_x.Setup.steps),4)) zeros(1,max(0,4-numel(CONN_x.Setup.steps)))]; end
     if ~isfield(CONN_x.Setup,'spatialresolution'), CONN_x.Setup.spatialresolution=2; end    
-    if ~isfield(CONN_x.Setup,'outputfiles'), CONN_x.Setup.outputfiles=[0,0,0,0,0,0]; end
-    if numel(CONN_x.Setup.outputfiles)<6, CONN_x.Setup.outputfiles=[CONN_x.Setup.outputfiles,zeros(1,6-numel(CONN_x.Setup.outputfiles))]; end
+    if ~isfield(CONN_x.Setup,'outputfiles'), CONN_x.Setup.outputfiles=[0,0,0,0,0,0,0,0]; end
+    if numel(CONN_x.Setup.outputfiles)<8, CONN_x.Setup.outputfiles=[CONN_x.Setup.outputfiles,zeros(1,8-numel(CONN_x.Setup.outputfiles))]; end
     if ~isfield(CONN_x.Setup,'analysismask'), CONN_x.Setup.analysismask=1; end    
     if ~isfield(CONN_x.Setup,'analysisunits'), CONN_x.Setup.analysisunits=1; end    
     if ~isfield(CONN_x.Setup,'secondlevelanalyses'), CONN_x.Setup.secondlevelanalyses=1; end    
@@ -304,8 +304,8 @@ else
     if ~isfield(conn_x.Setup,'steps'), conn_x.Setup.steps=[1,1,0,0]; end
     if numel(conn_x.Setup.steps)~=4, conn_x.Setup.steps=[conn_x.Setup.steps(1:min(numel(conn_x.Setup.steps),4)) zeros(1,max(0,4-numel(conn_x.Setup.steps)))]; end
     if ~isfield(conn_x.Setup,'spatialresolution'), conn_x.Setup.spatialresolution=2; end
-    if ~isfield(conn_x.Setup,'outputfiles'), conn_x.Setup.outputfiles=[0,0,0,0,0,0]; end
-    if numel(conn_x.Setup.outputfiles)<6, conn_x.Setup.outputfiles=[conn_x.Setup.outputfiles,zeros(1,6-numel(conn_x.Setup.outputfiles))]; end
+    if ~isfield(conn_x.Setup,'outputfiles'), conn_x.Setup.outputfiles=[0,0,0,0,0,0,0,0]; end
+    if numel(conn_x.Setup.outputfiles)<8, conn_x.Setup.outputfiles=[conn_x.Setup.outputfiles,zeros(1,8-numel(conn_x.Setup.outputfiles))]; end
     if ~isfield(conn_x.Setup,'analysismask'), conn_x.Setup.analysismask=1; end    
     if ~isfield(conn_x.Setup,'analysisunits'), conn_x.Setup.analysisunits=1; end    
     if ~isfield(conn_x.Setup,'secondlevelanalyses'), conn_x.Setup.secondlevelanalyses=1; end    

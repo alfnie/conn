@@ -29,7 +29,9 @@ ONEPERDAY=true; % note: QC score plots are saved in a different directory each d
 switch(lower(option)) % Data Validity score
     case 'datavalidity',
         if nargin<2||isempty(folderout)
-            if ONEPERDAY, folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataValidity_',datestr(now,'yyyy_mm_dd')]);
+            if ONEPERDAY, 
+                folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataValidity_',datestr(now,'yyyy_mm_dd')]);
+                try, conn_fileutils('deletefile_multiple',fullfile(folderout,'QA_DENOISE.subject')); end
             else folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataValidity_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]);
             end
         end
@@ -56,7 +58,9 @@ switch(lower(option)) % Data Validity score
 
     case 'dataquality'
         if nargin<2||isempty(folderout)
-            if ONEPERDAY, folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataQuality_',datestr(now,'yyyy_mm_dd')]);
+            if ONEPERDAY, 
+                folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataQuality_',datestr(now,'yyyy_mm_dd')]);
+                try, conn_fileutils('deletefile_multiple',fullfile(folderout,'QA_DENOISE_QC-FC.measure')); end
             else folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataQuality_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]);
             end
         end
@@ -89,7 +93,9 @@ switch(lower(option)) % Data Validity score
 
     case 'datasensitivity'
         if nargin<2||isempty(folderout)
-            if ONEPERDAY, folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataSensitivity_',datestr(now,'yyyy_mm_dd')]);
+            if ONEPERDAY, 
+                folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataSensitivity_',datestr(now,'yyyy_mm_dd')]);
+                try, conn_fileutils('deletefile_multiple',fullfile(folderout,'QA_COV.subject')); end
             else folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataSensitivity_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]);
             end
         end
@@ -145,7 +151,7 @@ switch(lower(option)) % Data Validity score
             end
         end
 
-    case 'combined', %{'datavaliditydataquality','dataqualitydatavalidity'}
+    case 'combined', %{'datavaliditydataquality','dataqualitydatavalidity'} % note: obsolete, tbr
         if nargin<2||isempty(folderout)
             if ONEPERDAY, folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_combined_',datestr(now,'yyyy_mm_dd')]);
             else folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_combined_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]);

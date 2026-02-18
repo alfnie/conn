@@ -106,7 +106,11 @@ if ~isfield(state,'xrois'),
     state.xrois_name=xrois_name; 
 end
 if ~isfield(state,'x_orig'), state.x_orig=state.x; end
-if ~isfield(state,'fontsize'), state.fontsize=6+CONN_gui.font_offset; end
+if ~isfield(state,'fontsize'), 
+    if isempty(xborders_name), state.fontsize=6+CONN_gui.font_offset; 
+    else state.fontsize=[6 4]+CONN_gui.font_offset; 
+    end
+end
 if ~isfield(state,'skiplabels'), state.skiplabels=1; end
 if ~isfield(state,'xnonzero'),%||~isfield(state,'xnonzeroorder'),
     state.xnonzero=repmat(any(any(state.x~=0,4),3),[1,1,size(state.x,3),size(state.x,4)]);
