@@ -39,7 +39,7 @@ if isstruct(rois)  % accepts alternative format ROIconfiguration struct
     end
     if 1
         if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
-        thfig=dialog('units','norm','position',[.2,.3,.6,.5],'windowstyle','normal','name','ROI order/groups','color','w','resize','on');
+        thfig=conn_dialog('units','norm','position',[.2,.3,.6,.5],'windowstyle','normal','name','ROI order/groups','color','w','resize','on');
         uicontrol(thfig,'style','text','units','norm','position',[.1,.72,.8,.25],'string',{'Manually resort the following ROIs in the desired order (e.g. use copy/paste), adding, where appropriate, header lines defining group-names for each separate group of ROIs',' ','(e.g. enter the name of the first group of ROIs in the first line followed by the names of the ROIs within this group, each on a separate line, then enter the name of the second group again followed by the names of the ROIs within the second group, etc.)'},'backgroundcolor','w','fontsize',8+CONN_gui.font_offset);
         ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.15,.8,.55],'max',2,'string',groups,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left');
         uicontrol(thfig,'style','pushbutton','string','Apply','units','norm','position',[.1,.01,.38,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset);

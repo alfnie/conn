@@ -90,7 +90,7 @@ Hscale=max(abs(H(:)));
 idxlock=[1,2,0]; 
 
 boffset=[0 0 0 0];
-conn_menu('frame',boffset+[.02,.42,.46,.47],'');%'Component loadings');
+conn_menu('frame',boffset+[.01,.42,.47,.47],'');%'Component loadings');
 %conn_menu('frame',boffset+[.44 .46 .16 .46],'');
 poslist=boffset+[.07 .42 .40 .36];
 ht2=conn_menu('listbox',poslist,'',names,'<HTML>Select dynamic circuits for display</HTML>',@(varargin)conn_dynexplore_update([0 0 1 0]));

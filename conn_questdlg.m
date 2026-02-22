@@ -17,7 +17,7 @@ bg=.925*[1 1 1]; fg=[.25 0 0];
 Nc=max(1,numel(varargin)-1);
 checkdesktop=true; try, checkdesktop=checkdesktop&usejava('awt'); end
 if ~checkdesktop, fprintf(2,'ERROR: CONN requires user interaction to continue. Please re-run locally and with a display available\n'); end
-h=figure('units','norm','position',[.5 .7 .4 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','off');
+h=conn_figure('units','norm','position',[.5 .7 .4 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','off');
 set(h,'units','pixels');
 % sh=get(h,'position');
 % ht=axes('units','pixels','position',[0 2 max(1,sh(3)-0) max(1,sh(4)-4)]);

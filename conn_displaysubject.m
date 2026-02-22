@@ -77,7 +77,7 @@ if isempty(consubjects), consubjects=nan(size(idxsubjects)); end
 if isempty(datafiles_names), datafiles_names=arrayfun(@(n)sprintf('subject %d',n),consubjects,'uni',0); end
 if ishandle(hmsg), delete(hmsg); end
 ok=true;
-thfig=dialog('units','norm','position',[.3,.4,.3,.3],'windowstyle','normal','name','Plot individual subject','color','w','resize','on');
+thfig=conn_dialog('units','norm','position',[.3,.4,.3,.3],'windowstyle','normal','name','Plot individual subject','color','w','resize','on');
 uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string','Display type:','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
 ht1=uicontrol(thfig,'style','popup','units','norm','position',[.1,.75,.8,.10],'max',2,'string',dispopts,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','select type of display');
 if ~all(isnan(consubjects)), uicontrol(thfig,'style','text','units','norm','position',[.1,.6,.8,.10],'string','Subject(s):','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold'); end

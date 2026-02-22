@@ -61,7 +61,7 @@ if dogui
 %     answ=inputdlg({'Output file','Print options (see ''help print'')'},...
 %         'print options',1,...
 %         {answ{1},strtrim(sprintf('%s ',answ{2:end}))});
-    thfig=figure('units','norm','position',[.4,.5,.25,.15],'color',1*[1 1 1],'name','CONN print','numbertitle','off','menubar','none');
+    thfig=conn_figure('units','norm','position',[.4,.5,.25,.15],'color',1*[1 1 1],'name','CONN print','numbertitle','off','menubar','none');
     ht1a=uicontrol('style','text','units','norm','position',[.1,.8,.8,.15],'string','Save image as:','horizontalalignment','left','backgroundcolor',1*[1 1 1],'fontweight','bold');
     ht1=uicontrol('style','edit','units','norm','position',[.1,.65,.7,.15],'string',answ{1},'tooltipstring','enter full path to target image file, or click the button at the right to do this using the system dialog box','userdata',0,'callback','set(gcbo,''userdata'',0);');
     ht1b=uicontrol('style','pushbutton','units','norm','position',[.8,.65,.1,.15],'string','...','backgroundcolor',1*[1 1 1],'tooltipstring','select target image file/directory using system dialog box','callback','h=get(gcbo,''userdata'');filename=get(h,''string'');[tfilename,tpathname]=uiputfile({''*.jpg'',''JPG files (*.jpg)'';''*'',''All Files (*)''},''Save image as:'',filename);if ~isequal(tpathname,0), filename=fullfile(tpathname,tfilename); set(h,''string'',filename,''userdata'',1); end','userdata',ht1);
@@ -203,7 +203,7 @@ if ~isempty(answ)
                 end
             else
                 a=imread(filename);
-                hf=figure('name',['printed file ',filename],'numbertitle','off','color','w');
+                hf=conn_figure('name',['printed file ',filename],'numbertitle','off','color','w');
                 imagesc(a); ht=title(filename); set(ht,'interpreter','none'); axis equal tight; set(gca,'box','on','xtick',[],'ytick',[]); set(hf,'handlevisibility','off','hittest','off');
             end
         end

@@ -591,7 +591,7 @@ switch(lower(type)),
                 h2=conn_menu_mask('units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig);
                 h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
                 %if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
-                if strcmpi(type,'frame'), set(h2,'fontsize',14+CONN_gui.font_offset); %,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 
+                if strcmpi(type,'frame'), set(h2,'fontsize',16+CONN_gui.font_offset); %,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 
                 else set(h2,'fontweight','normal'); %,'foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 
                 end %,'foregroundcolor',CONN_gui.backgroundcolorE,'backgroundcolor',bgcolor); end %,'fontweight','bold'); end 
             else

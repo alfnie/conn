@@ -137,7 +137,7 @@ end
 if any(strcmp(state.style,{'matrix','timeseries'}))||strcmp(state.style0,'matrix'), fcolor=[1 1 1];
 else fcolor=[0 0 0];
 end
-state.handles.hfig=figure('units','norm','position',pos,'color',fcolor,'menubar','none','name',sprintf('%s display',state.style),'numbertitle','off','colormap',state.colormap);
+state.handles.hfig=conn_figure('units','norm','position',pos,'color',fcolor,'menubar','none','name',sprintf('%s display',state.style),'numbertitle','off','colormap',state.colormap);
 hc=state.handles.hfig;
 hc1=uimenu(hc,'Label','Effects');
 if size(state.x,3)==1,

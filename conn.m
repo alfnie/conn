@@ -25,7 +25,7 @@ function varargout=conn(varargin)
 % alfnie@gmail.com
 %
 
-connver='25.a';
+connver='25.b';
 dodebug=false;
 
 global CONN_h CONN_x CONN_gui;
@@ -139,8 +139,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
     end
     tname=strcat(connversion{:});
     if isdeployed, tname=strcat(tname,' (standalone)'); end
-    if ~CONN_gui.isjava, themeopts={'theme',conn_theme}; else themeopts={}; end
-	CONN_h.screen.hfig=figure('units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-1,h0(1)-0*72-1,max(minheight,.5*h0(1))],themeopts{:},'color',CONN_gui.backgroundcolor,'doublebuffer','on','tag',connversion{1},'name',tname,'numbertitle','off','menubar','none','resize','on','colormap',CONN_h.screen.colormap,'closerequestfcn',@conn_closerequestfcn,'deletefcn',@conn_deletefcn,'resizefcn',@conn_resizefcn,'interruptible','off');
+    if ~CONN_gui.isjava, CONN_gui.themeopts={'theme',conn_theme}; CONN_gui.themeoptsPopup={'theme','light'}; else CONN_gui.themeopts={}; CONN_gui.themeoptsPopup={}; end
+	CONN_h.screen.hfig=figure('units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-1,h0(1)-0*72-1,max(minheight,.5*h0(1))],CONN_gui.themeopts{:},'color',CONN_gui.backgroundcolor,'doublebuffer','on','tag',connversion{1},'name',tname,'numbertitle','off','menubar','none','resize','on','colormap',CONN_h.screen.colormap,'closerequestfcn',@conn_closerequestfcn,'deletefcn',@conn_deletefcn,'resizefcn',@conn_resizefcn,'interruptible','off');
     try, if isequal(datestr(now,'mmdd'),'0401'), conn_guibackground('setfiledefault',[],'True color'); end; end
     conn_menuframe;
     ht=conn_menu('text0c',[.3 .7 .4 .2],'','CONN'); set(ht,'fontunits','norm','fontsize',.5,'horizontalalignment','center','color',[0 0 0]+(mean(CONN_gui.backgroundcolor)<.5));
@@ -623,7 +623,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'SPATIAL COMPONENTS','TEMPORAL COMPONENTS','SUMMARY'},...
 									'help',{'Define/explore second-level analyses of dyn-ICA spatial components (circuits)','Define/explore second-level analyses of dyn_ICA temporal components (connectivity-modulation timeseries)','Summary display of dyn-ICA analyses'},...
                                     'order','horizontal',...
-									'position',[.021, .935-1*.035,3*.10,.035],...
+									'position',[.021, .935-1*.035,3*.12,.050],...
 									'state',[1,0,0],...
 									'value',1,...
                                     'toggle',1,...
@@ -635,7 +635,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'SPATIAL COMPONENTS','TEMPORAL COMPONENTS','SUMMARY'},...
 									'help',{'Define/explore second-level analyses of ICA spatial components (networks)','Define/explore second-level analyses of ICA temporal components (network timeseries)','Summary display of Independent Component analyses'},...
                                     'order','horizontal',...
-									'position',[.021, .935-1*.035,3*.10,.035],...
+									'position',[.021, .935-1*.035,3*.12,.050],...
 									'state',[1,0,0],...
 									'value',1,...
                                     'toggle',1,...
@@ -647,7 +647,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'GROUP-ANALYSES','SUMMARY'},...
 									'help',{'Define/explore second-level analyses of multivariate connectivity patterns','Summary display of fc-MVPA components'},...
                                     'order','horizontal',...
-									'position',[.021, .935-1*.035,2*.10,.035],...%[.0,.0,2*.15,.045],...
+									'position',[.021, .935-1*.035,2*.12,.050],...%[.0,.0,2*.15,.045],...
 									'state',[1,0],...
 									'value',1,...
                                     'toggle',1,...
@@ -1570,7 +1570,7 @@ else
                     else opts={};
                     end
                     str=regexprep(str,'(<HTML>)?(\s*)(.*)\%\!(</HTML>)?','<HTML><pre>$2<b>$3</b></pre></HTML>');
-                    dlg.fig=figure('units','norm','position',[.2,.1,.7,.8],'menubar','none','numbertitle','off','name','help','color','w',opts{:});
+                    dlg.fig=conn_figure('units','norm','position',[.2,.1,.7,.8],'menubar','none','numbertitle','off','name','help','color','w',opts{:});
                     dlg.box=uicontrol(dlg.fig,'units','norm','position',[0 0 1 1],'style','listbox','max',1,'str',str,'backgroundcolor','w','horizontalalignment','left','fontname','monospaced');
                     uiwait(dlg.fig,1);
             end
@@ -1610,7 +1610,7 @@ else
             end
             
         case 'gui_settings',
-            dlg.fig=figure('units','norm','position',[.3,.1,.5,.4],'menubar','none','numbertitle','off','name','CONN GUI options','color','w','visible','off');
+            dlg.fig=conn_figure('units','norm','position',[.3,.1,.5,.4],'menubar','none','numbertitle','off','name','CONN GUI options','color','w','visible','off');
             %conn_menu_mask('unit','norm','position',[.05,.5,.9,.45],'backgroundcolor','w','foregroundcolor',[.5 .5 .5]);
             uicontrol('style','text','units','norm','position',[.1,.86,.45,.075],'backgroundcolor','w','foregroundcolor','k','horizontalalignment','right','string','GUI font size (pts):','parent',dlg.fig);
             dlg.m1=uicontrol('style','edit','units','norm','position',[.6,.86,.1,.075],'string',num2str(8+CONN_gui.font_offset),'tooltipstring','Changes the default font size used in the CONN toolbox GUI','parent',dlg.fig);
@@ -1843,7 +1843,7 @@ else
             elseif isfield(info,'remote_ip')&&~isempty(info.remote_ip), tnameserver=info.remote_ip;
             else tnameserver='unknown';
             end
-            thfig=figure('units','norm','position',[.3,.4,.5,.4],'menubar','none','numbertitle','off','name','CONN remotely','color','w');
+            thfig=conn_figure('units','norm','position',[.3,.4,.5,.4],'menubar','none','numbertitle','off','name','CONN remotely','color','w');
             str={}; 
             try, str{end+1}=sprintf('Remote session address: %s',info.remote_ip); end
             try, str{end+1}=sprintf('Remote session access port: TCP/%d',info.remote_port); end
@@ -4076,7 +4076,7 @@ else
                                     ERODE=CONN_x.Setup.erosion.erosion_steps(nrois);
                                     ERODETYPE=1+(rem(CONN_x.Setup.erosion.erosion_steps(nrois),1)>0);
                                     NEIGHB=CONN_x.Setup.erosion.erosion_neighb(nrois);
-                                    thfig=dialog('units','norm','position',[.3,.3,.3,.3],'windowstyle','normal','name',sprintf('%s erosion settings',CONN_x.Setup.rois.names{nrois}),'color','w','resize','on','userdata',false);
+                                    thfig=conn_dialog('units','norm','position',[.3,.3,.3,.3],'windowstyle','normal','name',sprintf('%s erosion settings',CONN_x.Setup.rois.names{nrois}),'color','w','resize','on','userdata',false);
                                     ht1a=uicontrol(thfig,'style','text','units','norm','position',[.1,.88,.8,.07],'string','Binarization threshold:','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
                                     ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.80,.2,.07],'string',num2str(THR),'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring',conn_menu_formathtml('<HTML>Defines binarization threshold <br/> - Original volumes are binarized by considering only suprathrehsold voxels with values above this threshold<br/> - e.g. use .5 to keep only voxels with >50% posterior probability from tissue probability maps</HTML>'));
                                     ht1b=uicontrol(thfig,'style','popupmenu','units','norm','position',[.35,.80,.55,.07],'string',{'absolute value','percentile'},'value',THRTYPE,'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring',conn_menu_formathtml('<HTML>Threshold type<br/> - Switches between absolute and percentile binary thresholding operations</HTML>'));
@@ -5062,18 +5062,18 @@ else
 						conn_menu('framebig',boffset+[.13,.082,.84,.828],'2nd-level covariates    (between-subject factors)');
                         conn_menu('framewhitehighlight',boffset+[.18,.25,.185,.49]+[0 -.02 0 .02],' ');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listboxbigwhite',boffset+[.18,.25,.185,.49],'Covariates','',['<HTML>Select second-level covariate <br/> - click after the last item to add a new covariate <br/> - ',CONN_gui.rightclick,'-click for additional options <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_setup'',1);','conn(''gui_setup'',8);');
-						CONN_h.menus.m_setup_00{3}=conn_menu('edit',boffset+[.43,.71,.36,.04],'Covariate name','','Second-level covariate name','conn(''gui_setup'',3);');
-						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{4}]=conn_menu('edit',boffset+[.43,.60,.36,.04],'Values',[],'<HTML>values of this covariate for each subject <br/> - enter one value per subject <br/> - for multiple covariates enter one row of values per covariate (separated by '';'') <br/> - you may also enter functions of other covariates (e.g. AllSubjects - Males)<br/> - other valid syntaxes  include any valid Matlab command or variable name evaluated in the base workspace (e.g. rand)<br/> - note: changes to second-level covariates do not require re-running <i>Setup</i> and subsequent steps<br/> (they are directly available in the <i>second-level Results</i> tab)</HTML>','conn(''gui_setup'',2);');
-						CONN_h.menus.m_setup_00{6}=conn_menu('table',boffset+[.43,.29,.36,.11],'',[],'<HTML>values of this covariate for each subject <br/> - enter one value per subject <br/></HTML>','conn(''gui_setup'',6);');
-                        CONN_h.menus.m_setup_00{11}=conn_menu('popup',boffset+[.14,.082,.40,.035],'',{' 🛠️  2nd-level covariate tools','Create interaction(s) of selected covariates','Discretize selected covariate','Orthogonalize selected covariate(s)','Import new covariate(s) data from file','Export selected covariate(s) data to file'},' - Create interaction</i> creates 2nd- or higher-order interaction terms among the selected covariates <br/><i> - Discretize</i> converts the selected multi-valued covariates (e.g. a single covarite with values 1 to N) into multiple categorical covariates (e.g. N covariates with values 0/1)<br/><i> - Orthogonalize</i> makes the selected covariate(s) orthogonal to other covariate(s) (e.g. for centering or when interested in the unique variance associated with this effect) <br/> - <i>Import</i> loads selected covariate values from a file (Text, Spreadsheet, or Matlab format)<br/> - <i>Export</i> saves selected covariate values to a file (Text, Spreadsheet, or Matlab format)</HTML>','conn(''gui_setup'',10+get(gcbo,''value''));');
+						CONN_h.menus.m_setup_00{3}=conn_menu('edit',boffset+[.43,.71,.46,.04],'Covariate name','','Second-level covariate name','conn(''gui_setup'',3);');
+						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{4}]=conn_menu('edit',boffset+[.43,.60,.46,.04],'Values',[],'<HTML>values of this covariate for each subject <br/> - enter one value per subject <br/> - for multiple covariates enter one row of values per covariate (separated by '';'') <br/> - you may also enter functions of other covariates (e.g. AllSubjects - Males)<br/> - other valid syntaxes  include any valid Matlab command or variable name evaluated in the base workspace (e.g. rand)<br/> - note: changes to second-level covariates do not require re-running <i>Setup</i> and subsequent steps<br/> (they are directly available in the <i>second-level Results</i> tab)</HTML>','conn(''gui_setup'',2);');
+						CONN_h.menus.m_setup_00{6}=conn_menu('table',boffset+[.43,.29,.46,.11],'',[],'<HTML>values of this covariate for each subject <br/> - enter one value per subject <br/></HTML>','conn(''gui_setup'',6);');
+                        CONN_h.menus.m_setup_00{11}=conn_menu('popup',boffset+[.14,.082,.50,.035],'',{' 🛠️  2nd-level covariate tools','Create interaction(s) of selected covariates','Discretize selected covariate','Orthogonalize selected covariate(s)','Import new covariate(s) data from file','Export selected covariate(s) data to file'},' - Create interaction</i> creates 2nd- or higher-order interaction terms among the selected covariates <br/><i> - Discretize</i> converts the selected multi-valued covariates (e.g. a single covarite with values 1 to N) into multiple categorical covariates (e.g. N covariates with values 0/1)<br/><i> - Orthogonalize</i> makes the selected covariate(s) orthogonal to other covariate(s) (e.g. for centering or when interested in the unique variance associated with this effect) <br/> - <i>Import</i> loads selected covariate values from a file (Text, Spreadsheet, or Matlab format)<br/> - <i>Export</i> saves selected covariate values to a file (Text, Spreadsheet, or Matlab format)</HTML>','conn(''gui_setup'',10+get(gcbo,''value''));');
                         %CONN_h.menus.m_setup_00{11}=conn_menu('pushbutton',boffset+[.4,.24,.05,.045],'','import','imports values from file','conn(''gui_setup'',11);');
                         %CONN_h.menus.m_setup_00{12}=conn_menu('pushbutton',boffset+[.45,.24,.05,.045],'','export','exports values to file','conn(''gui_setup'',12);');
                         %set([CONN_h.menus.m_setup_00{11},CONN_h.menus.m_setup_00{12}],'visible','off');%,'fontweight','bold');
                         %conn_menumanager('onregion',[CONN_h.menus.m_setup_00{11},CONN_h.menus.m_setup_00{12}],1,boffset+[.4,.24,.3,.41]);
-                        CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.43,.45,.36,.13],'');
+                        CONN_h.menus.m_setup_00{5}=conn_menu('image',boffset+[.43,.45,.46,.13],'');
                         set(CONN_h.menus.m_setup_00{5}.h4,'marker','.');
-                        CONN_h.menus.m_setup_00{7}=conn_menu('text',boffset+[.43,.40,.36,.04],'','');
-						CONN_h.menus.m_setup_00{22}=conn_menu('edit',boffset+[.43,.18,.36,.04],'Description','','(optional) Second-level covariate description/comments','conn(''gui_setup'',22);');
+                        CONN_h.menus.m_setup_00{7}=conn_menu('text',boffset+[.43,.40,.46,.04],'','');
+						CONN_h.menus.m_setup_00{22}=conn_menu('edit',boffset+[.43,.18,.46,.04],'Description','','(optional) Second-level covariate description/comments','conn(''gui_setup'',22);');
                         set(CONN_h.menus.m_setup_00{2},'max',1,'userdata',CONN_h.menus.m_setup_00{4},'keypressfcn','if isequal(get(gcbf,''currentcharacter''),13), uicontrol(get(gcbo,''userdata'')); uicontrol(gcbo); end');
                         set(CONN_h.menus.m_setup_00{6}.h1,'ColumnEditable',true,'data',nan(0,CONN_x.Setup.nsubjects), 'ColumnName',arrayfun(@(n)sprintf('Subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0));
                         %CONN_h.menus.m_setup_00{9}=uicontrol('style','pushbutton','units','norm','position',boffset+[.4,.45,.2,.04],'string','Orthogonalize covariate','tooltipstring','Make this covariate orthogonal to other covariate(s) (e.g. for centering or when interested in the unique variance associated with this effect)','callback','conn(''gui_setup'',9);','fontsize',8+CONN_gui.font_offset);
@@ -5432,7 +5432,7 @@ else
                                 nl2covariates_subjects=1:CONN_x.Setup.nsubjects;
                                 if ~isempty(nl2covariates_other)
                                 %if numel(nl2covariates_other)>1
-                                    thfig=dialog('units','norm','position',[.3,.3,.3,.3],'windowstyle','normal','name',['Orthogonalize covariate ',sprintf('%s ',CONN_x.Setup.l2covariates.names{nl2covariates})],'color','w','resize','on');
+                                    thfig=conn_dialog('units','norm','position',[.3,.3,.3,.3],'windowstyle','normal','name',['Orthogonalize covariate ',sprintf('%s ',CONN_x.Setup.l2covariates.names{nl2covariates})],'color','w','resize','on');
                                     uicontrol(thfig,'style','text','units','norm','position',[.1,.9,.8,.08],'string','Select orthogonal factors:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
                                     ht1=uicontrol(thfig,'style','listbox','units','norm','position',[.1,.55,.8,.30],'max',2,'string',CONN_x.Setup.l2covariates.names(nl2covariates_other),'value',1:numel(nl2covariates_other),'fontsize',8+CONN_gui.font_offset);
                                     ht2=uicontrol(thfig,'style','checkbox','units','norm','position',[.1,.45,.8,.10],'value',0,'string','Apply only to non-zero values of covariate','backgroundcolor','w','fontsize',8+CONN_gui.font_offset);
@@ -6795,7 +6795,8 @@ else
                    answ=conn_questdlg({'Would you like to apply only changes in the project''s 2nd-level covariates','or to apply all changes in the project''s SETUP step'}, 'Apply changes and continue','Only changes in Covariates','All changes','All changes');
                    if isempty(answ), return; end
                    if isequal(answ,'Only changes in Covariates'), 
-                       conn_msgbox({'Changes in 2nd-level Covariates are automatically propagated up to the Results (2nd-level) tab.','No further Apply&Continue steps needed'},'conn',1);
+                       conn save;
+                       conn_msgbox({'Changes in 2nd-level Covariates are now saved and fully propagated to the Results (2nd-level) tab.','No further Apply&Continue steps needed'},'conn',1);
                        return;
                    end
                 end
@@ -6895,20 +6896,20 @@ else
                 CONN_h.menus.m_preproc_00{41}=uicontrol('style','text','units','norm','position',boffset+[.05,.26,.14,.05],'string',{'Data Validity score (0-100):','Removal of biases in FC measures'},'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolor,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
                 CONN_h.menus.m_preproc_00{42}=uicontrol('style','text','units','norm','position',boffset+[.05,.22,.14,.04],'string','?','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',15+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Data Validity score<br/><br/> This score measures how far the peak of the FC distribution is away from zero (its expected value in the absence of global biases)<br/><br/> Score values above 95% (approximately peak displacements below 5% SD) are considered ideal / indicative of high-quality functional data<br/><br/> Data Validity scores are computed as 100*exp(-|a/b|) where a is the average peak (mode) location and b is the average width (normalized interquartile range) of the distribution of functional connectivity values for each subject</HTML>'));
                 CONN_h.menus.m_preproc_00{43}=conn_menu('text',boffset+[.05,.13,.14,.07],'','','<HTML>Additional information from FC distribution analyses and plots<br/><br/>Peak (mode) and width (interquartile range) of FC distributions across subjects (mean±std)</HTML>'); set(CONN_h.menus.m_preproc_00{43},'foregroundcolor',CONN_gui.fontcolor,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
-                CONN_h.menus.m_preproc_00{54}=conn_menu('pushbutton',boffset+[.05,.10,.14,.03],'','Show DV analysis details','display FC distributions for each subject and additional stats','conn(''gui_preproc'',43);'); set(CONN_h.menus.m_preproc_00{54},'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
-                CONN_h.menus.m_preproc_00{51}=conn_menu('pushbutton',boffset+[.05,.07,.14,.03],'','','<HTML>Recompute Data Validity score using current denoising options to evaluate their effectiveness</HTML>','conn(''gui_preproc'',42);'); set(CONN_h.menus.m_preproc_00{51},'fontsize',6+CONN_gui.font_offset);
+                CONN_h.menus.m_preproc_00{54}=conn_menu('pushbutton',boffset+[.05,.10,.14,.03],'','Show DV analysis details','display FC distributions for each subject and additional stats','conn(''gui_preproc'',43);'); set(CONN_h.menus.m_preproc_00{54},'fontsize',7+CONN_gui.font_offset,'horizontalalignment','center');
+                CONN_h.menus.m_preproc_00{51}=conn_menu('pushbutton',boffset+[.05,.07,.14,.03],'','','<HTML>Recompute Data Validity score using current denoising options to evaluate their effectiveness</HTML>','conn(''gui_preproc'',42);'); set(CONN_h.menus.m_preproc_00{51},'fontsize',7+CONN_gui.font_offset);
                 
                 CONN_h.menus.m_preproc_00{44}=uicontrol('style','text','units','norm','position',boffset+[.22,.26,.14,.05],'string',{'Data Quality score (0-100):','Removal of motion & other confounds'},'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolor,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
                 CONN_h.menus.m_preproc_00{45}=uicontrol('style','text','units','norm','position',boffset+[.22,.22,.14,.04],'string','?','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',15+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Data Quality score<br/><br/> This score measures the presence of associations across-subjects between functional connectivity measures and quality control measures characterizing subject motion and outlier prevalence<br/><br/> Score values above 95% (null distribution differences below 5%) are considered ideal / indicative of high-quality functional data <br/><br/> Data Quality scores are computed as the Overlap Coefficient (integrated minimum of two PDFs) between the observed distribution of QC-FC correlations and the shape of the same distribution under the null hypothesis (computed by permutation analyses)</HTML>'));
                 CONN_h.menus.m_preproc_00{46}=conn_menu('text',boffset+[.22,.13,.14,.07],'','','<HTML>Additional information from QC-FC correlation analyses and plots<br/><br/>Proportion of edges in FC matrix with significant (p<.05 uncorrected and FDR-corrected) QC-FC associations</HTML>'); set(CONN_h.menus.m_preproc_00{46},'foregroundcolor',CONN_gui.fontcolor,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
-                CONN_h.menus.m_preproc_00{55}=conn_menu('pushbutton',boffset+[.22,.10,.14,.03],'','Show DQ analysis details','display distribution of QC-FC correlations and additional stats','conn(''gui_preproc'',46);'); set(CONN_h.menus.m_preproc_00{55},'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
-                CONN_h.menus.m_preproc_00{52}=conn_menu('pushbutton',boffset+[.22,.07,.14,.03],'','','<HTML>Recompute Data Quality score using current denoising options to evaluate their effectiveness</HTML>','conn(''gui_preproc'',45);'); set(CONN_h.menus.m_preproc_00{52},'fontsize',6+CONN_gui.font_offset);
+                CONN_h.menus.m_preproc_00{55}=conn_menu('pushbutton',boffset+[.22,.10,.14,.03],'','Show DQ analysis details','display distribution of QC-FC correlations and additional stats','conn(''gui_preproc'',46);'); set(CONN_h.menus.m_preproc_00{55},'fontsize',7+CONN_gui.font_offset,'horizontalalignment','center');
+                CONN_h.menus.m_preproc_00{52}=conn_menu('pushbutton',boffset+[.22,.07,.14,.03],'','','<HTML>Recompute Data Quality score using current denoising options to evaluate their effectiveness</HTML>','conn(''gui_preproc'',45);'); set(CONN_h.menus.m_preproc_00{52},'fontsize',7+CONN_gui.font_offset);
                 
                 CONN_h.menus.m_preproc_00{47}=uicontrol('style','text','units','norm','position',boffset+[.39,.26,.14,.05],'string',{'Data Sensitivity score (0-100):','Participant selection and sample size'},'backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolor,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','center','parent',CONN_h.screen.hfig);
                 CONN_h.menus.m_preproc_00{48}=uicontrol('style','text','units','norm','position',boffset+[.39,.22,.14,.04],'string','?','backgroundcolor',CONN_gui.backgroundcolorA,'foregroundcolor',CONN_gui.fontcolorA,'fontsize',15+CONN_gui.font_offset,'tooltipstring',conn_menu_formathtml('<HTML>Participant-selection<br/><br/>Suggested participant-selection excludes subjects with any subject-level QC metrics in the "extreme outlier" range (values above Q3+3*IQR or below Q1-3*IQR)<br/><br/>Suggested participant-selection group is stored in QC_ValidSubjects 2nd-level covariate (and defined as QC_OutlierScore>3 when using an "extreme outlier" threshold)<br/><br/> CONN does not enforce this participant-selection suggestion. If you wish to use it (e.g. to exclude outlier subjects from a second-level analysis) simply add the 2nd-level covariate ExcludeOutlierSubjects, also generated by this step, as a control variable in your 2nd-level analysis<br/><br/> Data Sensitivity score<br/><br/> Data Sensitivity score is computed as the power to detect with a p<.05 an average r=0.1 correlation in a fixed-effects analysis across subjects (excluding outlier subjects)<br/><br/> Power values above 95% are considered ideal / indicative of high-quality functional data<br/><br/> Power analyses approximate between-subjects variance by first-level measurement error only. Fisher transformed standard error approximation se = 1/sqrt(dof-3). Group-level analysis normal distribution approximation power = 1-CDF(1.645-0.1003*sqrt(sum(dof-3))) </HTML>'));
                 CONN_h.menus.m_preproc_00{49}=conn_menu('text',boffset+[.39,.13,.14,.07],'','','<HTML>Additional information from subject-level QC metrics<br/><br/> Suggested participant selection results (exclude subjects with any extreme outlier value in subject-level QC metrics) <br/> Average single-subject sensitivty score and degrees of freedom</HTML>'); set(CONN_h.menus.m_preproc_00{49},'foregroundcolor',CONN_gui.fontcolor,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
-                CONN_h.menus.m_preproc_00{56}=conn_menu('pushbutton',boffset+[.39,.10,.14,.03],'','Show DS analysis details','display subject-level QC measures and additional stats','conn(''gui_preproc'',49);'); set(CONN_h.menus.m_preproc_00{56},'foregroundcolor',CONN_gui.fontcolor,'fontsize',6+CONN_gui.font_offset,'horizontalalignment','center');
-                CONN_h.menus.m_preproc_00{53}=conn_menu('pushbutton',boffset+[.39,.07,.14,.03],'','','<HTML>Recompute Data Sensitivity score using current denoising options to evaluate their effectiveness</HTML>','conn(''gui_preproc'',48);'); set(CONN_h.menus.m_preproc_00{53},'fontsize',6+CONN_gui.font_offset);
+                CONN_h.menus.m_preproc_00{56}=conn_menu('pushbutton',boffset+[.39,.10,.14,.03],'','Show DS analysis details','display subject-level QC measures and additional stats','conn(''gui_preproc'',49);'); set(CONN_h.menus.m_preproc_00{56},'foregroundcolor',CONN_gui.fontcolor,'fontsize',7+CONN_gui.font_offset,'horizontalalignment','center');
+                CONN_h.menus.m_preproc_00{53}=conn_menu('pushbutton',boffset+[.39,.07,.14,.03],'','','<HTML>Recompute Data Sensitivity score using current denoising options to evaluate their effectiveness</HTML>','conn(''gui_preproc'',48);'); set(CONN_h.menus.m_preproc_00{53},'fontsize',7+CONN_gui.font_offset);
                 CONN_h.menus.m_preproc_00{50}=conn_menu('popup',boffset+[.04,.012,.40,.035],'',{' 🛠️  Denoising & QC tools','Recompute Data Validity score','Recompute Data Quality score','Recompute Data Sensitivity score','Recompute all three scores (Data Validity/Quality/Sensitivity)','Display & manage all Quality Control plots','Reset all Denoising options to default initial values','Reset all Denoising options to empty values (no denoising)'},'<HTML></HTML>','conn(''gui_preproc'',50);');
                 
                 dx1=-.13; dx2=+.25;
@@ -7282,7 +7283,7 @@ else
                         end
                         return
                     case 42,
-                        thfig=figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Data Validity score','numbertitle','off','menubar','none');
+                        thfig=conn_figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Data Validity score','numbertitle','off','menubar','none');
                         uicontrol('style','text','units','norm','position',[.1,.5,.8,.4],'string',{'Analyze FC distributions using current denoising options','and recompute Data Validity (DV) score',' ','(quality control outputs: DV score, QC_DOF, QC_PeakFC, QC_IqrFC, QC_MeanFC, QC_StdFC)'},'backgroundcolor',1*[1 1 1]);
                         ht0=uicontrol('style','popupmenu','units','norm','position',[.1,.25,.8,.2],'string',{'compute DV score when using all subjects','compute DV score using custom subject group (user-defined)','compute DV score using subjects in participant-selection group (QC_ValidSubjects)'},'value',1,'backgroundcolor',1*[1 1 1]);
                         if isfield(CONN_x.Preproc.qa,'selections1')&&~isempty(CONN_x.Preproc.qa.selections1{1}), set(ht0,'value',2+isequal(CONN_x.Preproc.qa.selections1{1},{'QC_ValidSubjects'})); end
@@ -7318,7 +7319,7 @@ else
                             conn_qaplotsexplore(CONN_x.Preproc.qa.folders{1});
                         end
                     case 45,
-                        thfig=figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Data Quality score','numbertitle','off','menubar','none');
+                        thfig=conn_figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Data Quality score','numbertitle','off','menubar','none');
                         uicontrol('style','text','units','norm','position',[.1,.6,.8,.3],'string',{'Analyze QC-FC correlations using current denoising options','and recompute Data Quality (DQ) score',' ','(quality control inputs: QC_MeanMotion, QC_InvalidScans, QC_ProportionValidScans)'},'backgroundcolor',1*[1 1 1]);
                         ht0=uicontrol('style','popupmenu','units','norm','position',[.1,.4,.8,.15],'string',{'compute DQ score using all subjects','compute DQ score using custom subject group (user-defined)','compute DV score using subjects in participant-selection group (QC_ValidSubjects)'},'value',1,'backgroundcolor',1*[1 1 1]);
                         ht1=uicontrol('style','popupmenu','units','norm','position',[.1,.25,.8,.15],'string',{'QC-FC correlations','QC-FC correlations controlling by covariate(s) (user-defined)'},'value',1,'backgroundcolor',1*[1 1 1]);
@@ -7370,7 +7371,7 @@ else
                             conn_qaplotsexplore(CONN_x.Preproc.qa.folders{2});
                         end
                     case 48,
-                        thfig=figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Participant inclusion/exclusion criteria','numbertitle','off','menubar','none');
+                        thfig=conn_figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Participant inclusion/exclusion criteria','numbertitle','off','menubar','none');
                         uicontrol('style','text','units','norm','position',[.1,.5,.8,.4],'string',{'Analyze distributions of subject-level QC metrics using current denoising options',' and recompute Data Sensitivity (DS) score and suggested participant-selection group',' ','(quality control inputs: QC_ProportionValidScans, QC_MeanMotion, QC_MeanGSchange, QC_NORM_struct, QC_DOF, QC_PeakFC, QC_StdFC)','(quality control outputs: DS score, QC_OutlierScore, QC_ValidSubjects, QC_OutlierSubjects, ExcludeOutlierSubjects)'},'backgroundcolor',1*[1 1 1]);
                         ht0=uicontrol('style','popupmenu','units','norm','position',[.1,.25,.8,.2],'string',{'exclusion criteria: subjects with QC metrics in extreme-outlier range (QC outlier scores above 3)','exclusion criteria: subjects with QC metrics in mild-outlier range (QC outlier scores above 1.5)','exclusion criteria: custom number of subjects with worse QC metrics (higher QC outlier scores)','exclusion criteria: custom group of subjects (manually define)'},'value',1,'backgroundcolor',1*[1 1 1]);
                         if isfield(CONN_x.Preproc.qa,'selections3')&&~isempty(CONN_x.Preproc.qa.selections3{1}), 
@@ -7967,7 +7968,7 @@ else
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
                 end
                 conn_menu('nullstr',{'Analysis not','computed yet'});
-                if ~isempty(state),     conn_menu('frame',[.03,.13,.55,.70],'Connectivity analyses (1st-level)');
+                if 1||~isempty(state),     conn_menu('framebig',[.01,.062,.57,.828],'Connectivity analyses (1st-level)');
 %                 elseif ~isempty(state)&&state(1)==1,     conn_menu('frame',[.02,.11,.56,.75],'Seed-based connectivity analysis');
 %                 elseif ~isempty(state)&&state(1)==2, conn_menu('frame',[.02,.11,.56,.75]+0*[.015,.385,.47,.475],'Network-based conectivity analysis');
 %                 elseif ~isempty(state)&&state(1)==3, conn_menu('frame',[.02,.11,.56,.75]+0*[.015,.255,.55,.605],'Dynamic connectivity analysis');
@@ -8039,7 +8040,7 @@ else
                             %'S2V',              'S2V',  '<HTML>any user-defined seed-based or ROI-to-ROI connectivity analyses</HTML>','';...
                             %'V2V',              'V2V',  '<HTML>any user-defined network-based or voxel-to-voxel connectivity analyses</HTML>',''};
                         if ~isfield(CONN_gui,'isjava')||~CONN_gui.isjava, str(:,3)=regexprep(str(:,3),'<[^>]*>',''); end
-                        thfig=dialog('units','norm','position',[.2,.3,.7,.6],'windowstyle','normal','name','New first-level analysis','color','w','resize','on');
+                        thfig=conn_dialog('units','norm','position',[.2,.3,.7,.6],'windowstyle','normal','name','New first-level analysis','color','w','resize','on');
                         uicontrol(thfig,'style','text','units','norm','position',[.1,.88,.5,.04],'string','Analysis name:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','fontweight','bold');
                         ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.80,.5,.08],'string','SBC_01','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring',conn_menu_formathtml('<HTML>Enter a custom name for this first-level analysis<br/> - analysis names must be unique and containing only alphanumeric characters (case sensitive, no spaces, ideally short</HTML>'));
                         uicontrol(thfig,'style','text','units','norm','position',[.1,.70,.5,.04],'string','Analysis type:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','fontweight','bold');
@@ -10890,15 +10891,15 @@ else
                 conn_menumanager([CONN_h.menus.m_setup_01i],'on',1);
                 if CONN_h.menus.m_results.usetablewhite==0, dp1=dp1+.10; end
                 if state==1,
-                    conn_menu('frame',boffset+[-.030,.34-dp1,.585,.50+dp1],'Group Analyses (2nd-level)');
+                    conn_menu('frame',boffset+[-.040,.34-dp1,.605,.50+dp1],'Group Analyses (2nd-level)');
                     conn_menu('framewhitehighlight',boffset+[-.02,.710,.565,.070],' ');
                     %conn_menu('frame2noborder',boffset+[-.035,.325,.22,.515],'');%'Second-level design');
-                    conn_menu('frame2semiborder',boffset+[.570,.085,.37,.81],'');
+                    conn_menu('frame2semiborder',boffset+[.580,.085,.36,.81],'');
                 elseif state==2||state==3
-                    conn_menu('frame',boffset+[-.030,.34-dp1,.585,.50+dp1],'Group Analyses (2nd-level)');
+                    conn_menu('frame',boffset+[-.040,.34-dp1,.605,.50+dp1],'Group Analyses (2nd-level)');
                     conn_menu('framewhitehighlight',boffset+[-.020,.710,.565,.070],' ');
                     %conn_menu('frame2noborder',boffset+[-.035,.325,.22,.515],'');%'Second-level design');
-                    conn_menu('frame2semiborder',boffset+[.570,.085,.37,.81],'');
+                    conn_menu('frame2semiborder',boffset+[.580,.085,.36,.81],'');
                 end
                 if state==1||state==2
                     txt={CONN_x.Analyses(:).name};
@@ -12308,7 +12309,7 @@ else
                          if varargin{2}==34
                              if conn_importl2covariate(name,y), conn gui_results; end
                          elseif varargin{2}==36
-                             hfig=figure('units','norm','position',[.2 .3 .6 .6],'color','w','name','connectivity values','numbertitle','off','menubar','none');
+                             hfig=conn_figure('units','norm','position',[.2 .3 .6 .6],'color','w','name','connectivity values','numbertitle','off','menubar','none');
                              %CONN_h.menus.m_results.design.designmatrix;
                              hax=axes('units','norm','position',[.2,.4,.6,.5],'box','off','parent',hfig);
                              color=get(hax,'colororder');
@@ -12402,7 +12403,7 @@ else
                              %assignin('base','Effect_stats',Stats_values);
                              %conn_disp('Stats exported to variable ''Effect_stats''');
                              
-                             hfig=figure('units','norm','position',[.2 .3 .6 .6],'color','w','name','connectivity effects','numbertitle','off','menubar','none');
+                             hfig=conn_figure('units','norm','position',[.2 .3 .6 .6],'color','w','name','connectivity effects','numbertitle','off','menubar','none');
                              cbeta=[Stats_values.beta];
                              CI=spm_invTcdf(1-.05,Stats_values(1).dof)*cbeta./[Stats_values.F];
                              hax=axes('parent',hfig);
@@ -13559,7 +13560,7 @@ catch me
                 h=[];
                 set(findobj(0,'tag','conn_timedwaitbar'),'windowstyle','normal');
                 try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
-                h.fig=dialog('windowstyle','normal','name','Sorry, CONN run into an unexpected issue','color','w','resize','on','units','norm','position',[.2 .4 .4 .2],'handlevisibility','callback','windowstyle','modal');
+                h.fig=conn_dialog('windowstyle','normal','name','Sorry, CONN run into an unexpected issue','color','w','resize','on','units','norm','position',[.2 .4 .4 .2],'handlevisibility','callback','windowstyle','modal');
                 h.button1=uicontrol(h.fig,'style','pushbutton','units','norm','position',[.1 .75 .8 .2],'fontsize',9+CONN_gui.font_offset,'string',PrimaryMessage);
                 h.edit1=uicontrol(h.fig,'style','edit','units','norm','position',[.1 .30 .8 .65],'backgroundcolor','w','max',2,'fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','string',str,'visible','off');
                 h.edit2=uicontrol(h.fig,'style','edit','units','norm','position',[.1 .3 .8 .4],'backgroundcolor','w','max',2,'fontsize',8+CONN_gui.font_offset,'fontangle','italic','string',{'For support information see HELP->SUPPORT or HELP->FAQ','To check for patches and updates see HELP->UPDATES','If requesting support about this error please provide the full error message'});
@@ -13602,7 +13603,7 @@ if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly
     ok=false;
     return;
 end
-thfig=figure('units','norm','position',[.3,.5,.4,.3],'color','w','name','CONN data processing pipeline','numbertitle','off','menubar','none');
+thfig=conn_figure('units','norm','position',[.3,.5,.4,.3],'color','w','name','CONN data processing pipeline','numbertitle','off','menubar','none');
 ht3=uicontrol(thfig,'style','text','units','norm','position',[.1,.8,.8,.15],'string',str,'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
 ht2a=uicontrol(thfig,'style','checkbox','units','norm','position',[.1,.7,.3,.10],'string','ROI-to-ROI','value',steps(1),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w');
 ht2b=uicontrol(thfig,'style','checkbox','units','norm','position',[.1,.6,.3,.10],'string','Seed-to-Voxel','value',steps(2),'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w');

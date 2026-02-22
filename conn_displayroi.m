@@ -330,7 +330,7 @@ switch(lower(option)),
         hmsg=[];%figure('units','norm','position',[.01,.1,.98,.8],'numbertitle','off','name','ROI second-level results. Initializing...','color',color1,'colormap',gray,'menubar','none','toolbar','none','interruptible','off');
         h0=get(0,'screensize');
         if isfield(CONN_gui,'isjava')&&~CONN_gui.isjava, themeopts={'theme','light'}; else themeopts={}; end
-        hfig=figure('visible','off','renderer','opengl','units','pixels','position',[h0(3)-.75*h0(3)+2,h0(4)-.9*h0(4)-48,.75*h0(3)-2*2,.9*h0(4)],themeopts{:});
+        hfig=conn_figure('visible','off','renderer','opengl','units','pixels','position',[h0(3)-.75*h0(3)+2,h0(4)-.9*h0(4)-48,.75*h0(3)-2*2,.9*h0(4)],themeopts{:});
         %h0=get(0,'screensize'); h0=h0(1,3:4)-h0(1,1:2)+1; h0=h0/max(1,max(abs(h0))/2000);
         %minheight=500;
         %hfig=figure('visible','off','renderer','opengl','units','pixels','position',[0*72+1,h0(2)-max(minheight,.5*h0(1))-48,h0(1)-0*72-1,max(minheight,.5*h0(1))]);
@@ -1245,7 +1245,7 @@ switch(lower(option)),
         else options={fullfile(data.defaultfilepath,'print01.jpg')};
         end
         hc=data.plotconnoptions.BCOLOR; %[.95 .95 .9];
-        hfig=figure('units','norm','position',[.4 .25 .6 .7],'color',hc,'menubar','none','name','matrix display','numbertitle','off');
+        hfig=conn_figure('units','norm','position',[.4 .25 .6 .7],'color',hc,'menubar','none','name','matrix display','numbertitle','off');
         hax=copyobj(data.plotaxes,hfig);
         hax2=copyobj(data.legendaxes,hfig);
         set(hax,'units','norm','position',[.01,.05,.88,.9],'color',hc);
@@ -1818,7 +1818,7 @@ switch(lower(option)),
         name=data.names2reduced;
         %name=get(state.handles.sphplots_txt,'string');
         ok=true;
-        thfig=dialog('units','norm','position',[.3,.4,.6,.4],'windowstyle','normal','name','ROI labels','color','w','resize','on');
+        thfig=conn_dialog('units','norm','position',[.3,.4,.6,.4],'windowstyle','normal','name','ROI labels','color','w','resize','on');
         uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string',sprintf('New ROI label names (%d)',numel(name)),'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
         ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.30,.8,.55],'max',2,'string',name,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring',conn_menu_formathtml('manually edit the ROI labels'));
         ht2=uicontrol(thfig,'style','edit','units','norm','position',[.1,.20,.8,.1],'max',1,'string','','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring',conn_menu_formathtml('enter Matlab command for fast-editing all ROIs simultaneously (str is input variable cell array; ouput is cell array; e.g. "lower(str)")'),'callback','ht1=get(gcbo,''userdata''); set(ht1,''string'',feval(inline(get(gcbo,''string''),''str''),get(ht1,''string'')))','userdata',ht1);
@@ -1847,7 +1847,7 @@ switch(lower(option)),
         end
         %name=get(state.handles.sphplots_txt,'string');
         ok=true;
-        thfig=dialog('units','norm','position',[.3,.4,.6,.4],'windowstyle','normal','name','Group labels','color','w','resize','on');
+        thfig=conn_dialog('units','norm','position',[.3,.4,.6,.4],'windowstyle','normal','name','Group labels','color','w','resize','on');
         uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string',sprintf('New Group label names (%d)',numel(name)),'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
         ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.30,.8,.55],'max',2,'string',name,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring',conn_menu_formathtml('manually edit the Group labels'));
         ht2=uicontrol(thfig,'style','edit','units','norm','position',[.1,.20,.8,.1],'max',1,'string','','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring',conn_menu_formathtml('enter Matlab command for fast-editing all Groups simultaneously (str is input variable cell array; ouput is cell array; e.g. "lower(str)")'),'callback','ht1=get(gcbo,''userdata''); set(ht1,''string'',feval(inline(get(gcbo,''string''),''str''),get(ht1,''string'')))','userdata',ht1);
@@ -4525,7 +4525,7 @@ if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 filename_rois0=filename_rois;
 filename_sources0=filename_sources;
-thfig=dialog('units','norm','position',[.3,.4,.4,.25],'windowstyle','normal','name','REX interface','color','w','resize','on');
+thfig=conn_dialog('units','norm','position',[.3,.4,.4,.25],'windowstyle','normal','name','REX interface','color','w','resize','on');
 uicontrol(thfig,'style','text','units','norm','position',[.1,.75,.8,.20],'string',{'Explore model effects and connectivity values','within individual connections/clusters'},'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
 ht1=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.50,.8,.20],'string',{'clusters of interest in current analysis','others clusters of interest (select exported mask/clusters file)'},'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','callback',@conn_displayroi_selectfiles_callback1,'tooltipstring',conn_menu_formathtml('Define the clusters of interest'));
 %ht2=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.30,.8,.20],'string',{'effect/activation/connectivity values in current analysis','other effect/activation/connectivity values (select second-level SPM.mat file)'},'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','callback',@conn_displayroi_selectfiles_callback2,'tooltipstring','Define the activation/connectivity values');

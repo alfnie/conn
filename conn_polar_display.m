@@ -161,7 +161,7 @@ data0=data;
 state.colormap=jet(2*96).^repmat(1+0*abs(linspace(1,-1,2*96))',1,3); %state.colormap=state.colormap(end+1-(1:2*96),:);
 state.background=[1 1 1];
 state.fontsize=10;
-state.handles.hfig=figure('units','norm','position',[.4 .25 .4 .7],'color',state.background,'menubar','none','name','polar display','numbertitle','off','colormap',state.colormap);
+state.handles.hfig=conn_figure('units','norm','position',[.4 .25 .4 .7],'color',state.background,'menubar','none','name','polar display','numbertitle','off','colormap',state.colormap);
 hc=state.handles.hfig;
 hc1=uimenu(hc,'Label','View');
 hc2=uimenu(hc1,'Label','style');

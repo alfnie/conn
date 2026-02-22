@@ -467,19 +467,30 @@ if ~cfg.machinetype.ispc
     isdep_callback=[{sprintf('%s %s','%s',mcrroot),sprintf('%s %s function conn','%s',mcrroot),sprintf('%s %s function conn','%s',mcrroot)} isdep_callback];
     isdep_checkexists=[{'run_conn.sh','run_spm.sh','run_spm12.sh'} isdep_checkexists];
 end
-try,
-    [ko,nill]=cellfun(@(x)conn_projectmanager('system',sprintf('which %s',x)),isdep_checkexists,'uni',0);
-    ko=[ko{:}];
-    ko=find(~ko,1);
-    if ~isempty(ko), idx=ko; end
+% checks if in installation directory
+tpath=fileparts(which(mfilename));
+tpath=regexprep(tpath,'[\\\/]conn\.app[\\\/].*$',''); % fix for Mac bundle .app folder
+ok=cellfun(@(x)conn_existfile(fullfile(tpath,x)),isdep_checkexists);
+if any(ok), 
+    idx=find(ok,1); 
+    ttpath=fullfile(tpath,isdep_checkexists{idx});
+    isdep_callback=sprintf(isdep_callback{idx},[cfg.osquotes ttpath cfg.osquotes]); % full-path to executable
+    isdep_folder=[cfg.osquotes fileparts(ttpath) cfg.osquotes];
+else 
+    % checks if in path
+    try,
+        [ko,nill]=cellfun(@(x)conn_projectmanager('system',sprintf('which %s',x)),isdep_checkexists,'uni',0);
+        ko=[ko{:}];
+        ko=find(~ko,1);
+        if ~isempty(ko), idx=ko; end
+    end
+    [ok,msg]=conn_projectmanager('system',sprintf('which %s',isdep_checkexists{idx}));
+    if ~ok&&conn_existfile(msg(msg>=32)),
+        isdep_callback=sprintf(isdep_callback{idx},[cfg.osquotes msg(msg>=32) cfg.osquotes]); % full-path to executable
+        isdep_folder=[cfg.osquotes fileparts(msg(msg>=32)) cfg.osquotes];
+    else
+        isdep_callback=sprintf(isdep_callback{idx},isdep_checkexists{idx});
+    end
 end
-[ok,msg]=conn_projectmanager('system',sprintf('which %s',isdep_checkexists{idx}));
-if ~ok&&conn_existfile(msg(msg>=32)), 
-    isdep_callback=sprintf(isdep_callback{idx},[cfg.osquotes msg(msg>=32) cfg.osquotes]); % full-path to executable
-    isdep_folder=[cfg.osquotes fileparts(msg(msg>=32)) cfg.osquotes];
-else
-    isdep_callback=sprintf(isdep_callback{idx},isdep_checkexists{idx});
 end
-end
-
 

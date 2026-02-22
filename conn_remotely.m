@@ -364,7 +364,7 @@ switch(option)
         if isempty(dprofile), dprofile=strmatch(tjson2.SERVERcmd,profiles(tvalid)); end
         if isempty(dprofile), dprofile=1; else dprofile=dprofile(1); end
         
-        handles.hfig=figure('units','norm','position',[.2 .35 .6 .35],'name','Remote connection settings','numbertitle','off','menubar','none','color','w','userdata',false);
+        handles.hfig=conn_figure('units','norm','position',[.2 .35 .6 .35],'name','Remote connection settings','numbertitle','off','menubar','none','color','w','userdata',false);
         handles.save=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.55,.01,.2,.10],'string','Save','callback','uiresume(gcbf)','tooltipstring','Save all profile changes for future Matlab sessions');
         handles.exit=uicontrol(handles.hfig,'style','pushbutton','units','norm','position',[.75,.01,.2,.10],'string','Exit','callback','close(gcbf)');
         

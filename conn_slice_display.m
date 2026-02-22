@@ -358,7 +358,7 @@ if DOVOL&&state.isvol
         pVOL2{n}=conn_surf_volume({state.supra(:,:,:,n),cat(4,state.xyz_x,state.xyz_y,state.xyz_z)},0,0,[],1,0,1);
     end
 end
-state.handles.hfig=figure('units','norm','position',[.1 .25 .8 .5],'name',['conn slice display ',titlestr],'numbertitle','off','menubar','none','color',state.background,'tag','conn_slice_display','interruptible','off','busyaction','cancel','renderer','opengl','colormap',state.cmap,'visible','off');
+state.handles.hfig=conn_figure('units','norm','position',[.1 .25 .8 .5],'name',['conn slice display ',titlestr],'numbertitle','off','menubar','none','color',state.background,'tag','conn_slice_display','interruptible','off','busyaction','cancel','renderer','opengl','colormap',state.cmap,'visible','off');
 uicontrol('style','frame','units','norm','position',[.5 .65 .5 .35],'foregroundcolor',[.5 .5 .5]);
 uicontrol('style','frame','units','norm','position',[.5 0 .5 .65],'foregroundcolor',[.5 .5 .5]);
 uicontrol('style','text','units','norm','position',[.55 .55 .4 .05],'string','Reference point','horizontalalignment','center','fontweight','bold');

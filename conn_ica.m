@@ -30,7 +30,9 @@ options=struct('method','tanh',...
                'miniter',1e1,...
                'maxchange',1e-8,...
                'decreasemuat',.75,...
+               'rndinit',1,...
                'rndseed',false,...
+               'dowarn',false,...
                'dodisp',1);
 for n=1:2:numel(varargin), if isfield(options,lower(varargin{n})), options.(lower(varargin{n}))=varargin{n+1}; else error('unknown parameter %s',varargin{n}); end; end
 if isempty(options.method), options.method='tanh'; end
@@ -54,41 +56,54 @@ W=zeros(N,Nd);
 P=0;
 if ~options.rndseed, randn('seed',0); end
 for n=1:N
-    wbak=nan;
-    w=randn(Nd,1);
-    if n>1, w = w-P'*(P*w); end
-    w = w/max(eps,sqrt(sum(w.^2)));
-    if n<Nd, 
-        for niter=1:options.maxiter
-            wx=w'*X;
-            switch(options.method)
-                case 'tanh'
-                    gwx=tanh(wx);
-                    dgwx=Ns-sum(gwx.^2);
-                case 'pow3'
-                    gwx=(wx).^3;
-                    dgwx=3*Ns;
-                case 'gauss'
-                    wx2=wx.^2;
-                    expwx2=exp(-wx2/2);
-                    gwx=wx.*expwx2;
-                    dgwx=sum((1-wx2).*expwx2);
+    wnext=zeros(Nd,max(1,options.rndinit));
+    if n<Nd, nrandominit=max(1,options.rndinit);
+    else nrandominit=1;
+    end
+    for randominit=1:nrandominit
+        mu=options.mu;
+        wbak=nan;
+        w=randn(Nd,1);
+        if n>1, w = w-P'*(P*w); end
+        w = w/max(eps,sqrt(sum(w.^2)));
+        if n<Nd,
+            for niter=1:options.maxiter
+                wx=w'*X;
+                switch(options.method)
+                    case 'tanh'
+                        gwx=tanh(wx);
+                        dgwx=Ns-sum(gwx.^2);
+                    case 'pow3'
+                        gwx=(wx).^3;
+                        dgwx=3*Ns;
+                    case 'gauss'
+                        wx2=wx.^2;
+                        expwx2=exp(-wx2/2);
+                        gwx=wx.*expwx2;
+                        dgwx=sum((1-wx2).*expwx2);
+                end
+                if mu==1,
+                    w = (X*gwx' - dgwx*w)/Ns;
+                else
+                    beta = wx*gwx';
+                    w = (mu*(X*gwx') + ((1-mu)*beta - dgwx)*w)/Ns;
+                end
+                if n>1, w = w-P'*(P*w); end
+                w = w/max(eps,sqrt(sum(w.^2)));
+                if niter>options.miniter&&min(max(abs(wbak-w)),max(abs(wbak+w)))<options.maxchange, break; end
+                wbak=w;
+                if niter==ceil(options.maxiter*options.decreasemuat), mu=max(.1,mu/2); end
             end
-            if options.mu==1,
-                w = (X*gwx' - dgwx*w)/Ns;
-            else
-                beta = wx*gwx';
-                w = (options.mu*(X*gwx') + ((1-options.mu)*beta - dgwx)*w)/Ns;
+            if niter==options.maxiter&&options.dowarn, conn_disp('conn_ica warning: maximum iteration reached');
+            %elseif options.dowarn, conn_disp('fprintf','component %d converged at %d iterations\n',n,niter);
             end
-            if n>1, w = w-P'*(P*w); end
-            w = w/max(eps,sqrt(sum(w.^2)));
-            if niter>options.miniter&&min(max(abs(wbak-w)),max(abs(wbak+w)))<options.maxchange, break; end
-            wbak=w;
-            if niter==ceil(options.maxiter*options.decreasemuat), options.mu=max(.1,options.mu/2); end
         end
-        if niter==options.maxiter, conn_disp('conn_ica warning: maximum iteration reached');
-            %else conn_disp('fprintf','component %d converged at %d iterations\n',n,niter);
-        end
+        wnext(:,randominit)=w;
+    end
+    if nrandominit>1, 
+        ww=abs(wnext'*wnext).^2;
+        [nill,wwin]=max(sum(ww,2)); 
+        w=wnext(:,wwin);
     end
     W(n,:)=w';
     P=W(1:n,:);

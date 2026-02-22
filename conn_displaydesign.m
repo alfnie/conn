@@ -29,7 +29,7 @@ else
     if nargin<5||isempty(x0_names), try, x0_names=CONN_h.menus.m_results.design.designmatrix_name; catch, x0_names={}; end; end
     if nargin<6||isempty(designmultivariateonly), try, designmultivariateonly=CONN_h.menus.m_results.design.designmultivariateonly; catch, designmultivariateonly=true; end; end
 end
-hfig=figure('units','norm','position',[.6 .05 .4 .9],'color',[1 1 1],'name','GLM design display','numbertitle','off','menubar','none','colormap',[1 1 1; jet(256)]);
+hfig=conn_figure('units','norm','position',[.6 .05 .4 .9],'color',[1 1 1],'name','GLM design display','numbertitle','off','menubar','none','colormap',[1 1 1; jet(256)]);
 hax1=axes('units','norm','position',[.05 .1 .45 .8],'parent',hfig);
 [h,f,p,dof,statsname]=conn_glm(x0,randn(size(dataAll)),c0,m0);
 try, 

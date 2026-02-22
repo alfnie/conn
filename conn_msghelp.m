@@ -69,7 +69,7 @@ switch(option)
         kmsg=max(1,min(numel(selected),kmsg));
         dlg.fig=findobj(0,'tag','conn_msghelp');
         if isempty(dlg.fig), 
-            dlg.fig=figure('units','norm','position',[.2,.05,.6,.9],'menubar','none','numbertitle','off','name','Support questions search','color',[1 1 1],'tag','conn_msghelp'); 
+            dlg.fig=conn_figure('units','norm','position',[.2,.05,.6,.9],'menubar','none','numbertitle','off','name','Support questions search','color',[1 1 1],'tag','conn_msghelp'); 
             bg=.9*[1 1 1];
             uicontrol(dlg.fig,'style','frame','units','norm','position',[0,.85,1,.15],'backgroundcolor',bg,'foregroundcolor',bg);
             %uicontrol(dlg.fig,'units','norm','position',[.1 .95 .8 .025],'style','text','string','Search :','backgroundcolor',bg,'fontweight','bold','horizontalalignment','left','fontsize',CONN_gui.font_offset+10);
@@ -122,7 +122,7 @@ switch(option)
     case 'showall', % creates txt file with all messages shown in GUI
         dlg.fig=findobj(0,'tag','conn_msghelp');
         if isempty(dlg.fig),
-            dlg.fig=figure('units','norm','position',[.2,.05,.6,.9],'menubar','none','numbertitle','off','name','Support questions search','color',[1 1 1],'tag','conn_msghelp');
+            dlg.fig=conn_figure('units','norm','position',[.2,.05,.6,.9],'menubar','none','numbertitle','off','name','Support questions search','color',[1 1 1],'tag','conn_msghelp');
             bg=.9*[1 1 1];
             uicontrol(dlg.fig,'style','frame','units','norm','position',[0,.85,1,.15],'backgroundcolor',bg,'foregroundcolor',bg);
             %uicontrol(dlg.fig,'units','norm','position',[.1 .95 .8 .025],'style','text','string','Search :','backgroundcolor',bg,'fontweight','bold','horizontalalignment','left','fontsize',CONN_gui.font_offset+10);

@@ -523,7 +523,7 @@ else filtertitle='Select a file';
 end
 filename='';
 skipoverwritequestion=strcmp(style,'get');
-thfig=figure('units','norm','position',[.4,.5,.35,.15],'color',1*[1 1 1],'name','file dialog','numbertitle','off','menubar','none');
+thfig=conn_figure('units','norm','position',[.4,.5,.35,.15],'color',1*[1 1 1],'name','file dialog','numbertitle','off','menubar','none');
 ht1a=uicontrol('style','text','units','norm','position',[.1,.8,.8,.15],'string',sprintf('%s (%s)',filtertitle,filterspec),'horizontalalignment','left','backgroundcolor',1*[1 1 1],'fontweight','bold');
 ht1=uicontrol('style','edit','units','norm','position',[.1,.65,.7,.15],'string',varargin{3},'tooltipstring',conn_menu_formathtml('<HTML>enter full path to target file<br/> - click the button at the right to select a file using the system dialog box (only for local files) <br/> - use /CONNSERVER/[remote_filepath] syntax to refer to files in remote server</HTML>'),'userdata',skipoverwritequestion,'callback',['set(gcbo,''userdata'',',num2str(skipoverwritequestion),');']);
 ht1b=uicontrol('style','pushbutton','units','norm','position',[.8,.65,.1,.15],'string','...','backgroundcolor',1*[1 1 1],'tooltipstring','select target file using system dialog box (only for local files)','callback',@conn_uifile_callback);

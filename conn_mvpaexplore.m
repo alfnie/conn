@@ -70,7 +70,7 @@ Si2=[];
 
 % frame
 boffset=[0 0 0 0];
-conn_menu('frame',boffset+[.02,.15,.65,.74],'');
+conn_menu('frame',boffset+[.01,.15,.66,.74],'');
 %conn_menu('frame2',boffset+[.045,.08,.91,.80],'');
 % image left
 posimage=[.08,.30,.16,.34];

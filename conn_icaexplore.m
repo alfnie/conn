@@ -63,7 +63,7 @@ VARt=conn_bsxfun(@rdivide,VARt,validc);
 ZCt=conn_bsxfun(@rdivide,ZCt,validc);
 
 boffset=[0 0 0 0];
-conn_menu('frame',boffset+[.02,.35,.46,.54],'');%'Component loadings');
+conn_menu('frame',boffset+[.01,.35,.47,.54],'');%'Component loadings');
 poslist=boffset+[.07 .40 .40 .38];
 ht3=conn_menu('listbox',poslist,'',names,'<HTML>Select component(s) for display</HTML>',@(varargin)conn_icaexplore_update([0 1 1]));
 for n=6:20, set(ht3,'string',repmat(' ',1,6*n),'fontname','monospaced','fontsize',8+CONN_gui.font_offset); if get(ht3,'extent')*[0 0 1 0]'>poslist(3), break; end; end
@@ -221,7 +221,7 @@ fh=@conn_icaexplore_update;
        v=[];
        maskv=[];
        refnames=[];
-       hfig=figure('unit','norm','position',[.2 .2 .5 .5],'name','ICA match to template','numbertitle','off','menubar','none','color','w');
+       hfig=conn_figure('unit','norm','position',[.2 .2 .5 .5],'name','ICA match to template','numbertitle','off','menubar','none','color','w');
        hselect=uicontrol('units','norm','position',[.2 .925 .6 .05],'style','pushbutton','string','Select template file','callback',@(varargin)conn_icaexplore_spatialcorr_selecttemplate);
        hmenu=uicontrol('units','norm','position',[.2 .875 .6 .05],'style','popupmenu','string',{'Spatial correlation (correlation coefficient)','Spatial overlap of suprathreshold areas (dice coefficient)'},'value',1,'callback',@conn_icaexplore_spatialcorr_update);
        hax=axes('units','norm','position',[.2 .2 .6 .6]);
@@ -335,7 +335,7 @@ fh=@conn_icaexplore_update;
 
 
     function conn_icaexplore_label(varargin)
-       hfig=figure('unit','norm','position',[.2 .2 .3 .3],'name','ICA network labels','numbertitle','off','menubar','none','color','w');
+       hfig=conn_figure('unit','norm','position',[.2 .2 .3 .3],'name','ICA network labels','numbertitle','off','menubar','none','color','w');
        hmenu=uicontrol('units','norm','position',[.2 .7 .6 .2],'style','popupmenu','string',names,'value',1,'callback',@(varargin)conn_icaexplore_label_update('select'));
        hedit=uicontrol('units','norm','position',[.2 .4 .6 .2],'style','edit','string','','callback',@(varargin)conn_icaexplore_label_update('edit'));
        uicontrol('units','norm','position',[.2 .6 .6 .1],'style','text','string','Label:');

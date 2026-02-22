@@ -315,7 +315,7 @@ end
 
 hax0=findobj(0,'type','axes','tag','conn_mesh_display_axes');
 if isempty(hax0)
-    state.handles.hfig=figure('numbertitle','off','color',state.background,'units','norm','position',[.3 .4 .4 .4],'menubar','none','render','opengl','name','rendering, please wait...','colormap',state.colormap,'visible','off');
+    state.handles.hfig=conn_figure('numbertitle','off','color',state.background,'units','norm','position',[.3 .4 .4 .4],'menubar','none','render','opengl','name','rendering, please wait...','colormap',state.colormap,'visible','off');
     figname='conn 3d display';
     axes('units','norm','position',[.95 .1 .04 .8]);
     state.handles.fullfigure=true;
@@ -1236,7 +1236,7 @@ if ishandle(hmsg), delete(hmsg); end
                     name=state.sphplots.sph_names;
                     %name=get(state.handles.sphplots_txt,'string');
                     ok=true;
-                    thfig=dialog('units','norm','position',[.3,.4,.6,.4],'windowstyle','normal','name','ROI labels','color','w','resize','on');
+                    thfig=conn_dialog('units','norm','position',[.3,.4,.6,.4],'windowstyle','normal','name','ROI labels','color','w','resize','on');
                     uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string',sprintf('New ROI label names (%d)',numel(name)),'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
                     ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.30,.8,.55],'max',2,'string',name,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','manually edit the ROI labels');
                     ht2=uicontrol(thfig,'style','edit','units','norm','position',[.1,.20,.8,.1],'max',1,'string','','fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','enter Matlab command for fast-editing all ROIs simultaneously (str is input variable cell array; ouput is cell array; e.g. "lower(str)")','callback','ht1=get(gcbo,''userdata''); set(ht1,''string'',feval(inline(get(gcbo,''string''),''str''),get(ht1,''string'')))','userdata',ht1);

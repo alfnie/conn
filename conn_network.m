@@ -108,7 +108,7 @@ if nargin<5||isempty(thr),
         end
         
         xlabels={{'\fontsize{16}\color{black}Global efficiency'},{'\fontsize{16}\color{black}Local efficiency'}};
-        figure('name','Network theory: explore variable threshold range','numbertitle','off','units','norm','position',[.3 .3 .6 .6]);clf;
+        conn_figure('name','Network theory: explore variable threshold range','numbertitle','off','units','norm','position',[.3 .3 .6 .6]);clf;
         for n1=1:numel(x),
             thr=mean(y{1},1);
             mnet_d=mean(x{n1},1);

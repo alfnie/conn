@@ -100,7 +100,7 @@ bgc=.9*[1 1 1];
 dlg.handles.fh=fh;
 figcolor=[.95 .95 .9];
 dlg.handles.hfig=hfig;
-if isempty(dlg.handles.hfig)||~ishandle(dlg.handles.hfig), dlg.handles.hfig=figure('units','norm','position',[.1,.3,.8,.6],'menubar','none','numbertitle','off','name','Quality Assurance reports','color',figcolor,'colormap',gray(256),'interruptible','off','busyaction','cancel','tag','conn_qaplotsexplore','userdata',fh);
+if isempty(dlg.handles.hfig)||~ishandle(dlg.handles.hfig), dlg.handles.hfig=conn_figure('units','norm','position',[.1,.3,.8,.6],'menubar','none','numbertitle','off','name','Quality Assurance reports','color',figcolor,'colormap',gray(256),'interruptible','off','busyaction','cancel','tag','conn_qaplotsexplore','userdata',fh);
 else figure(dlg.handles.hfig); clf(dlg.handles.hfig);
 end
 %dlg.handles.menuprint=uimenu(dlg.handles.hfig,'Label','Print');
@@ -458,7 +458,7 @@ if dlg.createreport, conn_qaplotsexplore_update([],[],'printset','nogui'); conn_
                 %il2covariates=find(cellfun('length',regexp(nl2covariates,'^QC_.*(MeanMotion|InvalidScans|ProportionValidScans)')));
                 validconditions=find(cellfun('length',CONN_x.Setup.conditions.model(1:numel(CONN_x.Setup.conditions.names)-1))==0);
                 
-                fh=figure('units','norm','position',[.4,.4,.4,.5],'menubar','none','numbertitle','off','name','compute QA plots','color','w');
+                fh=conn_figure('units','norm','position',[.4,.4,.4,.5],'menubar','none','numbertitle','off','name','compute QA plots','color','w');
                 h1=uicontrol('units','norm','position',[.1,.90,.4,.05],'style','text','string','Plot type: ','horizontalalignment','left','fontweight','bold','backgroundcolor',get(fh,'color'));
                 h2=uicontrol('units','norm','position',[.1,.65,.8,.25],'style','listbox','max',2,'string',uanalyses_long,'value',answ1,'tooltipstring',conn_menu_formathtml('<HTML>Select type of plot(s) to create</HTML>'));
                 h4D=uicontrol('units','norm','position',[.1,.55,.35,.05],'style','checkbox','string','All subjects','value',1,'horizontalalignment','left','fontweight','bold','backgroundcolor',get(fh,'color'));

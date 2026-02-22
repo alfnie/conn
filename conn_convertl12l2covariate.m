@@ -54,7 +54,7 @@ measures_step1=measures(1:end-2,:);
 if numel(ncovariates)>1, covname=sprintf('%s ',CONN_x.Setup.l1covariates.names{ncovariates}); covnames1='Consider covariates:'; covnames2='first-level covariate'; 
 else covname=CONN_x.Setup.l1covariates.names{ncovariates}; covnames1=sprintf('Consider covariate %s:',covname); covnames2=sprintf('%s covariate',regexprep(covname,'[^a-zA-Z0-9]',' ')); 
 end
-thfig=dialog('units','norm','position',[.3,.3,.3,.6],'windowstyle','normal','name',['Summarize 1st-level covariate ',covname],'color','w','resize','on');
+thfig=conn_dialog('units','norm','position',[.3,.3,.3,.6],'windowstyle','normal','name',['Summarize 1st-level covariate ',covname],'color','w','resize','on');
 bg=.9*[1 1 1];
 uicontrol(thfig,'style','frame','units','norm','position',[0,.4,1,.6],'backgroundcolor',bg,'foregroundcolor',bg);
 uicontrol(thfig,'style','text','units','norm','position',[.1,.90,.8,.05],'string',covnames1,'horizontalalignment','left','backgroundcolor',bg,'fontsize',9+CONN_gui.font_offset,'fontweight','bold');

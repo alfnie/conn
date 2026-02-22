@@ -61,7 +61,7 @@ switch(lower(option))
             if ~isfield(params.info,'user')||isempty(params.info.user), [nill,str2]=system('whoami'); params.info.user=regexprep(str2,'\n',''); allthesame=false; end
             if ~isfield(params.info,'host')||isempty(params.info.host), params.info.host=''; allthesame=false; end
             clear h;
-            h.hfig=figure('units','norm','position',[.3 .6 .3 .2],'name','Start SSH connection','numbertitle','off','menubar','none','color','w');
+            h.hfig=conn_figure('units','norm','position',[.3 .6 .3 .2],'name','Start SSH connection','numbertitle','off','menubar','none','color','w');
             uicontrol('style','text','units','norm','position',[0 .85 1 .15],'string','Connect using SSH to the network hosting your CONN projects','backgroundcolor','w','horizontalalignment','center','parent',h.hfig);
             uicontrol('style','text','units','norm','position',[.1 .62 .37 .14],'string','Remote server address:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);
             h.answer_host=uicontrol('style','edit','max',1,'units','norm','position',[.5 .62 .4 .15],'string',params.info.host,'backgroundcolor','w','horizontalalignment','left','parent',h.hfig,'tooltipstring','Enter the address of your SSH-accessible remote server or your HPC cluster login node');
@@ -464,7 +464,7 @@ switch(lower(option))
         tfiles={info.stdout, info.stderr, info.stdlog, info.scripts};
         [nill,names]=cellfun(@fileparts,tfiles{1},'uni',0);
         names=regexp(names,'^.{9}','match','once');
-        h.hfig=figure('units','norm','position',[.7 .3 .3 .6],'name','log details','numbertitle','off','menubar','none','color','w');
+        h.hfig=conn_figure('units','norm','position',[.7 .3 .3 .6],'name','log details','numbertitle','off','menubar','none','color','w');
         h.files=uicontrol(h.hfig,'style','popupmenu','units','norm','position',[.1 .95 .9 .05],'string',names,'value',1);
         h.types=uicontrol(h.hfig,'style','popupmenu','units','norm','position',[.1 .90 .9 .05],'string',{'console output (stdout)','error output (stderr)','Matlab log','submission script','submission command','submission command output','status command output'},'value',1);
         h.str=uicontrol(h.hfig,'style','listbox','units','norm','position',[.05 .1 .9 .75],'string','','max',2,'horizontalalignment','left','fontname','monospaced');
@@ -487,7 +487,7 @@ switch(lower(option))
 
     case {'push','folderpush'}
 %         clear h;
-%         h.hfig=figure('units','norm','position',[.3 .4 .5 .2],'name','file transfer (scp)','numbertitle','off','menubar','none','color','w');
+%         h.hfig=conn_figure('units','norm','position',[.3 .4 .5 .2],'name','file transfer (scp)','numbertitle','off','menubar','none','color','w');
 %         uicontrol('style','text','units','norm','position',[.1 .70 .19 .15],'string','copy FROM:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);
 %         h.filesFROM=uicontrol('style','edit','max',1,'units','norm','position',[.3 .70 .6 .15],'string','','backgroundcolor','w','horizontalalignment','left','parent',h.hfig);
 %         uicontrol('style','text','units','norm','position',[.1 .50 .19 .15],'string','TO:','backgroundcolor','w','horizontalalignment','right','parent',h.hfig);

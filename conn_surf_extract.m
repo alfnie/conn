@@ -29,7 +29,7 @@ if isempty(FS_folder) % extracts from single surface file (assumes all files in 
             surfnames={fullfile(fileparts(which(mfilename)),'surf',[file_name(1:3),'pial.surf']),surfnames};
         end
         for n1=1:numel(surfnames),[tfile_path,tfile_name,tfile_ext]=fileparts(surfnames{n1}); surfnames_redux{n1}=[tfile_name,tfile_ext]; end
-        hfig=figure('units','norm','position',[.4,.5,.3,.2],'color','w','name','Extract values at surface coordinates','numbertitle','off','menubar','none');
+        hfig=conn_figure('units','norm','position',[.4,.5,.3,.2],'color','w','name','Extract values at surface coordinates','numbertitle','off','menubar','none');
         uicontrol('style','text','units','norm','position',[.1,.8,.8,.1],'string','Extract values at coordinates:','backgroundcolor','w','horizontalalignment','left');
         ht1=uicontrol('style','popupmenu','units','norm','position',[.1,.7,.8,.1],'string',surfnames_redux,'value',1);
         uicontrol('style','text','units','norm','position',[.1,.45,.8,.1],'string','Smoothing level:','backgroundcolor','w','horizontalalignment','left');

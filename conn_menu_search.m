@@ -51,7 +51,7 @@ persistent lasthdl searchstring lastposition;
             searchstring='';
             %answ=inputdlg('Enter search string','',1,{''});
             %if ~isempty(answ), searchstring=answ{1}; end
-            thfig=figure('units','norm','position',[.4,.4,.15,.15],'color',1*[1 1 1],'name','Search keyword matches in list','numbertitle','off','menubar','none');
+            thfig=conn_figure('units','norm','position',[.4,.4,.15,.15],'color',1*[1 1 1],'name','Search keyword matches in list','numbertitle','off','menubar','none');
             ht1a=uicontrol('style','text','units','norm','position',[.1,.75,.8,.15],'string','Enter search string:','horizontalalignment','left','backgroundcolor',1*[1 1 1],'fontweight','bold');
             ht1=uicontrol('style','edit','units','norm','position',[.1,.55,.8,.2],'string','','tooltipstring','enter case-insensitive keyword string to search (or enter regexp pattern for advance searches)');%,'callback','uiresume');
             ht2=uicontrol('style','checkbox','units','norm','position',[.1,.3,.8,.15],'string','Select all matches','value',0,'backgroundcolor',1*[1 1 1],'tooltipstring',conn_menu_formathtml('<HTML>Checking this option will select in the original list all entries that match the above pattern<br/>Unchecking this option will jump in the original list to the first/closest entry that matches the above pattern (and you may then use left/right arrows to jump to other matches)</HTML>'));

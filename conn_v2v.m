@@ -488,10 +488,10 @@ switch(lower(option))
                     idx=(slice-1)*Y1.matdim.dim(1)*Y1.matdim.dim(2)+idx;
                     y(idx)=y(idx)+y1(1:min(size(y1,1),ndims),:)'*z;
                 end
-                figure(2)
-                temp=reshape(x,Y1.matdim.dim);subplot(121);imagesc(temp(:,:,30));
-                temp=reshape(y,Y1.matdim.dim);subplot(122);imagesc(temp(:,:,30));
-                drawnow;
+                %figure(2)
+                %temp=reshape(x,Y1.matdim.dim);subplot(121);imagesc(temp(:,:,30));
+                %temp=reshape(y,Y1.matdim.dim);subplot(122);imagesc(temp(:,:,30));
+                %drawnow;
 %                 y=zeros(size(x));
 %                 [y1,idx]=conn_get_volume(Y1);
 %                 y(idx)=y1'*(y1*x(idx));

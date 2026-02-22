@@ -242,7 +242,7 @@ else
     if ~silent, conn_disp('Checking if data files have been edited or moved. Please wait...'); end
     try
         if ~silent&&isfield(CONN_x,'gui')&&(isnumeric(CONN_x.gui)&&CONN_x.gui || isfield(CONN_x.gui,'display')&&CONN_x.gui.display),
-            ht=dialog('units','norm','position',[.4,.5,.3,.15],'windowstyle','normal','name','','handlevisibility','on','color','w','colormap',conn_bsxfun(@min,[1 1 1],(flipud(gray(100)))));
+            ht=conn_dialog('units','norm','position',[.4,.5,.3,.15],'windowstyle','normal','name','','handlevisibility','on','color','w','colormap',conn_bsxfun(@min,[1 1 1],(flipud(gray(100)))));
             htcancel=uicontrol('units','norm','position',[.3 .15 .4 .2],'style','togglebutton','string','Cancel');%,'callback',@conn_updatefilepaths_stop);
             [nill,ht(2)]=conn_menu_plotmatrix('',ht,[1 1 10],[.3 .4 .4 .1]);
             %axes('units','norm','position',[.3 .4 .4 .1]);

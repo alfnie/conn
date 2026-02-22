@@ -5,6 +5,8 @@ function h=conn_timedwaitbar(a,b,str)
 %
 
 persistent t0a t0b a0b n0 atick hsteps;
+global CONN_gui
+
 if isstr(b),
     if nargin<3||isempty(str), str=true; end
     t0a=clock;
@@ -16,12 +18,14 @@ if isstr(b),
     %    hAxes = findobj(h,'type','axes');
     %    hTitle = get(hAxes,'title');
     %    set(hTitle,'color','w');
+    if isfield(CONN_gui,'themeoptsPopup')&&~isempty(CONN_gui.themeoptsPopup), set(h,CONN_gui.themeoptsPopup{:}); end
     set(findobj(h,'type','patch'),'edgecolor','none');
     set(findobj(h,'type','line'),'color',.8*get(0,'defaultuicontrolbackgroundcolor'));
     set(findobj(h,'type','axes'),'color',.8*get(0,'defaultuicontrolbackgroundcolor'));
     drawnow;
 else
     h=b;
+    StoppedByUser=false;
     try
         t2=clock;
         t1a=etime(t2,t0a);
@@ -44,6 +48,7 @@ else
         ht3=findobj(b,'style','togglebutton');
         if isequal(get(ht3,'value'),1),
             delete(b);
+            StoppedByUser=true;
             error('<DisregardMessage>Process stopped by user');
         end
         if n0<5&&a<.2, tstr='';
@@ -69,6 +74,7 @@ else
             if ~isempty(hax), conn_menu_plotmatrix('',hax(1),[1 1 11 1+10*a]); end %,[],'colormap',[.95 .95 .95; (1-a)*[.8 .2 .2]+a*[.8 .8 .2]]); %(1-a)*[5/6,2/6,1.5/6]+a*[1.5/6,5/6,2/6]]);
         end
     end
+    if StoppedByUser, error('<DisregardMessage>Process stopped by user'); end
 end
 %close(hw);
 end
@@ -84,7 +90,7 @@ if isstr(b)
     else steps=[1 1];
     end
     color=[1 1 1];%get(0,'defaultuicontrolbackgroundcolor');
-    ht=dialog('units','norm','position',[.4,.5,.3,.15],'windowstyle','modal','name','','handlevisibility','on','color',color,'tag','conn_timedwaitbar'); 
+    ht=conn_dialog('units','norm','position',[.4,.5,.3,.15],'windowstyle','modal','name','','handlevisibility','on','color',color,'tag','conn_timedwaitbar'); 
     htcancel=uicontrol('units','norm','position',[.4 .05 .2 .2],'style','togglebutton','string','Stop','callback','if get(gcbo,''value''), set(gcbo,''string'', ''Stopping...''); else set(gcbo,''string'',''Stop''); end; drawnow;');
     ha=[]; for n=1:steps(2), 
         ha(n)=axes('units','norm','position',[.3+.4*(n-1+.0)/steps(2) .445 .4*1/steps(2) .01]); 

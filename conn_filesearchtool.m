@@ -430,7 +430,7 @@ if nargin>=1&&ischar(varargin{1}),
 end
 names={};
 a.CONN_x=CONN_x;
-dlg.fig=figure('units','norm','position',[.4,.3,.2,.4],'menubar','none','numbertitle','off','name','Select data from CONN project','color','w');
+dlg.fig=conn_figure('units','norm','position',[.4,.3,.2,.4],'menubar','none','numbertitle','off','name','Select data from CONN project','color','w');
 dlg.m0=uicontrol('style','popupmenu','units','norm','position',[.1,.90,.8,.05],'string',{'From current CONN project','From other CONN project'},'callback',@conn_filesearch_selectconn_select,'fontsize',9+font_offset,'parent',dlg.fig);
 dlg.m1=uicontrol('style','popupmenu','units','norm','position',[.1,.825,.8,.05],'string',{'Structural','Functional','ROIs','Covariates'},'callback',@conn_filesearch_selectconn_update,'fontsize',9+font_offset,'parent',dlg.fig);
 dlg.m2=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.05],'string',a.CONN_x.Setup.rois.names(1:end-1),'callback',@conn_filesearch_selectconn_update,'fontsize',9+font_offset,'visible','off','parent',dlg.fig);

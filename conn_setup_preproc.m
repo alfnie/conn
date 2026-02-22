@@ -518,7 +518,7 @@ if ~nargin||isempty(STEPS)||dogui,
     dlg.steps_descr=steps_descr;
     dlg.steps_index=steps_index;
     dlg.steps_order=steps_order;
-    dlg.fig=figure('units','norm','position',[.2,.3,.5+.2*(1|multiplesteps),.6],'menubar','none','numbertitle','off','name','SPM data preprocessing step','color',1*[1 1 1]);
+    dlg.fig=conn_figure('units','norm','position',[.2,.3,.5+.2*(1|multiplesteps),.6],'menubar','none','numbertitle','off','name','SPM data preprocessing step','color',1*[1 1 1]);
     if multiplesteps,
         uicontrol('style','frame','units','norm','position',[0,.57,1,.43],'backgroundcolor',.9*[1 1 1],'foregroundcolor',.9*[1 1 1]);
         uicontrol('style','frame','units','norm','position',[.05,.2,.9,.33],'backgroundcolor',1*[1 1 1],'foregroundcolor',.8*[1 1 1]);
@@ -773,7 +773,7 @@ end
 
 
 if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
-    thfig=figure('units','norm','position',[.3,.4,.45,.3],'color',1*[1 1 1],'name','VDM create settings','numbertitle','off','menubar','none');
+    thfig=conn_figure('units','norm','position',[.3,.4,.45,.3],'color',1*[1 1 1],'name','VDM create settings','numbertitle','off','menubar','none');
     ht1=uicontrol('style','popupmenu','units','norm','position',[.1,.85,.8,.1],'string',arrayfun(@(n)sprintf('Fieldmap location: secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines location of available fieldmap-sequence files');
     ht2=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',{'Fieldmap type: automatically determine','Fieldmap type: Magnitude/Phasediff files (double-echo sequences, magnitude image first)','Fieldmap type: Real1/Imag1/Real2/Imag2 files (double-echo sequences)','Fieldmap type: Pre-computed fieldmap file (Hz) (direct fieldmap sequence)','Fieldmap type: AB/BA files (opposite Phase-Encoding Directions, same PED as functionals first)','Fieldmap type: BA/AB files (opposite Phase-Encoding Directions, opposite PED as functionals first)'},'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines type of available fieldmap-sequence files');
     ht3=uicontrol('style','checkbox','units','norm','position',[.1,.64,.8,.1],'string','Read double-echo timing from BIDS / .json files','value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','use information in .json sidecar files to estimate EchoTime and EPI Total Readout Time values');
@@ -883,7 +883,7 @@ if any(ismember('functional_art',lSTEPS))
         if numel(art_thresholds)>=8, art_drop_flag=art_thresholds(8); end
     end
     if isempty(art_thresholds)||dogui
-        thfig=figure('units','norm','position',[.4,.4,.3,.4],'color',1*[1 1 1],'name','Functional outlier detection settings','numbertitle','off','menubar','none');
+        thfig=conn_figure('units','norm','position',[.4,.4,.3,.4],'color',1*[1 1 1],'name','Functional outlier detection settings','numbertitle','off','menubar','none');
         ht0=uicontrol('style','popupmenu','units','norm','position',[.05,.8,.9,.1],'string',{'Use liberal settings (99th percentiles in normative sample)','Use intermediate settings (97th percentiles in normative sample)','Use conservative settings (95th percentiles in normative sample)','Edit settings','Edit settings interactively (ART gui)'},'value',1+art_useconservative,'backgroundcolor',1*[1 1 1]);
         ht1a=uicontrol('style','text','units','norm','position',[.05,.7,.9,.05],'string','Global-signal z-value threshold','backgroundcolor',1*[1 1 1]);
         ht1=uicontrol('style','edit','units','norm','position',[.05,.6,.9,.1],'string',num2str(art_global_threshold));
@@ -955,7 +955,7 @@ end
 
 if dogui&&any(ismember(lSTEPS,{'structural_normalize','structural_normalize_preservemasks','structural_segment&normalize','structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion','structural_segment','functional_normalize','functional_segment&normalize','functional_segment','functional_segment&normalize_direct','functional_segment&normalize_indirect','functional_normalize_indirect','functional_normalize_indirect_preservemasks','functional_normalize_direct','structural_manualspatialdef','functional_manualspatialdef'}))
     DOSPM12=~PREFERSPM8OVERSPM12&spmver12; %SPM12/SPM8
-    thfig=figure('units','norm','position',[.4,.4,.3,.3],'color',1*[1 1 1],'name','Segment/Normalize/Resample settings','numbertitle','off','menubar','none');
+    thfig=conn_figure('units','norm','position',[.4,.4,.3,.3],'color',1*[1 1 1],'name','Segment/Normalize/Resample settings','numbertitle','off','menubar','none');
     if DOSPM12||any(ismember(lSTEPS,{'structural_segment','structural_segment&normalize','structural_segment&normalize_withlesion','functional_segment&normalize_indirect_withlesion','functional_segment','functional_segment&normalize'}))
         ht4=[];ht5=[];
         if any(ismember(lSTEPS,{'functional_segment&normalize_indirect_withlesion','structural_segment&normalize_withlesion'})), 
@@ -1057,7 +1057,7 @@ if any(ismember('functional_smooth_masked',lSTEPS))
         elseif mask_inclusive_func, idx3=1;
         else idx3=2; 
         end
-        thfig=figure('units','norm','position',[.4,.4,.3,.2],'color',1*[1 1 1],'name','Functional masked smoothing','numbertitle','off','menubar','none');
+        thfig=conn_figure('units','norm','position',[.4,.4,.3,.2],'color',1*[1 1 1],'name','Functional masked smoothing','numbertitle','off','menubar','none');
         uicontrol('style','text','units','norm','position',[.05,.8,.25,.10],'string','FWHM (mm):','backgroundcolor',1*[1 1 1],'horizontalalignment','left');
         ht1=uicontrol('style','edit','units','norm','position',[.3,.8,.65,.10],'string',num2str(fwhm),'tooltipstring','Smoothing kernel FWHM (in mm)');
         uicontrol('style','text','units','norm','position',[.05,.60,.25,.10],'string','Mask:','backgroundcolor',1*[1 1 1],'horizontalalignment','left');

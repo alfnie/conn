@@ -557,7 +557,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
                 if isempty(validconditions), fprintf('warning: no conditions have been denoised in the voxel-to-voxel pipeline. Please repeat Denoising to enable these analyses'); return; end
                 conditionoptions=cellfun(@(x)['Display connectivity during ',x, ' condition'],CONN_x.Setup.conditions.names(validconditions),'uni',0);
                 if numel(validconditions)>1, conditionoptions=[conditionoptions, {'User-defined between-conditions contrast'}]; end
-                thfig=dialog('units','norm','position',[.3,.3,.4,.3],'windowstyle','normal','name','Network display','color','w','resize','on');
+                thfig=conn_dialog('units','norm','position',[.3,.3,.4,.3],'windowstyle','normal','name','Network display','color','w','resize','on');
                 uicontrol(thfig,'style','text','units','norm','position',[.1,.75,.2,.10],'string','Seed:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','fontweight','bold');
                 ht0=uicontrol(thfig,'style','popupmenu','units','norm','position',[.3,.75,.6,.10],'string',{'Display connectivity with selected cluster in current analysis','Display connectivity with other seed (select mask/ROI file)'},'value',1,'fontsize',8+CONN_gui.font_offset,'userdata',[],'callback',@conn_vproject_callbackfcn0);
                 uicontrol(thfig,'style','text','units','norm','position',[.1,.60,.2,.10],'string','Subjects:','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'horizontalalignment','left','fontweight','bold');
@@ -761,7 +761,7 @@ if numel(param)==1 && ishandle(param), % callbacks from UI objects
 %                 elseif isfield(SPM.xX,'SelectedSubjects'), dispopts={'Slice display (reference anatomical)','Slice display (own subject anatomical)','Surface display','Volume display','Glass display'};
 %                 else dispopts={'Slice display','Surface display','Volume display','Glass display'};
 %                 end
-%                 thfig=dialog('units','norm','position',[.3,.4,.3,.3],'windowstyle','normal','name','Plot individual subject','color','w','resize','on');
+%                 thfig=conn_dialog('units','norm','position',[.3,.4,.3,.3],'windowstyle','normal','name','Plot individual subject','color','w','resize','on');
 %                 uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string','Display type:','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
 %                 ht1=uicontrol(thfig,'style','popup','units','norm','position',[.1,.75,.8,.10],'max',2,'string',dispopts,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','tooltipstring','select type of display');
 %                 uicontrol(thfig,'style','text','units','norm','position',[.1,.6,.8,.10],'string','Subject(s):','horizontalalignment','left','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
@@ -3061,7 +3061,7 @@ if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 
 filename_rois0=filename_rois;
 filename_sources0=filename_sources;
-thfig=dialog('units','norm','position',[.3,.4,.4,.25],'windowstyle','normal','name','REX interface','color','w','resize','on');
+thfig=conn_dialog('units','norm','position',[.3,.4,.4,.25],'windowstyle','normal','name','REX interface','color','w','resize','on');
 uicontrol(thfig,'style','text','units','norm','position',[.1,.75,.8,.20],'string',{'Explore model effects and activation/connectivity values','within individual ROIs/clusters'},'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
 ht1=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.55,.8,.15],'string',{'clusters of interest in current analysis','others clusters of interest or ROIs (select exported mask/ROI file)'},'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','callback',@conn_vproject_selectfiles_callback1,'tooltipstring',conn_menu_formathtml('Define the clusters of interest'));
 ht2=uicontrol(thfig,'style','popupmenu','units','norm','position',[.1,.40,.8,.15],'string',{'effect/activation/connectivity values in current analysis','other effect/activation/connectivity values (select second-level SPM.mat file)'},'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left','callback',@conn_vproject_selectfiles_callback2,'tooltipstring',conn_menu_formathtml('Define the activation/connectivity values'));
@@ -3127,7 +3127,7 @@ if THR==0, v2=1000;
 else v2=max(1000,round(1/THR));
 end
 
-fh=figure('units','norm','position',[.4,.4,.3,.2],'menubar','none','numbertitle','off','name','compute non-parametric statistics','color','w');
+fh=conn_figure('units','norm','position',[.4,.4,.3,.2],'menubar','none','numbertitle','off','name','compute non-parametric statistics','color','w');
 h1=uicontrol('units','norm','position',[.1,.7,.4,.15],'style','text','string','# of new simulations: ','fontweight','bold','backgroundcolor',get(fh,'color'));
 h2=uicontrol('units','norm','position',[.5,.7,.4,.15],'style','edit','string',num2str(v2),'tooltipstring',conn_menu_formathtml('<HTML>Number of new data permutations/randomizations that will be evaluated in order to compute cluster-level statistics<br/> - note: if already previously computed, these new simulations will be added to any pre-existing ones (e.g. to increase the total number of simulations)</HTML>'));
 toptions=[{'local processing (run on this computer)'} tstr(tvalid)];

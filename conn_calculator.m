@@ -92,7 +92,7 @@ if fulltype,
     fs0b=[fs0(1)+fs(1)+.05 fs0(2)];
     fsb=[1-fs(1)-fs0(1)-.05 fs(2)];
     %thfig=figure('units','norm','position',[.15,.3,.8,.5],'name','conn second-level calculator','numbertitle','off','menubar','none','color',[1 1 1]);
-    conn_menu('frame',[fs0 fs],'GLM analyses (2nd-level)');
+    conn_menu('frame',[fs0 fs],'Group analyses (2nd-level)');
     conn_menu('pushbutton',[fs0 0 0]+[fs fs].*[.90,1.05,.10,.05],'','Help','','conn(''gui_help'',''help'',''conn_calculator.m'');'); 
     ht1=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.02,.22,.30,.63],'Subject effects',conn_strexpand(CONN_x.Setup.l2covariates.names(icovariates1),CONN_x.Setup.l2covariates.descrip(icovariates1)),'Select subject effect(s) characterizing second-level analysis model / independent variables',@(varargin)conn_calculator_update);
     ht3=conn_menu('edit',[fs0 0 0]+[fs fs].*[.02,.10,.30,.05],'Between-subjects contrast','1','<HTML>Define desired contrast across selected subject-effects<br/> - enter contrast vector/matrix with as many elements/columns as subject-effects selected <br/> - use the list below to see a list of standard contrasts for the selected subject-effects <br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
@@ -108,12 +108,12 @@ if fulltype,
     set(ht2,'max',2,'value',i);
     ht5=conn_menu('textedit2',[fs0 0 0]-[0 .15 0 0]+[fs fs].*[.02,0,.96,.10],'Statistics','','Effect size and statistics for selected second-level analysis');
 else
-    fs0=[.02 .335];
-    fs=[.585 .505];
+    fs0=[.01 .335];
+    fs=[.605 .505];
     fs0b=[fs0(1)+fs(1)+.05 fs0(2)];
     fsb=[1-fs(1)-fs0(1)-2*.05 fs(2)];
     %thfig=figure('units','norm','position',[.15,.3,.8,.5],'name','conn second-level calculator','numbertitle','off','menubar','none','color',[1 1 1]);
-    conn_menu('frame',[fs0 fs+0*[0 .06]],'GLM analyses (2nd-level)');%Second-level design');
+    conn_menu('frame',[fs0 fs+0*[0 .06]],'Group analyses (2nd-level)');%Second-level design');
     ht1=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.02,.30,.30,.45],'Subject effects',conn_strexpand(CONN_x.Setup.l2covariates.names(icovariates1),CONN_x.Setup.l2covariates.descrip(icovariates1)),'Select subject effect(s) characterizing second-level analysis model / independent variables',@(varargin)conn_calculator_update);
     ht3=conn_menu('edit',[fs0 0 0]+[fs fs].*[.02,.15,.30,.05],'Between-subjects contrast','1','<HTML>Define desired contrast across selected subject-effects<br/> - enter contrast vector/matrix with as many elements/columns as subject-effects selected <br/> - use the list below to see a list of standard contrasts for the selected subject-effects <br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
     ht2c=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.34,.30,.30,.45],'Conditions',ucnames,'Select condition(s)',@(varargin)conn_calculator_update);

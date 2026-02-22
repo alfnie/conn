@@ -86,3 +86,5 @@ end
 try, str=[str {' '} regexp(evalc('conn_checkdistributionfiles([],''nolog'')'),'\n','split')]; end
 if ~isempty(str2), str=[str,{' ','SUGGESTIONS:',' '},str2']; end
 if ~isempty(stradd), str=[str {' ','stack details:',stradd{:}}]; end
+
+end

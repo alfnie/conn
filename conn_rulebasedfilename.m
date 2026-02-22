@@ -144,7 +144,7 @@ switch option
         if isempty(filename), filename='functional'; end
         if ischar(filename), filename=cellstr(filename); end
         filename=filename{1};
-        hfig=figure('units','norm','position',[.1,.3,.5,.4],'numbertitle','off','name','Find related files/datasets','menubar','none','color','w');
+        hfig=conn_figure('units','norm','position',[.1,.3,.5,.4],'numbertitle','off','name','Find related files/datasets','menubar','none','color','w');
         uicontrol('style','frame','units','norm','position',[.0,.6,1,.4],'backgroundcolor',.9*[1 1 1],'foregroundcolor',.9*[1 1 1],'fontsize',9+CONN_gui.font_offset);
         
         uicontrol('units','norm','position',[.05,.85,.25,.07],'style','text','string','Find files by changing:','backgroundcolor',.9*[1 1 1],'horizontalalignment','left','fontweight','bold','fontsize',8+CONN_gui.font_offset);

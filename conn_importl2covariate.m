@@ -38,7 +38,7 @@ if dogui
     ok=true;
     ASKSELECT=true;
     if ASKSELECT
-        thfig=dialog('units','norm','position',[.3,.4,.4,.4],'windowstyle','normal','name','Import 2nd-level covariate','color','w','resize','on');
+        thfig=conn_dialog('units','norm','position',[.3,.4,.4,.4],'windowstyle','normal','name','Import 2nd-level covariate','color','w','resize','on');
         uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string','Select 2nd-level covariates to import','backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
         ht1=uicontrol(thfig,'style','listbox','units','norm','position',[.1,.25,.8,.6],'max',2,'string',name,'value',1:numel(name),'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left');
         uicontrol(thfig,'style','pushbutton','string','Import','units','norm','position',[.1,.01,.38,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset);
@@ -47,7 +47,7 @@ if dogui
         uimenu(hc1,'label','edit taget variable names','callback',@conn_importl2covariate_changenames);
         set(ht1,'uicontextmenu',hc1);        
     else
-        thfig=dialog('units','norm','position',[.3,.4,.4,.4],'windowstyle','normal','name','Import 2nd-level covariate','color','w','resize','on');
+        thfig=conn_dialog('units','norm','position',[.3,.4,.4,.4],'windowstyle','normal','name','Import 2nd-level covariate','color','w','resize','on');
         uicontrol(thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string',sprintf('New 2nd-level covariate names (%d)',numel(name)),'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
         ht1=uicontrol(thfig,'style','edit','units','norm','position',[.1,.25,.8,.6],'max',2,'string',name,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left');
         uicontrol(thfig,'style','text','string','note: changes to 2nd-level covariates are temporary until your project is saved','units','norm','position',[.1,.12,.8,.10],'backgroundcolor','w','fontsize',8+CONN_gui.font_offset);
@@ -105,7 +105,7 @@ else
 end
 
     function conn_importl2covariate_changenames(varargin)
-        int_thfig=dialog('units','norm','position',[.7,.4,.3,.4],'windowstyle','normal','name','Import 2nd-level covariate','color','w','resize','on');
+        int_thfig=conn_dialog('units','norm','position',[.7,.4,.3,.4],'windowstyle','normal','name','Import 2nd-level covariate','color','w','resize','on');
         uicontrol(int_thfig,'style','text','units','norm','position',[.1,.85,.8,.10],'string',sprintf('New 2nd-level covariate names (%d)',numel(name)),'backgroundcolor','w','fontsize',9+CONN_gui.font_offset,'fontweight','bold');
         int_ht1=uicontrol(int_thfig,'style','edit','units','norm','position',[.1,.25,.8,.6],'max',2,'string',name,'fontsize',8+CONN_gui.font_offset,'horizontalalignment','left');
         uicontrol(int_thfig,'style','pushbutton','string','Ok','units','norm','position',[.1,.01,.38,.10],'callback','uiresume','fontsize',8+CONN_gui.font_offset);

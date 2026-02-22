@@ -59,7 +59,7 @@ if isempty(options.clabel), options.clabel=arrayfun(@(n)sprintf('Col%d',n),1:N2,
 
 if options.newfigure, 
     hmsg=conn_msgbox('Initializing. Please wait...','',-1);
-    hstruct.hfig=figure('numbertitle','off','menubar','none','name','connection display','units','norm','position',[.3 .3 .3 .6],'color',options.background); 
+    hstruct.hfig=conn_figure('numbertitle','off','menubar','none','name','connection display','units','norm','position',[.3 .3 .3 .6],'color',options.background); 
     hstruct.hax=axes('units','norm','position',[.25 .05 .5 .9],'color',options.background);
     hc1=uimenu(hstruct.hfig,'Label','Effects');
     if N1==N2, hc2=uimenu(hc1,'Label','hide/show lower triangular part','callback',{@conn_table_display_refresh,'showtril'}); end

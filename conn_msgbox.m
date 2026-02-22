@@ -10,7 +10,7 @@ h2=[];
 % if ok==2, h=dialog('units','norm','position',[.5 .7 .2 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','off','units','pixels');
 % else h=figure('units','norm','position',[.5 .7 .2 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','off','units','pixels');
 % end
-h=figure('units','norm','position',[.5 .75 .2 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','on','units','pixels');
+h=conn_figure('units','norm','position',[.5 .75 .2 .2],'color',bg,'menubar','none','numbertitle','off','name',title,'resize','on','units','pixels');
 if ok>0 % wait for user confirmation
     ha=uicontrol('style','text','units','norm','position',[0 .35 1 .5],'backgroundcolor',bg,'horizontalalignment','center','string',txt,'units','pixels','fontsize',9+CONN_gui.font_offset,'foregroundcolor',fg,'parent',h);
     hb=uicontrol('style','pushbutton','units','norm','position',[.25 .05 .5 .20],'string','Continue','callback','uiresume(gcbf)','parent',h,'visible','off');

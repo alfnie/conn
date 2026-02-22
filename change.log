@@ -39,7 +39,7 @@ ________________________________________________________________________________
      Added 'Removal of initial scans' to list of optional spatial preprocessing steps (this step allows users to easily drop the first few scans in each session from the analyses) 
      Added new first-level analysis option (for ROI-to-ROI and seed-to-voxel analyses) : standard PsychoPhysiological Interaction (PPI) analyses of task-related effects as well as PhysioPhysiological Interactions (note: FSL-style implementation, where task-effect interaction factors are hrf-convolved and linear interactions are modeled on the resulting BOLD-level signal; c.f. SPM-style implementation which deconvolves the BOLD timeseries instead and interactions are modeled on the resulting "neural"-level signal)
      Added option for defining arbitrary temporal-modulation factors in Setup.Conditions and perform PPI analyses of these factors (pre-requisite for dynamic connectivity analyses) 
-     Preprocessing step output files have been reorganized to avoid duplication in the presence of multiple conditions (save storage space / processing time; note: as a consequence when selecting 'Create confound-corrected time-series' now only one nifti file will be created per subject -containing the entire timeseries- instead of one file per condition as before -containing each only those scans/samples associated with each condition-)
+     Preprocessing step output files have been reorganized to avoid duplication in the presence of multiple conditions (save storage space / processing time; note: as a consequence when selecting 'Create confound-corrected time-series' now only one nifti file will be created per subject -containing the entire timeseries     instead of one file per condition as before -containing each only those scans/samples associated with each condition-)
      Added option in seed-to-voxel results explorer to specify T-value voxel-level thresholds (note: limited-precision of associated voxel-level p-values makes using T/F-value thresholds useful when you wish to threshold very strong effects; e.g. p<1e-10)
 14.j (internal distribution only)
 14.k Cumulative patch fixing error conditions
@@ -57,7 +57,7 @@ ________________________________________________________________________________
         The resulting factors are entered into standard PPI analyses to characterize dynamic changes in FC
         Additional Seed-to-voxel or ROI-to-ROI analyses (for the selected or other ROIs) can be computed by selecting "temporal modulation effects (Dynamic FC)" in the first-level analysis "analysis type" option.
         Aggregated subject/condition measures are also computed to analyze between-subject/condition differences in temporal modulation strength for each factor
-     Added new sample ROI files to conn/utils/otherrois/ ("large-voxel" MNI-space ROI parcellations covering grey-matter areas; P###.img; ###=number of ROIs from P304.img -20mm ROIs- to P2186.img -10mm ROIs-)
+     Added new sample ROI files to conn/utils/otherrois/ ("large-voxel" MNI-space ROI parcellations covering grey-matter areas; P###.img; ###=number of ROIs from P304.img -20mm ROIs     to P2186.img -10mm ROIs-)
 14.l Cumulative patch fixing GUI error conditions (includig window-resizing and java-related-errors in some older Matlab versions)
      Cumulative patch fixing Preprocessing issues (completed batch commands for flexible preprocessing pipeline; added "interleaved (Siemens)" and fixed prompt for sliceorder (asking sliceorder for each subject) in slice-timing preprocessing step; Added prompt for user-defined ART-thresholds in ART preprocessing step; included centering prior to structural segmentation or normalization like previous versions; fixed error-reporting problem in preprocessing steps (errors occuring inside spm batch processes were not being appropriately captured/displayed by CONN error-handling routines); remove art_mask_temporalfiles* after art preprocessing step)
 14.m (internal distribution only; CONN course)
@@ -65,7 +65,7 @@ ________________________________________________________________________________
      (*) Default Denoising steps set to "no despiking" (deprecated despiking effect in favor of ART-based scrubbing)
          (note: to replicate analyses in previous versions change to "despiking (after regression)")
 14.o Cumulative patch, bug fixes and improvements
-     GUI changes (reduce clutter, more detailed help, early warnings on incomplete Setup information, more-responsive gui, fix Mac issues, some Matlab 2014b issues, light- and dark- background support)
+     GUI changes (reduce clutter, more detailed help, early warnings on incomplete Setup information, more-responsive gui, fix Mac issues, some Matlab 2014b issues, light     and dark     background support)
      Reorganize Dynamic FC analysis output into Dynamic scores (average/baseline and variability/modulation-strength of observed temporal modulation factors) and Dynamic loadings (ROI-to-ROI connectivity matrices characterizing modulations in functional connectivity)
      Added new default atlas (132 ROIs) combining FSL Harvard-Oxford atlas cortical & subcortical areas and AAL atlas cerebellar areas (see conn/rois/atlas.info for details), as well as collapsed ROI file with MPFC/PCC/LLP/RLP Fox ROIs (see conn/rois/dmn.info)
      Added to second-level results explorer a new "Slice display" option (display analysis results on individual slices)
@@ -137,7 +137,7 @@ ________________________________________________________________________________
      Added new automatically-generated Quality Assurance measures: during ART preprocessing and Denoising steps the following new second-level covariates are now created: QA_MaxMotion, QA_ValidScans, QA_InvalidScans (maximum inter-scan motion, number of valid/invalid scans per subject); and QA_GCOR (global correlation index per subject and condition)
      Added script-it option to all Preprocessing/Setup/Denoising/First-level analyses (for any analysis step, in addition to running immediately this step CONN can now also automatically create scripts for the same step to be run at a later time)
      Added masking option for group-level ICA, PCA, and MVPA analyses (e.g. group-level components in masked-ICA are restricted to within-mask voxels only; subject-level backprojection still performed across entire brain / Setup.AnalysisMask)
-     Added 'display single-slice for all subjects' summary displays to structural-/functional-/ROI- tools (e.g. use to quickly assess correct normalization/coregistration across all subjects and/or identify outlier subjects/sessions)
+     Added 'display single-slice for all subjects' summary displays to structural-/functional-/ROI     tools (e.g. use to quickly assess correct normalization/coregistration across all subjects and/or identify outlier subjects/sessions)
      Added 'Motion-Mask estimation' procedure to list of available preprocessing steps (estimating at each voxel the derivative of the BOLD signal with respect to the 6 motion parameters; when running this preprocessing step MotionMask ROIs are automatically added to the list of ROIs in Setup.ROIs, which can then be used during Denoising for additional protection against motion-related effects)
      Added option to separately filter individual confound effects before denoising regression (equivalent to 'simult' method but allowing control over individual effects; e.g. filter motion/CompCor regressors but not scrubbing regressors)
      Added connection bundling, display of reference-slice, user-defined surfaces, and other usability options to CONN 3d displays
@@ -148,8 +148,8 @@ ________________________________________________________________________________
      Added ALFF/fALFF measures (see Voxel-to-Voxel first-level analysis tab)
      Added ability to bookmark individual second-level results and plots to help organize complex sets of analyses and results
      Added preprocessing options for indirect coregistration, explicit direct/indirect normalization, and realignment without reslicing
-     Added higher-resolution slice- and glassbrain displays (see seed-to-voxel or voxel-to-voxel results explorer)
-     Added options to display individual-subject voxel- and ROI-level connectivity measures entered to second-level analyses (see 'display values' in second-level results tab)
+     Added higher-resolution slice     and glassbrain displays (see seed-to-voxel or voxel-to-voxel results explorer)
+     Added options to display individual-subject voxel     and ROI-level connectivity measures entered to second-level analyses (see 'display values' in second-level results tab)
      Added options to import sets of files from a different CONN project in Setup tab (see 'AltSelect' option)
      Added 'description' fields to second-level covariates (see Setup.Covariates tab), and to user-defined contrasts (see 'contrast manager' in second-level results tab)
      Added ability to switch between axial/coronal/sagittal views in Setup tab and ICA results
@@ -190,7 +190,7 @@ ________________________________________________________________________________
          Simplify operation with queued/pending parallelization jobs (Tools.ViewPendingJobs will now automatically detect finished jobs and offer to merge the results or submit the next set of queued batch jobs)
      Additions to standalone release
          Compiled with Matlab 2017a (MCR 9.2)
-         Support for user- and system- level cluster configuration settings
+         Support for user     and system     level cluster configuration settings
          Support for Environment Modules installation (see modulefile.txt)
      Added alternative Gray/White/CSF binarization/erosion methods (option to specify binarization threshold in absolute vs. percentile values; option to specify erosion kernel size in abolute vs. percentile values; see 'Erosion settings' in Setup.ROIs tab; see batch.erosion fields for batch scripts)
      Added voxelsize_anat and voxelsize_func separate batch fields for anatomical and functional normalization/reslicing resolutions during preprocessing (see Preprocessing GUI; see batch.Setup.preprocessing.voxelsize_* fields)
@@ -330,7 +330,7 @@ ________________________________________________________________________________
      Added conn_tcpip for TCP/IP based communications and conn_server for client/server communication between two CONN sessions
      Added "conn_module EL" for using a combination of SPM and CONN functionality for task activation analyses of fMRI data (see www.conn-toolbox.org/resources/evlab for details)
      Added "conn_remotely" for working with CONN projects stored remotely using SSH protocol for communications (see "help conn_remotely" for details)
-     Added Inter-hemispheric Correlation (IHC) 1st-level analyses (voxel-level correlation between a voxel and its contralateral voxel; note: for 3D volume functionals contralateral voxel is based on voxel coordinates (x,y,z) matched to (-x,y,z); for 2D surface functionals contralateral vertex is based on a non-linear match in spherical coordinates between Freesurfer left- and right- hemisphere surface-curvature templates - vertex i in left-hemisphere surface matched to vertex LEFT2RIGHT(i) in right-hemisphere surface, vertex j in right-hemisphere surface matched to vetex RIGHT2LEFT(j) in left-hemisphere surface; see conn/utils/surf/lhrh.mat)
+     Added Inter-hemispheric Correlation (IHC) 1st-level analyses (voxel-level correlation between a voxel and its contralateral voxel; note: for 3D volume functionals contralateral voxel is based on voxel coordinates (x,y,z) matched to (-x,y,z); for 2D surface functionals contralateral vertex is based on a non-linear match in spherical coordinates between Freesurfer left     and right     hemisphere surface-curvature templates      vertex i in left-hemisphere surface matched to vertex LEFT2RIGHT(i) in right-hemisphere surface, vertex j in right-hemisphere surface matched to vetex RIGHT2LEFT(j) in left-hemisphere surface; see conn/utils/surf/lhrh.mat)
      Added "view-only" mode for avoiding conflicts when viewing a project while another user may be actively working with the same project
 22.a Cumulative patch, bug fixes and improvements
      Added support for Secure Shell on remote connections from clients running PC/Windows
@@ -361,7 +361,7 @@ ________________________________________________________________________________
      Added ClosenessCentrality (inverse average path length), EigenvectorCentrality (eigenvector of largest eigenvalue of adjacency matrix), and Eccentricity (maximum path length) measures to graph analyses.
      Added conjunction_threshold option to rex for ROI conjunctions with localizer maps
      Added 'network display' button to voxel-level results explorer window, showing for each significant cluster the connectivity between that cluster and the rest of the brain (and additional options)
-     Added 'Write Methods' functionality (see Tools.WriteMethod and conn_reference.m) creating automated text, distributed under a public domain dedication license, describing all the specific preprocessing, denoising, 1st- and 2nd- level analyses steps used in your individual CONN project.
+     Added 'Write Methods' functionality (see Tools.WriteMethod and conn_reference.m) creating automated text, distributed under a public domain dedication license, describing all the specific preprocessing, denoising, 1st     and 2nd     level analyses steps used in your individual CONN project.
      Added new 'group-MVPA.Summary' tab displaying entire voxel-to-voxel connectome (like AFNI's InstaCorr but combining the data across all subjects in your dataset), as well as visual descriptions of each individual fc-MVPA eigenpattern characterizing the observed variability in connectivity maps across subjects and conditions.  
      Updated manual
 
@@ -407,7 +407,81 @@ ________________________________________________________________________________
      Added multivariate custom-contrast option to fc-MVPA summary gui
      Added conn_batchexample_qcplot (example batch creating QC-FC correlation plots separately across sites in a study)
 
-
+25.b Cumulative patch, bug fixes and improvements
+     Update conn_slice_display command-line help
+     Bug fix in conn_slice_display (it was displaying the freesurfer pial/white contours in the incorrect location if the reference brain.mgz image was not in standard recon-all orientation)
+     Added command-line options and edit documentation of conn_polar_display function
+     Merge pull request #10 from LeonHWan/master [feat] option to wite-out regions below activation threshold in the ...
+     Added "HPC settings" option to select whether each computational node should use multithreading or a single computational thread (conn_jobmanager settings)
+     Removed background box in "import files" gui menus
+     Added multiple-sites option to batch example file conn_batchexample_qcplot.m
+     Force message box gui to foreground when preprocessing to more easily identify when preprocessing is still running
+     Added covariate control option to QC-FC correlations in 'QA plots'
+     Fixed bug in qaplots when running plots in parallel without first saving conn project
+     Changed label from 'somatosensory' to'sensorimotor' in utils/otherrois/Yeo2011.nii networks file
+     Bug fix in slice-intensity-correction method (error when using after a functional_removescans step)
+     Added support for SPM25 SCOPE computation of vdm files from opposite phase encoding direction files
+     Added more flexible masked-smoothing options to the 'functional_smooth_masked' preprocessing step (include mask, exclude mask, and preserve boundaries)
+     Bug fix (include _fmap.nii files) when importing from BIDS
+     Bug fix (fixes issues interpreting/displaying SPM25 version number)
+     Bug fix (importing several FMAP files for each subject when selecting and importing multiple subjects and sessions in the GUI)
+     Minor GUI enhancements (display Spatial/Temporal/Summary buttons on top for ICA, PCA, & MVPA results tabs)
+     Add an option to also remove first few initial scans when using the 'create scrubbing covariate' menu in the GUI
+     Added an option to enter FMAP files in opposite order to SCOPE
+     Bug fix incorrect output folder when using SCOPE
+     Bug fix (parallelization of v2v measures from GUI was fixed to using N=1 jobs)
+     Added error message when attempting to extract data from a surface-level .surf.nii functional file using a volume-level ROI file (or a warning if there is an alternative .vol.nii functional file available)
+     Fixes for SPM25 compatibility
+     Added ability to make changes to current project while remote jobs are running
+     Added ability to run a new set of background/remote jobs before a previous set has finished
+     Added ability to add control covariates in QC-FC plots
+     Added aggregate (instead of per-run) quality control plots after denoising
+     Added QC_DOF, QC_MeanFC and QC_StdFC measures for quality control (degrees of freedom after denoising, mean and standard deviation of FC distribution after denoising) computed each time the "FC distribution" plot is run
+     QC_OutlierSubjects and related measures (computed each time the "QC histogram" plot is run) now take into account the "directionality" of most QC measures (low values are "bad" for QC_ValidScans|QC_ProportionValidScans|QC_NORM_func|QC_NORM_struct|QC_DOF, and high values are "bad" for QC_InvalidScans|QC_MeanMotion|QC_MaxMotion|QC_StdFC). For the rest of measures both directions are used when identifying potential outlier subjects
+     Added option to remove "session-invariant" confounds during denoising (confounds modeled as linear factors on the BOLD signal with regressor coefficients that do not vary across runs/sessions for each given subject)
+     Bug fix (.json file not found when associated functional file is a surface nifti file)
+     Fix issue when importing fMRIPrep confounds having a NaN value in first timepoint (fix by converting those NaN's to 0's)
+     Added Setup.rois.regresscovariateschoose batch field (and associated GUI elements) to allow users to manually select 1st-level covariates that will be regressed out before Principal Component Analyses when computing aCompCor WM and CSF timeseries
+     Added ability to specify control variables when running QC-FC quality assurance plots
+     Added manual temporal-weighting option when defining conditions (manually specify a first-level covariate containing an individual condition's temporal weights). This can be used, for example, when importing SPM first-level designs to define conditions exactly in the same way that they appear in SPM's first-level design matrix.
+     Added conn_createsubsetrois function to select or combine individual ROIs from an atlas file
+     Added internal conn_displayroi DOSORT variable to allow users to select the order of ROIs when exporting data from a second-level RRC analysis
+     Added conn_fileutils('filecopy',...) now works with remote files as well
+     Added QC_SPM_taskeffects covariate when using the "import from SPM" functionality in CONN containing task effects in SPM design
+     Fix to conn_merge to update secondary dataset names merging multiple projects while disregarding the current project (disregardcurrent option)
+     Added check&fix when running conn_module('GLM',...) for masked ROI-to-ROI second-level analyses to warn users if the order of the ROIs in the mask differs from the the order of the ROIs in the data
+     Added conn_qcoptimize function (under development; users may use this function to help optimize choice of denoising parameters and list of valid subjects to maximize the QC-FC percentage match level criterion)
+     Bugfix in conn_vproject GUI when switching from p-value to F-value thresholds (now the displayed F-value is chosen to produce the same cutoff than the previously selected p-value and viceversa)
+     Added fl2conn option to FL (creates CONN project from selected subjects in FL experiment)
+     Added conn_clusterregress implementing clustered regression models for massively multivariate predictive analyses
+     Added new conn_menu_plotscatter and conn_mtx_braindisplay functions for scatterplot and .mtx.nii data displays
+     Added conn_nii2gz function for .nii.gz file creation
+     Added conn_h52rr function to transform denoised timeseries .h5 data files to .mtx.nii connectivity-matrix format
+     Fix GUI issues when using the latest Matlab 2025a release
+     Added module CPM for connectome predictive models
+     Continue fixes for new R2025a graphic rendering functions
+     Continue fixes for new R2025a & R2025b graphic rendering functions
+     Continue fixes for new R2025a & R2025b graphic rendering functions (use new light/dark theme options in Matlab)
+     Added 'slice-viewer' and 'display coregistration with user-defined overlay' options to functional-tools menu
+     Added QC_WelchSatterthwaite quality control measure (when planning to use DOF for first-level stats this provides a more accurate estimation of effective degrees of freedom using a WS approximation)
+     Added Quality Control gui in Denoising tab with Data Validity, Data Quality, and Data Sensitivity scores (see https://web.conn-toolbox.org/fmri-methods/denoising-pipeline for details)
+     Added "Quality Control" section to "Methods" boilerplate text autogenerated by CONN from the project's denoising&QA options
+     Added Schaefer-400 atlas to list of default ROIs for new projects (labels extended to include MNI coordinates and Harvard-Oxford anatomical description)
+     Added conn_meshroi_display for 3D display of ROI areas
+     Added option in conn_displayroi to resort atlases differently in "circle" display (see coords2 in conn_roiclusters) and in "matrix" display (see coords1 in conn_roiclusters)
+     Added option to reduce visual clutter in matrix display view by reducing the numbers of labels displayed
+     (*) Added to default preprocessing pipeline the option to create a new dataset in subject-space (coregistered to structural, prior to inter-subject normalization) in order to facilitate the use of subject-space ROIs. To skip this change and continue using the previous pipeline use Preprocessing->Load and select the pipeline at utils/preprocessingpipelines/defaultMNI_legacy2023.mat
+     Modify the ROI orders/groups for CONN's Harvard-Oxford atlas based on analysis of a larger dataset (see conn/rois/atlas.groups.info for details) and adapt labels to better match current network-level naming conventions (note: for replicability if you prefer to use the previous order/groups, in the results explorer window select the option to load order/groups from a file and select the file conn/utils/otherrois/v1_atlas.groups.mat)
+     Added option (in Denoising tab) to select a user-defined group of subjects for Data Sensitivity score computations
+     Added option (in Results tab) to add ExcludeOutlierSubjects as a control variable in your second-level analyses (if you wish to enforce the participant-selection suggestion provided in the Denoising and Quality Control tab)
+     Several bugfixes to allow simultaneous submission of multiple groups of jobs to cluster environments
+     Bugfix in creation of ExcludeOutlierSubjects covariate from GUI when using alternative exclusion criteria
+     Added Schaefer references to Methods boilerplate text
+     Added options (in Setup.Options) to export denoised ROI BOLD timecourses as .csv files, and to export RRC connectivity matrices as .mtx.nii files
+     Added display of ROI clusters information in conn_mtx_display
+     Added 'Denoising & QC tools' options in Denoising tab to: a) reset all denoising options to initial default values; b) reset all denoising options to empty values (for skipping denoising); and c) re-computing one or all Data Validity/Quality/Sensitivity scores
+     When making changes in the Setup.ROIs/Conditions/Covariates tabs for a project that has already been processed and clicking on 'Apply&Update' CONN will now ask whether you want to update only the changes in this section or across other Setup sections as well
+     Minor GUI-design changes in Setup/Denoising tabs to improve clarity
 
 
 
@@ -421,20 +495,3 @@ ________________________________________________________________________________
 
 
 note: the symbol (*) in any of the lists above indicates changes that users need to pay special attention to when upgrading mid-analysis, as they may produce different results compared to previous versions (users may want to hold update until analyses are finished or take special precautions to ensure continuity; instructions for exact replicability with previous-version analyses are described in each case)
-
-
-
-changes in progress or projected: 
-      add simpler options to use alternative reference brain surfaces in 3d displays (e.g. for pediatric or non-human analyses)
-      add integration with CAT12 
-      add interoperability with BCT measures
-      add interoperability with Matlab NN/ML toolbox
-      add voxel-level regressors to second-level analysis options
-      add import graph-theory measures as second-level covariates
-      add batch.mat second-level analysis file to second-level results folder
-      add support for flexible ROIs
-      add possibility to share/download neuromarker definitions
-      add integration with NITRC-IR image repository
-      add integration with NITRC-EC environments
-
-

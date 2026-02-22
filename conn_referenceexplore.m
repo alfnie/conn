@@ -92,7 +92,7 @@ options.secondlevel_names{2}={'RRC_FNC','RRC_SPC','RRC_TFCE','RRC_CON','RRC_ROI'
 bgc=.9*[1 1 1];
 figcolor=[1 1 1];%[.95 .95 .9];
 dlg.handles.hfig=hfig;
-if isempty(dlg.handles.hfig)||~ishandle(dlg.handles.hfig), dlg.handles.hfig=figure('units','norm','position',[.1,.3,.8,.6],'menubar','none','numbertitle','off','name','Write methods','color',figcolor,'colormap',gray(256),'interruptible','off','busyaction','cancel','tag','conn_referenceexplore','userdata',fh);
+if isempty(dlg.handles.hfig)||~ishandle(dlg.handles.hfig), dlg.handles.hfig=conn_figure('units','norm','position',[.1,.3,.8,.6],'menubar','none','numbertitle','off','name','Write methods','color',figcolor,'colormap',gray(256),'interruptible','off','busyaction','cancel','tag','conn_referenceexplore','userdata',fh);
 else figure(dlg.handles.hfig); clf(dlg.handles.hfig);
 end
 uicontrol('style','frame','units','norm','position',[0,.71,1,.29],'backgroundcolor',bgc,'foregroundcolor',bgc,'fontsize',9+font_offset);
@@ -139,7 +139,7 @@ else
     [dlg.handles.html, dlg.handles.text] = javacomponent(jBrowserPanel, [], gcf);
     set(dlg.handles.text, 'Units','norm','Position',[.025,.05,.95,.625]);
 end
-uicontrol('style','pushbutton','units','norm','position',[.575,.0,.20,.04],'string','Export to Word','fontsize',9+font_offset,'horizontalalignment','center','callback',{@conn_referenceexplore_export,'word'});
+if ~isdeployed, uicontrol('style','pushbutton','units','norm','position',[.575,.0,.20,.04],'string','Export to Word','fontsize',9+font_offset,'horizontalalignment','center','callback',{@conn_referenceexplore_export,'word'}); end
 uicontrol('style','pushbutton','units','norm','position',[.775,.0,.20,.04],'string','Export to html','fontsize',9+font_offset,'horizontalalignment','center','callback',{@conn_referenceexplore_export,'html'});
 
 %dlg.handles.text=uicontrol('style','listbox','units','norm','position',[.025,.05,.95,.625],'string','','max',2,'backgroundcolor',figcolor,'foregroundcolor','k','HorizontalAlignment','left','fontsize',32+font_offset);
@@ -202,7 +202,8 @@ if ~ishandle(dlg.handles.hfig), return; end
                 [tfilename,tfilepath]=uiputfile('*.html','Save description as');
                 if isequal(tfilename,0), return; end
                 conn_fileutils('copyfile',guifields.fileout,fullfile(tfilepath,tfilename));
-                fprintf('document exported to %s\n',fullfile(tfilepath,tfilename));
+                %fprintf('document exported to %s\n',fullfile(tfilepath,tfilename));
+                conn_msgbox({'Document exported to ',fullfile(tfilepath,tfilename)},'',true); 
             case 'word'
                 [tfilename,tfilepath]=uiputfile('*.docx','Save description as');
                 if isequal(tfilename,0), return; end
@@ -210,7 +211,8 @@ if ~ishandle(dlg.handles.hfig), return; end
                 htmlFileObj = mlreportgen.dom.HTMLFile(guifields.fileout);
                 append(rpt,htmlFileObj);
                 close(rpt);
-                fprintf('document exported to %s\n',fullfile(tfilepath,tfilename));
+                %fprintf('document exported to %s\n',fullfile(tfilepath,tfilename));
+                conn_msgbox({'Document exported to ',fullfile(tfilepath,tfilename)},'',true); 
         end
     end
 end

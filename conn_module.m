@@ -491,7 +491,7 @@ switch(lower(option))
         end
         conn_batch(Batch);
         
-    case 'cpm'
+    case {'cpm','pm'} % PREDICTIVE MODELS
         switch(lower(varargin{1}))
             case {'create','predict'}
                 filename_project=varargin{2}; 
@@ -613,7 +613,7 @@ switch(lower(option))
                     end
                 end
                 if do_gui
-                    thfig=figure('units','norm','position',[.4,.4,.2,.3],'color',1*[1 1 1],'name','CPM options','numbertitle','off','menubar','none');
+                    thfig=conn_figure('units','norm','position',[.4,.4,.2,.3],'color',1*[1 1 1],'name','CPM options','numbertitle','off','menubar','none');
                     uicontrol('style','text','units','norm','position',[.05,.7,.9,.10],'string','Other options (select all that apply)','backgroundcolor',1*[1 1 1]);
                     ht1=uicontrol('style','checkbox','units','norm','position',[.2,.55,.6,.10],'string','Compute fit values','value',options.fit,'backgroundcolor',1*[1 1 1],'tooltipstring','Computes fit values in training dataset using nested crossvalidation');
                     ht2=uicontrol('style','checkbox','units','norm','position',[.2,.45,.6,.10],'string','Compute p values','value',options.null,'backgroundcolor',1*[1 1 1],'tooltipstring','Computes null-hypothesis distribution of MSE scores using permutation analyses');

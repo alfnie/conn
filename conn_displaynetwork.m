@@ -124,7 +124,7 @@ switch(lower(option)),
         %color2=.85*[1,1,1];
         color1=[1,1,1];
         color2=[1,1,1];
-        hfig=figure('visible','on','renderer','opengl');
+        hfig=conn_figure('visible','on','renderer','opengl');
         cmap=linspace(0,1,256)'; cmap=repmat(1-cmap.^10.*(1-cmap),1,3);
         set(hfig,'units','norm','position',[.05,.2,.9,.7],'numbertitle','off','name','Network theory second-level results','color',color1,'colormap',cmap,'menubar','none');
         %uicontrol('style','frame','units','norm','position',[.0,.85,.5,.15],'backgroundcolor',color2,'foregroundcolor',color2);

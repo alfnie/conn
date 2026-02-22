@@ -67,7 +67,7 @@ if isempty(XYZ)
     [x,y,z]=ndgrid(1:VOL.dim(1),1:VOL.dim(2),1:VOL.dim(3));
     XYZ=reshape([x(:),y(:),z(:),ones(numel(x),1)]*VOL.mat',size(x,1),size(x,2),size(x,3),[]);
 end
-hfig=figure('menubar','none','color','w','numbertitle','off','name','','units','norm','position',[.3,.4,.5,.4]);
+hfig=conn_figure('menubar','none','color','w','numbertitle','off','name','','units','norm','position',[.3,.4,.5,.4]);
 conn_surf_volume_update;
 if DODISP, uiwait(hfig); end
 if ishandle(hfig)

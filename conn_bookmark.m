@@ -74,7 +74,7 @@ switch(option)
         tdirs={tdirs.name};
         descr = fileread(conn_prepend('',tfilename,'.txt'));
         descr=regexp(descr,'\n','split');
-        thfig=figure('units','norm','position',[.35,.5,.3,.3],'color','w','name','edit bookmark','numbertitle','off','menubar','none');
+        thfig=conn_figure('units','norm','position',[.35,.5,.3,.3],'color','w','name','edit bookmark','numbertitle','off','menubar','none');
         uicontrol('style','text','units','norm','position',[.1,.8,.8,.1],'string','Description:','horizontalalignment','left','fontweight','bold','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w');
         ht1=uicontrol('style','edit','units','norm','position',[.1,.5,.8,.3],'string',char(descr),'horizontalalignment','left','max',2,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring','description of this bookmarked plots/results (optional)');
         uicontrol('style','text','units','norm','position',[.1,.35,.8,.1],'string','Folder:','horizontalalignment','left','fontweight','bold','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w');
@@ -129,7 +129,7 @@ switch(option)
         tdirs=conn_dirn(fullfile(filepath,'*'));
         tdirs=tdirs([tdirs.isdir]&~ismember({tdirs.name},{'.','..'}));
         tdirs={tdirs.name};
-        thfig=figure('units','norm','position',[.35,.5,.3,.3],'color','w','name','new bookmark','numbertitle','off','menubar','none');
+        thfig=conn_figure('units','norm','position',[.35,.5,.3,.3],'color','w','name','new bookmark','numbertitle','off','menubar','none');
         uicontrol('style','text','units','norm','position',[.1,.8,.8,.1],'string','Description:','horizontalalignment','left','fontweight','bold','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w');
         ht1=uicontrol('style','edit','units','norm','position',[.1,.5,.8,.3],'string',char(descr),'horizontalalignment','left','max',2,'fontsize',8+CONN_gui.font_offset,'backgroundcolor','w','tooltipstring','description of this bookmarked plots/results (optional)');
         uicontrol('style','text','units','norm','position',[.1,.35,.8,.1],'string','Folder:','horizontalalignment','left','fontweight','bold','fontsize',8+CONN_gui.font_offset,'backgroundcolor','w');

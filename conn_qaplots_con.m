@@ -62,7 +62,7 @@ if (isfield(SPM,'xCon')&&~isempty(SPM.xCon)) || (isfield(SPM,'xConOriginal')&&~i
             A=A(jA,:); Aall=sum(A,2); Apos=sum(A.*(A>0),2); Aneg=sum(A.*(A<0),2);
             ytickval=unique(round(linspace(1,size(A,1),20))); xtickval=unique(round(linspace(1,size(A,2),20)));
             
-            hfig=figure('units','norm','position',[.1 .3 .8 .6],'color','w','menubar','none');
+            hfig=conn_figure('units','norm','position',[.1 .3 .8 .6],'color','w','menubar','none');
             cmap=.25*0+.75*jet(255);cmap(128,:)=[1 1 1];colormap(cmap);
             axes('units','norm','position',[.15 .4 .25 .5]);
             if nnz(A)<1e2, conn_menu_plotmatrix(.8*A/max(abs(A(:))),'colormapcdata',round(128+127*(A/max(abs(A(:))))),'colormap',cmap,'shape','hdo');
