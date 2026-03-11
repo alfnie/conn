@@ -237,7 +237,7 @@ switch(lower(option)),
         end
         
         data.visible='on';
-        Zthr=data.Zthr; if data.Zthrtype==1,Zthr=atanh(Zthr);end
+        Zthr=data.Zthr; if data.Zthrtype==1,Zthr=atanh(min(.999,Zthr));end
         if ~isfield(data,'Zthrside')||data.Zthrside==1,
             for n1=1:size(data.Z,4), data.Zresults(n1)=conn_network({data.Z(:,:,:,n1),data.names},data.displaytheserois,1,data.Zthrtype-1,Zthr); end
         elseif data.Zthrside==2,

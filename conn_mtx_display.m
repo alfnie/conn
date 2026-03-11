@@ -23,7 +23,7 @@ else
     if numel(varargin)>=4, clusters=varargin{4}; else clusters=[]; end
     if numel(varargin)>=5, clusters_names=varargin{5}; else clusters_names={}; end
 end
-if isempty(coords)&&isempty(samples)&&isempty(clusters) % tries to get this info from available CONN files
+if isempty(clusters) % tries to get this info from available CONN files
     info=[];
     if all(cellfun('length',regexp(names,'^schaefer\.'))>0) % schaefer atlas files
         info=conn_roiclusters_load(fullfile(fileparts(which('conn')),'rois','schaefer.groups.mat'),names);

@@ -3,23 +3,34 @@ function varargout=conn_module(option,varargin)
 %
 % conn_module(module_name, ...) runs individual CONN's module "module_name" on user-defined data
 %
-% Current module names: PREP, GLM, EL, FL
+% Current module names: 
+%    Connectome (CONN)       : full denoising, quality control, and first-level analysis pipeline (from functional images to RRC connectivity matrices)
+%    Preprocessing (PREP)    : preproces functional and anatomical images (from functional images to preprocessed&denoised functional images)
+%    GroupAnalysis (GLM)     : performs group analyses using General Linear Model (hypothesis testing from functional connectivity or other functional data)
+%    PredictiveModel (CPM)   : performs predictive analyses (predict subject- or sample- level descriptors from functional connectivity or other functional data)
+%    EvLab (EL)              : EvLab (evlab.mit.edu) fMRI pipeline 
+%    FrankLab (FL)           : FrankLab (sites.bu.edu/guentherlab) fMRI pipeline
 %
-%    PREP : runs CONN preprocessing pipeline on user-defined data (see conn-toolbox.org/resources/conn-extensions/prep for details)
 %
-%       basic syntax: conn_module preprocessing
-%       advanced syntax: conn_module('PREP', fieldname1, fieldvalue1, fieldname2, fieldvalue2, ...)
+% Details:
+%    --------------------
+%    Preprocessing (PREP): runs CONN preprocessing pipeline on user-defined data (see conn-toolbox.org/resources/conn-extensions/prep for details)
 %
-%                 Input data is specified with field name/value pairs as defined in batch.Setup documentation
-%                 Preprocessing options are specified with field name/value pairs as defined in batch.Setup.preprocessing documentation
-%                    functionals       : list of functional data files { { Sub1Ses1, Sub1Ses2, ...}, {Sub2Ses1, Sub2Ses2, ...}, ...}
-%                    structurals       : list of structural data files { Sub1, Sub2, ...}
-%                    steps             : list of preprocessing steps (tpye "conn_module PREP steps" for a list of valid preprocessing step names)
+%       basic syntax:
+%           conn_module preprocessing                       : runs preprocessing pipeline
+%           conn_module preprocessing <optionsfile>         : runs preprocessing pipeline using user-defined options and data specified in the .json or .cfg file <optionsfile>
 %
-%                 See "doc conn_batch" for a complete list of these options
+%       advanced syntax: 
+%           conn_module('Preprocessing', 'fieldname1', fieldvalue1, 'fieldname2', fieldvalue2, ...)
+%                 Optional fieldnames (enter in any order)
+%                 functionals       : list of functional data files { { Sub1Ses1, Sub1Ses2, ...}, {Sub2Ses1, Sub2Ses2, ...}, ...}
+%                 structurals       : list of structural data files { Sub1, Sub2, ...}
+%                 steps             : list of preprocessing steps (tpye "conn_module Preprocessing steps" for a list of valid preprocessing step names)
+%                 <batchfields>     : additional preprocessing information and options (see all Setup.preprocessing.<batchfields> options in "doc conn_batch" for an up-to-date list of these additional fields)
+%
 %                 See Nieto-Castanon, 2020 for details about these preprocessing steps and pipelines (www.conn-toolbox.org/fmri-methods)
 %
-%       e.g. conn_module('PREP',...
+%       e.g. conn_module('Preprocessing',...
 %             'steps','default_mni',...
 %             'functionals',{'./func.nii'},...
 %             'structurals',{'./anat.nii'},...
@@ -27,7 +38,7 @@ function varargout=conn_module(option,varargin)
 %             'sliceorder','interleaved (Siemens)');
 %            runs default MNI-space preprocessing pipeline on the specified functional/structural data
 %
-%       alternative syntax: conn_module('PREP',optionsfile) 
+%       alternative syntax: conn_module('Preprocessing',optionsfile) 
 %          input data and preprocessing options defined in .cfg (see conn_loadcfgfile/conn_savecfgfile) or .json (see spm_jsonread/spm_jsonwrite) structure text file 
 %
 %       alternative syntax: conn_module preprocessing steps
@@ -35,14 +46,20 @@ function varargout=conn_module(option,varargin)
 %
 %       See https://web.conn-toolbox.org/resources/conn-extensions/prep for additional options
 %
-%    GLM : runs CONN second-level analyses on user-defined data (see www.conn-toolbox.org/resources/conn-extensions/glm for details)
 %
-%       basic syntax: conn_module GLM
-%       advanced syntax: conn_module('GLM', fieldname1, fieldvalue1, fieldname2, fieldvalue2, ...)
-%               with the following field name/value pairs
+%    --------------------
+%    GroupAnalysis (GLM) : runs CONN second-level analyses on user-defined data (see www.conn-toolbox.org/resources/conn-extensions/glm for details)
+%
+%       basic syntax: 
+%           conn_module GroupAnalysis                       : runs second-level analysis
+%           conn_module GroupAnalysis <optionsfile>         : runs second-level analysis using user-defined options and data specified in the .json or .cfg file <optionsfile>
+%
+%       advanced syntax: 
+%           conn_module('GroupAnalysis', 'fieldname1', fieldvalue1, 'fieldname2', fieldvalue2, ...)
+%                  Optional fieldnames (enter in any order)
 %                  data            : list of nifti files entered into second-level analysis (Nsubjects x Nmeasures) defining one or multiple outcome / dependent measures 
 %                                       note: when entering multiple files per subject (e.g. repeated measures) enter first all files (one per subject) for measure#1, followed by all files for measure#2, etc.
-%                                       note: nifti files may contani 3d volume-level data, fsaverage surface-level data, or ROI-to-ROI data (see conn_surf_write and conn_mtx_write to create surface/matrix nifti files)
+%                                       note: nifti files may contani 3d volume-level data, fsaverage surface-level data, or ROI-to-ROI data (see conn_vol_write, conn_surf_write and conn_mtx_write to create volume/surface/matrix nifti files)
 %                                       note: enter a single 4d file or a filename with wildcards (e.g. vol_*.nii) to simplify the specification of multiple files 
 %                                    alternatively list of SPM.mat files containing first-level analyses (Nsubjects x 1, or Nsubjects x Nmeasures)
 %                                    alternatively list of folder names containing SPM.mat first-level analyses (Nsubjects x 1, or Nsubjects x Nmeasures)
@@ -50,7 +67,7 @@ function varargout=conn_module(option,varargin)
 %                                       enter one row for each subject
 %                                       each row should contain one value/number per modeled effect/covariate
 %                  contrast_between: between-subjects contrast vector/matrix (Nc1 x Neffects) 
-%                  contrast_within : within-subjects contrast vector/matrix (Nc2 x Nmeasures)
+%                  contrast_within : (optional) within-subjects contrast vector/matrix (Nc2 x Nmeasures)
 %                  contrast_names  : (optional, only when entering SPM.mat files in #data field) list of contrast names to select from first-level analysis files (Nmeasures x 1)
 %                  data_labels     : (optional) labels of columns of data matrix
 %                  design_labels   : (optional) labels of columns of design matrix
@@ -60,41 +77,93 @@ function varargout=conn_module(option,varargin)
 %                  design_file     : (optional) (alternative to design_matrix field) file containing design_matrix data (.csv/.tsv/.txt/.json/.mat with Nsubjects x Neffects matrix of explanatory / independent measures)
 %                  design          : (optional) (alternative to design_matrix field) transpose of design_matrix (Neffects x Nsubjects); enter one row for each modeled effect (across subjects); each row should contain one value/number per subject
 %
-%         eg: conn_module('GLM', ...
+%         eg: conn_module('GroupAnalysis', ...
 %            'design_matrix',[1; 1; 1; 1] ,...
 %            'data',{'subject1.img'; 'subject2.img'; 'subject3.img'; 'subject4.img'} );
 %             performs a one-sample t-test and stores the analysis results in the current folder
 %
-%         eg: conn_module('GLM', ...
+%         eg: conn_module('GroupAnalysis', ...
 %            'design_matrix',[1 0; 1 0; 0 1; 0 1; 0 1],...
 %            'data', {'subject1_group1.img'; 'subject2_group1.img'; 'subject1_group2.img'; 'subject2_group2.img'; 'subject3_group2.img'},...
 %            'contrast_between',[1 -1]);
 %             performs a two-sample t-test and stores the analysis results in the current folder
 %
-%         eg: conn_module('GLM', ...
+%         eg: conn_module('GroupAnalysis', ...
 %            'design_matrix', [1; 1; 1; 1],...
 %            'data', {'subject1_time1.img', subject1_time2.img'; 'subject2_time1.img', subject2_time2.img'; 'subject3_time1.img', subject3_time2.img'; 'subject4_time1.img', subject4_time2.img'},...
 %            'contrast_beetween',1,...
 %            'contrast_within',[1 -1]);
 %             performs a paired t-test and stores the analysis results in the current folder
 %
-%       alternative syntax: conn_module('GLM',optionsfile) 
-%          input data and GLM options defined in .cfg (see conn_loadcfgfile/conn_savecfgfile) or .json (see spm_jsonread/spm_jsonwrite) structure text file 
+%       alternative syntax: conn_module('GroupAnalysis',optionsfile) 
+%          input data and GroupAnalysis options defined in .cfg (see conn_loadcfgfile/conn_savecfgfile) or .json (see spm_jsonread/spm_jsonwrite) structure text file 
 %
-%       alternative syntax: spmfolder=conn_module('GLM',...) 
+%       alternative syntax: spmfolder=conn_module('GroupAnalysis',...) 
 %          skips results display step (only computes second-level analysis, and returns folder where results are stored)
 %          use conn_display(spmfolder) syntax to then launch the results explorer window on previously computed analyses
 %
-%       See also CONN_DISPLAY for displaying GLM results
+%       See also CONN_DISPLAY for displaying GroupAnalysis results
 %       See Nieto-Castanon, 2020 for details about General Linear Model analyses (www.conn-toolbox.org/fmri-methods)
 %       See https://web.conn-toolbox.org/resources/conn-extensions/glm for additional options
 %
+%
+%    --------------------
+%    PredictiveModel : runs CONN second-level connectome predictive model on user-defined data
+%
+%       basic syntax: 
+%          conn_module PredictiveModel create <modelname>            : creates a model named <modelname> from training data
+%          conn_module PredictiveModel display <modelname>           : displays top predictor variables in model <modelname>
+%          conn_module PredictiveModel display.scatter <modelname>   : displays scatterplot of model <modelname> cross-validated predictions
+%          conn_module PredictiveModel predict <modelname>           : uses model <modelname> to predict new data (outside of training data)
+%          
+%       basic syntax: 
+%          conn_module('PredictiveModel', option, modelname)
+%                     option             : 'create' to create a new model from training data
+%                                          'display' to display the top predictor variables in a model
+%                                          'display.scatter' to display scatterplot of the model cross-validated predictions
+%                                          'display.forward' to display the results of a forward.model GLM analysis using the outcome measures as predictors
+%                                          'predict' to apply this model to new data (outside of training data)
+%                                          'parallel.status' to display the status of analyses run remotely or in background 
+%                     modelname          : name of model file
+%                                          when creating a model, the model parameters and fit information is stored in a file named <modelname>.mat in the current directory
+%
+%       advanced syntax: 
+%          conn_module('PredictiveModel', 'create', modelname, 'fieldname1', fieldvalue1, 'fieldname2', fieldvalue2, ...)
+%                     Optional fieldnames (enter in any order)
+%                     predictor     : [Nsamples x Npredictors] matrix of predictor values
+%                                     alternatively .nii, .mtx.nii, or .surf.nii file containing predictors data (with one image per sample/subject) (see conn_vol_write, conn_surf_write and conn_mtx_write to create volume/surface/matrix nifti files)
+%                                     (note: when predictor variables are entered as a file a file with the same format named <modelname>(.nii|.mtx.nii|.surf.nii) will be created containing the model regressor parameters)
+%                     outcome       : [Nsamples x 1] vector of outcome values
+%                                     alternatively .mat or .csv file containing outcome values (with one row per sample/subject)
+%                     covariate     : [Nsamples x Ncovariates] matrix of covariate values (additional fixed set of covariates to be included in all models)
+%                                     alternatively .mat or .csv file containing covariate values (with one row per sample/subject)
+%                     fit           : 0/1 indicates whether to compute fit values in training dataset using nested crossvalidation
+%                     null          : 0/1 indicates whether to compute null-hypothesis distribution of MSE scores using permutation analyses
+%                     parallel      : 0/1 indicates whether to run analyses remotely or in background using default HPC settings in CONN
+%                     nnull         : number of simulations to run when computing null-hypothesis distribution 
+%                     folder        : folder where output <modelname>.mat file will be stored
+%
+%       advanced syntax: 
+%          outcome = conn_module('PredictiveModel', 'predict', modelname, 'fieldname1', fieldvalue1, 'fieldname2', fieldvalue2, ...)
+%                     Optional fieldnames (enter in any order)
+%                     predictor     : [Nnewsamples x Npredictors] matrix of predictor values from new samples/subjects
+%                                     alternatively .nii, .mtx.nii, or .surf.nii file containing predictors data from new samples/subjects (with one image per sample/subject) (see conn_vol_write, conn_surf_write and conn_mtx_write to create volume/surface/matrix nifti files)
+%                     covariate     : [Nnewsamples x Ncovariates] matrix of covariate values from new samples/subjects
+%                                     alternatively .mat or .csv file containing covariate values from new samples/subjects (with one row per sample/subject)
+%                     outcome       : [Nnewsamples x 1] output vector containing predicted outcome values for these new samples/subjects
+%
+%
+%    --------------------
 %    EL : runs EvLab (evlab.mit.edu) fMRI pipeline for subject-centric task-activation analyses
 %       See https://web.conn-toolbox.org/resources/conn-extensions/el for descriptiona and options
-% 
+%
+%
+%    --------------------
 %    FL : runs FrankLab (sites.bu.edu/guentherlab) fMRI pipeline for group-centric task-activation analyses (see www.conn-toolbox.org/resources/conn-extensions/franklab for details)
 %       See https://web.conn-toolbox.org/resources/conn-extensions/fl for description and options
-% 
+%
+%
+%    --------------------
 %    Additional functionality: conn_module('get',...)
 %          conn_module('get','structurals');             outputs current structural files (e.g. output of structural preprocessing steps)
 %          conn_module('get','functionals' [,setlabel]); outputs current functional files (e.g. output of functional preprocessing steps)
@@ -108,7 +177,7 @@ function varargout=conn_module(option,varargin)
 %          conn_module('set','masks',files [,roiname]);
 %          conn_module('set','rois',files ,roiname);
 %
-%    Note: before using conn_module functionality with externally defined data it is recommended to close CONN's gui in order to avoid potentially loosing any unsaved changes
+%    Note: before using conn_module functionality with externally defined data it is recommended to close CONN's gui in order to avoid potentially loosing any unsaved changes in the GUI
 %    
 
 persistent defaults modules modulespath cpm_lastjob;
@@ -133,6 +202,7 @@ if ~nargin, help(mfilename); return; end
 varargout={[]};
 switch(lower(option))
     
+% ------------------------------
     case 'get'
         names={};files={};other={};
         switch(lower(varargin{1}))
@@ -247,6 +317,7 @@ switch(lower(option))
         end
         varargout={files,names,other};
 
+% ------------------------------
     case 'set'
         switch(lower(varargin{1}))
             case 'structurals',
@@ -362,16 +433,22 @@ switch(lower(option))
                 end
         end
         
+% ------------------------------
+    case {'conn','connectome'}
+        disp('under development - internal branch');
+        return
+
+% ------------------------------
     case {'prep','preprocessing'}
         options=struct;
         if isempty(varargin)
-            answ=conn_menu_inputdlg('Enter number of subjects','conn_module PREP',1,{'1'});
+            answ=conn_menu_inputdlg('Enter number of subjects','conn_module Preprocessing',1,{'1'});
             if isempty(answ), return; end
             options.nsubjects=str2num(answ{1});
             options.functionals=cell(options.nsubjects,1);
             nsessions=ones(1,options.nsubjects);
             for nsubject=1:options.nsubjects,
-                temp=conn_menu_inputdlg(['Subject ',num2str(nsubject),': Enter number of runs/sessions'],'conn_module PREP',1,{num2str(nsessions(min(length(nsessions),nsubject)))});
+                temp=conn_menu_inputdlg(['Subject ',num2str(nsubject),': Enter number of runs/sessions'],'conn_module Preprocessing',1,{num2str(nsessions(min(length(nsessions),nsubject)))});
                 if isempty(temp), return; end
                 temp=str2num(temp{1});
                 nsessions(nsubject)=temp;
@@ -389,7 +466,7 @@ switch(lower(option))
             options.steps='';
             options.multiplesteps=1;
         elseif isstruct(varargin{1})
-            % syntax: conn_module('PREP',struct('data',...),...)
+            % syntax: conn_module('Preprocessing',struct('data',...),...)
             n=1;
             options=varargin{n};
         elseif nargin==2&&isequal(varargin{1},'steps')
@@ -400,7 +477,7 @@ switch(lower(option))
             end
             return
         elseif nargin==2
-            % syntax: conn_module PREP optionsfile.cfg
+            % syntax: conn_module Preprocessing optionsfile.cfg
             n=1;
             if ~isempty(varargin{n}), 
                 filename=varargin{n};
@@ -430,7 +507,7 @@ switch(lower(option))
                 end
             end
         else
-            % syntax: conn_module PREP fieldname1 fieldvalue1 ...
+            % syntax: conn_module Preprocessing fieldname1 fieldvalue1 ...
             n=0;
         end
         for n=n+1:2:numel(varargin)-1
@@ -491,11 +568,12 @@ switch(lower(option))
         end
         conn_batch(Batch);
         
-    case {'cpm','pm'} % PREDICTIVE MODELS
+% ------------------------------
+    case {'cpm','pm','predictive','predictivemodel'} % PREDICTIVE MODELS
         switch(lower(varargin{1}))
             case {'create','predict'}
                 filename_project=varargin{2}; 
-                options=struct('predictor',[],'outcome',[],'covariate',[],'fit',false,'null',false,'parallel',false,'nnull',100,'folder','');
+                options=struct('predictor',[],'outcome',[],'covariate',[],'fit',true,'null',false,'parallel',false,'nnull',100,'folder','');
                 validfields=fieldnames(options);
                 for n=3:2:numel(varargin)-1
                     fieldname=lower(varargin{n});
@@ -613,7 +691,7 @@ switch(lower(option))
                     end
                 end
                 if do_gui
-                    thfig=conn_figure('units','norm','position',[.4,.4,.2,.3],'color',1*[1 1 1],'name','CPM options','numbertitle','off','menubar','none');
+                    thfig=conn_figure('units','norm','position',[.4,.4,.2,.3],'color',1*[1 1 1],'name','PredictiveModel options','numbertitle','off','menubar','none');
                     uicontrol('style','text','units','norm','position',[.05,.7,.9,.10],'string','Other options (select all that apply)','backgroundcolor',1*[1 1 1]);
                     ht1=uicontrol('style','checkbox','units','norm','position',[.2,.55,.6,.10],'string','Compute fit values','value',options.fit,'backgroundcolor',1*[1 1 1],'tooltipstring','Computes fit values in training dataset using nested crossvalidation');
                     ht2=uicontrol('style','checkbox','units','norm','position',[.2,.45,.6,.10],'string','Compute p values','value',options.null,'backgroundcolor',1*[1 1 1],'tooltipstring','Computes null-hypothesis distribution of MSE scores using permutation analyses');
@@ -633,13 +711,9 @@ switch(lower(option))
                     varargout={cpm_lastjob};
                     return
                 end                
-                if options.fit
-                    [model,Yfit]=conn_clusterregress(data_predictor,options.outcome,'covariates',options.covariate);
-                    fprintf('Model %s: MSE = %f\n',filename_project,model.fit.MSE_std);
-                else
-                    [model]=conn_clusterregress(data_predictor,options.outcome,'covariates',options.covariate);
-                    fprintf('Model %s: MSE = %f\n',filename_project,model.error.MSE_std);
-                    Yfit = [];
+                [model,Yfit]=conn_clusterregress(data_predictor,options.outcome,'covariates',options.covariate,'computeyfit',options.fit);
+                if options.fit, fprintf('Model %s: MSE = %f (standardized-MSE = %f)\n',filename_project,model.fit.MSE,model.fit.MSE_std);
+                else            fprintf('Model %s: MSE = %f (standardized-MSE = %f)\n',filename_project,model.error.MSE,model.error.MSE_std);
                 end
                 save(fullfile(options.folder,conn_prepend('',filename_project,'.mat')), 'model', 'Yfit', 'options');
                 switch(data_type)
@@ -648,17 +722,18 @@ switch(lower(option))
                     case 'vol', conn_vol_write(fullfile(options.folder,conn_prepend('',filename_project,'.nii')),reshape(model.parameters.B_std,info.dim(1:3)),info);
                 end
                 if options.null
-                    rand('state',0);
                     clear ModelNull;
                     mse=[];
+                    state=rng; rng(0,'twister');
                     for n=1:options.nnull,
                         randidx=randperm(size(data_predictor,1));
-                        ModelNull(n)=conn_clusterregress(data_predictor,options.outcome(randidx,:),'covariates',options.covariate);
-                        mse(n)=ModelNull(n).error.MSE_std;
+                        ModelNull(n)=conn_clusterregress(data_predictor,options.outcome(randidx,:),'covariates',options.covariate,'computeyfit',false,'probconvert',false);
+                        mse(n)=ModelNull(n).error.MSE;
                         fprintf('Model NULL %d: MSE = %f\n',n,mse(n));
                     end
-                    p = mean(mse<=model.error.MSE_std); 
-                    fprintf('Model %s: MSE = %f ; p = %f\n',filename_project,model.error.MSE_std,p);
+                    rng(state);
+                    p = mean(mse<=model.error.MSE); 
+                    fprintf('Model %s: MSE = %f ; p = %f\n',filename_project,model.error.MSE,p);
                     save(fullfile(options.folder,conn_prepend('',filename_project,'.null.mat')),'ModelNull', 'p');
                 end
 
@@ -670,7 +745,7 @@ switch(lower(option))
             case {'display.scatter','display_scatter'}
                 filename_project=varargin{2}; 
                 load(conn_prepend('',filename_project,'.mat'), 'model','options');
-                assert(isfield(model,'fit'),'Fit values not computed yet. Please run CPM using the syntax conn_module(''CPM'',...,''fit'', true) to compute fit values for the training set');
+                assert(isfield(model,'fit'),'Fit values not computed yet. Please run PredictiveModel using the syntax conn_module(''PredictiveModel'',...,''fit'', true) to compute fit values for the training set');
                 figure;
                 conn_menu_plotscatter( options.outcome, model.fit.Yfit, varargin{3:end});
                 xlabel 'Outcome measure';
@@ -699,16 +774,17 @@ switch(lower(option))
                 end
         end
 
-    case 'glm'        
+% ------------------------------
+    case {'groupanalysis','glm'}
         % loads .cfg files
         options=struct;
         if nargin==1 
-            % syntax: conn_module GLM
+            % syntax: conn_module GroupAnalysis
             conn_module_glminternal;
             return            
         elseif nargin==2||(nargin>2&&rem(numel(varargin),2)>0&&(ischar(varargin{1})||isstruct(varargin{1})||isempty(varargin{1})))
-            % syntax: conn_module GLM optionsfile.cfg
-            % syntax: conn_module GLM optionsfile.cfg fieldname1 fieldvalue1 ...
+            % syntax: conn_module GroupAnalysis optionsfile.cfg
+            % syntax: conn_module GroupAnalysis optionsfile.cfg fieldname1 fieldvalue1 ...
             n=1;
             if ~isempty(varargin{n}), 
                 filename=varargin{n};
@@ -730,13 +806,13 @@ switch(lower(option))
                 end
             end
         elseif nargin>1&&~isempty(varargin{1})&&isnumeric(varargin{1}) 
-            % syntax: conn_module GLM X,Y,... (for back-compatibility)
+            % syntax: conn_module GroupAnalysis X,Y,... (for back-compatibility)
             if nargout>0, conn_module_glminternal(varargin{:});
             else [varargout{1:nargout}]=conn_module_glminternal(varargin{:});
             end
             return            
         else 
-            % syntax: conn_module GLM fieldname1 fieldvalue1 ...
+            % syntax: conn_module GroupAnalysis fieldname1 fieldvalue1 ...
             n=0;
         end
         for n=n+1:2:numel(varargin)-1
@@ -885,6 +961,7 @@ switch(lower(option))
             varargout={spmfolder,SPM};
         end
 
+% ------------------------------
     case 'default'
         if isempty(varargin), varargout={defaults}; 
         elseif isfield(defaults,varargin{1})
@@ -894,6 +971,7 @@ switch(lower(option))
         else error('unrecognized default %s',varargin{1});
         end
         
+% ------------------------------
     otherwise
         if ~isempty(which(sprintf('conn_module_%s',option))), % conn_module_* functions
             fh=eval(sprintf('@conn_module_%s',option));

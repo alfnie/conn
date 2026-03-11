@@ -23,6 +23,8 @@ for n=1:2:numel(varargin)
     assert(isfield(options,lower(varargin{n})),'unrecognized option %s',varargin{n});
     options.(lower(varargin{n}))=varargin{n+1};
 end
+if ~isempty(options.order)&&ischar(options.order), options.order=str2num(options.order); end
+if ~isempty(options.newfigure)&&ischar(options.newfigure), options.newfigure=str2num(options.newfigure); end
 
 mask=~isnan(x)&~isnan(y);
 x=x(mask); y=y(mask);
