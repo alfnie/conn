@@ -5280,7 +5280,7 @@ if any(options==16) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')
                                         end
                                         %                             tcontrastname=[tcontrastname,char('+'+2*(sign(cconditions(n0))<0)),num2str(cconditions(n0)),contrastname{n1alt,n0}];
                                     end
-                                    tfilename=fullfile(filepathresults3{1},['CON_Subject',num2str(nsubjects(nsub),'%03d'),'_compA',num2str(n2,'%03d'),'_',num2str(n1alt,'%03d'),'.nii']);
+                                    tfilename=fullfile(filepathresults3{n1},['CON_Subject',num2str(nsubjects(nsub),'%03d'),'_compA',num2str(n2,'%03d'),'_',num2str(n1alt,'%03d'),'.nii']);
                                     a.fname=tfilename;
                                     spm_write_vol(a,b);
                                     filename{n1alt,numel(nconditions)+n2}=tfilename;
