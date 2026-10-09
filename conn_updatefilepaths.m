@@ -158,7 +158,8 @@ if nargin==1,
                     var=[]; 
                 end
             else
-                if ~isstruct(var{3})||(isfield(var{3},'fname')&&numel(var{3})==1)
+                REFRESHVOLUMEINFO=true; % set to false to skip refreshing the volume info of (large) 4D functional files when loading a project
+                if ~isstruct(var{3})||(isfield(var{3},'fname')&&(REFRESHVOLUMEINFO||numel(var{3})==1))
                     try
                         filename=fliplr(deblank(fliplr(deblank(var{1}))));
                         if ~strcmp(filename,'[raw values]'),

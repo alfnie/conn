@@ -41,8 +41,8 @@ if nargin<1 || ischar(varargin{1}),
     %uicontrol('style','frame','units','norm','position',[1,0,0,1,1]*M,'backgroundcolor',params.backgroundcolor);
     %axes('units','norm','position',[1,0,0,1,1]*M,'color',params.backgroundcolor,'xcolor',min(1,1*params.backgroundcolor),'ycolor',min(1,1*params.backgroundcolor),'xtick',[],'ytick',[],'box','on');
     if h.reduced
-        h.filename=conn_menu('edit',[1,.05,.90,.9,.10]*M,'',params.filename);
-        if ~isempty(params.title), uicontrol('style','text','units','norm','position',[1,.05,.8,.9,.175]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string',params.title,'fontname',params.fontname,'fontsize',10+CONN_gui.font_offset,'fontweight','normal','horizontalalignment','left','parent',CONN_h.screen.hfig); end
+        h.filename=conn_menu('edit',[1,.05,.90,.8,.05]*M,'',params.filename);
+        if ~isempty(params.title), uicontrol('style','text','units','norm','position',[1,.05,.95,.9,.05]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string',params.title,'fontname',params.fontname,'fontsize',10+CONN_gui.font_offset,'fontweight','normal','horizontalalignment','left','parent',CONN_h.screen.hfig); end
     else
         if ~isempty(params.title), uicontrol('style','text','units','norm','position',[1,.05,.8,.9,.175]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string',params.title,'fontname',params.fontname,'fontsize',10+CONN_gui.font_offset,'fontweight','normal','horizontalalignment','left','parent',CONN_h.screen.hfig); end
         %if ~isempty(params.title), uicontrol('style','text','units','norm','position',[1,.05,.8,.9,.175]*M,'foregroundcolor',params.foregroundcolor,'backgroundcolor',params.backgroundcolor,'string',params.title,'fontname',params.fontname,'fontsize',9+CONN_gui.font_offset,'fontweight','bold','horizontalalignment','left','parent',CONN_h.screen.hfig); end

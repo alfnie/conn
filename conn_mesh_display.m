@@ -183,7 +183,7 @@ if isempty(data),
     a=spm_vol(fullfile(fileparts(which(mfilename)),'utils','surf','mask.surface.brainmask.nii'));
     data.mask=spm_read_vols(a);
     data.mask=reshape(data.mask,[],2);
-    filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii');
+    filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.sym.nii');
     %if CONN_x.Setup.analysismask==1&&isfield(CONN_x.Setup,'explicitmask'), filename=CONN_x.Setup.explicitmask{1}; end
     if conn_existfile(conn_prepend('',filename,'.patch'))
         load(conn_prepend('',filename,'.patch'),'patchs','-mat');

@@ -226,8 +226,8 @@ else % voxel-based
         filename=CONN_x.Setup.explicitmask{1};
         strfile=spm_vol(filename);
         a=mean(reshape(spm_get_data(strfile,pinv(strfile.mat)*xyz),vol.dim(1),vol.dim(2),vol.dim(3),[]),4);
-    elseif ~issurface&&conn_existfile(fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii')),
-        filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii');
+    elseif ~issurface&&conn_existfile(fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.sym.nii')),
+        filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.sym.nii');
         strfile=spm_vol(filename);
         a=reshape(spm_get_data(strfile,pinv(strfile.mat)*xyz),vol.dim(1:3));
     elseif issurface&&conn_existfile(fullfile(fileparts(which(mfilename)),'utils','surf','mask.surface.brainmask.nii')),

@@ -1,4 +1,4 @@
-function [H1,B1,H0,B0,dE,R]=conn_invPPI(X,Nk,X0,X1,DOPLOT,DOICA,FLIPSIGN,RNDSEED)
+function [H1,B1,H0,B0,dE,R]=conn_invPPI(X,Nk,X0,X1,DOPLOT,DOICA,FLIPSIGN,DOWHITEN,RNDSEED)
 % EM iterative method for solving the main&interaction factors h in PPI equation:
 % X_nj = X_ni*a_ij + sum_k (X_ni.*h_nk)*b_ikj + noise
 %   where
@@ -33,14 +33,33 @@ if nargin<4||isempty(X1), X1=speye(Nt); end
 if nargin<5||isempty(DOPLOT), DOPLOT=0; end
 if nargin<6||isempty(DOICA), DOICA=1; end
 if nargin<7||isempty(FLIPSIGN), FLIPSIGN=true; end
-if nargin<7||isempty(RNDSEED), RNDSEED=false; end
+if nargin<8||isempty(DOWHITEN), DOWHITEN=false; end
+if nargin<9||isempty(RNDSEED), RNDSEED=false; end
 if Nt>1&&isscalar(X1) % if X1 is length of hanning smoothing kernel
-    temp=spm_convmtx(conn_hanning(X1),Nt);
-    temp=temp(floor(X1/2)+(1:Nt),:);
-    [i,j,v]=find(temp);
-    X1=sparse(i,j,v,Nt,Nt);
+    if X1<1, X1=speye(Nt);
+    else
+        temp=spm_convmtx(conn_hanning(X1),Nt);
+        temp=temp(floor(X1/2)+(1:Nt),:);
+        [i,j,v]=find(temp);
+        X1=sparse(i,j,v,Nt,Nt);
+    end
 end
+DOORTHB=true; % orthogonal B1 matrices (set to false for orthogonal H1 timeseries; back-compatibility)
 REMOVEX0VAR=true;
+if DOWHITEN
+    mX=mean(X,1);
+    X=X-mX;
+    [Q,D]=svd(X'*X);
+    D=diag(D);
+    minD=max(D)/Nr;
+    Nd=sum(D>minD);
+    sX=Q(:,1:Nd)*diag(sqrt(D(1:Nd)));
+    X=X*Q(:,1:Nd)*diag(1./sqrt(D(1:Nd)));
+    %sX=sqrtm(X'*X);
+    %X=X*pinv(sX);
+    [Nt,Nr]=size(X);
+end
+
 Nk0=size(X0,2);
 Nk=min(Nk,Nr*(Nr-1)/2);
 Nk1=Nk;
@@ -97,6 +116,17 @@ for n=1:maxiter
             B(nroi1,:,nroi2)=inv(cXX)*cXY; % ROI-to-ROI modulation
         end
     end
+    if DOORTHB
+        rB=reshape(permute(B,[1,3,2]),Nr*Nr,Nk);
+        for nk=Nk0+1:Nk
+            b=rB(:,nk);
+            if nk>Nk0+1, b=b-rB(:,Nk0+1:nk-1)*(rB(:,Nk0+1:nk-1)\b); end
+            %b=b/max(eps,sqrt(mean(b.^2)));
+            rB(:,nk)=b;
+        end
+        B=permute(reshape(rB,[Nr,Nr,Nk]),[1,3,2]);
+    end
+    
     % estimate H
     dh1=0; % [Nt Nk]
     err=0;
@@ -184,11 +214,11 @@ end
 
 if DOICA&&Nk1>1
     if DOICA==1, % spatial-ICA
-        [S,W]=conn_ica(reshape(B1,[Nr*Nr Nk1])',[],'dodisp',DOPLOT,'rndseed',RNDSEED);
+        [S,W]=conn_ica(reshape(B1,[Nr*Nr Nk1])',[],'dodisp',DOPLOT,'rndseed',RNDSEED,'rndinit',32);
         B1=reshape(S',[Nr Nr Nk1]);
         H1=H1*pinv(W);
     else % temporal-ICA
-        [S,W]=conn_ica(H1',[],'dodisp',DOPLOT,'rndseed',RNDSEED);
+        [S,W]=conn_ica(H1',[],'dodisp',DOPLOT,'rndseed',RNDSEED,'rndinit',32);
         H1=S';
         B1=reshape( reshape(B1,[Nr*Nr Nk1])*pinv(W), [Nr Nr Nk1]);
     end
@@ -198,6 +228,9 @@ end
 % H1=conn_bsxfun(@rdivide,H1,nk);
 % B1=conn_bsxfun(@times,B1,shiftdim(nk,-1));
 
+if DOWHITEN
+    for nk=1:size(B1,3), B1(:,:,nk)=sX*B1(:,:,nk)*sX'; end
+end
 if FLIPSIGN
     signB=sum(sum(B1.^3,1),2)<0;
     B1(:,:,signB)=-B1(:,:,signB);

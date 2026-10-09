@@ -15,6 +15,7 @@ if ok>0 % wait for user confirmation
     ha=uicontrol('style','text','units','norm','position',[0 .35 1 .5],'backgroundcolor',bg,'horizontalalignment','center','string',txt,'units','pixels','fontsize',9+CONN_gui.font_offset,'foregroundcolor',fg,'parent',h);
     hb=uicontrol('style','pushbutton','units','norm','position',[.25 .05 .5 .20],'string','Continue','callback','uiresume(gcbf)','parent',h,'visible','off');
     hext=get(ha,'extent');
+    hext(end-1:end)=hext(end-1:end).*[1 1.5];
     hext2=max([150 60],hext(end-1:end)+[60 100]);
     hpos=get(h,'position');
     set(h,'position',[hpos(1)-hext2(1)/2,hpos(2)-hext2(2)/2,hext2(1),hext2(2)]);

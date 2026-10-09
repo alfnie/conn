@@ -22,12 +22,14 @@ if ~CONN_gui.tooltips, tooltipstring=''; end
 if any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','frame2highlight','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2','hist2'})), 
     bgcolor=CONN_gui.backgroundcolor; 
     fgcolor=CONN_gui.fontcolor;
-    fgcolortitle=CONN_gui.fontcolor;
+    fgcolortitle=CONN_gui.fontcolor; % .15*round(CONN_gui.fontcolorA)+.85*CONN_gui.backgroundcolorE; 
+    %fgcolortitle=[0.34 0.66 0.83]; %.3*fgcolortitle+.7*CONN_gui.backgroundcolorE; 
     mapcolor=CONN_h.screen.colormap;
 else 
     bgcolor=CONN_gui.backgroundcolorA; 
     fgcolor=CONN_gui.fontcolorA;
-    fgcolortitle=1*round(CONN_gui.fontcolorA)+0*CONN_gui.fontcolorA;
+    fgcolortitle=1*round(CONN_gui.fontcolorA)+0*CONN_gui.fontcolorA; 
+    %fgcolortitle=[0.34 0.66 0.83]; %.3*fgcolortitle+.7*CONN_gui.backgroundcolorE; 
     mapcolor=CONN_h.screen.colormapA;
 end
 skipborders=false;
@@ -566,7 +568,8 @@ switch(lower(type)),
         if strcmpi(type,'framebig'), type='frame'; titleoffset=true; 
         else titleoffset=false;
         end
-        
+        %if strcmp(type,'frame'), fgcolortitle=[0.34 0.56 0.73]; end
+
         bordercolor=[]; if ~isempty(regexp(type,'highlight')), bordercolor=0*(1-bgcolor)+0*round(bgcolor)+CONN_gui.backgroundcolorE; type=regexprep(type,'highlight',''); end
 		if ~isempty(title), 
             if 0
@@ -589,7 +592,7 @@ switch(lower(type)),
                 else temp=(position+[position(3)*0,position(4),0,0]).*[1,1,1,0]+[1*.001,0-.05*titleoffset,1*-.002,.049];
                 end
                 h2=conn_menu_mask('units','norm','position',temp,'backgroundcolor',bg2,'foregroundcolor',bg2,'parent',CONN_h.screen.hfig);
-                h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
+                h2=uicontrol('style','text','units','norm','position',temp+[0 .005 0 -.01],'string',regexprep(upper(title),'\(.*\)|1ST|2ND|3RD|\dTH','${lower($0)}'),titleopts{:},'foregroundcolor',fgcolortitle,'backgroundcolor',bg2,'units','norm','horizontalalignment','center','parent',CONN_h.screen.hfig);%,'fontweight','bold');
                 %if ~isempty(fgcolor), set(h2,'foregroundcolor',fgcolor); end
                 if strcmpi(type,'frame'), set(h2,'fontsize',16+CONN_gui.font_offset); %,'fontweight','normal','foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 
                 else set(h2,'fontweight','normal'); %,'foregroundcolor',CONN_gui.fontcolorA); %mod(mean(bg2)-.45,1)*[1 1 1]); 

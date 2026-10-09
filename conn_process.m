@@ -667,7 +667,7 @@ if any(options==3) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
 	n=0;
     if CONN_x.Setup.analysismask==1,%CONN_x.Setup.normalized,
         if isfield(CONN_x.Setup,'explicitmask'), filename=CONN_x.Setup.explicitmask{1};
-        elseif CONN_x.Setup.spatialresolution~=4, filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii');
+        elseif CONN_x.Setup.spatialresolution~=4, filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.sym.nii');
         else filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.surface.brainmask.nii');
         end
         Vmask=spm_vol(filename);
@@ -676,7 +676,7 @@ if any(options==3) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
         switch CONN_x.Setup.spatialresolution
             case 1, 
                 if isfield(CONN_x.Setup,'explicitmask'), filename=CONN_x.Setup.explicitmask{1};
-                else filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii');
+                else filename=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.sym.nii');
                 end
             case 2, filename=deblank(CONN_x.Setup.structural{nsub}{1}{1});
             case 3, filename=deblank(CONN_x.Setup.functional{nsub}{1}{1}(1,:));
@@ -759,7 +759,7 @@ if any(options==4) && any(CONN_x.Setup.steps([1,2,3,4])) && ~(isfield(CONN_x,'gu
     refpial=[];
     %Vmask_ref_vol=fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii');
     if ~USEEXPLICITMASK, Vmask_ref_vol=fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii');
-    elseif CONN_x.Setup.analysismask==1&&~isempty(regexp(CONN_x.Setup.explicitmask{1},'utils[\\\/]surf[\\\/]mask.volume.brainmask.nii$')), Vmask_ref_vol=fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii');
+    elseif CONN_x.Setup.analysismask==1&&~isempty(regexp(CONN_x.Setup.explicitmask{1},'utils[\\\/]surf[\\\/]mask.volume.brainmask.(sym.)?nii$')), Vmask_ref_vol=fullfile(fileparts(which(mfilename)),'utils','surf','referenceGM.nii');
     else Vmask_ref_vol='';
     end
     Vmask_ref_surf=fullfile(fileparts(which(mfilename)),'utils','surf','mask.surface.brainmask.nii');
@@ -1299,6 +1299,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
     REDO=[];%'Yes';filename=fullfile(filepathresults,['DATA_Subject',num2str(1,'%03d'),'_Condition',num2str(1,'%03d'),'.mat']);
     %if ~isempty(dir(filename)),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
     DONEWOUTPUTCONFCORR=1; % create confound-corrected timeseries option (0: old format -one file per condition-; 1: new format -one file per session-; 2: both)
+    CREATEQCVARS=false; % set to true for back-compatibility (QC_BOLDstd)
     redone_files=0;
     reportedsettings=false;
 	N=numel(validsubjects); %sum(CONN_x.Setup.nsessions); if length(CONN_x.Setup.nsessions)==1, N=N*CONN_x.Setup.nsubjects; end
@@ -1653,7 +1654,7 @@ if any(options==6) && any(CONN_x.Setup.steps([2,3])) && ~(isfield(CONN_x,'gui')&
             if ~isempty(softlinkcache)
                 conn_tempcache(softlinkcache,'matc');
             end
-            if any(softlinkoverwrite)
+            if CREATEQCVARS&&any(softlinkoverwrite)
                 bstd=0;
                 for nses=1:nsess,
                     conn_tempcache(cachenorm0(nses),'matc');
@@ -1717,7 +1718,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
     REDO=[];%filename=fullfile(filepathresults,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(icondition(validconditions(1)),'%03d'),'.mat']);
     %if ~isempty(dir(filename)),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
     PREPROCESSCOVARIATES=false; % set to true if 1st-level covariate should be denoised before moving to first-level analyses
-    NUMBEROFFREQBANDS=8;
+    NUMBEROFFREQBANDS=2; % changed from 8 to 2 to save storage space; increase to higher number if planning to use first-level analysis frequency-decomposition option
     reportedsettings=false;
     redone_files=0;
     maxrt=nan;
@@ -2037,6 +2038,7 @@ if any(options==8) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&i
     nconditions=length(CONN_x.Setup.conditions.names)-1;
     if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'conditions')&&~isempty(CONN_x.gui.conditions), validconditions=CONN_x.gui.conditions; else validconditions=1:length(CONN_x.Setup.conditions.names)-1; end
     SKIPTIMEFREQ=true; % set to false if you wish to allow V2V analyses of sliding-window and frequency-bank conditions
+    CREATEQCVARS=false; % set to true for back-compatibility (QC_GCOR)    
     MAXDIMS=256; % maximum number of dimensions to keep in first-level dimensionality reduction
     if SKIPTIMEFREQ&&isequal(validconditions,1:length(CONN_x.Setup.conditions.names)-1), validconditions=validconditions(~cellfun('length',regexp(CONN_x.Setup.conditions.names(validconditions),' x FrequencyBand\d+$| x Time\d+$'))); end
     icondition=[];isnewcondition=[];for ncondition=validconditions,[icondition(ncondition),isnewcondition(ncondition)]=conn_conditionnames(CONN_x.Setup.conditions.names{ncondition},'+'); end
@@ -2179,17 +2181,19 @@ if any(options==8) && any(CONN_x.Setup.steps([3])) && ~(isfield(CONN_x,'gui')&&i
                         n=n+1;
                         conn_waitbar(n/N,h,sprintf('Subject %d Condition %d',nsub,ncondition));
                     end
-                    gcor=(sum(e1.^2,1)-e2)/(e2^2-e2); % note: removing diagonal 1's to avoid positive-only constrain (gcor_full=sum(e1.^2,1)/(e2^2);)
-                    gcor_name=['QC_GCOR_',CONN_x.Setup.conditions.names{ncondition}];
-                    gcor_icov=find(strcmp(gcor_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
-                    if isempty(gcor_icov),
-                        gcor_icov=numel(CONN_x.Setup.l2covariates.names);
-                        CONN_x.Setup.l2covariates.names{gcor_icov}=gcor_name;
-                        CONN_x.Setup.l2covariates.descrip{gcor_icov}=['CONN Quality Assurance: Global Correlation @ ',CONN_x.Setup.conditions.names{ncondition}];
-                        CONN_x.Setup.l2covariates.names{gcor_icov+1}=' ';
-                        for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{gcor_icov}=nan; end
+                    if CREATEQCVARS
+                        gcor=(sum(e1.^2,1)-e2)/(e2^2-e2); % note: removing diagonal 1's to avoid positive-only constrain (gcor_full=sum(e1.^2,1)/(e2^2);)
+                        gcor_name=['QC_GCOR_',CONN_x.Setup.conditions.names{ncondition}];
+                        gcor_icov=find(strcmp(gcor_name,CONN_x.Setup.l2covariates.names(1:end-1)),1);
+                        if isempty(gcor_icov),
+                            gcor_icov=numel(CONN_x.Setup.l2covariates.names);
+                            CONN_x.Setup.l2covariates.names{gcor_icov}=gcor_name;
+                            CONN_x.Setup.l2covariates.descrip{gcor_icov}=['CONN Quality Assurance: Global Correlation @ ',CONN_x.Setup.conditions.names{ncondition}];
+                            CONN_x.Setup.l2covariates.names{gcor_icov+1}=' ';
+                            for tnsub=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{tnsub}{gcor_icov}=nan; end
+                        end
+                        CONN_x.Setup.l2covariates.values{nsub}{gcor_icov}=gcor;
                     end
-                    CONN_x.Setup.l2covariates.values{nsub}{gcor_icov}=gcor; 
                     if ~issurface % note: only used in volume-level analyses (disregard for surfaces)
                         resel_xyz = [L(:,1,1) L(:,2,2)  L(:,3,3)]; % note: sum(Dorig) = size(L,1)
                         resel_img = L(:,1,1).*L(:,2,2).*L(:,3,3) + ...
@@ -4132,7 +4136,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
             end
             if do
                 REDO='Yes';
-                DEMEAN=false; % true=disregard between-subject variability in average connectivity; set to true for back-compatibility
+                DEMEAN=true; % true=disregard between-subject variability in average connectivity; set to true for back-compatibility
                 X=[];
                 Y=[];
                 Xfilter=[];
@@ -4214,6 +4218,18 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     COND_names_all=COND_names_all(ok2);
                     COND_weights_all=COND_weights_all(ok2);
                 end
+                validsamples=max(cat(2,COND_weights{:}),[],2)>0;
+                IDX_subject_all=IDX_subject;
+                IDX_session_all=IDX_session;
+                if ~all(validsamples) % keeps only samples/timepoints from selected conditions
+                    X=X(validsamples,:);
+                    Y=Y(validsamples,:);
+                    if numel(Xfilter)>1, Xfilter=Xfilter(validsamples,validsamples); end
+                    IDX_subject=IDX_subject(validsamples,:);
+                    IDX_session=IDX_session(validsamples,:);
+                    for n=1:numel(COND_weights), COND_weights{n}=COND_weights{n}(validsamples,:); end
+                    for n=1:numel(COND_weights_all), if ~isempty(COND_weights_all{n}), COND_weights_all{n}=COND_weights_all{n}(validsamples,:); end; end
+                end
                 drawnow;
                 if DEMEAN, tX=X; else tX=[]; end
                 if 0 % bootstrap resampling placeholder
@@ -4227,7 +4243,10 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     end
                     rng(state);
                 end
-                [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,true);
+DOICA=false;
+                FLIPSIGN=true;
+                DOWHITEN=false;
+                [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,true,DOICA,FLIPSIGN,DOWHITEN);
                 Ncomponents=size(H,2);
                 CONN_x.dynAnalyses(CONN_x.dynAnalysis).sources=roinames;
                 filename=fullfile(filepathresults,'dyn_Base.mat');
@@ -4237,15 +4256,17 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 if ~isempty(selectedcondition), selectedconditionname=CONN_x.Setup.conditions.names{selectedcondition};
                 else selectedconditionname='';
                 end
-                save(filename,'X','Y','Xfilter','B','H','B0','H0','names','ROInames','ROIxyzs','IDX_subject','IDX_session','COND_names','COND_weights','selectedconditionname');
+                save(filename,'X','Y','Xfilter','B','H','B0','H0','names','ROInames','ROIxyzs','IDX_subject','IDX_session','COND_names','COND_weights','selectedconditionname','validsamples');
                 %load(filename,'H','IDX_subject','IDX_session','COND_names','COND_weights','selectedconditionname')
                 for nsub=1:CONN_x.Setup.nsubjects
                     filename=fullfile(filepathresults,['dyn_Subject',num2str(nsub,'%03d'),'.mat']);
                     thissub=IDX_subject==nsub;
                     nthissub=nnz(thissub);
-                    data=H(thissub,:);
+                    thissub_all=IDX_subject_all==nsub;
+                    data=zeros(nnz(thissub_all),size(H,2));
+                    data(validsamples(thissub_all),:)=H(thissub,:); % H modulation for this subject only (0's for data not included in model)
                     names=arrayfun(@(n)sprintf('Dynamic factor %02d',n),1:Ncomponents,'uni',0);
-                    data_sessions=IDX_session(IDX_subject==nsub);
+                    data_sessions=IDX_session_all(IDX_subject_all==nsub);
                     save(filename,'data','names','data_sessions');
                     filename=fullfile(filepathresults,['dyn_Subject',num2str(nsub,'%03d'),'.mtx.nii']);
                     C=0; 
@@ -4851,7 +4872,7 @@ if any(options==15) && any(CONN_x.Setup.steps([1])) && ~(isfield(CONN_x,'gui')&&
                     save(filename,'Z','regressors','names','names2','xyz','SE','DOF');
                     if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=8&&CONN_x.Setup.outputfiles(8), % create .mtx.nii files
                         outputfilename=fullfile(filepathresults,['resultsROI_Condition',num2str(icondition(ncondition),'%03d'),'.mtx.nii']);
-                        conn_mtx_write(outputfilename,Z,names,xyz,arrayfun(@(n)sprintf('Subject%03d',n),validsubjects,'uni',0));
+                        conn_mtx_write(outputfilename,Z(:,1:min(size(Z,1),size(Z,2)),:),names,xyz,arrayfun(@(n)sprintf('Subject%03d',n),validsubjects,'uni',0));
                     end
                 end
                 if ~isempty(names), CONN_x.Analyses(ianalysis).sources=names; end

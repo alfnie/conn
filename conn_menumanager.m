@@ -418,7 +418,7 @@ else
             'colorb',[0.9167 0.6667 0.2917;0.9167 0.6667 0.2917;0.9167 0.6667 0.2917],...
             'horizontalalignment','center',...
             'transparent',1,...
-            'fontcolor',[.75,.75,.75; 1,1,1;1,1,.9],...                             % 
+            'fontcolor',[0.54 0.76 0.93; 1,1,1;1,1,.9],...                             % 
             'fontname',fntname,...                              % 
             'fontsize',8,...									% 
             'fontweight','normal',...                             % 
@@ -621,13 +621,15 @@ else
                         else tximage=ximage(round(linspace(1+(n2-1)/nstrings*size(ximage,1),n2/nstrings*size(ximage,1),xextent(4)*1)),round(linspace(1,size(ximage,2),xextent(3)*1)),:);
                         end
                         fontcolor=CONN_MM.MENU{thishandle}.fontcolor(min(size(CONN_MM.MENU{thishandle}.fontcolor,1),x),:);
-                        mx1=shiftdim(mean(mean(tximage,1),2),1);mx2=fontcolor;
-                        px0=abs(mx1-mx2);
-                        fontcolor1=fontcolor.*px0+min(1,mx1+1).*(1-px0); px1=mean(abs(mx1-fontcolor1));
-                        fontcolor2=fontcolor.*px0+max(0,mx1-1).*(1-px0); px2=mean(abs(mx1-fontcolor2));
-                        fontcolor3=fontcolor.*px0+(1-round(mx1)).*(1-px0); px3=mean(abs(mx1-fontcolor3));
-                        px=[mean(px0) px1 px2 0*px3].^4; [nill,ipx]=max(px); px(ipx)=px(ipx)+.1; px=px/max(eps,sum(px));
-                        fontcolor=max(0,min(1,px*[fontcolor;fontcolor1;fontcolor2;fontcolor3]));
+                        if x~=1 || strcmp(lower(CONN_MM.MENU{thishandle}.bordertype),'xround')
+                            mx1=shiftdim(mean(mean(tximage,1),2),1);mx2=fontcolor;
+                            px0=abs(mx1-mx2);
+                            fontcolor1=fontcolor.*px0+min(1,mx1+1).*(1-px0); px1=mean(abs(mx1-fontcolor1));
+                            fontcolor2=fontcolor.*px0+max(0,mx1-1).*(1-px0); px2=mean(abs(mx1-fontcolor2));
+                            fontcolor3=fontcolor.*px0+(1-round(mx1)).*(1-px0); px3=mean(abs(mx1-fontcolor3));
+                            px=[mean(px0) px1 px2 0*px3].^4; [nill,ipx]=max(px); px(ipx)=px(ipx)+.1; px=px/max(eps,sum(px));
+                            fontcolor=max(0,min(1,px*[fontcolor;fontcolor1;fontcolor2;fontcolor3]));
+                        end
                         CONN_MM.MENU{thishandle}.handle.axes{n1}(n2)=htemp;
                         %if n2==1, CONN_MM.MENU{thishandle}.handle.axes{n1}=htemp;
                         %else CONN_MM.MENU{thishandle}.handle.axes{n1}=[CONN_MM.MENU{thishandle}.handle.axes{n1}(:)',htemp(:)'];

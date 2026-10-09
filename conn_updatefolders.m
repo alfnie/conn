@@ -56,7 +56,7 @@ if nargin<1||isempty(conn_x),
     if ~isfield(CONN_x.Setup,'analysismask'), CONN_x.Setup.analysismask=1; end    
     if ~isfield(CONN_x.Setup,'analysisunits'), CONN_x.Setup.analysisunits=1; end    
     if ~isfield(CONN_x.Setup,'secondlevelanalyses'), CONN_x.Setup.secondlevelanalyses=1; end    
-    if ~isfield(CONN_x.Setup,'explicitmask'), CONN_x.Setup.explicitmask=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii'); end
+    if ~isfield(CONN_x.Setup,'explicitmask'), CONN_x.Setup.explicitmask=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.sym.nii'); end
     if ~isempty(CONN_x.Setup.explicitmask)&&ischar(CONN_x.Setup.explicitmask)
         try, CONN_x.Setup.explicitmask=conn_file(CONN_x.Setup.explicitmask);
         catch, CONN_x.Setup.explicitmask={CONN_x.Setup.explicitmask, [], []};
@@ -163,6 +163,10 @@ if nargin<1||isempty(conn_x),
     if isfield(CONN_x.Preproc,'variables')&&~isfield(CONN_x.Preproc.variables,'fixed'), CONN_x.Preproc.variables.fixed=repmat({0},1,length(CONN_x.Preproc.variables.names)); end
     if isfield(CONN_x.Preproc,'confounds')&&~isfield(CONN_x.Preproc.confounds,'fixed'), CONN_x.Preproc.confounds.fixed=repmat({0},1,length(CONN_x.Preproc.confounds.names)); end
     if ~isfield(CONN_x.Preproc,'qa'), CONN_x.Preproc.qa=struct('folders',{{[],[],[]}},'DataValidityScore',[],'DataQualityScore',[],'DataSensitivityScore',[]); end
+    if ~isfield(CONN_x.Preproc.qa,'folders'), CONN_x.Preproc.qa.folders={[],[],[]}; end
+    if ~isfield(CONN_x.Preproc.qa,'DataValidityScore'), CONN_x.Preproc.qa.DataValidityScore=[]; end
+    if ~isfield(CONN_x.Preproc.qa,'DataQualityScore'), CONN_x.Preproc.qa.DataQualityScore=[]; end
+    if ~isfield(CONN_x.Preproc.qa,'DataSensitivityScore'), CONN_x.Preproc.qa.DataSensitivityScore=[]; end
     if ~isfield(CONN_x.Preproc.qa,'selections1'), CONN_x.Preproc.qa.selections1{1}={'QC_ValidSubjects'}; end
     if ~isfield(CONN_x.Preproc.qa,'selections2'), CONN_x.Preproc.qa.selections2{1}={'QC_ValidSubjects'}; CONN_x.Preproc.qa.selections2{2}={}; end
     if ~isfield(CONN_x.Preproc.qa,'selections3'), CONN_x.Preproc.qa.selections3{1}={}; end
@@ -312,7 +316,7 @@ else
     if ~isfield(conn_x.Setup,'analysismask'), conn_x.Setup.analysismask=1; end    
     if ~isfield(conn_x.Setup,'analysisunits'), conn_x.Setup.analysisunits=1; end    
     if ~isfield(conn_x.Setup,'secondlevelanalyses'), conn_x.Setup.secondlevelanalyses=1; end    
-    if ~isfield(conn_x.Setup,'explicitmask'), conn_x.Setup.explicitmask=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.nii'); end
+    if ~isfield(conn_x.Setup,'explicitmask'), conn_x.Setup.explicitmask=fullfile(fileparts(which(mfilename)),'utils','surf','mask.volume.brainmask.sym.nii'); end
     if ~isempty(conn_x.Setup.explicitmask)&&ischar(conn_x.Setup.explicitmask)
         try, conn_x.Setup.explicitmask=conn_file(conn_x.Setup.explicitmask);
         catch, conn_x.Setup.explicitmask={conn_x.Setup.explicitmask, [], []};
@@ -419,6 +423,10 @@ else
     if isfield(conn_x.Preproc,'variables')&&~isfield(conn_x.Preproc.variables,'fixed'), conn_x.Preproc.variables.fixed=repmat({0},1,length(conn_x.Preproc.variables.names)); end
     if isfield(conn_x.Preproc,'confounds')&&~isfield(conn_x.Preproc.confounds,'fixed'), conn_x.Preproc.confounds.fixed=repmat({0},1,length(conn_x.Preproc.confounds.names)); end
     if ~isfield(conn_x.Preproc,'qa'), conn_x.Preproc.qa=struct('folders',{{[],[],[]}},'DataValidityScore',[],'DataQualityScore',[],'DataSensitivityScore',[]); end
+    if ~isfield(conn_x.Preproc.qa,'folders'), conn_x.Preproc.qa.folders={[],[],[]}; end
+    if ~isfield(conn_x.Preproc.qa,'DataValidityScore'), conn_x.Preproc.qa.DataValidityScore=[]; end
+    if ~isfield(conn_x.Preproc.qa,'DataQualityScore'), conn_x.Preproc.qa.DataQualityScore=[]; end
+    if ~isfield(conn_x.Preproc.qa,'DataSensitivityScore'), conn_x.Preproc.qa.DataSensitivityScore=[]; end
     if ~isfield(conn_x.Preproc.qa,'selections1'), conn_x.Preproc.qa.selections1{1}={'QC_ValidSubjects'}; end
     if ~isfield(conn_x.Preproc.qa,'selections2'), conn_x.Preproc.qa.selections2{1}={'QC_ValidSubjects'}; conn_x.Preproc.qa.selections2{2}={}; end
     if ~isfield(conn_x.Preproc.qa,'selections3'), conn_x.Preproc.qa.selections3{1}={}; end

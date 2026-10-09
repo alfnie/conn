@@ -25,6 +25,7 @@ options=struct(...
     'markersize',8);
 if numel(varargin)>0, for n=2:2:numel(varargin), toptions=fieldnames(options); assert(isfield(options,varargin{n-1}),'unrecognized option %s (valid options %s)',varargin{n-1},sprintf('%s ',toptions{:})); options.(varargin{n-1})=varargin{n}; end; end
 varargout=cell(1,nargout);
+warning('off','MATLAB:RandStream:ActivatingLegacyGenerators');
 state=rng;
 rng(0,'twister');
 

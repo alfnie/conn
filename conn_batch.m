@@ -1590,8 +1590,12 @@ if isfield(batch,'vvAnalysis'),
             CONN_x.vvAnalyses(CONN_x.vvAnalysis).regressors.filename=repmat({''},size(batch.vvAnalysis.measures));
             CONN_x.vvAnalyses(CONN_x.vvAnalysis).regressors.dimensions_in=repmat({[]},size(batch.vvAnalysis.measures));
             CONN_x.vvAnalyses(CONN_x.vvAnalysis).regressors.dimensions_out=repmat({[]},size(batch.vvAnalysis.measures));
-            CONN_x.vvAnalyses(CONN_x.vvAnalysis).options='';
-            CONN_x.vvAnalyses(CONN_x.vvAnalysis).mask=[];
+            if isfield(batch.vvAnalysis,'options'),CONN_x.vvAnalyses(CONN_x.vvAnalysis).options=batch.vvAnalysis.options; 
+            else CONN_x.vvAnalyses(CONN_x.vvAnalysis).options='';
+            end
+            if isfield(batch.vvAnalysis,'mask'),CONN_x.vvAnalyses(CONN_x.vvAnalysis).mask=batch.vvAnalysis.mask; 
+            else CONN_x.vvAnalyses(CONN_x.vvAnalysis).mask=[];
+            end
         else
             if ~isfield(batch.vvAnalysis.measures,'measureclass'),batch.vvAnalysis.measures.measureclass=repmat({[]},size(batch.vvAnalysis.measures.names)); end
             if ~isfield(batch.vvAnalysis.measures,'type'),batch.vvAnalysis.measures.type=repmat({[]},size(batch.vvAnalysis.measures.names)); end

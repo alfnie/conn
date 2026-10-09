@@ -165,6 +165,19 @@ switch(lower(option))
             end
         end
             
+    case 'conndir'
+        if conn_projectmanager('inserver'), 
+            a=conn_server('run',mfilename,option,varargin{:}); 
+            varargout={conn_server('util_remotefile',a)}; 
+        else
+            if isdeployed, 
+                [nill,tfolder]=conn_jobmanager_checkdeployedname;           % conn folder
+                varargout={tfolder};
+            else
+                varargout={fileparts(which(mfilename))};
+            end
+        end
+
     case 'machinetype'
         if conn_projectmanager('inserver'), out=conn_server('run',mfilename,option,varargin{:}); 
         else out=struct('ispc',ispc,'ismac',ismac,'isunix',isunix);
