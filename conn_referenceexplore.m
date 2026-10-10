@@ -101,7 +101,7 @@ if ~isfield(CONN_x,'SetupPreproc')||~isfield(CONN_x.SetupPreproc,'log')||isempty
 if ~CONN_x.isready(2), guifields.include(2)=false; end
 if ~CONN_x.isready(3), guifields.include(3)=false; end
 if ~CONN_x.isready(4), guifields.include(4)=false; end
-if ~isfield(CONN_x.Preproc,'qa')||~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<3, guifields.include(5)=false; end
+if ~isfield(CONN_x.Preproc,'qa')||~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<3||any(cellfun(@isempty,CONN_x.Preproc.qa.folders)), guifields.include(5)=false; end
 dlg.handles.cb1=uicontrol('style','checkbox','units','norm','position',[.025,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(1),'string','Describe Preprocessing steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'preprocessing'},'interruptible','off');
 dlg.handles.cb2=uicontrol('style','checkbox','units','norm','position',[.275,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(2),'string','Describe Denoising steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'denoising'},'interruptible','off');
 dlg.handles.cb3=uicontrol('style','checkbox','units','norm','position',[.525,.925,.20,.05],'backgroundcolor',bgc,'foregroundcolor','k','horizontalalignment','left','value',guifields.include(3),'string','Describe Analyses (1st-level) steps','fontweight','normal','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'firstlevel'},'interruptible','off');

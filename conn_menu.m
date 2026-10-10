@@ -19,17 +19,23 @@ if nargin<8, callback3=''; end
 if ~ischar(type), [type,position,title]=deal(title,get(type,'userdata'),get(type,'value')); end
 if ~CONN_gui.tooltips, tooltipstring=''; end
 
-if any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','frame2highlight','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2','hist2'})), 
+if any(strcmpi(type,{'frame','framebig'})), 
+    bgcolor=CONN_gui.backgroundcolorA; 
+    fgcolor=CONN_gui.fontcolorA;
+    %fgcolortitle=1*round(CONN_gui.fontcolorA)+0*CONN_gui.fontcolorA; 
+    fgcolortitle=[0.64 0.76 0.93]; %.3*fgcolortitle+.7*CONN_gui.backgroundcolorE; 
+    mapcolor=CONN_h.screen.colormapA;
+elseif any(strcmpi(type,{'pushbutton2','togglebutton2','edit2','textedit2','listbox2','text2','title2','title2big','popup2','checkbox2','table2','image2','imagep2','imageonly2','frame2','frame2semiborder','frame2border','frame2noborder','frame2borderl','frame2highlight','popup2big','popup2bigblue','popup2bigwhite','pushbuttonblue2','hist2'})), 
     bgcolor=CONN_gui.backgroundcolor; 
     fgcolor=CONN_gui.fontcolor;
     fgcolortitle=CONN_gui.fontcolor; % .15*round(CONN_gui.fontcolorA)+.85*CONN_gui.backgroundcolorE; 
-    %fgcolortitle=[0.34 0.66 0.83]; %.3*fgcolortitle+.7*CONN_gui.backgroundcolorE; 
+    %fgcolortitle=[0.64 0.76 0.93]; %.3*fgcolortitle+.7*CONN_gui.backgroundcolorE; 
     mapcolor=CONN_h.screen.colormap;
 else 
     bgcolor=CONN_gui.backgroundcolorA; 
     fgcolor=CONN_gui.fontcolorA;
     fgcolortitle=1*round(CONN_gui.fontcolorA)+0*CONN_gui.fontcolorA; 
-    %fgcolortitle=[0.34 0.66 0.83]; %.3*fgcolortitle+.7*CONN_gui.backgroundcolorE; 
+    %fgcolortitle=[0.64 0.76 0.93]; %.3*fgcolortitle+.7*CONN_gui.backgroundcolorE; 
     mapcolor=CONN_h.screen.colormapA;
 end
 skipborders=false;

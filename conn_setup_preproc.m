@@ -781,7 +781,7 @@ end
 if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     thfig=conn_figure('units','norm','position',[.3,.4,.45,.3],'color',1*[1 1 1],'name','VDM create settings','numbertitle','off','menubar','none');
     ht1=uicontrol('style','popupmenu','units','norm','position',[.1,.85,.8,.1],'string',arrayfun(@(n)sprintf('Fieldmap location: secondary dataset #%d %s',n,regexprep(CONN_x.Setup.secondarydataset(n).label,'(.+)','($1)')),1:numel(CONN_x.Setup.secondarydataset),'uni',0),'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines location of available fieldmap-sequence files');
-    ht2=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',{'Fieldmap type: automatically determine','Fieldmap type: Magnitude/Phasediff files (double-echo sequences, magnitude image first)','Fieldmap type: Real1/Imag1/Real2/Imag2 files (double-echo sequences)','Fieldmap type: Pre-computed fieldmap file (Hz) (direct fieldmap sequence)','Fieldmap type: AB/BA files (opposite Phase-Encoding Directions, same PED as functionals first)','Fieldmap type: BA/AB files (opposite Phase-Encoding Directions, opposite PED as functionals first)'},'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines type of available fieldmap-sequence files');
+    ht2=uicontrol('style','popupmenu','units','norm','position',[.1,.75,.8,.1],'string',{'Fieldmap type: automatically determine','Fieldmap type: Magnitude/Phasediff files (double-echo sequences, magnitude image first)','Fieldmap type: Real1/Imag1/Real2/Imag2 files (double-echo sequences)','Fieldmap type: Pre-computed fieldmap file (Hz) (direct fieldmap sequence)','Fieldmap type: AB/BA files (opposite Phase-Encoding Directions, first image has the same PED as functionals)','Fieldmap type: BA/AB files (opposite Phase-Encoding Directions, first image has the opposite PED of functionals)'},'value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','defines type of available fieldmap-sequence files');
     ht3=uicontrol('style','checkbox','units','norm','position',[.1,.64,.8,.1],'string','Read double-echo timing from BIDS / .json files','value',1,'backgroundcolor',1*[1 1 1],'tooltipstring','use information in .json sidecar files to estimate EchoTime and EPI Total Readout Time values');
     ht4=[];ht5=[];ht6=[];
     ht4a=uicontrol('style','text','units','norm','position',[.1,.5,.6,.1],'string','Fieldmap''s Short Echo Time (in ms)','horizontalalignment','left','backgroundcolor',1*[1 1 1],'enable','off');
@@ -797,6 +797,7 @@ if dogui&&any(ismember(lSTEPS,{'functional_vdm_create'}))
     uicontrol('style','pushbutton','string','OK','units','norm','position',[.1,.01,.38,.15],'callback','uiresume');
     uicontrol('style','pushbutton','string','Cancel','units','norm','position',[.51,.01,.38,.15],'callback','delete(gcbf)');
     onoff={'on','off'};
+    if isempty(vdm_fmap), vdm_fmap=conn_datasetlabel('fieldmaps'); end
     if isempty(vdm_fmap), vdm_fmap=conn_datasetlabel('fmap'); end
     if ischar(vdm_fmap), vdm_fmap=conn_datasetlabel(vdm_fmap); end
     if isempty(vdm_fmap), vdm_fmap=1; end
@@ -3525,8 +3526,12 @@ for iSTEP=1:numel(STEPS)
                             spm_write_vol(newvol,val);
                             filename=newfilename;
                         end
-                        if isempty(vdm_fmap), vdm_fmap='fmap'; end
-                        if ischar(vdm_fmap)&&isempty(conn_datasetlabel(vdm_fmap)), error('Dataset %s (fieldmap acquisition files) not found',vdm_fmap); end
+                        if isempty(vdm_fmap), vdm_fmap='fieldmaps'; end
+                        if ischar(vdm_fmap)&&isempty(conn_datasetlabel(vdm_fmap)), 
+                            if isempty(conn_datasetlabel('fmap')), error('Dataset %s (fieldmap acquisition files) not found',vdm_fmap); 
+                            else conn_disp('warning: Dataset %s (fieldmap acquisition files) not found. Using dataset fmap instead.',vdm_fmap); vdm_fmap='fmap';
+                            end
+                        end
                         fmap=conn_get_functional(nsubject,nses,vdm_fmap);
                         if ~isempty(fmap)
                             fmap=cellstr(fmap);

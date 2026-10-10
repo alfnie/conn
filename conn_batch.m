@@ -860,7 +860,7 @@ if isfield(batch,'Setup'),
                             for nses=1:CONN_x.Setup.nsessions(nsub),
                                 if localcopy,
                                     switch(char(CONN_x.Setup.secondarydataset(ialt).label))
-                                        case 'fmap', args={'fmap','fmap'}; % copies dataset 'fmap' as .../fmap/*fmap.nii file
+                                        case {'fieldmaps','fmap'}, args={'fmap','fmap'}; % copies dataset 'fmap' as .../fmap/*fmap.nii file
                                         case 'vdm',  args={'fmap','vdm'};  % copies dataset 'vdm' as .../fmap/*vdm.nii file
                                         otherwise, args={CONN_x.Setup.secondarydataset(ialt).label,[]}; % copies other datasets as ../dataset<label>/*unknown.nii file
                                     end
