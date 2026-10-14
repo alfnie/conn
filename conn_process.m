@@ -4243,7 +4243,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     end
                     rng(state);
                 end
-DOICA=false;
+                DOICA=false;
                 FLIPSIGN=true;
                 DOWHITEN=false;
                 [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,true,DOICA,FLIPSIGN,DOWHITEN);

@@ -27,6 +27,7 @@ persistent fixed_options;
 
 PREFERSPM8OVERSPM12=false; % set to true if you prefer to use SPM8 procedures over SPM12 ones (when SPM12 is installed)
 ALLSETSPERMISSIONS=false;  % set to true if you want to allow dataset-1 or above preprocessing steps to import new ROIs, first-level covariates, or second-level covariates into your project
+SESSIONSPECIFICSTEPS=false; try, SESSIONSPECIFICSTEPS=CONN_x.Setup.structural_sessionspecific; end % performs functional steps separately across runs if structural_sessionspecific is true (assume anatomy may change across runs)
 if isdeployed, spmver12=true;
 else spmver12=str2double(regexp(spm('ver'),'SPM(\d+)','tokens','once'))>=12;
 end
@@ -453,6 +454,8 @@ for n1=1:2:numel(options)-1,
             functional_template=char(options{n1+1});
         case {'structural_template','template_structural','template_anat'}
             structural_template=char(options{n1+1});
+        case 'doperrun'
+            SESSIONSPECIFICSTEPS=options{n1+1};
         case 'usespm8methods',
             PREFERSPM8OVERSPM12=options{n1+1};
         case 'affreg'
@@ -2746,126 +2749,146 @@ for iSTEP=1:numel(STEPS)
         case 'functional_realign_noreslice'
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                matlabbatch{end+1}.spm.spatial.realign.estwrite.data={};
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
-                for nses=1:nsess
-                    if ismember(nses,sessions)
-                        filename=conn_get_functional(nsubject,nses,sets);
-                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
-                        temp=cellstr(filename);
-                        temp1=temp{1};
-                        matlabbatch{end}.spm.spatial.realign.estwrite.data{end+1}=temp;
-                        outputfiles{isubject}{nses}{1}=char(temp);
-                        outputfiles{isubject}{nses}{2}=conn_prepend('rp_',temp1,'.txt');
-                    end
+                if SESSIONSPECIFICSTEPS, groups=1:nsess;
+                else groups=1;
                 end
-                matlabbatch{end}.spm.spatial.realign.estwrite.eoptions.rtm=rtm;
-                matlabbatch{end}.spm.spatial.realign.estwrite.roptions.which=[0,1];
-                matlabbatch{end}.spm.spatial.realign.estwrite.roptions.mask=rmask;
-                if isempty(matlabbatch{end}.spm.spatial.realign.estwrite.data), matlabbatch=matlabbatch(1:end-1); end
+                for ngroup=groups
+                    matlabbatch{end+1}.spm.spatial.realign.estwrite.data={};
+                    for nses=1:nsess
+                        if ismember(nses,sessions)&&(~SESSIONSPECIFICSTEPS||ngroup==nses)
+                            filename=conn_get_functional(nsubject,nses,sets);
+                            if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
+                            temp=cellstr(filename);
+                            temp1=temp{1};
+                            matlabbatch{end}.spm.spatial.realign.estwrite.data{end+1}=temp;
+                            outputfiles{isubject}{nses}{1}=char(temp);
+                            outputfiles{isubject}{nses}{2}=conn_prepend('rp_',temp1,'.txt');
+                        end
+                    end
+                    matlabbatch{end}.spm.spatial.realign.estwrite.eoptions.rtm=rtm;
+                    matlabbatch{end}.spm.spatial.realign.estwrite.roptions.which=[0,1];
+                    matlabbatch{end}.spm.spatial.realign.estwrite.roptions.mask=rmask;
+                    if isempty(matlabbatch{end}.spm.spatial.realign.estwrite.data), matlabbatch=matlabbatch(1:end-1); end
+                end
             end
             
         case 'functional_realign'
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                matlabbatch{end+1}.spm.spatial.realign.estwrite.data={};
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
-                for nses=1:nsess
-                    if ismember(nses,sessions)
-                        filename=conn_get_functional(nsubject,nses,sets);
-                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
-                        temp=cellstr(filename);
-                        temp1=temp{1};
-                        matlabbatch{end}.spm.spatial.realign.estwrite.data{end+1}=temp;
-                        outputfiles{isubject}{nses}{1}=char(conn_prepend('r',temp));
-                        outputfiles{isubject}{nses}{2}=conn_prepend('rp_',temp1,'.txt');
-                    end
+                if SESSIONSPECIFICSTEPS, groups=1:nsess;
+                else groups=1;
                 end
-                matlabbatch{end}.spm.spatial.realign.estwrite.eoptions.rtm=rtm;
-                matlabbatch{end}.spm.spatial.realign.estwrite.roptions.which=[2,1];
-                matlabbatch{end}.spm.spatial.realign.estwrite.roptions.mask=rmask;
-                if isempty(matlabbatch{end}.spm.spatial.realign.estwrite.data), matlabbatch=matlabbatch(1:end-1); end
+                for ngroup=groups
+                    matlabbatch{end+1}.spm.spatial.realign.estwrite.data={};
+                    for nses=1:nsess
+                        if ismember(nses,sessions)&&(~SESSIONSPECIFICSTEPS||ngroup==nses)
+                            filename=conn_get_functional(nsubject,nses,sets);
+                            if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
+                            temp=cellstr(filename);
+                            temp1=temp{1};
+                            matlabbatch{end}.spm.spatial.realign.estwrite.data{end+1}=temp;
+                            outputfiles{isubject}{nses}{1}=char(conn_prepend('r',temp));
+                            outputfiles{isubject}{nses}{2}=conn_prepend('rp_',temp1,'.txt');
+                        end
+                    end
+                    matlabbatch{end}.spm.spatial.realign.estwrite.eoptions.rtm=rtm;
+                    matlabbatch{end}.spm.spatial.realign.estwrite.roptions.which=[2,1];
+                    matlabbatch{end}.spm.spatial.realign.estwrite.roptions.mask=rmask;
+                    if isempty(matlabbatch{end}.spm.spatial.realign.estwrite.data), matlabbatch=matlabbatch(1:end-1); end
+                end
             end
             
         case 'functional_realign&unwarp'
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                matlabbatch{end+1}.spm.spatial.realignunwarp.eoptions.rtm=rtm;
-                matlabbatch{end}.spm.spatial.realignunwarp.uwroptions.mask=rmask; 
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
-                jses=0;
-                for nses=1:nsess
-                    if ismember(nses,sessions)
-                        jses=jses+1;
-                        filename=conn_get_functional(nsubject,nses,sets);
-                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
-                        temp=cellstr(filename);
-                        if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
-                        matlabbatch{end}.spm.spatial.realignunwarp.data(jses).scans=ttemp;
-                        outputfiles{isubject}{nses}{1}=char(conn_prepend('u',temp));
-                        outputfiles{isubject}{nses}{2}=conn_prepend('rp_',temp{1},'.txt');
-                    end
+                if SESSIONSPECIFICSTEPS, groups=1:nsess;
+                else groups=1;
                 end
-                if ~jses, matlabbatch=matlabbatch(1:end-1); end
+                for ngroup=groups
+                    matlabbatch{end+1}.spm.spatial.realignunwarp.eoptions.rtm=rtm;
+                    matlabbatch{end}.spm.spatial.realignunwarp.uwroptions.mask=rmask;
+                    jses=0;
+                    for nses=1:nsess
+                        if ismember(nses,sessions)&&(~SESSIONSPECIFICSTEPS||ngroup==nses)
+                            jses=jses+1;
+                            filename=conn_get_functional(nsubject,nses,sets);
+                            if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
+                            temp=cellstr(filename);
+                            if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
+                            matlabbatch{end}.spm.spatial.realignunwarp.data(jses).scans=ttemp;
+                            outputfiles{isubject}{nses}{1}=char(conn_prepend('u',temp));
+                            outputfiles{isubject}{nses}{2}=conn_prepend('rp_',temp{1},'.txt');
+                        end
+                    end
+                    if ~jses, matlabbatch=matlabbatch(1:end-1); end
+                end
             end
             
         case {'functional_realign&unwarp&fieldmap','functional_realign&unwarp&phasemap'}
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                matlabbatch{end+1}.spm.spatial.realignunwarp.eoptions.rtm=rtm;
-                matlabbatch{end}.spm.spatial.realignunwarp.uwroptions.mask=rmask; 
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
-                jses=0;
-                for nses=1:nsess
-                    if ismember(nses,sessions)
-                        jses=jses+1;
-                        filename=conn_get_functional(nsubject,nses,sets);
-                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
-                        temp=cellstr(filename);
-                        if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
-                        if ~isempty(unwarp)&&iscell(unwarp)&&numel(unwarp)>=isubject&&numel(unwarp{isubject})>=nses
-                            tmfile=unwarp{isubject}{nses};
-                        elseif ~isempty(conn_datasetlabel('vdm'))
-                            tmfile=conn_get_functional(nsubject,nses,'vdm');
-                        elseif numel(CONN_x.Setup.unwarp_functional)>=nsubject&&numel(CONN_x.Setup.unwarp_functional{nsubject})>=nses
-                            tmfile=CONN_x.Setup.unwarp_functional{nsubject}{nses}{1};
-                        else
-                            tmfile=conn_prepend('vdm',ttemp{1});
-                            if ~conn_existfile(tmfile), tmfile=conn_prepend('vdm_',ttemp{1}); end
-                            if ~conn_existfile(tmfile), tmfile=conn_prepend('vdm5_',ttemp{1}); end
-                            if ~conn_existfile(tmfile)
-                                tmfile=dir(fullfile(fileparts(ttemp{1}),'vdm*.nii'));
-                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name);
-                                else tmfile='';
-                                end
-                            end
-                            if ~conn_existfile(tmfile)
-                                tmfile=dir(fullfile(fileparts(ttemp{1}),'vdm*.img'));
-                                if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name);
-                                else tmfile='';
-                                end
-                            end
-                        end
-                        if isempty(tmfile),
-                            conn_disp('fprintf','unable to find voxel-displacement file %s. Switching to manual selection\n',fullfile(fileparts(ttemp{1}),'vdm*'));
-                            tmfile=spm_select(1,'^vdm.*',['SUBJECT ',num2str(nsubject),'SESSION ',num2str(nses),' Voxel-Displacement Map (vdm*)'],{tmfile},fileparts(ttemp{1}));
-                        end
-                        if isempty(tmfile),return;end
-                        if isequal(tmfile,conn_prepend('vdm_',regexprep(ttemp{1},',\d+$',''))), outtmfile=tmfile;
-                        elseif isequal(tmfile,conn_prepend('vdm5_',regexprep(ttemp{1},',\d+$',''))), outtmfile=tmfile;
-                        else % note: forces single vdm file per session (duplicates file if necessary)
-                            outtmfile=conn_prepend('vdm_',regexprep(ttemp{1},',\d+$',''));
-                            if ispc, [ok,msg]=system(sprintf('copy "%s" "%s"',tmfile,outtmfile));
-                            else [ok,msg]=system(sprintf('''cp'' -f ''%s'' ''%s''',tmfile,outtmfile));
-                            end
-                        end
-                        matlabbatch{end}.spm.spatial.realignunwarp.data(jses).scans=ttemp;
-                        matlabbatch{end}.spm.spatial.realignunwarp.data(jses).pmscan={outtmfile};
-                        outputfiles{isubject}{nses}{1}=char(conn_prepend('u',temp));
-                        outputfiles{isubject}{nses}{2}=conn_prepend('rp_',temp{1},'.txt');
-                    end
+                if SESSIONSPECIFICSTEPS, groups=1:nsess;
+                else groups=1;
                 end
-                if ~jses, matlabbatch=matlabbatch(1:end-1); end
+                for ngroup=groups
+                    matlabbatch{end+1}.spm.spatial.realignunwarp.eoptions.rtm=rtm;
+                    matlabbatch{end}.spm.spatial.realignunwarp.uwroptions.mask=rmask;
+                    jses=0;
+                    for nses=1:nsess
+                        if ismember(nses,sessions)&&(~SESSIONSPECIFICSTEPS||ngroup==nses)
+                            jses=jses+1;
+                            filename=conn_get_functional(nsubject,nses,sets);
+                            if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
+                            temp=cellstr(filename);
+                            if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
+                            if ~isempty(unwarp)&&iscell(unwarp)&&numel(unwarp)>=isubject&&numel(unwarp{isubject})>=nses
+                                tmfile=unwarp{isubject}{nses};
+                            elseif ~isempty(conn_datasetlabel('vdm'))
+                                tmfile=conn_get_functional(nsubject,nses,'vdm');
+                            elseif numel(CONN_x.Setup.unwarp_functional)>=nsubject&&numel(CONN_x.Setup.unwarp_functional{nsubject})>=nses
+                                tmfile=CONN_x.Setup.unwarp_functional{nsubject}{nses}{1};
+                            else
+                                tmfile=conn_prepend('vdm',ttemp{1});
+                                if ~conn_existfile(tmfile), tmfile=conn_prepend('vdm_',ttemp{1}); end
+                                if ~conn_existfile(tmfile), tmfile=conn_prepend('vdm5_',ttemp{1}); end
+                                if ~conn_existfile(tmfile)
+                                    tmfile=dir(fullfile(fileparts(ttemp{1}),'vdm*.nii'));
+                                    if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name);
+                                    else tmfile='';
+                                    end
+                                end
+                                if ~conn_existfile(tmfile)
+                                    tmfile=dir(fullfile(fileparts(ttemp{1}),'vdm*.img'));
+                                    if numel(tmfile)==1, tmfile=fullfile(fileparts(ttemp{1}),tmfile(1).name);
+                                    else tmfile='';
+                                    end
+                                end
+                            end
+                            if isempty(tmfile),
+                                conn_disp('fprintf','unable to find voxel-displacement file %s. Switching to manual selection\n',fullfile(fileparts(ttemp{1}),'vdm*'));
+                                tmfile=spm_select(1,'^vdm.*',['SUBJECT ',num2str(nsubject),'SESSION ',num2str(nses),' Voxel-Displacement Map (vdm*)'],{tmfile},fileparts(ttemp{1}));
+                            end
+                            if isempty(tmfile),return;end
+                            if isequal(tmfile,conn_prepend('vdm_',regexprep(ttemp{1},',\d+$',''))), outtmfile=tmfile;
+                            elseif isequal(tmfile,conn_prepend('vdm5_',regexprep(ttemp{1},',\d+$',''))), outtmfile=tmfile;
+                            else % note: forces single vdm file per session (duplicates file if necessary)
+                                outtmfile=conn_prepend('vdm_',regexprep(ttemp{1},',\d+$',''));
+                                if ispc, [ok,msg]=system(sprintf('copy "%s" "%s"',tmfile,outtmfile));
+                                else [ok,msg]=system(sprintf('''cp'' -f ''%s'' ''%s''',tmfile,outtmfile));
+                                end
+                            end
+                            matlabbatch{end}.spm.spatial.realignunwarp.data(jses).scans=ttemp;
+                            matlabbatch{end}.spm.spatial.realignunwarp.data(jses).pmscan={outtmfile};
+                            outputfiles{isubject}{nses}{1}=char(conn_prepend('u',temp));
+                            outputfiles{isubject}{nses}{2}=conn_prepend('rp_',temp{1},'.txt');
+                        end
+                    end
+                    if ~jses, matlabbatch=matlabbatch(1:end-1); end
+                end
             end
             
         case {'functional_vdm_apply'}
@@ -2949,52 +2972,57 @@ for iSTEP=1:numel(STEPS)
             icov=find(strcmp(CONN_x.Setup.l1covariates.names(1:end-1),'realignment'));
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                matlabbatch{end+1}.art.P={};
-                matlabbatch{end}.art.M={};
-                matlabbatch{end}.art.global_threshold=art_global_threshold;
-                matlabbatch{end}.art.motion_threshold=art_motion_threshold;
-                matlabbatch{end}.art.use_diff_motion=art_use_diff_motion;
-                matlabbatch{end}.art.use_diff_global=art_use_diff_global;
-                matlabbatch{end}.art.use_norms=art_use_norms;
-                matlabbatch{end}.art.drop_flag=art_drop_flag;
-                matlabbatch{end}.art.gui_display=art_gui_display;
                 nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
-                for nses=1:nsess
-                    if ismember(nses,sessions)
-                        filename=conn_get_functional(nsubject,nses,sets);
-                        if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
-                        temp=cellstr(filename);
-                        temp1=temp{1};
-                        matlabbatch{end}.art.P{end+1}=char(temp);
-                        if isempty(icov),
-                            for remov=0:10,if conn_existfile(conn_prepend('rp_',conn_prepend(-remov,temp1),'.txt')); break; end; end
-                            if remov==10, errmsg=['Error preparing files for ART processing. No ''realignment'' covariate; alternative realignment parameters file ',conn_prepend('rp_',temp1,'.txt'),' not found']; conn_disp(errmsg); error(errmsg); end
-                            matlabbatch{end}.art.M{end+1}=conn_prepend('rp_',conn_prepend(-remov,temp1),'.txt');
-                            matlabbatch{end}.art.motion_file_type=0;
-                        else
-                            matlabbatch{end}.art.motion_file_type=0; % SPM-convention
-                            cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
-                            assert(~isempty(cfilename),'covariate %s has not been defined for subject %d sessions %d',CONN_x.Setup.l1covariates.names{icov},nsubject,nses);
-                            switch(cfilename),
-                                case '[raw values]',
-                                    matlabbatch{end}.art.M{end+1}=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{3};
-                                otherwise,
-                                    matlabbatch{end}.art.M{end+1}=cfilename;
-                                    [nill,fname,fext]=fileparts(matlabbatch{end}.art.M{end});
-                                    if isequal(fname,'Movement_Regressors'), matlabbatch{end}.art.motion_file_type=3; % exception for HCP files (.deg.txt)
-                                    elseif isequal(lower(fext),'.mat'), temp=load(cfilename); if isstruct(temp), tempfieldname=fieldnames(temp); temp=temp.(tempfieldname{1}); end; matlabbatch{end}.art.M{end}=temp;
-                                    elseif isequal(lower(fext),'.par'), matlabbatch{end}.art.motion_file_type=1;
-                                    elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.siemens$')), matlabbatch{end}.art.motion_file_type=2;
-                                    elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.deg$')), matlabbatch{end}.art.motion_file_type=3;
-                                    end
-                            end
-                        end
-                        outputfiles{isubject}{nses}{1}=conn_prepend('art_regression_outliers_',temp1,'.mat');
-                        outputfiles{isubject}{nses}{2}=conn_prepend('art_regression_timeseries_',temp1,'.mat');
-                        if nses==sessions(1), matlabbatch{end}.art.output_dir=fileparts(temp1); end
-                    end
+                if SESSIONSPECIFICSTEPS, groups=1:nsess;
+                else groups=1;
                 end
-                if isempty(matlabbatch{end}.art.P), matlabbatch=matlabbatch(1:end-1); end
+                for ngroup=groups
+                    matlabbatch{end+1}.art.P={};
+                    matlabbatch{end}.art.M={};
+                    matlabbatch{end}.art.global_threshold=art_global_threshold;
+                    matlabbatch{end}.art.motion_threshold=art_motion_threshold;
+                    matlabbatch{end}.art.use_diff_motion=art_use_diff_motion;
+                    matlabbatch{end}.art.use_diff_global=art_use_diff_global;
+                    matlabbatch{end}.art.use_norms=art_use_norms;
+                    matlabbatch{end}.art.drop_flag=art_drop_flag;
+                    matlabbatch{end}.art.gui_display=art_gui_display;
+                    for nses=1:nsess
+                        if ismember(nses,sessions)&&(~SESSIONSPECIFICSTEPS||ngroup==nses)
+                            filename=conn_get_functional(nsubject,nses,sets);
+                            if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
+                            temp=cellstr(filename);
+                            temp1=temp{1};
+                            matlabbatch{end}.art.P{end+1}=char(temp);
+                            if isempty(icov),
+                                for remov=0:10,if conn_existfile(conn_prepend('rp_',conn_prepend(-remov,temp1),'.txt')); break; end; end
+                                if remov==10, errmsg=['Error preparing files for ART processing. No ''realignment'' covariate; alternative realignment parameters file ',conn_prepend('rp_',temp1,'.txt'),' not found']; conn_disp(errmsg); error(errmsg); end
+                                matlabbatch{end}.art.M{end+1}=conn_prepend('rp_',conn_prepend(-remov,temp1),'.txt');
+                                matlabbatch{end}.art.motion_file_type=0;
+                            else
+                                matlabbatch{end}.art.motion_file_type=0; % SPM-convention
+                                cfilename=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{1};
+                                assert(~isempty(cfilename),'covariate %s has not been defined for subject %d sessions %d',CONN_x.Setup.l1covariates.names{icov},nsubject,nses);
+                                switch(cfilename),
+                                    case '[raw values]',
+                                        matlabbatch{end}.art.M{end+1}=CONN_x.Setup.l1covariates.files{nsubject}{icov}{nses}{3};
+                                    otherwise,
+                                        matlabbatch{end}.art.M{end+1}=cfilename;
+                                        [nill,fname,fext]=fileparts(matlabbatch{end}.art.M{end});
+                                        if isequal(fname,'Movement_Regressors'), matlabbatch{end}.art.motion_file_type=3; % exception for HCP files (.deg.txt)
+                                        elseif isequal(lower(fext),'.mat'), temp=load(cfilename); if isstruct(temp), tempfieldname=fieldnames(temp); temp=temp.(tempfieldname{1}); end; matlabbatch{end}.art.M{end}=temp;
+                                        elseif isequal(lower(fext),'.par'), matlabbatch{end}.art.motion_file_type=1;
+                                        elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.siemens$')), matlabbatch{end}.art.motion_file_type=2;
+                                        elseif isequal(lower(fext),'.txt')&&~isempty(regexp(lower(fname),'\.deg$')), matlabbatch{end}.art.motion_file_type=3;
+                                        end
+                                end
+                            end
+                            outputfiles{isubject}{nses}{1}=conn_prepend('art_regression_outliers_',temp1,'.mat');
+                            outputfiles{isubject}{nses}{2}=conn_prepend('art_regression_timeseries_',temp1,'.mat');
+                            if SESSIONSPECIFICSTEPS||nses==sessions(1), matlabbatch{end}.art.output_dir=fileparts(temp1); end
+                        end
+                    end
+                    if isempty(matlabbatch{end}.art.P), matlabbatch=matlabbatch(1:end-1); end
+                end
             end
             
         case {'functional_coregister_affine_reslice'}
@@ -3117,39 +3145,47 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12, matlabbatch{end+1}.spm.spatial.preproc.channel.vols={};
             else matlabbatch{end+1}.spm.spatial.preproc.data={};
             end
+            jsubject=0;
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                filename=conn_get_functional(nsubject,sessions(1),sets);
-                if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,sessions(1)); end
-                temp=cellstr(filename);
-                if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
-                if coregtomean==2
-                    if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
-                        xtemp={coregsource{isubject}};
-                    elseif ~isempty(conn_datasetlabel('ref'))
-                        xtemp={conn_get_functional(nsubject,sessions(1),'ref')};
-                    elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
-                        xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
-                    else error('missing coregsource info');
-                    end
-                elseif coregtomean,
-                    [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
-                    if isempty(xtemp),  errmsg=['Error preparing files for normalization. Mean functional file not found (associated with functional data ',failed,' ; run either realignment or ART first, or select the option "first functional volume as reference" -#coregtomean field- if you prefer to use the first functional volume instead of the mean functional volume as reference)']; conn_disp(errmsg); error(errmsg); end
-                    xtemp={xtemp};
-                else xtemp=ttemp(1);
+                nsess=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                if SESSIONSPECIFICSTEPS, groups=nsess;
+                else groups=nsess(1); 
                 end
-                if DOSPM12,
-                    matlabbatch{end}.spm.spatial.preproc.channel.vols{isubject}=xtemp{1};
-                    outputfiles{isubject}{1}=xtemp{1};
-                    outputfiles{isubject}{2}=conn_prepend('c1',xtemp{1},'.nii'); % note: fix SPM12 issue converting .img to .nii
-                    outputfiles{isubject}{3}=conn_prepend('c2',xtemp{1},'.nii');
-                    outputfiles{isubject}{4}=conn_prepend('c3',xtemp{1},'.nii');
-                else
-                    matlabbatch{end}.spm.spatial.preproc.data{isubject}=xtemp{1};
-                    outputfiles{isubject}{1}=xtemp{1};
-                    outputfiles{isubject}{2}=conn_prepend('c1',xtemp{1});
-                    outputfiles{isubject}{3}=conn_prepend('c2',xtemp{1});
-                    outputfiles{isubject}{4}=conn_prepend('c3',xtemp{1});
+                for ngroup=groups
+                    filename=conn_get_functional(nsubject,ngroup,sets);
+                    if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,ngroup); end
+                    temp=cellstr(filename);
+                    if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
+                    if coregtomean==2
+                        if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
+                            xtemp={coregsource{isubject}};
+                        elseif ~isempty(conn_datasetlabel('ref'))
+                            xtemp={conn_get_functional(nsubject,ngroup,'ref')};
+                        elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
+                            xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
+                        else error('missing coregsource info');
+                        end
+                    elseif coregtomean,
+                        [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
+                        if isempty(xtemp),  errmsg=['Error preparing files for normalization. Mean functional file not found (associated with functional data ',failed,' ; run either realignment or ART first, or select the option "first functional volume as reference" -#coregtomean field- if you prefer to use the first functional volume instead of the mean functional volume as reference)']; conn_disp(errmsg); error(errmsg); end
+                        xtemp={xtemp};
+                    else xtemp=ttemp(1);
+                    end
+                    jsubject=jsubject+1;
+                    if DOSPM12,
+                        matlabbatch{end}.spm.spatial.preproc.channel.vols{jsubject}=xtemp{1};
+                        outputfiles{isubject}{ngroup}{1}=xtemp{1};
+                        outputfiles{isubject}{ngroup}{2}=conn_prepend('c1',xtemp{1},'.nii'); % note: fix SPM12 issue converting .img to .nii
+                        outputfiles{isubject}{ngroup}{3}=conn_prepend('c2',xtemp{1},'.nii');
+                        outputfiles{isubject}{ngroup}{4}=conn_prepend('c3',xtemp{1},'.nii');
+                    else
+                        matlabbatch{end}.spm.spatial.preproc.data{jsubject}=xtemp{1};
+                        outputfiles{isubject}{ngroup}{1}=xtemp{1};
+                        outputfiles{isubject}{ngroup}{2}=conn_prepend('c1',xtemp{1});
+                        outputfiles{isubject}{ngroup}{3}=conn_prepend('c2',xtemp{1});
+                        outputfiles{isubject}{ngroup}{4}=conn_prepend('c3',xtemp{1});
+                    end
                 end
             end
             if DOSPM12,
@@ -3191,41 +3227,49 @@ for iSTEP=1:numel(STEPS)
                 matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.template={functional_template};
                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.estwrite.eoptions.interp=interp; end
             end
+            jsubject=0;
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                filename=conn_get_functional(nsubject,sessions(1),sets);
-                if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,sessions(1)); end
-                temp=cellstr(filename);
-                if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
-                if coregtomean==2
-                    if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
-                        xtemp={coregsource{isubject}};
-                    elseif ~isempty(conn_datasetlabel('ref'))
-                        xtemp={conn_get_functional(nsubject,sessions(1),'ref')};
-                    elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
-                        xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
-                    else error('missing coregsource info');
+                nsess=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                if SESSIONSPECIFICSTEPS, groups=nsess;
+                else groups=nsess(1); 
+                end
+                for ngroup=groups
+                    filename=conn_get_functional(nsubject,ngroup,sets);
+                    if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,ngroup); end
+                    temp=cellstr(filename);
+                    if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
+                    if coregtomean==2
+                        if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
+                            xtemp={coregsource{isubject}};
+                        elseif ~isempty(conn_datasetlabel('ref'))
+                            xtemp={conn_get_functional(nsubject,ngroup,'ref')};
+                        elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
+                            xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
+                        else error('missing coregsource info');
+                        end
+                    elseif coregtomean,
+                        [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
+                        if isempty(xtemp),  errmsg=['Error preparing files for normalization. Mean functional file not found (associated with functional data ',failed,' ; run either realignment or ART first, or select the option "first functional volume as reference" -#coregtomean field- if you prefer to use the first functional volume instead of the mean functional volume as reference)']; conn_disp(errmsg); error(errmsg); end
+                        xtemp={xtemp};
+                    else xtemp=ttemp(1);
                     end
-                elseif coregtomean,
-                    [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
-                    if isempty(xtemp),  errmsg=['Error preparing files for normalization. Mean functional file not found (associated with functional data ',failed,' ; run either realignment or ART first, or select the option "first functional volume as reference" -#coregtomean field- if you prefer to use the first functional volume instead of the mean functional volume as reference)']; conn_disp(errmsg); error(errmsg); end
-                    xtemp={xtemp};
-                else xtemp=ttemp(1);
-                end
-                if DOSPM12, matlabbatch{end}.spm.spatial.normalise.estwrite.subj(isubject).vol=xtemp;
-                else        matlabbatch{end}.spm.spatial.normalise.estwrite.subj(isubject).source=xtemp;
-                end
-                nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
-                if coregtomean, matlabbatch{end}.spm.spatial.normalise.estwrite.subj(isubject).resample=xtemp;
-                else matlabbatch{end}.spm.spatial.normalise.estwrite.subj(isubject).resample={};
-                end
-                for nses=1:nsess
-                    if ismember(nses,sessions)
+                    jsubject=jsubject+1;
+                    if DOSPM12, matlabbatch{end}.spm.spatial.normalise.estwrite.subj(jsubject).vol=xtemp;
+                    else        matlabbatch{end}.spm.spatial.normalise.estwrite.subj(jsubject).source=xtemp;
+                    end
+                    if coregtomean, matlabbatch{end}.spm.spatial.normalise.estwrite.subj(jsubject).resample=xtemp;
+                    else matlabbatch{end}.spm.spatial.normalise.estwrite.subj(jsubject).resample={};
+                    end
+                    if SESSIONSPECIFICSTEPS, applytoruns=ngroup;
+                    else applytoruns=nsess;
+                    end
+                    for nses=applytoruns
                         filename=conn_get_functional(nsubject,nses,sets);
                         if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
                         temp=cellstr(filename);
                         if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
-                        matlabbatch{end}.spm.spatial.normalise.estwrite.subj(isubject).resample=cat(1,matlabbatch{end}.spm.spatial.normalise.estwrite.subj(isubject).resample,ttemp);
+                        matlabbatch{end}.spm.spatial.normalise.estwrite.subj(jsubject).resample=cat(1,matlabbatch{end}.spm.spatial.normalise.estwrite.subj(jsubject).resample,ttemp);
                         outputfiles{isubject}{nses}=char(conn_prepend('w',temp));
                     end
                 end
@@ -3236,41 +3280,49 @@ for iSTEP=1:numel(STEPS)
             if DOSPM12, matlabbatch{end+1}.spm.spatial.preproc.channel.vols={};
             else matlabbatch{end+1}.spm.spatial.preproc.data={};
             end
+            jsubject=0;
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                filename=conn_get_functional(nsubject,sessions(1),sets);
-                if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,sessions(1)); end
-                temp=cellstr(filename);
-                if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
-                if coregtomean==2
-                    if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
-                        xtemp={coregsource{isubject}};
-                    elseif ~isempty(conn_datasetlabel('ref'))
-                        xtemp={conn_get_functional(nsubject,sessions(1),'ref')};
-                    elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
-                        xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
-                    else error('missing coregsource info');
-                    end
-                elseif coregtomean,
-                    [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
-                    if isempty(xtemp),  errmsg=['Error preparing files for normalization. Mean functional file not found (associated with functional data ',failed,' ; run either realignment or ART first, or select the option "first functional volume as reference" -#coregtomean field- if you prefer to use the first functional volume instead of the mean functional volume as reference)']; conn_disp(errmsg); error(errmsg); end
-                    xtemp={xtemp};
-                else xtemp=ttemp(1);
+                nsess=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                if SESSIONSPECIFICSTEPS, groups=nsess;
+                else groups=nsess(1); 
                 end
-                if DOSPM12,
-                    matlabbatch{end}.spm.spatial.preproc.channel.vols{isubject}=xtemp{1};
-                    outputfiles{isubject}{1}=xtemp{1};
-                    outputfiles{isubject}{2}=conn_prepend('c1',xtemp{1},'.nii'); % note: fix SPM12 issue converting .img to .nii
-                    outputfiles{isubject}{3}=conn_prepend('c2',xtemp{1},'.nii');
-                    outputfiles{isubject}{4}=conn_prepend('c3',xtemp{1},'.nii');
-                    outputfiles{isubject}{5}=conn_prepend('y_',xtemp{1},'.nii');
-                else
-                    matlabbatch{end}.spm.spatial.preproc.data{isubject}=xtemp{1};
-                    outputfiles{isubject}{1}=xtemp{1};
-                    outputfiles{isubject}{2}=conn_prepend('c1',xtemp{1});
-                    outputfiles{isubject}{3}=conn_prepend('c2',xtemp{1});
-                    outputfiles{isubject}{4}=conn_prepend('c3',xtemp{1});
-                    outputfiles{isubject}{5}=conn_prepend('',xtemp{1},'_seg_sn.mat');
+                for ngroup=groups
+                    filename=conn_get_functional(nsubject,ngroup,sets);
+                    if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,ngroup); end
+                    temp=cellstr(filename);
+                    if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
+                    if coregtomean==2
+                        if ~isempty(coregsource)&&iscell(coregsource)&&numel(coregsource)>=isubject
+                            xtemp={coregsource{isubject}};
+                        elseif ~isempty(conn_datasetlabel('ref'))
+                            xtemp={conn_get_functional(nsubject,ngroup,'ref')};
+                        elseif numel(CONN_x.Setup.coregsource_functional)>=nsubject
+                            xtemp=CONN_x.Setup.coregsource_functional{nsubject}(1);
+                        else error('missing coregsource info');
+                        end
+                    elseif coregtomean,
+                        [xtemp,failed]=conn_setup_preproc_meanimage(temp{1});
+                        if isempty(xtemp),  errmsg=['Error preparing files for normalization. Mean functional file not found (associated with functional data ',failed,' ; run either realignment or ART first, or select the option "first functional volume as reference" -#coregtomean field- if you prefer to use the first functional volume instead of the mean functional volume as reference)']; conn_disp(errmsg); error(errmsg); end
+                        xtemp={xtemp};
+                    else xtemp=ttemp(1);
+                    end
+                    jsubject=jsubject+1;
+                    if DOSPM12,
+                        matlabbatch{end}.spm.spatial.preproc.channel.vols{jsubject}=xtemp{1};
+                        outputfiles{isubject}{ngroup}{1}=xtemp{1};
+                        outputfiles{isubject}{ngroup}{2}=conn_prepend('c1',xtemp{1},'.nii'); % note: fix SPM12 issue converting .img to .nii
+                        outputfiles{isubject}{ngroup}{3}=conn_prepend('c2',xtemp{1},'.nii');
+                        outputfiles{isubject}{ngroup}{4}=conn_prepend('c3',xtemp{1},'.nii');
+                        outputfiles{isubject}{ngroup}{5}=conn_prepend('y_',xtemp{1},'.nii');
+                    else
+                        matlabbatch{end}.spm.spatial.preproc.data{jsubject}=xtemp{1};
+                        outputfiles{isubject}{ngroup}{1}=xtemp{1};
+                        outputfiles{isubject}{ngroup}{2}=conn_prepend('c1',xtemp{1});
+                        outputfiles{isubject}{ngroup}{3}=conn_prepend('c2',xtemp{1});
+                        outputfiles{isubject}{ngroup}{4}=conn_prepend('c3',xtemp{1});
+                        outputfiles{isubject}{ngroup}{5}=conn_prepend('',xtemp{1},'_seg_sn.mat');
+                    end
                 end
             end
             if DOSPM12,
@@ -3300,28 +3352,36 @@ for iSTEP=1:numel(STEPS)
                 matlabbatch{end}.spm.spatial.normalise.write.roptions.vox=voxelsize_func.*[1 1 1];
                 if ~isempty(interp), matlabbatch{end}.spm.spatial.normalise.write.roptions.interp=interp; end
             end
+            jsubject=0;
             for isubject=1:numel(subjects),
                 nsubject=subjects(isubject);
-                if DOSPM12, matlabbatch{end}.spm.spatial.normalise.write.subj(isubject).def=outputfiles{isubject}(5);
-                else        matlabbatch{end}.spm.spatial.normalise.write.subj(isubject).matname=outputfiles{isubject}(5);
+                nsess=intersect(sessions,1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)));
+                if SESSIONSPECIFICSTEPS, groups=nsess;
+                else groups=nsess(1); 
                 end
-                matlabbatch{end}.spm.spatial.normalise.write.subj(isubject).resample=outputfiles{isubject}(1:4)';
-                outputfiles{isubject}=outputfiles{isubject}(1:4);
-                nsess=CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject));
-                for nses=1:nsess
-                    if ismember(nses,sessions)
+                for ngroup=groups
+                    jsubject=jsubject+1;
+                    if DOSPM12, matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).def=outputfiles{isubject}{ngroup}(5);
+                    else        matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).matname=outputfiles{isubject}{ngroup}(5);
+                    end
+                    matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=outputfiles{isubject}{ngroup}(1:4)';
+                    %outputfiles{isubject}{ngroup}=outputfiles{isubject}{ngroup}(1:4);
+                    if SESSIONSPECIFICSTEPS, applytoruns=ngroup;
+                    else applytoruns=nsess;
+                    end
+                    for nses=applytoruns
                         filename=conn_get_functional(nsubject,nses,sets);
                         if isempty(filename), error('Functional data not yet defined for subject %d session %d',nsubject,nses); end
                         temp=cellstr(filename);
                         if numel(temp)==1, ttemp=cellstr(conn_expandframe(temp{1})); else ttemp=temp; end
-                        matlabbatch{end}.spm.spatial.normalise.write.subj(isubject).resample=cat(1,matlabbatch{end}.spm.spatial.normalise.write.subj(isubject).resample,ttemp);
-                        outputfiles{isubject}{4+nses}=char(conn_prepend('w',temp));
+                        matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample=cat(1,matlabbatch{end}.spm.spatial.normalise.write.subj(jsubject).resample,ttemp);
+                        outputfiles{isubject}{nses}{6}=char(conn_prepend('w',temp));
                     end
+                    outputfiles{isubject}{ngroup}{1}=conn_prepend('w',outputfiles{isubject}{ngroup}{1});
+                    outputfiles{isubject}{ngroup}{2}=conn_prepend('w',outputfiles{isubject}{ngroup}{2});
+                    outputfiles{isubject}{ngroup}{3}=conn_prepend('w',outputfiles{isubject}{ngroup}{3});
+                    outputfiles{isubject}{ngroup}{4}=conn_prepend('w',outputfiles{isubject}{ngroup}{4});
                 end
-                outputfiles{isubject}{1}=conn_prepend('w',outputfiles{isubject}{1});
-                outputfiles{isubject}{2}=conn_prepend('w',outputfiles{isubject}{2});
-                outputfiles{isubject}{3}=conn_prepend('w',outputfiles{isubject}{3});
-                outputfiles{isubject}{4}=conn_prepend('w',outputfiles{isubject}{4});
             end
             
         case 'functional_smooth_masked'
@@ -4456,12 +4516,16 @@ for iSTEP=1:numel(STEPS)
                         nsubject=subjects(isubject);
                         nsess=intersect(1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)),sessions);
                         for nses=nsess(:)'
-                            CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{2});
-                            CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{3});
-                            CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{4});
+                            if SESSIONSPECIFICSTEPS, refses=nses;
+                            else refses=nsess(1);
+                            end
+                            CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{refses}{2});
+                            CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{refses}{3});
+                            CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{refses}{4});
                             [a,b]=conn_roioverlaps(fullfile(fileparts(which('conn')),'utils','surf','referenceGM.nii'),CONN_x.Setup.rois.files{nsubject}{1}{nses}{1},.25,'equalsize');
-                            y1(nsubject)=2*a.overlap/(a.rows_total+a.cols_total);
+                            y1(nsubject)=y1(nsubject)+2*a.overlap/(a.rows_total+a.cols_total);
                         end
+                        y1(nsubject)=y1(nsubject)/numel(nsess);
                     end
                     conn_importl2covariate({'QC_NORM_func'},{y1},0,subjects,{'CONN Quality Assurance: Overlap of functional gray matter mask with template'});
                 end
@@ -4473,13 +4537,16 @@ for iSTEP=1:numel(STEPS)
                     nsess=intersect(1:CONN_x.Setup.nsessions(min(numel(CONN_x.Setup.nsessions),nsubject)),sessions);
                     for nses=nsess(:)'
                         if ~sets||ALLSETSPERMISSIONS
-                            CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{2});
-                            CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{3});
-                            CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{4});
+                            if SESSIONSPECIFICSTEPS, refses=nses;
+                            else refses=nsess(1);
+                            end
+                            CONN_x.Setup.rois.files{nsubject}{1}{nses}=conn_file(outputfiles{isubject}{refses}{2});
+                            CONN_x.Setup.rois.files{nsubject}{2}{nses}=conn_file(outputfiles{isubject}{refses}{3});
+                            CONN_x.Setup.rois.files{nsubject}{3}{nses}=conn_file(outputfiles{isubject}{refses}{4});
                             [a,b]=conn_roioverlaps(fullfile(fileparts(which('conn')),'utils','surf','referenceGM.nii'),CONN_x.Setup.rois.files{nsubject}{1}{nses}{1},.25,'equalsize');
                             y1(nsubject)=2*a.overlap/(a.rows_total+a.cols_total);
                         end
-                        conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{4+nses});
+                        conn_set_functional(nsubject,nses,sets,outputfiles{isubject}{nses}{6});
                     end
                 end
                 if ~sets||ALLSETSPERMISSIONS

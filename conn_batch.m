@@ -1555,6 +1555,7 @@ if isfield(batch,'vvAnalysis'),
 %         conn load;                      % loads existing conn_* project
 %         CONN_x.gui=1;
 %     end
+    if isfield(batch.vvAnalysis,'measure')&&~isfield(batch.vvAnalysis,'measures'), batch.vvAnalysis.measures=batch.vvAnalysis.measure; end
     if isfield(batch.vvAnalysis,'measures')
         if isfield(batch.vvAnalysis,'name'), batch.vvAnalysis.analysis_number=batch.vvAnalysis.name; end
         if ~isfield(batch.vvAnalysis,'analysis_number')||isempty(batch.vvAnalysis.analysis_number),batch.vvAnalysis.analysis_number=1; end

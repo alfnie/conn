@@ -1359,6 +1359,7 @@ else
             filename=CONN_gui.recentfiles{nrecent};
             if CONN_gui.isremote, filename=conn_server('util_remotefile',filename); end
             if ~isempty(filename)
+                if ~conn_existfile(filename), filename=conn_prepend('',filename,'.mat'); end
                 if ~conn_existfile(filename)
                     conn_msgbox({sprintf('File %s cannot be found',filename),'Please check whether the project may have been moved to a different location'},'',2);
                 else
@@ -2939,7 +2940,7 @@ else
                     if nargin<2,
                         conn_menu('framebig',boffset+[.10,.012,.59,.828],'Structural data');
                         conn_menu('nullstr',{'No structural','data imported'});
-						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.180,.63,.15,.05],'',{'One anatomical scan per subject','Multiple anatomical scans per subject'},'<HTML>(only applies to studies with multiple sessions/runs) <br/> - Select the first option when the structural data does not change across sessions (enter one structural volume per subject) <br/> - Select the second option when the structural data may change across sessions (enter one structural volume per session; e.g. longitudinal studies)</HTML>','conn(''gui_setup'',13);');
+						CONN_h.menus.m_setup_00{13}=conn_menu('popup',boffset+[.180,.63,.15,.05],'',{'One anatomical scan per subject','Multiple anatomical scans per subject'},'<HTML>(only applies to studies with multiple sessions/runs) <br/> - Select the first option when a participant''s anatomy / structural data does not change across runs or sessions (enter one structural volume per subject) <br/> - Select the second option when a participant''s anatomy / structural data may change across sessions (enter one structural volume per session; e.g. longitudinal studies)</HTML>','conn(''gui_setup'',13);');
 						CONN_h.menus.m_setup_00{1}=conn_menu('listbox',boffset+[.180,.25,.070,.33],'Subjects','','Select subject(s)','conn(''gui_setup'',1);',{'',''});
 						[CONN_h.menus.m_setup_00{2},CONN_h.menus.m_setup_00{15}]=conn_menu('listbox',boffset+[.255,.25,.070,.33],'Sessions','','Select session','conn(''gui_setup'',2);');
                         conn_setselectallmenu(CONN_h.menus.m_setup_00{1},'subjects');

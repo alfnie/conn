@@ -434,7 +434,7 @@ switch(lower(option))
                 end
                 ok=true;
             catch
-                fprintf('   Sever is unresponsive (TCP write fail)\n');
+                fprintf('   Sever is unresponsive (attempting TCP write)\n');
             end
         else % save to file then send file
             filename=fullfile(connection.cache,['cachetmp_',char(conn_tcpip('hash',mat2str(now))),'.mat']);
@@ -466,7 +466,7 @@ switch(lower(option))
         try
             connection.output.stream.writeUTF(header);
         catch
-            fprintf('   Sever is unresponsive (TCP write fail)\n');
+            fprintf('   Sever is unresponsive (attempting TCP write)\n');
         end
         while fsize>0&&~ok
             if numel(data)<connection.maxlength, 
@@ -482,7 +482,7 @@ switch(lower(option))
                 connection.output.stream.writeUTF(data(idx));
                 data(idx)=[];
             catch
-                fprintf('   Sever is unresponsive (TCP write fail)\n');
+                fprintf('   Sever is unresponsive (attempting TCP write)\n');
                 break;
             end
         end
