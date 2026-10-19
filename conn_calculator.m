@@ -65,13 +65,14 @@ else
 %         icovariates1all=icovariates1all(i);
 %     end
     icovariates1=icovariates1all(cellfun(@(x)isempty(regexp(x,'^Dynamic |^_|^QA_|^QC_')),CONN_x.Setup.l2covariates.names(icovariates1all)));
+    icovariates2=icovariates2(cellfun(@(x)isempty(regexp(x,'aggregated across Circuits')),CONN_x.Setup.l2covariates.names(icovariates2)));
     cnames=regexp(CONN_x.Setup.l2covariates.names(icovariates2), '@.*$','match','once');
-    cnames=regexprep(cnames,'^@\s*|^_(\S+) Dynamic Total.*','');
-    cnames2=regexp(CONN_x.Setup.l2covariates.names(icovariates2),'^_(\S+) (ICA|PCA|Dynamic factor\s*)(\d+) ','match','once');
-    cnames2=regexprep(cnames2,{'^_(\S+) (ICA|PCA|Dynamic factor\s*)(\d+) ','^ x (Variability|Frequency|Average)'},{' x $1',' x Temporal $1'});
+    cnames=regexprep(cnames,'^@\s*|^_(\S+) Dynamic Total.*',''); % condition name
+    cnames2=regexp(CONN_x.Setup.l2covariates.names(icovariates2),'^_(.+) (ICA|PCA|Dynamic factor\s*|of Circuit\s*)(\d+) ','match','once');
+    cnames2=regexprep(cnames2,{'^_(.+) (ICA|PCA|Dynamic factor\s*|of Circuit\s*)(\d+) ','^: (Variability|Frequency|Average)'},{': $1',': temporal $1'}); % measure name
     cnames=cellfun(@(a,b)[a b],cnames,cnames2,'uni',0);
     mnames=regexprep(CONN_x.Setup.l2covariates.names(icovariates2), '@.*$','');
-    mnames=regexprep(mnames,{'^_(\S+) (ICA|PCA|Dynamic factor\s*)0*(\d+) .*','^Dynamic\s*|^_|^QA_|^QC_','Dynamic factor'},{'_$2_$3 ','','Circuit'});
+    mnames=regexprep(mnames,{'^.* of Circuit (\d+) .*','^_(.+) (ICA|PCA|Dynamic factor\s*)0*(\d+) .*','^Dynamic\s*|^_|^QA_|^QC_','Dynamic factor'},{'Circuit $1','_$2_$3 ','','Circuit'}); % circuit number
     [ucnames,nill,icnames]=uniquestable(cnames);
     [umnames,nill,imnames]=unique(mnames);
     [ucnames,nill,idx]=conn_sortfilenames(ucnames); icnames=idx(icnames);
@@ -116,10 +117,10 @@ else
     conn_menu('frame',[fs0 fs+0*[0 .06]],'Group analyses (2nd-level)');%Second-level design');
     ht1=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.02,.30,.30,.45],'Subject effects',conn_strexpand(CONN_x.Setup.l2covariates.names(icovariates1),CONN_x.Setup.l2covariates.descrip(icovariates1)),'Select subject effect(s) characterizing second-level analysis model / independent variables',@(varargin)conn_calculator_update);
     ht3=conn_menu('edit',[fs0 0 0]+[fs fs].*[.02,.15,.30,.05],'Between-subjects contrast','1','<HTML>Define desired contrast across selected subject-effects<br/> - enter contrast vector/matrix with as many elements/columns as subject-effects selected <br/> - use the list below to see a list of standard contrasts for the selected subject-effects <br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
-    ht2c=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.34,.30,.30,.45],'Conditions',ucnames,'Select condition(s)',@(varargin)conn_calculator_update);
+    ht2c=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.34,.30,.30,.45],'Conditions & Measures',ucnames,'Select condition(s)',@(varargin)conn_calculator_update);
     ht4c=conn_menu('edit',[fs0 0 0]+[fs fs].*[.34,.15,.30,.05],'Between-conditions contrast','1','<HTML>Define desired contrast across selected conditions <br/> - enter contrast vector/matrix with as many elements/columns as selected conditions <br/> - use the list below to see a list of standard contrasts for the selected condition<br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
-    ht2=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.66,.30,.30,.45],'Measures',umnames,'<HTML>Select outcome measure(s) <br/> - measures represent properties of timecourses for each subject/condition</HTML>',@(varargin)conn_calculator_update);
-    ht4=conn_menu('edit',[fs0 0 0]+[fs fs].*[.66,.15,.30,.05],'Between-measures contrast','1','<HTML>Define desired contrast across selected measures <br/> - enter contrast vector/matrix with as many elements/columns as measures selected <br/> - use the list below to see a list of standard contrasts for the selected measures<br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
+    ht2=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.66,.30,.30,.45],'Components',umnames,'<HTML>Select outcome measure(s) <br/> - measures represent properties of timecourses for each subject/condition</HTML>',@(varargin)conn_calculator_update);
+    ht4=conn_menu('edit',[fs0 0 0]+[fs fs].*[.66,.15,.30,.05],'Between-component contrast','1','<HTML>Define desired contrast across selected measures <br/> - enter contrast vector/matrix with as many elements/columns as measures selected <br/> - use the list below to see a list of standard contrasts for the selected measures<br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
     hc1b=uicontextmenu;
     if showall, uimenu(hc1b,'Label','Hide secondary variables','callback',@(varargin)conn_calculator_update_hideshow('hide'));
     else uimenu(hc1b,'Label','Show secondary variables','callback',@(varargin)conn_calculator_update_hideshow('show'));
@@ -151,24 +152,24 @@ conn_calculator_update;
         ncov1=get(ht1,'value');
         str=get(ht3,'string');
         ccov1=conn_contraststr2num(str);
-        if size(ccov1,2)~=numel(ncov1), ccov1=eye(numel(ncov1)); end
+        if size(ccov1,2)~=numel(ncov1), ccov1=ones(1,numel(ncov1))/numel(ncov1); end
         set(ht3,'string',mat2str(ccov1));
         if fulltype
             ncov2=get(ht2,'value');
             str=get(ht4,'string');
             ccov2=conn_contraststr2num(str);
-            if size(ccov2,2)~=numel(ncov2), ccov2=eye(numel(ncov2)); end
+            if size(ccov2,2)~=numel(ncov2), ccov2=ones(1,numel(ncov2))/numel(ncov2); end
             set(ht4,'string',mat2str(ccov2));
         else
             ncov2m=get(ht2,'value');
             str=get(ht4,'string');
             ccov2m=conn_contraststr2num(str);
-            if size(ccov2m,2)~=numel(ncov2m), ccov2m=eye(numel(ncov2m)); end
+            if size(ccov2m,2)~=numel(ncov2m), ccov2m=ones(1,numel(ncov2m))/numel(ncov2m); end
             set(ht4,'string',mat2str(ccov2m));
             ncov2c=get(ht2c,'value');
             str=get(ht4c,'string');
             ccov2c=conn_contraststr2num(str);
-            if size(ccov2c,2)~=numel(ncov2c), ccov2c=eye(numel(ncov2c)); end
+            if size(ccov2c,2)~=numel(ncov2c), ccov2c=ones(1,numel(ncov2c))/numel(ncov2c); end
             set(ht4c,'string',mat2str(ccov2c));
             ncov2=matchnames(ncov2m,ncov2c);
             ccov2=kron(ccov2c,ccov2m);

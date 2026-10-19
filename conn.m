@@ -620,8 +620,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'bordertype','xround',...
 									'callback',{{@conn,'gui_analyses_done_dyn'}} );
 	CONN_h.menus.m_results_03a=conn_menumanager([], 'n',3,...
-									'string',{'SPATIAL COMPONENTS','TEMPORAL COMPONENTS','SUMMARY'},...
-									'help',{'Define/explore second-level analyses of dyn-ICA spatial components (circuits)','Define/explore second-level analyses of dyn_ICA temporal components (connectivity-modulation timeseries)','Summary display of dyn-ICA analyses'},...
+									'string',{'CIRCUIT ANALYSES','STATE ANALYSES','SUMMARY'},...
+									'help',{'Define/explore second-level analyses of dyn-ICA spatial components (circuits)','Define/explore second-level analyses of dyn_ICA temporal components (states)','Summary display of dyn-ICA analyses'},...
                                     'order','horizontal',...
 									'position',[.021, .935-1*.035,3*.12,.050],...
 									'state',[1,0,0],...
@@ -632,8 +632,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_results_dyn'},{@conn,'gui_results_dyn'},{@conn,'gui_results_dyn'}} );
 	CONN_h.menus.m_results_03b=conn_menumanager([], 'n',3,...
-									'string',{'SPATIAL COMPONENTS','TEMPORAL COMPONENTS','SUMMARY'},...
-									'help',{'Define/explore second-level analyses of ICA spatial components (networks)','Define/explore second-level analyses of ICA temporal components (network timeseries)','Summary display of Independent Component analyses'},...
+									'string',{'NETWORK ANALYSES','ACTIVATION ANALYSES','SUMMARY'},...
+									'help',{'Define/explore second-level analyses of ICA spatial components (networks)','Define/explore second-level analyses of ICA temporal components (network activation)','Summary display of Independent Component analyses'},...
                                     'order','horizontal',...
 									'position',[.021, .935-1*.035,3*.12,.050],...
 									'state',[1,0,0],...
@@ -10856,7 +10856,7 @@ else
                     if ianalysis>numel(dynanalyses)||~dynanalyses(ianalysis), ianalysis=find(dynanalyses,1); CONN_x.Analysis=ianalysis; end
                 elseif tstate==2
                     txt=CONN_x.Setup.l2covariates.names(1:end-1);
-                    dyneffects=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_\S* Dynamic')),txt)); 
+                    dyneffects=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_\S* Dynamic|^_State |^_\S* State')),txt)); 
                     if ~any(dyneffects),  conn_msgbox({'Not ready yet to display second-level Analyses',' ','No Dynamic temporal components computed. Re-run Dynamic analyses in ''first-level Analyses->Dyn FC''','or selet a different first-level analysis to continue'},'',2); conn gui_results_dyn_summary; return; end %conn('gui_resultsgo',[]); return; end
                 end
                 tstate=zeros(size(conn_menumanager(CONN_h.menus.m_results_03,'state')));tstate(5)=1;
@@ -10992,7 +10992,7 @@ else
                 elseif state==5
                     if stateb==2
                         txt=CONN_x.Setup.l2covariates.names(1:end-1);
-                        dyneffects=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_\S* Dynamic')),CONN_x.Setup.l2covariates.names));
+                        dyneffects=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_\S* Dynamic|^_State |^_\S* State')),CONN_x.Setup.l2covariates.names));
                         if ~isempty(dyneffects)&&isfield(CONN_x.dynAnalyses,'name')&&~isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
                             dyneffects=dyneffects(cellfun(@(x)~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),txt(dyneffects)));
                         end
@@ -11074,7 +11074,7 @@ else
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         return;
                     elseif stateb==2
-                        icovariates=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_(Average|Frequency|Variability) Dynamic factor'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names));
+                        icovariates=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_(Average|Frequency|Variability) Dynamic factor|^_State |^_\S* State'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names));
                         conn_calculator(icovariates);
                         conn_menu('framewhitehighlight',boffset+[-.021,.78,.561,.03],'');
                         CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.025,.775,.56,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
@@ -11128,7 +11128,7 @@ else
                     end
                     if state==1&&stateb==1
                         set([CONN_h.menus.m_results_00{13},CONN_h.menus.m_results_00{17}],'visible','off'); %%%
-                        CONN_h.menus.m_results_00{61}=conn_menu('listbox',boffset+[.375,.51-dp1,.18,.17+dp1-dp3],'dynICA circuits','',['<HTML>select dynICA circuit of interest<br/> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_results'',61);');
+                        CONN_h.menus.m_results_00{61}=conn_menu('listbox',boffset+[.375,.51-dp1,.18,.17+dp1-dp3],'Circuits','',['<HTML>select dyn-ICA circuit of interest<br/> <br/> - note: keyboard shortcuts: ''',CONN_gui.keymodifier,'-F'' finds match to keyword; ''right arrow'' next match; ''left arrow'' previous match; ''',CONN_gui.keymodifier,'-A'' select all</HTML>'],'conn(''gui_results'',61);');
                         set(CONN_h.menus.m_results_00{61},'max',1,'string',regexprep({CONN_x.Analyses(CONN_h.menus.m_results.shownanalyses).name},{'^.*(\\|\/)','Dynamic factor 0*(\d+)'},{'','Circuit_$1'}),'value',find(CONN_h.menus.m_results.shownanalyses==ianalysis,1));
                     end
                     
@@ -11769,11 +11769,11 @@ else
                             oldC(all(oldC==0,2),:)=[];
                             newC=zeros(size(oldC,1),numel(ncovariates));
                             newC(:,i1(ok1))=oldC;
-                            if isempty(newC)||~nnz(newC), set(CONN_h.menus.m_results_00{16},'string',['eye(',num2str(length(ncovariates)),')']);
+                            if isempty(newC)||~nnz(newC), set(CONN_h.menus.m_results_00{16},'string',mat2str(ones(1,length(ncovariates))/length(ncovariates)));
                             else set(CONN_h.menus.m_results_00{16},'string',conn_contrastnum2str(newC));
                             end
                         else
-                            set(CONN_h.menus.m_results_00{16},'string',['eye(',num2str(length(ncovariates)),')']);
+                            set(CONN_h.menus.m_results_00{16},'string',mat2str(ones(1,length(ncovariates))/length(ncovariates)));
                         end
 					case {12,13,15,17,18,19,32,49}
 						 isources=get(CONN_h.menus.m_results_00{13},'value');
@@ -11807,8 +11807,8 @@ else
                              if ~isempty(CONN_h.menus.m_results.y.data)&&isfield(CONN_h.menus.m_results,'Y')&&(~isfield(CONN_h.menus.m_results.y,'slice')||CONN_h.menus.m_results.y.slice<1||CONN_h.menus.m_results.y.slice>CONN_h.menus.m_results.Y(1).dim(3)), CONN_h.menus.m_results.y.slice=ceil(CONN_h.menus.m_results.Y(1).dim(3)/2); end
                              set(CONN_h.menus.m_results_00{15},'value',CONN_h.menus.m_results.y.slice);
                          end
-						 if varargin{2}==12,if length(nconditions)==1, set(CONN_h.menus.m_results_00{19},'string','1'); else  set(CONN_h.menus.m_results_00{19},'string',['eye(',num2str(length(nconditions)),')']);end; end
-						 if varargin{2}==13,if length(nsources)==1, set(CONN_h.menus.m_results_00{17},'string','1'); else  set(CONN_h.menus.m_results_00{17},'string',['eye(',num2str(length(nsources)),')']);end; end
+						 if varargin{2}==12,if length(nconditions)==1, set(CONN_h.menus.m_results_00{19},'string','1'); else  set(CONN_h.menus.m_results_00{19},'string',mat2str(ones(1,length(nconditions))/length(nconditions)));end; end
+						 if varargin{2}==13,if length(nsources)==1, set(CONN_h.menus.m_results_00{17},'string','1'); else  set(CONN_h.menus.m_results_00{17},'string',mat2str(ones(1,length(nsources))/length(nsources)));end; end
                          if state==1||state==2
                              filepathresults=fullfile(CONN_x.folders.firstlevel,CONN_x.Analyses(ianalysis).name);
                          else

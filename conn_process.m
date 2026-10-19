@@ -4136,7 +4136,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
             end
             if do
                 REDO='Yes';
-                DEMEAN=true; % true=disregard between-subject variability in average connectivity; set to true for back-compatibility
+                DEMEAN=false; % true=disregard between-subject variability in average connectivity; set to true for back-compatibility
                 X=[];
                 Y=[];
                 Xfilter=[];
@@ -4243,7 +4243,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     end
                     rng(state);
                 end
-                DOICA=false;
+                DOICA=true;
                 FLIPSIGN=true;
                 DOWHITEN=false;
                 [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,true,DOICA,FLIPSIGN,DOWHITEN);
@@ -4276,7 +4276,8 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     conn_mtx_write(filename,C,ROInames,ROIxyzs);
                 end
 
-                iremove=reshape(find(cellfun('length',regexp(CONN_x.Setup.l2covariates.names(1:end-1),['^_(Variability|Average|Frequency) Dynamic factor (.*_)?\d+ ',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,' @ .*$']))),1,[]);
+                iremove=reshape(find(cellfun('length',regexp(CONN_x.Setup.l2covariates.names(1:end-1),['^_(Variability|Average|Frequency) Dynamic factor (.*_)?\d+ ',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,' @ .*$']))|...
+                                     cellfun('length',regexp(CONN_x.Setup.l2covariates.names(1:end-1),['^_(Mean State|State Variability|State Switching Rate).*',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,' @ .*$']))),1,[]);
                 if ~isempty(iremove)
                     ikeep=setdiff(1:numel(CONN_x.Setup.l2covariates.names),iremove);
                     ikeep0=setdiff(ikeep,numel(CONN_x.Setup.l2covariates.names));
@@ -4306,12 +4307,12 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         w=max(eps,accumarray(IDX_subject,max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1]));
                         H_std_weighted=sqrt(max(0,accumarray(IDX_subject,H(:,ncomp).^2.*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w - (accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w).^2));
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d @ %s',ncomp,COND_names_all{n});
-                            else new_names{end+1}=sprintf('_Variability Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_State Variability of Circuit %02d @ %s',ncomp,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_State Variability of Circuit %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
                             end
                         else
-                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
-                            else new_names{end+1}=sprintf('_Variability Dynamic factor %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_State Variability of Circuit %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_State Variability of Circuit %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             end
                         end
                         H_std_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
@@ -4323,42 +4324,42 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         w=max(eps,accumarray(IDX_subject,max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1]));
                         H_avg_weighted=accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w;
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d @ %s',ncomp,COND_names_all{n});
-                            else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Mean State of Circuit %02d @ %s',ncomp,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_Mean State of Circuit %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
                             end
                         else
-                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Average Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
-                            else new_names{end+1}=sprintf('_Average Dynamic factor %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Mean State of Circuit %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_Mean State of Circuit %s_%02d %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             end
                         end
                         H_avg_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
                         new_values{end+1}=H_avg_weighted;
                     end
                 end
-                for n=1:numel(COND_names_all)
-                    w=max(eps,accumarray(IDX_subject,max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1]));
-                    H_std_weighted=0;
-                    for ncomp=1:Ncomponents
-                        H_std_weighted=H_std_weighted+(max(0,accumarray(IDX_subject,H(:,ncomp).^2.*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w - (accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w).^2));
-                    end
-                    if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total @ %s',COND_names_all{n});
-                        else new_names{end+1}=sprintf('_Variability Dynamic Total_%s @ %s',CONN_x.Setup.conditions.names{selectedcondition},COND_names_all{n});
-                        end
-                    else
-                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Variability Dynamic Total %s @ %s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
-                        else new_names{end+1}=sprintf('_Variability Dynamic Total_%s %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
-                        end
-                    end
-                    H_std_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
-                    new_values{end+1}=sqrt(H_std_weighted);
-                end
+                % for n=1:numel(COND_names_all)
+                %     w=max(eps,accumarray(IDX_subject,max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1]));
+                %     H_std_weighted=0;
+                %     for ncomp=1:Ncomponents
+                %         H_std_weighted=H_std_weighted+(max(0,accumarray(IDX_subject,H(:,ncomp).^2.*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w - (accumarray(IDX_subject,H(:,ncomp).*max(0,COND_weights_all{n}),[CONN_x.Setup.nsubjects,1],@sum,nan)./w).^2));
+                %     end
+                %     if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
+                %         if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_State Variability aggregated across Circuits @ %s',COND_names_all{n});
+                %         else new_names{end+1}=sprintf('_State Variability aggregated_%s @ %s',CONN_x.Setup.conditions.names{selectedcondition},COND_names_all{n});
+                %         end
+                %     else
+                %         if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_State Variability aggregated across Circuits %s @ %s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                %         else new_names{end+1}=sprintf('_State Variability aggregated_%s %s @ %s',CONN_x.Setup.conditions.names{selectedcondition},CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                %         end
+                %     end
+                %     H_std_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;
+                %     new_values{end+1}=sqrt(H_std_weighted);
+                % end
                 allrt=[];
                 for ncomp=1:Ncomponents
                     for n=1:numel(COND_names_all)
                         tempW=max(0,COND_weights_all{n});
                         w=max(eps,accumarray(IDX_subject,tempW,[CONN_x.Setup.nsubjects,1]));
-                        H_avg_weighted=accumarray(IDX_subject,H(:,ncomp).*tempW,[CONN_x.Setup.nsubjects,1],@sum,nan)./w;
+                        H_avg_weighted=0*accumarray(IDX_subject,H(:,ncomp).*tempW,[CONN_x.Setup.nsubjects,1],@sum,nan)./w;
                         tempH=(H(:,ncomp)<=H_avg_weighted(IDX_subject,:)&H([2:end end],ncomp)>H_avg_weighted(IDX_subject,:))|(H(:,ncomp)>=H_avg_weighted(IDX_subject,:)&H([2:end end],ncomp)<H_avg_weighted(IDX_subject,:));
                         maskout=IDX_subject~=[IDX_subject(2:end);nan]|IDX_session~=[IDX_session(2:end);nan];
                         tempW(maskout)=0;
@@ -4366,14 +4367,14 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         w=max(eps,accumarray(IDX_subject,tempW,[CONN_x.Setup.nsubjects,1]));
                         H_freq_weighted=max(0,accumarray(IDX_subject,tempH.*tempW,[CONN_x.Setup.nsubjects,1],@sum,nan))./w;
                         if isempty(allrt), allrt=conn_get_rt; end
-                        H_freq_weighted=H_freq_weighted./reshape(allrt,CONN_x.Setup.nsubjects,1)/2;
+                        H_freq_weighted=60*H_freq_weighted./reshape(allrt,CONN_x.Setup.nsubjects,1); % converts to switch-per-minute units
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,COND_names_all{n});
-                            else new_names{end+1}=sprintf('_Frequency Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_State Switching Rate of Circuit %02d %s @ %s',ncomp,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_State Switching Rate of Circuit %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,COND_names_all{n});
                             end
                         else
-                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_Frequency Dynamic factor %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
-                            else new_names{end+1}=sprintf('_Frequency Dynamic factor %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), new_names{end+1}=sprintf('_State Switching Rate of Circuit %02d %s @ %s',ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
+                            else new_names{end+1}=sprintf('_State Switching Rate of Circuit %s_%02d @ %s',CONN_x.Setup.conditions.names{selectedcondition},ncomp,CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,COND_names_all{n});
                             end
                         end
                         H_freq_weighted(setdiff(1:CONN_x.Setup.nsubjects,validsubjects))=nan;

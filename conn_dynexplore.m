@@ -22,13 +22,15 @@ for n=1:size(B,1),
     b=shiftdim(B(n,:,:),1);
     %b(1:size(b,1)+1:end)=nan;
     mask=~isnan(b);
-    vfact=sqrt(mean(b(mask).^2));
+    vfact=1;%sqrt(mean(b(mask).^2));
     b(mask)=b(mask)./vfact;
     B(n,:,:)=shiftdim(b,-1); H(:,n)=H(:,n)*vfact;
     mb=mean(b(mask));
     sb=std(b(mask),1);
-    KURx(n)=mean(((b(mask)-mb)/sb).^4);
-    SKWx(n)=mean(((b(mask)-mb)/sb).^3);
+    KURx(n)=mean(((b(mask)-mb)/sb).^4); % standard/central kurtosis
+    mb=0;
+    sb=sqrt(mean(b(mask).^2,1));
+    SKWx(n)=mean(((b(mask)-mb)/sb).^3); % uncentered/raw skewness
 end
 nsubs=max(IDX_subject);
 VARt=zeros(1,size(B,1));
@@ -43,7 +45,7 @@ for n1=1:nsubs
         for n2=1:numel(ts)
             b=H(IDX_subject==n1&IDX_session==ts(n2),:);
             b=conn_bsxfun(@minus,b,mb);
-            ZCt(1,:)=ZCt(1,:)+((mean((b(1:end-1,:)<=0&b(2:end,:)>0)|(b(1:end-1,:)>=0&b(2:end,:)<0),1))/TR(min(numel(TR),n1)))/numel(ts)/2;
+            ZCt(1,:)=ZCt(1,:)+60*((mean((b(1:end-1,:)<=0&b(2:end,:)>0)|(b(1:end-1,:)>=0&b(2:end,:)<0),1))/TR(min(numel(TR),n1)))/numel(ts)/2;
         end
         validc=validc+1;
     end
@@ -100,8 +102,8 @@ temp=boffset+[.07 .78 .38/5 .04];
 ht2a(1)=conn_menu('pushbutton',temp+[0*temp(3) 0 0 0],'','circuit','Select circuit(s) for display',@(varargin)conn_dynexplore_update([0 0 0 0 1]));
 ht2a(2)=conn_menu('pushbutton',temp+[1*temp(3) 0 0 0],'','kurtosis','Spatial kurtosis (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 2]));
 ht2a(3)=conn_menu('pushbutton',temp+[2*temp(3) 0 0 0],'','skewness','Spatial skewness (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 3]));
-ht2a(4)=conn_menu('pushbutton',temp+[3*temp(3) 0 0 0],'','variability','Temporal component timeseries standard deviation averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 4]));
-ht2a(5)=conn_menu('pushbutton',temp+[4*temp(3) 0 0 0],'','frequency','Temporal component timeseries frequency (Hz) averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 5]));
+ht2a(4)=conn_menu('pushbutton',temp+[3*temp(3) 0 0 0],'','state variability','State variability (standard deviation) averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 4]));
+ht2a(5)=conn_menu('pushbutton',temp+[4*temp(3) 0 0 0],'','state switch-rate','State swithing rate (switches per minute) averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 5]));
 ht1=conn_menu('listbox2',boffset+[.80 .26 .10 .08],'Subjects',arrayfun(@(n)sprintf('Subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'Select subject(s) for display',@(varargin)conn_dynexplore_update);
 ht7=conn_menu('edit2',boffset+[.78 .38 .05 .04],'','2','display threshold',@(varargin)conn_dynexplore_update([0 0 1 0 0]));
 ht7b=conn_menu('text2',boffset+[.73 .38 .05 .035],'','threshold');
@@ -111,7 +113,7 @@ ht3=conn_menu('slider',boffset+[.20 .10 .55 .04],'Time',1,'<HTML>Select time poi
 try, addlistener(ht3, 'ContinuousValueChange',@(varargin)conn_dynexplore_update); end
 set(ht3,'visible','off');
 conn_menumanager('onregion',ht3,1,boffset+[.18 .08 .59 .08]);
-ht4=conn_menu('popup2',boffset+[.60 .84 .18 .04],'',{'Spatial components','Estimated dynamic connectivity','Static vs. Dynamic connectivity plot'},'<HTML>Select connectivity display <br/> - <i>Spatial components</i> shows the spatial component scores for each selected circuit(s) (connections showing joint modulation of functional connectivity)<br/> - <i>Estimated dynamic connectivity</i> shows the estimated ROI-to-ROI connectivity at each timepoint/scan <br/> - <i>Static vs. Dynamic connectivity plot</i> shows a scatter plot comparing the static vs. dynamic connectivity (at each timepoint/scan) for each connection</HTML>',@(varargin)conn_dynexplore_update);
+ht4=conn_menu('popup2',boffset+[.60 .84 .18 .04],'',{'Circuits','Estimated dynamic connectivity','Static vs. Dynamic connectivity plot'},'<HTML>Select connectivity display <br/> - <i>Circuits</i> shows the spatial component scores for each selected circuit(s) (connections showing joint modulation of functional connectivity)<br/> - <i>Estimated dynamic connectivity</i> shows the estimated ROI-to-ROI connectivity at each timepoint/scan <br/> - <i>Static vs. Dynamic connectivity plot</i> shows a scatter plot comparing the static vs. dynamic connectivity (at each timepoint/scan) for each connection</HTML>',@(varargin)conn_dynexplore_update);
 ht4b=conn_menu('popup2',boffset+[.60 .34 .20 .04],'',{'Display full connectivity','Display selected circuit(s) contribution only'},'<HTML>Select full connectivity to display the full dynamic ROI-to-ROI connectivity values or <br/> only the portion explained by the selected circuit(s)</HTML>',@(varargin)conn_dynexplore_update);
 ht4c=conn_menu('pushbutton2',boffset+[.78 .84 .05 .04],'','Play','<HTML>Display dynamic connectivity over time</HTML>',@(varargin)conn_dynexplore_play);
 %conn_menumanager('onregion',ht4c,1,boffset+[.65 .05 .3 .775]);
@@ -271,7 +273,7 @@ conn_dynexplore_update([1 1 1 1 1]);
             hold on; h4=text(0,1.6-2,'','interpreter','tex','horizontalalignment','right','color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)),'fontsize',CONN_gui.font_offset+7); hold off;
             set(h1,'xlim',[0 Nt+1],'ylim',[-3.5 1.5],'color',CONN_gui.backgroundcolor,'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor,'xtick',[],'ytick',[]);
             h=xlabel('Time / scans'); set(h,'fontsize',CONN_gui.font_offset+8,'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)));
-            hold on; h2a=text(get(gca,'xlim')*[1.025;-.025],0,{'Temporal','components'},'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)),'horizontalalignment','right','fontsize',CONN_gui.font_offset+8); 
+            hold on; h2a=text(get(gca,'xlim')*[1.025;-.025],0,{'Circuit','state'},'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)),'horizontalalignment','right','fontsize',CONN_gui.font_offset+8); 
             h2b=text(get(gca,'xlim')*[1.025;-.025],-2,{'ROI-to-ROI','connectivity','(dynamic)^(^*^)'},'interpreter','tex','color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)),'horizontalalignment','right','fontsize',CONN_gui.font_offset+8); hold off;
             handlescor=[h2(:)' h3 h4 h1 h2b];
         end
