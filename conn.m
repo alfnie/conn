@@ -14253,7 +14253,7 @@ if ~ok, CONN_gui.background_handle=image(shiftdim(CONN_gui.backgroundcolor,-1),'
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,(.85-mean(CONN_gui.backgroundcolor))*.2*[zeros(1,128) sin(linspace(0,pi,128)).^2 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor,-1))))); end
 %if ~ok, CONN_gui.background_handle=image(max(0,min(1,conn_bsxfun(@plus,conn_bsxfun(@times,max(.05,(1-mean(CONN_gui.backgroundcolor))*.1)*[zeros(1,128) sin(linspace(0,pi,128)).^4 zeros(1,128)]',shiftdim(CONN_gui.backgroundcolor/max(.01,mean(CONN_gui.backgroundcolor)),-1)),shiftdim(CONN_gui.backgroundcolor,-1))))); end
 if conn_menumanager('ison')
-    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbutton2',[.0,.915,3*.045,.025],'','reconnecting...','','conn(''gui_server'');');
+    if isfield(CONN_gui,'isremote')&&CONN_gui.isremote, hserver=conn_menu('pushbutton2',[.55,0,3*.045,.025],'','reconnecting...','','conn(''gui_server'');');
     else hserver=[];
     end
     conn_menu('frame2border',[.0,.0,1,.0475],'');
@@ -14283,7 +14283,7 @@ if isfield(CONN_x,'filename')
         %d=max(0,min(1, mod(conn_bsxfun(@plus,.1*c,shiftdim(CONN_gui.backgroundcolor,-1)),1) ));
         d(conn_bsxfun(@plus,[0 2]*numel(c),find(c==2)))=d(conn_bsxfun(@plus,[2 0]*numel(c),find(c==2)));
         ha=axes('units','norm','position',[.325,.005,.05,.016],'parent',CONN_h.screen.hfig); ht=image(d,'parent',ha); axis(ha,'tight','off'); set(ht,'tag','infoline:bar');
-        ht=conn_menu('text0',[.385,.005,.25,.016],'',str);
+        ht=conn_menu('text0',[.385,.005,.16,.016],'',str);
         set(ht,'horizontalalignment','left','fontsize',8+CONN_gui.font_offset,'color',.5*CONN_gui.fontcolorA+.5*CONN_gui.backgroundcolor,'tag','infoline:text');
         %text(120,(size(c,1))/2,str,'horizontalalignment','left','fontsize',5+CONN_gui.font_offset,'color',[.5 .5 .5]+.0*(mean(CONN_gui.backgroundcolor)<.5));
 %     end
