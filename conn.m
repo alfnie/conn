@@ -2449,6 +2449,7 @@ else
                                 end
                                 if ~isempty(txt)&&strcmp(conn_questdlg(txt,'','Ok','Undo','Ok'),'Undo'), CONN_x.Setup.functional=bak1; CONN_x.Setup.nscans=bak2; end
 								set(CONN_h.screen.hfig,'pointer','arrow');
+                                try, focus(CONN_h.screen.hfig); end
                             case 4,
                                 nsubs=get(CONN_h.menus.m_setup_00{1},'value');nsess=get(CONN_h.menus.m_setup_00{2},'value');
                                 if state==3, nset=0; else nset=get(CONN_h.menus.m_setup_00{7},'value'); end
@@ -5684,6 +5685,7 @@ else
                             if ~strcmp(tansw,'Yes'), filename=''; end
                         end
                     end
+                    try, focus(CONN_h.screen.hfig); end
                 else pathname='';filename=CONN_x.filename;
                 end
             end
@@ -5695,6 +5697,7 @@ else
                 conn('save',filename);
                 conn_disp('fprintf',' Done\n');
 				set(CONN_h.screen.hfig,'pointer','arrow');
+                try, focus(CONN_h.screen.hfig); end
                 varargout={true};
             end
             if saveas&&~strcmp(varargin{1},'gui_setup_savenorefresh'), conn gui_setup; end
@@ -7333,7 +7336,7 @@ else
                         end
                     case 43,
                         if isfield(CONN_x.Preproc.qa,'folders')&&numel(CONN_x.Preproc.qa.folders)>=1&&~isempty(CONN_x.Preproc.qa.folders{1})
-                            conn_qaplotsexplore(CONN_x.Preproc.qa.folders{1});
+                            conn_qaplotsexplore(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{1}));
                         end
                     case 45,
                         thfig=conn_figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Recompute Data Quality score','numbertitle','off','menubar','none');
@@ -7385,7 +7388,7 @@ else
                         end
                     case 46,
                         if isfield(CONN_x.Preproc.qa,'folders')&&numel(CONN_x.Preproc.qa.folders)>=2&&~isempty(CONN_x.Preproc.qa.folders{2})
-                            conn_qaplotsexplore(CONN_x.Preproc.qa.folders{2});
+                            conn_qaplotsexplore(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{2}));
                         end
                     case 48,
                         thfig=conn_figure('units','norm','position',[.3,.65,.5,.25],'color',1*[1 1 1],'name','Recompute Participant inclusion/exclusion criteria','numbertitle','off','menubar','none');
@@ -7433,7 +7436,7 @@ else
                         end
                     case 49,
                         if isfield(CONN_x.Preproc.qa,'folders')&&numel(CONN_x.Preproc.qa.folders)>=3&&~isempty(CONN_x.Preproc.qa.folders{3})
-                            conn_qaplotsexplore(CONN_x.Preproc.qa.folders{3});
+                            conn_qaplotsexplore(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{3}));
                         end
                     case 50, % QC tools (placeholder)
                         if numel(varargin)>=3, val=varargin{3};
@@ -7581,13 +7584,13 @@ else
             end
             if CONN_gui.isjava, marks='✘✔✘'; else marks='❎✅❎'; end % ❌
             if updateqaplots(3) % note1: run updateqaplots(3) first since this creates QC_ValidSubjects which may be used by updateqaplots(1)&updateqaplots(2); note2: this step also updates QC_DOF/QC_PeakFC/QC_StdFC before running (redundant with updateqaplots(1))
-                if ~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<3||isempty(CONN_x.Preproc.qa.folders{3})||~conn_existfile(CONN_x.Preproc.qa.folders{3},2),
+                if ~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<3||isempty(CONN_x.Preproc.qa.folders{3})||~conn_existfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{3}),2),
                     conn_qascores('DataSensitivity', [], updateqaplots_subjects, updateqaplots_QC_variables, [], updateqaplots_exclude);
                 end
                 try
                     if ~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<3, CONN_x.Preproc.qa.folders{3}=[]; 
-                    elseif conn_existfile(fullfile(CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'))
-                        results=conn_loadmatfile(fullfile(CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'));
+                    elseif conn_existfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'))
+                        results=conn_loadmatfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'));
                         if all(abs(CONN_x.Preproc.qa.DataSensitivityScore-results.DataSensitivityScore)<1e-8)
                             if results.DataSensitivityScore>=.95, set(CONN_h.menus.m_preproc_00{48},'string',sprintf('%s%% %c  n=%d',mat2str(100*results.DataSensitivityScore,3),marks(2),results.Nsubjects));
                             else set(CONN_h.menus.m_preproc_00{48},'string',sprintf('%s%% %c  n=%d',mat2str(100*results.DataSensitivityScore,3),marks(1),results.Nsubjects));
@@ -7605,13 +7608,13 @@ else
                 end
             end
             if updateqaplots(1)
-                if ~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<1||isempty(CONN_x.Preproc.qa.folders{1})||~conn_existfile(CONN_x.Preproc.qa.folders{1},2)
+                if ~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<1||isempty(CONN_x.Preproc.qa.folders{1})||~conn_existfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{1}),2)
                     conn_qascores('DataValidity', [], updateqaplots_subjects);
                 end
                 try
                     if ~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<1, CONN_x.Preproc.qa.folders{1}=[];
-                    elseif conn_existfile(fullfile(CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'))
-                        results=conn_loadmatfile(fullfile(CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'));
+                    elseif conn_existfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'))
+                        results=conn_loadmatfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'));
                         if all(abs(CONN_x.Preproc.qa.DataValidityScore-results.DataValidityScore)<1e-8)
                             if results.DataValidityScore>=.95, set(CONN_h.menus.m_preproc_00{42},'string',sprintf('%s%% %c',mat2str(100*results.DataValidityScore,3),marks(2)));
                             else set(CONN_h.menus.m_preproc_00{42},'string',sprintf('%s%% %c',mat2str(100*results.DataValidityScore,3),marks(1)));
@@ -7622,13 +7625,13 @@ else
                 end
             end
             if updateqaplots(2)
-                if ~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<2||isempty(CONN_x.Preproc.qa.folders{2})||~conn_existfile(CONN_x.Preproc.qa.folders{2},2)
+                if ~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<2||isempty(CONN_x.Preproc.qa.folders{2})||~conn_existfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{2}),2)
                     conn_qascores('DataQuality', [], updateqaplots_subjects, updateqaplots_QC_variables, updateqaplots_Control_variables);
                 end
                 try
                     if ~isfield(CONN_x.Preproc.qa,'folders')||numel(CONN_x.Preproc.qa.folders)<2, CONN_x.Preproc.qa.folders{2}=[]; 
-                    elseif conn_existfile(fullfile(CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'))
-                        results=conn_loadmatfile(fullfile(CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'));
+                    elseif conn_existfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'))
+                        results=conn_loadmatfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'));
                         if all(abs(CONN_x.Preproc.qa.DataQualityScore-results.DataQualityScore)<1e-8)
                             if results.DataQualityScore>=.95, set(CONN_h.menus.m_preproc_00{45},'string',sprintf('%s%% %c',mat2str(100*min(results.DataQualityScore),3),marks(2)));
                             else set(CONN_h.menus.m_preproc_00{45},'string',sprintf('%s%% %c',mat2str(100*min(results.DataQualityScore),3),marks(1)));
@@ -8750,6 +8753,7 @@ else
 %                                     [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
 %                                 end
 								set(CONN_h.screen.hfig,'pointer','arrow');
+                                try, focus(CONN_h.screen.hfig); end
                             end
                             filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
                             CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,DOREM{2}{:}); %CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename,'names','data','crop','xyz','source','conditionname','conditionweights'); CONN_h.menus.m_analyses.X1.filename=filename; 
@@ -9585,6 +9589,7 @@ else
 %                                     [CONN_h.menus.m_analyses.y.data,CONN_h.menus.m_analyses.y.idx]=conn_get_slice(CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.slice);
 %                                 end
 								set(CONN_h.screen.hfig,'pointer','arrow');
+                                try, focus(CONN_h.screen.hfig); end
                             end
                             %filename=fullfile(filepath,['ROI_Subject',num2str(nsubs,'%03d'),'_Condition',num2str(CONN_h.menus.m_analyses.icondition(nconditions),'%03d'),'.mat']);
                             %CONN_h.menus.m_analyses.X1=conn_loadmatfile(filename);
@@ -9931,6 +9936,7 @@ else
                                 set(CONN_h.screen.hfig,'pointer',CONN_gui.waiticon);drawnow
                                 d=conn_v2v('compute_slice',measures,nmeasure,CONN_h.menus.m_analyses.Y,CONN_h.menus.m_analyses.y.data.D,CONN_h.menus.m_analyses.y.slice);
                                 set(CONN_h.screen.hfig,'pointer','arrow');
+                                try, focus(CONN_h.screen.hfig); end
                                 %                         t1=zeros(CONN_h.menus.m_analyses.Y(1).dim(1:2));
                                 %                         t2=0+zeros(CONN_h.menus.m_analyses.Y(1).dim(1:2));
                                 t1=d;
@@ -11664,6 +11670,7 @@ else
                         CONN_h.menus.m_results.Xs=permute(reshape(CONN_h.menus.m_results.Xs,CONN_h.menus.m_results.Y(1).dim(1:2)),[2,1,3]);
                         CONN_h.menus.m_results.Xs=(CONN_h.menus.m_results.Xs/max(CONN_h.menus.m_results.Xs(:))).^3;
                         set(CONN_h.screen.hfig,'pointer','arrow');
+                        try, focus(CONN_h.screen.hfig); end
                         if conn_surf_dimscheck(CONN_h.menus.m_results.Y(1).dim)&&~CONN_h.menus.m_results_surfhires, %if isequal(CONN_h.menus.m_results.Y(1).dim,conn_surf_dims(8).*[1 1 2])&&~CONN_h.menus.m_results_surfhires, 
                             %strstr3={'Preview data low-res (display individual effects in GLM model)','Preview results low-res (display GLM model results)','Do not display data or results preview'};%,'Results whole-brain (full model)'};
                             strstr3={'Group analysis results (from disk)','Group analysis results (low-res preview)','GLM parameters (low-res preview)'};
@@ -12010,6 +12017,7 @@ else
                                  modelroi=0;
                              end
                              set(CONN_h.screen.hfig,'pointer','arrow');
+                             try, focus(CONN_h.screen.hfig); end
                          elseif state==2||state==3
                              CONN_h.menus.m_results.y.data=[];
                              CONN_h.menus.m_results.design.Y={};
@@ -13384,7 +13392,7 @@ else
             CONN_x.gui.display=true;
             if conn_existfile(fullfile(CONN_h.menus.m_results.design.pwd,'ROI.mat'))
                 REDO=conn_questdlg('','results explorer','Load existing analysis results', 'Recompute/overwrite results', 'Load existing analysis results');
-                if isempty(REDO), CONN_x.gui=1; set(CONN_h.screen.hfig,'pointer','arrow'); return; end
+                if isempty(REDO), CONN_x.gui=1; set(CONN_h.screen.hfig,'pointer','arrow');  try, focus(CONN_h.screen.hfig); end; return; end
                 if strcmp(lower(REDO),'recompute/overwrite results'),
                     CONN_x.gui.overwrite='yes';
                     conn_process('results_roi'); 
@@ -13437,7 +13445,7 @@ else
             CONN_x.gui.display=true;
             if conn_existfile(fullfile(CONN_h.menus.m_results.design.pwd,'SPM.mat'))
                 REDO=conn_questdlg('','results explorer','Load existing analysis results', 'Recompute/overwrite results', 'Load existing analysis results');
-                if isempty(REDO), CONN_x.gui=1; set(CONN_h.screen.hfig,'pointer','arrow'); return; end
+                if isempty(REDO), CONN_x.gui=1; set(CONN_h.screen.hfig,'pointer','arrow'); try, focus(CONN_h.screen.hfig); end; return; end
                 if strcmp(lower(REDO),'recompute/overwrite results'),
                     CONN_x.gui.overwrite='yes';
                     if strcmp(lower(varargin{1}),'gui_results_wholebrain_vv'), conn_process('results_voxel','dosingle','voxel-to-voxel');

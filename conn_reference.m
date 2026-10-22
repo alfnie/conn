@@ -266,17 +266,17 @@ for nopt=1:numel(opts),
             options.runqa1=false;
             options.runqa2=false;
             options.runqa3=false;
-            if conn_existfile(fullfile(CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'))
+            if conn_existfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'))
                 options.runqa1=true;
-                options.qa1=conn_loadmatfile(fullfile(CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'));
+                options.qa1=conn_loadmatfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{1},'DataValidityScore.mat'));
             end
-            if conn_existfile(fullfile(CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'))
+            if conn_existfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'))
                 options.runqa2=true;
-                options.qa2=conn_loadmatfile(fullfile(CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'));
+                options.qa2=conn_loadmatfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{2},'DataQualityScore.mat'));
             end
-            if conn_existfile(fullfile(CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'))
+            if conn_existfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'))
                 options.runqa3=true;
-                options.qa3=conn_loadmatfile(fullfile(CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'));
+                options.qa3=conn_loadmatfile(fullfile(CONN_x.folders.qa,CONN_x.Preproc.qa.folders{3},'DataSensitivityScore.mat'));
             end
             options.scores=[nan nan nan];
             if options.runqa1, options.scores(1)=options.qa1.DataValidityScore; end

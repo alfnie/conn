@@ -30,10 +30,14 @@ switch(lower(option)) % Data Validity score
     case 'datavalidity',
         if nargin<2||isempty(folderout)
             if ONEPERDAY, 
-                folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataValidity_',datestr(now,'yyyy_mm_dd')]);
+                fileout=['QA_GUIrequest_DataValidity_',datestr(now,'yyyy_mm_dd')];
+                folderout=fullfile(CONN_x.folders.qa,fileout);
                 try, conn_fileutils('deletefile_multiple',fullfile(folderout,'QA_DENOISE.subject')); end
-            else folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataValidity_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]);
+            else 
+                fileout=['QA_GUIrequest_DataValidity_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')];
+                folderout=fullfile(CONN_x.folders.qa,fileout);
             end
+        else fileout=folderout;
         end
         if nargin<3||isempty(subjects), subjects=1:CONN_x.Setup.nsubjects; end
         try
@@ -49,7 +53,7 @@ switch(lower(option)) % Data Validity score
             k=1.348980; %spm_invNcdf(.75)-spm_invNcdf(.25);
             DataValidityScore=exp(-k*abs(mean(QC_PeakFC)/mean(QC_IqrFC)));
             conn_savematfile(fullfile(folderout,'DataValidityScore.mat'),'subjects','QC_PeakFC','QC_IqrFC','DataValidityScore'),
-            CONN_x.Preproc.qa.folders{1}=folderout;
+            CONN_x.Preproc.qa.folders{1}=fileout;
             CONN_x.Preproc.qa.inputs{1}={subjects};
             CONN_x.Preproc.qa.options1=rmfield(CONN_x.Preproc,{'variables','qa'});
             CONN_x.Preproc.qa.DataValidityScore=DataValidityScore;
@@ -59,10 +63,14 @@ switch(lower(option)) % Data Validity score
     case 'dataquality'
         if nargin<2||isempty(folderout)
             if ONEPERDAY, 
-                folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataQuality_',datestr(now,'yyyy_mm_dd')]);
+                fileout=['QA_GUIrequest_DataQuality_',datestr(now,'yyyy_mm_dd')];
+                folderout=fullfile(CONN_x.folders.qa,fileout);
                 try, conn_fileutils('deletefile_multiple',fullfile(folderout,'QA_DENOISE_QC-FC.measure')); end
-            else folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataQuality_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]);
+            else 
+                fileout=['QA_GUIrequest_DataQuality_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')];
+                folderout=fullfile(CONN_x.folders.qa,fileout);
             end
+        else fileout=folderout;
         end
         if nargin<3||isempty(subjects), subjects=1:CONN_x.Setup.nsubjects; end
         if nargin<4||isempty(QC_variables),
@@ -83,7 +91,7 @@ switch(lower(option)) % Data Validity score
                 DataQualityScore=cellfun(@(name)conn_jsonread(fullfile(folderout,sprintf('QA_DENOISE_QC-FC.measure%s.json',name)),'AfterDenoising_PercentOverlap'),QC_variables);
                 PercentSignificant=cell2mat(cellfun(@(name)conn_jsonread(fullfile(folderout,sprintf('QA_DENOISE_QC-FC.measure%s.json',name)),'AfterDenoising_PercentSignificantEdges'),QC_variables,'uni',0));
                 conn_savematfile(fullfile(folderout,'DataQualityScore.mat'),'subjects','QC_variables','Control_variables','DataQualityScore','PercentSignificant'),
-                CONN_x.Preproc.qa.folders{2}=folderout;
+                CONN_x.Preproc.qa.folders{2}=fileout;
                 CONN_x.Preproc.qa.inputs{2}={subjects, QC_variables, Control_variables};
                 CONN_x.Preproc.qa.options2=rmfield(CONN_x.Preproc,{'variables','qa'});
                 CONN_x.Preproc.qa.DataQualityScore=DataQualityScore;
@@ -94,10 +102,14 @@ switch(lower(option)) % Data Validity score
     case 'datasensitivity'
         if nargin<2||isempty(folderout)
             if ONEPERDAY, 
-                folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataSensitivity_',datestr(now,'yyyy_mm_dd')]);
+                fileout=['QA_GUIrequest_DataSensitivity_',datestr(now,'yyyy_mm_dd')];
+                folderout=fullfile(CONN_x.folders.qa,fileout);
                 try, conn_fileutils('deletefile_multiple',fullfile(folderout,'QA_COV.subject')); end
-            else folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_DataSensitivity_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]);
+            else 
+                fileout=['QA_GUIrequest_DataSensitivity_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')];
+                folderout=fullfile(CONN_x.folders.qa,fileout);
             end
+        else fileout=folderout;
         end
         if nargin<3||isempty(subjects), subjects=1:CONN_x.Setup.nsubjects; end
         if nargin<4||isempty(QC_variables)
@@ -143,7 +155,7 @@ switch(lower(option)) % Data Validity score
                 DataSensitivityScore=1-spm_Ncdf(1.645-0.1003*sqrt(sum(QC_DOF(QC_ValidSubjects>0)-3))); % power in fixed-effects analysis to detect an average r=0.1 effect or higher
                 DataSensitivityScore_singlesubject=1-spm_Ncdf(1.645-0.1003*sqrt(mean(QC_DOF(QC_ValidSubjects>0)-3))); % power in single-subject fixed-effects analysis
                 conn_savematfile(fullfile(folderout,'DataSensitivityScore.mat'),'subjects','QC_variables','DataSensitivityScore','DataSensitivityScore_singlesubject','Nsubjects','QC_OutlierScore','QC_ValidSubjects','QC_DOF'),
-                CONN_x.Preproc.qa.folders{3}=folderout;
+                CONN_x.Preproc.qa.folders{3}=fileout;
                 CONN_x.Preproc.qa.inputs{3}={subjects, QC_variables};
                 CONN_x.Preproc.qa.options3=rmfield(CONN_x.Preproc,{'variables','qa'});
                 CONN_x.Preproc.qa.DataSensitivityScore=DataSensitivityScore;
@@ -153,9 +165,14 @@ switch(lower(option)) % Data Validity score
 
     case 'combined', %{'datavaliditydataquality','dataqualitydatavalidity'} % note: obsolete, tbr
         if nargin<2||isempty(folderout)
-            if ONEPERDAY, folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_combined_',datestr(now,'yyyy_mm_dd')]);
-            else folderout=fullfile(CONN_x.folders.qa,['QA_GUIrequest_combined_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')]);
+            if ONEPERDAY, 
+                fileout=['QA_GUIrequest_combined_',datestr(now,'yyyy_mm_dd')];
+                folderout=fullfile(CONN_x.folders.qa,fileout);
+            else 
+                fileout=['QA_GUIrequest_combined_',datestr(now,'yyyy_mm_dd_HHMMSSFFF')];
+                folderout=fullfile(CONN_x.folders.qa,fileout);
             end
+        else fileout=folderout;
         end
         if nargin<3||isempty(subjects), subjects=1:CONN_x.Setup.nsubjects; end
         if nargin<4||isempty(QC_variables),
@@ -176,7 +193,7 @@ switch(lower(option)) % Data Validity score
                 k=1.348980; %spm_invNcdf(.75)-spm_invNcdf(.25);
                 DataValidityScore=exp(-k*abs(mean(QC_PeakFC)/mean(QC_IqrFC)));
                 conn_savematfile(fullfile(folderout,'DataValidityScore.mat'),'subjects','QC_PeakFC','QC_IqrFC','DataValidityScore'),
-                CONN_x.Preproc.qa.folders{1}=folderout;
+                CONN_x.Preproc.qa.folders{1}=fileout;
                 CONN_x.Preproc.qa.inputs{1}={subjects};
                 CONN_x.Preproc.qa.options1=rmfield(CONN_x.Preproc,{'variables','qa'});
                 CONN_x.Preproc.qa.DataValidityScore=DataValidityScore;
@@ -184,7 +201,7 @@ switch(lower(option)) % Data Validity score
                 DataQualityScore=cellfun(@(name)conn_jsonread(fullfile(folderout,sprintf('QA_DENOISE_QC-FC.measure%s.json',name)),'AfterDenoising_PercentOverlap'),QC_variables);
                 PercentSignificant=cell2mat(cellfun(@(name)conn_jsonread(fullfile(folderout,sprintf('QA_DENOISE_QC-FC.measure%s.json',name)),'AfterDenoising_PercentSignificantEdges'),QC_variables,'uni',0));
                 conn_savematfile(fullfile(folderout,'DataQualityScore.mat'),'subjects','QC_variables','Control_variables','DataQualityScore','PercentSignificant'),
-                CONN_x.Preproc.qa.folders{2}=folderout;
+                CONN_x.Preproc.qa.folders{2}=fileout;
                 CONN_x.Preproc.qa.inputs{2}={subjects, QC_variables, Control_variables};
                 CONN_x.Preproc.qa.options2=rmfield(CONN_x.Preproc,{'variables','qa'});
                 CONN_x.Preproc.qa.DataQualityScore=DataQualityScore;

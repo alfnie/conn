@@ -124,6 +124,7 @@ if ischar(handle),
                             end
 							feval(CONN_MM.MENU{n0}.callback{n1}{1},CONN_MM.MENU{n0}.callback{n1}{2:end}); 
                             set(CONN_MM.gcf,'pointer','arrow');
+                            try, focus(CONN_MM.gcf); end
                             CONN_MM.restpos=[nan nan];
                             CONN_MM.resttime=nan;
                             donecallback=true;
@@ -138,6 +139,7 @@ if ischar(handle),
                             end
 							feval(CONN_MM.MENU{n0}.callback2{n1}{1},CONN_MM.MENU{n0}.callback2{n1}{2:end}); 
                             set(CONN_MM.gcf,'pointer','arrow');
+                            try, focus(CONN_MM.gcf); end
                             CONN_MM.restpos=[nan nan];
                             CONN_MM.resttime=nan;
                             donecallback=true;

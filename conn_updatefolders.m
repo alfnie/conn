@@ -164,6 +164,7 @@ if nargin<1||isempty(conn_x),
     if isfield(CONN_x.Preproc,'confounds')&&~isfield(CONN_x.Preproc.confounds,'fixed'), CONN_x.Preproc.confounds.fixed=repmat({0},1,length(CONN_x.Preproc.confounds.names)); end
     if ~isfield(CONN_x.Preproc,'qa'), CONN_x.Preproc.qa=struct('folders',{{[],[],[]}},'DataValidityScore',[],'DataQualityScore',[],'DataSensitivityScore',[]); end
     if ~isfield(CONN_x.Preproc.qa,'folders'), CONN_x.Preproc.qa.folders={[],[],[]}; end
+    for nfolder=1:numel(CONN_x.Preproc.qa.folders), try, if strncmp(CONN_x.Preproc.qa.folders{nfolder},CONN_x.folders.qa,numel(CONN_x.folders.qa)), CONN_x.Preproc.qa.folders{nfolder}=CONN_x.Preproc.qa.folders{nfolder}(numel(CONN_x.folders.qa)+2:end); end; end; end
     if ~isfield(CONN_x.Preproc.qa,'DataValidityScore'), CONN_x.Preproc.qa.DataValidityScore=[]; end
     if ~isfield(CONN_x.Preproc.qa,'DataQualityScore'), CONN_x.Preproc.qa.DataQualityScore=[]; end
     if ~isfield(CONN_x.Preproc.qa,'DataSensitivityScore'), CONN_x.Preproc.qa.DataSensitivityScore=[]; end
@@ -424,6 +425,7 @@ else
     if isfield(conn_x.Preproc,'confounds')&&~isfield(conn_x.Preproc.confounds,'fixed'), conn_x.Preproc.confounds.fixed=repmat({0},1,length(conn_x.Preproc.confounds.names)); end
     if ~isfield(conn_x.Preproc,'qa'), conn_x.Preproc.qa=struct('folders',{{[],[],[]}},'DataValidityScore',[],'DataQualityScore',[],'DataSensitivityScore',[]); end
     if ~isfield(conn_x.Preproc.qa,'folders'), conn_x.Preproc.qa.folders={[],[],[]}; end
+    for nfolder=1:numel(conn_x.Preproc.qa.folders), try, if strncmp(conn_x.Preproc.qa.folders{nfolder},conn_x.folders.qa,numel(conn_x.folders.qa)), conn_x.Preproc.qa.folders{nfolder}=conn_x.Preproc.qa.folders{nfolder}(numel(conn_x.folders.qa)+2:end); end; end; end
     if ~isfield(conn_x.Preproc.qa,'DataValidityScore'), conn_x.Preproc.qa.DataValidityScore=[]; end
     if ~isfield(conn_x.Preproc.qa,'DataQualityScore'), conn_x.Preproc.qa.DataQualityScore=[]; end
     if ~isfield(conn_x.Preproc.qa,'DataSensitivityScore'), conn_x.Preproc.qa.DataSensitivityScore=[]; end
