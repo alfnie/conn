@@ -6,8 +6,11 @@ function [ok,tfilename]=conn_export2cov(nl2covariates,tfilename)
 global CONN_x;
 
 ok=false;
-if nargin<1||isempty(nl2covariates)
-    nl2covariates=listdlg('liststring',CONN_x.Setup.l2covariates.names(1:end-1),'selectionmode','multiple','initialvalue',[],'promptstring',{'Select covariates to save'},'ListSize',[500 200]);
+if nargin<1||isempty(nl2covariates)||any(nl2covariates<0)
+    if nargin<1||isempty(nl2covariates), nl2covariates=1:numel(CONN_x.Setup.l2covariates.names)-1;
+    else nl2covariates=abs(nl2covariates);
+    end
+    nl2covariates=nl2covariates(listdlg('liststring',CONN_x.Setup.l2covariates.names(nl2covariates),'selectionmode','multiple','initialvalue',[],'promptstring',{'Select covariates to save'},'ListSize',[500 200]));
     if isempty(nl2covariates), return; end
 end
 if nargin<2||isempty(tfilename)

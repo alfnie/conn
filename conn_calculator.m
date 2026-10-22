@@ -99,6 +99,7 @@ if fulltype,
     ht3=conn_menu('edit',[fs0 0 0]+[fs fs].*[.02,.10,.30,.05],'Between-subjects contrast','1','<HTML>Define desired contrast across selected subject-effects<br/> - enter contrast vector/matrix with as many elements/columns as subject-effects selected <br/> - use the list below to see a list of standard contrasts for the selected subject-effects <br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
     ht2=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.33,.22,.65,.63],'Dependent measure(s)',conn_strexpand(CONN_x.Setup.l2covariates.names(icovariates2),CONN_x.Setup.l2covariates.descrip(icovariates2)),'Select outcome measure(s) / dependent variables',@(varargin)conn_calculator_update);
     ht4=conn_menu('edit',[fs0 0 0]+[fs fs].*[.33,.10,.65,.05],'Between-measures contrast','1','<HTML>Define desired contrast across selected outcome measures <br/> - enter contrast vector/matrix with as many elements/columns as outcome measures selected <br/> - use the list below to see a list of standard contrasts for the selected outcome measures<br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
+    ht6=conn_menu('pushbuttonblue2',[.75,.15,.125,.045],'','Export data','<HTML>Exports data to output file</HTML>',@(varargin)conn_calculator_export);
     hc1b=uicontextmenu;
     if showall, uimenu(hc1b,'Label','Hide secondary variables','callback',@(varargin)conn_calculator_update_hideshow);
     else uimenu(hc1b,'Label','Show secondary variables','callback',@(varargin)conn_calculator_update_hideshow);
@@ -121,6 +122,7 @@ else
     ht4c=conn_menu('edit',[fs0 0 0]+[fs fs].*[.34,.15,.30,.05],'Between-conditions contrast','1','<HTML>Define desired contrast across selected conditions <br/> - enter contrast vector/matrix with as many elements/columns as selected conditions <br/> - use the list below to see a list of standard contrasts for the selected condition<br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
     ht2=conn_menu('listbox',[fs0 0 0]+[fs fs].*[.66,.30,.30,.45],'Components',umnames,'<HTML>Select outcome measure(s) <br/> - measures represent properties of timecourses for each subject/condition</HTML>',@(varargin)conn_calculator_update);
     ht4=conn_menu('edit',[fs0 0 0]+[fs fs].*[.66,.15,.30,.05],'Between-component contrast','1','<HTML>Define desired contrast across selected measures <br/> - enter contrast vector/matrix with as many elements/columns as measures selected <br/> - use the list below to see a list of standard contrasts for the selected measures<br/> - enter multiple rows separated by <b>;</b> (semicolon) for OR conjunction (multivariate test) of several contrasts</HTML>',@(varargin)conn_calculator_update);
+    ht6=conn_menu('pushbuttonblue2',[.75,.20,.125,.045],'','Export data','<HTML>Exports data to output file</HTML>',@(varargin)conn_calculator_export);
     hc1b=uicontextmenu;
     if showall, uimenu(hc1b,'Label','Hide secondary variables','callback',@(varargin)conn_calculator_update_hideshow('hide'));
     else uimenu(hc1b,'Label','Show secondary variables','callback',@(varargin)conn_calculator_update_hideshow('show'));
@@ -325,6 +327,11 @@ conn_calculator_update;
         set(ht1,'string',conn_strexpand(CONN_x.Setup.l2covariates.names(icovariates1),CONN_x.Setup.l2covariates.descrip(icovariates1)),'value',unique(min(numel(icovariates1), get(ht1,'value'))));
         X1=X(:,icovariates1);
         conn_calculator_update;
+    end
+
+    function conn_calculator_export(varargin)
+        conn_export2cov(-icovariates2);
+        try, focus(CONN_h.screen.hfig); end
     end
 end
 
