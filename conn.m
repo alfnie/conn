@@ -11469,8 +11469,8 @@ else
                     switch(state)
                         case 1,
                             if ischar(CONN_x.Analyses(ianalysis).modulation), 
-                                CONN_h.menus.m_results.suggest_within_mnamelong='temporal modulation of connectivity between ROI pairs (RRC)';
-                                CONN_h.menus.m_results.suggest_within_mnameshort='temporal modulation of connectivity';
+                                CONN_h.menus.m_results.suggest_within_mnamelong='temporal modulation of connectivity strength between ROI pairs (RRC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='modulation strength';
                             elseif ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>0, 
                                 CONN_h.menus.m_results.suggest_within_mnamelong='task-related connectivity between ROI pairs (RRC)';
                                 CONN_h.menus.m_results.suggest_within_mnameshort='task-related connectivity';
@@ -11480,8 +11480,8 @@ else
                             end
                         case 2,
                             if ischar(CONN_x.Analyses(ianalysis).modulation), 
-                                CONN_h.menus.m_results.suggest_within_mnamelong='temporal modulation of connectivity (SBC)';
-                                CONN_h.menus.m_results.suggest_within_mnameshort='temporal modulation of connectivity';
+                                CONN_h.menus.m_results.suggest_within_mnamelong='temporal modulation of connectivity strength (SBC)';
+                                CONN_h.menus.m_results.suggest_within_mnameshort='modulation strength';
                             elseif ~ischar(CONN_x.Analyses(ianalysis).modulation)&&CONN_x.Analyses(ianalysis).modulation>0, 
                                 CONN_h.menus.m_results.suggest_within_mnamelong='task-related connectivity (SBC)';
                                 CONN_h.menus.m_results.suggest_within_mnameshort='task-related connectivity';

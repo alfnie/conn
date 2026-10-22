@@ -4136,7 +4136,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
             end
             if do
                 REDO='Yes';
-                DEMEAN=false; % true=disregard between-subject variability in average connectivity; set to true for back-compatibility
+                DEMEAN=true; % true=disregard between-subject variability in average connectivity; set to true for back-compatibility
                 X=[];
                 Y=[];
                 Xfilter=[];
@@ -4246,8 +4246,28 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 DOICA=true;
                 FLIPSIGN=true;
                 DOWHITEN=false;
-                [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,true,DOICA,FLIPSIGN,DOWHITEN);
+                [H,B,H0,B0]=conn_invPPI(Y,Ncomponents,tX,Xfilter,true,DOICA,FLIPSIGN,DOWHITEN,DEMEAN);
                 Ncomponents=size(H,2);
+                if 1 % norms H & B
+                    K=sqrt(sum(sum(abs(B).^2,1),2)); % sets norm(B(component))=1
+                    B=B./repmat(max(eps,K),[size(B,1),size(B,2),1]);
+                    H=H.*repmat(shiftdim(K,1),[size(H,1),1]);
+                end
+                if DEMEAN, % re-organizes B0, H0, and H1 to have { C(subject,time) = C + D(subject) + sum_component B(component)*H1(subject,component,time) } with {sum_subject(D(subject)) = 0} and {vec(B(component))'*vec(D(subject)) = 0}
+                    B0global = mean(B0,3); % mean connectivity across all subjects
+                    D = B0 - B0global; 
+                    K = zeros(size(B0,3),size(B,3));
+                    for nc1=1:size(B,3)
+                        ct2=sum(sum(B(:,:,nc1).*B(:,:,nc1),1),2);
+                        for nc0=1:size(B0,3)
+                            ct1=sum(sum(D(:,:,nc0).*B(:,:,nc1),1),2);
+                            K(nc0,nc1)=ct1/max(eps,ct2);
+                            D(:,:,nc0)=D(:,:,nc0)-B(:,:,nc1)*K(nc0,nc1);
+                        end
+                    end
+                    B0=repmat(B0global,[1,1,size(B0,3)])+D; % note: subtracts from subject-specific mean (B0) components in the direction of each circuit
+                    H=H+H0*K; % note: adds to H subject-specific mean in the direction of each circuit ((H0\H)=0)
+                end
                 CONN_x.dynAnalyses(CONN_x.dynAnalysis).sources=roinames;
                 filename=fullfile(filepathresults,'dyn_Base.mat');
                 names=arrayfun(@(n)sprintf('Dynamic factor %02d',n),1:Ncomponents,'uni',0);

@@ -44,6 +44,7 @@ if Nt>1&&isscalar(X1) % if X1 is length of hanning smoothing kernel
         X1=sparse(i,j,v,Nt,Nt);
     end
 end
+DONORM=false; % normalizes output H1 scores to unit variance
 DOORTHB=true; % orthogonal B1 matrices (set to false for orthogonal H1 timeseries; back-compatibility)
 REMOVEX0VAR=true;
 if DOWHITEN
@@ -224,17 +225,19 @@ if DOICA&&Nk1>1
     end
 end
 
-% nk=sqrt(mean(H1.^2,1));
-% H1=conn_bsxfun(@rdivide,H1,nk);
-% B1=conn_bsxfun(@times,B1,shiftdim(nk,-1));
+if DONORM
+    nk=sqrt(mean(H1.^2,1));
+    H1=conn_bsxfun(@rdivide,H1,nk);
+    B1=conn_bsxfun(@times,B1,shiftdim(nk,-1));
+end
 
 if DOWHITEN
     for nk=1:size(B1,3), B1(:,:,nk)=sX*B1(:,:,nk)*sX'; end
 end
 if FLIPSIGN
-    signB=sum(sum(B1.^3,1),2)<0;
-    B1(:,:,signB)=-B1(:,:,signB);
-    H1(:,signB)=-H1(:,signB);
+    flipSign=sum(sum(B1.^3,1),2)<0;
+    B1(:,:,flipSign)=-B1(:,:,flipSign);
+    H1(:,flipSign)=-H1(:,flipSign);
 end
 
 if nargout>5

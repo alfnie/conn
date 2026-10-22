@@ -87,6 +87,11 @@ Bhf_max={}; for n2=1:size(varB,1),
     maskout=Bhf_maxval{n2}>=prctile(Bhf_maxval{n2},90); Bhf_max{n2}=Bhf_max{n2}(maskout); Bhf_maxval{n2}=Bhf_maxval{n2}(maskout); 
 end
 
+Hpos=3*sum(H.*(H>0),1)./max(eps,sum(H>0,1));
+Hneg=3*sum(H.*(H<0),1)./max(eps,sum(H<0,1));
+Bpos=repmat(mean(B0,1),[size(B,1),1,1])+reshape(diag(Hpos)*B(:,:),size(B));
+Bneg=repmat(mean(B0,1),[size(B,1),1,1])+reshape(diag(Hneg)*B(:,:),size(B));
+
 B0(:,1:size(B0,2)+1:end)=nan;
 Hscale=max(abs(H(:)));
 idxlock=[1,2,0]; 
@@ -94,26 +99,28 @@ idxlock=[1,2,0];
 boffset=[0 0 0 0];
 conn_menu('frame',boffset+[.01,.42,.47,.47],'');%'Component loadings');
 %conn_menu('frame',boffset+[.44 .46 .16 .46],'');
-poslist=boffset+[.07 .42 .40 .36];
+poslist=boffset+[.03 .42 .44 .35];
+imagepos=[.50 .42 .45 .41];
 ht2=conn_menu('listbox',poslist,'',names,'<HTML>Select dynamic circuits for display</HTML>',@(varargin)conn_dynexplore_update([0 0 1 0]));
 for n=6:20, set(ht2,'string',repmat(' ',1,5*n),'fontname','monospaced','fontsize',8+CONN_gui.font_offset); if get(ht2,'extent')*[0 0 1 0]'>poslist(3), break; end; end
 ht3fieldsize=sprintf('%d',n-1);
-temp=boffset+[.07 .78 .38/5 .04];
+temp=boffset+[.03 .77 .40/5 .04];
 ht2a(1)=conn_menu('pushbutton',temp+[0*temp(3) 0 0 0],'','circuit','Select circuit(s) for display',@(varargin)conn_dynexplore_update([0 0 0 0 1]));
-ht2a(2)=conn_menu('pushbutton',temp+[1*temp(3) 0 0 0],'','kurtosis','Spatial kurtosis (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 2]));
-ht2a(3)=conn_menu('pushbutton',temp+[2*temp(3) 0 0 0],'','skewness','Spatial skewness (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 3]));
+ht2a(2)=conn_menu('pushbutton',temp+[1*temp(3) 0 0 0],'','circuit kurtosis','Spatial kurtosis (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 2]));
+ht2a(3)=conn_menu('pushbutton',temp+[2*temp(3) 0 0 0],'','circuit skewness','Spatial skewness (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 3]));
 ht2a(4)=conn_menu('pushbutton',temp+[3*temp(3) 0 0 0],'','state variability','State variability (standard deviation) averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 4]));
-ht2a(5)=conn_menu('pushbutton',temp+[4*temp(3) 0 0 0],'','state switch-rate','State swithing rate (switches per minute) averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 5]));
-ht1=conn_menu('listbox2',boffset+[.80 .26 .10 .08],'Subjects',arrayfun(@(n)sprintf('Subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'Select subject(s) for display',@(varargin)conn_dynexplore_update);
-ht7=conn_menu('edit2',boffset+[.78 .38 .05 .04],'','2','display threshold',@(varargin)conn_dynexplore_update([0 0 1 0 0]));
+ht2a(5)=conn_menu('pushbutton',temp+[4*temp(3) 0 0 0],'','state switch-rate','State swithing rate (number of changes per minute in a circuit state sign) averaged across all subjects (click to sort)',@(varargin)conn_dynexplore_update([0 0 0 0 5]));
+ht1=conn_menu('listbox2',boffset+[.33 .11 .10 .16],'Subjects',arrayfun(@(n)sprintf('Subject %d',n),1:CONN_x.Setup.nsubjects,'uni',0),'Select subject(s) for display',@(varargin)conn_dynexplore_update);
+thr=2;
+ht7=conn_menu('edit2',boffset+[.78 .38 .05 .04],'',num2str(thr),'display threshold',@(varargin)conn_dynexplore_update([0 0 1 0 0]));
 ht7b=conn_menu('text2',boffset+[.73 .38 .05 .035],'','threshold');
-[ht6a(1) ht6a(2)]=conn_menu('popup2',boffset+[.80 .18 .16 .04],'Seed ROI',ROInamesDisplay,'<HTML>Select seed ROI for dynamic connectivity timeseries display</HTML>',@(varargin)conn_dynexplore_selectroi);
-[ht6b(1) ht6b(2)]=conn_menu('popup2',boffset+[.80 .11 .16 .04],'Target ROI',ROInamesDisplay,'<HTML>Select target ROI for dynamic connectivity timeseries display</HTML>',@(varargin)conn_dynexplore_selectroi);
-ht3=conn_menu('slider',boffset+[.20 .10 .55 .04],'Time',1,'<HTML>Select time point</HTML>',@(varargin)conn_dynexplore_update);
+%[ht6a(1) ht6a(2)]=conn_menu('popup2',boffset+[.80 .18 .16 .04],'Seed ROI',ROInamesDisplay,'<HTML>Select seed ROI for dynamic connectivity timeseries display</HTML>',@(varargin)conn_dynexplore_selectroi);
+%[ht6b(1) ht6b(2)]=conn_menu('popup2',boffset+[.80 .11 .16 .04],'Target ROI',ROInamesDisplay,'<HTML>Select target ROI for dynamic connectivity timeseries display</HTML>',@(varargin)conn_dynexplore_selectroi);
+ht3=conn_menu('slider',boffset+[imagepos(1) .06 imagepos(3) .02],'Time',1,'<HTML>Select time point</HTML>',@(varargin)conn_dynexplore_update);
 try, addlistener(ht3, 'ContinuousValueChange',@(varargin)conn_dynexplore_update); end
 set(ht3,'visible','off');
-conn_menumanager('onregion',ht3,1,boffset+[.18 .08 .59 .08]);
-ht4=conn_menu('popup2',boffset+[.60 .84 .18 .04],'',{'Circuits','Estimated dynamic connectivity','Static vs. Dynamic connectivity plot'},'<HTML>Select connectivity display <br/> - <i>Circuits</i> shows the spatial component scores for each selected circuit(s) (connections showing joint modulation of functional connectivity)<br/> - <i>Estimated dynamic connectivity</i> shows the estimated ROI-to-ROI connectivity at each timepoint/scan <br/> - <i>Static vs. Dynamic connectivity plot</i> shows a scatter plot comparing the static vs. dynamic connectivity (at each timepoint/scan) for each connection</HTML>',@(varargin)conn_dynexplore_update);
+%conn_menumanager('onregion',ht3,1,boffset+[imagepos(1)-.02 .04 imagepos(3)+.04 .08]);
+ht4=conn_menu('popup2',boffset+[.60 .84 .18 .04],'',{'Circuits','Circuit positive-state connectivity','Circuit negative-state connectivity','Estimated dynamic connectivity','Static vs. Dynamic connectivity plot'},'<HTML>Select connectivity display <br/> - <i>Circuits</i> shows the circuit spatial scores for each selected circuit(s) (connections showing joint modulation of functional connectivity)<br/> - <i>Estimated dynamic connectivity</i> shows the estimated ROI-to-ROI connectivity at each timepoint/scan <br/> - <i>Static vs. Dynamic connectivity plot</i> shows a scatter plot comparing the static vs. dynamic connectivity (at each timepoint/scan) for each connection</HTML>',@(varargin)conn_dynexplore_update([0 0 1 0]));
 ht4b=conn_menu('popup2',boffset+[.60 .34 .20 .04],'',{'Display full connectivity','Display selected circuit(s) contribution only'},'<HTML>Select full connectivity to display the full dynamic ROI-to-ROI connectivity values or <br/> only the portion explained by the selected circuit(s)</HTML>',@(varargin)conn_dynexplore_update);
 ht4c=conn_menu('pushbutton2',boffset+[.78 .84 .05 .04],'','Play','<HTML>Display dynamic connectivity over time</HTML>',@(varargin)conn_dynexplore_play);
 %conn_menumanager('onregion',ht4c,1,boffset+[.65 .05 .3 .775]);
@@ -121,8 +128,8 @@ set(ht1,'max',2,'value',1);
 set(ht2,'max',2,'value',1:numel(names));
 set(ht4,'value',1);
 set(ht4c,'interruptible','on','userdata',0);
-set(ht6a(1),'value',idxlock(1));
-set(ht6b(1),'value',idxlock(2));
+%set(ht6a(1),'value',idxlock(1));
+%set(ht6b(1),'value',idxlock(2));
 
 %cmap=[[flipud(gray(128))*diag([0 0 1]);(gray(128))*diag([1 0 0])]; gray(256); CONN_gui.backgroundcolor];
 cmap=[jet(256); gray(256); CONN_gui.backgroundcolor];
@@ -150,12 +157,13 @@ conn_dynexplore_update([1 1 1 1 1]);
         dtype=get(ht4,'value');
         ptype=get(ht4b,'value');
         thr=str2num(get(ht7,'string')); if isempty(thr), thr=2; set(ht7,'string',num2str(thr)); end
+        thr=thr/size(B,2); % thr in z units, B is norm 1
         nfacselected=nfacshown(ifac);
         itime=find(ismember(IDX_subject,nsub));
         Nt=numel(itime);
         Nf=size(B,1);
         ntold=nt; nt=max(1,min(Nt, nt));
-        set(ht3,'min',1,'max',Nt,'sliderstep',1/max(1,Nt)*[1 2]);
+        if get(ht3,'max')~=Nt, set(ht3,'min',1,'max',Nt,'sliderstep',[.01 .10]); end %1/max(1,Nt)*[1 2]); end
         if nt~=ntold, set(ht3,'value',nt); end
         if isempty(itime), ntime=[]; 
         else ntime=itime(max(1,min(numel(itime),nt)));
@@ -239,8 +247,18 @@ conn_dynexplore_update([1 1 1 1 1]);
         if doreset(3)||isempty(handleload)||any(~ishandle(handleload))
             conn_menumanager('onregionremove',handleload(ishandle(handleload)));delete(handleload(ishandle(handleload)));
             h1=axes('units','norm','position',imagepos,'color',CONN_gui.backgroundcolor);
-            temp=permute(B(nfacselected,idxorder,idxorder),[2 3 1]);
-            belowthr=abs(temp)<thr;
+            switch(dtype)
+                case 2, 
+                    temp=permute(Bpos(nfacselected,idxorder,idxorder),[2 3 1]);
+                    belowthr=false(size(temp));
+                case 3,
+                    temp=permute(Bneg(nfacselected,idxorder,idxorder),[2 3 1]);
+                    belowthr=false(size(temp));
+                otherwise, 
+                    temp=permute(B(nfacselected,idxorder,idxorder),[2 3 1]);
+                    belowthr=abs(temp)<thr;
+            end
+            
             temp=temp/max(abs(temp(:)));
             temp(belowthr)=1.5+.4*temp(belowthr);
             [temp2,handleloads1s2]=conn_menu_montage(h1,permute(temp,[1,2,4,3]));
@@ -261,26 +279,27 @@ conn_dynexplore_update([1 1 1 1 1]);
         end
         if doreset(4)||isempty(handlescor)||any(~ishandle(handlescor))
             delete(handlescor(ishandle(handlescor)));
-            h1=axes('units','norm','position',[.20 .12 .55 .24]);
+            h1=axes('units','norm','position',[imagepos(1) .12 imagepos(3) .22]);
             if isempty(itime), h2=plot(nan(2,Nf),nan(2,Nf),'-',nan,nan,'w-',[0 size(H,1)+1 nan 0 size(H,1)+1],[0 0 nan -2 -2],'k-',[0 0],[-4 2],'w:');
-            else h2=plot(repmat((1:Nt)',1,Nf),H(itime,:),'-',1:Nt,zeros(1,Nt),'w-',[0 size(H,1)+1 nan 0 size(H,1)+1],[0 0 nan -2 -2],'k-',[0 0],[-4 2],'w:');
+            else h2=plot(repmat((1:Nt)',1,Nf),H(itime,:),'-',1:Nt,zeros(1,Nt),'w-',[0 size(H,1)+1 nan 0 size(H,1)+1],[0 0 nan -2 -2],'k-',[0 0],[-4 2],'w:',[0 0],[-1.5 1.5],'w-');
             end
-            set(h2(end),'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)));
-            set(h2(end-1),'color',.5*[1 1 1]);
+            set(h2(end),'color',.5*[1 1 1],'linewidth',1);
+            set(h2(end-1),'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)));
+            set(h2(end-2),'color',.5*[1 1 1],'linewidth',2);
             set(h2(Nf+1),'linewidth',2,'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)));
             axis tight;
             hold on; h3=text(0,1.6,'','horizontalalignment','left','color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)),'fontsize',CONN_gui.font_offset+7); hold off;
             hold on; h4=text(0,1.6-2,'','interpreter','tex','horizontalalignment','right','color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)),'fontsize',CONN_gui.font_offset+7); hold off;
             set(h1,'xlim',[0 Nt+1],'ylim',[-3.5 1.5],'color',CONN_gui.backgroundcolor,'xcolor',CONN_gui.backgroundcolor,'ycolor',CONN_gui.backgroundcolor,'xtick',[],'ytick',[]);
             h=xlabel('Time / scans'); set(h,'fontsize',CONN_gui.font_offset+8,'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)));
-            hold on; h2a=text(get(gca,'xlim')*[1.025;-.025],0,{'Circuit','state'},'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)),'horizontalalignment','right','fontsize',CONN_gui.font_offset+8); 
+            hold on; h2a=text(get(gca,'xlim')*[1.025;-.025],0,{'Circuit state'},'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)),'horizontalalignment','right','fontsize',CONN_gui.font_offset+8); 
             h2b=text(get(gca,'xlim')*[1.025;-.025],-2,{'ROI-to-ROI','connectivity','(dynamic)^(^*^)'},'interpreter','tex','color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)),'horizontalalignment','right','fontsize',CONN_gui.font_offset+8); hold off;
-            handlescor=[h2(:)' h3 h4 h1 h2b];
+            handlescor=[h2(:)' h2a h3 h4 h1 h2b];
         end
         switch(dtype)
-            case 1, set([handleplot handleimag],'visible','off'); set(handleload(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','on'); set([ht3 ht4b ht4c],'visible','off');
-            case 2, set([handleplot handleload],'visible','off'); set(handleimag(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','off'); set([ht3 ht4b ht4c],'visible','on');
-            case 3, set([handleimag handleload],'visible','off'); set(handleplot(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','off'); set([ht3 ht4b ht4c],'visible','on');
+            case {1,2,3}, set([handleplot handleimag],'visible','off'); set(handleload(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','on');  set([ht3 ht4b ht4c],'visible','off');
+            case 4, set([handleplot handleload],'visible','off'); set(handleimag(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','off'); set([ht3 ht4b ht4c],'visible','on');
+            case 5, set([handleimag handleload],'visible','off'); set(handleplot(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','off'); set([ht3 ht4b ht4c],'visible','on');
         end
         temp=max(-2,min(2,c0(idxorder,idxorder)+c(idxorder,idxorder))); %temp(1:size(temp,1)+1:end)=nan;
         %temp=c(idxorder,idxorder); %temp(1:size(temp,1)+1:end)=nan;
@@ -311,18 +330,23 @@ conn_dynexplore_update([1 1 1 1 1]);
             set(handleimag(1),'vertices',temp.vertices,'faces',temp.faces,'facevertexcdata',temp.facevertexcdata);
             set(handleimag(2),'xlim',[0,numel(idxorder)+1],'ylim',[0,numel(idxorder)+1]);
         end           
-        for n=1:Nf, if any(nfacselected==n), set(handlescor(n),'xdata',1:Nt,'ydata',H(itime,n)/Hscale); else set(handlescor(n),'xdata',1:Nt,'ydata',nan(1,Nt)); end; end
+        for n=1:Nf, if any(nfacselected==n), set(handlescor(n),'xdata',conn_expandwithnan(1:Nt,IDX_subject(itime)+1i*IDX_session(itime)),'ydata',conn_expandwithnan(H(itime,n)/Hscale,IDX_subject(itime)+1i*IDX_session(itime))); else set(handlescor(n),'xdata',1:Nt,'ydata',nan(1,Nt)); end; end
         if ptype==1, tempr=H0(itime,:)*B0(:,idxlock(1),idxlock(2))+H(itime,:)*B(:,idxlock(1),idxlock(2));  % complete fit
         else tempr=H0(itime,:)*B0(:,idxlock(1),idxlock(2))+H(itime,nfacselected)*B(nfacselected,idxlock(1),idxlock(2)); % only portion explained by selected factor
         end
-        set(handlescor(Nf+1),'xdata',1:Nt,'ydata',-2+tempr);
+        set(handlescor(Nf+1),'xdata',conn_expandwithnan(1:Nt,IDX_subject(itime)+1i*IDX_session(itime)),'ydata',conn_expandwithnan(-2+tempr,IDX_subject(itime)+1i*IDX_session(itime)));
         set(handlescor(Nf+3),'xdata',nt+[0 0]); 
+        if ~isempty(itime)&&~all(IDX_subject(itime)==IDX_subject(itime(1)))
+           xborder=reshape(.5+find(IDX_subject(itime(2:end))~=IDX_subject(itime(1:end-1))),1,[]);
+           set(handlescor(Nf+4),'xdata',reshape(cat(1,repmat(xborder,2,1),nan(1,numel(xborder))),1,[]),'ydata',repmat([-2 2 nan],1,numel(xborder)));
+        end
         set(handlescor(end-3),'position',[nt 1.6 0],'string',sprintf('Subject %d Session %d Scan %d',IDX_subject(ntime),IDX_session(ntime),IDX_scan(ntime))); 
         hext=get(handlescor(end-3),'extent'); hext=hext(end-1:end); set(handlescor(end-3),'position',[min(Nt,nt+hext(1))-hext(1) 1.6 0]); 
-        set(handlescor(end-2),'position',[Nt -1.5-2 0],'string',sprintf('^(^*^) Connectivity between %s and %s',ROInamesDisplay2{idxlock(1:2)})); 
+        set(handlescor(end-2),'position',[Nt -1.5-1.8 0],'string',sprintf('^(^*^) Connectivity between %s and %s',ROInamesDisplay2{idxlock(1:2)})); 
         set(handlescor(end-1),'xlim',[0 Nt+1]);
-        if dtype==1, set(handlescor([Nf+1 end-2 end]),'visible','off'); set(handlescor(end-1),'ylim',[-1.5 1.5]);
-        else set(handlescor([Nf+1 end-2 end]),'visible','on'); set(handlescor(end-1),'ylim',[-3.5 1.5]);
+        set(handlescor(end-4),'position',[-.025*(Nt+1) 0 0]);
+        if dtype<=3, set(handlescor([Nf+1 Nf+3 end-3 end-2 end]),'visible','off'); set(handlescor(end-1),'ylim',[-1.25 1.25]);
+        else set(handlescor([Nf+1 Nf+3 end-3 end-2 end]),'visible','on'); set(handlescor(end-1),'ylim',[-3.5 1.5]);
         end
         try, if isfield(CONN_h,'menus')&&isfield(CONN_h.menus,'waiticonObj'), CONN_h.menus.waiticonObj.stop; end; end
     end
@@ -339,13 +363,13 @@ conn_dynexplore_update([1 1 1 1 1]);
             hf=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhf_order(1:min(size(B,1),3),idxorder(pos(1)),idxorder(pos(2))),Bhf_values(1:min(size(B,1),3),idxorder(pos(1)),idxorder(pos(2))),'uni',0)';
             hf1=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhfc_order(1:min(size(B,1),3),idxorder(pos(1))),Bhfc_values(1:min(size(B,1),3),idxorder(pos(1))),'uni',0)';
             hf2=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhfc_order(1:min(size(B,1),3),idxorder(pos(2))),Bhfc_values(1:min(size(B,1),3),idxorder(pos(2))),'uni',0)';
-            set(handleimag(end),'units','pixels','string',[{'Connectivity between:' ROInamesDisplay{idxorder(pos(2))} ['and ',ROInamesDisplay{idxorder(pos(1))}] ' ' 'Highest component scores for this connection:'} hf]); % {' ' ['Highest component score for ' ROInamesDisplay{idxorder(pos(2))}]} hf2 {' ' ['Highest component score for ' ROInamesDisplay{idxorder(pos(1))}]} hf1]);
+            set(handleimag(end),'units','pixels','string',[{'Connectivity between:' ROInamesDisplay{idxorder(pos(2))} ['and ',ROInamesDisplay{idxorder(pos(1))}] ' ' 'Highest circuit score for this connection:'} hf]); % {' ' ['Highest component score for ' ROInamesDisplay{idxorder(pos(2))}]} hf2 {' ' ['Highest component score for ' ROInamesDisplay{idxorder(pos(1))}]} hf1]);
             hext=get(handleimag(end),'extent'); hext=hext(end-1:end);
             set(handleimag(end),'position',[pos0(1:2)+[10 -hext(2)-10] hext]);
             set(handleimag(end-1),'xdata',pos(1),'ydata',pos(2),'visible','on');
             idxlock(1:2)=[idxorder(pos(2)) idxorder(pos(1))];
-            set(ht6a(1),'value',idxlock(1));
-            set(ht6b(1),'value',idxlock(2));
+            %set(ht6a(1),'value',idxlock(1));
+            %set(ht6b(1),'value',idxlock(2));
             conn_dynexplore_update;
         end
     end
@@ -364,14 +388,14 @@ conn_dynexplore_update([1 1 1 1 1]);
             ht=sprintf('Circuit %d (%.3f)',nfacselected(idxf),B(nfacselected(idxf),idxorder(pos(1)),idxorder(pos(2))));
             hf1=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhfc_order(1:min(size(B,1),3),idxorder(pos(1))),Bhfc_values(1:min(size(B,1),3),idxorder(pos(1))),'uni',0)';
             hf2=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhfc_order(1:min(size(B,1),3),idxorder(pos(2))),Bhfc_values(1:min(size(B,1),3),idxorder(pos(2))),'uni',0)';
-            set(handleload(end),'units','pixels','string',[{ht 'Connectivity between:' ROInamesDisplay{idxorder(pos(2))} ['and ',ROInamesDisplay{idxorder(pos(1))}] ' ' 'Highest component scores for this connection:'} hf]);% {' ' ['Highest component score for ' ROInamesDisplay{idxorder(pos(2))}]} hf2 {' ' ['Highest component score for ' ROInamesDisplay{idxorder(pos(1))}]} hf1]);
-            %set(handleload(end),'units','pixels','string',[{ht 'Connectivity between:' ROInamesDisplay{idxorder(pos(2))} ['and ',ROInamesDisplay{idxorder(pos(1))}] ' ' 'Highest component scores for this connection:'} hf]);
+            set(handleload(end),'units','pixels','string',[{ht 'Connectivity between:' ROInamesDisplay{idxorder(pos(2))} ['and ',ROInamesDisplay{idxorder(pos(1))}] ' ' 'Highest circuit score for this connection:'} hf]);% {' ' ['Highest component score for ' ROInamesDisplay{idxorder(pos(2))}]} hf2 {' ' ['Highest component score for ' ROInamesDisplay{idxorder(pos(1))}]} hf1]);
+            %set(handleload(end),'units','pixels','string',[{ht 'Connectivity between:' ROInamesDisplay{idxorder(pos(2))} ['and ',ROInamesDisplay{idxorder(pos(1))}] ' ' 'Highest circuit score for this connection:'} hf]);
             hext=get(handleload(end),'extent'); hext=hext(end-1:end);
             set(handleload(end),'position',[pos0(1:2)+[10 -hext(2)-10] hext]);
             %set(handleload(end-1),'xdata',pos1(1),'ydata',pos1(2),'visible','on');
             idxlock(1:2)=[idxorder(pos(2)) idxorder(pos(1))];
-            set(ht6a(1),'value',idxlock(1));
-            set(ht6b(1),'value',idxlock(2));
+            %set(ht6a(1),'value',idxlock(1));
+            %set(ht6b(1),'value',idxlock(2));
             conn_dynexplore_update;
         end
     end
@@ -390,14 +414,14 @@ conn_dynexplore_update([1 1 1 1 1]);
             hf=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhf_order(1:min(size(B,1),3),pos(1),pos(2)),Bhf_values(1:min(size(B,1),3),pos(1),pos(2)),'uni',0)';
             hf1=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhfc_order(1:min(size(B,1),3),pos(1)),Bhfc_values(1:min(size(B,1),3),pos(1)),'uni',0)';
             hf2=arrayfun(@(a,b)sprintf(' Circuit %d (%.3f)',a,b),Bhfc_order(1:min(size(B,1),3),pos(2)),Bhfc_values(1:min(size(B,1),3),pos(2)),'uni',0)';
-            set(handleplot(end),'units','pixels','string',[{'Connectivity between:' ROInamesDisplay{pos(2)} ['and ',ROInamesDisplay{pos(1)}] ' ' 'Highest component scores for this connection:'} hf]);% {' ' ['Highest component score for ' ROInamesDisplay{pos(2)}]} hf2 {' ' ['Highest component score for ' ROInamesDisplay{pos(1)}]} hf1]);
-            %set(handleplot(end),'units','pixels','string',[{'Connectivity between:' ROInamesDisplay{pos(2)} ['and ' ROInamesDisplay{pos(1)}] ' ','Highest component scores:'} hf]);
+            set(handleplot(end),'units','pixels','string',[{'Connectivity between:' ROInamesDisplay{pos(2)} ['and ',ROInamesDisplay{pos(1)}] ' ' 'Highest circuit score for this connection:'} hf]);% {' ' ['Highest component score for ' ROInamesDisplay{pos(2)}]} hf2 {' ' ['Highest component score for ' ROInamesDisplay{pos(1)}]} hf1]);
+            %set(handleplot(end),'units','pixels','string',[{'Connectivity between:' ROInamesDisplay{pos(2)} ['and ' ROInamesDisplay{pos(1)}] ' ','Highest circuit score:'} hf]);
             hext=get(handleplot(end),'extent'); hext=hext(end-1:end);
             set(handleplot(end),'position',[pos0(1:2)+[10 -hext(2)-10] hext]);
             set(handleplot(end-1),'xdata',c0(idx1,idx2),'ydata',c0(idx1,idx2)+c(idx1,idx2),'visible','on');
             idxlock(1:2)=[idx1 idx2];
-            set(ht6a(1),'value',idxlock(1));
-            set(ht6b(1),'value',idxlock(2));
+            %set(ht6a(1),'value',idxlock(1));
+            %set(ht6b(1),'value',idxlock(2));
             conn_dynexplore_update;
         end
     end
@@ -405,9 +429,9 @@ conn_dynexplore_update([1 1 1 1 1]);
         idxlock(3)=~idxlock(3);
     end
     function conn_dynexplore_selectroi(varargin)
-        idxlock(1)=get(ht6a(1),'value');
-        idxlock(2)=get(ht6b(1),'value');
-        idxlock(3)=1;
+        %idxlock(1)=get(ht6a(1),'value');
+        %idxlock(2)=get(ht6b(1),'value');
+        %idxlock(3)=1;
         conn_dynexplore_update;
     end
     function conn_dynexplore_play(varargin)
@@ -450,3 +474,13 @@ end
 end
 
 
+function y=conn_expandwithnan(x,m)
+x=reshape(x,1,[]);
+m=reshape(m,1,[]);
+i=[0,find(m(2:end)~=m(1:end-1)),numel(m)];
+for n=1:numel(i)-1
+    if n==1, y=x(i(n)+1:i(n+1));
+    else y=[y nan x(i(n)+1:i(n+1))];
+    end
+end
+end
