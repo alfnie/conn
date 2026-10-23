@@ -4432,7 +4432,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         end
                     end
                 end
-                if CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(3) % obsolete, tbd
+                if CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(3) % note: obsolete, tbd
                     for ncomp=1:Ncomponents
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
                             if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d',ncomp);

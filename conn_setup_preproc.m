@@ -28,10 +28,11 @@ persistent fixed_options;
 PREFERSPM8OVERSPM12=false; % set to true if you prefer to use SPM8 procedures over SPM12 ones (when SPM12 is installed)
 ALLSETSPERMISSIONS=false;  % set to true if you want to allow dataset-1 or above preprocessing steps to import new ROIs, first-level covariates, or second-level covariates into your project
 SESSIONSPECIFICSTEPS=false; try, SESSIONSPECIFICSTEPS=CONN_x.Setup.structural_sessionspecific; end % performs functional steps separately across runs if structural_sessionspecific is true (assume anatomy may change across runs)
-if isdeployed, spmver12=true;
-else spmver12=str2double(regexp(spm('ver'),'SPM(\d+)','tokens','once'))>=12;
+if isdeployed, spmver12=true; spmver26=true;
+else spmver12=str2double(regexp(spm('ver'),'SPM(\d+)','tokens','once'))>=12; spmver26=str2double(regexp(spm('ver'),'SPM(\d+)','tokens','once'))>=26;
 end
 if numel(spmver12)~=1||isnan(spmver12), spmver12=true; end % if isempty, assume development version
+if numel(spmver26)~=1||isnan(spmver26), spmver26=true; end % if isempty, assume development version
 if isfield(CONN_gui,'font_offset'),font_offset=CONN_gui.font_offset; else font_offset=0; end
 %if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, error('This procedure cannot be run while in view-only mode. Please re-load your project to enable edits'); end
 if ~nargin, STEPS=''; varargin={'multiplesteps',1}; end
@@ -3773,6 +3774,7 @@ for iSTEP=1:numel(STEPS)
                                 matlabbatch{end+1}.spm.tools.spatial.scope.vol1=fmap(fmaporder(1));
                                 matlabbatch{end}.spm.tools.spatial.scope.vol2=fmap(fmaporder(2));
                                 matlabbatch{end}.spm.tools.spatial.scope.prefix='vdm5_';
+                                if spmver26, matlabbatch{end}.spm.tools.spatial.scope.vdm_prior_select.no_vdm_prior=[]; end
                                 matlabbatch{end}.spm.tools.spatial.scope.outdir={fileparts(matlabbatch{end}.spm.tools.spatial.scope.vol1{1})};
                                 outputfiles{isubject}{nses}=conn_prepend('vdm5_',regexprep(matlabbatch{end}.spm.tools.spatial.scope.vol1{1},',\d+$',''));
                             else error('type of fieldmap sequence files could not be determined from number of available files (%d) in dataset %s for subject %d session %d',numel(fmap),mat2str(vdm_fmap),nsubject,nses);
