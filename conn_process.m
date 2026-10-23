@@ -4411,12 +4411,12 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                 
                 if 1,
                     if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
-                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name='QC_dynamicfactors';
-                        else name=sprintf('QC_dynamicfactors_%s',CONN_x.Setup.conditions.names{selectedcondition});
+                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name='QC_DynamicCircuitStates';
+                        else name=sprintf('QC_DynamicCircuitStates_%s',CONN_x.Setup.conditions.names{selectedcondition});
                         end
                     else
-                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('QC_dynamicfactors_%s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name);
-                        else name=sprintf('QC_dynamicfactors_%s_%s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,CONN_x.Setup.conditions.names{selectedcondition});
+                        if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('QC_DynamicCircuitStates_%s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name);
+                        else name=sprintf('QC_DynamicCircuitStates_%s_%s',CONN_x.dynAnalyses(CONN_x.dynAnalysis).name,CONN_x.Setup.conditions.names{selectedcondition});
                         end
                     end
                     idx=strmatch(name,CONN_x.Setup.l1covariates.names,'exact');
@@ -4432,7 +4432,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         end
                     end
                 end
-                if CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(3)
+                if CONN_x.dynAnalyses(CONN_x.dynAnalysis).output(3) % obsolete, tbd
                     for ncomp=1:Ncomponents
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
                             if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name=sprintf('Dynamic factor %02d',ncomp);

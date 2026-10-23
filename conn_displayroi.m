@@ -206,6 +206,8 @@ switch(lower(option)),
         data.names2=results(1).names2;
         data.names2=regexprep(data.names2,{'_1_1$','^rs\.','^rsREL\.','^aal\.'},'');
         data.names2reduced=regexprep(data.names2,{'^BA\.(\d+) \(([LR])\)\. .*','^\((-?\d+),(-?\d+),(-?\d+)\)$','^SLrois\.|^aal\.|^atlas\.|^networks\.|^schaefer\.|^Schaefer\.','\s\(([LlRr])\)','([^\(\)]*[^\.])\s*\(.+\)\s*$'},{'$1$2','($1 $2 $3)','',' ${lower($1)}','$1'});
+        ncrop=sum(cumprod(all(~diff(char(data.names2reduced),1))));
+        data.names2reduced=cellfun(@(x)x(ncrop+1:end),data.names2reduced,'uni',0); % removes portion common to all ROI names
         data.xyz=cat(1,results(1).xyz{:});
         data.xyz2=cat(1,results(1).xyz2{:});
         data.displaytheserois=1:length(data.names);
@@ -469,7 +471,21 @@ switch(lower(option)),
         data=get(hfig,'userdata');
         
         if data.displayreduced
-            conn_displayroi(hfig,[],'displayreduced');
+            if all(cellfun('length',regexp(data.names,'^schaefer\.'))>0)
+                data.clusters_options=struct('type','hc','groups',nan,'param',.05); % note: set this to stop initialization routine from applying this default clustering procedure
+                set(hfig,'userdata',data);
+                conn_displayroi(hfig,[],'roi.order.import','Use predefined order/groups for Schaefer atlas ROIs (keeps schaefer ROIs only)');
+            elseif all(cellfun('length',regexp(data.names,'^atlas\.'))>0)
+                data.clusters_options=struct('type','hc','groups',nan,'param',.05);
+                set(hfig,'userdata',data);
+                conn_displayroi(hfig,[],'roi.order.import','Use predefined order/groups for Harvard-Oxford atlas ROIs (keeps atlas ROIs only)');
+            elseif all(cellfun('length',regexp(data.names,'^networks\.'))>0)
+                data.clusters_options=struct('type','hc','groups',nan,'param',.05);
+                set(hfig,'userdata',data);
+                conn_displayroi(hfig,[],'roi.order.import','Use predefined order/groups for CONN network ROIs (keeps network ROIs only)');
+            else
+                conn_displayroi(hfig,[],'displayreduced');
+            end
             set(hfig,'visible','on');
             if ishandle(hmsg), delete(hmsg); end
             if ishandle(hmsginit), delete(hmsginit); end
@@ -894,7 +910,7 @@ switch(lower(option)),
         data=get(hfig,'userdata');
         data.mvpasortresultsby=varargin{1};
         data.visible='on';
-    case {'displayreduced','roi.select'}
+    case {'displayreduced','displayreduced.nodisplay','roi.select'}
         data=get(hfig,'userdata');
         if strcmpi(option,'roi.select'), data.displayreduced=2;
         elseif margin>1, data.displayreduced=varargin{1}; 
@@ -1012,6 +1028,8 @@ switch(lower(option)),
         data.proj=[];data.x=[];data.y=[];data.z=[];
         data.bgz=0;
         data.visible='on';
+        %if strcmpi(option,'displayreduced.nodisplay'), return; end
+
 
     case {'roi.order.export','roi.order.save'}
         if margin>1&&~isempty(varargin{1}), answ=varargin{1};
@@ -3400,6 +3418,10 @@ switch(data.display),
                                     temp=(real(semic1)+xtracurve*lcurve*1i*imag(semic1)*((1-(.98+.01*rand)*abs(dx(1)/2).^2)));
                                     xt1=(x(1)+x(2))/2 + (x(2)-x(1))/2 * temp;
                                     xt2=(x(1)+x(2))/2 - (x(2)-x(1))/2 * temp(end:-1:1);
+                                elseif 0
+                                    p1=linspace(1,0,numel(semic1));
+                                    xt1=x(1).*p1 + x(2).*(1-p1);
+                                    xt2=xt1;
                                 elseif 1
                                     xtracurve=exp(-abs(x(1)-x(2))/200)*semic1factor1;
                                     p1=.5-real(semic1)/2;
@@ -3444,8 +3466,9 @@ switch(data.display),
                                                   %[0*((dataz(n1)+dataz(n2))/2+(dataz(n2)-dataz(n1))/2*real(ssemic1))+0*z(n1,n2)*EPS+0*.5+100*abs(z(n1,n2))*(imag(ssemic1)*2).^.05]'];
                                 tsemic1.facevertexcdata=repmat(tempc,size(tsemic1.vertices,1),1);
                                 tsemic1.facevertexalphadata=repmat(linetrans,size(tsemic1.vertices,1),1);
-                                if ~isempty(data.xy2_clusters), tsemic1.coords=[x;5*data.xy2_clusters([n1,n2],:)*[1;1i];1e6*sign(data.h(n1,n2))]; % note: for sign-specific smoothing
-                                %if ~isempty(data.xy2_clusters), tsemic1.coords=[x;1e6*data.clusters([n1,n2]);1e6*sign(data.h(n1,n2))]; % note: for sign-specific smoothing
+                                if ~isempty(data.xy2_clusters), % note: for cluster-bundling
+                                    bfactor=5*min(1,max(0,size(data.h,1)-10)/100);
+                                    tsemic1.coords=[x;bfactor*data.xy2_clusters([n1,n2],:)*[1;1i];1e6*sign(data.h(n1,n2))]; 
                                 else tsemic1.coords=[x;1000*sign(data.h(n1,n2))]; % note: for sign-specific smoothing
                                 end
                                 tsemic1.index=[n1;n2];

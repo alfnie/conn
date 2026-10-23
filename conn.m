@@ -10924,7 +10924,7 @@ else
                     case 5, conn_menumanager(CONN_h.menus.m_results_03a,'on',1); %conn_menu('frame2border',[.0,0,.3,.045],''); 
                     case 6, conn_menumanager(CONN_h.menus.m_results_03c,'on',1); %conn_menu('frame2border',[.0,0,.3,.045],''); 
                 end
-                conn_menumanager([CONN_h.menus.m_setup_01i],'on',1);
+                if state~=6&&stateb~=3, conn_menumanager([CONN_h.menus.m_setup_01i],'on',1); end
                 if CONN_h.menus.m_results.usetablewhite==0, dp1=dp1+.10; end
                 if state==1,
                     conn_menu('frame',boffset+[-.040,.34-dp1,.605,.50+dp1],'Group Analyses (2nd-level)');
