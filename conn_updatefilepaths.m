@@ -34,13 +34,14 @@ function var=conn_updatefilepaths(varargin)
 
 
 global CONN_x CONN_gui;
-persistent ht htcancel changed changes holdon clearon silent remote local hcount;
+persistent ht htcancel changed changes holdon clearon refreshvol silent remote local hcount;
 
 connfolder=fileparts(which(mfilename));
 if isempty(CONN_gui)||~isfield(CONN_gui,'font_offset'), conn_font_init; end
 if isempty(changed),changed=0;end
 if isempty(holdon),holdon=0;end
 if isempty(clearon),clearon=0;end
+if isempty(refreshvol),refreshvol=0;end
 if isempty(silent),silent=0;end
 if isempty(remote),remote=0;end
 if isempty(local),local=0;end
@@ -158,7 +159,7 @@ if nargin==1,
                     var=[]; 
                 end
             else
-                REFRESHVOLUMEINFO=true; % set to false to skip refreshing the volume info of (large) 4D functional files when loading a project
+                REFRESHVOLUMEINFO=refreshvol; % set to false to skip refreshing the volume info of (often large) 4D functional files when loading a project
                 if ~isstruct(var{3})||(isfield(var{3},'fname')&&(REFRESHVOLUMEINFO||numel(var{3})==1))
                     try
                         filename=fliplr(deblank(fliplr(deblank(var{1}))));
@@ -223,6 +224,9 @@ elseif nargin>1&&ischar(varargin{1}),
         case 'clear'
             if ~isempty(varargin{2}), clearon=strcmp(lower(varargin{2}),'on'); end
             var=clearon;
+        case 'refreshvol'
+            if ~isempty(varargin{2}), refreshvol=strcmp(lower(varargin{2}),'on'); end
+            var=refreshvol;
         otherwise
             error('unknown option %s',varargin{1});
     end
