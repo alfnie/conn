@@ -2838,6 +2838,7 @@ for iSTEP=1:numel(STEPS)
                 for ngroup=groups
                     matlabbatch{end+1}.spm.spatial.realignunwarp.eoptions.rtm=rtm;
                     matlabbatch{end}.spm.spatial.realignunwarp.uwroptions.mask=rmask;
+                    matlabbatch{end}.spm.spatial.realignunwarp.uwroptions.jm=0; % note: disable jacobian modulation to avoid issues with intensity variation
                     jses=0;
                     for nses=1:nsess
                         if ismember(nses,sessions)&&(~SESSIONSPECIFICSTEPS||ngroup==nses)

@@ -293,11 +293,11 @@ conn_dynexplore_update([1 1 1 1 1]);
             delete(handlescorpos(ishandle(handlescorpos)));
             delete(handlescorneg(ishandle(handlescorneg)));
             h1=axes('units','norm','position',[imagepos(1) .12 imagepos(3) .22]);
-            if isempty(itime), h2=plot(nan(2,Nf),nan(2,Nf),'-',nan,nan,'w-',[0 size(H,1)+1 nan 0 size(H,1)+1],[0 0 nan -2 -2],'k-',[0 0],[-4 2],'w:');
-            else h2=plot(repmat((1:Nt)',1,Nf),H(itime,:),'-',1:Nt,zeros(1,Nt),'w-',[0 size(H,1)+1 nan 0 size(H,1)+1],[0 0 nan -2 -2],'k-',[0 0],[-4 2],'w:',[0 0],[-1.5 1.5],'w-');
+            hold on; for nf=1:Nf, h2p(nf)=patch(nan(2,1),nan(2,1),'k','facecolor','r','edgecolor','none','facealpha',.5); end; hold off;
+            hold on; for nf=1:Nf, h2n(nf)=patch(nan(2,1),nan(2,1),'k','facecolor','b','edgecolor','none','facealpha',.5); end; hold off;
+            if isempty(itime), hold on; h2=plot(nan(2,Nf),nan(2,Nf),'-',nan,nan,'w-',[0 size(H,1)+1 nan 0 size(H,1)+1],[0 0 nan -2 -2],'k-',[0 0],[-4 2],'w:'); hold off; 
+            else hold on; h2=plot(repmat((1:Nt)',1,Nf),H(itime,:),'-',1:Nt,zeros(1,Nt),'w-',[0 size(H,1)+1 nan 0 size(H,1)+1],[0 0 nan -2 -2],'k-',[0 0],[-4 2],'w:',[0 0],[-1.5 1.5],'w-'); hold off; 
             end
-            hold on; h2p=area(nan(2,Nf),nan(2,Nf),'facecolor','r'); hold off;
-            hold on; h2n=area(nan(2,Nf),nan(2,Nf),'facecolor','b'); hold off
             set(h2(end),'color',.5*[1 1 1],'linewidth',1);
             set(h2(end-1),'color',.1*[1 1 1]+.8*(.5>mean(CONN_gui.backgroundcolor)));
             set(h2(end-2),'color',.5*[1 1 1],'linewidth',2);
@@ -314,7 +314,8 @@ conn_dynexplore_update([1 1 1 1 1]);
             handlescorneg=[h2n(:)'];
         end
         switch(dtype)
-            case {1,2,3}, set([handleplot handleimag],'visible','off'); set(handleload(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','on');  set([ht3 ht4b ht4c],'visible','off');
+            case 1, set([handleplot handleimag],'visible','off'); set(handleload(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','on');  set([ht3 ht4b ht4c],'visible','off');
+            case {2,3}, set([handleplot handleimag],'visible','off'); set(handleload(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','off');  set([ht3 ht4b ht4c],'visible','off');
             case 4, set([handleplot handleload],'visible','off'); set(handleimag(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','off'); set([ht3 ht4b ht4c],'visible','on');
             case 5, set([handleimag handleload],'visible','off'); set(handleplot(1:end-1),'visible','on'); set([ ht7 ht7b],'visible','off'); set([ht3 ht4b ht4c],'visible','on');
         end
@@ -350,12 +351,12 @@ conn_dynexplore_update([1 1 1 1 1]);
         for n=1:Nf, 
             if any(nfacselected==n), 
                 set(handlescor(n),'xdata',conn_expandwithnan(1:Nt,IDX_subject(itime)+1i*IDX_session(itime)),'ydata',conn_expandwithnan(H(itime,n)/Hscale,IDX_subject(itime)+1i*IDX_session(itime))); 
-                set(handlescorpos(n),'xdata',conn_expandwithnan(1:Nt,IDX_subject(itime)+1i*IDX_session(itime)),'ydata',conn_expandwithnan(max(0,H(itime,n)/Hscale),IDX_subject(itime)+1i*IDX_session(itime))); 
-                set(handlescorneg(n),'xdata',conn_expandwithnan(1:Nt,IDX_subject(itime)+1i*IDX_session(itime)),'ydata',conn_expandwithnan(min(0,H(itime,n)/Hscale),IDX_subject(itime)+1i*IDX_session(itime))); 
+                set(handlescorpos(n),'xdata',[1,1:Nt,Nt],'ydata',[0,max(0,H(itime,n)/Hscale)',0]);
+                set(handlescorneg(n),'xdata',[1,1:Nt,Nt],'ydata',[0,min(0,H(itime,n)/Hscale)',0]);
             else 
                 set(handlescor(n),'xdata',1:Nt,'ydata',nan(1,Nt)); 
-                set(handlescorpos(n),'xdata',1:Nt,'ydata',nan(1,Nt)); 
-                set(handlescorneg(n),'xdata',1:Nt,'ydata',nan(1,Nt)); 
+                set(handlescorpos(n),'xdata',1:Nt,'ydata',nan(1,Nt));
+                set(handlescorneg(n),'xdata',1:Nt,'ydata',nan(1,Nt));
             end
         end
         if ptype==1, tempr=H0(itime,:)*B0(:,idxlock(1),idxlock(2))+H(itime,:)*B(:,idxlock(1),idxlock(2));  % complete fit
@@ -505,13 +506,14 @@ end
 end
 
 
-function y=conn_expandwithnan(x,m)
+function y=conn_expandwithnan(x,m,k)
+if nargin<3||isempty(k), k=nan; end
 x=reshape(x,1,[]);
 m=reshape(m,1,[]);
 i=[0,find(m(2:end)~=m(1:end-1)),numel(m)];
 for n=1:numel(i)-1
     if n==1, y=x(i(n)+1:i(n+1));
-    else y=[y nan x(i(n)+1:i(n+1))];
+    else y=[y k x(i(n)+1:i(n+1))];
     end
 end
 end
