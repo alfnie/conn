@@ -33,7 +33,7 @@ function pinfo = spm_write_vol_rescale(dt,mn,mx)
     pinfo = [1;0;0];
     dt           = dt(1);
     s            = find(dt == [2 4 8 256 512 768]);
-    if ~isempty(s)
+    if 0,%~isempty(s) % note: skips rescaling to avoid rounding-error readouts in integer types
         dmnmx        = [0 -2^15 -2^31 -2^7 0 0 ; 2^8-1 2^15-1 2^31-1 2^7-1 2^16-1 2^32-1];
         dmnmx        = dmnmx(:,s);
         if isempty(mx), mx = 0; end

@@ -1718,7 +1718,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
     REDO=[];%filename=fullfile(filepathresults,['ROI_Subject',num2str(1,'%03d'),'_Condition',num2str(icondition(validconditions(1)),'%03d'),'.mat']);
     %if ~isempty(dir(filename)),if isfield(CONN_x,'gui')&&isstruct(CONN_x.gui)&&isfield(CONN_x.gui,'overwrite'), REDO=CONN_x.gui.overwrite; else, REDO=conn_questdlg('Overwrite existing subject results?','','Yes', 'No', 'Yes');end; end
     PREPROCESSCOVARIATES=false; % set to true if 1st-level covariate should be denoised before moving to first-level analyses
-    NUMBEROFFREQBANDS=2; % changed from 8 to 2 to save storage space; increase to higher number if planning to use first-level analysis frequency-decomposition option
+    NUMBEROFFREQBANDS=0; % changed from 8 to 0 to save storage space; increase to higher number if planning to use first-level analysis frequency-decomposition option
     reportedsettings=false;
     redone_files=0;
     maxrt=nan;
@@ -1767,6 +1767,9 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                 X{nses}(:,find(ifilter{1}))=conn_filter(max(conn_get_rt(nsub,nses)),CONN_x.Preproc.filter,X{nses}(:,find(ifilter{1})));
             end
             if size(X{nses},1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
+            conn_savematfile(fullfile(filepathresults,['DenoisingDesignMatrix_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.mat']),'-struct',struct('X',X{nses},'Xnames',{Xnames{nses}}));
+            conn_savetextfile(fullfile(filepathresults,['DenoisingDesignMatrix_Subject',num2str(nsub,'%03d'),'_Session',num2str(nses,'%03d'),'.txt']),X{nses});
+
             %try, iX{nses}=pinv(X{nses});
             %catch, iX{nses}=pinv(X{nses}'*X{nses})*X{nses}';
             %end
@@ -1817,16 +1820,27 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                     end
                 end
             end
+            validcovariates=true(1,length(X2{1}.data));
+            for ncov=1:length(X2{1}.data),
+                ns2=[];
+                for nses=1:nsess,
+                    y=X2{nses}.data{ncov};
+                    if isempty(ns2), ns2=size(y,2); end
+                    if size(y,1)~=CONN_x.Setup.nscans{nsub}{nses} || size(y,2)~=ns2, validcovariates(ncov)=false; end % note: disregards 1st-level covariates which are not present in some runs or which do not have the same number of components across runs
+                end
+            end
+            validcovariates=find(validcovariates);
+            
             clear nsamples time0 dataroi d1dataroi d2dataroi dbdataroi conditionsweights;
             crop=0;
             dataroiall=cell(1,length(X1{1}.data)); % no covariates there +length(X2{1}.data));
             dataroiall_sessions=[];
             for ncondition=validconditions, % computes number of samples per condition
                 nsamples{ncondition}=0; for nses=1:nsess, nsamples{ncondition}=nsamples{ncondition}+length(C{nses}.samples{ncondition}); end
-                dataroi{ncondition}=cell(1,length(X1{1}.data)+length(X2{1}.data));
-                d1dataroi{ncondition}=cell(1,length(X1{1}.data)+length(X2{1}.data));
-                d2dataroi{ncondition}=cell(1,length(X1{1}.data)+length(X2{1}.data));
-                fbdataroi{ncondition}=repmat({cell(1,NUMBEROFFREQBANDS)},1,length(X1{1}.data)+length(X2{1}.data));
+                dataroi{ncondition}=cell(1,length(X1{1}.data)+length(validcovariates));
+                d1dataroi{ncondition}=cell(1,length(X1{1}.data)+length(validcovariates));
+                d2dataroi{ncondition}=cell(1,length(X1{1}.data)+length(validcovariates));
+                fbdataroi{ncondition}=repmat({cell(1,NUMBEROFFREQBANDS)},1,length(X1{1}.data)+length(validcovariates));
                 conditionsweights{ncondition}=cell(1,length(C{1}.weights{ncondition}));
                 for nses=1:nsess,
                     if ~isfield(C{nses},'crop')||C{nses}.crop>0, crop=1; end
@@ -1849,7 +1863,7 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                     end
                     y_sessions{nses}=y;
                 end
-                if nXc>0 % removes from cat(1,y{:}) the effect of [blkdiag(1,X{:}), cat(1,Xc{:})]
+                if nXc>0 % removes from cat(1,y{:}) the effect of [blkdiag(X{:}), cat(1,Xc{:})]
                     Data=cat(1,y_sessions{1:nsess});
                     b=iX*Data;
                     Data=Data-X*b;
@@ -1903,16 +1917,18 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                 end
             end
             
-            for ncov=1:length(X2{1}.data),
+            for ncov=1:length(validcovariates),
                 y_sessions={};
                 for nses=1:nsess,
-                    y=X2{nses}.data{ncov};
-                    if size(y,1)~=CONN_x.Setup.nscans{nsub}{nses}, error('Wrong dimensions'); end
+                    y=X2{nses}.data{validcovariates(ncov)};
+                    if size(y,1)~=CONN_x.Setup.nscans{nsub}{nses}, 
+                        error('Wrong number of temporal dimensions (%d instead of %d)',size(y,1),CONN_x.Setup.nscans{nsub}{nses}); 
+                    end
                     if numel(RT)<nses, RT(nses)=conn_get_rt(nsub,nses); end
                     y_sessions{nses}=y;
                 end
                 if PREPROCESSCOVARIATES
-                    if nXc>0 % removes from cat(1,y{:}) the effect of [blkdiag(1,X{:}), cat(1,Xc{:})]
+                    if nXc>0 % removes from cat(1,y{:}) the effect of [blkdiag(X{:}), cat(1,Xc{:})]
                         Data=cat(1,y_sessions{1:nsess});
                         b=iX*Data;
                         Data=Data-X*b;
@@ -1981,8 +1997,8 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                 d1data=d1dataroi{ncondition};
                 d2data=d2dataroi{ncondition};
                 fbdata=fbdataroi{ncondition};
-                names=cat(2,X1{1}.names,X2{1}.names);
-                xyz=cat(2,X1{1}.xyz,repmat({[nan,nan,nan]},[1,length(X2{1}.data)]));
+                names=cat(2,X1{1}.names,X2{1}.names(validcovariates));
+                xyz=cat(2,X1{1}.xyz,repmat({[nan,nan,nan]},[1,length(validcovariates)]));
                 %voxels=X1{1}.voxels;
                 %weights=X1{1}.weights;
                 source=X1{1}.source;
@@ -2010,7 +2026,8 @@ if any(options==7) && any(CONN_x.Setup.steps([1,2,4])) && ~(isfield(CONN_x,'gui'
                     end
                 end
             end
-            save(filename,'data','names','xyz','source','crop','data_sessions',   'conditionsweights','conditionsnames','conditionsnamesvalid');
+            denoisingmatrix=X;
+            save(filename,'data','names','xyz','source','crop','data_sessions','denoisingmatrix',   'conditionsweights','conditionsnames','conditionsnamesvalid');
             if isfield(CONN_x.Setup,'outputfiles')&&numel(CONN_x.Setup.outputfiles)>=7&&CONN_x.Setup.outputfiles(7), % create confound-corrected ROI file
                 outputfilename=fullfile(filepathresults,['dROI_Subject',num2str(nsub,'%03d'),'.csv']);
                 enames=arrayfun(@(nroi)arrayfun(@(n)sprintf('%s_%d',names{nroi},n),1:size(data{nroi},2),'uni',0),1:numel(data),'uni',0);
@@ -4136,7 +4153,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
             end
             if do
                 REDO='Yes';
-                DEMEAN=true; % true=disregard between-subject variability in average connectivity; set to true for back-compatibility
+                DEMEAN=true; % true=control for between-subject variability in average-connectivity
                 X=[];
                 Y=[];
                 Xfilter=[];
@@ -4385,7 +4402,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         tempW(maskout)=0;
                         tempH(maskout)=0;
                         w=max(eps,accumarray(IDX_subject,tempW,[CONN_x.Setup.nsubjects,1]));
-                        H_freq_weighted=max(0,accumarray(IDX_subject,tempH.*tempW,[CONN_x.Setup.nsubjects,1],@sum,nan))./w;
+                        H_freq_weighted=max(0,accumarray(IDX_subject,tempH.*tempW,[CONN_x.Setup.nsubjects,1],@sum,nan))./w; % # zero-crossings / # samples
                         if isempty(allrt), allrt=conn_get_rt; end
                         H_freq_weighted=60*H_freq_weighted./reshape(allrt,CONN_x.Setup.nsubjects,1); % converts to switch-per-minute units
                         if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
@@ -4408,7 +4425,8 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                     CONN_x.Setup.l2covariates.descrip{icov}='';
                     for n1=1:CONN_x.Setup.nsubjects, CONN_x.Setup.l2covariates.values{n1}{icov}=new_values{nvar}(n1); end
                 end
-                
+                conn_savetextfile(fullfile(filepathresults,'dyn_State_SummaryMeasures.csv'),cat(2,new_values{:}),new_names);
+
                 if 1,
                     if isempty(CONN_x.dynAnalyses(CONN_x.dynAnalysis).name)
                         if 1||isempty(selectedcondition)||strcmp(CONN_x.Setup.conditions.names{selectedcondition},'rest'), name='QC_DynamicCircuitStates';
@@ -4426,7 +4444,7 @@ if any(floor(options)==14) && any(CONN_x.Setup.steps([4])) && ~(isfield(CONN_x,'
                         nsess=max(IDX_session(IDX_subject==nsub));
                         for nses=1:nsess
                             samples=IDX_subject==nsub&IDX_session==nses;
-                            filename=fullfile(filepathresults,['dyn_Subject',num2str(nsub,CONN_x.opt.fmt1),'_Session',num2str(nses,'%03d'),'.txt']);
+                            filename=fullfile(filepathresults,['dyn_State_Subject',num2str(nsub,CONN_x.opt.fmt1),'_Session',num2str(nses,'%03d'),'.csv']);
                             conn_savetextfile(filename,H(samples,:));
                             CONN_x.Setup.l1covariates.files{nsub}{idx}{nses}=conn_file(filename);
                         end

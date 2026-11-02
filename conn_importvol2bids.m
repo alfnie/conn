@@ -212,8 +212,9 @@ if strcmp(fext,'.nii')&&((size(filename,1)>1) || (strcmp(tfileext1,'.img')&&isem
             end
             filename=char(filename);
         end
-        a=conn_fileutils('spm_vol',filename);
-        conn_fileutils('spm_file_merge',a,out);
+        %a=conn_fileutils('spm_vol',filename);
+        %conn_fileutils('spm_file_merge',a,out);
+        conn_fileutils('spm_file_merge',filename,out);
         filename=out;
     end
 else % copy/link file

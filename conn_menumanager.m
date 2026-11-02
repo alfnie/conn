@@ -124,7 +124,7 @@ if ischar(handle),
                             end
 							feval(CONN_MM.MENU{n0}.callback{n1}{1},CONN_MM.MENU{n0}.callback{n1}{2:end}); 
                             set(CONN_MM.gcf,'pointer','arrow');
-                            try, focus(CONN_MM.gcf); end
+                            try, if CONN_MM.MENU{n0}.callbacktofigure(n1), focus(CONN_MM.gcf); end; end
                             CONN_MM.restpos=[nan nan];
                             CONN_MM.resttime=nan;
                             donecallback=true;
@@ -139,7 +139,7 @@ if ischar(handle),
                             end
 							feval(CONN_MM.MENU{n0}.callback2{n1}{1},CONN_MM.MENU{n0}.callback2{n1}{2:end}); 
                             set(CONN_MM.gcf,'pointer','arrow');
-                            try, focus(CONN_MM.gcf); end
+                            try, if CONN_MM.MENU{n0}.callbacktofigure(n1), focus(CONN_MM.gcf); end; end
                             CONN_MM.restpos=[nan nan];
                             CONN_MM.resttime=nan;
                             donecallback=true;
@@ -413,6 +413,7 @@ else
             'order','vertical',...                              % 'vertical'/'horizontal' order of items
             'callback',{{}},...									% cell array specifying the callback functions (one per item), callback functions can be defined as cell arrays (first element is callback function, next elements are optional callback arguments; note: conn_menumanager automatically will add the "state" status as a last argument to this call), or as other conn_menumanager handles
             'callback2',{{}},...                                % cell array specifying the alternative callback functions (one per item), callback functions can be defined as cell arrays (first element is callback function, next elements are optional callback arguments; note: conn_menumanager automatically will add the "state" status as a last argument to this call), or as other conn_menumanager handles
+            'callbacktofigure',[],...
             'help',{{}},...										% cell array with one help text string per item
             'rotate',0,...										% 1/0 to indicate whether to rotate 90 degrees the button
             'backgroundcolor',[],...                            % 1x3 vector of color components
@@ -441,6 +442,7 @@ else
         if isempty(params.string), params.string=cell(1,params.n); end
         if isempty(params.callback), for n1=1:params.n, params.callback{n1}={}; end; end
         if isempty(params.callback2), for n1=1:params.n, params.callback2{n1}={}; end; end
+        if isempty(params.callbacktofigure), for n1=1:params.n, params.callbacktofigure(n1)=true; end; end
         if isempty(params.help), params.help=cell(1,params.n); end
         if isempty(params.state), params.state=zeros(1,params.n); end
         if isempty(params.enable), params.enable=ones(1,params.n); end

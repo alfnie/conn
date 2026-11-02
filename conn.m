@@ -189,7 +189,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 	CONN_h.menus.m_setup_02sub=conn_menumanager([], 'n',9,...
 									'string',{'Basic','Structural','Functional','Other imaging data','ROIs','Conditions','Covariates (1st-level)','Covariates (2nd-level)','Options'},...%,'Preprocessing','QA plots'},...
 									'help',{'Defines basic acquisition information','Defines structural/anatomical data source files','Defines functional data source files','Defines other/secondary imaging data files','Defines regions of interest','Defines within-subject experiment conditions (e.g. rest, task, or longitudinal conditions)','Defines 1st level (within subject) variables (a timeseries for each subject/session; e.g. subject movement parameters)','Defines 2nd level (between subjects) variables (one value per subject; e.g. group membership)','Defines general processing options'},...%,'Define and apply a sequence of preprocessing steps to the structural/functional volumes defined above (e.g. realignment, slice-timing correction, normalization, etc.)','Quality Assurance plots: creates/manages plots showing accuracy of coregistration/normalization/denoising'},...
-									'position',[.235+0.5*.765/4-.765/4/2,.955-9*.035,.765/4,9*.035],...%'position',[.00,.42-.06,.095,7*.06],...
+									'position',[.235+0.5*.565/4-.565/4/2,.955-9*.035,.565/4,9*.035],...%'position',[.00,.42-.06,.095,7*.06],...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
@@ -200,7 +200,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'Recent analysis','All analyses'},...%,{'Seed-to-Voxel','ROI-to-ROI'},{'Voxel-to-Voxel','ICA networks'},'dyn-ICA circuits'},...
 									'help',{'Display details of last-viewed 1st-level analysis','Display all 1st-level analyses defined in this project'},...%,'Define/explore ROI-to-ROI and Seed-to-Voxel first-level analyses','Define/explore voxel-to-voxel and ICA first-level analyses','Define Dynamic ICA first-level analyses'},...
                                     'order','vertical',...
-									'position',[.235+2.5*.765/4-.765/4/2,.955-2*.035,.765/4,2*.035],...%[.0,.68,.07,3*.05],...
+									'position',[.235+2.5*.565/4-.565/4/2,.955-2*.035,.565/4,2*.035],...%[.0,.68,.07,3*.05],...
                                     'toggle',0,...
                                     'roll',1,...
 									'fontsize',8,...
@@ -210,7 +210,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'string',{'Recent results','All results'},...%,'Seed-to-Voxel','ROI-to-ROI','Voxel-to-Voxel','ICA networks','dyn-ICA circuits'},...
 									'help',{'Display details of last-viewed 2nd-level analysis','Display all analyses and bookmarks defined in this project'},...%,'Define/explore seed-to-voxel second-level analyses','Define/explore ROI-to-ROI second-level analyses','Define/explore voxel-to-voxel second-level analyses','Define/explore ICA second-level analyses','Define/explore dynamic ICA second-level analyses'},...
                                     'order','vertical',...
-									'position',[.235+3.5*.765/4-.765/4/2,.955-2*.035,.765/4,2*.035],...%[.0,.68,.07,3*.05],...
+									'position',[.235+3.5*.565/4-.565/4/2,.955-2*.035,.565/4,2*.035],...%[.0,.68,.07,3*.05],...
                                     'toggle',0,...
                                     'roll',1,...
 									'fontsize',8,...
@@ -222,7 +222,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
                                     'order','horizontal',...
 									'state',[1,0,0,0],...
                                     'toggle',1,...
-									'position',[.235,.955,.765,.045],...
+									'position',[.235,.955,.565,.045],...
                                     'bordertype','square',...
 									'fontsize',7,...
                                     'dfont',1,...
@@ -247,7 +247,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'position',[.165,.955-2.15*.035-4*.035,.129,4*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn_remotely,'settings'},{@conn,'gui_server'},{@conn,'gui_filetransfer'},{@conn,'gui_help','url','https://web.conn-toolbox.org/resources/ssh-configuration'}} ); %{@conn,'gui_help','help','conn_remotely.m'}} );
+                                    'callbacktofigure',[true,true,true,false],...
+                                    'callback',{{@conn_remotely,'settings'},{@conn,'gui_server'},{@conn,'gui_filetransfer'},{@conn,'gui_help','url','https://web.conn-toolbox.org/resources/ssh-configuration'}} ); %{@conn,'gui_help','help','conn_remotely.m'}} );
 	CONN_h.menus.m_setup_07f=conn_menumanager([],	'n',4,...
 									'string',{'Configuration','Active/pending jobs','Job history','Help'},...
 									'help',{'Configuration settings in distributed cluster or multi-processor environments','Displays status of currently running, pending, or queued background analyses','Displays all background analyses (past and present)',''},...
@@ -257,7 +258,8 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'position',[.165,.955-1.15*.035-4*.035,.129,4*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'parallel_settings'},{@conn,'gui_jobmanager'}, {@conn_jobmanager, 'all'}, {@conn,'gui_help','url','https://web.conn-toolbox.org/resources/hpc-configuration'}} ); %{@conn,'gui_help','help','conn_grid.m'}} );
+                                    'callbacktofigure',[true,true,true,false],...
+                                    'callback',{{@conn,'parallel_settings'},{@conn,'gui_jobmanager'}, {@conn_jobmanager, 'all'}, {@conn,'gui_help','url','https://web.conn-toolbox.org/resources/hpc-configuration'}} ); %{@conn,'gui_help','help','conn_grid.m'}} );
 	CONN_h.menus.m_setup_07h=conn_menumanager([],	'n',4,...
 									'string',{'from DICOM data files','from SPM design files','from BIDS dataset','from fMRIPrep dataset'},...
 									'help',{'Imports functional/anatomical data from raw scanner DICOM files','Imports Setup information and/or functional/anatomical data from SPM first-level design files','Imports Setup information and/or functional/anatomical data from BIDS-compatible dataset','Imports Setup information and functional/anatomical data from FMRIPREP-preprocessed dataset'},...
@@ -297,48 +299,30 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'position',[.045,.955-9*.035,.129,9*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
+                                    'callbacktofigure',[true,true,true,true,true,false,true,false,true],...
 									'callback',{{@conn,'gui_settings'},CONN_h.menus.m_setup_07f,CONN_h.menus.m_setup_07j,CONN_h.menus.m_setup_07h,CONN_h.menus.m_setup_07e,{@conn,'gui_setup_qadisplay'},{@conn,'gui_referenceexplore','include',[1 1 1 1 1]},{@conn,'gui_setup_logdisplay'},{@conn,'gui_calculator'}} ); %,{@conn,'gui_setup_qadisplay'}} );
-    CONN_h.menus.m_setup_07k=conn_menumanager([],	'n',2,...
-									'string',{'FCP/INDI website','FCP/INDI download'},...
-									'help',{'Visit Functional Connectomes Project / International Neuroimaging Data-sharing Initiative website','Download any dataset from the Functional Connectomes Project classic dataset (up to 1280 subjects)'},...
-                                    'order','vertical',...
-                                    'toggle',0,...
-                                    'roll',1,...
-									'position',[.35,.955-1.15*.035-2.15*.035-2*.035,.15,2*.035],...
-									'fontsize',8,...
-                                    'bordertype','square',...
-									'callback',{{@conn,'gui_help','url','https://fcon_1000.projects.nitrc.org/'},{@conn, 'gui_publicdatasets'}} );
-	CONN_h.menus.m_setup_07g=conn_menumanager([],	'n',3,...
-									'string',{'CONN workshop','CONN workshop dataset','Other public datasets'},...
-									'help',{'Check information about the next available CONN courses','Download and process sample dataset used in the CONN workshop','Download and process public fMRI datasets'},...
-                                    'order','vertical',...
-                                    'toggle',0,...
-                                    'roll',1,...
-									'position',[.21,.955-1.15*.035-3*.035,.15,3*.035],...
-									'fontsize',8,...
-                                    'bordertype','square',...
-									'callback',{{@conn,'gui_help','url','https://www.conn-toolbox.org/workshops'},{@conn_batch_workshop_nyudataset},CONN_h.menus.m_setup_07k} );
-									%'callback',{{@conn,'gui_workshop'},{@conn_batch_workshop_nyudataset}} );
 	CONN_h.menus.m_setup_07c=conn_menumanager([],	'n',5,...
 									'string',{'CONN Manual','Documentation','Tutorials', 'User-support', 'Newsletter'},...
 									'help',{'Open CONN toolbox manual','See online CONN documentation','Visit online tutorials', 'See CONN user-support resources', 'Register to receive CONN''s Monthly newsletter'},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.21,.955-2.15*.035-5*.035,.15,5*.035],...
+									'position',[.21,.955-1.15*.035-5*.035,.15,5*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn,'gui_help','doc'},{@conn,'gui_help','url','https://www.conn-toolbox.org/resources'},{@conn,'gui_help','url','https://www.conn-toolbox.org/tutorials'}, {@conn,'gui_help','url','https://www.conn-toolbox.org/resources/support'}, {@conn,'gui_newsletter'}} );
-	CONN_h.menus.m_setup_07b=conn_menumanager([],	'n',4,...
-									'string',{'Search by topic','Training', 'Documentation & Support', 'About CONN'},...
-									'help',{'Search for topics in a database of support questions','Learn about CONN training options', 'Access CONN documentation and user-support resources','Information about this CONN version'},...
+                                    'callbacktofigure',[true,false,false,false,true],...
+                                    'callback',{{@conn,'gui_help','doc'},{@conn,'gui_help','url','https://www.conn-toolbox.org/resources'},{@conn,'gui_help','url','https://www.conn-toolbox.org/tutorials'}, {@conn,'gui_help','url','https://www.conn-toolbox.org/resources/support'}, {@conn,'gui_newsletter'}} );
+	CONN_h.menus.m_setup_07b=conn_menumanager([],	'n',3,...
+									'string',{'Search by topic','Documentation & Support', 'About CONN'},...
+									'help',{'Search for topics in a database of support questions','Access CONN documentation and user-support resources','Information about this CONN version'},...
                                     'order','vertical',...
                                     'toggle',0,...
                                     'roll',1,...
-									'position',[.09,.955-4*.035,.129,4*.035],...
+									'position',[.09,.955-3*.035,.129,3*.035],...
 									'fontsize',8,...
                                     'bordertype','square',...
-									'callback',{{@conn_msghelp},CONN_h.menus.m_setup_07g, CONN_h.menus.m_setup_07c, {@conn,'gui_about'}} );
+                                    'callbacktofigure',[false,true,false],...
+									'callback',{{@conn_msghelp},CONN_h.menus.m_setup_07c, {@conn,'gui_about'}} );
 	CONN_h.menus.m_setup_01c=conn_menumanager([], 'n',6,...
 									'string',{'','','','','',''},...
 									'help',{'','','','','',''},...
@@ -378,7 +362,39 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{CONN_h.menus.m_setup_01a,CONN_h.menus.m_setup_07a,CONN_h.menus.m_setup_07b} );
-	CONN_h.menus.m_setup_08=conn_menumanager([],	'n',1,...
+    CONN_h.menus.m_setup_07k=conn_menumanager([],	'n',3,...
+                                    'string',{'OpenNeuro website','FCP/INDI website','FCP/INDI download'},...
+                                    'help',{'Visit OpenNeuro website (https://openneuro.org, with over 1900 datasets)','Visit Functional Connectomes Project / International Neuroimaging Data-sharing Initiative website (https://fcon_1000.projects.nitrc.org)','Download any dataset from the Functional Connectomes Project classic dataset (up to 1280 subjects)'},...
+                                    'order','vertical',...
+                                    'toggle',0,...
+                                    'roll',1,...
+                                    'position',[.815-.9*.15,.955-3.15*.035-3*.035,.15,3*.035],...
+                                    'fontsize',8,...
+                                    'bordertype','square',...
+                                    'callbacktofigure',[false,true,false],...
+                                    'callback',{{@conn,'gui_help','url','https://openneuro.org/'}, {@conn,'gui_help','url','https://fcon_1000.projects.nitrc.org/'},{@conn, 'gui_publicdatasets'}} );
+    CONN_h.menus.m_setup_07g=conn_menumanager([],	'n',4,...
+                                    'string',{'Workshop information & registration','Access course materials (🔒)', 'Install workshop dataset','Download other fMRI datasets'},...
+                                    'help',{'Check information about the next available CONN workshop','Access CONN workshop meetings and materials (only for currently enrolled participants)','Download and process sample dataset used in the CONN workshop','Download and process other public fMRI datasets'},...
+                                    'order','vertical',...
+                                    'toggle',0,...
+                                    'roll',1,...
+                                    'position',[.815,.955-4*.035,.185,4*.035],...
+                                    'fontsize',8,...
+                                    'bordertype','square',...
+                                    'callbacktofigure',[true,false,true,true],...
+                                    'callback',{{@conn,'gui_workshop'},{@conn,'gui_help','url','https://conn.cnrlab.org/login.html'},{@conn_batch_workshop_nyudataset},CONN_h.menus.m_setup_07k} );
+                                %'callback',{{@conn,'gui_workshop'},{@conn_batch_workshop_nyudataset}} );
+    CONN_h.menus.m_setup_06b=conn_menumanager([],	'n',1,...
+                                    'string',{'CONN workshop'},...
+                                    'help',{'Check information about the next available CONN workshop'},...
+                                    'order','horizontal',...
+                                    'toggle',0,... %'fontangle','italic',... %'color',1/6*.5+.5*[6/6,6/6,2/6; 6/6,6/6,2/6; 6/6,6/6,2/6],'transparent',0,...
+                                    'position',[.9,.955,.1,.045],...
+                                    'fontsize',8,...
+                                    'bordertype','square',...
+                                    'callback',{CONN_h.menus.m_setup_07g} );
+    CONN_h.menus.m_setup_08=conn_menumanager([],	'n',1,...
 									'string',{'analyses in progress'},...
 									'help',{'there are currently background analyses in progress or awaiting import in this CONN project - click here to check their status'},...
                                     'order','horizontal',...
@@ -412,7 +428,7 @@ if nargin<1 || (ischar(varargin{1})&&~isempty(regexp(varargin{1},'^lite$|^isremo
 									'fontsize',8,...
                                     'bordertype','square',...
 									'callback',{{@conn,'gui_readonly'}} );
-% 	CONN_h.menus.m_setup_01=conn_menumanager([], 'n',1,...
+    % 	CONN_h.menus.m_setup_01=conn_menumanager([], 'n',1,...
 % 									'string',{'Project'},...
 % 									'help',{''},...
 %                                     'order','vertical',...
@@ -1431,7 +1447,7 @@ else
             tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
             conn_menu('frame2border',[.0,.955,1,.045],'');
             conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-            conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+            conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
             if isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1); 
             elseif CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1); 
             elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1); 
@@ -1587,25 +1603,24 @@ else
             end
             
         case 'gui_workshop',
-            place='online (Zoom)';
-            dates={'Sept 16 2024','Oct 18 2024','Sept 16 - Oct 18 2024 (5 weeks, two days per week)'};
-            passed=false;
-            try, dates(1:2)=cellfun(@datenum,dates(1:2),'uni',0); end
-            if now>=dates{1}
-                if now>dates{2}, str=['The previous 10-day CONN workshop has been held ',place,' ',dates{3}];
-                else str=['The CONN workshop is being held RIGHT NOW ',place,' ',dates{3}]; passed=true;
-                end
-            else str=['The next 10-day CONN workshop will be held ',place,' ',dates{3},sprintf(', starting %d days from today',floor(dates{1}-now))];
+            if month(now)<=2, % 1-2
+                str={sprintf('The next CONN workshop will take place during the %d Spring term (February-May) starting %d days from today.',year(now),floor(datenum('2/1')-now))};
+            elseif month(now)<=5, % 3-5
+                str={sprintf('The current CONN workshop started %d days ago (Spring %d, February-May).',floor(now-datenum('2/1')),year(now)),...
+                    ' ',sprintf('The next CONN workshop will take place during the %d Fall term (September-December) starting %d days from today.',year(now),floor(datenum('9/1')-now))};
+            elseif month(now)<=9, % 6-9
+                str={sprintf('The next CONN workshop will take place during the %d Fall term (September-December) starting %d days from today.',year(now),floor(datenum('9/1')-now))};
+            else % 10-12
+                str={sprintf('The current CONN workshop started %d days ago (Fall %d, September-December).',floor(now-datenum('9/1')),year(now)),...
+                    ' ',sprintf('The next CONN workshop will take place during the %d Spring term (February-May) starting %d days from today.',year(now)+1,floor(datenum(['2/1/',num2str(year(now)+1)])-now))};
             end
-            if passed, 
-                url='www.conn-toolbox.org/workshops';
-                answ=conn_questdlg({'CONN workshops are organized annually. They offer intensive hands-on training on CONN usage and functional connectivity analyses',' ',str,['Visit ',url,' for more up to date information']},'','Visit','Cancel','Visit');
-            else
-                url='www.conn-toolbox.org/workshops';
-                answ=conn_questdlg({'CONN workshops are organized annually. They offer intensive hands-on training on CONN usage and functional connectivity analyses',' ',str,['Visit ',url,' for additional information and registration']},'','Visit','Cancel','Visit');
-            end
-            if isequal(answ,'Visit')
-                conn('gui_help','url',['https://',url]);
+            url='https://conn-toolbox.org/workshops';
+            answ=conn_questdlg({'CONN online workshops are organized bi-annually (Spring and Fall), offering advanced training on functional connectivity MRI analyses and CONN usage.',...
+                'Workshops combine extensive training materials with live presentations, hands-on practice, and direct Q&A with CONN developers.',...
+                ' ',str{:},['Visit ',url,' for additional information and registration.']... %'(note: course proceeds support the continuous research and development of CONN)'
+                },'','Learn more','Cancel','Learn more');
+            if isequal(answ,'Learn more')
+                conn('gui_help','url',url);
             end
             
         case 'gui_clear'
@@ -1614,7 +1629,7 @@ else
             tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
             conn_menu('frame2border',[.0,.955,1,.045],'');
             conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-            conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+            conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
             if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
             elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1); 
             elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -2121,7 +2136,7 @@ else
                 conn_menuframe;
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -2230,7 +2245,7 @@ else
                 %conn_menu('frame',[.015-.001,.5-.05-.001,.07+.002,7*.05+.002],'');
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-				conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+				conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -5611,7 +5626,7 @@ else
 %             if nargin<2,
 %                 conn_menumanager clf;
 %                 conn_menuframe;
-% 				conn_menumanager([CONN_h.menus.m_setup_02,CONN_h.menus.m_setup_01d,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+% 				conn_menumanager([CONN_h.menus.m_setup_02,CONN_h.menus.m_setup_01d,CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
 %             end
 % 			if isempty(state) return; end
 %             boffset=[0 0 0 0];
@@ -5784,7 +5799,7 @@ else
                 tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -6009,8 +6024,8 @@ else
                         tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
                         conn_menu('frame2border',[.0,.955,1,.045],'');
                         conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                        %conn_menumanager([CONN_h.menus.m_setup_04,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
-                        conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                        %conn_menumanager([CONN_h.menus.m_setup_04,CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
+                        conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                         if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                         elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                         elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -6127,8 +6142,8 @@ else
                         tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
                         conn_menu('frame2border',[.0,.955,1,.045],'');
                         conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                        %conn_menumanager([CONN_h.menus.m_setup_04,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
-                        conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                        %conn_menumanager([CONN_h.menus.m_setup_04,CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
+                        conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                         if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                         elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                         elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -6358,8 +6373,8 @@ else
                         conn_menu('frame2border',[.0,.955,1,.045],'');
                         tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
                         conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                        %conn_menumanager([CONN_h.menus.m_setup_04,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
-                        conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                        %conn_menumanager([CONN_h.menus.m_setup_04,CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
+                        conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                         if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                         elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                         elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -6700,7 +6715,7 @@ else
                     conn gui_setup;
                     %conn_menumanager clf;
                     %axes('units','norm','position',[0,.935,1,.005]); image(shiftdim(1-CONN_gui.backgroundcolorA,-1)); axis off;
-                    %conn_menumanager([CONN_h.menus.m_setup_02,CONN_h.menus.m_setup_01d,CONN_h.menus.m0],'on',1);
+                    %conn_menumanager([CONN_h.menus.m_setup_02,CONN_h.menus.m_setup_01d,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
             end
             
 		case 'gui_setup_merge',
@@ -6711,7 +6726,7 @@ else
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;conn_menumanager(CONN_h.menus.m0,'state',tstate);
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-				conn_menumanager([CONN_h.menus.m_setup_05,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+				conn_menumanager([CONN_h.menus.m_setup_05,CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -6781,7 +6796,7 @@ else
             end
 			%conn_menumanager clf;
 			%axes('units','norm','position',[0,.935,1,.005]); image(shiftdim(1-CONN_gui.backgroundcolorA,-1)); axis off;
-			%conn_menumanager([CONN_h.menus.m_setup_02,CONN_h.menus.m_setup_01d,CONN_h.menus.m0],'on',1);
+			%conn_menumanager([CONN_h.menus.m_setup_02,CONN_h.menus.m_setup_01d,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
 			
 		case {'gui_setup_finish','gui_setup_finish_rois'}
             if CONN_x.isready(2)>0&&~strcmpi(varargin{1},'gui_setup_finish_rois')
@@ -6833,7 +6848,7 @@ else
                 conn_menuframe;
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -6880,7 +6895,7 @@ else
 				tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;tstate(2)=1; conn_menumanager(CONN_h.menus.m0,'state',tstate); 
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-				conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+				conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -7933,7 +7948,7 @@ else
                 conn_menuframe;
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -8003,7 +8018,7 @@ else
                 tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;tstate(3)=1; conn_menumanager(CONN_h.menus.m0,'state',tstate);
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);%conn_menumanager([CONN_h.menus.m_analyses_03,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);%conn_menumanager([CONN_h.menus.m_analyses_03,CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -8462,7 +8477,7 @@ else
                         CONN_h.menus.m_analyses_00{19}=conn_menu('popup',boffset+[.22,.22,.09,.04],'',{'Seed timeseries','First-level analysis design matrix'},'<HTML>Choose display type<br/> - <i>Source timeseries</i> displays the BOLD signal timeseries for the selected seed/subject/session<br/> - <i>Design matrix</i> displays the scans-by-regressors first-level design matrix for the selected <br/> seed/subject/session (highlighted the regressor of interest for second-level analyses)</HTML>','conn(''gui_analyses'',19);');
                     end
                     CONN_h.menus.m_analyses_00{4}=conn_menu('popup',boffset+[.345,.14,.20,.04],'',{'No temporal expansion','Add 1st-order derivatives','Add 2nd-order derivatives'},'<HTML>Temporal/Taylor expansion of selected seed/source timeseries<br/> - Include temporal derivates up to n-th order of selected effect<br/> - [x] for no expansion<br/> - [x, dx/dt] for first-order derivatives<br/> - [x, dx/dt, d2x/dt2] for second-order derivatives </HTML>','conn(''gui_analyses'',4);');
-                    CONN_h.menus.m_analyses_00{5}=conn_menu('popup',boffset+[.345,.10,.20,.04],'',{'No frequency decomposition','Frequency decomposition'},'Number of frequency bands for spectral decomposition of selected seed/source timeseries (''none'' for single-band covering entire band-pass filtered data)','conn(''gui_analyses'',5);');
+                    CONN_h.menus.m_analyses_00{5}=[];%conn_menu('popup',boffset+[.345,.10,.20,.04],'',{'No frequency decomposition','Frequency decomposition'},'Number of frequency bands for spectral decomposition of selected seed/source timeseries (''none'' for single-band covering entire band-pass filtered data)','conn(''gui_analyses'',5);');
                     CONN_h.menus.m_analyses_00{3}=conn_menu('image',boffset+[.185,.09,.135,.12],'');%'Source timeseries');
                     CONN_h.menus.m_analyses_00{22}=[...%uicontrol('style','frame','units','norm','position',boffset+[.405,.30,.125,.33],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA),...
                         conn_menu_mask('units','norm','position',boffset+[.166,.08,.379,.20],'foregroundcolor',CONN_gui.backgroundcolorA,'backgroundcolor',CONN_gui.backgroundcolorA,'parent',CONN_h.screen.hfig)];
@@ -9004,9 +9019,9 @@ else
                     temp=cat(1,CONN_x.Analyses(ianalysis).regressors.deriv{nregressors});
                     if length(temp)==1 || ~any(any(diff(temp,1,1))),set(CONN_h.menus.m_analyses_00{4},'visible','on','value',1+CONN_x.Analyses(ianalysis).regressors.deriv{nregressors(1)});
                     else  set(CONN_h.menus.m_analyses_00{4},'visible','off'); end
-                    temp=cat(1,CONN_x.Analyses(ianalysis).regressors.fbands{nregressors});
-                    if length(temp)==1 || ~any(any(diff(temp,1,1))),set(CONN_h.menus.m_analyses_00{5},'visible','on','value',min(2,CONN_x.Analyses(ianalysis).regressors.fbands{nregressors(1)}));
-                    else  set(CONN_h.menus.m_analyses_00{5},'visible','off'); end
+                    %temp=cat(1,CONN_x.Analyses(ianalysis).regressors.fbands{nregressors});
+                    %if length(temp)==1 || ~any(any(diff(temp,1,1))),set(CONN_h.menus.m_analyses_00{5},'visible','on','value',min(2,CONN_x.Analyses(ianalysis).regressors.fbands{nregressors(1)}));
+                    %else  set(CONN_h.menus.m_analyses_00{5},'visible','off'); end
                     temp=cat(1,CONN_x.Analyses(ianalysis).regressors.dimensions{nregressors});
                     if size(temp,1)==1 || ~any(any(diff(temp,1,1))),set(CONN_h.menus.m_analyses_00{6},'string',num2str(CONN_x.Analyses(ianalysis).regressors.dimensions{nregressors(1)}(1)));
                     else  set(CONN_h.menus.m_analyses_00{6},'string','MULTIPLE VALUES'); end
@@ -9331,7 +9346,7 @@ else
 %                     %conn_menu('frame2borderl',[.0,.0,.115,1],'');
 %                     conn_menu('frame2border',[.0,.955,1,.045],'');
 %                     conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-%                     conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);%conn_menumanager([CONN_h.menus.m_analyses_03,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+%                     conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);%conn_menumanager([CONN_h.menus.m_analyses_03,CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
 %                     %conn_menu('title2big',[.005,.85,.110,.04],'Connectivity measures');
 %                     %[nill,temp]=conn_menu('frame2noborder',[.00 .54 .12 .31],{'Connectivity measures'});set(temp,'fontsize',8+CONN_gui.font_offset);
 %                     if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
@@ -9992,7 +10007,7 @@ else
 %                     %conn_menu('frame2borderl',[.0,.0,.115,1],'');
 %                     conn_menu('frame2border',[.0,.955,1,.045],'');
 %                     conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-%                     conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);%conn_menumanager([CONN_h.menus.m_analyses_03,CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+%                     conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);%conn_menumanager([CONN_h.menus.m_analyses_03,CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
 %                     %conn_menu('title2big',[.005,.85,.110,.04],'Connectivity measures');
 %                     %[nill,temp]=conn_menu('frame2noborder',[.00 .54 .12 .31],{'Connectivity measures'});set(temp,'fontsize',8+CONN_gui.font_offset);
 %                     if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
@@ -10382,7 +10397,7 @@ else
                 conn_menuframe;
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -10416,7 +10431,7 @@ else
                 conn_menuframe;
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -10454,7 +10469,7 @@ else
                 conn_menuframe;
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -10550,7 +10565,7 @@ else
                 tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;tstate(4)=1; conn_menumanager(CONN_h.menus.m0,'state',tstate);
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -10649,7 +10664,7 @@ else
 %                 conn_menumanager clf;
 %                 conn_menuframe;
 %                 tstate=conn_menumanager(CONN_h.menus.m0,'state'); tstate(:)=0;tstate(4)=1; conn_menumanager(CONN_h.menus.m0,'state',tstate);
-%                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m_results_03,CONN_h.menus.m0],'on',1);
+%                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m_results_03,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
 %                 conn_menu('nullstr',{'No data','to display'});
 %                 return; 
                 
@@ -10902,14 +10917,14 @@ else
 %                 %conn_menu('frame2borderl',[.0,.0,.115,1],'');
 %                 conn_menu('frame2border',[.0,.955,1,.045],'');
 %                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-%                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);%conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m_results_03,CONN_h.menus.m0],'on',1);
+%                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);%conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m_results_03,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
 %                 %conn_menu('title2big',[.005,.85,.110,.04],'Connectivity measures');
 %                 %[nill,temp]=conn_menu('frame2noborder',[.00 .54 .12 .31],{'Connectivity measures'});set(temp,'fontsize',8+CONN_gui.font_offset);
 %                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
 %                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
 %                 end
 %                 conn_menu('nullstr',{'Preview not','available'});
-				%conn_menumanager([CONN_h.menus.m0],'on',1);
+				%conn_menumanager([CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 ok=true;
                 if CONN_x.Setup.nsubjects==1&&state~=5, 
                     conn_msgbox({'Single-subject second-level analyses not supported (only population-level inferences via random-effect analyses available)','Please add more subjects before proceeding to the Results tab'},'',2); 
@@ -11089,8 +11104,11 @@ else
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
                         return;
                     elseif stateb==2
-                        icovariates=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_(Average|Frequency|Variability) Dynamic factor|^_State |^_\S* State'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names));
-                        conn_calculator(icovariates);
+                        icovariates=find(cellfun(@(x)~isempty(regexp(x,'^_State |^_\S* State'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names));
+                        if isempty(icovariates), icovariates=find(cellfun(@(x)~isempty(regexp(x,'^Dynamic |^_(Average|Frequency|Variability) Dynamic factor'))&~isempty(regexp(x,[CONN_x.dynAnalyses(CONN_x.dynAnalysis).name ' @ .*$'])),CONN_x.Setup.l2covariates.names)); end
+                        if ~isempty(icovariates)
+                            conn_calculator(icovariates);
+                        end
                         conn_menu('framewhitehighlight',boffset+[-.021,.78,.561,.03],'');
                         CONN_h.menus.m_results_00{20}=conn_menu('popupbigwhite',boffset+[-.025,.775,.56,.04],'',CONN_h.menus.m_results.analyses_listnames,'<HTML>Select connectivity analysis (first-level)</HTML>','conn(''gui_results'',20);');
                         set(CONN_h.menus.m_results_00{20},'value',CONN_h.menus.m_results.analyses_selected);
@@ -13485,7 +13503,7 @@ else
                 conn_menuframe;
                 conn_menu('frame2border',[.0,.955,1,.045],'');
                 conn_menumanager(CONN_h.menus.m0,'enable',CONN_x.isready);
-                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+                conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
                 if CONN_x.ispending, conn_menumanager(CONN_h.menus.m_setup_08,'on',1);
                 elseif isfield(CONN_x,'pobj')&&isfield(CONN_x.pobj,'readonly')&&CONN_x.pobj.readonly, conn_menumanager(CONN_h.menus.m_setup_08c,'on',1);
                 elseif CONN_gui.newversionavailable, conn_menumanager(CONN_h.menus.m_setup_08b,'on',1);
@@ -13514,7 +13532,7 @@ else
             end
 			%conn_menumanager clf;
 			%axes('units','norm','position',[0,.935,1,.005]); image(shiftdim([0 0 0]+.4+.2*(mean(CONN_gui.backgroundcolorA)<.5),-1)); axis off;
-			%conn_menumanager([CONN_h.menus.m0],'on',1);
+			%conn_menumanager([CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
 			%conn gui_setup_save;
 %             CONN_x.gui=0;
 %             CONN_x.Results.foldername='';
@@ -13557,7 +13575,7 @@ else
 %             %if conn_questdlgrun('Ready to Compute results for all sources',false,[0 1 0],false);
 %                 conn_menumanager clf;
 %                 conn_menuframe;
-%                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0],'on',1);
+%                 conn_menumanager([CONN_h.menus.m_setup_06,CONN_h.menus.m0,CONN_h.menus.m_setup_06b],'on',1);
 %                 CONN_x.Results.foldername='';
 %                 conn_process('results_voxel','doall','voxel-to-voxel');
 %                 CONN_x.gui=1;

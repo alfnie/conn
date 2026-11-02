@@ -66,9 +66,10 @@ Nk=min(Nk,Nr*(Nr-1)/2);
 Nk1=Nk;
 Nk=Nk+Nk0;
 
+if lambda>0, lambda=lambda*eye(Nk1); end
 mX1=mean(X1,1);
 cYY=repmat(mean(mX1*X.^2,2),[2,Nr]);
-hist_err=nan(Nk,maxiter*Nk);
+hist_err=nan(1,maxiter);
 hist_err(1)=cYY(1);
 nhist_err=1;
 B=zeros(Nr,Nk,Nr);
@@ -87,6 +88,7 @@ if ~RNDSEED, randn('seed',0); end
 H=zeros(Nt,Nk);
 H(idxnt,:)=randn(numel(idxnt),Nk);
 if Nk0>0, H(:,1:Nk0)=X0; end
+%if DOPLOT>1, err0=Nr*sum(sum(X1X,1),2); end
 
 H_old=H;
 for n=1:maxiter
@@ -114,7 +116,7 @@ for n=1:maxiter
             cXY=db1(:,nroi1,nroi2)+db1(:,nroi2,nroi1);
             cXX=db2(:,:,nroi1)+db2(:,:,nroi2);
             dcXX=cXX(1:Nk+1:end); maxdcXX=max(dcXX); dcXX(dcXX<1e-5*maxdcXX)=1e-5*maxdcXX;cXX(1:Nk+1:end)=dcXX; 
-            B(nroi1,:,nroi2)=inv(cXX)*cXY; % ROI-to-ROI modulation
+            B(nroi1,:,nroi2)=cXX\cXY; % ROI-to-ROI modulation
         end
     end
     if DOORTHB
@@ -143,9 +145,9 @@ for n=1:maxiter
         xy=sparse(1:Nt,1:Nt,x)*Y;
         dh1=dh1+xy*b;                               % cumulative term for computing temporal modulation
         if DOPLOT>1
-            fitmse=cYY(1,nroi)-(X1*xy(:,nroi))'*sum((H*B(:,:,nroi)').^2,2)/Nr/Nt;           % current mse for each source ROI
-            cYY(2,nroi)=fitmse;
-            err=err+fitmse/Nr;
+           fitmse=cYY(1,nroi)-(X1*xy(:,nroi))'*sum((H*B(:,:,nroi)').^2,2)/Nr/Nt;           % current mse for each source ROI
+           cYY(2,nroi)=fitmse;
+           err=err+fitmse/Nr;
         end
     end
     dh1=X1*dh1;
@@ -159,31 +161,57 @@ for n=1:maxiter
         bb(:,:,nroi)=b'*b;
     end
     bb=reshape(bb,[Nkt^2,Nr]);
+
     idxterms=true(1,Nk);
+    idx0=true(1,Nk0);
+    idx1=(1:Nk)>Nk0;
     for nt=idxnt,
         dh2=reshape(bb*X1X(nt,:)',[Nkt Nkt]);
         if REMOVEX0VAR
-            if Nk0>0, idxterms(1:Nk0)=X0b(nt,:); end
-            if any(dh1(nt,idxterms))
-                ht=inv(Nr^2*lambda+dh2(idxterms,idxterms))*dh1(nt,idxterms)';
-                H(nt,idxterms)=ht;               % temporal modulation
+            if Nk0>0, idx0=X0b(nt,:); end
+            ht=dh1(nt,idx1)-X0(nt,idx0)*dh2(idx0,idx1);
+            if any(ht)
+                H(nt,idx1)=(Nr^2*lambda+dh2(idx1,idx1))\ht';               % temporal modulation
             else H(nt,idxterms)=0;
             end
+        % elseif REMOVEX0VAR
+        %     if Nk0>0, idxterms(1:Nk0)=X0b(nt,:); end
+        %     if any(dh1(nt,idxterms))
+        %         ht=inv(Nr^2*lambda+dh2(idxterms,idxterms))*dh1(nt,idxterms)';
+        %         H(nt,idxterms)=ht;               % temporal modulation
+        %     else H(nt,idxterms)=0;
+        %     end
         else
             if any(dh1(nt,:))
-                ht=inv(Nr^2*lambda+dh2)*dh1(nt,:)';
+                ht=(Nr^2*lambda+dh2)\dh1(nt,:)';
                 H(nt,Nk0+1:end)=ht;
             else H(nt,Nk0+1:end)=0;
             end
         end
     end
     if Nk0>0, H(:,1:Nk0)=X0; end
-    
+    % if DOPLOT>1
+    %     err1=sum(sum(H.*dh1,1),2);
+    %     X1Xbb=X1X*bb(:,:)';
+    %     err2=0;
+    %     for k1=1:Nk,
+    %         for k2=1:Nk,
+    %             err2=err2+sum(H(:,k1).*H(:,k2).*X1Xbb(:,k1+(k2-1)*Nk),1);
+    %         end
+    %     end
+    %     err=(err0-2*err1+err2)/(Nt*Nr^2);
+    % end
+    if 1 % resorts components by spatio-temporal variability
+        [nill,idxsort]=sort(sum(abs(H(:,Nk0+1:end)).^2,1).*sum(sum(abs(B(:,Nk0+1:end,:)).^2,1),3),'descend');
+        H(:,Nk0+1:end)=H(:,Nk0+idxsort);
+        B(:,Nk0+1:end,:)=B(:,Nk0+idxsort,:);
+    end
+
     nhist_err=nhist_err+1;
-    if DOPLOT>1, hist_err(1,nhist_err)=err; end %err_last-err;
+    if DOPLOT>1, hist_err(nhist_err)=err; end %err_last-err;
     stopnow=n>miniter & max(max(abs(H-H_old)))<stopcriterion;
     if DOPLOT>1&&(~rem(n,1)||stopnow) % plots
-        subplot(211); plot(fliplr(hist_err(:,1:nhist_err)'),'.-'); set(gca,'xcolor',.75*[1 1 1],'ycolor',.75*[1 1 1]); xlabel('iterations'); ylabel('mse');
+        subplot(211); plot(hist_err(1:nhist_err),'.-'); set(gca,'xcolor',.75*[1 1 1],'ycolor',.75*[1 1 1]); xlabel('iterations'); ylabel('mse');
         subplot(223); plot(H); set(gca,'xcolor',.75*[1 1 1],'ycolor',.75*[1 1 1]); title('temporal modulation');
         subplot(224); imagesc(reshape(permute(B(:,:,:),[1,3,2]),Nr,[])); set(gca,'xcolor',.75*[1 1 1],'ycolor',.75*[1 1 1]); axis equal tight; title('ROI-to-ROI modulation'); colorbar;
         %disp(max(max(abs(H-H_old))));

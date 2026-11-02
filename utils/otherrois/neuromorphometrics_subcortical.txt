@@ -1,0 +1,20 @@
+Left Accumbens
+Right Accumbens
+Left Amygdala
+Right Amygdala
+Left Brainstem
+Right Brainstem
+Left Caudate
+Right Caudate
+Left Hippocampus
+Right Hippocampus
+Left Pallidum
+Right Pallidum
+Left Putamen
+Right Putamen
+Left Thalamus Proper
+Right Thalamus Proper
+Left Ventral DC
+Right Ventral DC
+Left Basal Forebrain
+Right Basal Forebrain

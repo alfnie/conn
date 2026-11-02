@@ -476,7 +476,7 @@ conn_dynexplore_update([1 1 1 1 1]);
             itime=find(ismember(IDX_subject,nsub));
             Nt=numel(itime);
             ntold=nt; nt=max(1,min(Nt, nt));
-            set(ht3,'min',1,'max',Nt,'sliderstep',1/Nt*[1 2]);
+            set(ht3,'min',1,'max',Nt,'sliderstep',[.01 .10]);
             if nt~=ntold, set(ht3,'value',nt); end
             set(ht4c,'string','Stop','userdata',1);
             for n1=nt:Nt
