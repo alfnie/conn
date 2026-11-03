@@ -12,17 +12,17 @@ end
 switch(lower(option))
     case {'measures','empty','measurenames'}
         measures=struct(...
-            'names',{{'group-PCA','group-ICA','group-MVPA','IntrinsicConnectivity','LocalCorrelation','GlobalCorrelation','RadialCorrelation','RadialSimilarity','ALFF','fALFF','InterHemisphericCorrelation'}},... % connectome-level Multivariate Pattern Analysis; Integrated Local Correlation; Radial Correlation Contrast; Intrinsic Connectivity Contrast; Radial Similarity Contrast; 
-            'alt_names',{{{'group PCA','PCA'},{'group ICA','ICA'},{'group MVPA','MVPA','MCOR'},{'IntrinsicConnectivityContrast','ICC'},{'IntegratedLocalCorrelation','ILC','LCOR'},{'GC','GCOR'},{'RadialCorrelationContrast','RCC'},{'RadialSimilarityContrast','RSC'},{'AmplitudOfLowFrequencyFluctuations'},{'FractionalAmplitudOfLowFrequencyFluctuations','FALFF'},{'IHC','HoFC'}}},...
-            'measuretype',{{4,3,2,1,1,5,1,1,6,7,8}},...
-            'localsupport',{{nan,nan,nan,0,25,inf,25,0,nan,nan,nan}},...
-            'global',{{nan,nan,nan,1,0,0,0,1,nan,nan,nan}},...
-            'deriv',{{nan,nan,nan,0,0,0,1,1,nan,nan,nan}},...
-            'norm',{{nan,nan,0,0,0,0,0,0,0,0,0}},... %{nan,nan,0,1,1,1,1,1,1,1}
-            'mask',{{{},{},{},{},{},{},{},{},{},{},{},{},{}}},...
-            'filename',{{'','','','','','','','','','',''}},...
-            'dimensions_out',{{40,40,10,1,1,1,3,3,1,1,1}},...
-            'dimensions_in',{{64,64,64,64,64,64,64,64,64,64,64}});
+            'names',{{'group-PCA','group-ICA','group-MVPA','IntrinsicConnectivity','LocalCorrelation','GlobalCorrelation','RadialCorrelation','RadialSimilarity','ALFF','fALFF','InterHemisphericCorrelation','CorrelationVariability'}},... % connectome-level Multivariate Pattern Analysis; Integrated Local Correlation; Radial Correlation Contrast; Intrinsic Connectivity Contrast; Radial Similarity Contrast; 
+            'alt_names',{{{'group PCA','PCA'},{'group ICA','ICA'},{'group MVPA','MVPA','MCOR'},{'IntrinsicConnectivityContrast','ICC'},{'IntegratedLocalCorrelation','ILC','LCOR'},{'GC','GCOR'},{'RadialCorrelationContrast','RCC'},{'RadialSimilarityContrast','RSC'},{'AmplitudOfLowFrequencyFluctuations'},{'FractionalAmplitudOfLowFrequencyFluctuations','FALFF'},{'IHC','HoFC'},{'CORVAR'}}},...
+            'measuretype',{{4,3,2,1,1,5,1,1,6,7,8,9}},...
+            'localsupport',{{nan,nan,nan,0,25,inf,25,0,nan,nan,nan,0}},...
+            'global',{{nan,nan,nan,1,0,0,0,1,nan,nan,nan,nan}},...
+            'deriv',{{nan,nan,nan,0,0,0,1,1,nan,nan,nan,nan}},...
+            'norm',{{nan,nan,0,0,0,0,0,0,0,0,0,0}},... %{nan,nan,0,1,1,1,1,1,1,1}
+            'mask',{{{},{},{},{},{},{},{},{},{},{},{},{},{},{}}},...
+            'filename',{{'','','','','','','','','','','',''}},...
+            'dimensions_out',{{40,40,10,1,1,1,3,3,1,1,1,1}},...
+            'dimensions_in',{{64,64,64,64,64,64,64,64,64,64,64,64}});
         if strcmpi(option,'measures')
             varargout{1}=measures;
         elseif strcmp(option,'measurenames')
@@ -197,7 +197,8 @@ switch(lower(option))
         if options.measuretype==1
             if options.deriv==1, options.dimensions_out=2+~options.issurface; else options.dimensions_out=1; end
         end
-        if options.dimensions_out>1, options.m=repmat({0},[1,options.dimensions_out]);
+        if options.measuretype==9, options.m={0,0};
+        elseif options.dimensions_out>1, options.m=repmat({0},[1,options.dimensions_out]);
         else options.m=0;
         end
         varargout{1}=options;
@@ -209,7 +210,8 @@ switch(lower(option))
         dall=varargin{4}; % eigenvalues all
         nx=varargin{5}; % # of voxels
 
-        if all(options.localsupport==0), y=x;
+        if options.measuretype==9, y=x;
+        elseif all(options.localsupport==0), y=x;
         elseif all(isinf(options.localsupport)), y=sum(x(:))/nx;
         else
             ok=0;
@@ -235,7 +237,10 @@ switch(lower(option))
 %         if options.measuretype==5
 %             alphaKC=.9;
 %             options.m=options.m+x.*y*(1/(1-alphaKC*d/max(dall))/k);
-        if options.deriv==0
+        if options.measuretype==9, % CORVAR^2 = IC^2 - GCOR^2
+            options.m{1}=options.m{1}+x.*(sum(x(:))/nx); % -> GCOR
+            options.m{2}=options.m{2}+k*abs(y).^2; % -> IC^2
+        elseif options.deriv==0
             if options.global==0, % LCOR, GCOR
                 options.m=options.m+x.*y;
             else % IC
@@ -272,13 +277,15 @@ switch(lower(option))
         
     case 'compute_end'
         options=varargin{1};
-        if options.global>0,
+        if options.measuretype==9, 
+            options.m=sqrt(max(0,options.m{2}-options.m{1}.^2)); % CORVAR^2 = IC^2 - GCOR^2
+        elseif options.global>0,
             if iscell(options.m)
                 for n1=1:numel(options.m)
-                    options.m{n1}=sqrt(options.m{n1});
+                    options.m{n1}=sqrt(max(0,options.m{n1}));
                 end
             else
-                options.m=sqrt(options.m);
+                options.m=sqrt(max(0,options.m));
             end
         end
         if ~isfield(options,'norm')||options.norm

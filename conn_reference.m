@@ -377,6 +377,7 @@ for nopt=1:numel(opts),
                     case 6, line={'ALFF'};
                     case 7, line={'fALFF'};
                     case 8, line={'IHC'};
+                    case 9, line={'CORVAR'};
                 end
                 txt={}; citations={};
                 toptions=CONN_x.vvAnalyses(n);

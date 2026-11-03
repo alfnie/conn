@@ -3195,7 +3195,7 @@ if any(options==13|options==13.1) && any(CONN_x.Setup.steps([3])) && ~(isfield(C
         measures=CONN_x.vvAnalyses(ianalysis).regressors;
         [nill,idx]=sort(cat(1,measures.localsupport{:}));mfieldnames=fieldnames(measures);for nfieldnames=1:numel(mfieldnames), measures.(mfieldnames{nfieldnames})=measures.(mfieldnames{nfieldnames})(idx); end % make analyses with same kernel size consecutive for speed improvemnet (using conn_v2v local storage)
         measuretypes=cat(1,measures.measuretype{:});
-        measuretypes_1=ismember(measuretypes,[1,5]);     %v2v
+        measuretypes_1=ismember(measuretypes,[1,5,9]);     %v2v
         measuretypes_2=ismember(measuretypes,[2,3,4]);   %groupanalyses
         measuretypes_3=ismember(measuretypes,[6,7,8]);   %other
         measuretypes=1*measuretypes_1+2*measuretypes_2+3*measuretypes_3;
