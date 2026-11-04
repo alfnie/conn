@@ -69,6 +69,18 @@ temp={CONN_x.dynAnalyses.name};
 options.analyses_listnames=[options.analyses_listnames,temp(:)'];
 options.analyses_listtype=[options.analyses_listtype, 5+zeros(1,numel(temp))];
 options.analyses_listidx=[options.analyses_listidx, 1:numel(temp)];
+if isempty(guifields.firstlevelinfo)
+    try
+        global CONN_h;
+        state=find(conn_menumanager(CONN_h.menus.m_analyses_03,'state'));
+        switch(state)
+            case 1, listselect=CONN_x.Analyses(CONN_x.Analysis).name;
+            case 2, listselect=CONN_x.vvAnalyses(CONN_x.vvAnalysis).name;
+            case 3, listselect=CONN_x.dynAnalyses(CONN_x.dynAnalysis).name;
+        end
+        guifields.firstlevelinfo=find(ismember(options.analyses_listnames,listselect),1);
+    end
+end
 %                 idx=[];
 %                 if ~isempty(state)&&state(1)==1, idx=find(options.analyses_listtype==1&options.analyses_listidx==CONN_x.Analysis,1); end     % RRC
 %                 if ~isempty(state)&&state(1)==2, idx=find(options.analyses_listtype==2&options.analyses_listidx==CONN_x.Analysis,1); end     % SBC
@@ -83,7 +95,7 @@ options.analyses_listidx=[options.analyses_listidx, 1:numel(temp)];
 %                     elseif ~isempty(idx)&&state(1)==5, CONN_x.dynAnalysis=options.analyses_listidx(idx);
 %                     end
 %                 end 
-%options.firstlevelinfo
+
 options.secondlevel_txt{1}={'standard settings #1: Random Field Theory parametric statistics','standard settings #2: Permutation/randomization analysis','standard settings #3: Threshold Free Cluster Enhancement'};
 options.secondlevel_names{1}={'RFT','RANDOM','TFCE'};
 options.secondlevel_txt{2}={'standard settings #1: Functional Network Connectivity','standard settings #2: Spatial Pairwise Clustering','standard settings #3: Threshold Free Cluster Enhancement','alternative settings for connection-based inferences: parametric univariate statistics ','alternative settings for ROI-based inferences: parametric multivariate statistics','alternative settings for network-based inferences: Network Based Statistics'};
@@ -127,7 +139,7 @@ dlg.handles.preproclog=uicontrol('style','popupmenu','units','norm','position',[
 dlg.handles.txt2=uicontrol('style','text','units','norm','position',[.525,.88,.20,.04],'backgroundcolor',bgc,'foregroundcolor','k','string','Select 1st-level analysis:','fontsize',9+font_offset,'horizontalalignment','left');
 dlg.handles.firstlevelinfo=uicontrol('style','listbox','units','norm','position',[.525,.75,.20,.13],'max',2,'backgroundcolor',bgc,'foregroundcolor','k','string',options.analyses_listnames,'value',guifields.firstlevelinfo,'tooltipstring','Select one or several first-level analyses to include in the methods description','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'firstlevel'},'interruptible','off');
 dlg.handles.txt3=uicontrol('style','text','units','norm','position',[.775,.88,.20,.04],'backgroundcolor',bgc,'foregroundcolor','k','string','Select inferential method used:','fontsize',9+font_offset,'horizontalalignment','left');
-dlg.handles.secondlevelinfo=uicontrol('style','popupmenu','units','norm','position',[.775,.75,.20,.13],'max',1,'backgroundcolor',bgc,'foregroundcolor','k','string',options.secondlevel_txt{guifields.secondleveltype},'value',guifields.secondlevelinfo,'tooltipstring','Select inferential method / false-positive control option used in second-level analyses','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'secondlevel'},'interruptible','off');
+dlg.handles.secondlevelinfo=uicontrol('style','listbox','units','norm','position',[.775,.75,.20,.13],'max',1,'backgroundcolor',bgc,'foregroundcolor','k','string',options.secondlevel_txt{guifields.secondleveltype},'value',guifields.secondlevelinfo,'tooltipstring','Select inferential method / false-positive control option used in second-level analyses','fontsize',9+font_offset,'callback',{@conn_referenceexplore_update,'secondlevel'},'interruptible','off');
 
 if isfield(CONN_gui,'isjava')&&~CONN_gui.isjava
     set(dlg.handles.hfig,'units','pixels');

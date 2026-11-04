@@ -515,7 +515,7 @@ else
                 ximage=CONN_MM.CDATA{thishandle}{n1}{x};
                 if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, 
                     if mean(CONN_gui.backgroundcolor)<.5, ximage=.15*ones(size(ximage)); % background color for dropdown menus
-                    else ximage=.85*ones(size(ximage)); 
+                    else ximage=.975*ones(size(ximage)); 
                     end
                     %ximage=max(0,min(1,ximage*1)); ximage=ximage.*repmat(.75+.20*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
                     if 0,%CONN_MM.MENU{thishandle}.order(1)~='h'
@@ -625,7 +625,7 @@ else
                         else tximage=ximage(round(linspace(1+(n2-1)/nstrings*size(ximage,1),n2/nstrings*size(ximage,1),xextent(4)*1)),round(linspace(1,size(ximage,2),xextent(3)*1)),:);
                         end
                         fontcolor=CONN_MM.MENU{thishandle}.fontcolor(min(size(CONN_MM.MENU{thishandle}.fontcolor,1),x),:);
-                        if x~=1 || strcmp(lower(CONN_MM.MENU{thishandle}.bordertype),'xround')
+                        if x~=1 || strcmp(lower(CONN_MM.MENU{thishandle}.bordertype),'xround') || (~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon), 
                             mx1=shiftdim(mean(mean(tximage,1),2),1);mx2=fontcolor;
                             px0=abs(mx1-mx2);
                             fontcolor1=fontcolor.*px0+min(1,mx1+1).*(1-px0); px1=mean(abs(mx1-fontcolor1));
