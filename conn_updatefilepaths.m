@@ -79,8 +79,11 @@ if nargin==1,
                             end
                         end
                     end
-                    try,
-                        if isempty(var{3})&&~isempty(varargin{1}{3}), var{3}=varargin{1}{3}; end
+                    if isstruct(var{3})&&isfield(var{3},'dataset_orig'), var{3}=[]; % note: resets import-BIDS-dataset information if original folder location has changed
+                    else
+                        try,
+                            if isempty(var{3})&&~isempty(varargin{1}{3}), var{3}=varargin{1}{3}; end
+                        end
                     end
                 end
             end
@@ -151,7 +154,7 @@ if nargin==1,
                     %[V,str,icon]=conn_getinfo(filename);
                     var=conn_file(filename);
                     try,
-                        if isempty(var{3})&&~isempty(varargin{1}{3}), var{3}=varargin{1}{3}; end
+                        if isempty(var{3})&&~isempty(varargin{1}{3})&&~(isstruct(varargin{1}{3})&&isfield(varargin{1}{3},'dataset_orig')), var{3}=varargin{1}{3}; end
                     end
                 elseif iscleared,
                     var={[],[],[]};
