@@ -4314,7 +4314,7 @@ else
                         CONN_h.menus.m_setup_00{7}=conn_menu('popup',boffset+[.49,.22,.19,.05],'Temporal weighting',analysistypes,'<HTML> Allows users to explicitly define task-specific weights associated with each scan/timepoint <br/> - the default behavior (when selecting <i>none</i>) is to use as temporal weights for each condition the block timeseries convolved with the canonical hemodynamic response function <br/> - select a first-level covariate to multiply these default weights by the selected 1st-level covariate timeseries</HTML>','conn(''gui_setup'',7);');
                         CONN_h.menus.m_setup_00{10}=conn_menu('popup',boffset+[.49,.14,.19,.05],'Time-frequency decomposition',{'none','fixed band-pass filter','frequency decomposition (filter bank)','temporal decomposition (sliding-window)'},'<HTML>optional condition-specific frequency filter or time/frequency decompositions:<br/> - select <i>fixed band-pass filter</i> to define a condition-specific band-pass filter for the current condition (in addition to the filter specified <br/>during <i>Denoising</i> which applies to all conditions equally) <br/> - when selecting frequency- or temporal- decompositions, several new conditions will be automatically created during the Denoising step<br/> by partitioning the current condition in the frequency or temporal domains, respectively</HTML>','conn(''gui_setup'',10);');
                         CONN_h.menus.m_setup_00{11}=conn_menu('popup',boffset+[.70,.22,.14,.05],'Missing conditions',{'no missing data','allow missing data'},'<HTML>Treatment of potential missing-conditions across some subjects: (this option applies to <b>all conditions)</b><br/> - If one condition is defined as <i>not present</i> (or its <i>onset</i> and <i>duration</i> fields are left empty) on <i>all</i> sessions of a given subject, that subject/condition''s condition-specific connectivity <br/> can not be computed. CONN treats this as ''missing data'' and the subject(s) with one missing condition will be automatically disregarded in any second-level analyses that involves this condition <br/> - Select ''<i>No missing data</i>'' if no missing data should be expected. CONN will warn the user if a condition has been set as <i>not present</i> (or it has missing  <i>onset/duration</i> fields) in <i>all</i> of the sessions <br/> of any given subject (this check helps avoid accidentally entering incomplete condition information). <br/> - Select ''<i>Allow missing data</i>'' if missing data should be expected, and CONN will skip the above check (e.g. allowing attrition in longitudinal analyses)</HTML>','conn(''gui_setup'',11);');                        
-                        CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.13,.072,.40,.035],'',{' 🛠️  Condition tools','Merge (union) of selected conditions','Merge (not-in-union) of selected conditions','Copy selected condition to covariates list','Move selected condition to covariates list','Import condition info from text file(s)','Update changes from Setup.Conditions to Denoising tab'},'<HTML> - <i>merge conditions</i> combines all onsets/durations from multiple conditions into a single new condition (as the union of all intervals, or as those intervals not in their union)<br/> - <i>copy to covariate list</i> creates a new first-level covariate containing the hrf-convolved condition effects<br/>  - <i>move to covariate list</i> deletes this condition and creates instead a new first-level covariate containing the hrf-convolved <br/> condition effects (e.g. for Fair et al. resting state analyses of task-related data)<br/> - <i>Import condition</i> imports condition names and onsets/durations values (for all subjects/sessions) from a text file<br/> Text file may be in CONN-legacy or BIDS format (see <i>help conn_importcondition</i> for file-format information</i>)<br/> - <i>update changes</i> updates the Denoising tab information to reflect any modifications in condition definitions or options performed here in the Setup tab</HTML>','conn(''gui_setup'',14);');
+                        CONN_h.menus.m_setup_00{14}=conn_menu('popup',boffset+[.13,.072,.40,.035],'',{' 🛠️  Condition tools','Create new ''rest'' condition spanning all functional data','Create new ''session*'' conditions spanning all functional data separately within each run/session','Create new ''merge'' condition by combining all blocks in the selected conditions','Create new ''merge'' condition by combining all blocks missing from the selected conditions','Copy selected condition to covariates list','Move selected condition to covariates list','Import condition info from text file(s)','Update changes from Setup.Conditions to Denoising tab'},'<HTML> - <i>create new condition</i> creates a new condition that combines all of the functional runs/session for each subject, or a new separate condition for each functional run/session<br/> - <i>merge conditions</i> combines all onsets/durations from multiple conditions into a single new condition (as the union of all intervals, or as those intervals not in their union)<br/> - <i>copy to covariate list</i> creates a new first-level covariate containing the hrf-convolved condition effects<br/>  - <i>move to covariate list</i> deletes this condition and creates instead a new first-level covariate containing the hrf-convolved <br/> condition effects (e.g. for Fair et al. resting state analyses of task-related data)<br/> - <i>Import condition</i> imports condition names and onsets/durations values (for all subjects/sessions) from a text file<br/> Text file may be in CONN-legacy or BIDS format (see <i>help conn_importcondition</i> for file-format information</i>)<br/> - <i>update changes</i> updates the Denoising tab information to reflect any modifications in condition definitions or options performed here in the Setup tab</HTML>','conn(''gui_setup'',14);');
 						set(CONN_h.menus.m_setup_00{3},'max',2);
 						set(CONN_h.menus.m_setup_00{2},'string',[repmat('Subject ',[CONN_x.Setup.nsubjects,1]),num2str((1:CONN_x.Setup.nsubjects)')],'max',2,'value',1:CONN_x.Setup.nsubjects);
 						set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.conditions.names,'max',2);
@@ -4456,10 +4456,10 @@ else
                                     tlvalue=get(CONN_h.menus.m_setup_00{14},'value');
                                     set(CONN_h.menus.m_setup_00{14},'value',1);
                                 end
-                                if varargin{2}==14&&tlvalue==6, % import conditions from file
+                                if varargin{2}==14&&tlvalue==8, % import conditions from file
                                     conn_importcondition;
                                     set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.conditions.names);
-                                elseif varargin{2}==14&&tlvalue==7 % propagate to Denoising
+                                elseif varargin{2}==14&&tlvalue==9 % propagate to Denoising
                                     if CONN_x.isready(2), 
                                         answ=conn_questdlg({'This step will update the Denoising tab information to reflect any modifications in condition definitions',' or options performed here in the Setup tab (e.g. after additing a new condition or changing an existing one)',' ','(note: same effect as pressing Setup.Done but limited only to processes involving Setup.Conditions information)'}, 'conn','Start','Cancel','Start');
                                         if strcmp(answ,'Start'),
@@ -4470,14 +4470,59 @@ else
                                     else
                                         conn_msgbox({'Setup step has not been run yet','Please press ''Next'' button when ready to propagate all Setup information to the Denoising step'},'',2);
                                     end
+                                elseif varargin{2}==14&&tlvalue==2 % create new
+                                    nconditions0=length(CONN_x.Setup.conditions.names);
+                                    newname='rest';
+                                    icondition=strmatch(newname,CONN_x.Setup.conditions.names(1:end-1),'exact');
+                                    if isempty(icondition)
+                                        nconditions0=length(CONN_x.Setup.conditions.names);
+                                        CONN_x.Setup.conditions.names{nconditions0+1}=' ';
+                                        CONN_x.Setup.conditions.names{nconditions0}=newname;
+                                        CONN_x.Setup.conditions.model{nconditions0}=[];
+                                        CONN_x.Setup.conditions.param(nconditions0)=0;
+                                        CONN_x.Setup.conditions.filter{nconditions0}=[];
+                                    else nconditions0=icondition(1);
+                                    end
+                                    for n1sub=1:CONN_x.Setup.nsubjects, 
+                                        for n1ses=1:CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),n1sub)),
+                                            CONN_x.Setup.conditions.values{n1sub}{nconditions0}{n1ses}={0,inf};
+                                        end
+                                    end
+                                    nconditions=nconditions0;
+                                    set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.conditions.names,'value',max(1,min(length(CONN_x.Setup.conditions.names)-1,max(nconditions))));
+                                elseif varargin{2}==14&&tlvalue==3 % create new per run
+                                    nconditions0=[];
+                                    for n1ses=1:max(CONN_x.Setup.nsessions),
+                                        newname=sprintf('Session_%d',n1ses);
+                                        icondition=strmatch(newname,CONN_x.Setup.conditions.names(1:end-1),'exact');
+                                        if isempty(icondition)
+                                            nconditions0(n1ses)=length(CONN_x.Setup.conditions.names);
+                                            CONN_x.Setup.conditions.names{nconditions0(n1ses)+1}=' ';
+                                            CONN_x.Setup.conditions.names{nconditions0(n1ses)}=newname;
+                                            CONN_x.Setup.conditions.model{nconditions0(n1ses)}=[];
+                                            CONN_x.Setup.conditions.param(nconditions0(n1ses))=0;
+                                            CONN_x.Setup.conditions.filter{nconditions0(n1ses)}=[];
+                                        else nconditions0(n1ses)=icondition(1);
+                                        end
+                                    end
+                                    for n1sub=1:CONN_x.Setup.nsubjects, 
+                                        for n1ses=1:CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),n1sub)), % for each condition
+                                            CONN_x.Setup.conditions.values{n1sub}{nconditions0(n1ses)}{n1ses}={0,inf}; % same run
+                                            for n2ses=[1:n1ses-1,n1ses+1:CONN_x.Setup.nsessions(min(length(CONN_x.Setup.nsessions),n1sub))]
+                                                CONN_x.Setup.conditions.values{n1sub}{nconditions0(n1ses)}{n2ses}={[],[]}; % diff runs
+                                            end
+                                        end
+                                    end
+                                    nconditions=nconditions0;
+                                    set(CONN_h.menus.m_setup_00{1},'string',CONN_x.Setup.conditions.names,'value',max(1,min(length(CONN_x.Setup.conditions.names)-1,max(nconditions))));
                                 else
                                     nconditions=get(CONN_h.menus.m_setup_00{1},'value');
                                     nconditions0=length(CONN_x.Setup.conditions.names);
                                     nconditions=setdiff(nconditions,[nconditions0]);
                                     if ~isempty(nconditions)
-                                        if ((varargin{2}==14&&tlvalue==2)||(varargin{2}==14&&tlvalue==3)||(nargin>=3&&isequal(varargin{3},'replicateopposite'))), % merge | replicateopposite
+                                        if ((varargin{2}==14&&tlvalue==4)||(varargin{2}==14&&tlvalue==5)||(nargin>=3&&isequal(varargin{3},'replicateopposite'))), % merge | replicateopposite
                                             if ~isempty(nconditions)
-                                                if (varargin{2}==14&&tlvalue==3)||(nargin>=3&&isequal(varargin{3},'replicateopposite')), doopposite=true; else doopposite=false; end
+                                                if (varargin{2}==14&&tlvalue==5)||(nargin>=3&&isequal(varargin{3},'replicateopposite')), doopposite=true; else doopposite=false; end
                                                 newname='(merged)';
                                                 CONN_x.Setup.conditions.names{nconditions0+1}=' ';
                                                 if any(strcmp(CONN_x.Setup.conditions.names,newname)), CONN_x.Setup.conditions.names{nconditions0}=strcat(CONN_x.Setup.conditions.names{nconditions});
@@ -4537,7 +4582,7 @@ else
                                             CONN_x.Setup.conditions.param=CONN_x.Setup.conditions.param(nconditionsnew);
                                             CONN_x.Setup.conditions.filter=CONN_x.Setup.conditions.filter(nconditionsnew);
                                         else
-                                            if (varargin{2}==14&&tlvalue==4)||(nargin>=3&&isequal(varargin{3},'copy')), conn_convertcondition2covariate('-DONOTREMOVE',nconditions); % copy
+                                            if (varargin{2}==14&&tlvalue==6)||(nargin>=3&&isequal(varargin{3},'copy')), conn_convertcondition2covariate('-DONOTREMOVE',nconditions); % copy
                                             elseif isequal(conn_questdlg({['This step will delete the selected conditions ',sprintf('%s ',CONN_x.Setup.conditions.names{nconditions})],'Do you want to proceed?'},'','Yes','No','Yes'),'Yes'), conn_convertcondition2covariate(nconditions);  % move
                                             end
                                         end
