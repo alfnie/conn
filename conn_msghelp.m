@@ -108,7 +108,7 @@ switch(option)
                 else str(idx(1):end)=regexprep(str(idx(1):end),'<HTML>(.*)</HTML>','<HTML>----- $1</HTML>'); 
                 end
             end
-            if ~ishandle(dlg.fig), return; end
+            if ~ishandle(dlg.fig), set(dlg.fig,'pointer','arrow'); return; end
             set(dlg.title,'string',strtitle);
             set(dlg.box,'string',conn_menu_formathtml(str),'value',[]);
             set(dlg.goto,'callback',sprintf('conn gui_help url http://www.nitrc.org/forum/message.php?msg_id=%s',strid));

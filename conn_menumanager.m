@@ -514,8 +514,14 @@ else
                 x=1+(CONN_MM.MENU{thishandle}.value==n1 & ~CONN_MM.MENU{thishandle}.state(n1))+2*CONN_MM.MENU{thishandle}.state(n1);
                 ximage=CONN_MM.CDATA{thishandle}{n1}{x};
                 if ~CONN_gui.doemphasis3&&CONN_MM.MENU{thishandle}.linkon, 
-                    if mean(CONN_gui.backgroundcolor)<.5, ximage=.15*ones(size(ximage)); % background color for dropdown menus
-                    else ximage=.975*ones(size(ximage)); 
+                    if mean(CONN_gui.backgroundcolor)<.5, 
+                        if x==2, ximage=.20*ones(size(ximage)); % background color for dropdown menus
+                        else ximage=.15*ones(size(ximage)); 
+                        end
+                    else 
+                        if x==2, ximage=.95*ones(size(ximage)); 
+                        else ximage=.975*ones(size(ximage)); 
+                        end
                     end
                     %ximage=max(0,min(1,ximage*1)); ximage=ximage.*repmat(.75+.20*tanh((size(ximage,1):-1:1)/2)'*tanh(min(0:size(ximage,2)-1,size(ximage,2)-1:-1:0)/4),[1,1,size(ximage,3)]); 
                     if 0,%CONN_MM.MENU{thishandle}.order(1)~='h'
